@@ -45,7 +45,7 @@ $root = Split-Path -Parent $PSScriptRoot
 
 if (-not $Bundle) {
     $version = Get-BundleVersion -Root $root
-    $Bundle = Join-Path $root "patches/build/libs/patches-$version.mpp"
+    $Bundle = Get-ReleaseBundlePath -Root $root -Version $version
     if (-not (Test-Path -LiteralPath $Bundle -PathType Leaf)) {
         throw "No bundle for version $version at $Bundle. Run :patches:generatePatchesList then :patches:buildAndroid."
     }

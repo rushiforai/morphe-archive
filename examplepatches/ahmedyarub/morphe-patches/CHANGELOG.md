@@ -1,3 +1,19 @@
+## [1.6.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.6.0...v1.6.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Collapse duplicate 447 target to build 385311927 ([056e323](https://github.com/ahmedyarub/morphe-patches/commit/056e323504470910f7e5c9653efde5d47518c851))
+* **Instagram:** Support 447.0.0.55.81 build 385311927 ([256fd62](https://github.com/ahmedyarub/morphe-patches/commit/256fd62002528e79f2b43d3f189505bdf329d36d))
+* **Instagram:** Support 447.0.0.55.81 build 385311927 ([0c7c67c](https://github.com/ahmedyarub/morphe-patches/commit/0c7c67cb75cd032d43a3c4e05a131dd991af3327))
+
+## [1.6.1-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.6.0...v1.6.1-dev.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Collapse duplicate 447 target to build 385311927 ([056e323](https://github.com/ahmedyarub/morphe-patches/commit/056e323504470910f7e5c9653efde5d47518c851))
+* **Instagram:** Support 447.0.0.55.81 build 385311927 ([256fd62](https://github.com/ahmedyarub/morphe-patches/commit/256fd62002528e79f2b43d3f189505bdf329d36d))
+* **Instagram:** Support 447.0.0.55.81 build 385311927 ([0c7c67c](https://github.com/ahmedyarub/morphe-patches/commit/0c7c67cb75cd032d43a3c4e05a131dd991af3327))
+
 ## [1.6.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.5.1...v1.6.0) (2026-09-16)
 
 ### 🐛 Bug Fixes

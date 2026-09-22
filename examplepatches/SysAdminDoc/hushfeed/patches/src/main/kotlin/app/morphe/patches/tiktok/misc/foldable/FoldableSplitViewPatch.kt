@@ -33,6 +33,7 @@ val foldableSplitViewPatch = bytecodePatch(
     description = "Shows comments beside the video on windows wider than a configurable threshold. Off by default. Switch: Hushfeed settings > App.",
     default = false,
 ) {
+    category("Comments")
     compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(sharedExtensionPatch, settingsPatch)
     execute {

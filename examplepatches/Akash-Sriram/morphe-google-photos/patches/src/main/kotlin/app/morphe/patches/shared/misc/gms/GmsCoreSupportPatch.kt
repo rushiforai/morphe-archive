@@ -46,16 +46,26 @@ internal const val EXTENSION_CLASS_DESCRIPTOR =
 internal const val GMS_CORE_VENDOR_GROUP_ID = "app.revanced"
 
 object PackageNameConfig {
-    var isPackageNameChangeEnabled: Boolean = false
-    var effectivePackageName: String = ""
+    /**
+     * If true, forces the official package name (com.google.android.apps.photos).
+     * Defaults to false, so the mod package (app.morphe.android.apps.photos) is active by default.
+     */
+    var useOfficialPackageName: Boolean = false
+    var customPackageName: String = ""
+
+    val isPackageNameChangeEnabled: Boolean
+        get() = !useOfficialPackageName
+
+    val effectivePackageName: String
+        get() = if (useOfficialPackageName) "" else customPackageName
 
     fun resolvePackageName(fromPackageName: String, fallbackPackageName: String): String {
-        return if (isPackageNameChangeEnabled && effectivePackageName.isNotEmpty()) {
-            effectivePackageName
-        } else if (isPackageNameChangeEnabled) {
-            fallbackPackageName
-        } else {
+        return if (useOfficialPackageName) {
             fromPackageName
+        } else if (customPackageName.isNotEmpty()) {
+            customPackageName
+        } else {
+            fallbackPackageName
         }
     }
 }
@@ -617,9 +627,13 @@ fun gmsCoreSupportResourcePatch(
                     setAttribute("android:value", "$GMS_CORE_VENDOR_GROUP_ID.android.gms")
                 }
 
-                // Add REQUEST_INSTALL_PACKAGES permission for in-app updates (not needed for Google Photos)
-                if (fromPackageName != "com.google.android.apps.photos") {
-                    val manifestNode = document.getElementsByTagName("manifest").item(0)
+                // Add REQUEST_INSTALL_PACKAGES permission for in-app updates
+                val manifestNode = document.getElementsByTagName("manifest").item(0)
+                val existingPermissions = document.getElementsByTagName("uses-permission")
+                val alreadyAdded = (0 until existingPermissions.length).any { i ->
+                    (existingPermissions.item(i) as? Element)?.getAttribute("android:name") == "android.permission.REQUEST_INSTALL_PACKAGES"
+                }
+                if (!alreadyAdded) {
                     val permissionNode = document.createElement("uses-permission")
                     permissionNode.setAttribute("android:name", "android.permission.REQUEST_INSTALL_PACKAGES")
                     manifestNode.appendChild(permissionNode)
@@ -635,7 +649,7 @@ fun gmsCoreSupportResourcePatch(
 
             val transformations = mutableMapOf(
                 "com.google.android.c2dm" to "$GMS_CORE_VENDOR_GROUP_ID.android.c2dm",
-                "com.google.android.libraries.photos.api.mars" to "$GMS_CORE_VENDOR_GROUP_ID.android.apps.photos.api.mars",
+                "com.google.android.libraries.photos.api.mars" to "$packageName.api.mars",
                 "</queries>" to "<package android:name=\"$GMS_CORE_VENDOR_GROUP_ID.android.gms\"/></queries>",
             )
 

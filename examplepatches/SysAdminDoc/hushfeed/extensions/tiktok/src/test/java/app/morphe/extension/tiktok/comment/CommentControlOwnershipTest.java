@@ -117,15 +117,21 @@ public class CommentControlOwnershipTest {
                 nativeIcon, cell.nativeRow.icon.getDrawable());
     }
 
-    @Test public void current47ControlsWinWhenOlderResourcesStillExistElsewhere() {
-        Cell cell = new Cell(0x7f000201, 0x7f000202);
+    @Test public void olderBuildNamesAreNeverTakenForTheThumbsDown() {
+        // jlk and m3b were the thumbs down and its icon on 46.x. On 47.0.3 they name other
+        // views, so a row carrying them is left to TikTok even with the switch on.
+        Cell cell = new Cell(0x7f000101, 0x7f000102);
+        ColorDrawable nativeIcon = new ColorDrawable(Color.GREEN);
+        cell.nativeRow.icon.setImageDrawable(nativeIcon);
         CommentTools.setDislikeTouchListener(cell.nativeRow.button, cell.nativeRow);
 
         Settings.BLOCK_FROM_COMMENT.save(true);
         bind(cell);
 
-        assertBlockTouch(cell.nativeRow.button);
-        assertTrue(cell.nativeRow.icon.getDrawable() instanceof BlockGlyphDrawable);
+        assertSame("a 46.x id had its icon swapped for the block symbol",
+                nativeIcon, cell.nativeRow.icon.getDrawable());
+        tap(cell.nativeRow.button);
+        assertEquals("a 46.x id lost its own touch to the block gesture", 1, cell.nativeRow.taps);
     }
 
     @Test public void aNativeRebindRefreshesTheListenerThatWillBeHandedBack() {
@@ -235,7 +241,7 @@ public class CommentControlOwnershipTest {
         };
         final NativeRow nativeRow = new NativeRow(itemView.getContext());
 
-        Cell() { this(0x7f000101, 0x7f000102); }
+        Cell() { this(0x7f000201, 0x7f000202); }
 
         Cell(int buttonId, int iconId) {
             nativeRow.button.setId(buttonId);
@@ -255,9 +261,9 @@ public class CommentControlOwnershipTest {
             super(context);
             actionRow = new FrameLayout(context);
             button = new RelativeLayout(context);
-            button.setId(0x7f000101);
+            button.setId(0x7f000201);
             icon = new ImageView(context);
-            icon.setId(0x7f000102);
+            icon.setId(0x7f000202);
             button.addView(icon);
             actionRow.addView(button);
             addView(actionRow);

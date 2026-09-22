@@ -883,7 +883,8 @@ public final class FeedItemsFilter {
 
         FeedFilterCounters.removed(source, removed,
             reasonCounts.isEmpty() ? null : reasonCounts.keySet().iterator().next());
-        FeedFilterFeedback.onBatchResult(initialSize, resultList.size(), reasonCounts, System.currentTimeMillis());
+        FeedFilterFeedback.onBatchResult(source, initialSize, resultList.size(), reasonCounts,
+                System.currentTimeMillis());
         rememberProcessedList(listId, ListFingerprint.from(resultList, extractor), filterMask);
 
         if (verbose && removed > 0 && shouldLogBatch()) {

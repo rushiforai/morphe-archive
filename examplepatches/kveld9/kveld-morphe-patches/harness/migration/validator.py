@@ -194,9 +194,9 @@ class AdversarialValidator:
         native_checks = []
         if self.elf_analyzer:
             if not self.elf_analyzer.is_valid:
-                blocking.append("libchrome.so is not a valid ELF64 binary.")
-            if not self.elf_analyzer.is_aarch64:
-                blocking.append("libchrome.so architecture is not ARM64 (AArch64).")
+                blocking.append("libchrome.so is not a valid ELF binary.")
+            if not (self.elf_analyzer.is_aarch64 or getattr(self.elf_analyzer, "is_arm32", False)):
+                blocking.append("libchrome.so architecture is not supported (expected ARM64 or ARM32).")
 
             # Check known hosts from patch file
             hosts_to_check = [
@@ -464,7 +464,7 @@ class AdversarialValidator:
         return PatchAuditResult(
             patch_name="Native Bloat Slimmer",
             status=PatchStatus.VERIFIED,
-            evidence=["Raw resource patch stripping bloat companion binaries in lib/arm64-v8a/"],
+            evidence=["Raw resource patch stripping bloat companion binaries across lib/arm64-v8a/ and lib/armeabi-v7a/"],
         )
 
     def _audit_vivaldi_telemetry_patch(self) -> PatchAuditResult:

@@ -288,6 +288,13 @@ private val haiagaruBytecodePatch = bytecodePatch {
     execute {
         val profile = profileFor(packageMetadata.versionName)
 
+        // ChMate 226/241 remove the device-info footer with a greedy regular
+        // expression before deciding whether the user wrote any other text.
+        // Text appended after the footer is swallowed as well, so a non-empty
+        // post can be rejected as "device information only".  Let the posting
+        // endpoint perform the authoritative body validation instead.
+        patchPostPreflightValidation(packageMetadata.versionName)
+
         mutableClassDefBy(profile.providerClass).methods.single { method ->
             method.name == "onCreate"
                 && method.returnType == "Z"
@@ -463,6 +470,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
         when (packageMetadata.versionName) {
             "0.8.10.191 dev" -> {
+                patchProgrammableNg191()
                 patchPreIoHissiMenu(
                     "Lo/setExtraParameter;", "d",
                     "Lo/processAdDisplayErrorPostbackForUserError;",
@@ -473,6 +481,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchLegacyTalkAuthIntegrity()
             }
             "0.8.10.226 dev" -> {
+                patchProgrammableNg226()
                 patchPreIoHissiMenu()
                 patchThreadBannerAdWrapper("Lo/TTVideoLandingPageLink2Activity1;")
                 patchLegacyThreadListAd("Lo/listener;")
@@ -492,13 +501,22 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 )
             }
             "0.8.10.243 dev" -> {
+                patchProgrammableNgModern("Lo/zzdic;", "a", "c")
                 patchSetTextCalls()
                 patchModernThreadListAd()
                 patchModernTalkDatLoading()
                 patchModernTalkPostIntegrity()
                 patchModernTalkIntegrityPrimitives()
             }
+            "0.8.10.241" -> {
+                patchSetTextCalls()
+                patchIoTalkDatLoading()
+                patchIoTalkPostIntegrity()
+            }
             else -> patchSetTextCalls()
+        }
+        if (packageMetadata.versionName == "0.8.10.241") {
+            patchProgrammableNgModern("Lo/RewardedInterstitialAdLoadCallback;", "a", "a")
         }
         patchTabletThreadHeaderAdSpace(packageMetadata.versionName)
         when (packageMetadata.versionName) {
@@ -887,6 +905,139 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkAuthInt
         "invoke-static {v$authClientRegister}, " +
             "$EXTENSION->normalizeLegacyTalkAuthIntegrity(Ljava/lang/Object;)V",
     )
+    // The generated client may refresh its static integrity cache after construction.
+    // Route the reflected authenticator through a one-shot recovery wrapper so that
+    // the cache is normalized at the actual invocation boundary as well.
+    val invokes = method.implementation!!.instructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: return@mapIndexedNotNull null
+        if (reference.definingClass == "Ljava/lang/reflect/Method;"
+            && reference.name == "invoke"
+            && reference.returnType == "Ljava/lang/Object;"
+            && reference.parameterTypes.map(CharSequence::toString) == listOf(
+                "Ljava/lang/Object;", "[Ljava/lang/Object;"
+            )
+        ) index else null
+    }
+    check(invokes.isNotEmpty()) { "ChMate legacy Talk authenticator invocation was not found" }
+    invokes.asReversed().forEach { index ->
+        when (val invocation = method.implementation!!.instructions[index]) {
+            is FiveRegisterInstruction -> method.replaceInstruction(
+                index,
+                "invoke-static {v${invocation.registerC}, v${invocation.registerD}, " +
+                    "v${invocation.registerE}}, $EXTENSION->invokeLegacyTalkAuthenticator(" +
+                    "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                    "Ljava/lang/Object;",
+            )
+            is RegisterRangeInstruction -> method.replaceInstruction(
+                index,
+                "invoke-static/range {v${invocation.startRegister} .. " +
+                    "v${invocation.startRegister + 2}}, $EXTENSION->invokeLegacyTalkAuthenticator(" +
+                    "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                    "Ljava/lang/Object;",
+            )
+            else -> error("ChMate legacy Talk authenticator registers were not found")
+        }
+    }
+}
+
+/** Bypass 241's generated signature gate by publishing the Talk JSON as DAT. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoTalkDatLoading() {
+    val networkClass = mutableClassDefBy("Lo/VLj;")
+    val method = networkClass.methods.singleOrNull { candidate ->
+        candidate.name == "e"
+            && candidate.returnType == "Lo/VLj\$RemoteActionCompatParcelizer;"
+            && candidate.parameterTypes.map(CharSequence::toString) == listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+                "Z",
+                "Lo/GNk17;",
+            )
+    } ?: error("ChMate 241 Talk DAT request method was not found")
+    val instructions = method.implementation?.instructions
+        ?: error("ChMate 241 Talk DAT request method has no implementation")
+    val candidates = instructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: return@mapIndexedNotNull null
+        if (reference.returnType != "Ljava/io/File;"
+            || reference.parameterTypes.map(CharSequence::toString) != listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+            )
+            || instructions.getOrNull(index + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT
+        ) return@mapIndexedNotNull null
+        index
+    }
+    check(candidates.size == 1) {
+        "Expected one ChMate 241 Talk cache invocation, found ${candidates.size}"
+    }
+    val cacheCall = candidates.single()
+    val invocation = instructions[cacheCall] as FiveRegisterInstruction
+    val urlInfoRegister = invocation.registerD
+    val cacheFileRegister = (instructions[cacheCall + 1] as OneRegisterInstruction).registerA
+    val scratchRegister = method.findFreeRegister(cacheCall + 2)
+    method.addInstructionsWithLabels(
+        cacheCall + 2,
+        """
+            invoke-virtual {v$urlInfoRegister}, Ljp/syoboi/a2chMate/client/BBSUrlInfo;->D()Ljava/lang/String;
+            move-result-object v$scratchRegister
+            invoke-static {v$scratchRegister, v$cacheFileRegister}, $EXTENSION->loadLiveTalkDat(Ljava/lang/String;Ljava/io/File;)Z
+            move-result v$scratchRegister
+            if-eqz v$scratchRegister, :haiagaru_241_normal_download
+            new-instance v$scratchRegister, Lo/VLj${'$'}RemoteActionCompatParcelizer;
+            invoke-direct {v$scratchRegister, v$cacheFileRegister, v$urlInfoRegister}, Lo/VLj${'$'}RemoteActionCompatParcelizer;-><init>(Ljava/io/File;Ljp/syoboi/a2chMate/client/BBSUrlInfo;)V
+            return-object v$scratchRegister
+            :haiagaru_241_normal_download
+            nop
+        """.trimIndent(),
+    )
+}
+
+/** 241 uses the same generated Talk authenticator behind a differently obfuscated caller. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoTalkPostIntegrity() {
+    val networkClass = mutableClassDefBy("Lo/VLj;")
+    val candidates = networkClass.methods.flatMap { method ->
+        val instructions = method.implementation?.instructions ?: return@flatMap emptyList()
+        instructions.mapIndexedNotNull { index, instruction ->
+            val reference = (instruction as? ReferenceInstruction)?.reference
+                as? MethodReference ?: return@mapIndexedNotNull null
+            if (reference.definingClass != "Ljava/lang/reflect/Method;"
+                || reference.name != "invoke"
+                || reference.returnType != "Ljava/lang/Object;"
+                // The first reflection call reads a String used as a request field.
+                // The generated Talk poster is the subsequent void-style invocation.
+                || instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+                || reference.parameterTypes.map(CharSequence::toString) != listOf(
+                    "Ljava/lang/Object;",
+                    "[Ljava/lang/Object;",
+                )
+            ) return@mapIndexedNotNull null
+            val isTalkPost = instructions.subList(maxOf(0, index - 260), index).any { previous ->
+                ((previous as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                    "https://api.talk-platform.com/v1/bbs.cgi"
+            }
+            if (isTalkPost) method to index else null
+        }
+    }
+    check(candidates.size == 1) {
+        "Expected one ChMate 241 Talk posting invocation, found ${candidates.size}"
+    }
+    val (method, index) = candidates.single()
+    when (val invocation = method.implementation!!.instructions[index]) {
+        is FiveRegisterInstruction -> method.replaceInstruction(
+            index,
+            "invoke-static {v${invocation.registerC}, v${invocation.registerD}, " +
+                "v${invocation.registerE}}, $EXTENSION->invokeIoTalkPoster(" +
+                "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                "Ljava/lang/Object;",
+        )
+        is RegisterRangeInstruction -> method.replaceInstruction(
+            index,
+            "invoke-static/range {v${invocation.startRegister} .. " +
+                "v${invocation.startRegister + 2}}, $EXTENSION->invokeIoTalkPoster(" +
+                "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                "Ljava/lang/Object;",
+        )
+        else -> error("ChMate 241 Talk posting invocation registers were not found")
+    }
 }
 
 @Suppress("unused")
@@ -1775,6 +1926,30 @@ private fun MutableMethod.bypassSettingsTamperTrap(profile: ChMateProfile) {
     val instructions = implementation?.instructions
         ?: error("ChMate settings onCreate has no implementation")
     if (profile.settingsWindowFeatureDivideTrap) {
+        // 0.8.10.241 also has a certificate-dependent settings decoy before
+        // the real Activity setup.  Its `(n - 1) * n % 2` expression is
+        // unconditionally zero, and the resulting remainder is only used to
+        // select a Toast resource.  The previous patch covered the later
+        // DIV_INT traps but not this REM_INT trap, so Android 17 reached this
+        // block while opening Settings and crashed at the reported line 312.
+        val toastRemainderIndex = instructions.indices.singleOrNull { index ->
+            if (instructions[index].opcode != Opcode.REM_INT_2ADDR) return@singleOrNull false
+            instructions.subList(index + 1, minOf(index + 6, instructions.size)).any { next ->
+                val reference = (next as? ReferenceInstruction)?.reference
+                    as? MethodReference ?: return@any false
+                reference.definingClass == "Landroid/widget/Toast;"
+                    && reference.name == "makeText"
+            }
+        } ?: error("ChMate settings Toast remainder trap was not found")
+        val realSetupIndex = (toastRemainderIndex + 1 until instructions.size).firstOrNull { index ->
+            instructions[index].opcode == Opcode.NEW_ARRAY
+        } ?: error("ChMate settings setup after Toast remainder trap was not found")
+        addInstructionsWithLabels(
+            toastRemainderIndex,
+            "goto/32 :haiagaru_settings_after_toast_trap",
+            ExternalLabel("haiagaru_settings_after_toast_trap", instructions[realSetupIndex]),
+        )
+
         // 0.8.10.241 derives FEATURE_NO_TITLE through an integrity-dependent divisor.
         // Re-signing can make that divisor zero, so retain the normal value directly.
         val requestWindowFeatureIndex = instructions.indexOfFirst { instruction ->
@@ -3174,6 +3349,64 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
     }
 }
 
+/**
+ * Disable only the stock editor's local body gate.
+ *
+ * The affected implementations are found by their device-information removal
+ * expression instead of their obfuscated method name.  191 and 243 do not ship
+ * this gate, while 226 and 241 each contain exactly one copy.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchPostPreflightValidation(
+    version: String,
+) {
+    var patched = 0
+    classDefForEach { classDef ->
+        if (!classDef.type.contains("/feature/resedit/ResEditFragment;")) {
+            return@classDefForEach
+        }
+        classDef.methods.forEach { method ->
+            if (method.returnType != "Z" || method.parameterTypes.isNotEmpty()) {
+                return@forEach
+            }
+            val instructions = method.implementation?.instructions ?: return@forEach
+            val hasDeviceInfoGate = instructions.any { instruction ->
+                val text = ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string ?: return@any false
+                text.startsWith("[ \t\n]|2chMate ") && text.contains("(/[^/]+)+")
+            }
+            if (!hasDeviceInfoGate) {
+                return@forEach
+            }
+
+            val mutableMethod = mutableClassDefBy(classDef).findMutableMethodOf(method)
+            val resultRegister = mutableMethod.findFreeRegister(0)
+            val originalStart = mutableMethod.implementation?.instructions?.firstOrNull()
+                ?: error("ChMate post preflight gate has no implementation")
+            mutableMethod.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $EXTENSION->bypassPostPreflightValidation()Z
+                    move-result v$resultRegister
+                    if-eqz v$resultRegister, :haiagaru_stock_post_preflight
+                    const/4 v$resultRegister, 0x1
+                    return v$resultRegister
+                """,
+                ExternalLabel("haiagaru_stock_post_preflight", originalStart)
+            )
+            patched++
+        }
+    }
+
+    val expected = when (version) {
+        "0.8.10.226 dev", "0.8.10.241" -> 1
+        "0.8.10.191 dev", "0.8.10.243 dev" -> 0
+        else -> error("Unsupported ChMate version: $version")
+    }
+    check(patched == expected) {
+        "Unexpected ChMate post preflight gates for $version: $patched (expected $expected)"
+    }
+}
+
 /** Hooks use stable parameter types; obfuscated owners are validated for each supported APK. */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchEdgeReporterHistory(version: String) {
     val runtime = "Lapp/morphe/extension/chmate/EdgeReporterHistory;"
@@ -3222,16 +3455,16 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchEdgeReporterHisto
             method.addInstructionsWithLabels(index + 2, """
                 invoke-static/range {v$list .. v$list}, $runtime->pending(Ljava/lang/Object;)V
                 invoke-static/range {v$urlRegister .. v$urlRegister}, $runtime->capturePending(Ljava/lang/Object;)V
+                ${if (version == "0.8.10.191 dev") "" else """
+                invoke-static/range {v$list .. v$list}, Lapp/morphe/extension/chmate/ProgrammableNgController;->pendingSubjectList(Ljava/lang/Object;)V
+                invoke-static/range {v$urlRegister .. v$urlRegister}, Lapp/morphe/extension/chmate/ProgrammableNgController;->filterPendingSubjectList(Ljava/lang/Object;)V
+                """}
             """)
             captures++
         }
     }
     check(captures > 0) { "Subject metadata capture missing: $version" }
-    if (version == "0.8.10.191 dev") {
-        mutableClassDefBy("Lo/MaxFullscreenAdImplExternalSyntheticLambda4;").methods.single {
-            it.name == "onViewCreated"
-        }.addBeforeEveryReturn("invoke-static {p0, p1}, $runtime->addLegacyButton(Ljava/lang/Object;Landroid/view/View;)V")
-    } else {
+    if (version != "0.8.10.191 dev") {
         val owner = when (version) {
             "0.8.10.226 dev" -> "Lo/getSegmentsokio;"
             "0.8.10.241" -> "Lo/TTRewardVideoActivity2;"

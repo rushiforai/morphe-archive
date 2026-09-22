@@ -133,6 +133,7 @@ val commentToolsPatch = bytecodePatch(
         "A separate search box filters comments already loaded on the video. Each tool has its own switch in Hushfeed settings > Comments.",
     default = false,
 ) {
+    category("Comments")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

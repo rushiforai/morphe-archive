@@ -33,32 +33,40 @@ import java.util.WeakHashMap;
 /**
  * Hides controls TikTok lays over the video player.
  *
- * Ids were read off the live view hierarchy of TikTok 46.2.3 and 47.0.3 with a video paused.
- * The current name is listed first where 47.0.3 renamed a 46.x view:
+ * Ids were read off the live view hierarchy of TikTok 47.0.3 with a video paused, apart from
+ * the two search module ids, which were read off the module's code in the APK. Where 47.0.3
+ * renamed a 46.x view, only the 47.0.3 name is looked up: TikTok hands the old short names
+ * out again, and on 47.0.3 each one names some other view, which a fallback would have hidden
+ * in any cell that lacked the current one.
  * <pre>
- *   df_search_biz:id/fb   full screen layer the visual search prompt lives in
- *   df_search_biz:id/cn   the clickable "Search this image" pill inside it
- *   id/k_5 / id/jup       the Live entrance, top left, 158 px square, no description
- *   id/liy / id/kzj       the interaction area over the video: the right-hand column's slots
- *                         (id/ewa or id/eoh), the caption block and the music row
- *   id/ezp                the root of every feed survey card; the cell's survey ViewStubs
- *                         carry no inflatedId, so the card keeps its own layout id. The
- *                         profile's Favorites page is a LinearLayout with the same id.
+ *   df_search_biz:id/fo   the full screen layer the visual search prompt lives in, the root
+ *                         of the layout SearchVisualSearchContainerComponentV2 inflates.
+ *                         46.2.3 called it fb, which on 47.0.3 is a row of the visual search
+ *                         camera page
+ *   df_search_biz:id/d4   the clickable visual search pill, the root of both layouts the VTag
+ *                         processors inflate. 46.2.3 called it cn, which on 47.0.3 is a row of
+ *                         the floating card in search results
+ *   id/k_5                the Live entrance, top left, 158 px square, no description
+ *   id/liy                the interaction area over the video: the right-hand column's slots,
+ *                         the caption block and the music row
+ *   id/f7u                the root of every feed survey card; the cell's survey ViewStubs
+ *                         carry no inflatedId, so the card keeps its own layout id. All
+ *                         seven layouts those stubs inflate have it on 47.0.3, where 46.2.3
+ *                         called it ezp (on 47.0.3 ezp is a label in the paid series panel).
+ *                         It is a shared root id: the profile's Favorites page is a
+ *                         LinearLayout with the same id.
  *   id/view_rootview      the root of every feed cell (VideoViewCellRootView). Every id below
  *                         it here is feed furniture and lives inside one. id/long_press_layout
  *                         is a sibling layer under it, not an ancestor of the rail: scoping
  *                         to that from 0.35.0 hid nothing in the right column (S22, 2026-09-17,
  *                         read off the live tree with the probe's views action).
- *   id/uvy / id/twc       the strip across the top holding For You, Following and the rest
- *   id/i98 id/g6r id/ep7  the 47.0.3 avatar, like and comment controls
- *   id/i7r id/pnp id/w_2  the 47.0.3 favourite, music and share controls
- *   id/g6t id/ej_         the 47.0.3 rows under like, comment, favourite and share
+ *   id/uvy                the strip across the top holding For You, Following and the rest
+ *   id/i98 id/g6r id/ep7  the avatar, like and comment controls
+ *   id/i7r id/pnp id/w_2  the favourite, music and share controls
+ *   id/g6t id/ej_         the rows under like, comment, favourite and share
  *   id/i6r id/w6_         whose icon stays put when its count goes
  *   id/g6s id/ej9         the numeric TextViews inside those rows
  *   id/i6q id/w69
- *   id/hvo id/fws id/ehl  the corresponding 46.x controls, in the same order
- *   id/hu9 id/p2l id/v9o
- *   id/fwu id/ecq id/ht9 id/v5x and id/fwt id/ecp id/ht8 id/v5w
  * </pre>
  * The first two belong to TikTok's search dynamic feature module, so they resolve under
  * that module's package name rather than the app's. Views are re-hidden on every layout
@@ -67,18 +75,19 @@ import java.util.WeakHashMap;
 public final class VideoOverlayHider {
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String SEARCH_MODULE_PACKAGE = APP_PACKAGE + ".df_search_biz";
-    private static final String[] VISUAL_SEARCH_IDS = {"fb", "cn"};
-    private static final String[] LIVE_ENTRANCE_IDS = {"k_5", "jup"};
+    private static final String[] VISUAL_SEARCH_LAYER_IDS = {"fo"};
+    private static final String[] VISUAL_SEARCH_PILL_IDS = {"d4"};
+    private static final String[] LIVE_ENTRANCE_IDS = {"k_5"};
 
     /** The caption under the creator's name, and the music cover block beside it. */
     private static final String[] CAPTION_IDS = {"desc"};
     private static final String[] MUSIC_IDS = {"videomusiccoverblock"};
-    private static final String[] ACTION_BAR_IDS = {"liy", "kzj"};
-    private static final String[] SURVEY_IDS = {"ezp"};
-    private static final String[] TAB_STRIP_IDS = {"uvy", "twc"};
+    private static final String[] ACTION_BAR_IDS = {"liy"};
+    private static final String[] SURVEY_IDS = {"f7u"};
+    private static final String[] TAB_STRIP_IDS = {"uvy"};
     /**
      * The feed cell root. Furniture is only hidden underneath one: Hide feed surveys used to
-     * take every id/ezp in the window, and on the profile that is the Favorites tab's whole
+     * take every survey card id in the window, and on the profile that is the Favorites tab's whole
      * page, which showed as an empty tab (a Galaxy S25, 2026-09-16, found by restoring the
      * settings one group at a time). The tab strip sits above the cells and is the one
      * target that stays window-wide. A build that renames the cell root falls back to the
@@ -117,19 +126,19 @@ public final class VideoOverlayHider {
         return true;
     };
     /** The row under each rail button holding its count, without the button itself. */
-    private static final String[] LIKE_COUNT_ROW_IDS = {"g6t", "fwu"};
-    private static final String[] COMMENT_COUNT_ROW_IDS = {"ej_", "ecq"};
-    private static final String[] FAVORITE_COUNT_ROW_IDS = {"i6r", "ht9"};
-    private static final String[] SHARE_COUNT_ROW_IDS = {"w6_", "v5x"};
+    private static final String[] LIKE_COUNT_ROW_IDS = {"g6t"};
+    private static final String[] COMMENT_COUNT_ROW_IDS = {"ej_"};
+    private static final String[] FAVORITE_COUNT_ROW_IDS = {"i6r"};
+    private static final String[] SHARE_COUNT_ROW_IDS = {"w6_"};
     private static final String[][] RAIL_COUNT_ROW_IDS = {
             LIKE_COUNT_ROW_IDS, COMMENT_COUNT_ROW_IDS,
             FAVORITE_COUNT_ROW_IDS, SHARE_COUNT_ROW_IDS
     };
     /** The numeric text inside each row, retained by layouts that replace the row wrapper. */
-    private static final String[] LIKE_COUNT_TEXT_IDS = {"g6s", "fwt"};
-    private static final String[] COMMENT_COUNT_TEXT_IDS = {"ej9", "ecp"};
-    private static final String[] FAVORITE_COUNT_TEXT_IDS = {"i6q", "ht8"};
-    private static final String[] SHARE_COUNT_TEXT_IDS = {"w69", "v5w"};
+    private static final String[] LIKE_COUNT_TEXT_IDS = {"g6s"};
+    private static final String[] COMMENT_COUNT_TEXT_IDS = {"ej9"};
+    private static final String[] FAVORITE_COUNT_TEXT_IDS = {"i6q"};
+    private static final String[] SHARE_COUNT_TEXT_IDS = {"w69"};
     private static final String[][] RAIL_COUNT_TEXT_IDS = {
             LIKE_COUNT_TEXT_IDS, COMMENT_COUNT_TEXT_IDS,
             FAVORITE_COUNT_TEXT_IDS, SHARE_COUNT_TEXT_IDS
@@ -142,12 +151,12 @@ public final class VideoOverlayHider {
      */
     private static final int[] RAIL_COUNT_BUTTON_INDEX = {1, 2, 3, 5};
     /** The six buttons inside the action column, in the order they are stacked. */
-    private static final String[] AVATAR_BUTTON_IDS = {"i98", "hvo"};
-    private static final String[] LIKE_BUTTON_IDS = {"g6r", "fws"};
-    private static final String[] COMMENT_BUTTON_IDS = {"ep7", "ehl"};
-    private static final String[] FAVORITE_BUTTON_IDS = {"i7r", "hu9"};
-    private static final String[] MUSIC_BUTTON_IDS = {"pnp", "p2l"};
-    private static final String[] SHARE_BUTTON_IDS = {"w_2", "v9o"};
+    private static final String[] AVATAR_BUTTON_IDS = {"i98"};
+    private static final String[] LIKE_BUTTON_IDS = {"g6r"};
+    private static final String[] COMMENT_BUTTON_IDS = {"ep7"};
+    private static final String[] FAVORITE_BUTTON_IDS = {"i7r"};
+    private static final String[] MUSIC_BUTTON_IDS = {"pnp"};
+    private static final String[] SHARE_BUTTON_IDS = {"w_2"};
     private static final String[][] RAIL_BUTTON_IDS = {
             AVATAR_BUTTON_IDS, LIKE_BUTTON_IDS, COMMENT_BUTTON_IDS,
             FAVORITE_BUTTON_IDS, MUSIC_BUTTON_IDS, SHARE_BUTTON_IDS
@@ -247,9 +256,8 @@ public final class VideoOverlayHider {
             }
 
             if (Settings.HIDE_VISUAL_SEARCH.get()) {
-                for (String name : VISUAL_SEARCH_IDS) {
-                    hide(activity, SEARCH_MODULE_PACKAGE, new String[]{name});
-                }
+                hide(activity, SEARCH_MODULE_PACKAGE, VISUAL_SEARCH_LAYER_IDS);
+                hide(activity, SEARCH_MODULE_PACKAGE, VISUAL_SEARCH_PILL_IDS);
             }
             if (Settings.HIDE_LIVE_ENTRANCE.get()) {
                 hide(activity, APP_PACKAGE, LIVE_ENTRANCE_IDS);
@@ -756,6 +764,10 @@ public final class VideoOverlayHider {
     /** Lets a test stand in for a TikTok resource id, which only the real APK resolves. */
     static void resolveForTests(String name, int id) {
         RESOURCE_IDS.putForTests(APP_PACKAGE, name, id);
+    }
+
+    static void resolveSearchModuleForTests(String name, int id) {
+        RESOURCE_IDS.putForTests(SEARCH_MODULE_PACKAGE, name, id);
     }
 
     /**

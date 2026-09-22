@@ -34,6 +34,7 @@ val hideSensitiveWarningsPatch = bytecodePatch(
         "overlay asking to be tapped through first. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

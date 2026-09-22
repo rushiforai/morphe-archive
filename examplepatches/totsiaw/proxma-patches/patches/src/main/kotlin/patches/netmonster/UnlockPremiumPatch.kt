@@ -38,9 +38,9 @@ import org.w3c.dom.Element
  */
 
 private const val PREMIUM_ACCESS_LEVEL = "netmonster-premium"
-private const val STATEFLOW = "Lkv/y0;"        // kotlinx StateFlow (obfuscated)
-private const val FLOW = "Lkv/i;"              // kotlinx Flow (obfuscated)
-private const val MUTABLE_STATEFLOW = "Lkv/j0;" // kotlinx MutableStateFlow (obfuscated)
+private const val STATEFLOW = "Lzpf;"        // kotlinx StateFlow (obfuscated, 3.4.3)
+private const val FLOW = "Lli5;"              // kotlinx Flow (obfuscated, 3.4.3)
+private const val MUTABLE_STATEFLOW = "Lkha;" // kotlinx MutableStateFlow (obfuscated, 3.4.3)
 
 /**
  * OPTIONAL. NetMonster's built-in Google Maps key is restricted to their release signing certificate,

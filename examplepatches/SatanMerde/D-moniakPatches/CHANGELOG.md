@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.2.0...v1.3.0) (2026-09-21)
+
+### ✨ New Features
+
+* **coinsnap:** mark CoinSnap VIP patch as experimental and in development ([1f60895](https://github.com/SatanMerde/D-moniakPatches/commit/1f60895a1eabf961e4552d8ed57c88e57a60a4fe))
+
+## [1.2.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.17...v1.2.0) (2026-09-21)
+
+### ✨ New Features
+
+* **coinsnap:** add CoinSnap VIP Pro unlock patch ([0c6c60d](https://github.com/SatanMerde/D-moniakPatches/commit/0c6c60d61d528f04f112c3b16edde8195a7eee1c))
+
 ## [1.1.17](https://github.com/SatanMerde/D-moniakPatches/compare/v1.1.16...v1.1.17) (2026-09-20)
 
 ### 🐛 Bug Fixes

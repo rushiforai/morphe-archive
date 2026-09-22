@@ -38,9 +38,16 @@ public final class CaptionStyle {
      * of TikTok's render method, including the ones that rendered nothing, and it runs before
      * the check that this renderer is the video on screen, so an empty container is an ordinary
      * outcome rather than a broken build. See {@link #noteLookup}.
+     *
+     * <p>That is what happened between 46.2.3 and 47.0.3. The caption layout the renderer
+     * inflates has the same shape on both, a ConstraintLayout strip holding the caption text (a
+     * TuxTextView subclass) and the view that draws its layout, but the strip went from dfn to
+     * dlk and the text from dfu to dlr. On 47.0.3 dfu names nothing at all and dfn an icon in
+     * another layout, so both settings did nothing on the target. Read off the renderer's render
+     * method, which loads dlr, and CLACaptionAssemV2, which loads dlk.
      */
-    private static final String TEXT_ID = "dfu";
-    private static final String BACKGROUND_ID = "dfn";
+    private static final String TEXT_ID = "dlr";
+    private static final String BACKGROUND_ID = "dlk";
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
     static int size() {

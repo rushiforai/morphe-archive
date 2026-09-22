@@ -207,6 +207,7 @@ val settingsPatch = bytecodePatch(
     description = "Adds the Hushfeed settings screen to TikTok and keeps its entry first in Settings and privacy.",
     default = true,
 ) {
+    category("Settings")
     dependsOn(sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

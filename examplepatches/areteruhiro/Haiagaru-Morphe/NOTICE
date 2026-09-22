@@ -27,3 +27,22 @@ GPLv3 Section 7e: Declining Grant of Trademark Rights
 This License does not grant any rights or permission under trademark law
 to use the name "Morphe" or any of the Program's trade names, trademarks,
 service marks, or logos.
+
+=============
+
+Programmable NG design notice
+
+The programmable NG feature is an independently restructured implementation
+inspired by the GPLv3 fork at:
+
+https://github.com/testuser0123-web/Haiagaru-Morphe
+https://github.com/testuser0123-web
+
+That fork and this project are distributed under GPLv3. Source-level changes
+in this project are identified in the public Git history. No prebuilt artifact
+from that fork is redistributed by this project.
+
+The JavaScript interpreter is Mozilla Rhino 1.8.0, distributed under the
+Mozilla Public License 2.0:
+
+https://github.com/mozilla/rhino

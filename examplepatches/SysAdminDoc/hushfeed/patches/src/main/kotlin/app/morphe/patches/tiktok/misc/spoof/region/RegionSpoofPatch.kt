@@ -38,6 +38,7 @@ val regionSpoofPatch = bytecodePatch(
     description = "Matches locale, timezone and native region getters to the SIM preset, with a separate experimental store-region switch. Switch: Hushfeed settings > Region.",
     default = false,
 ) {
+    category("Settings")
     compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(settingsPatch, simSpoofPatch)
     execute {

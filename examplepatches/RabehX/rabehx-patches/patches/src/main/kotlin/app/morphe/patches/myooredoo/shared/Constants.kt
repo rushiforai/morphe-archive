@@ -19,7 +19,7 @@ internal object Constants {
         // and some stable distributions are delivered as verified APK/XAPK variants.
         signatures = null,
         targets = listOf(
-            AppTarget(version = "1.5.13", minSdk = 24, isExperimental = false),
+            AppTarget(version = "1.5.15"),
         ),
     )
 }

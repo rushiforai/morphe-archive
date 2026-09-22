@@ -188,6 +188,20 @@ public final class SettingsUi {
     /** The glyph every toned notice and status row leads with, so it is written once. */
     public static final String ATTENTION_GLYPH = "⚠";
 
+    /**
+     * A toned summary for a preference row: glyph in bold, both glyph and body in the tone
+     * colour. The same glyph, gap and tone the {@link #inlineNotice} component uses, so the
+     * two surfaces stay in step.
+     */
+    public static CharSequence tonedSummary(String glyph, @ColorInt int color, String body) {
+        android.text.SpannableString result = new android.text.SpannableString(glyph + body);
+        result.setSpan(new android.text.style.ForegroundColorSpan(color), 0, result.length(),
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        result.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                0, glyph.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return result;
+    }
+
     /** The margins a notice keeps from whatever it sits between, so two of them match. */
     public static final int NOTICE_MARGIN = 14;
 

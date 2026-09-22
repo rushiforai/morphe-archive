@@ -65,6 +65,15 @@ Verifiera att paketnamnet är korrekt och att appen har installerats"</string>
   <string name="morphe_custom_branding_icon_entry_6">Morphe – spela upp – svart</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Anpassad</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Detta ändrar ikonen som visas i din applikationsstartare.
+
+Den här inställningen ändrar inte ikonen på någon av dessa platser:
+• Applistan i enhetens systeminställningar
+• Vissa pushaviseringar
+• Appväljaren 'Öppna med'
+• Android Auto-ikonen
+
+För att ändra ikonen överallt, applicera patchen igen och ändra patchalternativet 'App-ikon'."</string>
   <string name="morphe_custom_branding_notification_icon_title">Aviseringsikon</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Matcha appikonen</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe – spela upp</string>
@@ -226,12 +235,11 @@ Om du senare inaktiverar det rekommenderar vi att rensa appens data för att fö
   <string name="morphe_ryd_failure_generic">Ogilla-markeringar är inte tillgängliga (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Dolda av ägaren</string>
+  <string name="morphe_ryd_accessibility_dislike_count">Ogilla den här videon, tillsammans med %s andra personer</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">Ogilla den här videon, %s av rösterna är ogillanden</string>
   <string name="morphe_ryd_enabled_title">Aktivera Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">Visa ogilla-markeringar som procentandel</string>
   <string name="morphe_ryd_dislike_percentage_summary">Visa ogilla-markeringar som procentandelen av antalet gilla-markeringar istället för som ett tal</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Använd kompakt Gilla-knapp</string>
-  <string name="morphe_ryd_compact_layout_summary">Minskar bredden på Gilla-knappen för att spara utrymme</string>
   <string name="morphe_ryd_estimated_like_title">Visa uppskattade gilla-markeringar</string>
   <string name="morphe_ryd_estimated_like_summary">Visar ett uppskattat antal gilla-markeringar för videor där kreatören har inaktiverat gilla-markeringar</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Visa meddelanden om anslutningsfel</string>

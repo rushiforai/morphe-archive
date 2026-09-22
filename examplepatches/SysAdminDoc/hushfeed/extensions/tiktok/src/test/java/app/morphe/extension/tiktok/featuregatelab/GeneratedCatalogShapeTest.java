@@ -65,7 +65,9 @@ public class GeneratedCatalogShapeTest {
             assertNotNull(row[0], json.nextValue());
             assertEquals("trailing default data for " + row[0], 0, json.nextClean());
             assertTrue(row[0], row[3].contains("->"));
-            assertTrue(row[0], row[4].matches("classes[0-9]*\\.dex"));
+            // A dynamic feature module's dex is named inside the zip TikTok ships it as.
+            assertTrue(row[0] + ": " + row[4],
+                    row[4].matches("(libdex_[A-Za-z0-9_]+\\.so!)?classes[0-9]*\\.dex"));
             assertTrue(row[0] + ": " + row[5],
                     Set.of("generated_registry", "call_site_only").contains(row[5]));
         }
@@ -89,8 +91,9 @@ public class GeneratedCatalogShapeTest {
         entry(snapshot, "abmock", "1005_max_limit_count_daily", "INT", "5");
         entry(snapshot, "player_config", "AWEDanmakuSupportMask", "BOOLEAN", "false");
         entry(snapshot, "ve_config", "aeabtest_v2api", "BOOLEAN", "false");
-        FeatureGateCatalog.Entry array = entry(snapshot, "settings_manager", "ad_gaid_whitelist",
-                "OBJECT", "[\"analytics.us.tiktok.com\"]");
+        FeatureGateCatalog.Entry array = entry(snapshot, "settings_manager",
+                "lynxview_command_blacklist",
+                "OBJECT", "[\"surl\",\"fallback_url\"]");
         assertEquals(String[].class.getName(), array.requestedClass);
         assertTrue(array.registered);
         assertTrue(array.proof, array.proof.contains(" in classes"));

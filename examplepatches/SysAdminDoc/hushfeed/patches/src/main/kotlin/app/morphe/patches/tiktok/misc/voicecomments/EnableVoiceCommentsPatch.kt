@@ -20,6 +20,7 @@ val enableVoiceCommentsPatch = bytecodePatch(
         "accounts that do not have them.",
     default = false,
 ) {
+    category("Comments")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {

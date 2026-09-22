@@ -52,6 +52,7 @@ val refreshRatePatch = bytecodePatch(
         "is not slower than the screen is left alone. Switch: Hushfeed settings > App.",
     default = false,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

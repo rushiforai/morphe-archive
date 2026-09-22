@@ -40,6 +40,19 @@ public class FeedOverlayControlsTest {
         Settings.HIDE_LOCATION_LABELS.save(originalLocation);
     }
 
+    /** Issue #21: TikTok's regional Report button gate is closed only by its own switch. */
+    @Test public void theReportButtonGateIsLeftAloneUntilItsSwitchIsOn() {
+        try {
+            assertEquals(Boolean.FALSE, Settings.HIDE_FEED_REPORT_BUTTON.defaultValue);
+            assertFalse("the Full screen and location switches closed the Report gate",
+                    FeedOverlayControls.shouldHideReportButton());
+            Settings.HIDE_FEED_REPORT_BUTTON.save(true);
+            assertTrue(FeedOverlayControls.shouldHideReportButton());
+        } finally {
+            Settings.HIDE_FEED_REPORT_BUTTON.resetToDefault();
+        }
+    }
+
     @Test public void fullscreenOnlyHidesItsDedicatedRootAndKeepsNativeClickOnRestore() {
         try(Fixture f=new Fixture()) {
             int[] clicks={0};

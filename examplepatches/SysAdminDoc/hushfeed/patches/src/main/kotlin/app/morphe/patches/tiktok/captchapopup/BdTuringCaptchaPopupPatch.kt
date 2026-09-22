@@ -52,6 +52,8 @@ val bdTuringCaptchaPopupPatch = bytecodePatch(
     // patch is selected. Selected on its own it would install a hook reading a setting
     // with nowhere to turn it on, so it brings the switch with it.
     dependsOn(sharedExtensionPatch, captchaRequestRecorderPatch, hideCaptchaPopupsPatch)
+    // Beside Hide CAPTCHA popups, whose switch it answers.
+    category("Feed")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {

@@ -1,3 +1,19 @@
+## [3.31.0](https://github.com/crimera/piko-newx/compare/v3.30.4...v3.31.0) (2026-09-21)
+
+### ✨ New Features
+* **Twitter - newx:** long press inline download to download all media ([5888f3a](https://github.com/crimera/piko/commit/5888f3a40b4bad9318d2c3d0aa94755886f9116c))
+
+## [3.30.4](https://github.com/crimera/piko-newx/compare/v3.30.3...v3.30.4) (2026-09-21)
+
+### 🐛 Bug Fixes
+* **Twitter:** paginate Photos gallery when first page underfills viewport ([66e2e1c](https://github.com/crimera/piko/commit/66e2e1c3dac43b52e197ac88c2d7878a7fd215ad))
+
+## [3.30.3](https://github.com/crimera/piko-newx/compare/v3.30.2...v3.30.3) (2026-09-21)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** share-image field-walk parent resolution for B union ([1512f9f](https://github.com/crimera/piko/commit/1512f9f487ef84a4212bfa4ed524357d86699945))
+* **Twitter - newx:** share-image explicit spatial c() rect + strong bounds map ([e47559f](https://github.com/crimera/piko/commit/e47559ffb72adb1b52a7f064f329807a178deb75))
+
 ## [3.30.2](https://github.com/crimera/piko-newx/compare/v3.30.1...v3.30.2) (2026-09-20)
 
 ### 🐛 Bug Fixes

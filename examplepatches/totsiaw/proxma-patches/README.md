@@ -1,6 +1,6 @@
 # Proxma Patches
 
-Morphe patch bundle for **My Telenor**, **Investify**, **Simosa** (Jazz), **MyZong** (Zong), and **NetMonster**. See [Patches](#patches) below for the current list of apps, supported versions, and what each patch does.
+Morphe patch bundle for **My Telenor**, **Investify**, **Simosa** (Jazz), **OLX**, **MTProxy**, **MyZong** (Zong), and **NetMonster**. See [Patches](#patches) below for the current list of apps, supported versions, and what each patch does.
 
 ## How to use
 
@@ -36,12 +36,22 @@ _Supported version(s): 5.6.0_
 
 ### Simosa (`com.jazz.jazzworld`)
 
-_Supported version(s): 3.3.2_
+_Supported version(s): 3.3.4.2_
 
 | Patch | Description |
 |-------|-------------|
 | **Bypass signature verification** | Disables Simosa's anti-tamper signature check so a re-signed APK launches normally instead of stalling on the splash / "version is not correct" dialog. |
 | **Remove ads & tracking** | Removes every ad (interstitial, banner, daily-reward) and every tracker (Mixpanel, Firebase, Facebook, AppsFlyer) — app events, network sends, ad-SDK requests (Google Ads / AppLovin / AnyMind / Prebid), SDK auto-collection, and the ipify IP leak. The app then phones home only to its own Jazz API. |
+| **Remove daily check-in ads** | Removes the SocialPlus daily check-in / in-feed ads (FeedAdsManager banner + native loaders). Separate from "Remove ads & tracking" to keep that patch Morphe-Manager-safe; enable this one when patching with the desktop CLI. |
+
+### OLX (`com.olx.pk`)
+
+_Supported version(s): 18.8.0_
+
+| Patch | Description |
+|-------|-------------|
+| **Force dark mode** | Forces OLX into dark (night) mode regardless of the system theme, using the app's built-in -night resources via UiModeManager.setApplicationNightMode at startup. |
+| **Remove ads** | Removes native feed ads (Google GMA), the full-height ad slot, and the "Buy with Delivery" promo section (bar, cards and View all) from OLX. Pinned to the 18.8.0 build (matches that build's obfuscated feed classes). |
 
 ### MTProxy (`com.sdev.mtproxy`)
 
@@ -62,8 +72,25 @@ _Supported version(s): 5.19.19.112_
 
 ### NetMonster (`cz.mroczis.netmonster`)
 
-_Supported version(s): 3.4.1_
+_Supported version(s): 3.4.3_
 
 | Patch | Description |
 |-------|-------------|
 | **Unlock premium (NetMonster)** | Unlocks NetMonster Premium — forces the premium repo's derived flows so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active (far-future expiry) without an Adapty subscription. |
+
+## Troubleshooting
+
+### App crashes / won't open right after patching (e.g. Jazz World)
+
+This is a known **Morphe Manager** bug with large apps: picking **too many patches at once** can produce a build that won't launch.
+
+**Fix: select fewer patches.**
+
+For **Jazz World (Simosa)** in Morphe Manager, tick only:
+
+- ✅ Bypass signature verification
+- ✅ Remove ads & tracking
+
+Leave **❌ Remove daily check-in ads** unticked — adding it is what triggers the crash. You still get every ad removed except the one on the daily check-in screen.
+
+Want that last ad gone too? Patch on a computer with the **Morphe desktop app** instead — it isn't affected by this bug.

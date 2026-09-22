@@ -49,6 +49,7 @@ val copyCommentsWithoutUsernamePatch = bytecodePatch(
     description = "Copies only the comment text without including the creator's username. Switch: Hushfeed settings > Comments.",
     default = true,
 ) {
+    category("Comments")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

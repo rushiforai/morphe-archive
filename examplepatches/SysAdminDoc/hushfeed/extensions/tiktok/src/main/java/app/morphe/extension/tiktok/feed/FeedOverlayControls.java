@@ -30,6 +30,16 @@ public final class FeedOverlayControls {
         bind(view, Settings.HIDE_LOCATION_LABELS, true, "location card");
     }
 
+    /**
+     * Whether TikTok's regional Report button above the creator's avatar is withheld (issue
+     * #21). Asked in front of TikTok's own gate, whose false is what every other region gets.
+     */
+    public static boolean shouldHideReportButton() {
+        boolean hide = Settings.HIDE_FEED_REPORT_BUTTON.get();
+        HookStatus.bound("feed report button", hide ? "gate closed" : "gate left");
+        return hide;
+    }
+
     private static void bind(View view, BooleanSetting setting, boolean location, String name) {
         if (view == null) return;
         HookStatus.bound(name, "native control bind");

@@ -115,14 +115,20 @@ public final class StickerGallerySaver {
             }
             if (alreadyDecorated) return;
 
-            List<View> actionButtons = findViewsByClassName(sheetView, "X.0GSy", "LX.0GSy", "X.0Daq", "LX.0Daq");
+            List<View> actionButtons = findActionButtons(sheetView);
             ViewGroup actionParent = findCommonParent(actionButtons);
-            if (actionParent == null || actionButtons.size() < 2 || hasSaveImageButton(actionParent)) {
+            if (actionParent == null || actionButtons.size() < 2) {
+                // Said in the export, not only in the debug log: this is how issue #23 went
+                // unnoticed, a sheet with no Save media button and nothing anywhere saying why.
+                HookStatus.missingMember(HOOK_FAMILY, "view", sheetView.getClass().getName(),
+                        "two action buttons of one type");
                 debugLog("[Morphe Stickers] action parent unavailable buttons=" + actionButtons.size());
                 return;
             }
+            HookStatus.bound(HOOK_FAMILY, "sheet action buttons");
+            if (hasSaveImageButton(actionParent)) return;
 
-            View template = actionButtons.get(actionButtons.size() - 1);
+            View template = lastChildOf(actionParent, actionButtons);
             int insertIndex = actionParent.indexOfChild(template) + 1;
             if (insertIndex <= 0) {
                 debugLog("[Morphe Stickers] action buttons are not direct children");
@@ -787,7 +793,9 @@ public final class StickerGallerySaver {
     private static String normalizedContentType(String contentType) {
         if (contentType == null) return null;
         int separator = contentType.indexOf(';');
-        String value = (separator >= 0 ? contentType.substring(0, separator) : contentType).trim().toLowerCase();
+        // Locale.ROOT: a Turkish phone lowercases "IMAGE/GIF" to "ımage/gıf", which matches nothing.
+        String value = (separator >= 0 ? contentType.substring(0, separator) : contentType).trim()
+                .toLowerCase(java.util.Locale.ROOT);
         return value.isEmpty() || "application/octet-stream".equals(value) ? null : value;
     }
 
@@ -1119,29 +1127,49 @@ public final class StickerGallerySaver {
         }
     }
 
-    private static List<View> findViewsByClassName(View root, String... classNames) {
-        List<View> matches = new ArrayList<>();
-        collectViewsByClassName(root, matches, classNames);
-        return matches;
+    /**
+     * The sheet's own action buttons, found by the sheet's shape.
+     *
+     * <p>TikTok's button is a TextView subclass whose name changes with every build: X.0GSy on
+     * 46.2.3, X.02Lg on 47.0.3, where X.0GSy is an unrelated class. Naming it is what left
+     * 47.0.3 with no Save media button (issue #23). What holds on all five retained builds is
+     * that the row keeps its two actions in fields of one shared type, while its caption is the
+     * only field of its own type. So the actions are the largest set of attached TextView fields
+     * declared with the same type, and a lone TextView is never one of them.
+     */
+    static List<View> findActionButtons(View sheetView) {
+        java.util.Map<Class<?>, List<View>> byType = new java.util.LinkedHashMap<>();
+        for (Class<?> type = sheetView.getClass();
+             type != null && !type.getName().startsWith("android."); type = type.getSuperclass()) {
+            for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                        || !TextView.class.isAssignableFrom(field.getType())) continue;
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(sheetView);
+                    if (!(value instanceof View) || ((View) value).getParent() == null) continue;
+                    List<View> sameType = byType.get(field.getType());
+                    if (sameType == null) byType.put(field.getType(), sameType = new ArrayList<>());
+                    if (!sameType.contains(value)) sameType.add((View) value);
+                } catch (Throwable unreadable) {
+                    // A field this build will not hand over is not an action button.
+                }
+            }
+        }
+        List<View> actions = Collections.emptyList();
+        for (List<View> sameType : byType.values()) {
+            if (sameType.size() >= 2 && sameType.size() > actions.size()) actions = sameType;
+        }
+        return actions;
     }
 
-    private static void collectViewsByClassName(View view, List<View> matches, String... classNames) {
-        if (view == null) return;
-
-        String viewClassName = view.getClass().getName();
-        for (String className : classNames) {
-            if (viewClassName.equals(className)) {
-                matches.add(view);
-                break;
-            }
+    /** The action that sits last in its parent, whatever order the fields were declared in. */
+    private static View lastChildOf(ViewGroup parent, List<View> views) {
+        View last = views.get(views.size() - 1);
+        for (View view : views) {
+            if (parent.indexOfChild(view) > parent.indexOfChild(last)) last = view;
         }
-
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                collectViewsByClassName(group.getChildAt(i), matches, classNames);
-            }
-        }
+        return last;
     }
 
     private static ViewGroup findCommonParent(List<View> views) {

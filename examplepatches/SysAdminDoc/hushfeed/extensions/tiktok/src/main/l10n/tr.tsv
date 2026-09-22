@@ -1,0 +1,1167 @@
+%1$d already matched	%1$d tanesi zaten eşleşiyor
+%1$d areas were checked and everything they need is here.	%1$d alan kontrol edildi ve ihtiyaç duydukları her şey burada.
+%1$d fields overridden	%1$d alan geçersiz kılındı
+%1$d fields will be overridden when requested	İstendiğinde %1$d alan geçersiz kılınacak
+%1$d gates selected	%1$d özellik kapısı seçildi
+%1$d minutes left	%1$d dakika kaldı
+%1$d rejected	%1$d reddedildi
+%1$d results	%1$d sonuç
+%1$d results so far	Şimdiye kadar %1$d sonuç
+%1$d results so far, and more not counted	Şimdiye kadar %1$d sonuç, sayılmayan başkaları da var
+%1$d results, filtered to %2$s	%1$d sonuç, filtre: %2$s
+%1$d setting was not in that file and was left as it is.	%1$d ayar o dosyada yoktu ve olduğu gibi bırakıldı.
+%1$d settings were not in that file and were left as they are.	%1$d ayar o dosyada yoktu ve oldukları gibi bırakıldı.
+%1$d unavailable	%1$d kullanılamıyor
+%1$s (%2$s)	%1$s (%2$s)
+%1$s (TikTok value)	%1$s (TikTok değeri)
+%1$s (custom, unverified)	%1$s (özel, doğrulanmamış)
+%1$s (override returned)	%1$s (geçersiz kılma döndürüldü)
+%1$s (will be returned when requested)	%1$s (istendiğinde döndürülecek)
+%1$s / current cache only	%1$s / yalnızca mevcut önbellek
+%1$s / generated registry	%1$s / oluşturulmuş kayıt defteri
+%1$s / generated registry and current cache	%1$s / oluşturulmuş kayıt defteri ve mevcut önbellek
+%1$s / local catalog	%1$s / yerel katalog
+%1$s and above	%1$s ve üzeri
+%1$s appears more than once in this file.	%1$s bu dosyada birden fazla kez geçiyor.
+%1$s changed	%1$s değişti
+%1$s destinations must start with %2$s	%1$s hedefleri %2$s ile başlamalı
+%1$s has an invalid value. %2$s	%1$s değeri geçersiz. %2$s
+%1$s has no supported override boundary in this Lab build.	Bu Lab sürümünde %1$s için desteklenen bir geçersiz kılma sınırı yok.
+%1$s has type %2$s, but the file says %3$s.	%1$s türü %2$s, ama dosyada %3$s yazıyor.
+%1$s is already hidden	%1$s zaten gizli
+%1$s is not a country code, so no video would ever match it. Use two letters, like GB, IE or US.	%1$s bir ülke kodu değil, bu yüzden hiçbir video onunla eşleşmez. GB, IE veya US gibi iki harf kullan.
+%1$s is not in this Lab catalog.	%1$s bu Lab kataloğunda yok.
+%1$s isn't installed or doesn't take links	%1$s yüklü değil veya bağlantı kabul etmiyor
+%1$s left	%1$s kaldı
+%1$s min left	%1$s dk kaldı
+%1$s to %2$s	%1$s ile %2$s arası
+%1$s videos left	%1$s video kaldı
+%1$s was rejected. %2$s	%1$s reddedildi. %2$s
+%1$s, %2$s, %3$s, %4$s, %5$s	%1$s, %2$s, %3$s, %4$s, %5$s
+%1$s, selected	%1$s, seçili
+%1$s. %2$s	%1$s. %2$s
+%1$s: %2$d found, %3$d missing	%1$s: %2$d bulundu, %3$d eksik
+%1$s: %2$d found, %3$d missing, and more it stopped counting	%1$s: %2$d bulundu, %3$d eksik, daha fazlası da var ama saymayı bıraktı
+%1$s: %2$d found, %3$d missing, and more it stopped counting. First missing: %4$s	%1$s: %2$d bulundu, %3$d eksik, daha fazlası da var ama saymayı bıraktı. İlk eksik: %4$s
+%1$s: %2$d found, %3$d missing. First missing: %4$s	%1$s: %2$d bulundu, %3$d eksik. İlk eksik: %4$s
+%1$s: %2$s	%1$s: %2$s
+1 field overridden	1 alan geçersiz kılındı
+1 field will be overridden when requested	İstendiğinde 1 alan geçersiz kılınacak
+1 gate selected	1 özellik kapısı seçildi
+1 min left	1 dk kaldı
+1 result	1 sonuç
+1 result so far	Şimdiye kadar 1 sonuç
+1 video left	1 video kaldı
+A Lab change is already running	Bir Lab değişikliği zaten sürüyor
+A creator pattern is taking too long and was switched off: %1$s	Bir içerik üreticisi kalıbı çok uzun sürdüğü için kapatıldı: %1$s
+A diagnostic report is already being saved.	Bir tanılama raporu zaten kaydediliyor.
+A field value could not be read. Check the values and try again.	Bir alan değeri okunamadı. Değerleri kontrol edip tekrar dene.
+A good place to stop, if you want one.	İstersen, durmak için iyi bir an.
+A green dot in the top corner while TikTok has the camera open and an orange one while it records sound. They go when the access ends.	TikTok kamerayı açık tuttuğu sürece üst köşede yeşil bir nokta, ses kaydederken de turuncu bir nokta görünür. Erişim bitince kaybolurlar.
+A hidden puzzle may be the cause.	Nedeni gizli bir bulmaca olabilir.
+A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Bir bağlantıyı paylaşırken veya kopyalarken tiktok.com yerine konacak alan adı, örneğin vxtiktok.com. TikTok'un kendi bağlantılarını paylaşmak için boş bırak. Yalnızca TikTok bağlantıları değişir, onların da yalnızca alan adı: hiçbir yere yeni bir şey gönderilmez.
+A newer clear replaced that undo. Tap the row again to undo.	Daha yeni bir temizleme o geri almanın yerini aldı. Geri almak için satıra tekrar dokun.
+A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Akıştaki küçük bir etiket, bugünkü bütçenden kalan dakikayı veya video sayısını gösterir, hangisi bitmeye daha yakınsa onu.
+A tap on a person in the Send to row only selects them. A second tap on the same person within four seconds sends the video.	Şuraya gönder satırındaki bir kişiye dokunmak onu yalnızca seçer. Aynı kişiye dört saniye içinde ikinci kez dokunmak videoyu gönderir.
+A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Birinin yoruma bıraktığı web adresine, elle kopyalamak yerine dokunulabilir. Yorumun başka bir yerine dokunmak yine eskiden ne yapıyorsa onu yapar.
+AI-generated posts	Yapay zeka ile üretilmiş gönderiler
+About	Hakkında
+Account warning: forced client values apply to every account in this app data and cannot bypass server controls.	Hesap uyarısı: zorlanan istemci değerleri bu uygulama verisindeki her hesaba uygulanır ve sunucu denetimlerini aşamaz.
+Account-sensitive name: forcing this key may affect security, login, compliance, region, payment, or account safety behavior.	Hesap açısından hassas ad: bu anahtarı zorlamak güvenlik, giriş, uyumluluk, bölge, ödeme veya hesap güvenliği davranışını etkileyebilir.
+Activity	Etkinlik
+Activity Center (PIA)	Etkinlik merkezi (PIA)
+Add	Ekle
+Add a button beside the block control to send feedback about the current video.	Engelleme düğmesinin yanına, o anki video hakkında geri bildirim göndermek için bir düğme ekle.
+Add a button that hides the current creator on this phone without blocking them.	O anki içerik üreticisini engellemeden bu telefonda gizleyen bir düğme ekle.
+Add a creator	İçerik üreticisi ekle
+Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.	Bu videoda yüklenmiş yorumları metne veya kullanıcı adına göre filtreleyen bir arama kutusu ekle. Tüm TikTok'ta arama yapmaz ve TikTok'un önerilen arama bandını kaldırmaz.
+Add a separate button that skips videos using the current sound.	O anki sesi kullanan videoları atlayan ayrı bir düğme ekle.
+Add hidden creator	Gizli içerik üreticisi ekle
+Added %1$s	%1$s eklendi
+Ads	Reklamlar
+Advanced	Gelişmiş
+Advanced JSON value	Gelişmiş JSON değeri
+All	Tümü
+All available languages	Kullanılabilir tüm diller
+All events	Tüm olaylar
+All loaded tabs	Yüklenen tüm sekmeler
+Allow Duet and Stitch anyway	Yine de Düet ve Stitch'e izin ver
+Allow screenshots and Circle to Search	Ekran görüntüsüne ve Circle to Search'e izin ver
+Allow storage for TikTok in Android settings to save profile pictures.	Profil fotoğraflarını kaydetmek için Android ayarlarında TikTok'a depolama izni ver.
+Allow storage for TikTok in Android settings to save sounds.	Sesleri kaydetmek için Android ayarlarında TikTok'a depolama izni ver.
+Allow storage for TikTok in Android settings to save stories.	Hikayeleri kaydetmek için Android ayarlarında TikTok'a depolama izni ver.
+Already active	Zaten etkin
+Already marked as not interested	Zaten İlgilenmiyorum olarak işaretlendi
+Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.	Bu filtreleri, akış yeterince yeni öğe yükleyemediğinde TikTok'un kullandığı indirilmiş videolara da uygula.
+Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.	TikTok'un dahili olarak bildirdiği bölgeyi de değiştir. Arayüz dilin aynı kalır. IP adresin ve hesabının kendi kuralları geçerli olmaya devam eder.
+Always show publish date	Yayın tarihini her zaman göster
+Always show the publish date in video author information. Restart TikTok to apply this.	Video sahibi bilgilerinde yayın tarihini her zaman göster. Bunu uygulamak için TikTok'u yeniden başlat.
+An app's package name, like com.dv.adm. The save button sends the video's link there instead of saving it here. Leave it empty to save here.	com.dv.adm gibi bir uygulamanın paket adı. Kaydet düğmesi videoyu buraya kaydetmek yerine bağlantısını o uygulamaya gönderir. Buraya kaydetmek için boş bırak.
+An interrupted settings change could not be recovered, so its record was set aside. Check your settings or restore a backup.	Yarıda kalan bir ayar değişikliği kurtarılamadı, bu yüzden kaydı bir kenara ayrıldı. Ayarlarını kontrol et veya bir yedeği geri yükle.
+An operator code is five or six digits, like 310260	Operatör kodu beş veya altı hanelidir, örneğin 310260
+An override changes the value returned by the getter. It does not rewrite TikTok's cached value or prove the named feature changed.	Geçersiz kılma, okuma işlevinin döndürdüğü değeri değiştirir. TikTok'un önbelleğe aldığı değeri yeniden yazmaz ve adı geçen özelliğin değiştiğini kanıtlamaz.
+Animated sticker format	Hareketli çıkartma biçimi
+Answer TikTok's location requests with nothing. The region settings change the locale and timezone; this stops the coordinates.	TikTok'un konum isteklerini boş yanıtla. Bölge ayarları yerel ayarı ve saat dilimini değiştirir; bu ise koordinatları durdurur.
+Answer TikTok's reads of your contacts with an empty list. Find Friends and People you may know lose access to your contact list.	TikTok'un kişilerini okuma isteklerini boş bir listeyle yanıtla. Arkadaşlarını bul ve Tanıyor olabileceğin kişiler, kişi listene erişimi kaybeder.
+Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.	TikTok'un bu telefondaki uygulamaları taramasını boş bir listeyle yanıtla. TikTok'un dokunduğun bir uygulamayı açmak için de kullandığı, adı belli tek bir uygulamaya yönelik kontrole dokunulmaz.
+App	Uygulama
+App AB	Uygulama AB
+Appearance	Görünüm
+Applies to both video and photo downloads.	Hem video hem fotoğraf indirmeleri için geçerlidir.
+Apply	Uygula
+Applying Calm feed	Sakin akış uygulanıyor
+Around the video	Videonun çevresi
+Arrange your feed and bottom tabs	Akışını ve alt sekmeleri düzenle
+Ask TikTok for search results that aren't personalized to your account. This changes results, not search buttons or suggestions.	TikTok'tan hesabına göre kişiselleştirilmemiş arama sonuçları iste. Bu, sonuçları değiştirir, arama düğmelerini veya önerilerini değil.
+Attention	Dikkat
+Audio	Ses
+Auto translate comments	Yorumları otomatik çevir
+Auto-advance	Otomatik geçiş
+Auto-advance session limit	Otomatik geçiş oturum sınırı
+Auto-advance stopped after %1$d videos	Otomatik geçiş %1$d videodan sonra durdu
+Auto-advance stopped after one video	Otomatik geçiş bir videodan sonra durdu
+Auto-advance videos	Videoları otomatik geç
+Automatic	Otomatik
+Automatic clear display	Otomatik temiz ekran
+Avatar and follow button	Profil fotoğrafı ve takip düğmesi
+Back	Geri
+Back up settings	Ayarları yedekle
+Backup and restore	Yedekleme ve geri yükleme
+Black	Siyah
+Block clipboard reads	Pano okumalarını engelle
+Block contact list access	Kişi listesine erişimi engelle
+Block installed app scanning	Yüklü uygulama taramasını engelle
+Block location	Konumu engelle
+Block motion sensors	Hareket sensörlerini engelle
+Block new bottom tabs	Yeni alt sekmeleri engelle
+Block new feed tabs	Yeni akış sekmelerini engelle
+Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.	İçerik üreticisini tek dokunuşla engelle. TikTok onaylayınca sonraki videoya geç. Sol üstte iki saniyeliğine küçük bir Engeli kaldır düğmesi görünür. Engeli daha sonra TikTok'ta Gizlilik > Engellenen hesaplar bölümünden de kaldırabilirsin.
+Block this commenter	Bu yorumu yazanı engelle
+Block this creator	Bu içerik üreticisini engelle
+Block this sound	Bu sesi engelle
+Blocked	Engellendi
+Blocked %1$s	%1$s engellendi
+Blocked %1$s. Unblock	%1$s engellendi. Engeli kaldır
+Blocked caption words	Engellenen açıklama kelimeleri
+Blocked comment words	Engellenen yorum kelimeleri
+Blocked creators	Engellenen içerik üreticileri
+Blocked sound ids	Engellenen ses kimlikleri
+Blocked sound names	Engellenen ses adları
+Blocked sounds	Engellenen sesler
+Blocking	Engelleniyor
+Boolean	Boolean
+Bottom tabs to keep	Tutulacak alt sekmeler
+Browse	Göz at
+Calm feed	Sakin akış
+Calm feed couldn't be applied. Nothing was changed.	Sakin akış uygulanamadı. Hiçbir şey değiştirilmedi.
+Calm feed couldn't start. Try again shortly.	Sakin akış başlatılamadı. Birazdan tekrar dene.
+Calm feed is on.	Sakin akış açık.
+Calm feed is on. Restart TikTok to apply every change.	Sakin akış açık. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
+Camera and microphone in use	Kamera ve mikrofon kullanımda
+Camera in use	Kamera kullanımda
+Cancel	İptal
+Caption background	Altyazı arka planı
+Caption text size	Altyazı metin boyutu
+Captions	Altyazılar
+Captions, gestures and on-screen controls	Altyazılar, hareketler ve ekran kontrolleri
+Capture crash reports locally	Çökme raporlarını yerel olarak kaydet
+Changed	Değişti
+Choose 1-1000 videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.	1-1000 arasında bir video sayısı seç. Bu aralığın dışındaki değerler en yakın geçerli sınırı kullanır. Bunu uygulamak için TikTok'u yeniden başlat.
+Choose a backup file. Your current settings are kept for Undo.	Bir yedek dosyası seç. Mevcut ayarların Geri al için saklanır.
+Choose a folder on internal storage. SD cards are not supported.	Dahili depolamada bir klasör seç. SD kartlar desteklenmez.
+Choose a preset to fill the SIM details.	SIM bilgilerini doldurmak için bir hazır ayar seç.
+Choose a subfolder under %1$s.	%1$s altında bir alt klasör seç.
+Choose what reaches your feed	Akışına nelerin ulaşacağını seç
+Choose which loaded TikTok bottom navigation tabs should stay visible.	Yüklenen TikTok alt gezinme sekmelerinden hangilerinin görünür kalacağını seç.
+Choose which loaded TikTok feed tabs should stay visible. If only For You remains, its redundant header is hidden.	Yüklenen TikTok akış sekmelerinden hangilerinin görünür kalacağını seç. Yalnızca Senin İçin kalırsa, gereksiz hale gelen başlığı gizlenir.
+Choose which rows and controls appear	Hangi satırların ve kontrollerin görüneceğini seç
+Clear all	Tümünü temizle
+Clear all Lab data (overrides, switch, recordings)	Tüm Lab verilerini temizle (geçersiz kılmalar, anahtar, kayıtlar)
+Clear all suggested accounts	Önerilen tüm hesapları temizle
+Clear buffered events, saved crash reports and the hook status above.	Arabelleğe alınan olayları, kaydedilen çökme raporlarını ve yukarıdaki kanca durumunu temizle.
+Clear diagnostic data	Tanılama verilerini temizle
+Clear display	Temiz ekran
+Clear display delay	Temiz ekran gecikmesi
+Clear preset	Hazır ayarı temizle
+Clear search	Aramayı temizle
+Clear seen videos	Görülen videoları temizle
+Clear the search	Aramayı temizle
+Cleared. Tap to undo before TikTok closes.	Temizlendi. TikTok kapanmadan önce geri almak için dokun.
+Clearing	Temizleniyor
+Clearing suggested accounts	Önerilen hesaplar temizleniyor
+Clearing, %1$d so far	Temizleniyor, şimdiye kadar %1$d
+Close	Kapat
+Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.	Virgülle ayrılmış hesap kullanıcı adları veya kullanıcı kimlikleri. Bu hesaplar her zaman atlanır. /^news_/ gibi iki eğik çizgi arasındaki bir giriş, kullanıcı adı ve görünen adla eşleştirilen bir kalıptır.
+Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.	Virgülle ayrılmış ülke kodları, örneğin GB, IE. Başka herhangi bir yerden paylaşılan videolar gizlenir. Tüm ülkeler için boş bırak.
+Comma separated country codes. Videos posted from these are hidden, whatever the list above says.	Virgülle ayrılmış ülke kodları. Yukarıdaki liste ne derse desin, bu ülkelerden paylaşılan videolar gizlenir.
+Comma separated list of any other Inbox row titles to hide, matched exactly. Use this for anything not listed above.	Gizlenecek diğer Gelen Kutusu satır başlıklarının virgülle ayrılmış listesi, birebir eşleştirilir. Yukarıda listelenmeyen her şey için bunu kullan.
+Comma separated names exactly as the share sheet shows them: friends in the Send to row, share targets such as Facebook, and actions such as Create group or Repost. Stable keys such as copy, save and dislike also work before the sheet opens.	Paylaşım menüsünde göründükleri şekliyle, virgülle ayrılmış adlar: Şuraya gönder satırındaki arkadaşlar, Facebook gibi paylaşım hedefleri ve Grup oluştur veya Yeniden yayınla gibi eylemler. copy, save ve dislike gibi sabit anahtarlar da menü açılmadan önce çalışır.
+Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.	Oynatıcının ses düğmesiyle kaydedilen, virgülle ayrılmış ses kimlikleri. Engelini kaldırmak için birini sil.
+Comma separated usernames or display names whose comments are hidden.	Yorumları gizlenen, virgülle ayrılmış kullanıcı adları veya görünen adlar.
+Comma separated words or phrases. Matching captions are skipped. Case does not matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Virgülle ayrılmış kelimeler veya ifadeler. Eşleşen açıklamalar atlanır. Büyük küçük harf fark etmez. Tırnak içindeki iki ifade birleştirilebilir: "a" & "b" ikisini de gerektirir, "a" !& "b" ikincisi olmadan birincisini gerektirir.
+Comma separated words to match against a sound's name, like saxophone. Case does not matter.	Bir sesin adıyla eşleştirilecek, virgülle ayrılmış kelimeler, örneğin saksafon. Büyük küçük harf fark etmez.
+Comma separated. A comment is hidden if its text contains any of them. Case does not matter. Two phrases in quotes can be joined: "a" & "b" needs both, "a" !& "b" needs the first without the second.	Virgülle ayrılır. Metni bunlardan herhangi birini içeren yorum gizlenir. Büyük küçük harf fark etmez. Tırnak içindeki iki ifade birleştirilebilir: "a" & "b" ikisini de gerektirir, "a" !& "b" ikincisi olmadan birincisini gerektirir.
+Comment media filename	Yorum medyası dosya adı
+Comments	Yorumlar
+Comments aren't available for this video	Bu video için yorumlar kullanılamıyor
+Comments beside the video	Yorumlar videonun yanında
+Compact comment header	Kompakt yorum başlığı
+Compare gate reads with their previous values.	Özellik kapısı okumalarını önceki değerleriyle karşılaştır.
+Completed an interrupted settings change. Restart TikTok to apply this.	Yarıda kalan bir ayar değişikliği tamamlandı. Bunu uygulamak için TikTok'u yeniden başlat.
+Config	Yapılandırma
+Config (Settings Manager)	Yapılandırma (Settings Manager)
+Confirm before following	Takip etmeden önce onay iste
+Confirm before liking	Beğenmeden önce onay iste
+Confirm before sending to a friend	Bir arkadaşa göndermeden önce onay iste
+Continue supported videos from where you stopped when you scroll back to them.	Desteklenen videolara geri kaydırdığında kaldığın yerden devam et.
+Controls	Kontroller
+Copied feature gate report	Özellik kapısı raporu kopyalandı
+Copy a quick report or save the full report as a file.	Hızlı bir rapor kopyala veya tam raporu dosya olarak kaydet.
+Copy comments without username	Yorumları kullanıcı adı olmadan kopyala
+Copy only the comment text when using TikTok's copy comment action.	TikTok'un yorumu kopyala eylemini kullanırken yalnızca yorum metnini kopyala.
+Copy quick report	Hızlı raporu kopyala
+Copy report	Raporu kopyala
+Copy the sound link	Ses bağlantısını kopyala
+Copy the video link	Video bağlantısını kopyala
+Could not change Lab settings.	Lab ayarları değiştirilemedi.
+Could not clear suggested accounts	Önerilen hesaplar temizlenemedi
+Could not copy report. Use Save JSON.	Rapor kopyalanamadı. JSON'u kaydet seçeneğini kullan.
+Could not open settings search	Ayarlar araması açılamadı
+Could not open settings section	Ayarlar bölümü açılamadı
+Could not open the export file picker	Dışa aktarma dosya seçicisi açılamadı
+Could not open the import file picker	İçe aktarma dosya seçicisi açılamadı
+Could not put back the diagnostic data. Try again.	Tanılama verileri geri konamadı. Tekrar dene.
+Could not read who posted this comment	Bu yorumu kimin yazdığı okunamadı
+Could not reset this override.	Bu geçersiz kılma sıfırlanamadı.
+Could not restore settings.	Ayarlar geri yüklenemedi.
+Could not save settings backup.	Ayar yedeği kaydedilemedi.
+Could not save this override.	Bu geçersiz kılma kaydedilemedi.
+Could not send the feedback. Try again shortly.	Geri bildirim gönderilemedi. Birazdan tekrar dene.
+Could not start the Lab change. Try again shortly.	Lab değişikliği başlatılamadı. Birazdan tekrar dene.
+Could not start the report export. Try again shortly.	Rapor dışa aktarımı başlatılamadı. Birazdan tekrar dene.
+Could not start the settings operation. Try again shortly.	Ayar işlemi başlatılamadı. Birazdan tekrar dene.
+Could not tell which folder to update. Choose it again.	Hangi klasörün güncelleneceği anlaşılamadı. Yeniden seç.
+Could not undo the clear. Try again.	Temizleme geri alınamadı. Tekrar dene.
+Couldn't confirm the block for %1$s.	%1$s için engelleme doğrulanamadı.
+Couldn't confirm the unblock for %1$s.	%1$s için engelin kaldırıldığı doğrulanamadı.
+Country and network preferences	Ülke ve ağ tercihleri
+Country code	Ülke kodu
+Counts under the buttons	Düğmelerin altındaki sayılar
+Create	Oluştur
+Creators and sounds	İçerik üreticileri ve sesler
+Creators hidden on this phone	Bu telefonda gizlenen içerik üreticileri
+Creators you hid from a video. Search the list and remove one at a time.	Bir videodan gizlediğin içerik üreticileri. Listede ara ve tek tek kaldır.
+Current	Mevcut
+Current %1$s	Mevcut %1$s
+Current cache unavailable: %1$s	Mevcut önbellek kullanılamıyor: %1$s
+Current state	Mevcut durum
+Current: %1$s	Mevcut: %1$s
+Current: %1$s %2$s	Mevcut: %1$s %2$s
+Custom SIM details	Özel SIM bilgileri
+Custom value	Özel değer
+Custom value...	Özel değer...
+Cut the in-app browser off from TikTok	Uygulama içi tarayıcının TikTok ile bağını kes
+Daily budget	Günlük bütçe
+Daily budgets, reminders and the hold	Günlük bütçeler, hatırlatmalar ve bekletme
+Daily time budget	Günlük süre bütçesi
+Daily video budget	Günlük video bütçesi
+Dark	Koyu
+Days to remember a video. Zero removes the age limit. History keeps at most 10,000 videos.	Bir videonun kaç gün hatırlanacağı. Sıfır, yaş sınırını kaldırır. Geçmiş en fazla 10.000 video tutar.
+Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.	Gün. Sıfır her yaştaki gönderiyi tutar. Gelecek tarihli gönderiler dahil, kullanılabilir bir zaman damgası olmayan gönderiler görünür kalır.
+Default	Varsayılan
+Default playback speed	Varsayılan oynatma hızı
+Destination updated	Hedef güncellendi
+Device access	Cihaz erişimi
+Device language, then original	Önce cihaz dili, sonra orijinal
+Diagnostic data cleared. Tap again to put it back.	Tanılama verileri temizlendi. Geri koymak için tekrar dokun.
+Diagnostic data put back.	Tanılama verileri geri kondu.
+Diagnostic report copied to the clipboard.	Tanılama raporu panoya kopyalandı.
+Diagnostics	Tanılama
+Disable	Devre dışı bırak
+Disable analytics and tracking	Analitiği ve izlemeyi devre dışı bırak
+Disable the long press quick share	Uzun basma ile hızlı paylaşımı devre dışı bırak
+Disable the long press repost	Uzun basma ile yeniden yayınlamayı devre dışı bırak
+Disabled	Devre dışı
+Discard edits	Düzenlemeleri iptal et
+Dismissed %1$s suggested accounts	%1$s önerilen hesap kaldırıldı
+Dismissed one suggested account	Bir önerilen hesap kaldırıldı
+Do not start the feed on returning	Geri dönünce akışı başlatma
+Do nothing	Hiçbir şey yapma
+Done	Bitti
+Double tap	Çift dokunma
+Download original photos	Orijinal fotoğrafları indir
+Downloads	İndirilenler
+Drag to move, release to place	Taşımak için sürükle, yerleştirmek için bırak
+Drama and Series	Drama ve Seri
+Draw TikTok's text in your device's font instead of TikTok Sans. Icons, gift animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.	TikTok'un metinlerini TikTok Sans yerine cihazının yazı tipiyle göster. Simgeler, hediye animasyonları ve @ ile # işaretleri kendi yazı tiplerini korur. Uygulamak için TikTok'u yeniden başlat.
+Drop the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.	Birinin seni takip etmeye başladığını söyleyen bildirimi bildirim paneline ulaşmadan durdur. Diğer tüm bildirimlere dokunulmaz ve takipçi yine Gelen Kutusu'nda görünür.
+Each area, how many of the things it looks for are in this build and how many are not.	Her alan için, aradığı şeylerden kaçının bu sürümde bulunduğu ve kaçının bulunmadığı.
+Easier comment likes	Daha kolay yorum beğenme
+Empty	Boş
+Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Ana ekranda TikTok simgesine basılı tuttuğunda açılan menüyü boşalt. Bunu kapatırsan TikTok'tan kısayolları yeniden oluşturması istenir. Simgeye dokunmak yine uygulamayı açar ve kendi sabitlediğin bir kısayol koyduğun yerde kalır.
+Enable	Etkinleştir
+Enable diagnostic logging	Tanılama günlüğünü etkinleştir
+Enable hold-and-slide 2x lock	Basılı tutup kaydırarak 2x kilidini etkinleştir
+Enable overrides	Geçersiz kılmaları etkinleştir
+Enabled	Etkin
+Enter a JSON object or array.	Bir JSON nesnesi veya dizisi gir.
+Enter a creator handle or id	İçerik üreticisinin kullanıcı adını veya kimliğini gir
+Enter a finite number.	Sonlu bir sayı gir.
+Enter a number	Bir sayı gir
+Enter a number.	Bir sayı gir.
+Enter a valid structured value.	Geçerli bir yapılandırılmış değer gir.
+Enter a valid two-letter country code	Geçerli bir iki harfli ülke kodu gir
+Enter a whole number, or one like 20K, 1.5M or 2B	Bir tam sayı ya da 20K, 1.5M veya 2B gibi bir değer gir
+Enter a whole number.	Bir tam sayı gir.
+Enter true or false.	true veya false gir.
+Enter up to 8 comma-separated speeds from 0.5 to 3	0.5 ile 3 arasında, virgülle ayrılmış en fazla 8 hız gir
+Enter valid JSON.	Geçerli bir JSON gir.
+Entry %1$d has a field with the wrong data type.	%1$d numaralı girdide veri türü yanlış olan bir alan var.
+Entry %1$d is not an object.	%1$d numaralı girdi bir nesne değil.
+Errors	Hatalar
+Expand activity list	Etkinlik listesini genişlet
+Explore	Keşfet
+Export diagnostic report	Tanılama raporunu dışa aktar
+Export loaded values	Yüklenen değerleri dışa aktar
+Exported %1$d loaded values	%1$d yüklenen değer dışa aktarıldı
+Exported 1 loaded value	1 yüklenen değer dışa aktarıldı
+Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. Text, Reply and other controls keep their own space.	Kalbin dokunma alanını yakındaki boş alana doğru genişlet. Simge ve satır aralığı aynı kalır. Metin, Yanıtla ve diğer kontroller kendi alanlarını korur.
+Fade the feed out before the hold	Bekletmeden önce akışı yavaşça karart
+Feature Gate Lab	Feature Gate Lab
+Feature gate override reset	Özellik kapısı geçersiz kılması sıfırlandı
+Feature gate override saved	Özellik kapısı geçersiz kılması kaydedildi
+Feed and navigation	Akış ve gezinme
+Feed button size	Akış düğmesi boyutu
+Feed filter	Akış filtresi
+Feed screen	Akış ekranı
+Feed tabs	Akış sekmeleri
+Feed tabs to keep	Kalacak akış sekmeleri
+Field %1$s can't be changed on this build. Take it out of the override, or reset the override.	%1$s alanı bu sürümde değiştirilemez. Onu geçersiz kılmadan çıkar veya geçersiz kılmayı sıfırla.
+Field edits were discarded.	Alan düzenlemelerinden vazgeçildi.
+Field edits were not saved.	Alan düzenlemeleri kaydedilmedi.
+Files	Dosyalar
+Filter bottom tabs	Alt sekmeleri filtrele
+Filter comments by keyword	Yorumları anahtar kelimeye göre filtrele
+Filter feed tabs	Akış sekmelerini filtrele
+Filter location-tagged videos	Konum etiketli videoları filtrele
+Filter offline fallback videos	Çevrimdışı yedek videoları filtrele
+Filter settings	Filtre ayarları
+Filter the list	Listeyi filtrele
+Filter: %1$s	Filtre: %1$s
+Filters, translation and copy options	Filtreler, çeviri ve kopyalama seçenekleri
+Find a setting by name or description	Ada veya açıklamaya göre ayar bul
+First caller	İlk çağıran
+First rejection:	İlk ret:
+Fit the video to the screen	Videoyu ekrana sığdır
+Focus	Odak
+Follow probe	Takip yoklaması
+Following	Takip Edilenler
+For You	Senin İçin
+For com.deniscerri.ytdl only. Ask YTDLnis for audio or video when the save button hands it a link.	Yalnızca com.deniscerri.ytdl için. Kaydet düğmesi bir bağlantı aktardığında YTDLnis'ten ses veya video iste.
+For com.deniscerri.ytdl only. Hide its download card and start the handoff in the background.	Yalnızca com.deniscerri.ytdl için. İndirme kartını gizle ve aktarımı arka planda başlat.
+Forced %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d / %2$d kapı zorlandı, geri kalanı true veya false değeri almıyor. Uygulamak için TikTok'u yeniden başlat.
+Forced %1$d gates. Restart TikTok to apply this.	%1$d kapı zorlandı. Uygulamak için TikTok'u yeniden başlat.
+Forced 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 / %1$d kapı zorlandı, geri kalanı true veya false değeri almıyor. Uygulamak için TikTok'u yeniden başlat.
+Forced 1 gate. Restart TikTok to apply this.	1 kapı zorlandı. Uygulamak için TikTok'u yeniden başlat.
+Forced result	Zorlanan sonuç
+Forget seen videos after	Görülen videoları şu süreden sonra unut
+Forget the %1$s seen videos.	Görülen %1$s videoyu unut.
+Forget what has been counted today and end any hold. The budgets themselves are left alone.	Bugün sayılanları unut ve varsa bekletmeyi bitir. Bütçelerin kendisine dokunulmaz.
+Friends	Arkadaşlar
+Full comment sort options	Tüm yorum sıralama seçenekleri
+Full license	Lisansın tamamı
+Full report saved to %1$s	Tam rapor şuraya kaydedildi: %1$s
+GIF	GIF
+Gate data unavailable	Kapı verileri kullanılamıyor
+Gate details	Kapı ayrıntıları
+Generated defaults	Oluşturulan varsayılanlar
+Gestures	Hareketler
+Ghost mode	Hayalet modu
+Hand-off	Aktarım
+Handle or id	Kullanıcı adı veya kimlik
+Hidden %1$s on this phone	%1$s bu telefonda gizlendi
+Hidden commenters	Gizlenen yorumcular
+Hidden creators	Gizlenen içerik üreticileri
+Hidden: %1$s	Gizlenen: %1$s
+Hide	Gizle
+Hide AI-generated videos	Yapay zeka ile üretilmiş videoları gizle
+Hide CAPTCHA popups	CAPTCHA pencerelerini gizle
+Hide LIVE replays	CANLI tekrarlarını gizle
+Hide LIVE videos	CANLI videolarını gizle
+Hide LIVE videos from the feed.	CANLI videolarını akıştan gizle.
+Hide Search this image prompts	Bu görseli ara istemlerini gizle
+Hide Series	Serileri gizle
+Hide TikTok Shop	TikTok Shop'u gizle
+Hide TikTok Shop posts from the feed.	TikTok Shop gönderilerini akıştan gizle.
+Hide TikTok Shop updates and coupon messages.	TikTok Shop güncellemelerini ve kupon mesajlarını gizle.
+Hide TikTok's "Search: ..." banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.	Yorum sayısının üzerindeki TikTok'un "Ara: ..." bandını gizle. Bu, yorumları veya Hushfeed'in yorum arama kutusunu gizlemez.
+Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.	Yazarken görünen hızlı emoji satırını ve otomatik çıkartma önerilerini gizle. Emoji ve çıkartma düğmeleri çalışmaya devam eder.
+Hide activity	Etkinliği gizle
+Hide activity status	Etkinlik durumunu gizle
+Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.	Reklamları, Mağaza gönderilerini, CANLI videolarını ve tekrarlarını, tanıtım amaçlı müzikleri ve ücretli ortaklıkları gizle.
+Hide archive	Arşivi gizle
+Hide bottom tabs TikTok adds later unless you allow them.	TikTok'un sonradan eklediği alt sekmeleri, sen izin vermedikçe gizle.
+Hide browsing and LIVE puzzle dialogs. Login, account verification and any puzzle raised over a follow, like, comment or repost stay visible.	Gezinme ve CANLI sırasında çıkan bulmaca pencerelerini gizle. Giriş, hesap doğrulama ve bir takip, beğeni, yorum veya yeniden yayınlama yüzünden çıkan bulmacalar görünür kalır.
+Hide buttons in the right column	Sağ sütundaki düğmeleri gizle
+Hide comment polls	Yorum anketlerini gizle
+Hide comment popup ads	Yorumlardaki açılır reklamları gizle
+Hide comments made of an image or a sticker instead of words.	Kelimeler yerine bir görselden veya çıkartmadan oluşan yorumları gizle.
+Hide comments that contain any of the words below, or that come from the accounts below.	Aşağıdaki kelimelerden herhangi birini içeren veya aşağıdaki hesaplardan gelen yorumları gizle.
+Hide controls after each video starts. Tap to restore them.	Her video başladıktan sonra kontrolleri gizle. Geri getirmek için dokun.
+Hide conversations	Sohbetleri gizle
+Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still switched on.	Tüm direkt mesaj sohbetlerini gizle. Hâlâ açık olan diğer şeyler dışında Gelen Kutusu boş kalır.
+Hide floating promotion badges, coins, and timer banners on the feed.	Akıştaki yüzen promosyon rozetlerini, jetonları ve sayaç bantlarını gizle.
+Hide floating promotions	Yüzen promosyonları gizle
+Hide inserted cards	Araya eklenen kartları gizle
+Hide location labels	Konum etiketlerini gizle
+Hide message requests	Mesaj isteklerini gizle
+Hide message streaks	Mesajlaşma serilerini gizle
+Hide new follower notifications	Yeni takipçi bildirimlerini gizle
+Hide new followers	Yeni takipçileri gizle
+Hide paid partnerships	Ücretli ortaklıkları gizle
+Hide people and options by name	Kişileri ve seçenekleri ada göre gizle
+Hide photo posts	Fotoğraf gönderilerini gizle
+Hide photo posts from the feed.	Fotoğraf gönderilerini akıştan gizle.
+Hide picture comments	Görselli yorumları gizle
+Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.	Videolardaki yer rozetlerini, birden fazla yer içeren kartlar dahil gizle. Videolar ve konum izinlerin değişmez.
+Hide playlist videos	Oynatma listesi videolarını gizle
+Hide promotional music	Tanıtım amaçlı müzikleri gizle
+Hide comment typing suggestions	Yorum yazma önerilerini gizle
+Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.	TikTok'un arama sayfasında sen yazmadan önce çıkan önerilen aramaları gizle. Arama geçmişin kalır. Bu, yorumların üzerindeki önerileri gizlemez.
+Hide rows by title	Satırları başlığa göre gizle
+Hide search rewards	Arama ödüllerini gizle
+Hide search suggestions above comments	Yorumların üzerindeki arama önerilerini gizle
+Hide share actions	Paylaşım eylemlerini gizle
+Hide sharing apps	Paylaşım uygulamalarını gizle
+Hide stories	Hikayeleri gizle
+Hide stories from the feed.	Hikayeleri akıştan gizle.
+Hide stories tray	Hikaye şeridini gizle
+Hide suggested account rows.	Önerilen hesap satırlarını gizle.
+Hide suggested accounts	Önerilen hesapları gizle
+Hide suggestions on the search page	Arama sayfasındaki önerileri gizle
+Hide surveys	Anketleri gizle
+Hide tabs TikTok adds later unless you allow them.	TikTok'un sonradan eklediği sekmeleri, sen izin vermedikçe gizle.
+Hide the "Search this image" prompt shown over videos. The feed search button and suggestions above comments are separate settings.	Videoların üzerinde gösterilen "Bu görseli ara" istemini gizle. Akıştaki arama düğmesi ve yorumların üzerindeki öneriler ayrı ayarlardır.
+Hide the Activity row of likes and comments on your posts.	Gönderilerindeki beğeni ve yorumları gösteren Etkinlik satırını gizle.
+Hide the Archive row.	Arşiv satırını gizle.
+Hide the Full screen button	Tam ekran düğmesini gizle
+Hide the Full screen button over videos. Playback and automatic rotation keep working as before.	Videoların üzerindeki Tam ekran düğmesini gizle. Oynatma ve otomatik döndürme eskisi gibi çalışmaya devam eder.
+Hide the Inbox search button	Gelen Kutusu arama düğmesini gizle
+Hide the LIVE button	CANLI düğmesini gizle
+Hide the LIVE button in the top left corner of the feed.	Akışın sol üst köşesindeki CANLI düğmesini gizle.
+Hide the Message requests row.	Mesaj istekleri satırını gizle.
+Hide the New followers row.	Yeni takipçiler satırını gizle.
+Hide the Report button on videos	Videolardaki Bildir düğmesini gizle
+Hide the Send to row	Şuraya gönder satırını gizle
+Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments.	Profil düğmesinin üzerindeki Tako AI balonunu, videoların altındaki Sor çubuğunu, arama sayfasındaki Tako'ya Sor düğmesini ve yorumların üstündeki Tako çubuğunu gizle.
+Hide the Tako assistant conversation in Inbox.	Gelen Kutusu'ndaki Tako asistan sohbetini gizle.
+Hide the Tako bubble	Tako balonunu gizle
+Hide the Tako chat	Tako sohbetini gizle
+Hide the activity status control in the Inbox header.	Gelen Kutusu başlığındaki etkinlik durumu kontrolünü gizle.
+Hide the add people icon	Kişi ekle simgesini gizle
+Hide the add people icon in the Inbox header.	Gelen Kutusu başlığındaki kişi ekle simgesini gizle.
+Hide the caption	Açıklamayı gizle
+Hide the description under the creator's name on the feed.	Akışta içerik üreticisinin adının altındaki açıklamayı gizle.
+Hide the event badge	Etkinlik rozetini gizle
+Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.	TikTok'un bazı bölgelerde içerik üreticisinin resminin üstüne koyduğu bayrak düğmesini gizle. Bir videoyu paylaşım menüsünden yine bildirebilirsin.
+Hide the floating promotional badge over the feed.	Akışın üzerindeki yüzen tanıtım rozetini gizle.
+Hide the follow button on the feed	Akıştaki takip et düğmesini gizle
+Hide the friend recommendation card and the other cards TikTok slots between videos.	Arkadaş öneri kartını ve TikTok'un videoların arasına yerleştirdiği diğer kartları gizle.
+Hide the launcher shortcuts	Başlatıcı kısayollarını gizle
+Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.	Akışın sağ üstündeki büyüteci gizle. Gelen Kutusu'ndaki arama ve yorumların üzerindeki öneriler değişmez.
+Hide the music line	Müzik satırını gizle
+Hide the playlist bar	Oynatma listesi çubuğunu gizle
+Hide the playlist bar along the bottom of videos that belong to a series.	Bir seriye ait videoların alt kısmındaki oynatma listesi çubuğunu gizle.
+Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.	Sağ sütunda içerik üreticisinin resminin altındaki artı düğmesini gizle. Yukarıdaki Avatar ve takip et düğmesi seçeneğini işaretlersen resim de onunla birlikte gizlenir.
+Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.	TikTok'un bazı bölgelerde gösterdiği, arama kutusunun altındaki puan bannerını ve arama sonuçlarının üzerinde duran jeton sayacını gizle. Arama eskisi gibi çalışır.
+Hide the purple rewards button beside Add friends on your profile.	Profilinde Arkadaş ekle'nin yanındaki mor ödül düğmesini gizle.
+Hide the question cards TikTok slides over a video near its end.	TikTok'un bir videonun sonuna doğru üzerine kaydırdığı soru kartlarını gizle.
+Hide the rewards shortcut	Ödül kısayolunu gizle
+Hide the right column	Sağ sütunu gizle
+Hide the row of story avatars across the top of the Inbox.	Gelen Kutusu'nun üst kısmındaki hikaye avatarları satırını gizle.
+Hide the save button on the feed	Akıştaki kaydet düğmesini gizle
+Hide the save button through its native visibility hook. Ticking Save in the checklist above hides the same button through the overlay.	Kaydet düğmesini yerel görünürlük kancası üzerinden gizle. Yukarıdaki listede Kaydet'i işaretlemek aynı düğmeyi katman üzerinden gizler.
+Hide the search bar below videos	Videoların altındaki arama çubuğunu gizle
+Hide the search button on the feed	Akıştaki arama düğmesini gizle
+Hide the share prompt after a like	Beğeniden sonra çıkan paylaşım istemini gizle
+Hide the spinning music cover and the track name beside the caption.	Dönen müzik kapağını ve açıklamanın yanındaki parça adını gizle.
+Hide the status bar	Durum çubuğunu gizle
+Hide the whole column on the right, from the avatar down to the music disc.	Avatardan müzik diskine kadar sağdaki tüm sütunu gizle.
+Hide this creator on this phone	Bu içerik üreticisini bu telefonda gizle
+Hide verified accounts	Doğrulanmış hesapları gizle
+Hide video actions	Video eylemlerini gizle
+Hide videos carrying TikTok's AI-generated label.	TikTok'un yapay zeka ile üretildi etiketini taşıyan videoları gizle.
+Hide videos marked as paid partnership or branded content.	Ücretli ortaklık veya markalı içerik olarak işaretlenen videoları gizle.
+Hide videos posted as part of a playlist.	Bir oynatma listesinin parçası olarak paylaşılan videoları gizle.
+Hide videos posted by verified accounts.	Doğrulanmış hesapların paylaştığı videoları gizle.
+Hide videos that belong to a paid Series.	Ücretli bir Seri'ye ait videoları gizle.
+Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.	Görüntülenmesi çok, yorumu az olan videoları gizle. Beğeni başına görüntülenme ile aynı şekilde çalışır. Sıfır bunu kapatır.
+Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if a whole batch would go.	Görüntülenmesi çok, beğenisi az olan videoları gizle. Düşük sayılar daha katıdır, sıfır kuralı kapatır ve bütün bir grup gidecek olursa bir video bırakılır.
+Hide videos you have already seen	Daha önce gördüğün videoları gizle
+Hide voting cards and poll results above the comments, including polls that have ended.	Yorumların üzerindeki oylama kartlarını ve anket sonuçlarını, sona ermiş anketler dahil gizle.
+Hiding	Gizleme
+Highest	En yüksek
+Historical	Geçmiş
+Historical values	Geçmiş değerler
+Hold a gate to choose several	Birden fazla seçmek için bir kapıya basılı tut
+Hold the feed after the budget	Bütçe dolunca akışı beklet
+Home	Ana Sayfa
+Hook status	Kanca durumu
+How far each edge press moves the video.	Kenara her basışın videoyu ne kadar sardığı.
+Hushfeed cannot read the creator pattern %1$s	Hushfeed, %1$s içerik üreticisi kalıbını okuyamıyor
+Hushfeed hid a TikTok puzzle. Turn off Hide CAPTCHA popups if something stops working.	Hushfeed bir TikTok bulmacasını gizledi. Bir şey çalışmazsa CAPTCHA pencerelerini gizle ayarını kapat.
+Hushfeed is active	Hushfeed etkin
+Ignore the creator's choice so the Duet and Stitch entries appear. Everything else the app checks still applies, and whether the upload is accepted is the server's decision.	Düet ve Stitch seçeneklerinin görünmesi için içerik üreticisinin tercihini yok say. Uygulamanın kontrol ettiği diğer her şey yine geçerlidir ve yüklemenin kabul edilip edilmeyeceğine sunucu karar verir.
+Import finished	İçe aktarma tamamlandı
+Import loaded values	Yüklenen değerleri içe aktar
+Imported %1$d values	%1$d değer içe aktarıldı
+Imported %1$d values. Undo last Lab change is in the menu.	%1$d değer içe aktarıldı. Son Lab değişikliğini geri al seçeneği menüde.
+Inbox	Gelen Kutusu
+Include diagnostic events	Tanılama olaylarını dahil et
+Included diagnostics	Dahil edilen tanılama
+Includes all diagnostic events.	Tüm tanılama olaylarını içerir.
+Includes these events: %1$s	Şu olayları içerir: %1$s
+Inserted cards	Araya eklenen kartlar
+Keep a local record of what you have watched and drop those videos from later feed pages.	İzlediklerinin yerel bir kaydını tut ve o videoları sonraki akış sayfalarından çıkar.
+Keep captions in clear display	Temiz ekranda altyazıları koru
+Keep going	Devam et
+Keep the Favorites tab	Favoriler sekmesini koru
+Keep the clock and status icons off the screen while TikTok is open. Swipe down from the top to peek at them.	TikTok açıkken saati ve durum simgelerini ekrandan uzak tut. Onlara göz atmak için üstten aşağı kaydır.
+Keep the screen's refresh rate	Ekranın yenileme hızını koru
+Keep the speed you chose for the next video. Off, each new video starts at 1x and a manual choice lasts for that video only.	Seçtiğin hızı sonraki videoda da koru. Kapalıyken her yeni video 1x hızında başlar ve elle yapılan seçim yalnızca o video için geçerli olur.
+Keep this string to %1$s characters or fewer.	Bu metni en fazla %1$s karakterle sınırla.
+Keep this structured value to 64 KB or less.	Bu yapılandırılmış değeri en fazla 64 KB ile sınırla.
+Kept to %1$s, the nearest value this row allows	%1$s olarak ayarlandı, bu satırın izin verdiği en yakın değer
+Kinds of post	Gönderi türleri
+LIVE	CANLI
+LIVE replays	CANLI tekrarları
+LIVE settings	CANLI ayarları
+LIVE share actions	CANLI paylaşım eylemleri
+LIVE videos	CANLI videoları
+Lab data reset. Undo last Lab change is in the menu. Restart TikTok to apply this.	Lab verileri sıfırlandı. Son Lab değişikliğini geri al seçeneği menüde. Uygulamak için TikTok'u yeniden başlat.
+Lab data was over its rule limit, so it was cleared without an undo copy. Restart TikTok to apply this.	Lab verileri kural sınırını aştığı için geri alma kopyası olmadan temizlendi. Uygulamak için TikTok'u yeniden başlat.
+Lab overrides reset. Undo last Lab change is in the menu. Restart TikTok to apply this.	Lab geçersiz kılmaları sıfırlandı. Son Lab değişikliğini geri al seçeneği menüde. Uygulamak için TikTok'u yeniden başlat.
+Larger (1.25x)	Daha büyük (1.25x)
+Last original value	Son özgün değer
+Last recording: %1$d gates.	Son kayıt: %1$d kapı.
+Last recording: 1 gate.	Son kayıt: 1 kapı.
+Layout	Düzen
+Layout, player, search and system	Düzen, oynatıcı, arama ve sistem
+Leave maximum empty to keep it unlimited.	Sınırsız kalması için maksimumu boş bırak.
+Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.	Sesi kaydedilen videonun dışında bırak. İkisini de istersen Sesi de kaydet seçeneği .m4a dosyasını yine videonun yanına yazar.
+Length and views per like	Süre ve beğeni başına görüntülenme
+Less than a minute left	Bir dakikadan az kaldı
+Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.	Ekran görüntüsü, ekran kaydı ve Circle to Search'ün TikTok'ta yeniden çalışmasına izin ver. Uygulamak için TikTok'u yeniden başlat.
+Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.	Çevrimdışı videolar menüsünün TikTok'un sabit sınırı yerine senin belirlediğin sınırı kullanmasına izin ver. Uygulamak için TikTok'u yeniden başlat.
+Licenses	Lisanslar
+Like	Beğen
+Limits	Sınırlar
+Link copied	Bağlantı kopyalandı
+Links	Bağlantılar
+Links in comments open	Yorumlardaki bağlantıların açılacağı yer
+Live	Canlı
+Loaded current values. Loading all known gates...	Geçerli değerler yüklendi. Bilinen tüm kapılar yükleniyor...
+Loaded values are still being read. Try again in a moment.	Yüklenen değerler hâlâ okunuyor. Birazdan yeniden dene.
+Loaded-value file export failed	Yüklenen değer dosyası dışa aktarılamadı
+Loading gates...	Kapılar yükleniyor...
+Loading local catalog and current TikTok cache...	Yerel katalog ve geçerli TikTok önbelleği yükleniyor...
+Location-tagged videos	Konum etiketli videolar
+Lock today's budget	Bugünün bütçesini kilitle
+Logging, hook status and reports	Günlük kaydı, kanca durumu ve raporlar
+Long press	Uzun basma
+Lowest	En düşük
+Make TikTok yours.	TikTok'u kendine göre ayarla.
+Manager	Manager
+Marked as not interested	İlgilenmiyorum olarak işaretlendi
+Match locale and timezone to country	Yerel ayarı ve saat dilimini ülkeyle eşleştir
+Maximum	Maksimum
+Maximum post age	Maksimum gönderi yaşı
+Maximum video length	Maksimum video süresi
+Maximum views per comment	Yorum başına maksimum görüntülenme
+Maximum views per like	Beğeni başına maksimum görüntülenme
+Media	Medya
+Media Config (VE)	Medya Yapılandırması (VE)
+Messages, profiles and search still work.	Mesajlar, profiller ve arama çalışmaya devam eder.
+Microphone in use	Mikrofon kullanımda
+Min/Max comments	Min/Maks yorum
+Min/Max favorites	Min/Maks favori
+Min/Max likes	Min/Maks beğeni
+Min/Max shares	Min/Maks paylaşım
+Min/Max views	Min/Maks görüntülenme
+Minimum	Minimum
+More options	Diğer seçenekler
+Move down	Aşağı taşı
+Move left	Sola taşı
+Move right	Sağa taşı
+Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this.	Geçerli video bitince sonraki videoya geç. Duraklatmalar, açık iletişim kutuları ve ekran süresi bekletmeleri bunu durdurur. Bunu değiştirdikten sonra TikTok'u yeniden başlat.
+Move up	Yukarı taşı
+Music disc	Müzik diski
+Mutes the video behind the comment sheet while you read. Sound comes back when the sheet closes.	Sen okurken yorum panelinin arkasındaki videoyu sessize alır. Panel kapanınca ses geri gelir.
+Nearby	Yakındakiler
+Never from these countries	Bu ülkelerden asla
+No	Hayır
+No creator to block on this video	Bu videoda engellenecek içerik üreticisi yok
+No creator to hide on this video	Bu videoda gizlenecek içerik üreticisi yok
+No creators are hidden yet. Hide one from a video, or add a handle above.	Henüz gizlenen içerik üreticisi yok. Bir videodan birini gizle veya yukarıya bir kullanıcı adı ekle.
+No current value	Geçerli değer yok
+No current value and no active override	Geçerli değer yok, etkin geçersiz kılma da yok
+No delay	Gecikme yok
+No gate data is available. Refresh values from the menu to try again.	Özellik kapısı verisi yok. Yeniden denemek için menüden değerleri yenile.
+No gate reads were recorded. Use a TikTok feature while recording.	Hiç özellik kapısı okuması kaydedilmedi. Kayıt sırasında bir TikTok özelliği kullan.
+No gates match this filter.	Bu filtreyle eşleşen özellik kapısı yok.
+No gates match this search and filter.	Bu arama ve filtreyle eşleşen özellik kapısı yok.
+No hidden creators match this search. Clear the search to see them all.	Bu aramayla eşleşen gizlenmiş içerik üreticisi yok. Hepsini görmek için aramayı temizle.
+No limit	Sınır yok
+No matching comments. Try a different word, or clear the search with the X in the box.	Eşleşen yorum yok. Başka bir kelime dene veya kutudaki X ile aramayı temizle.
+No matching countries. Try a country name or a two-letter code.	Eşleşen ülke yok. Bir ülke adı veya iki harfli bir kod dene.
+No matching diagnostics found.	Eşleşen tanılama bulunamadı.
+No matching settings	Eşleşen ayar yok
+No preset selected. Choose a preset above.	Hazır ayar seçilmedi. Yukarıdan bir hazır ayar seç.
+No recording yet. Start one, use a feature, then return here.	Henüz kayıt yok. Bir kayıt başlat, bir özellik kullan, sonra buraya dön.
+No seen videos recorded yet.	Henüz görülen video kaydedilmedi.
+No share actions have been observed yet	Henüz hiçbir paylaşım eylemi görülmedi
+No share actions match this search	Bu aramayla eşleşen paylaşım eylemi yok
+No sound to block on this video	Bu videoda engellenecek ses yok
+No suggested accounts to clear	Temizlenecek önerilen hesap yok
+No video selected. Open a video first.	Video seçilmedi. Önce bir video aç.
+None of these gates had an override to reset.	Bu özellik kapılarının hiçbirinde sıfırlanacak bir geçersiz kılma yoktu.
+None of these gates takes a true or false value.	Bu özellik kapılarının hiçbiri true veya false değeri almıyor.
+None recorded	Kayıt yok
+Normal	Normal
+Not blocked	Engellenmedi
+Not interested in this video	Bu videoyla ilgilenmiyorum
+Not read yet	Henüz okunmadı
+Not requested in this process yet	Bu süreçte henüz istenmedi
+Not saved yet	Henüz kaydedilmedi
+Not seen	Görülmedi
+Not seen yet	Henüz görülmedi
+Nothing has been checked yet, so there is nothing to report.	Henüz hiçbir şey denetlenmedi, bu yüzden bildirilecek bir şey yok.
+Nothing has been looked up yet. Use the app for a moment, then come back.	Henüz hiçbir şey sorgulanmadı. Uygulamayı biraz kullan, sonra geri gel.
+Nothing hidden.	Gizlenen bir şey yok.
+Nothing is playing to seek	Sarılacak bir şey oynatılmıyor
+Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected.	Yeni bir şey içe aktarılmadı. %1$d zaten eşleşiyordu, %2$d kullanılamıyor, %3$d reddedildi.
+Nothing new was imported. %1$d already matched, %2$d unavailable, %3$d rejected. First rejection: %4$s	Yeni bir şey içe aktarılmadı. %1$d zaten eşleşiyordu, %2$d kullanılamıyor, %3$d reddedildi. İlk ret: %4$s
+Nothing on this page changes what TikTok does until they are on.	Bunlar açılana kadar bu sayfadaki hiçbir şey TikTok'un davranışını değiştirmez.
+Nothing to undo yet.	Henüz geri alınacak bir şey yok.
+Notices from this project and the ones it is built on	Bu projenin ve temel aldığı projelerin bildirimleri
+OK	Tamam
+Off	Kapalı
+Off forces false; on forces true. Reset returns control to TikTok	Kapalı false, açık true değerini zorlar. Sıfırla, kontrolü TikTok'a geri verir
+Offline videos	Çevrimdışı videolar
+Offline videos limit	Çevrimdışı video sınırı
+Older overrides were kept disabled. Review their values before enabling them on TikTok %1$s.	Eski geçersiz kılmalar devre dışı tutuldu. TikTok %1$s sürümünde etkinleştirmeden önce değerlerini gözden geçir.
+On	Açık
+On mobile data	Mobil veride
+On. Restore puts back the feed setup you had before.	Açık. Geri yükle, daha önceki akış düzenini geri getirir.
+Once today's budget runs out, the hold stays and cannot be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.	Bugünün bütçesi bitince bekletme ekranı kalır ve kapatılamaz. Bütçe ayarları gün yeniden başlayana kadar kilitlenir. Bütçe bitmeden önce bunu istediğin zaman kapatabilirsin.
+One area was checked and everything it needs is here.	Bir alan denetlendi ve ihtiyaç duyduğu her şey burada.
+One minute left	Bir dakika kaldı
+One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.	Bu listedeki tırnak işaretlerinden birinin kapanışı yok, bu yüzden satırın geri kalanı tek bir ifade olarak okunuyor. Eksik tırnağı ekle veya fazla olanı çıkar.
+One value per line	Her satıra bir değer
+Only bottom tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.	Burada yalnızca TikTok'un bu cihazda yüklediği alt sekmeler gösterilir. Bu, kullanılamayan sekmeleri görünmeye zorlamaz.
+Only enable when recording logs to report an issue. Leaving it on for too long can make TikTok feel laggy and may lead to crashes.	Yalnızca bir sorunu bildirmek için günlük kaydederken etkinleştir. Çok uzun süre açık bırakmak TikTok'u yavaşlatabilir ve çökmelere yol açabilir.
+Only fields that can be type-checked and applied to a copied configuration object are shown.	Yalnızca türü denetlenebilen ve kopyalanmış bir yapılandırma nesnesine uygulanabilen alanlar gösterilir.
+Only from these countries	Yalnızca bu ülkelerden
+Only tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.	Burada yalnızca TikTok'un bu cihazda yüklediği sekmeler gösterilir. Bu, kullanılamayan sekmeleri görünmeye zorlamaz.
+Open a share sheet once, then return here to choose its actions.	Bir paylaşım menüsünü bir kez aç, sonra eylemlerini seçmek için buraya dön.
+Open comments	Yorumları aç
+Open external links directly	Harici bağlantıları doğrudan aç
+Open messages	Mesajları aç
+Open profile and story website links in your system browser instead of TikTok's in-app browser.	Profil ve hikayelerdeki web sitesi bağlantılarını TikTok'un uygulama içi tarayıcısı yerine sistem tarayıcında aç.
+Open the feed anyway	Akışı yine de aç
+Open the feed anyway, %1$d left today	Akışı yine de aç, bugün %1$d hak kaldı
+Open the feed anyway, the last time today	Akışı yine de aç, bugün son kez
+Open the feed once so Hushfeed can see which bottom tabs TikTok loaded.	Hushfeed'in TikTok'un hangi alt sekmeleri yüklediğini görebilmesi için akışı bir kez aç.
+Open the feed once so Hushfeed can see which tabs TikTok loaded.	Hushfeed'in TikTok'un hangi sekmeleri yüklediğini görebilmesi için akışı bir kez aç.
+Open the profile again and try once more	Profili yeniden aç ve bir kez daha dene
+Open the story again and try once more	Hikayeyi yeniden aç ve bir kez daha dene
+Opens github.com in your browser	github.com adresini tarayıcında açar
+Operator code	Operatör kodu
+Operator name	Operatör adı
+Original language	Orijinal dil
+Other	Diğer
+Other feed filters	Diğer akış filtreleri
+Overridden	Geçersiz kılındı
+Override	Geçersiz kılma
+Override SIM details	SIM bilgilerini geçersiz kıl
+Override set, not read yet	Geçersiz kılma ayarlandı, henüz okunmadı
+Override store region (experimental)	Mağaza bölgesini geçersiz kıl (deneysel)
+Override this configuration	Bu yapılandırmayı geçersiz kıl
+Override this gate	Bu özellik kapısını geçersiz kıl
+Overrides are disabled in the Feature Gate Lab.	Geçersiz kılmalar Feature Gate Lab'de devre dışı.
+Overrides disabled. Restart TikTok to apply this.	Geçersiz kılmalar devre dışı bırakıldı. Bunu uygulamak için TikTok'u yeniden başlat.
+Overrides enabled. Restart TikTok to apply this.	Geçersiz kılmalar etkinleştirildi. Bunu uygulamak için TikTok'u yeniden başlat.
+Paid partnerships	Ücretli ortaklıklar
+People, shortcuts and sending controls	Kişiler, kısayollar ve gönderme kontrolleri
+Photo	Fotoğraf
+Photo and image posts	Fotoğraf ve görsel gönderileri
+Photo destination	Fotoğraf kayıt konumu
+Photo filename	Fotoğraf dosya adı
+Photos and stickers	Fotoğraflar ve çıkartmalar
+Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.	Paylaşım menüsünden kaldırılacak eylemleri seç. Elle yazdığın ve TikTok'un henüz göstermediği adlar yukarıdaki listede kalır.
+Pick the buttons to take off the column. The rest stay where they are.	Sütundan kaldırılacak düğmeleri seç. Geri kalanlar yerinde kalır.
+Play videos TikTok has classified without the overlay asking to be tapped through first.	TikTok'un sınıflandırdığı videoları, önce dokunup geçmeni isteyen katman olmadan oynat.
+Playback	Oynatma
+Player	Oynatıcı
+Player Config	Oynatıcı yapılandırması
+Playlist posts	Oynatma listesi gönderileri
+Popular	Popüler
+Popups	Açılır pencereler
+Preset	Hazır ayar
+Press and hold a profile picture to save the full size original to your photo destination.	Tam boyutlu orijinali fotoğraf kayıt konumuna kaydetmek için bir profil fotoğrafına basılı tut.
+Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.	Bir hikayeyi kaydetmek için ona basılı tut. Hikayelerin kendi kaydet düğmesi yoktur ve TikTok hikayeyi basılı tutunca duraklatır, bu yüzden bu ayar o hareketi devralır.
+Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.	Geri veya ileri atlamak için ekranın sol ya da sağ üçte birine basılı tut. Ortadaki üçte birlik bölüm Uzun basma eylemini korur.
+Preview shortened. Save JSON includes the full report.	Önizleme kısaltıldı. JSON'u kaydet, raporun tamamını içerir.
+Privacy	Gizlilik
+Privacy and system	Gizlilik ve sistem
+Profile	Profil
+Profile picture saved to %1$s	Profil fotoğrafı %1$s konumuna kaydedildi
+Profile share actions	Profil paylaşım eylemleri
+Promotional music	Tanıtım müziği
+Proof	Kanıt
+Publication age	Yayınlanalı geçen süre
+Putting the settings back to their defaults	Ayarlar varsayılanlarına döndürülüyor
+Quality	Kalite
+Quality, files, subtitles and hand-off	Kalite, dosyalar, altyazılar ve başka uygulamaya aktarma
+Quality, speed and auto-advance	Kalite, hız ve otomatik geçiş
+Quick setup	Hızlı kurulum
+Reading	Okuma
+Recorded gate reads (%1$d)	Kaydedilen özellik kapısı okumaları (%1$d)
+Recording gate reads. Use a feature, then return here to stop.	Özellik kapısı okumaları kaydediliyor. Bir özellik kullan, sonra durdurmak için buraya dön.
+Recover the settings saved before the last restore or reset.	Son geri yükleme veya sıfırlamadan önce kaydedilen ayarları kurtar.
+Recovered an interrupted settings change. Restart TikTok to apply this.	Yarıda kalan bir ayar değişikliği kurtarıldı. Bunu uygulamak için TikTok'u yeniden başlat.
+Refresh values	Değerleri yenile
+Refreshing current TikTok cache...	Geçerli TikTok önbelleği yenileniyor...
+Region	Bölge
+Region rules	Bölge kuralları
+Remember the last speed	Son hızı hatırla
+Remind me every	Hatırlatma aralığı
+Remove	Kaldır
+Remove %1$s	Kaldır: %1$s
+Remove all overrides	Tüm geçersiz kılmaları kaldır
+Remove feed ads	Akış reklamlarını kaldır
+Remove feed ads, creator commission posts, paid partnerships, and branded content.	Akış reklamlarını, içerik üreticisi komisyon gönderilerini, ücretli ortaklıkları ve markalı içerikleri kaldır.
+Remove the Share via row.	Şununla paylaş satırını kaldır.
+Remove the actions row from the share sheet.	Paylaşım menüsünden eylemler satırını kaldır.
+Remove the magnifying glass at the top of Inbox. It doesn't hide search on the feed or in comments.	Gelen Kutusu'nun üstündeki büyüteci kaldır. Akıştaki veya yorumlardaki aramayı gizlemez.
+Remove the row of friends from the top of the share sheet.	Paylaşım menüsünün üstündeki arkadaşlar satırını kaldır.
+Remove the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.	Alt sekmelerin üstündeki önerilen arama şeridini kaldır ve video ayrıntılarıyla yan kontrollerin bu alanı kullanmasını sağla. Üstteki arama düğmesi ve yorumlar değişmez.
+Remove tracking parameters from shared links.	Paylaşılan bağlantılardan izleme parametrelerini kaldır.
+Remove watermark	Filigranı kaldır
+Removed %1$s	%1$s kaldırıldı
+Replace values when TikTok asks for them	TikTok istediğinde değerleri değiştir
+Report saved to %1$s	Rapor %1$s konumuna kaydedildi
+Required	Gerekli
+Researched	Araştırıldı
+Researched values	Araştırılmış değerler
+Reset	Sıfırla
+Reset %1$d gates of %2$d. Restart TikTok to apply this.	%1$d / %2$d özellik kapısı sıfırlandı. Bunu uygulamak için TikTok'u yeniden başlat.
+Reset %1$d gates. Restart TikTok to apply this.	%1$d özellik kapısı sıfırlandı. Bunu uygulamak için TikTok'u yeniden başlat.
+Reset 1 gate of %1$d. Restart TikTok to apply this.	1 / %1$d özellik kapısı sıfırlandı. Bunu uygulamak için TikTok'u yeniden başlat.
+Reset 1 gate. Restart TikTok to apply this.	1 özellik kapısı sıfırlandı. Bunu uygulamak için TikTok'u yeniden başlat.
+Reset override	Geçersiz kılmayı sıfırla
+Reset position	Konumu sıfırla
+Reset settings	Ayarları sıfırla
+Restart TikTok to apply %1$d changes	%1$d değişikliği uygulamak için TikTok'u yeniden başlat
+Restart TikTok to apply this change	Bu değişikliği uygulamak için TikTok'u yeniden başlat
+Restart TikTok to apply this.	Bunu uygulamak için TikTok'u yeniden başlat.
+Restart now	Şimdi yeniden başlat
+Restart pending	Yeniden başlatma bekleniyor
+Restore defaults immediately. Your current settings are kept for Undo.	Varsayılanları hemen geri yükle. Geçerli ayarların Geri al için saklanır.
+Restore failed. Some settings may still be changed.	Geri yükleme başarısız oldu. Bazı ayarlar yine de değişmiş olabilir.
+Restore failed. Some settings may still be changed. Use Undo to recover.	Geri yükleme başarısız oldu. Bazı ayarlar yine de değişmiş olabilir. Kurtarmak için Geri al'ı kullan.
+Restore settings	Ayarları geri yükle
+Restore setup	Düzeni geri yükle
+Restored the previous Lab settings. Restart TikTok to apply this.	Önceki Lab ayarları geri yüklendi. Bunu uygulamak için TikTok'u yeniden başlat.
+Restoring setup	Düzen geri yükleniyor
+Restoring your settings	Ayarların geri yükleniyor
+Resume videos after scrolling	Kaydırdıktan sonra videoları sürdür
+Retry	Yeniden dene
+Return a copy of this configuration with the fields below changed	Bu yapılandırmanın, aşağıdaki alanları değiştirilmiş bir kopyasını döndür
+Return after using a TikTok feature to see every gate read during the recording.	Kayıt sırasında okunan tüm özellik kapılarını görmek için bir TikTok özelliği kullandıktan sonra geri dön.
+Returns %1$s	%1$s döndürür
+Right column	Sağ sütun
+Rows	Satırlar
+SIM country preset	SIM ülke hazır ayarı
+STEM	STEM
+Sanitize sharing links	Paylaşım bağlantılarını temizle
+Save	Kaydet
+Save JSON	JSON'u kaydet
+Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.	SRT dosyalarını videoyla birlikte kaydet. Eşli kayıtlar Android 11+ sürümlerinde Movies, Android 10'da Download, daha eski sürümlerde ise video klasörünü kullanır.
+Save a profile picture on a long press	Uzun basınca profil fotoğrafını kaydet
+Save a story on a long press	Uzun basınca hikayeyi kaydet
+Save every photo in the post directly from its source URL, without rendering it again.	Gönderideki her fotoğrafı yeniden işlemeden doğrudan kaynak URL'sinden kaydet.
+Save field values	Alan değerlerini kaydet
+Save full report	Raporun tamamını kaydet
+Save media	Medyayı kaydet
+Save patch settings and Feature Gate Lab rules to a JSON file.	Yama ayarlarını ve Feature Gate Lab kurallarını bir JSON dosyasına kaydet.
+Save subtitles beside videos	Altyazıları videoların yanına kaydet
+Save the latest available TikTok crash report for diagnostic export.	Tanılama dışa aktarımı için mevcut en son TikTok çökme raporunu kaydet.
+Save the original sound	Orijinal sesi kaydet
+Save the sound as well	Sesi de kaydet
+Save videos without sound	Videoları sessiz kaydet
+Save, restore, reset and undo your settings	Ayarlarını kaydet, geri yükle, sıfırla ve geri al
+Saved	Kaydedildi
+Saved %1$s	%1$s kaydedildi
+Saved %1$s of %2$s photos before the story failed	Hikaye başarısız olmadan önce %1$s / %2$s fotoğraf kaydedildi
+Saved %1$s original photos	%1$s orijinal fotoğraf kaydedildi
+Saved %1$s photos. The rest failed, so try again.	%1$s fotoğraf kaydedildi. Geri kalanı başarısız oldu, yeniden dene.
+Saved one original photo	Bir orijinal fotoğraf kaydedildi
+Saved, override off	Kaydedildi, geçersiz kılma kapalı
+Saved. Restart TikTok to apply this.	Kaydedildi. Bunu uygulamak için TikTok'u yeniden başlat.
+Saving	Kaydediliyor
+Saving %1$s original photos	%1$s orijinal fotoğraf kaydediliyor
+Saving settings backup	Ayar yedeği kaydediliyor
+Saving sticker	Çıkartma kaydediliyor
+Saving the selected video quality	Seçilen video kalitesi kaydediliyor
+Saving the selected video quality without sound	Seçilen video kalitesi sessiz olarak kaydediliyor
+Saving the story	Hikaye kaydediliyor
+Saving video and subtitles to %1$s	Video ve altyazılar %1$s konumuna kaydediliyor
+Screen	Ekran
+Screen time	Ekran süresi
+Search	Arama
+Search and override gate flags	Özellik kapısı bayraklarını ara ve geçersiz kıl
+Search by name or gate key	Ada veya özellik kapısı anahtarına göre ara
+Search by name, description or category.	Ada, açıklamaya veya kategoriye göre ara.
+Search countries or operators	Ülke veya operatör ara
+Search hidden creators	Gizlenen içerik üreticilerinde ara
+Search settings	Ayarlarda ara
+Search share actions	Paylaşım eylemlerinde ara
+Search these comments	Bu yorumlarda ara
+Search translated titles and descriptions, then open the original setting.	Çevrilmiş başlık ve açıklamalarda ara, sonra asıl ayarı aç.
+Search within comments	Yorumların içinde ara
+Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.	Saniye. Sıfır, her uzunluğu tutar. Bir grubun tamamı filtrelenecekse akış boş kalmasın diye sınırına en yakın video tutulur.
+Seek by	Sarma miktarı
+Seek from the edges	Kenarlardan sar
+Seen	Görüldü
+Seen this session	Bu oturumda görüldü
+Seen videos	Görülen videolar
+Seen videos cleared. You can undo until TikTok closes.	Görülen videolar temizlendi. TikTok kapanana kadar geri alabilirsin.
+Seen videos restored.	Görülen videolar geri yüklendi.
+Select	Seç
+Select at least one field.	En az bir alan seç.
+Select every tab	Tüm sekmeleri seç
+Selected	Seçildi
+Send links to another app	Bağlantıları başka bir uygulamaya gönder
+Sending feedback	Geri bildirim gönderme
+Series posts	Seri gönderileri
+Settings	Ayarlar
+Settings are back to their defaults. Restart TikTok to apply all changes.	Ayarlar varsayılanlarına döndü. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
+Settings backup saved	Ayar yedeği kaydedildi
+Settings couldn't open	Ayarlar açılamadı
+Settings couldn't refresh completely. Reopen settings and try again.	Ayarlar tamamen yenilenemedi. Ayarları yeniden aç ve tekrar dene.
+Settings restored. Restart TikTok to apply all changes.	Ayarlar geri yüklendi. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
+Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Ayarlar geri yüklendi. Feature Gate Lab kuralları başka bir TikTok sürümü içindi ve dışarıda bırakıldı. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
+Share	Paylaş
+Share links through another host	Bağlantıları başka bir sunucu üzerinden paylaş
+Share sheet	Paylaşım menüsü
+Shop	Mağaza
+Shop posts	Mağaza gönderileri
+Show	Göster
+Show @username beside a video instead of the display name the creator chose.	Videonun yanında içerik üreticisinin seçtiği görünen ad yerine @kullanıcıadı göster.
+Show TikTok's own progress bar on videos where it is normally hidden.	TikTok'un kendi ilerleme çubuğunu, normalde gizli olduğu videolarda göster.
+Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.	Hesabına verilen kısaltılmış satır yerine her gönderide TikTok'un kendi sıralama panelini popüler, en yeni, medya ve içerik üreticisi seçenekleriyle göster. Bunu uygulamak için TikTok'u yeniden başlat. Stili her çalıştırmada bir kez okur ve hatırlar.
+Show a video preview thumbnail while dragging the progress bar.	İlerleme çubuğunu sürüklerken video önizleme küçük resmi göster.
+Show failures on screen	Hataları ekranda göster
+Show gates	Özellik kapılarını göster
+Show last report	Son raporu göster
+Show search in LIVE	CANLI'da aramayı göster
+Show the Not interested button	İlgilenmiyorum düğmesini göster
+Show the block button on videos	Videolarda engelle düğmesini göster
+Show the block sound button	Sesi engelle düğmesini göster
+Show the country a video was posted from next to the creator's name.	Videonun paylaşıldığı ülkeyi içerik üreticisinin adının yanında göster.
+Show the current spoken caption while the other controls are hidden.	Diğer kontroller gizliyken o an konuşulan altyazıyı göster.
+Show the handle instead of the name	Ad yerine kullanıcı adını göster
+Show the hide button on videos	Videolarda gizle düğmesini göster
+Show the progress bar	İlerleme çubuğunu göster
+Show the progress bar thumbnail	İlerleme çubuğu küçük resmini göster
+Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.	TikTok'un CANLI çekmecesindeki arama girişini, mümkün olan yerlerde göster. Bu, video yorumlarına bir arama kutusu eklemez.
+Show the whole Activity and New followers lists instead of stopping at a View all button.	Tümünü gör düğmesinde durmak yerine Etkinlik ve Yeni takipçiler listelerinin tamamını göster.
+Show the whole video instead of cropping it to the window. Nothing changes on a tall phone, where it already fits. On a folding phone opened up, a squarer screen or a split view the sides or the ends stop being cut off.	Videoyu pencereye sığsın diye kırpmak yerine tamamını göster. Videonun zaten sığdığı uzun telefonlarda hiçbir şey değişmez. Açılmış katlanabilir bir telefonda, kareye yakın bir ekranda veya bölünmüş görünümde kenarlar ya da uçlar artık kesilmez.
+Show what is left of the budget	Bütçeden kalanı göster
+Show when the camera or microphone is in use	Kamera veya mikrofon kullanılırken göster
+Show where a video was posted	Videonun nerede paylaşıldığını göster
+Showing %1$s again	%1$s yeniden gösteriliyor
+Silence the feed while comments are open	Yorumlar açıkken akışın sesini kapat
+Skip blocked sounds	Engellenen sesleri atla
+Skip content warnings	İçerik uyarılarını atla
+Skip feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.	Ücretli reklam olmasalar bile yer rozeti taşıyan akış videolarını atla. Videoyu tutup yalnızca rozetini gizlemek için Akış ekranındaki Konum etiketlerini gizle ayarını kullan.
+Skip recorded LIVE broadcasts in the feed.	Akıştaki kaydedilmiş CANLI yayınları atla.
+Skip videos marked as using promotional music.	Tanıtım müziği kullandığı belirtilen videoları atla.
+Skip videos that use a sound blocked with the player's sound button, or named below.	Oynatıcının ses düğmesiyle engellenen veya aşağıda adı yazılan bir sesi kullanan videoları atla.
+Skipping videos with %1$s	%1$s içeren videolar atlanıyor
+Some Calm feed settings changed. Restore still puts back your earlier setup.	Bazı Sakin akış ayarları değişti. Geri yükle yine de önceki düzenini geri getirir.
+Something is missing from %1$s. Tap for the whole report.	%1$s içinde eksik bir şey var. Raporun tamamı için dokun.
+Sound link copied	Ses bağlantısı kopyalandı
+Sound saved to %1$s	Ses şuraya kaydedildi: %1$s
+Source	Kaynak
+Speed	Hız
+Speed menu choices	Hız menüsü seçenekleri
+Split comment minimum width	Bölünmüş yorumlar için en düşük genişlik
+Start each new video at your default. A manual choice lasts until the video changes.	Her yeni videoyu varsayılan ayarınla başlat. Elle yaptığın seçim video değişene kadar geçerli kalır.
+Start feature gate recording	Özellik kapısı kaydını başlat
+Start recording	Kaydı başlat
+Start the day at	Günün başlangıç saati
+Start today over	Bugünü baştan başlat
+Start typing	Yazmaya başla
+Start with comments. Hide the comment count, sort and close buttons, plus the suggestion area above them. Use Back or swipe down to close comments.	Yorumlarla başla. Yorum sayısını, sıralama ve kapatma düğmelerini, ayrıca bunların üstündeki öneri alanını gizle. Yorumları kapatmak için Geri'yi kullan veya aşağı kaydır.
+Sticker	Çıkartma
+Sticker destination	Çıkartma kayıt konumu
+Sticker saved to %1$s	Çıkartma şuraya kaydedildi: %1$s
+Still here. Nothing is waiting.	Hâlâ burada. Bekleyen bir şey yok.
+Still reading the record. Tap again in a moment.	Kayıt hâlâ okunuyor. Birazdan yeniden dokun.
+Still saving the last one	Bir önceki hâlâ kaydediliyor
+Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.	ByteDance AppLog olaylarının, AppsFlyer ilişkilendirmesinin, açık Firebase ekran raporlarının ve çökme raporlarının gönderilmesini durdur. TikTok'un kendi tanılaması da bunlarla birlikte susar.
+Stop TikTok asking the screen to run at the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.	TikTok'un ekrandan, oynattığı videonun kare hızında çalışmasını istemesini durdur. 90 veya 120 Hz'lik bir telefonda bu istek, kaydırma dahil tüm uygulamayı videonun hızına düşürür.
+Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone. Saves the battery they wake.	TikTok'un ivmeölçeri, jiroskopu, manyetometreyi ve telefonun parmak izini çıkarmak için kullandığı diğer hareket sensörlerini dinlemesini durdur. Bu sensörlerin uyandıkça harcadığı pili korur.
+Stop TikTok reading what you copied. Copying a link from TikTok still works.	TikTok'un kopyaladıklarını okumasını durdur. TikTok'tan bağlantı kopyalamak yine çalışır.
+Stop TikTok reporting that you viewed a story or a profile, or that you are typing. Online status is unchanged. It cannot undo what the server has already recorded.	TikTok'un bir hikayeyi veya profili görüntülediğini ya da yazmakta olduğunu bildirmesini durdur. Çevrimiçi durumu değişmez. Sunucunun zaten kaydettiği şeyleri geri alamaz.
+Stop a long press on Like from opening TikTok's repost action.	Beğen'e uzun basmanın TikTok'un yeniden yayınlama işlemini açmasını durdur.
+Stop a long press on Share from opening TikTok's quick share action.	Paylaş'a uzun basmanın TikTok'un hızlı paylaşım işlemini açmasını durdur.
+Stop feature gate recording	Özellik kapısı kaydını durdur
+Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.	Birinin yazdığı şey bir reklamverenin tetikleyicisiyle eşleştiğinde yorumların üzerinde oynayan marka animasyonunu durdur.
+Stop the bubble that asks you to share a video with friends after you like it.	Bir videoyu beğendikten sonra onu arkadaşlarınla paylaşmanı isteyen balonu durdur.
+Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. TikTok's own pages need that bridge too. With this on, Activity center and Watch history stop responding, and the shop checkout and the CAPTCHA page break. Leave it off unless you want those cut off as well.	Uygulama içi tarayıcının, yüklediği sayfalara TikTok'un JavaScript köprüsünü vermesini durdur. TikTok'un kendi sayfalarının da bu köprüye ihtiyacı var. Bu açıkken Etkinlik merkezi ve İzleme geçmişi yanıt vermez, mağaza ödeme sayfası ve CAPTCHA sayfası bozulur. Bunların da kesilmesini istemiyorsan kapalı bırak.
+Stop video looping	Video döngüsünü durdur
+Stop videos at the end instead of replaying them.	Videoları yeniden oynatmak yerine sonunda durdur.
+Stopped after dismissing %1$s suggested accounts	Önerilen %1$s hesap kapatıldıktan sonra durdu
+Stopped after dismissing one suggested account	Önerilen bir hesap kapatıldıktan sonra durdu
+Stories	Hikayeler
+Story saved to %1$s	Hikaye şuraya kaydedildi: %1$s
+Structured value observed	Yapılandırılmış değer gözlemlendi
+Subtitle language	Altyazı dili
+Subtitles	Altyazılar
+System	Sistem
+Take away the streak button in a chat and the reminder message that goes with it.	Sohbetteki seri düğmesini ve onunla birlikte gelen hatırlatma mesajını kaldır.
+Tap %1$s again to send	Göndermek için yeniden dokun: %1$s
+Tap again to follow	Takip etmek için yeniden dokun
+Tap again to like	Beğenmek için yeniden dokun
+Tap again to send	Göndermek için yeniden dokun
+Tap the feed Follow button twice within four seconds.	Akıştaki Takip et düğmesine dört saniye içinde iki kez dokun.
+Tap the like heart twice within four seconds. Removing a like stays immediate.	Beğeni kalbine dört saniye içinde iki kez dokun. Beğeniyi kaldırmak yine anında olur.
+Tap to start the feed	Akışı başlatmak için dokun
+Technical details	Teknik ayrıntılar
+Technical details, %1$s	Teknik ayrıntılar, %1$s
+That backup was written by a newer Hushfeed than this one. Nothing was altered.	Bu yedek, bundan daha yeni bir Hushfeed sürümüyle yazılmış. Hiçbir şey değiştirilmedi.
+That creator is already in the list	Bu içerik üreticisi zaten listede
+That creator pattern is too long to use, so it was skipped: %1$s	Bu içerik üreticisi kalıbı kullanılamayacak kadar uzun olduğu için atlandı: %1$s
+That creator pattern is too long, so it was not added: %1$s	Bu içerik üreticisi kalıbı çok uzun olduğu için eklenmedi: %1$s
+That file is not a loaded-values export, or it is larger than the Lab accepts.	Bu dosya bir yüklenen değerler dışa aktarımı değil ya da Lab'in kabul ettiğinden büyük.
+That file is not readable text, so it may have been damaged in transit. Nothing was altered.	Bu dosya okunabilir bir metin değil, aktarım sırasında zarar görmüş olabilir. Hiçbir şey değiştirilmedi.
+That file is too large to be a settings backup. Nothing was altered.	Bu dosya bir ayar yedeği olamayacak kadar büyük. Hiçbir şey değiştirilmedi.
+That folder name has a character Android does not allow. Use letters, numbers, spaces or dashes.	Bu klasör adında Android'in izin vermediği bir karakter var. Harf, rakam, boşluk veya kısa çizgi kullan.
+That is %1$d minutes today	Bugün %1$d dakika etti
+That is %1$d videos today	Bugün %1$d video etti
+That is not a Hushfeed settings backup. Nothing was altered.	Bu bir Hushfeed ayar yedeği değil. Hiçbir şey değiştirilmedi.
+That is not an app name. Try something like com.example.downloader, or leave the box empty to keep saving in TikTok.	Bu bir uygulama adı değil. com.example.downloader gibi bir şey dene ya da TikTok'a kaydetmeye devam etmek için kutuyu boş bırak.
+That is one minute today	Bugün bir dakika etti
+That is one video today	Bugün bir video etti
+That list has too many entries. Keep it to 10,000 or fewer.	Bu listede çok fazla giriş var. 10.000 veya daha az olsun.
+That list is too large. Keep it to 256 KB or less.	Bu liste çok büyük. 256 KB veya daha küçük olsun.
+That preset is not recognized. Choose another.	Bu hazır ayar tanınmıyor. Başka birini seç.
+That settings backup contains a feed rule list larger than Hushfeed accepts. Nothing was altered.	Bu ayar yedeği, Hushfeed'in kabul ettiğinden büyük bir akış kuralı listesi içeriyor. Hiçbir şey değiştirilmedi.
+That settings backup holds a value Hushfeed cannot read. Nothing was altered.	Bu ayar yedeğinde Hushfeed'in okuyamadığı bir değer var. Hiçbir şey değiştirilmedi.
+That settings backup holds more Feature Gate Lab rules than the Lab takes. Nothing was altered.	Bu ayar yedeğinde Lab'in aldığından fazla Feature Gate Lab kuralı var. Hiçbir şey değiştirilmedi.
+That settings backup is damaged or only partly downloaded. Nothing was altered.	Bu ayar yedeği hasarlı ya da yalnızca bir kısmı indirilmiş. Hiçbir şey değiştirilmedi.
+That settings backup is incomplete, so it may have been cut short. Nothing was altered.	Bu ayar yedeği eksik, yarıda kesilmiş olabilir. Hiçbir şey değiştirilmedi.
+That settings change did not go through. Nothing was altered.	Bu ayar değişikliği uygulanamadı. Hiçbir şey değiştirilmedi.
+That sticker is in a format Hushfeed cannot read	Bu çıkartma Hushfeed'in okuyamadığı bir biçimde
+The Lab can't check this. TikTok gets it exactly as typed.	Lab bunu denetleyemiyor. TikTok bunu tam yazıldığı gibi alır.
+The Lab could not open. Go back and open it again.	Lab açılamadı. Geri dön ve yeniden aç.
+The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.	Lab en fazla %1$s kural tutar. Bu değişiklikle %2$s olacaktı, bu yüzden hiçbir şey değiştirilmedi.
+The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.	Kataloğa göre bu anahtar %1$s, bu geçersiz kılma ise %2$s. Geçersiz kılmayı sıfırla ve yenisini oluştur.
+The diagnostic report could not be saved yet. Try again in a moment.	Tanılama raporu henüz kaydedilemedi. Birazdan yeniden dene.
+The diagnostic report could not be saved. Try again.	Tanılama raporu kaydedilemedi. Yeniden dene.
+The downloader app you chose isn't installed. Check Send links to another app under Downloads.	Seçtiğin indirme uygulaması yüklü değil. İndirmeler altındaki Bağlantıları başka bir uygulamaya gönder ayarını kontrol et.
+The export failed and the partial file could not be removed. Delete it from your Downloads folder.	Dışa aktarma başarısız oldu ve yarım kalan dosya kaldırılamadı. Dosyayı İndirilenler klasöründen sil.
+The feed dims over the last three quarters of a minute before the hold, so you arrive at it rather than land on it. Needs a time budget and a hold to arrive at.	Akış, bekletmeden önceki son kırk beş saniye boyunca kararır, böylece bekletmeye birden çarpmak yerine yavaşça varırsın. Bir süre bütçesi ve varılacak bir bekletme gerekir.
+The feed does not end. This is a fine time to leave it.	Akışın sonu yok. Şimdi bırakmak için iyi bir an.
+The feed is open again	Akış yeniden açık
+The feed waits for one tap before it starts playing again when you come back to the app. Messages, profiles and search are still one tap away.	Uygulamaya döndüğünde akış yeniden oynamaya başlamadan önce tek bir dokunuş bekler. Mesajlar, profiller ve arama hâlâ bir dokunuş uzakta.
+The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night.	İki bütçenin de sıfırlandığı saat, 24 saatlik düzende. Varsayılan sabahın dördüdür, çünkü saat birde hâlâ kaydıran biri dün geceyi yaşıyordur.
+The last change is undone. Restart TikTok to apply all changes.	Son değişiklik geri alındı. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
+The last change is undone. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes.	Son değişiklik geri alındı. Feature Gate Lab kuralları başka bir TikTok sürümü içindi ve dışarıda bırakıldı. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
+The minimum or maximum comments on a video to show.	Bir videonun gösterilmesi için en az veya en fazla yorum sayısı.
+The minimum or maximum favorites of a video to show.	Bir videonun gösterilmesi için en az veya en fazla favori sayısı.
+The minimum or maximum likes of a video to show.	Bir videonun gösterilmesi için en az veya en fazla beğeni sayısı.
+The minimum or maximum shares of a video to show.	Bir videonun gösterilmesi için en az veya en fazla paylaşım sayısı.
+The minimum or maximum views of a video to show.	Bir videonun gösterilmesi için en az veya en fazla görüntülenme sayısı.
+The original photos aren't available, so TikTok's own save runs instead	Orijinal fotoğraflar kullanılamıyor, bu yüzden TikTok'un kendi kaydetme işlemi çalışıyor
+The override changes no fields. Edit the field values, or reset the override.	Geçersiz kılma hiçbir alanı değiştirmiyor. Alan değerlerini düzenle ya da geçersiz kılmayı sıfırla.
+The override couldn't be applied: %1$s. Edit the field values, or reset the override.	Geçersiz kılma uygulanamadı: %1$s. Alan değerlerini düzenle ya da geçersiz kılmayı sıfırla.
+The override doesn't say what list to return. Edit the field values, or reset the override.	Geçersiz kılma hangi listenin döndürüleceğini belirtmiyor. Alan değerlerini düzenle ya da geçersiz kılmayı sıfırla.
+The profile picture couldn't be saved. Try again.	Profil fotoğrafı kaydedilemedi. Yeniden dene.
+The record of an interrupted settings change could not be read, so it was set aside. Check your settings.	Yarıda kalan bir ayar değişikliğinin kaydı okunamadığı için bir kenara ayrıldı. Ayarlarını kontrol et.
+The report couldn't be saved. Try again.	Rapor kaydedilemedi. Yeniden dene.
+The selected loaded-values file could not be read. Try again.	Seçilen yüklenen değerler dosyası okunamadı. Yeniden dene.
+The setting couldn't finish updating. Its saved value is shown.	Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.
+The settings backup was rejected. Nothing was altered.	Ayar yedeği reddedildi. Hiçbir şey değiştirilmedi.
+The smallest value is above the largest	En küçük değer en büyük değerden yüksek
+The sound couldn't be saved. Try again.	Ses kaydedilemedi. Yeniden dene.
+The sticker couldn't be saved. Try again.	Çıkartma kaydedilemedi. Yeniden dene.
+The story couldn't be saved. Try again.	Hikaye kaydedilemedi. Yeniden dene.
+The thumbs down on each comment blocks the commenter instead of disliking. The comment dims, an undo banner follows, and a second tap unblocks.	Her yorumdaki aşağı başparmak, beğenmemek yerine yorumu yazanı engeller. Yorum soluklaşır, ardından bir geri alma şeridi çıkar ve ikinci bir dokunuş engeli kaldırır.
+The video couldn't be saved. Try again, or choose Automatic.	Video kaydedilemedi. Yeniden dene ya da Otomatik'i seç.
+There is no Lab change to undo.	Geri alınacak bir Lab değişikliği yok.
+There is no diagnostic data to clear.	Temizlenecek tanılama verisi yok.
+There is no diagnostic data to put back.	Geri konacak tanılama verisi yok.
+There was nothing to undo.	Geri alınacak bir şey yoktu.
+These loaded values are for a different TikTok version.	Bu yüklenen değerler farklı bir TikTok sürümüne ait.
+This catalog entry is no longer available. Refresh the Lab and try again.	Bu katalog girişi artık kullanılamıyor. Lab'i yenile ve yeniden dene.
+This change couldn't be saved. Try again.	Bu değişiklik kaydedilemedi. Yeniden dene.
+This configuration has no fields that can be copied and changed safely on this build.	Bu yapılandırmada, bu sürümde güvenle kopyalanıp değiştirilebilecek bir alan yok.
+This file has more loaded values than the Lab takes at once.	Bu dosyada Lab'in tek seferde aldığından fazla yüklenen değer var.
+This file has no loaded values in it.	Bu dosyada hiç yüklenen değer yok.
+This file isn't a loaded-values export from the Feature Gate Lab.	Bu dosya Feature Gate Lab'den alınmış bir yüklenen değerler dışa aktarımı değil.
+This gate type is not supported.	Bu özellik kapısı türü desteklenmiyor.
+This key isn't in the local catalog, so its type can't be checked. Reset the override.	Bu anahtar yerel katalogda olmadığı için türü denetlenemiyor. Geçersiz kılmayı sıfırla.
+This line opens a rule and does not finish it: %1$s. Write two phrases as "a" & "b" for both, or "a" !& "b" for the first without the second.	Bu satır bir kural açıyor ama bitirmiyor: %1$s. İki ifadeyi, ikisi birden için "a" & "b", ikincisi olmadan birincisi için "a" !& "b" biçiminde yaz.
+This phone has no file picker, so there is no way to choose a file here.	Bu telefonda dosya seçici yok, bu yüzden burada dosya seçmenin bir yolu yok.
+This phone has no folder picker. Type the folder into the row instead.	Bu telefonda klasör seçici yok. Bunun yerine klasörü satıra yaz.
+This profile picture isn't available to save	Bu profil fotoğrafı kaydedilemiyor
+This quality isn't available as a complete file, so TikTok's own save runs instead	Bu kalite tam bir dosya olarak sunulmuyor, bu yüzden TikTok'un kendi kaydetme işlemi çalışıyor
+This setting's value can't be copied on this build, so it can't be overridden. Reset the override.	Bu ayarın değeri bu sürümde kopyalanamıyor, bu yüzden geçersiz kılınamaz. Geçersiz kılmayı sıfırla.
+This story isn't available to save	Bu hikaye kaydedilemiyor
+This value is required.	Bu değer gerekli.
+This video has no link to copy	Bu videonun kopyalanacak bağlantısı yok
+This video has no link to send, so TikTok's own save runs instead	Bu videonun gönderilecek bağlantısı yok, bu yüzden TikTok'un kendi kaydetme işlemi çalışıyor
+This video has no original sound to save	Bu videonun kaydedilecek orijinal sesi yok
+This video has no sound of its own	Bu videonun kendine ait bir sesi yok
+Thumbs down blocks the commenter	Aşağı başparmak yorumu yazanı engeller
+TikTok default	TikTok varsayılanı
+TikTok default (2x hold, quick share)	TikTok varsayılanı (basılı tutunca 2x, hızlı paylaşım)
+TikTok did not block %1$s. Try again in a moment.	TikTok %1$s hesabını engellemedi. Birazdan yeniden dene.
+TikTok did not unblock %1$s. Try again in a moment.	TikTok %1$s hesabının engelini kaldırmadı. Birazdan yeniden dene.
+TikTok didn't accept the feedback. Try again later.	TikTok geri bildirimi kabul etmedi. Daha sonra yeniden dene.
+TikTok hasn't handed this setting an object to change yet. Open the part of the app that uses it, then come back.	TikTok bu ayara henüz değiştirilecek bir nesne vermedi. Uygulamanın bunu kullanan bölümünü aç, sonra geri gel.
+TikTok read it	TikTok bunu okudu
+TikTok read it, but the override could not be applied. Reset it and save it again.	TikTok bunu okudu ama geçersiz kılma uygulanamadı. Sıfırla ve yeniden kaydet.
+TikTok refused the follow: %1$s	TikTok takibi reddetti: %1$s
+TikTok's own value	TikTok'un kendi değeri
+TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	TikTok'un sunucusu, bir hesabı profilindeki Favoriler sekmesini boşaltan bir deneye sokabilir. Sekmeyi ve kayıtlı videolarını koru.
+TikTok's size	TikTok'un boyutu
+Times you can open the feed anyway	Akışı yine de açabileceğin sefer sayısı
+Today has moved on, so there is nothing to put back	Bugün ilerledi, bu yüzden geri konacak bir şey yok
+Today is back where it was	Bugün eski haline döndü
+Today started over. Tap again to put the counts back.	Bugün baştan başladı. Sayıları geri koymak için yeniden dokun.
+Today starts again	Bugün yeniden başlıyor
+Today's budget is locked. The day starts over at %1$s.	Bugünün bütçesi kilitli. Gün %1$s saatinde baştan başlar.
+Today's budget is locked. The feed opens again at %1$s. Messages, profiles and search still work.	Bugünün bütçesi kilitli. Akış %1$s saatinde yeniden açılır. Mesajlar, profiller ve arama çalışmaya devam eder.
+Today's budget is locked. This can be changed again at %1$s.	Bugünün bütçesi kilitli. Bu, %1$s saatinde yeniden değiştirilebilir.
+Today: %1$d minute	Bugün: %1$d dakika
+Today: %1$d minutes	Bugün: %1$d dakika
+Today: %1$d video	Bugün: %1$d video
+Today: %1$d videos	Bugün: %1$d video
+Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos; anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.	Belirteçler: {creator}, {date}, {video_id}, {index}. {index}, Orijinal fotoğrafları indir ile kaydettiğin bir slayt gösterisinin fotoğraflarını numaralar, TikTok'un kendi düğmesiyle kaydedilenleri ise klasör numaralar. Dosya uzantısı otomatik olarak korunur.
+Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.	Belirteçler: {creator}, {date}, {video_id}. Dosya uzantısı otomatik olarak korunur.
+Tokens: {date}, {media_id}. Works for image and video stickers.	Belirteçler: {date}, {media_id}. Görsel ve video çıkartmalarda çalışır.
+Too many media saves are already running. Try again shortly.	Zaten çok fazla medya kaydı sürüyor. Birazdan yeniden dene.
+Tracking	İzlenme
+Tracking, device access and links	İzlenme, cihaz erişimi ve bağlantılar
+Translate comments as they load, using TikTok's own translator.	Yorumları yüklenirken TikTok'un kendi çevirmeniyle çevir.
+Transparent	Saydam
+Try a different word or clear the search.	Başka bir kelime dene ya da aramayı temizle.
+Try again, or go back to TikTok.	Yeniden dene ya da TikTok'a geri dön.
+Turn on %1$s first.	Önce %1$s ayarını aç.
+Turn on overrides	Geçersiz kılmaları aç
+Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.	%1$d / %2$d özellik kapısı kapatıldı, geri kalanı doğru ya da yanlış değeri almıyor. Bunu uygulamak için TikTok'u yeniden başlat.
+Turned off %1$d gates. Restart TikTok to apply this.	%1$d özellik kapısı kapatıldı. Bunu uygulamak için TikTok'u yeniden başlat.
+Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.	1 / %1$d özellik kapısı kapatıldı, geri kalanı doğru ya da yanlış değeri almıyor. Bunu uygulamak için TikTok'u yeniden başlat.
+Turned off 1 gate. Restart TikTok to apply this.	1 özellik kapısı kapatıldı. Bunu uygulamak için TikTok'u yeniden başlat.
+Two letters, like us, gb or jp.	us, gb veya jp gibi iki harf.
+Type	Tür
+Unavailable	Kullanılamıyor
+Unblock	Engeli kaldır
+Unblock this commenter	Bu yorumcunun engelini kaldır
+Unblocked %1$s	%1$s hesabının engeli kaldırıldı
+Undo	Geri al
+Undo clearing seen videos	Görülen videoları temizlemeyi geri al
+Undo last Lab change	Son Lab değişikliğini geri al
+Undo last restore or reset	Son geri yüklemeyi veya sıfırlamayı geri al
+Undoing the last change	Son değişiklik geri alınıyor
+Until you choose here, this sheet follows your choices under Hide share actions.	Burada bir seçim yapana kadar bu menü, Paylaşım işlemlerini gizle altındaki seçimlerine uyar.
+Up to 8 speeds from 0.5 to 3, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	0.5 ile 3 arasında, virgülle ayrılmış en fazla 8 hız. Örnek: 0.5, 1, 1.5, 2, 2.5, 3. TikTok'un listesi için boş bırak. Bunu uygulamak için TikTok'u yeniden başlat.
+Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.	TikTok'un boyutu için 0, ya da 12 ile 48 arasında bir değer kullan. Bir sonraki altyazıya uygulanır.
+Use Calm feed	Sakin akışı kullan
+Use Save JSON for this large report	Bu büyük rapor için JSON'u kaydet seçeneğini kullan
+Use TikTok's native hold, slide down, and release gesture to lock 2x speed.	2x hızı kilitlemek için TikTok'un kendi basılı tut, aşağı kaydır ve bırak hareketini kullan.
+Use a default playback speed	Varsayılan bir oynatma hızı kullan
+Use non-personalized search	Kişiselleştirilmemiş aramayı kullan
+Use system font	Sistem yazı tipini kullan
+Use the preset for the region TikTok reports for your account and its shop too. May affect search.	TikTok'un hesabın için bildirdiği bölgenin hazır ayarını mağaza için de kullan. Aramayı etkileyebilir.
+Use the selected country and operator values. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Seçilen ülke ve operatör değerlerini kullan. Bu yalnızca SIM'in söylediğini değiştirir, başka hiçbir şeyi değil: IP adresin, hesabının geçmişi ve okuduğun dil aynı kalır ve bunlardan herhangi biri TikTok'un zaten seçtiği bölgeyi koruması için yeterlidir. Bunu uygulamak için TikTok'u yeniden başlat.
+Use the selected country. This changes what the SIM says and nothing else: your IP address, your account's history and the language you read in are all unchanged, and any one of them is enough for TikTok to keep the region it already chose. Restart TikTok to apply this.	Seçilen ülkeyi kullan. Bu yalnızca SIM'in söylediğini değiştirir, başka hiçbir şeyi değil: IP adresin, hesabının geçmişi ve okuduğun dil aynı kalır ve bunlardan herhangi biri TikTok'un zaten seçtiği bölgeyi koruması için yeterlidir. Bunu uygulamak için TikTok'u yeniden başlat.
+Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.	Daha geniş ekranlarda bölünmüş düzeni kullan. Bunu uygulamak için TikTok'u yeniden başlat. Eski düzen hâlâ duruyorsa telefonu katlayıp yeniden aç.
+Use value	Değeri kullan
+Use your own offline videos limit	Kendi çevrimdışı video sınırını kullan
+Using TikTok's value	TikTok'un değeri kullanılıyor
+Value	Değer
+Value to return	Döndürülecek değer
+Verified creators	Doğrulanmış içerik üreticileri
+Version %1$s	Sürüm %1$s
+Version %1$s for TikTok %2$s	Sürüm %1$s, TikTok %2$s için
+Video	Video
+Video (MP4)	Video (MP4)
+Video destination	Video kayıt konumu
+Video download quality	Video indirme kalitesi
+Video filename	Video dosya adı
+Video info	Video bilgileri
+Video playback quality	Video oynatma kalitesi
+Video saved	Video kaydedildi
+Video saved in %1$s, but only %2$s of %3$s subtitles came with it	Video %1$s konumuna kaydedildi, ancak altyazılardan yalnızca %2$s tanesi onunla geldi (toplam %3$s)
+Video saved with %1$s subtitles in %2$s	Video, %1$s altyazıyla %2$s konumuna kaydedildi
+Wait before hiding the controls.	Kontrolleri gizlemeden önce bekle.
+Watching and sharing	İzleme ve paylaşma
+WebP, exactly as TikTok sent it	WebP, tam TikTok'un gönderdiği haliyle
+What TikTok gets	TikTok'un aldığı
+When TikTok requests this key, return the selected value below	TikTok bu anahtarı istediğinde aşağıda seçilen değeri döndür
+While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.	Tanılama günlüğü açıkken bir mesaj, Hushfeed'in hata veren bölümünün adını söyler. Kapalıyken hatalar yalnızca raporda kalır.
+Window width needed to enable the layout. Restart TikTok to apply this.	Düzeni etkinleştirmek için gereken pencere genişliği. Bunu uygulamak için TikTok'u yeniden başlat.
+Words and countries	Kelimeler ve ülkeler
+Working	Çalışıyor
+Write the video's sound beside it as an .m4a. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.	Videonun sesini .m4a olarak videonun yanına yaz. Android 10 ve sonrası ses dosyalarını ayrı tutar, bu yüzden dosya Music altında, videolarınla aynı adlı klasöre gider.
+YTDLnis background mode	YTDLnis arka plan modu
+YTDLnis download type	YTDLnis indirme türü
+Yes	Evet
+Your current settings already match Calm feed.	Mevcut ayarların zaten Sakin akışla aynı.
+Your feed	Akışın
+Your filters hid everything TikTok just sent. Most were %1$s.	Filtrelerin TikTok'un az önce gönderdiği her şeyi gizledi. En çok gizlenen: %1$s.
+Your filters hid everything TikTok sent, %1$d times in a row. Most were %2$s.	Filtrelerin TikTok'un gönderdiği her şeyi art arda %1$d kez gizledi. En çok gizlenen: %2$s.
+Your operator's name, like T-Mobile.	Operatörünün adı, örneğin T-Mobile.
+Your operator's numeric code, like 310260.	Operatörünün sayısal kodu, örneğin 310260.
+Your previous feed setup couldn't be restored. Nothing was changed.	Önceki akış düzenin geri yüklenemedi. Hiçbir şey değiştirilmedi.
+Your previous feed setup is back.	Önceki akış düzenin geri geldi.
+Your previous feed setup is back. Restart TikTok to apply every change.	Önceki akış düzenin geri geldi. Tüm değişiklikleri uygulamak için TikTok'u yeniden başlat.
+Zero leaves the way out of the hold there every time, which is what it has always done. Anything else is how many times a day it works, and once they are gone the hold stays up until the day starts over. Ignored while the budget is locked, which takes the way out away entirely.	Sıfır, bekletmeden çıkış yolunu her seferinde yerinde bırakır, ki bu hep yaptığı şeydir. Başka bir değer, çıkışın günde kaç kez çalışacağını belirler ve bunlar bitince bekletme, gün baştan başlayana kadar kalır. Bütçe kilitliyken yok sayılır, çünkü kilit çıkış yolunu tamamen ortadan kaldırır.
+Zero means no limit. Counts the videos Hushfeed advanced past for you, not the ones you swiped yourself, and starts again when the feed is rebuilt or you change this number.	Sıfır, sınır yok demektir. Kendi kaydırdıklarını değil, Hushfeed'in senin için geçtiği videoları sayar ve akış yeniden oluşturulduğunda ya da bu sayıyı değiştirdiğinde baştan başlar.
+Zero shows the notice and leaves the feed alone. Anything else covers the feed for that many minutes once a budget is reached. Messages, profiles and search keep working, and nothing in the feed is thrown away.	Sıfır, bildirimi gösterir ve akışa dokunmaz. Başka bir değer, bir bütçeye ulaşıldığında akışın üstünü o kadar dakika boyunca örter. Mesajlar, profiller ve arama çalışmaya devam eder ve akıştaki hiçbir şey atılmaz.
+Zero switches this off. A short reminder after that many minutes of watching, and again after the same again. Time on messages, a profile or search does not count, and nothing is shown while the feed is on hold.	Sıfır bunu kapatır. O kadar dakika izledikten sonra kısa bir hatırlatma gelir, aynı süre geçince bir tane daha. Mesajlarda, bir profilde veya aramada geçen süre sayılmaz ve akış bekletmedeyken hiçbir şey gösterilmez.
+Zero switches this off. Count every video that comes up in the feed, however you got to it, and say so once the count is reached. This is separate from the auto-advance session limit under Playback, which only counts videos Hushfeed itself advanced past.	Sıfır bunu kapatır. Akışta karşına çıkan her videoyu, ona nasıl ulaşmış olursan ol say ve sayıya ulaşılınca bunu bildir. Bu, Oynatma altındaki otomatik geçiş oturum sınırından ayrıdır, o yalnızca Hushfeed'in kendisinin geçtiği videoları sayar.
+Zero switches this off. Count the minutes the player spends running in the feed. Time on messages, a profile or search does not count.	Sıfır bunu kapatır. Oynatıcının akışta çalışarak geçirdiği dakikaları say. Mesajlarda, bir profilde veya aramada geçen süre sayılmaz.
+code %1$s	kod %1$s
+collapsed	daraltıldı
+day	gün
+days	gün
+dp	dp
+expanded	genişletildi
+millisecond	milisaniye
+milliseconds	milisaniye
+minute	dakika
+minutes	dakika
+ms	ms
+or	veya
+point	punto
+points	punto
+s	s
+second	saniye
+seconds	saniye
+time	kez
+times	kez
+video	video
+videos	video
+view per comment	yorum başına görüntülenme
+view per like	beğeni başına görüntülenme
+views per comment	yorum başına görüntülenme
+views per like	beğeni başına görüntülenme
+%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.	%1$s, TikTok'un gönderdiği her şeyi art arda %2$d kez gizledi. İstediğin bu değilse kapat.
+Show the switch	Ayarı göster

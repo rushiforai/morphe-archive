@@ -14,6 +14,7 @@ val fixGoogleLoginPatch = bytecodePatch(
     description = "Restores Google account sign-in after patching.",
     default = true,
 ) {
+    category("Settings")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {

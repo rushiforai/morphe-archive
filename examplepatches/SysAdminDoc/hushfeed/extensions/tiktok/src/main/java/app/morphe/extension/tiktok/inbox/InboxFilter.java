@@ -42,39 +42,42 @@ import java.util.WeakHashMap;
  * content, which keeps recycled views correct: a hidden row that gets reused for
  * something else is shown again on the next pass.
  *
- * Resource ids are read from live 46.2.3 and 47.0.3 view hierarchies. The newest
- * reviewed name is tried first because an obsolete obfuscated name can remain in the
- * resource table while identifying an unrelated view:
+ * Resource ids are TikTok 47.0.3's, the declared target, read off its live Inbox and its
+ * precompiled row inflaters. No older build's name is kept as a fallback: TikTok hands the
+ * same short names out again on every build, and on 47.0.3 each 46.x name here is some
+ * other view.
  * <pre>
- *   o1l        bottom navigation, the Inbox tab (omr on 47.0.3)
- *   kmx/l7b    the Inbox RecyclerView
- *   tyh/uy5    a system notice row, with its title in bo5/brb
- *   v15/olv    the container shared by conversations and the message requests row
- *   vid/zci    the title wrapper that only a real conversation has
- *   user_name  the title of a conversation or of the message requests row
- *   vpj/wqq    a title inside the horizontal stories tray
- *   pgu        the suggested accounts section header, holding t4g
- *   t4g        the suggested accounts section title
- *   fnc        remove an account from suggested accounts
- *   f8t/fg5    header, add people
- *   k_f/kp1    header, search
- *   kmz/l7d    header, activity status
+ *   omr        bottom navigation, the Inbox tab (looked up by FeedVisibility)
+ *   l7b        the Inbox RecyclerView
+ *   uy5        a system notice row, with its title in brb
+ *   w1f        the root of a chat row: a single chat, a group chat or the message requests row
+ *   tv_request_unread_count  the request count, which only the message requests row has
+ *   olv        the root of a "Say hi to" row, an account suggested with Follow and a wave
+ *   user_name  the title of a chat row or a "Say hi to" row
+ *   wqq        a title inside the horizontal stories tray
+ *   q3m        the suggested accounts section header, holding u1n
+ *   u1n        the suggested accounts section title
+ *   fwz        remove an account from suggested accounts
+ *   fg5        header, add people
+ *   kp1        header, search
+ *   l7d        header, activity status
  * </pre>
  */
 public final class InboxFilter {
-    private static final String[] LIST_IDS = {"l7b", "kmx"};
-    private static final String[] SYSTEM_ROW_IDS = {"uy5", "tyh"};
-    private static final String[] MESSAGE_REQUESTS_IDS = {"olv", "v15"};
-    private static final String[] CONVERSATION_IDS = {"zci", "vid"};
-    private static final String[] SYSTEM_ROW_TITLE_IDS = {"brb", "bo5"};
+    private static final String[] LIST_IDS = {"l7b"};
+    private static final String[] SYSTEM_ROW_IDS = {"uy5"};
+    private static final String[] CHAT_ROW_IDS = {"w1f"};
+    private static final String[] MESSAGE_REQUESTS_IDS = {"tv_request_unread_count"};
+    private static final String[] SAY_HI_ROW_IDS = {"olv"};
+    private static final String[] SYSTEM_ROW_TITLE_IDS = {"brb"};
     private static final String[] USER_ROW_TITLE_IDS = {"user_name"};
-    private static final String[] STORIES_TITLE_IDS = {"wqq", "vpj"};
-    private static final String[] SUGGESTED_HEADER_IDS = {"pgu"};
-    private static final String[] SUGGESTED_TITLE_IDS = {"t4g"};
-    private static final String[] SUGGESTED_REMOVE_IDS = {"fnc"};
-    private static final String[] HEADER_ADD_PEOPLE_IDS = {"fg5", "f8t"};
-    private static final String[] HEADER_SEARCH_IDS = {"kp1", "k_f"};
-    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"l7d", "kmz"};
+    private static final String[] STORIES_TITLE_IDS = {"wqq"};
+    private static final String[] SUGGESTED_HEADER_IDS = {"q3m"};
+    private static final String[] SUGGESTED_TITLE_IDS = {"u1n"};
+    private static final String[] SUGGESTED_REMOVE_IDS = {"fwz"};
+    private static final String[] HEADER_ADD_PEOPLE_IDS = {"fg5"};
+    private static final String[] HEADER_SEARCH_IDS = {"kp1"};
+    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"l7d"};
 
     /** One dismissal at a time, so bulk clearing does not hammer TikTok's API. */
     private static final long DISMISS_INTERVAL_MS = 300L;
@@ -260,23 +263,27 @@ public final class InboxFilter {
         // Suggested accounts is a section header followed by one row per account. The
         // header carries the section title, and each account row carries the remove
         // button. Neither uses the row title ids, so both are matched on their own marker.
+        // A "Say hi to" row suggests an account as well, with a Follow button and a wave
+        // that messages them. Nobody has written to anybody yet, so it is a suggestion and
+        // not a conversation.
         if (findWithin(activity, row, SUGGESTED_TITLE_IDS) != null
-                || findWithin(activity, row, SUGGESTED_REMOVE_IDS) != null) {
+                || findWithin(activity, row, SUGGESTED_REMOVE_IDS) != null
+                || hasId(activity, row, SAY_HI_ROW_IDS)) {
             return Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.get();
         }
 
-        // A real conversation and the message requests row share the same container id,
-        // so the container alone cannot tell them apart. Only a conversation wraps its
-        // title in the vid layout, so that is the discriminator, and it has to be tested
-        // first. A conversation title is a person's name, so it is only ever matched
-        // against the user's own list, never the system labels.
-        if (findWithin(activity, row, CONVERSATION_IDS) != null) {
-            return Settings.HIDE_INBOX_CONVERSATIONS.get()
+        // Single chats, group chats and the message requests row are one family of cells
+        // with the same root id. Only the requests row has the request count, so it is
+        // tested first, and every other chat row is a conversation. A chat title is a
+        // person's or a group's name, so it is only ever matched against the user's own
+        // list, never the system labels.
+        if (findWithin(activity, row, MESSAGE_REQUESTS_IDS) != null) {
+            return Settings.HIDE_INBOX_MESSAGE_REQUESTS.get()
                     || matchesCustomList(textOf(findWithin(activity, row, USER_ROW_TITLE_IDS)));
         }
 
-        if (hasId(activity, row, MESSAGE_REQUESTS_IDS)) {
-            return Settings.HIDE_INBOX_MESSAGE_REQUESTS.get()
+        if (hasId(activity, row, CHAT_ROW_IDS)) {
+            return Settings.HIDE_INBOX_CONVERSATIONS.get()
                     || matchesCustomList(textOf(findWithin(activity, row, USER_ROW_TITLE_IDS)));
         }
 
@@ -409,8 +416,9 @@ public final class InboxFilter {
         // all", enabled, while a run it silently refuses is still working through the list.
         setClearAllBusy(clearingSuggested);
 
-        // The heading is a horizontal LinearLayout on 46.2.3 (title at x 45 to 457, Learn
-        // more at 470 to 501, of 1080), so zero width with weight takes the slack and the
+        // The heading is a horizontal LinearLayout (the view class behind q3m extends one on
+        // 47.0.3, as it did on 46.2.3, where the title ran from x 45 to 457 and Learn more
+        // from 470 to 501, of 1080), so zero width with weight takes the slack and the
         // end gravity parks the text at the right edge. Any other parent would keep the
         // zero width and drop the weight, leaving an invisible control, so it gets a
         // plain wrap instead.

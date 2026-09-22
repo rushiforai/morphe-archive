@@ -28,6 +28,7 @@ val openExternalLinksPatch = bytecodePatch(
     description = "Opens profile and story website links in the system browser instead of TikTok's in-app browser. Switch: Hushfeed settings > Privacy.",
     default = true,
 ) {
+    category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

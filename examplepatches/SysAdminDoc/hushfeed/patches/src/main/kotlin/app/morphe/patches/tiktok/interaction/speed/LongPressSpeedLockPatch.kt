@@ -25,6 +25,7 @@ val longPressSpeedLockPatch = bytecodePatch(
     description = "Enables TikTok's native hold, slide down, and release gesture to lock 2x speed. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

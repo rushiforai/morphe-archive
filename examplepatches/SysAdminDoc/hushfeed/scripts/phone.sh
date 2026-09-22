@@ -19,20 +19,27 @@
 #   scripts/phone.sh gfx                          frame stats for the perf device check
 #
 # PHONE_SERIAL selects the device; it must be the test phone, never the owner's own.
+# HUSHFEED_DEVICE_SERIAL names the one test phone this machine may drive, and PHONE_SERIAL has
+# to equal it, so a typo or another phone plugged in beside it is refused.
 set -eu
 S="${PHONE_SERIAL:?set PHONE_SERIAL to the test phone serial}"
-if [[ "$S" != "R5CT139QJ5F" ]]; then
-    echo "REFUSED: device $S is not the S22 test phone" >&2
+ALLOWED="${HUSHFEED_DEVICE_SERIAL:?set HUSHFEED_DEVICE_SERIAL to the serial of the test phone this machine may drive}"
+if [[ "$S" != "$ALLOWED" ]]; then
+    echo "REFUSED: device $S is not the test phone named by HUSHFEED_DEVICE_SERIAL" >&2
     exit 2
 fi
 
 normalise_path() {
     local candidate converted
     candidate="$1"
-    if [[ "$candidate" =~ ^[[:alpha:]]:[\\/].* ]] && command -v wslpath >/dev/null 2>&1; then
-        if converted=$(wslpath -u "$candidate" 2>/dev/null); then
-            printf '%s\n' "$converted"
-            return
+    if [[ "$candidate" =~ ^[[:alpha:]]:[\\/].* ]]; then
+        if command -v wslpath >/dev/null 2>&1; then
+            if converted=$(wslpath -u "$candidate" 2>/dev/null); then
+                printf '%s\n' "$converted"
+                return
+            fi
+            echo "normalise_path: wslpath could not convert $candidate" >&2
+            return 1
         fi
     fi
     printf '%s\n' "$candidate"

@@ -40,6 +40,7 @@ val feedTabNavigationPatch = bytecodePatch(
     description = "Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. Switch: Hushfeed settings > Feed tabs.",
     default = true,
 ) {
+    category("Settings")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

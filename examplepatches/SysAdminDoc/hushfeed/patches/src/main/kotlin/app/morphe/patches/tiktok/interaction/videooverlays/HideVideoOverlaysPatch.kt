@@ -14,6 +14,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.inbox.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.guardAtEntry
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/feed/VideoOverlayHider;"
@@ -33,6 +34,12 @@ private object LocationDealCardFingerprint : Fingerprint(
 private object LocationBadgeListFingerprint : Fingerprint(
     custom = { method, _ -> isLocationBadgeListFactory(method) },
 )
+private object FeedReportButtonGateFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf(),
+    strings = listOf(FEED_REPORT_GATE_KEY),
+    custom = { method, _ -> isFeedReportButtonGate(method) },
+)
 
 @Suppress("unused")
 val hideVideoOverlaysPatch = bytecodePatch(
@@ -40,9 +47,10 @@ val hideVideoOverlaysPatch = bytecodePatch(
     description = "Hides the visual search prompt TikTok lays over videos, the Live " +
         "entrance in the top left corner, caption and music text, selected action buttons or " +
         "their counts in the right column, survey cards and the status bar. Separate switches hide the Full screen " +
-        "button and location labels without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.",
+        "button, location labels and the Report button some regions get above the creator's picture, without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())
@@ -56,9 +64,20 @@ val hideVideoOverlaysPatch = bytecodePatch(
                 "PoiDealAnchorView" to LocationDealCardFingerprint.method),
         ) { classDefByOrNull(it) }
         val badgeList = LocationBadgeListFingerprint.method.resolveLocationBadgeList()
+        val reportGate = FeedReportButtonGateFingerprint.method
         // A missing new control must not leave an otherwise failed patch partly applied.
         controls()
         badgeList()
+        // The regional Report button above the creator's avatar (issue #21). Answering false is
+        // the state every region without the button already runs in.
+        reportGate.guardAtEntry(
+            "Hide video overlays",
+            "invoke-static {}, Lapp/morphe/extension/tiktok/feed/FeedOverlayControls;->shouldHideReportButton()Z",
+            """
+                const/4 v0, 0x0
+                return v0
+            """,
+        )
         status.addInstruction(
             0,
             "invoke-static {}, " +

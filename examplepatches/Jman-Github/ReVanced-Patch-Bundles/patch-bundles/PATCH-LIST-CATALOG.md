@@ -61,7 +61,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Gmaps](#-gmaps-bundle-patch-list) | 1 | 1 | Generated |
 | [Seobject](#-seobject-bundle-patch-list) | 2 | 2 | Generated |
 | [Abeja](#-abeja-bundle-patch-list) | 3 | 1 | Generated |
-| [Proxma](#-proxma-bundle-patch-list) | 12 | 6 | Generated |
+| [Proxma](#-proxma-bundle-patch-list) | 15 | 7 | Generated |
 | [Jouss](#-jouss-bundle-patch-list) | 58 | 23 | Generated |
 | [Cobalt-Morphe](#-cobalt-morphe-bundle-patch-list) | 1 | 1 | Generated |
 | [Pichiwa](#-pichiwa-bundle-patch-list) | 19 | 1 | Generated |
@@ -105,16 +105,16 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Andronedev](#-andronedev-bundle-patch-list) | 5 | 2 | Generated |
 | [Brosssh](#-brosssh-bundle-patch-list) | 22 | 5 | Generated |
 | [Quantro100](#-quantro100-bundle-patch-list) | - | - | Pending patch list |
-| [Chiggi](#-chiggi-bundle-patch-list) | 68 | 12 | Generated |
+| [Chiggi](#-chiggi-bundle-patch-list) | 70 | 13 | Generated |
 | [LaKaka](#-lakaka-bundle-patch-list) | 3 | 3 | Generated |
 | [EE-Morphe](#-ee-morphe-bundle-patch-list) | 13 | 7 | Generated |
 | [X-Shim](#-x-shim-bundle-patch-list) | 3 | 1 | Generated |
 | [Pepper-Morphe](#-pepper-morphe-bundle-patch-list) | 17 | 10 | Generated |
 | [Fin-Tweaks](#-fin-tweaks-bundle-patch-list) | - | - | Pending patch list |
 | [Kondratjev](#-kondratjev-bundle-patch-list) | 19 | 11 | Generated |
-| [Hoo-dles](#-hoo-dles-bundle-patch-list) | 79 | 58 | Generated |
+| [Hoo-dles](#-hoo-dles-bundle-patch-list) | 78 | 58 | Generated |
 | [AmpleReVanced](#-amplerevanced-bundle-patch-list) | 124 | 10 | Generated |
-| [Morphe](#-morphe-bundle-patch-list) | 149 | 4 | Generated |
+| [Morphe](#-morphe-bundle-patch-list) | 150 | 4 | Generated |
 | [Patcheddit](#-patcheddit-bundle-patch-list) | 39 | 19 | Generated |
 | [RVX-Morphed](#-rvx-morphed-bundle-patch-list) | 113 | 3 | Generated |
 | [IMXEren](#-imxeren-bundle-patch-list) | 13 | 5 | Generated |
@@ -125,7 +125,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Docbt](#-docbt-bundle-patch-list) | 6 | 3 | Generated |
 | [PixelPusher247](#-pixelpusher247-bundle-patch-list) | 1 | 1 | Generated |
 | [Rabilrbl](#-rabilrbl-bundle-patch-list) | 3 | 2 | Generated |
-| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 41 | 1 | Generated |
+| [Jasonwu1994](#-jasonwu1994-bundle-patch-list) | 42 | 1 | Generated |
 | [RealCyberwash](#-realcyberwash-bundle-patch-list) | 1 | 1 | Generated |
 | [Paresh-Maheshwari](#-paresh-maheshwari-bundle-patch-list) | 61 | 23 | Generated |
 | [Binarymend](#-binarymend-bundle-patch-list) | 11 | 7 | Generated |
@@ -154,7 +154,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 149 | 4 | Generated |
 | [Stylus](#-stylus-bundle-patch-list) | 6 | 3 | Generated |
-| [HXReborn](#-hxreborn-bundle-patch-list) | 55 | 30 | Generated |
+| [HXReborn](#-hxreborn-bundle-patch-list) | 59 | 32 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 8 | 7 | Generated |
 | [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 34 | 2 | Generated |
@@ -195,7 +195,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Riky](#-riky-bundle-patch-list) | 10 | 4 | Generated |
 | [iPusnas](#-ipusnas-bundle-patch-list) | 6 | 1 | Generated |
 | [HXReborn-TikTok](#-hxreborn-tiktok-bundle-patch-list) | 40 | 1 | Generated |
-| [Flexboard](#-flexboard-bundle-patch-list) | 15 | 1 | Generated |
+| [Flexboard](#-flexboard-bundle-patch-list) | 17 | 1 | Generated |
 | [Cricinfo-Tweaks](#-cricinfo-tweaks-bundle-patch-list) | 3 | 1 | Generated |
 | [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 14 | 1 | Generated |
 | [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
@@ -214,7 +214,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Psychonaut-Wiki-Journal](#-psychonaut-wiki-journal-bundle-patch-list) | 7 | 1 | Generated |
 | [Dr4w](#-dr4w-bundle-patch-list) | 2 | 1 | Generated |
 | [Aimal](#-aimal-bundle-patch-list) | 6 | 4 | Generated |
-| [ShuhaibNC](#-shuhaibnc-bundle-patch-list) | 13 | 11 | Generated |
+| [ShuhaibNC](#-shuhaibnc-bundle-patch-list) | 19 | 12 | Generated |
 | [Stremio-AndroidTV](#-stremio-androidtv-bundle-patch-list) | 3 | 1 | Generated |
 | [Legendsciber](#-legendsciber-bundle-patch-list) | 12 | 7 | Generated |
 | [SteamLink](#-steamlink-bundle-patch-list) | 24 | 1 | Generated |
@@ -240,7 +240,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Dumketo](#-dumketo-bundle-patch-list) | 8 | 4 | Generated |
 | [Benzophury](#-benzophury-bundle-patch-list) | 4 | 1 | Generated |
 | [PyFlat-JR](#-pyflat-jr-bundle-patch-list) | 2 | 1 | Generated |
-| [Dual-VoT](#-dual-vot-bundle-patch-list) | 150 | 4 | Generated |
+| [Dual-VoT](#-dual-vot-bundle-patch-list) | 151 | 4 | Generated |
 | [SmartLauncher](#-smartlauncher-bundle-patch-list) | 6 | 1 | Generated |
 | [Rahul9999xda-Telegram](#-rahul9999xda-telegram-bundle-patch-list) | 20 | 4 | Generated |
 | [6ixfalls](#-6ixfalls-bundle-patch-list) | 1 | 1 | Generated |
@@ -272,16 +272,16 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Travian](#-travian-bundle-patch-list) | 2 | 1 | Generated |
 | [HelioFloxZ](#-heliofloxz-bundle-patch-list) | 2 | 1 | Generated |
 | [Ahmedyarub](#-ahmedyarub-bundle-patch-list) | 17 | 2 | Generated |
-| [Epxec](#-epxec-bundle-patch-list) | 11 | 11 | Generated |
+| [Epxec](#-epxec-bundle-patch-list) | 12 | 12 | Generated |
 | [Dhrubonai](#-dhrubonai-bundle-patch-list) | 46 | 25 | Generated |
 | [PixivPatches](#-pixivpatches-bundle-patch-list) | 8 | 1 | Generated |
 | [De-Vanced](#-de-vanced-bundle-patch-list) | 9 | 1 | Generated |
 | [CBC](#-cbc-bundle-patch-list) | 4 | 1 | Generated |
-| [D-moniak](#-d-moniak-bundle-patch-list) | 2 | 1 | Generated |
+| [D-moniak](#-d-moniak-bundle-patch-list) | 3 | 2 | Generated |
 | [Spicetify](#-spicetify-bundle-patch-list) | 4 | 1 | Generated |
 | [Piko-NewX](#-piko-newx-bundle-patch-list) | 43 | 1 | Generated |
 | [Channel-Blacklist](#-channel-blacklist-bundle-patch-list) | 1 | 1 | Generated |
-| [Lchanc3](#-lchanc3-bundle-patch-list) | 7 | 1 | Generated |
+| [Lchanc3](#-lchanc3-bundle-patch-list) | 11 | 1 | Generated |
 | [VK-Video](#-vk-video-bundle-patch-list) | 5 | 1 | Generated |
 | [Airofit-Pro2](#-airofit-pro2-bundle-patch-list) | 1 | 1 | Generated |
 | [Mixplorer](#-mixplorer-bundle-patch-list) | 1 | 2 | Generated |
@@ -361,7 +361,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Proxma Bundle Patch List:
 [📦 Proxma-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-proxma-patches-bundle-morphe)
 <details>
-<summary><b>Proxma</b> - 12 patches, 6 apps</summary>
+<summary><b>Proxma</b> - 15 patches, 7 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -374,9 +374,12 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Remove ads``` | ```Removes every Google Ad Manager ad (banners + interstitials) across Daily Rewards, Home, Test Your Skills and Explore by nulling the remote ad-config chokepoint, so each surface renders its no-ads layout and never requests an interstitial.``` | ```My Telenor``` | ```4.2.62``` |
 | ```Remove ads & tracking``` | ```Removes every ad (AdMob) and every tracker (Firebase Analytics, AppsFlyer, Facebook, TikTok, and the Veridium SDK's own Google Analytics) — event sends, full SDK init (AppsFlyer init, TikTok initializeSdk/startTrack, MobileAds.initialize), and auto-collection. Pushwoosh push is left intact. The app then phones home only to its own Zong API.``` | ```MyZong``` | ```5.19.19.112``` |
 | ```Unlock daily reward (skip ad)``` | ```Claim MyZong's daily reward with no 'watch ad' popup and no ad. Forces the reward-bubble tap to take the app's own direct-claim branch (the same claim call the post-ad path makes), upstream of both the popup and the rewarded ad.``` | ```MyZong``` | ```5.19.19.112``` |
-| ```Unlock premium (NetMonster)``` | ```Unlocks NetMonster Premium — forces the premium repo's derived flows so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active (far-future expiry) without an Adapty subscription.``` | ```NetMonster``` | ```3.4.1``` |
-| ```Bypass signature verification``` | ```Disables Simosa's anti-tamper signature check so a re-signed APK launches normally instead of stalling on the splash / "version is not correct" dialog.``` | ```Simosa``` | ```3.3.2``` |
-| ```Remove ads & tracking``` | ```Removes every ad (interstitial, banner, daily-reward) and every tracker (Mixpanel, Firebase, Facebook, AppsFlyer) — app events, network sends, ad-SDK requests (Google Ads / AppLovin / AnyMind / Prebid), SDK auto-collection, and the ipify IP leak. The app then phones home only to its own Jazz API.``` | ```Simosa``` | ```3.3.2``` |
+| ```Unlock premium (NetMonster)``` | ```Unlocks NetMonster Premium — forces the premium repo's derived flows so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active (far-future expiry) without an Adapty subscription.``` | ```NetMonster``` | ```3.4.3``` |
+| ```Force dark mode``` | ```Forces OLX into dark (night) mode regardless of the system theme, using the app's built-in -night resources via UiModeManager.setApplicationNightMode at startup.``` | ```OLX``` | ```18.8.0``` |
+| ```Remove ads``` | ```Removes native feed ads (Google GMA), the full-height ad slot, and the "Buy with Delivery" promo section (bar, cards and View all) from OLX. Pinned to the 18.8.0 build (matches that build's obfuscated feed classes).``` | ```OLX``` | ```18.8.0``` |
+| ```Bypass signature verification``` | ```Disables Simosa's anti-tamper signature check so a re-signed APK launches normally instead of stalling on the splash / "version is not correct" dialog.``` | ```Simosa``` | ```3.3.4.2``` |
+| ```Remove ads & tracking``` | ```Removes every ad (interstitial, banner, daily-reward) and every tracker (Mixpanel, Firebase, Facebook, AppsFlyer) — app events, network sends, ad-SDK requests (Google Ads / AppLovin / AnyMind / Prebid), SDK auto-collection, and the ipify IP leak. The app then phones home only to its own Jazz API.``` | ```Simosa``` | ```3.3.4.2``` |
+| ```Remove daily check-in ads``` | ```Removes the SocialPlus daily check-in / in-feed ads (FeedAdsManager banner + native loaders). Separate from "Remove ads & tracking" to keep that patch Morphe-Manager-safe; enable this one when patching with the desktop CLI.``` | ```Simosa``` | ```3.3.4.2``` |
 
 </details>
 
@@ -3055,7 +3058,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Chiggi Bundle Patch List:
 [📦 Chiggi-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-chiggi-patches-bundle-morphe)
 <details>
-<summary><b>Chiggi</b> - 68 patches, 12 apps</summary>
+<summary><b>Chiggi</b> - 70 patches, 13 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -3065,6 +3068,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove AD_ID permission``` | ```Removes the advertising-id and Ad Services (Privacy Sandbox) permissions so the device advertising id, Topics and Attribution signals cannot be read for ad tracking.``` | ```Arrow Puzzle``` | ```1.7.0``` |
 | ```Remove ads``` | ```Removes ALL ads (banner, interstitial and rewarded) by neutering the Unity<->Android ad facade (com.easybrain.ads.unity.AdsPlugin): availability/show booleans return false, banner shows are no-ops and banner height is 0. The game treats every ad type as never ready. Note: rewarded ads are also removed, so watch-to-earn rewards no longer work.``` | ```Arrow Puzzle``` | ```1.7.0``` |
 | ```Unlock premium``` | ```Unlocks AYA Baby AI premium without a purchase by forcing the Apphud SDK entitlement checks Apphud.hasPremiumAccess() and hasActiveSubscription() to return true. The app gates premium features on these, so the app treats the user as subscribed. Because it uses an ads-or-premium model, unlocking premium also stops the Appodeal/AdMob ads. No Google Play purchase is made or needed.``` | ```AYA Baby AI``` | ```6.8``` |
+| ```Free in-app purchases``` | ```Makes every in-app purchase free and unlimited. KKJPaymentGoogle.startPurchase(key) normally opens the Google Play billing flow; this redirects it straight to the native grant applyProduct(key), skipping payment. There is no client receipt check (verifyDeveloperPayload returns true) and no server validation, so the product is granted for real — consumables (coins) can be re-bought unlimitedly. NOTE: no money changes hands and nothing is sent to Google; this only works because the grant is client-side.``` | ```Big Hunter``` | ```3.1.1``` |
+| ```Remove ads``` | ```Suppresses AppLovin MAX / AdMob / Unity ads. Interstitial show() becomes a no-op (only releases the native processing lock via stopProcess). Rewarded showWithReward() skips the ad but still fires the native rewardCallback() so reward-gated features (revive, bonus coins, etc.) keep working, then releases the lock. getIsReadyReward() is forced true so the reward button stays available without a preloaded ad. Unity's reward is not wired to a Java callback, so its showWithReward only skips the ad.``` | ```Big Hunter``` | ```3.1.1``` |
 | ```Bypass Play license check``` | ```Stops Google Play's Automatic Integrity Protection (PairIP) license check that, on a re-signed/sideloaded build, redirects the app to the Play Store ("get it on Google Play"). Neuters both entry points of com.pairip.licensecheck.LicenseClient (checkLicense / initializeLicenseCheck) so the check never runs. Required for the patched app to open at all.``` | ```CrazyGames``` | ```1.6.7``` |
 | ```Change app name``` | ```Changes the app name shown under the launcher icon. Set the desired name in the patch options.``` | ```CrazyGames``` | ```1.6.7``` |
 | ```Disable analytics``` | ```Stops native Sentry crash/telemetry upload by neutering the Capacitor Sentry plugin's native init (io.sentry.capacitor.SentryCapacitor.initNativeSdk), so it resolves without starting the native Sentry SDK. Firebase auth, ConfigCat and push are unaffected.``` | ```CrazyGames``` | ```1.6.7``` |
@@ -3294,7 +3299,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Hoo-dles Bundle Patch List:
 [📦 Hoo-dles-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hoo-dles-patches-bundle-morphe)
 <details>
-<summary><b>Hoo-dles</b> - 79 patches, 58 apps</summary>
+<summary><b>Hoo-dles</b> - 78 patches, 58 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -3302,9 +3307,9 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Peak membership``` | ```Enables some app features locked behind the subscription paywall. Not all premium functionality is available.``` | ```AllTrails``` | ```26.3.20``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```ASL Bloom``` | ```1.36.67``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```Avocards``` | ```3.0.18``` |
-| ```Enable Premium``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version``` | ```Bend``` | ```7.6.6``` |
-| ```Enable Platinum``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version``` | ```Bunpo``` | ```3.21.0``` |
-| ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```Busuu``` | ```32.30.0(1575420)``` |
+| ```Enable Premium``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version``` | ```Bend``` | ```7.8.0``` |
+| ```Enable Platinum``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version``` | ```Bunpo``` | ```3.23.1``` |
+| ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```Busuu``` | ```32.44.1(1717099)``` |
 | ```Enable Plus``` | ```Enable Plus membership (not all features are available). Requirements: strict apk version``` | ```Cake``` | ```6.4.0``` |
 | ```Disable telemetry``` | ```Disables CamScanner's custom telemetry system.``` | ```CamScanner``` | ```7.20.0.2606230000``` |
 | ```Enable Premium``` | ```Enables some app features locked behind the subscription paywall. Certain server-side functionality may be unavailable.``` | ```CamScanner``` | ```7.20.0.2606230000``` |
@@ -3321,10 +3326,9 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a``` | ```HelloChinese``` | ```7.11.0``` |
 | ```Enable Prime membership``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a``` | ```IbisPaint X``` | ```14.1.0``` |
 | ```Unlock premium features``` | ```Enables app features locked behind the subscription paywall. Some UI elements may not show an active membership, but this does not effect functionality.``` | ```Icon Packer``` | ```1.21.0-release``` |
-| ```Bypass login``` | ```Allows app use without login. BUT breaks many features. Requirements: arm64-v8a, strict apk version``` | ```Lightroom Mobile``` | ```11.5.22``` |
-| ```Unlock premium features``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version``` | ```Lightroom Mobile``` | ```11.5.22``` |
+| ```Unlock premium features``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version``` | ```Lightroom Mobile``` | ```11.5.31``` |
 | ```Enable Pro``` | ```Enables app features locked behind the subscription paywall. Requirements: strict apk version``` | ```Ling``` | ```8.4.4``` |
-| ```Enable Premium (ROOT)``` | ```Enables app features locked behind the subscription paywall.``` | ```Lingodeer``` | ```2.99.412``` |
+| ```Enable Premium (ROOT)``` | ```Enables app features locked behind the subscription paywall.``` | ```Lingodeer``` | ```2.99.413``` |
 | ```Block Permissions Request``` | ```Blocks the request of notification permissions on load of app. Requirements: arm64-v8a, strict apk version``` | ```Lingory``` | ```1.2.75``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version``` | ```Lingory``` | ```1.2.75``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall.``` | ```Lyfta``` | ```1.551``` |
@@ -3360,8 +3364,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```AMOLED dark theme``` | ```Changes the default dark theme to use true blacks for AMOLED screens.``` | ```SoundCloud``` | ```2026.08.26-release``` |
 | ```Disable telemetry``` | ```Disables SoundCloud's telemetry system.``` | ```SoundCloud``` | ```2026.08.26-release``` |
 | ```Enable SoundCloud Go``` | ```Enables app features locked behind the subscription paywall.``` | ```SoundCloud``` | ```2026.08.26-release``` |
-| ```Disable telemetry``` | ```Blocks SuperChinese's custom telemetry reporting.``` | ```SuperChinese``` | ```6.6.3``` |
-| ```Unlock all lessons``` | ```Only unlocks lessons on the client UI! This is useful for pre-downloading content during free trial periods.``` | ```SuperChinese``` | ```6.6.3``` |
+| ```Disable telemetry``` | ```Blocks SuperChinese's custom telemetry reporting.``` | ```SuperChinese``` | ```6.8.1``` |
+| ```Unlock all lessons``` | ```Only unlocks lessons on the client UI! This is useful for pre-downloading content during free trial periods.``` | ```SuperChinese``` | ```6.8.1``` |
 | ```Enable Premium``` | ```Enables app features locked behind the subscription paywall. Requirements: strict apk version``` | ```TTMIK Stories``` | ```1.16.0``` |
 | ```Change package name``` | ```Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues.``` | ```Universal``` | ```All versions``` |
 | ```Disable Pairip license check``` | ```Disables Play Integrity API (pairip) client-side license check. This patch does not bypass Play Integrity attestation or pairipcore virtualization.``` | ```Universal``` | ```All versions``` |
@@ -3529,78 +3533,78 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Spoof Signature``` | ```Spoofs the app signature to bypass integrity checks.``` | ```dcinside``` | ```5.3.6``` |
 | ```Bypass login``` | ```Skips the mandatory account sign-in on launch and opens the app directly.``` | ```Flexcil``` | ```1.5.0.11, 1.5.0.10, 1.5.0.9, 1.5.0.8, 1.5.0.7, 1.4.4.14, 1.4.4.12, 1.4.4.10, 1.4.4.9``` |
 | ```Unlock Premium features``` | ```Enables app features locked behind the subscription paywall.``` | ```Flexcil``` | ```1.5.0.11, 1.5.0.10, 1.5.0.9, 1.5.0.8, 1.5.0.7, 1.4.4.14, 1.4.4.12, 1.4.4.10, 1.4.4.9``` |
-| ```Add Packet Handler``` | ```Adding the Loco Packet Handler allows external applications to handle the app's packets, which may compromise security. Conflicts may occur on some systems.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Add Pine Lib``` | ```add libpine.so to the app's native libraries``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Add settings resources``` | ```Adds Morphe settings layout resources to the app.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Add settings tab``` | ```Adds a settings tab to the app.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Allow direct thread reply editing``` | ```Shows the edit action when long-pressing your own thread replies in the main chat.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Allow Hide on Any Chat``` | ```Users with hiding privileges can hide any chat, including their own messages.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Allow invisible characters``` | ```Stops zero width and other invisible characters from being stripped out of the chat input and out of the messages shown in a chat room.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Allow Open Chat Managers To Block Members``` | ```Allows open chat room hosts and co-hosts to block regular members from their profiles.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Allow open chat media bundle``` | ```Removes the open chat restriction that stops webp, gif and other media from being bundled into a single multi-photo message.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Allow profile media download``` | ```Adds the save option of the profile media viewer to the profile pictures and background images of other people.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Allow reply to feed``` | ```Adds a setting to allow swiping feed messages to reply, or to comment where chat room comments are enabled.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Always Show Kick Button``` | ```Always shows the kick button in group member management.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Block reactions on deleted or hidden messages``` | ```Stops reactions, including the double tap gesture, from being sent on messages that the server considers deleted or hidden and that are only still visible because they are kept by a patch.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Block replies on deleted or hidden messages``` | ```Stops the swipe gesture, and any reply or comment send, from targeting messages that the server considers deleted or hidden and that are only still visible because they are kept by a patch.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Bypass input mention limit in non-multichat``` | ```Bypass the limit of input mentions in non-multichat rooms``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Bypass Moat check``` | ```Adds a setting to prevent KakaoPay Moat initialization, policy and pattern updates, scans, detector logging, and force-off reports while returning benign integrity results. Payments on a modified build are still risky.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Change model``` | ```Changes the device model to supporting subdevice features``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Change package name``` | ```Appends ".revanced" to the package name by default. For KakaoTalk only``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Custom branding``` | ```Customize app branding (name)``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Default external browser``` | ```Sets the default external browser for KakaoTalk to the system's default browser.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable 300+ unread limit``` | ```Always show the real unread count instead of '300+' in chatroom list``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable 99 unread limit``` | ```Skip the 99-cap so unread count shows full value``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable abuse detection report``` | ```Answers the startup and login integrity challenge with an empty token and a benign Play Integrity failure code instead of a Google-signed token that would expose the re-signed certificate. The report itself is still sent, so the client does not go conspicuously silent on the server's nonce the way suppressing it entirely would.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable AdFit environment detection``` | ```Stops the AdFit ad SDK from reporting a root or emulator verdict to its telemetry and ad request endpoints.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable chat room list ad``` | ```Disables native and global-region ads in the chat room list.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable ChatRoomAdController``` | ```Disables the open-link chat room BizBoard ad controller.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable Collapse Button``` | ```Disable collapse button on OpenChatList``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable Community Tab``` | ```Disables Community Tab``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable Friend Feed tab``` | ```Disables the Friend Feed tab in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable Friend Lists ad``` | ```Disables the friend tab BizBoard and global-region ads in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable open chat room comments``` | ```Adds a setting to disable comments in open chat rooms.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable OpenChat feed ad``` | ```Disables the OpenChat tab feed ad load and render paths.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable Pay banner ad``` | ```Disables the KakaoPay banner ad load and render paths.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable S2Event``` | ```Disables Tracker``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable SDK Tracker``` | ```Disables the SDK Tracker in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable Sentry``` | ```Disables Sentry error reporting in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable ShortForm ad``` | ```Disables the shortform ad load and render paths.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable Talk Share Log``` | ```Disable talk share log``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Disable verifying signature``` | ```Disables the signature verification check that prevents the app from running.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Enable Markdown``` | ```Render plain text messages with markdown-style formatting.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Enable send big text``` | ```Allows sending big text messages in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Force enable debug mode``` | ```Enables debug mode in the app.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Force enable emoticon plus feature``` | ```Force enable emoticon plus feature (Unpurchased emoticon can be sent once per day)``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Ghost Mode``` | ```Don't expose your typing status to the other party.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Hide More tab components``` | ```Adds options to hide components from the More tab.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Hide More tab Game tab``` | ```Hides the Game tab from the More tab.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Hook Package Manager``` | ```Hooks the Package Manager to bypass integrity checks.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Ignore forward restriction``` | ```Ignores the restrictions that stop messages such as KakaoLink from being forwarded to another chatroom.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Open profile from open chat feed``` | ```Opens open chat member profiles from join and leave feed messages.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Override feature flag``` | ```Overrides the feature flag to enable the feature.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Register settings activity``` | ```Registers the Morphe settings activity in the app manifest.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove BizBoard ads``` | ```Removes the BizBoard ad by forcing its dimensions to 0x0 and visibility to GONE in onMeasure.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove feed ad``` | ```Removes the feed ad from the app.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove focus ad``` | ```Removes the focus ad from the app.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove More tab ad``` | ```Removes the ad from the More tab.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove native ad``` | ```Removes the native ad from the app.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove OpenLink chat room list ad``` | ```Removes the OpenLink chat room list ad.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove shop tab``` | ```Removes the shop tab from the bottom navigation bar.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Remove Short-form Tab``` | ```Removes the Short-form tab from the now fragment.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Restore keyword notification log``` | ```Restores the removed keyword notification collection view along with its chat list entry.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Show chatroom channel ID``` | ```Shows the channel ID in chatroom settings and copies it when tapping the chat side title.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Show deleted, hidden, or edited messages``` | ```Allows you to see deleted, hidden, and edited message history in chat logs.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Show message details``` | ```Adds a long-press action to inspect the complete ChatLog object, including inherited and message-specific fields, as JSON.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Show message read receipts``` | ```Shows the members who have or have not read each chat message.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Show messages restricted to mobile``` | ```Shows the content of AlimTalk, Leverage and Universal messages that are replaced with a placeholder asking to open them on mobile while signed in on a sub device.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Spoof apk checksums``` | ```Spoofs the apk checksums to pass integrity checks.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Spoof App ID``` | ```Spoofs the App ID to bypass integrity checks. (to bypass biometric auth etc.)``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Spoof attestation package name``` | ```Reports the original package name in the attestation report, which otherwise reveals a renamed install. Only the report is affected, so the app keeps using its real package name everywhere else.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Spoof installer package name``` | ```Reports Google Play as the install source in the integrity report, which otherwise reveals a sideloaded install.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Spoof signature``` | ```Spoofs the app signature to pass integrity checks.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Strip image metadata``` | ```Removes EXIF metadata, including the GPS capture location, from images sent in original quality, while keeping the picture and its orientation intact.``` | ```Kakao Talk``` | ```26.8.0``` |
-| ```Version info patch``` | ```Patches the version info to include '(ReVanced)' in the version string.``` | ```Kakao Talk``` | ```26.8.0``` |
+| ```Add Packet Handler``` | ```Adding the Loco Packet Handler allows external applications to handle the app's packets, which may compromise security. Conflicts may occur on some systems.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Add Pine Lib``` | ```add libpine.so to the app's native libraries``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Add settings resources``` | ```Adds Morphe settings layout resources to the app.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Add settings tab``` | ```Adds a settings tab to the app.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Allow direct thread reply editing``` | ```Shows the edit action when long-pressing your own thread replies in the main chat.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Allow Hide on Any Chat``` | ```Users with hiding privileges can hide any chat, including their own messages.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Allow invisible characters``` | ```Stops zero width and other invisible characters from being stripped out of the chat input and out of the messages shown in a chat room.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Allow Open Chat Managers To Block Members``` | ```Allows open chat room hosts and co-hosts to block regular members from their profiles.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Allow open chat media bundle``` | ```Removes the open chat restriction that stops webp, gif and other media from being bundled into a single multi-photo message.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Allow profile media download``` | ```Adds the save option of the profile media viewer to the profile pictures and background images of other people.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Allow reply to feed``` | ```Adds a setting to allow swiping feed messages to reply, or to comment where chat room comments are enabled.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Always Show Kick Button``` | ```Always shows the kick button in group member management.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Block reactions on deleted or hidden messages``` | ```Stops reactions, including the double tap gesture, from being sent on messages that the server considers deleted or hidden and that are only still visible because they are kept by a patch.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Block replies on deleted or hidden messages``` | ```Stops the swipe gesture, and any reply or comment send, from targeting messages that the server considers deleted or hidden and that are only still visible because they are kept by a patch.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Bypass input mention limit in non-multichat``` | ```Bypass the limit of input mentions in non-multichat rooms``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Bypass Moat check``` | ```Adds a setting to prevent KakaoPay Moat initialization, policy and pattern updates, scans, detector logging, and force-off reports while returning benign integrity results. Payments on a modified build are still risky.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Change model``` | ```Changes the device model to supporting subdevice features``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Change package name``` | ```Appends ".revanced" to the package name by default. For KakaoTalk only``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Custom branding``` | ```Customize app branding (name)``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Default external browser``` | ```Sets the default external browser for KakaoTalk to the system's default browser.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable 300+ unread limit``` | ```Always show the real unread count instead of '300+' in chatroom list``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable 99 unread limit``` | ```Skip the 99-cap so unread count shows full value``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable abuse detection report``` | ```Answers the startup and login integrity challenge with an empty token and a benign Play Integrity failure code instead of a Google-signed token that would expose the re-signed certificate. The report itself is still sent, so the client does not go conspicuously silent on the server's nonce the way suppressing it entirely would.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable AdFit environment detection``` | ```Stops the AdFit ad SDK from reporting a root or emulator verdict to its telemetry and ad request endpoints.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable chat room list ad``` | ```Disables native and global-region ads in the chat room list.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable ChatRoomAdController``` | ```Disables the open-link chat room BizBoard ad controller.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable Collapse Button``` | ```Disable collapse button on OpenChatList``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable Community Tab``` | ```Disables Community Tab``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable Friend Feed tab``` | ```Disables the Friend Feed tab in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable Friend Lists ad``` | ```Disables the friend tab BizBoard and global-region ads in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable open chat room comments``` | ```Adds a setting to disable comments in open chat rooms.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable OpenChat feed ad``` | ```Disables the OpenChat tab feed ad load and render paths.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable Pay banner ad``` | ```Disables the KakaoPay banner ad load and render paths.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable S2Event``` | ```Disables Tracker``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable SDK Tracker``` | ```Disables the SDK Tracker in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable Sentry``` | ```Disables Sentry error reporting in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable ShortForm ad``` | ```Disables the shortform ad load and render paths.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable Talk Share Log``` | ```Disable talk share log``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Disable verifying signature``` | ```Disables the signature verification check that prevents the app from running.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Enable Markdown``` | ```Render plain text messages with markdown-style formatting.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Enable send big text``` | ```Allows sending big text messages in KakaoTalk.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Force enable debug mode``` | ```Enables debug mode in the app.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Force enable emoticon plus feature``` | ```Force enable emoticon plus feature (Unpurchased emoticon can be sent once per day)``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Ghost Mode``` | ```Don't expose your typing status to the other party.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Hide More tab components``` | ```Adds options to hide components from the More tab.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Hide More tab Game tab``` | ```Hides the Game tab from the More tab.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Hook Package Manager``` | ```Hooks the Package Manager to bypass integrity checks.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Ignore forward restriction``` | ```Ignores the restrictions that stop messages such as KakaoLink from being forwarded to another chatroom.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Open profile from open chat feed``` | ```Opens open chat member profiles from join and leave feed messages.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Override feature flag``` | ```Overrides the feature flag to enable the feature.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Register settings activity``` | ```Registers the Morphe settings activity in the app manifest.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove BizBoard ads``` | ```Removes the BizBoard ad by forcing its dimensions to 0x0 and visibility to GONE in onMeasure.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove feed ad``` | ```Removes the feed ad from the app.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove focus ad``` | ```Removes the focus ad from the app.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove More tab ad``` | ```Removes the ad from the More tab.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove native ad``` | ```Removes the native ad from the app.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove OpenLink chat room list ad``` | ```Removes the OpenLink chat room list ad.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove shop tab``` | ```Removes the shop tab from the bottom navigation bar.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Remove Short-form Tab``` | ```Removes the Short-form tab from the now fragment.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Restore keyword notification log``` | ```Restores the removed keyword notification collection view along with its chat list entry.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Show chatroom channel ID``` | ```Shows the channel ID in chatroom settings and copies it when tapping the chat side title.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Show deleted, hidden, or edited messages``` | ```Allows you to see deleted, hidden, and edited message history in chat logs.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Show message details``` | ```Adds a long-press action to inspect the complete ChatLog object, including inherited and message-specific fields, as JSON.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Show message read receipts``` | ```Shows the members who have or have not read each chat message.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Show messages restricted to mobile``` | ```Shows the content of AlimTalk, Leverage and Universal messages that are replaced with a placeholder asking to open them on mobile while signed in on a sub device.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Spoof apk checksums``` | ```Spoofs the apk checksums to pass integrity checks.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Spoof App ID``` | ```Spoofs the App ID to bypass integrity checks. (to bypass biometric auth etc.)``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Spoof attestation package name``` | ```Reports the original package name in the attestation report, which otherwise reveals a renamed install. Only the report is affected, so the app keeps using its real package name everywhere else.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Spoof installer package name``` | ```Reports Google Play as the install source in the integrity report, which otherwise reveals a sideloaded install.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Spoof signature``` | ```Spoofs the app signature to pass integrity checks.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Strip image metadata``` | ```Removes EXIF metadata, including the GPS capture location, from images sent in original quality, while keeping the picture and its orientation intact.``` | ```Kakao Talk``` | ```26.8.2``` |
+| ```Version info patch``` | ```Patches the version info to include '(ReVanced)' in the version string.``` | ```Kakao Talk``` | ```26.8.2``` |
 | ```Enable navigation live updates``` | ```Shows navigation progress and stop-by-stop transit guidance with Android Live Updates.``` | ```KakaoMap``` | ```6.28.3, 6.28.2, 6.28.1``` |
 | ```Enable navigation live updates``` | ```Converts Now Bar navigation notifications to Android Live Updates on Android 16 or newer.``` | ```NAVER Map``` | ```6.10.0.16, 6.9.1.3``` |
 | ```Enable non-One UI ROM support``` | ```Makes Samsung Keyboard installable and usable on non-One UI ROMs.``` | ```Samsung Keyboard``` | ```5.9.40.48``` |
@@ -3641,7 +3645,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Morphe Bundle Patch List:
 [📦 Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-morphe-patches-bundle-morphe)
 <details>
-<summary><b>Morphe</b> - 149 patches, 4 apps</summary>
+<summary><b>Morphe</b> - 150 patches, 4 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -3664,6 +3668,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Sanitize sharing links``` | ```Adds an option to sanitize sharing links by removing tracking query parameters.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
 | ```Show view count``` | ```Adds an option to show the view count of Posts.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
 | ```Spoof signature``` | ```Spoofs the signature of the app to fix notification issues.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0, 2024.02.0``` |
+| ```Start as guest``` | ```Skips the forced startup login screen using Reddit's native guest browsing mode.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
 | ```Change installer source``` | ```Spoofs the installer source so the app appears to be installed from an app store.``` | ```Universal``` | ```All versions``` |
 | ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 | ```Disable Play Store updates``` | ```Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting``` | ```Universal``` | ```All versions``` |
@@ -3793,7 +3798,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 10+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
+| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 15+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 
 </details>
 
@@ -4369,7 +4374,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Jasonwu1994 Bundle Patch List:
 [📦 Jasonwu1994-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jasonwu1994-patches-bundle-morphe)
 <details>
-<summary><b>Jasonwu1994</b> - 41 patches, 1 app</summary>
+<summary><b>Jasonwu1994</b> - 42 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -4408,6 +4413,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Settings Homepage Override``` | ```允許切換新版或舊版 Gboard 設定頁面 Allow switching between the new and legacy Gboard settings pages.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Simple Calculator``` | ```直接輸入算式，在 Gboard 推薦列顯示可捲動算式與答案。 Type an expression and show a scrollable equation plus its answer in Gboard's suggestion row.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipeable Custom Top Row``` | ```滑動鍵盤第一排，在原生列與可自訂文字/JavaScript 列之間切換 Swipe the keyboard top row to switch between the stock row and a customizable text/JavaScript row.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Toolbar Editing Buttons``` | ```將全選、複製、剪下與貼上加入選單。 Add Select All, Copy, Cut and Paste to the menu.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Top Toolbar Item Count``` | ```自訂 Gboard 頂端工具列項目數量 Customize the Gboard top toolbar item count.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Use Bluetooth Microphone``` | ```啟用 語音輸入 -> 使用藍芽麥克風 Enable Voice typing -> Use Bluetooth microphone.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Web Clipboard``` | ```新增手機自架的 Web Clipboard，支援瀏覽器同步、配對碼與快速設定開關 Add the phone-hosted Web Clipboard with browser sync, pairing, and a Quick Settings Tile.``` | ```com.google.android.inputmethod.latin``` | ```18.0.3.954559732-release-arm64-v8a``` |
@@ -4720,14 +4726,14 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```AMOLED dark theme``` | ```Makes dark-theme page, app navigation and system bars pure black (AMOLED) while keeping elevated cards, sheets and controls gray so their boundaries remain visible.``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```Block listings``` | ```Hides Avito offers from blacklisted adverts or sellers and adds a blacklist manager (import/export compatible with the Ave Blacklist extension).``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```Disable telemetry``` | ```Disables Avito first-party clickstream analytics and Avito's direct Adjust telemetry wrapper.``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```Disable update prompts``` | ```Prevents Avito's force-update screen opener from launching update screens. Toggleable in Настройки Morphe.``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```Hide professional sellers``` | ```Adds a maximum seller review count to Avito search filters and hides or dims offers from sellers above that limit.``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```Morphe settings``` | ```Adds a "Настройки Morphe" entry to Avito's settings that hosts the configuration for the other Morphe patches.``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```Remove ads``` | ```Disables Avito ads by removing ad SDK entry points and short-circuiting commercial banner loading.``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
-| ```UI tweaks``` | ```Optional interface tweaks, each toggleable in Настройки Morphe: single-row home categories, hide the "Подписки" tab in Избранное, hide installments (Рассрочка) and the "Спросите у продавца" block on offers, expand descriptions by default (no "Читать далее"), hide reserved offers and offer recommendations, hide profile raffle, referral and Avito Pro promos, and hide the Avi assistant tab in the bottom navigation.``` | ```Avito``` | ```233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```AMOLED dark theme``` | ```Makes dark-theme page, app navigation and system bars pure black (AMOLED) while keeping elevated cards, sheets and controls gray so their boundaries remain visible.``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```Block listings``` | ```Hides Avito offers from blacklisted adverts or sellers and adds a blacklist manager (import/export compatible with the Ave Blacklist extension).``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```Disable telemetry``` | ```Disables Avito first-party clickstream analytics and Avito's direct Adjust telemetry wrapper.``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```Disable update prompts``` | ```Prevents Avito's force-update screen opener from launching update screens. Toggleable in Настройки Morphe.``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```Hide professional sellers``` | ```Adds a maximum seller review count to Avito search filters and hides or dims offers from sellers above that limit.``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```Morphe settings``` | ```Adds a "Настройки Morphe" entry to Avito's settings that hosts the configuration for the other Morphe patches.``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```Remove ads``` | ```Disables Avito ads by removing ad SDK entry points and short-circuiting commercial banner loading.``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
+| ```UI tweaks``` | ```Optional interface tweaks, each toggleable in Настройки Morphe: single-row home categories, hide the "Подписки" tab in Избранное, hide installments (Рассрочка) and the "Спросите у продавца" block on offers, expand descriptions by default (no "Читать далее"), hide reserved offers and offer recommendations, hide profile raffle, referral and Avito Pro promos, and hide the Avi assistant tab in the bottom navigation.``` | ```Avito``` | ```233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
 | ```Remove Ozon ads``` | ```Removes Ozon ad widgets, banner carousels, video ads, and PDP promo blocks.``` | ```Ozon``` | ```19.35.0, 19.34.0, 19.33.1, 19.32.0, 19.31.0, 19.30.0, 19.29.0, 19.28.0, 19.27.0``` |
 | ```Bypass anti-tamper``` | ```Stubs TBank's native RASP executor calls and neutralizes tamper flag reporting.``` | ```TBank``` | ```8.3.0, 8.2.3, 8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
 | ```Remove TBank ads``` | ```Removes TBank stories and promotional surfaces.``` | ```TBank``` | ```8.3.0, 8.2.3, 8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
@@ -5523,7 +5529,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 HXReborn Bundle Patch List:
 [📦 HXReborn-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hxreborn-patches-bundle-morphe)
 <details>
-<summary><b>HXReborn</b> - 55 patches, 30 apps</summary>
+<summary><b>HXReborn</b> - 59 patches, 32 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5548,7 +5554,9 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock premium``` | ```Unlocks all premium features.``` | ```ForusApp``` | ```3.0.15``` |
 | ```AMOLED dark theme``` | ```Replaces the dark theme background with pure black. Disables over-the-air updates that would restore the original background.``` | ```Kick``` | ```All versions``` |
 | ```Unlock premium``` | ```Unlocks the premium music channels, on-demand playback and track skipping. Requires a signed-in account.``` | ```Klassik Radio+``` | ```p5.11.1``` |
-| ```All-In-One``` | ```Enables video playback and downloads, removes ads and upsell prompts, bypasses the region block, and unlocks the hidden Laboratory menu. Requires Android 10 or later.``` | ```MovieBox``` | ```4.0.02.0828.03, 4.0.02.0831.03, 4.0.02.0903.02, 4.0.03.0918.03``` |
+| ```All-In-One``` | ```Enables video playback and downloads, removes ads and upsell prompts, bypasses the region block, and unlocks the hidden Laboratory menu. Requires Android 10 or later.``` | ```MovieBox``` | ```4.0.02.0828.03, 4.0.02.0831.03, 4.0.02.0903.02``` |
+| ```Disable tracking``` | ```Stops the install identifier from reaching Expo and usage events from reaching Google. Disables OTA updates.``` | ```MyMoveset``` | ```1.3.1``` |
+| ```Unlock premium``` | ```Unlocks unlimited move views, goals and move cards, manual sync, earlier library updates and card customization. Disables OTA updates.``` | ```MyMoveset``` | ```1.3.1``` |
 | ```Unlock pro``` | ```Unlocks task lists, callouts, app lock, and the notebook, tag, colour and reminder limits. Requires a signed-in account. The server still enforces storage, attachment size, monographs and SMS 2FA.``` | ```Notesnook``` | ```3.4.12``` |
 | ```AMOLED dark theme``` | ```Replaces the dark theme background with pure black.``` | ```Perplexity``` | ```2.95.0``` |
 | ```Hide ads``` | ```Adds an option to hide banner, interstitial, app-open and rewarded ads.``` | ```Photo Editor Pro``` | ```1.791.265``` |
@@ -5569,6 +5577,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock premium``` | ```Unlocks downloading every surah, lyrics and tafsir, Android Auto, background playback controls, and insights.``` | ```Quranify``` | ```2.2.8``` |
 | ```Unlock premium``` | ```Unlocks all premium features.``` | ```RateGlance``` | ```1.14.8``` |
 | ```Remove nags``` | ```Removes the rate this app dialog and the promotional dialogs shown on startup.``` | ```ReadEra``` | ```26.05.20+2300``` |
+| ```AMOLED dark theme``` | ```Replaces the light theme with a pure black dark theme. Requires Android 13 or later.``` | ```Realme Link``` | ```5.5.514.11421``` |
+| ```Bypass session expiry``` | ```Stops the security prompt that signs the account out.``` | ```Realme Link``` | ```5.5.514.11421``` |
 | ```Remove rating prompts``` | ```Removes the prompts asking for a rating.``` | ```Ringtone Maker``` | ```1.01.99.0909, 1.01.98.0831, 1.01.98.0824, 1.01.97.0818, 1.01.96.0716, 1.01.94.0602, 1.01.90.0421``` |
 | ```Unlock premium``` | ```Unlocks premium, removes ads and skips the upgrade screens.``` | ```Ringtone Maker``` | ```1.01.99.0909, 1.01.98.0831, 1.01.98.0824, 1.01.97.0818, 1.01.96.0716, 1.01.94.0602, 1.01.90.0421``` |
 | ```Disable telemetry``` | ```Stops crash and error reports from reaching Sentry.``` | ```RISE Sleep Tracker``` | ```Android V1.78.49, Android V1.78.47``` |
@@ -6556,7 +6566,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Flexboard Bundle Patch List:
 [📦 Flexboard-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-flexboard-patches-bundle-morphe)
 <details>
-<summary><b>Flexboard</b> - 15 patches, 1 app</summary>
+<summary><b>Flexboard</b> - 17 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -6565,8 +6575,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Rambler``` | ```Exposes Google Rambler — Gboard's agentic dictation, which rewrites what you say into composed text — as a choice in Voice settings. It is not switched on for you: the feature uses a Google server, has its own quota and asks for consent, so picking it is left to you.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Hidden Features``` | ```Turns on two finished Gboard features that a resigned build can never receive: grammar check, and a close control on the chips Gboard offers unprompted. Their flags are delivered per app signature, so resigning the APK means they never arrive and stay off. Both are confirmed working on a device; five other flags were tried and dropped.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Hidden Features (unconfirmed)``` | ```Turns on four finished Gboard features that a resigned build can never receive: Emoji Kitchen browse, the custom sticker tab, offline translation, and search in Gboard's settings. Off by default because none of the four has been seen working on a device — the flags flip, but each also depends on data Google only sends to an unpatched install. Safe to try: none of them crashes.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Inline autofill suggestions``` | ```Restores the inline suggestions password managers and autofill services show above the keyboard. Gboard ships this feature switched off and relies on Google enabling it per install, which never happens for a renamed package — so installing as a Gboard clone loses it. This forces it on. Off by default until it has been confirmed on a device.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Install as Gboard Clone``` | ```Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Modern keypress haptics``` | ```Uses Android's haptic primitives for keypresses — the crisp tick the rest of the system uses — instead of a plain buzz. Gboard has the code and disables it with an impossible minimum Android version; this removes that. Devices whose vibrator cannot do primitives are unaffected, because Gboard's own hardware check still runs. Note that it changes what the vibration strength slider means, from milliseconds to intensity.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```More sensitive slide gestures``` | ```Halves how far a finger must travel before Gboard treats it as a slide rather than a keypress. Makes "Swipe up to undo autocorrect", swipe left to delete and swipe right to undo trigger on shorter, more natural motions. The trade is that brief accidental drags become slides too, and on a key with no action bound to that direction a slide types nothing at all. Off by default.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Suggested Settings``` | ```Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. Grammar check is the switch, not the feature: the row only exists on a resigned build if Hidden Features is applied too.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe Left to Delete``` | ```Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe Right to Undo``` | ```Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
@@ -6708,7 +6720,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Media Usability & Watermark-Free Downloader``` | ```Unblocks the download button on creator-restricted videos inside the Share panel, and routes downloads to clean unwatermarked media streams.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```P2P Video Relay & Mesh CDN Blocker``` | ```Strips background Peer-to-Peer CDN distribution binaries (libavmdlp2pv2.so and libp2plivevdp.so) to prevent battery drain, background data upload, and mesh relay.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Playback Speed Persistence``` | ```Persists selected video playback speed across all feed videos and application restarts.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
-| ```Resource & Battery Governor``` | ```Throttles background sensor polling (gyroscope/accelerometer 3D ads), prevents aggressive video buffer preloading, and caps Fresco animated image memory retention to conserve battery and RAM.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Resource & Battery Governor``` | ```Throttles background sensor polling (gyroscope/accelerometer 3D ads) and prevents aggressive video buffer preloading to conserve battery and CPU resources.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Show seekbar``` | ```Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```SIM Region Selector``` | ```Spoofs the detected SIM and network country ISO code to bypass regional feed restrictions and catalog blocks.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Skip First-Launch Onboarding``` | ```Bypasses the entire first-run introduction funnel (interest pickers, swipe tutorials, language prompts, and consent sheets) directly to the feed.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
@@ -6967,7 +6979,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 ShuhaibNC Bundle Patch List:
 [📦 ShuhaibNC-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-shuhaibnc-patches-bundle-morphe)
 <details>
-<summary><b>ShuhaibNC</b> - 13 patches, 11 apps</summary>
+<summary><b>ShuhaibNC</b> - 19 patches, 12 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -6983,6 +6995,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Mvideo VIP``` | ```All VIP features are unlocked.``` | ```Mvideo``` | ```1.0.11515``` |
 | ```Unlock Reverso Context Premium``` | ```All Premium features are unlocked.``` | ```Reverso Context``` | ```16.1.0``` |
 | ```Unlock Premium``` | ```Premium features are unlocked and ads are disabled.``` | ```Sticker Maker``` | ```1.0.10-5``` |
+| ```Fake System Time``` | ```Replaces System.currentTimeMillis() and System.nanoTime() with a fixed timestamp.``` | ```Universal``` | ```All versions``` |
+| ```Force Material theme``` | ```Removes every android:theme attribute from AndroidManifest.xml and applies the framework Material theme to the whole app.``` | ```Universal``` | ```All versions``` |
+| ```Hide launcher icon``` | ```Hides the app's launcher icon.``` | ```Universal``` | ```All versions``` |
+| ```Hide title/action bar``` | ```Removes the title/action bar from every declared style, in every res/values*/styles.xml resource file.``` | ```Universal``` | ```All versions``` |
+| ```Remove all receivers``` | ```Removes every <receiver> declaration from AndroidManifest.xml.``` | ```Universal``` | ```All versions``` |
+| ```Spoof Build.SERIAL``` | ```Replaces every read of Build.SERIAL with the constant string "Serial", across every class in the app.``` | ```Universal``` | ```All versions``` |
 | ```Unlock Vip Of Vidma``` | ```Unlock Vip features and removes ads.``` | ```Vidma``` | ```2.11.5``` |
 
 </details>
@@ -7065,7 +7083,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Smash Hit Premium Unlock``` | ```Unlocks premium and all game modes without purchase.``` | ```Smash Hit``` | ```1.5.14``` |
 | ```Bypass Google Play Install Check``` | ```App always behaves as if installed from Google Play, bypassing the install source check.``` | ```Toolbox for Minecraft PE``` | ```5.4.58``` |
 | ```Premium``` | ```Enables premium features by bypassing in-app purchase verification.``` | ```Toolbox for Minecraft PE``` | ```5.4.58``` |
-| ```World Soccer Champs Anti-Tamper Bypass``` | ```Disables all Pairip anti-tamper checks: native VMRunner, signature verification, anti-hijack, and Play Store redirect.``` | ```World Soccer Champs``` | ```11.5.1``` |
+| ```World Soccer Champs Anti-Tamper Bypass``` | ```Disables all Pairip anti-tamper checks including CRC32 integrity verification.``` | ```World Soccer Champs``` | ```11.5.1``` |
 | ```World Soccer Champs Free IAP``` | ```All in-app purchases are granted instantly and free without Google Play billing.``` | ```World Soccer Champs``` | ```11.5.1``` |
 
 </details>
@@ -7444,7 +7462,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Dual-VoT Bundle Patch List:
 [📦 Dual-VoT-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-dual-vot-patches-bundle-morphe)
 <details>
-<summary><b>Dual-VoT</b> - 150 patches, 4 apps</summary>
+<summary><b>Dual-VoT</b> - 151 patches, 4 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -7467,6 +7485,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Sanitize sharing links``` | ```Adds an option to sanitize sharing links by removing tracking query parameters.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
 | ```Show view count``` | ```Adds an option to show the view count of Posts.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
 | ```Spoof signature``` | ```Spoofs the signature of the app to fix notification issues.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0, 2024.02.0``` |
+| ```Start as guest``` | ```Skips the forced startup login screen using Reddit's native guest browsing mode.``` | ```Reddit``` | ```2026.38.0, 2026.37.0, 2026.24.0, 2026.14.0, 2026.04.0``` |
 | ```Change installer source``` | ```Spoofs the installer source so the app appears to be installed from an app store.``` | ```Universal``` | ```All versions``` |
 | ```Clone app``` | ```Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.``` | ```Universal``` | ```All versions``` |
 | ```Disable Play Store updates``` | ```Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting``` | ```Universal``` | ```All versions``` |
@@ -7597,7 +7616,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 10+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
+| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 15+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 
 </details>
 
@@ -7687,16 +7706,16 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Hill Climb Racing Example Overlay Addon``` | ```Example overlay addon for Hill Climb Racing (com.fingersoft.hillclimb), used together with UniPatches Universal Overlay. It adds six safe, mock-only app-specific preview modules to the shared overlay: A - Add Coins - Add Gems - Add Paints - Vehicle Selection - Stage Selection - Garage Selection. All these six module options are enabled by default and can be disabled independently. Module settings and Preview actions are session-only; this example addon never reads or changes currencies, vehicles, stages, garage state, purchases, save files, or game bytecode.``` | ```Hill Climb Racing``` | ```All versions``` |
+| ```Ads Block Patch ( Experimental, Enhanced, Overlay Support, UniManager Support )``` | ```A merged ad-control patch based on Nai64's No Ads patch, plus literal-host blocking inspired by Entree and Adobo. Block common ad formats, choose the SDKs to target, and redirect matching literal ad/tracker hosts embedded in the APK. Host filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard, OISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are not downloaded full subscriptions. Each filter is independently toggleable. They only affect hosts stored as literal strings by the app; they cannot block dynamically generated hosts, encrypted traffic, or requests made entirely inside Google Play services. Compatibility: when combined with Disable Forced Online Checks, keep that patch's “Exclude ad SDK and networking code” option enabled; otherwise blocked ad hosts may be treated as online and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward, sign-in, billing, and attribution flows, which this patch cannot restore. This patch includes an optional Universal Overlay addon. To use the addon, patch Ads Block Patch together with Universal Overlay and select one or both of its overlay addon modules: “Block Ads” and “Block Ads / Tracking Hosts”. Ad runtime policy is enabled automatically when at least one of these Ads runtime modules is enabled in patch settings. The selected modules appear under “Ad control hook modules” in Universal Overlay when selected. Host blocking starts according to the Enable Block Ads / Tracking Hosts master setting. Universal Overlay is required for the runtime policy to be installed; if it is not selected, the normal static ad controls still work but these runtime addon modules are not available. Runtime changes last for the current app process and affect only methods and literal hosts successfully instrumented by this patch. Its policy is attached to the selected overlay's own startup bridge, including a manual Activity override; it does not independently choose an Application or Activity. Native, dynamically generated, unsupported, or unrecognized SDK paths remain unchanged. Credits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.``` | ```Universal``` | ```All versions``` |
 | ```Bypass Emulator Detection``` | ```Hides common emulator traces by spoofing Build info and related checks so apps are less likely to identify an emulator. This patch is marked for enhancement in future updates; coverage is currently limited to the checks it can safely recognize. Compatibility: PairIP Bypass and other server-side integrity systems can still reject a device when entitlement is bound to genuine device signals, package identity, or attestation. Combining spoofing with those patches is app-specific and cannot safely bypass remote checks. Credits: Nai64Patches from Nai64.``` | ```Universal``` | ```All versions``` |
 | ```Bypass Forced Updates (Experimental)``` | ```Try to bypass high-confidence client-side forced-update screens. Start with the defaults; each option handles a different part of an update flow. This cannot bypass a server that refuses old app versions, and an unsupported app may still require an update.``` | ```Universal``` | ```All versions``` |
-| ```Control App Ads Patch ( Experimental, Enhanced, Has Overlay Addon )``` | ```A merged ad-control patch based on Nai64's No Ads patch, plus literal-host blocking inspired by Entree and Adobo. Block common ad formats, choose the SDKs to target, and redirect matching literal ad/tracker hosts embedded in the APK. Host filters are small embedded subsets inspired by uBlock Origin, EasyList, AdGuard, OISD, HaGeZi Pro mini, Privacy Essentials, EasyPrivacy, and Peter Lowe's list; they are not downloaded full subscriptions. Each filter is independently toggleable. They only affect hosts stored as literal strings by the app; they cannot block dynamically generated hosts, encrypted traffic, or requests made entirely inside Google Play services. Compatibility: when combined with Disable Forced Online Checks, keep that patch's “Exclude ad SDK and networking code” option enabled; otherwise blocked ad hosts may be treated as online and retried. PairIP Firebase cleanup/removal can disable Firebase-backed reward, sign-in, billing, and attribution flows, which this patch cannot restore. This patch includes an optional Universal Overlay addon. To use the addon, patch Control App Ads together with Universal Overlay and select one or both of its overlay addon modules: “Block Ads” and “Block Ads / Tracking Hosts”. Ad runtime policy is enabled automatically when at least one of these Ads runtime modules is enabled in patch settings. The selected modules appear under “Ad control hook modules” in Universal Overlay when selected. Host blocking starts according to the Enable Block Ads / Tracking Hosts master setting. Universal Overlay is required for the runtime policy to be installed; if it is not selected, the normal static ad controls still work but these runtime addon modules are not available. Runtime changes last for the current app process and affect only methods and literal hosts successfully instrumented by this patch. Its policy is attached to the selected overlay's own startup bridge, including a manual Activity override; it does not independently choose an Application or Activity. Native, dynamically generated, unsupported, or unrecognized SDK paths remain unchanged. Credits: Nai64Patches from Nai64; host-blocking approach inspired by Entree and Adobo.``` | ```Universal``` | ```All versions``` |
 | ```Control Embedded Auth / Stores Patch ( Enhanced )``` | ```Control embedded Google Play, Firebase, Google Pay, location, licensing, sign-in, and store availability behavior. Choose real Google Play Services, GmsCore, or Zero Google Play behavior. GmsCore mode includes Maps-on-MicroG compatibility and supports package and main-activity overrides. All controls are optional and apply only to matching methods or manifest components. This patch only controls embedded services, licensing, and store checks. Its optional GmsCore startup Activity override should not target a third-party sign-in or billing Activity. When combined with Universal Overlay, use the overlay's Activity override only when automatic launcher resolution cannot identify the app's real entry Activity. Credits to Nai64 for the majority of the original Google Services, Firebase, licensing, location, store, and GmsCore functionality. UniPatches provides the merged settings, compatibility guards, and patch organization.``` | ```Universal``` | ```All versions``` |
 | ```Custom App Display Patch (Experimental, Enhanced)``` | ```Adjust an APK's display compatibility: screen shape, Unity window-size request, preferred refresh rate, Unity renderer preference, ANGLE preference, and Android game-category hint. Start with Display scaling. Android and the app can ignore any request. Resolution and renderer overrides currently target Unity activities. Scaling removes Android aspect-ratio restrictions where present; it cannot universally rescale every game engine. Custom App Resolution and game-optimization inspiration: Nai64Patches from Nai64. Frame-rate, graphics-driver, ANGLE, and aspect-ratio controls are UniPatches work. Compatibility: when combined with Universal Overlay, keep Activity injection and display overrides scoped to the launcher unless a broader scope is required. Broad Activity changes can affect overlay, sign-in, billing, or other third-party screens. When combined with Legacy App Compatibility, both patches may change display or manifest compatibility values; review the final generated manifest.``` | ```Universal``` | ```All versions``` |
 | ```Custom App Output Patch (Experimental, Enhanced)``` | ```Customize an APK's install identity and launcher presentation in one patch. Start with the launcher name or icon; enable Clone only when you need a side-by-side copy. Name, icon, hide-icon, and clone options are independent. This cannot preserve original-app data when a package or signing identity changes. Clone mode rewrites supported manifest identifiers only; it does not rewrite bytecode strings, explicit process names, task affinities, or arbitrary SDK configuration. A clone has a new Android package identity and normally a new signing identity: package- or certificate-bound OAuth, Firebase, Google Play Games, billing, deep links, and server licenses may therefore not work and cannot be repaired safely by this patch. If PairIP Bypass is also enabled, server/package-bound PairIP enforcement can still reject the clone. Inspired by Nai64Patches from Nai64: Clone, Custom App Icon, and Hide App Icon patches. The optional Preserve App Data After Uninstall setting applies Android's fragile-user-data and backup compatibility flags. It does not guarantee data retention, and it cannot carry data from the original package into a clone with a different package identity. For target SDK compatibility, use Improve Legacy App / Game Compatibility for Modern Android Patch. Keeping target SDK handling there avoids duplicate manifest changes.``` | ```Universal``` | ```All versions``` |
-| ```Disable Forced Online Checks (Experimental)``` | ```Try to bypass high-confidence client-side “internet required” gates. Start with Auto mode. This cannot bypass server-side login, entitlement, multiplayer, or game-state checks. Compatibility: Control App Ads can intentionally block ad hosts. Keep “Exclude ad SDK and networking code” enabled when both patches are selected so blocked ads are not falsely told the device is online and repeatedly retried. This does not bypass server-enforced online play.``` | ```Universal``` | ```All versions``` |
+| ```Disable Forced Online Checks (Experimental)``` | ```Try to bypass high-confidence client-side “internet required” gates. Start with Auto mode. This cannot bypass server-side login, entitlement, multiplayer, or game-state checks. Compatibility: Ads Block Patch can intentionally block ad hosts. Keep “Exclude ad SDK and networking code” enabled when both patches are selected so blocked ads are not falsely told the device is online and repeatedly retried. This does not bypass server-enforced online play.``` | ```Universal``` | ```All versions``` |
 | ```Improve Legacy App / Game Compatibility for Modern Android Patch ( Experimental, Enhanced )``` | ```Improve compatibility for older apps and games on modern Android versions. This patch combines legacy manifest, storage, screen, native runtime, network, shared-library, and optional device identity compatibility controls, including a configurable OpenIAB dynamic receiver compatibility fix. Spoof Target SDK can help older apps that modern Android may refuse to install or launch, but changing the reported target can also enable newer platform behavior and cannot repair incompatible application code. For Google Play license checks or Google Play Services checks, use Control Embedded Auth / Stores Patch. Those options are intentionally kept separate to prevent overlapping injections. This patch cannot restore shut-down servers, missing CPU architecture support, server licensing, Play Integrity, or unsupported native code. Conservative compatibility features are enabled by default; more invasive native, network, storage, library, and identity options remain disabled. Experimental: Its functionalities are not guaranteed to work in all apps. Credits: Nai64Patches from Nai64 for the original legacy compatibility functionality. UniPatches provides the merged settings, validation, manifest safeguards, compatibility organization, and provides suppress GPlay Login UI patch option.``` | ```Universal``` | ```All versions``` |
-| ```PairIP Bypass Patch (Experimental, Enhanced)``` | ```A merged experimental PairIP bypass for common legacy, V2, and V3 protection layouts. Automatic mode applies compatible strategies up to the selected risk level. It defaults to Low and Med Risk Strategies; that setting includes medium-risk strategies, while Low, Med, and High Risk Strategies also includes invasive high-risk strategies. Turn off automatic mode to test individual strategies. Manual selections are independent of the automatic risk-level setting. Firebase auto-init disabling, Firebase component removal, and the LicenseClient FULL_CHECK_OK state strategy are manual-only: automatic mode ignores them at every risk level, including “Low, Med, and High Risk Strategies.” Every manual strategy is disabled by default. This patch is experimental and app-dependent. It does not bypass server-side Play Integrity, server-side licensing, or other server-side enforcement. Compatibility: cloned APKs can still fail when PairIP or a server binds entitlement to the original package or signing certificate. Firebase component removal can break Firebase Auth, Google Play Games, billing, analytics, and ad rewards. Device spoofing can also change apps' device-integrity behavior. These identity and server-side conditions cannot be fixed safely by combining PairIP Bypass with Custom App Output, Control App Ads, or Emulator Detection. Compatibility: when combining this patch with Universal Overlay, the shared overlay startup bridge is preserved. PairIP Application redirect and Application.onCreate bypass strategies may be skipped if they would make that bridge unreachable. If combining this patch with Custom App Output, apply package cloning only when package- or certificate-bound services are not required. This enhanced patch is a merged product of the PairIP bypass patches from the credited developers, with improvements for broader functionality, safer strategy selection, and usability. Credits: Nai64Patches from Nai64, Entree, kondratjev, and rushiranpise (Doom).``` | ```Universal``` | ```All versions``` |
-| ```UniPatches Universal Overlay Patch v2.6.0 (Experimental)``` | ```A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules are excluded and disabled by default. Monitor modules show information, Activity modules control the current Activity, Hook modules make best-effort changes to app behavior, System modules control Android capabilities, and Advanced modules provide opt-in diagnostics. Text is the default legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor supports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo. UI presets can save and reuse supported appearance and advanced icon settings. The title, description, repository button text, and repository button URL remain controlled by the visible Morphe settings. Module selections and module behavior are excluded because hook and module combinations can be app-specific. Experimental : This patch may not work on all apps. Compatibility: this patch owns one shared startup bridge for its runtime and integrated modules. PairIP Bypass preserves that bridge when its Application startup strategies run after Universal Overlay. If a patched APK still has an unusual entry point, use the explicit Activity override rather than selecting a library or SDK Activity. Custom App Display and Control App Ads attach to this bridge when their runtime addons are enabled; they should not create a second overlay runtime. Control App Ads can also add runtime ad-control modules here, but Universal Overlay does not patch ad SDKs by itself. To use them, select Control App Ads Patch and Universal Overlay, enable the desired options under Control App Ads' Overlay integration > Runtime controls. The Ads runtime policy is enabled automatically when at least one of those modules is selected. The available modules are Block Ads and Block Ads / Tracking Hosts. Their initial runtime values come from the Control App Ads settings, and later changes are session-only. When both patches are selected, Control App Ads attaches its policy to this overlay's exact startup bridge, including an explicit Activity override, instead of selecting a separate Activity. Attribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
+| ```PairIP Bypass Patch (Experimental, Enhanced)``` | ```A merged experimental PairIP bypass for common legacy, V2, and V3 protection layouts. Automatic mode applies compatible strategies up to the selected risk level. It defaults to Low and Med Risk Strategies; that setting includes medium-risk strategies, while Low, Med, and High Risk Strategies also includes invasive high-risk strategies. Turn off automatic mode to test individual strategies. Manual selections are independent of the automatic risk-level setting. Firebase auto-init disabling, Firebase component removal, and the LicenseClient FULL_CHECK_OK state strategy are manual-only: automatic mode ignores them at every risk level, including “Low, Med, and High Risk Strategies.” Every manual strategy is disabled by default. This patch is experimental and app-dependent. It does not bypass server-side Play Integrity, server-side licensing, or other server-side enforcement. Compatibility: cloned APKs can still fail when PairIP or a server binds entitlement to the original package or signing certificate. Firebase component removal can break Firebase Auth, Google Play Games, billing, analytics, and ad rewards. Device spoofing can also change apps' device-integrity behavior. These identity and server-side conditions cannot be fixed safely by combining PairIP Bypass with Custom App Output, Ads Block Patch, or Emulator Detection. Compatibility: when combining this patch with Universal Overlay, the shared overlay startup bridge is preserved. PairIP Application redirect and Application.onCreate bypass strategies may be skipped if they would make that bridge unreachable. If combining this patch with Custom App Output, apply package cloning only when package- or certificate-bound services are not required. This enhanced patch is a merged product of the PairIP bypass patches from the credited developers, with improvements for broader functionality, safer strategy selection, and usability. Credits: Nai64Patches from Nai64, Entree, kondratjev, and rushiranpise (Doom).``` | ```Universal``` | ```All versions``` |
+| ```Universal Overlay Patch v2.6.1 ( Experimental, UniManager Support )``` | ```A customizable in-app overlay for Android apps and games. For a quick first build: choose a visual preset, select the overlay modules you want, optionally supply an icon image, then patch. Modules are excluded and disabled by default. Monitor modules show information, Activity modules control the current Activity, Hook modules make best-effort changes to app behavior, System modules control Android capabilities, and Advanced modules provide opt-in diagnostics. Text is the default legacy icon; an optional image replaces it completely, while the advanced Multi-parts editor supports custom drawn icons, and can be conveniently made in Icon Builder local website in UniPatches repo. UI presets can save and reuse supported appearance and advanced icon settings. The title, description, repository button text, and repository button URL remain controlled by the visible Morphe settings. Module selections and module behavior are excluded because hook and module combinations can be app-specific. Experimental : This patch may not work on all apps. Compatibility: this patch owns one shared startup bridge for its runtime and integrated modules. PairIP Bypass preserves that bridge when its Application startup strategies run after Universal Overlay. If a patched APK still has an unusual entry point, use the explicit Activity override rather than selecting a library or SDK Activity. Custom App Display and Ads Block Patch attaches to this bridge when its runtime addons are enabled; it should not create a second overlay runtime. Ads Block Patch can also add runtime ad-control modules here, but Universal Overlay does not patch ad SDKs by itself. To use them, select Ads Block Patch and Universal Overlay, enable the desired options under Ads Block Patch's Overlay integration > Runtime controls. The Ads runtime policy is enabled automatically when at least one of those modules is selected. The available modules are Block Ads and Block Ads / Tracking Hosts. Their initial runtime values come from the Ads Block Patch settings, and later changes are session-only. When both patches are selected, Ads Block Patch attaches its policy to this overlay's exact startup bridge, including an explicit Activity override, instead of selecting a separate Activity. Attribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
 
 </details>
 
@@ -7768,14 +7787,14 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Always show publish date``` | ```Always shows the publish date in video author information. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```AMOLED dark theme``` | ```Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Automatic video advance``` | ```Keeps TikTok's automatic advance enabled while preserving its pause, dialog and gesture checks, and shows TikTok's own Auto scroll action in the video panel for accounts outside its rollout. Switch: Hushfeed settings > Playback.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
-| ```Block author button``` | ```Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. The local-hide and sound controls have separate switches. Long press any visible control to move it. Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo only after its setting was saved. All controls hide while comments are open. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
+| ```Block author button``` | ```Adds one-tap controls for blocking the creator, hiding them locally and blocking the current sound. A confirmed account block skips to the next video and shows a small Unblock button at the top left for two seconds. The local-hide and sound controls have separate switches. Long press any visible control to move it. Hushfeed keeps it clear of system bars, cutouts and TikTok's bottom tabs when the window changes. A local action shows Undo only after its setting was saved. All controls hide while comments are open. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Block contact list access``` | ```Answers TikTok's reads of your phone contacts with an empty list. Find Friends and People you may know lose access to your contact list. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Block installed app scanning``` | ```Answers TikTok's scan of the apps installed on your phone with an empty list. Checks for one named app, which TikTok also uses to open an app you tap, are left alone. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Block P2P video relay``` | ```Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. Saves battery and mobile data.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Camera and microphone indicator``` | ```Shows a small dot in the top corner while TikTok has the camera open or is recording sound. Green for the camera, orange for the microphone, both when both. It goes when the access ends. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Comment publish diagnostics``` | ```Says in the diagnostic report whether a comment send reached TikTok's publish code, what it had in hand, and whether it returned early or handed the comment to the request. A comment that never posts leaves no other trace.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Comment sort controls``` | ```Shows TikTok's own comment sort sheet on every post, with its hot, newest, media and creator options, instead of the cut-down row an account outside the rollout is given. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
-| ```Comment tools``` | ```Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button that shows the block symbol, makes links tappable and can hide pictures, polls or TikTok's suggested-search banner above comments. Compact comment header removes the count, controls and suggestion space above the list. A separate search box filters comments already loaded on the video. Each tool has its own switch in Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
+| ```Comment tools``` | ```Hides comments that contain chosen words or come from chosen accounts, turns the thumbs down on each comment into a block button that shows the block symbol, makes links tappable and can hide pictures, polls or TikTok's suggested-search banner above comments. Compact comment header removes the count, controls and suggestion space above the list. Easier comment likes extends the heart's touch area into nearby blank space without changing row spacing. A separate search box filters comments already loaded on the video. Each tool has its own switch in Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Confirm feed interactions``` | ```Adds optional second-tap protection to the feed Follow button and like heart. A red ring marks the armed button. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Copy comments without username``` | ```Copies only the comment text without including the creator's username. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Custom offline videos limit``` | ```Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 1000 videos. Switch: Hushfeed settings > Downloads.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
@@ -7793,7 +7812,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Expand activity list``` | ```Show the full Activity and New followers lists instead of collapsing them behind a View all button. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Feature Gate Lab``` | ```Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Feature Gate Recorder``` | ```Records feature gate reads while you use TikTok and compares them with their previous values. Switch: Hushfeed settings > Diagnostics.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
-| ```Feed filter``` | ```Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded and the ads a creator's video pager asks for on its own. The share prompt that appears after a like can also be hidden. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
+| ```Feed filter``` | ```Hides feed ads, including videos with creator commission disclosures, TikTok Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI labeled videos, location-tagged videos, verified accounts, series, playlists, the playlist bar, the floating event badge and inserted cards. Videos can also be filtered by your own caption words, creator handles or patterns, sound names, length, the country they were posted from and their view, like, comment, favorite and share counts. Sponsored cards are dropped from the profile video viewer, the search grids and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices into a video pager after the list has loaded and the ads a creator's video pager asks for on its own. The share prompt that appears after a like can also be hidden. Switch: Hushfeed settings > Feed filter.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Feed tab navigation``` | ```Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. Switch: Hushfeed settings > Feed tabs.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Fit the video to the screen``` | ```Puts the whole of a vertical video on screen instead of cropping it to the window. On a 9:16 phone nothing changes, because the video already fills it. On a Fold opened up, a squarer phone or a split view the sides or the ends stop being cut off. Switch: Hushfeed settings > Playback.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Fix Google login``` | ```Restores Google account sign-in after patching.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
@@ -7811,13 +7830,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide inbox items``` | ```Adds a switch for each row and header control on the Inbox tab, so message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be hidden individually. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Hide inbox stories``` | ```Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Hide quick comment reactions``` | ```Hides the emoji row above the comment box and the quick comment strip on videos. Switch: Hushfeed settings > Comments.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
-| ```Hide search suggestions``` | ```Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
+| ```Hide search suggestions``` | ```Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. A separate switch hides the search rewards banner and coin counter some regions get. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Hide suggested accounts``` | ```Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Hide the launcher shortcuts``` | ```Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Hide the risk control CAPTCHA``` | ```Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, which the browsing CAPTCHA patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or two factor verification, and never hides a check the server raised over a follow, like, comment or repost. Off by default.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
-| ```Hide video overlays``` | ```Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
+| ```Hide video overlays``` | ```Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar. Separate switches hide the Full screen button, location labels and the Report button some regions get above the creator's picture, without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Hold-and-slide 2x lock``` | ```Enables TikTok's native hold, slide down, and release gesture to lock 2x speed. Switch: Hushfeed settings > Feed screen.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
-| ```In-app browser privacy guard``` | ```Can stop TikTok's in-app browser handing its JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so the switch is off until you turn it on. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
+| ```In-app browser privacy guard``` | ```Can stop TikTok's in-app browser handing its JavaScript bridge to the pages it loads. TikTok's own pages need that bridge too, so turning it on also breaks Activity center, Watch history, the shop checkout and the CAPTCHA page. The switch is off until you turn it on. Switch: Hushfeed settings > Privacy.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Keep the Favorites tab``` | ```Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Keep the screen's refresh rate``` | ```Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone. Switch: Hushfeed settings > App.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
 | ```Limit background traffic``` | ```Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.``` | ```com.zhiliaoapp.musically``` | ```47.0.3``` |
@@ -8214,8 +8233,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Build/troop queue notifications``` | ```Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village, and warns you about incoming attacks and raids (who, from where, and when they arrive) with a second warning about a minute before they land, and tells you when reinforcements or your own returning troops arrive. Uses the session you're already logged in with in the game — no separate login, no password ever handled by this patch. Checks run quietly in the background: one is scheduled for just after each build/training is due to finish, plus a regular check every 5 minutes (Android may delay background work slightly). Nothing is shown unless something actually finished. The first time you open the app it asks once for notification permission and to exempt the app from battery optimization, so the background checks aren't killed by the system.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1, 4.0.2``` |
-| ```Travian notifier manifest entry``` | ```Adds the permission needed to ask for a battery optimization exemption.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1, 4.0.2``` |
+| ```Build/troop queue notifications``` | ```Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village, and warns you about incoming attacks and raids (who, from where, and when they arrive) with a second warning about a minute before they land, tells you when an attack was called off, warns you when a warehouse or granary is about to fill up, tells you when your hero has a new adventure, is back home, died or is low on health, and tells you when reinforcements or your own returning troops arrive. Tapping a notification opens the game, and a second "Travian Tools" icon opens a home screen where you switch each type of notification on or off, see what is building and training, and see your recent ones. Uses the session you're already logged in with in the game — no separate login, no password ever handled by this patch. Checks run quietly in the background: one is scheduled for just after each build/training is due to finish, plus a regular check every 5 minutes (Android may delay background work slightly). Nothing is shown unless something actually finished. The first time you open the app it asks once for notification permission and to exempt the app from battery optimization, so the background checks aren't killed by the system.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1, 4.0.2``` |
+| ```Travian notifier manifest entry``` | ```Adds the permission needed to ask for a battery optimization exemption, and the Travian Tools screens.``` | ```Travian: Legends``` | ```4.0.0, 4.0.1, 4.0.2``` |
 
 </details>
 
@@ -8261,7 +8280,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Epxec Bundle Patch List:
 [📦 Epxec-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-epxec-patches-bundle-morphe)
 <details>
-<summary><b>Epxec</b> - 11 patches, 11 apps</summary>
+<summary><b>Epxec</b> - 12 patches, 12 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -8272,6 +8291,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Premium``` | ```Enables the premium features of the app.``` | ```Remindio``` | ```2.25.8``` |
 | ```Enable Premium``` | ```For premium patch to work, you need to login using your email and password (not Google)``` | ```Todaii Japanese``` | ```5.5.5``` |
 | ```Enable Premium``` | ```Enables the premium features of the app.``` | ```Touch The Notch``` | ```2.1.7``` |
+| ```Spoof App Signature``` | ```(Copied from BlazeFTL) Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes or shows a tamper warning because it checks its own certificate. Does not bypass Play Integrity / SafetyNet hardware attestation. Apply with Original app certificate patch.``` | ```Universal``` | ```All versions``` |
 | ```Enable Pro``` | ```Enable Pro features.``` | ```Vaulty``` | ```26.09.09``` |
 | ```Enable Premium``` | ```Enables Premium features except Bank Sync, Group Sharing, Facebook and Google login.``` | ```Wallet``` | ```9.3.10``` |
 | ```Enable Pro``` | ```Enables Pro features.``` | ```Wavelet``` | ```26.05``` |
@@ -8391,10 +8411,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 D-moniak Bundle Patch List:
 [📦 D-moniak-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-d-moniak-patches-bundle-morphe)
 <details>
-<summary><b>D-moniak</b> - 2 patches, 1 app</summary>
+<summary><b>D-moniak</b> - 3 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Unlock VIP (Experimental)``` | ```⚠️ [En cours de développement / Non testé] Unlocks CoinSnap VIP features including unlimited coin identifications, full grading and valuation, collection storage, and disables startup paywall prompts. (Experimental - Not yet tested on device).``` | ```CoinSnap``` | ```All versions``` |
 | ```Bypass Rewarded Ads``` | ```Bypasses rewarded video ads in Hungry Shark World by emulating ad completion events.``` | ```Hungry Shark World``` | ```All versions``` |
 | ```Free Shopping``` | ```Unlocks shop items and in-app purchases in Hungry Shark World by cleanly replacing GoogleBillingService purchase methods and receipt validation.``` | ```Hungry Shark World``` | ```All versions``` |
 
@@ -8484,17 +8505,21 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Lchanc3 Bundle Patch List:
 [📦 Lchanc3-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-lchanc3-patches-bundle-morphe)
 <details>
-<summary><b>Lchanc3</b> - 7 patches, 1 app</summary>
+<summary><b>Lchanc3</b> - 11 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Disable Play license check``` | ```Disables the Play Store license check, which a patched app always fails and which closes the app on launch. Needed by every patched build.``` | ```JPTT``` | ```3.8.4``` |
-| ```Fix article list loading``` | ```Fixes boards not opening after a change on PTT's side, where the article list never gets past 載入中.``` | ```JPTT``` | ```3.8.4``` |
-| ```Fix photo upload in clones``` | ```Fixes taking a photo to upload when the Clone app patch has renamed the package. Changes nothing on a normal install.``` | ```JPTT``` | ```3.8.4``` |
-| ```Increase image cache size``` | ```Raises the image cache limit so images you have already seen are not downloaded again when you scroll back.``` | ```JPTT``` | ```3.8.4``` |
-| ```More recent searches``` | ```Shows more of your recent search keywords in the article search dialog.``` | ```JPTT``` | ```3.8.4``` |
-| ```Preload article images``` | ```Downloads an article's images as soon as you open it instead of when you scroll to each one. Respects the app's own image loading settings.``` | ```JPTT``` | ```3.8.4``` |
-| ```Wrap recent searches``` | ```Lays the recent search keywords out over several lines instead of one line you have to scroll sideways.``` | ```JPTT``` | ```3.8.4``` |
+| ```Disable Play license check``` | ```Disables the Play Store license check, which a patched app always fails and which closes the app on launch. Needed by every patched build.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Fix article list loading``` | ```Drops the ANSI escape sequences JPTT's terminal emulator cannot parse, which otherwise swallow the screen content that follows them. Fixes the article list being stuck at 載入中, and keeps the next sequence PTT adds from breaking the app again.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Fix image links``` | ```Shows the picture for links an image host answers with a web page: an imgur album or .mp4, an address missing the i. subdomain, a meee.com.tw page. Only the preview and the full size image change, not the article text.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Fix photo upload in clones``` | ```Fixes taking a photo to upload when the Clone app patch has renamed the package. Changes nothing on a normal install.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Increase image cache size``` | ```Raises the image cache limit so images you have already seen are not downloaded again when you scroll back.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```More recent searches``` | ```Shows more of your recent search keywords in the article search dialog.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Patch settings``` | ```Adds a tab to JPTT's own settings where the options these patches add can be changed without patching the app again, and where every setting can be exported to a file and read back.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Preload article images``` | ```Downloads an article's images as soon as you open it instead of when you scroll to each one. Respects the app's own image loading settings.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Reconnect on return``` | ```Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds and does not even run while the app is in the background.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Remove ads``` | ```Stops the banner, the rows inside articles and lists, and the ad the app falls back to when it thinks AdMob is blocked. No ad is requested at all, so nothing is downloaded and nothing is reported.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
+| ```Wrap recent searches``` | ```Lays the recent search keywords out over several lines instead of one line you have to scroll sideways.``` | ```JPTT``` | ```3.8.4, 3.8.5``` |
 
 </details>
 

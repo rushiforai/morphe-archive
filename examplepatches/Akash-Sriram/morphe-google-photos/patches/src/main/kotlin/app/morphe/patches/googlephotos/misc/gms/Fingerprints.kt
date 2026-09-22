@@ -131,3 +131,15 @@ internal object CurrentLocationMixinFingerprint : Fingerprint(
     },
 )
 
+/**
+ * Matches `CurrentLocationMixin.ar(View, Bundle)` — view initialization where map/FAB are set up.
+ */
+internal object CurrentLocationMixinOnViewCreatedFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
+    custom = { method, classDef ->
+        classDef.hasMethodReferencingString("CurrentLocationMixin")
+    },
+)
+
+

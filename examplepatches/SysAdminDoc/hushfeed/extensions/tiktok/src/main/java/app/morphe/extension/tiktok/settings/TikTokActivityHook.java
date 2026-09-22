@@ -31,6 +31,8 @@ public class TikTokActivityHook {
     private static final String SETTINGS_ACTION = "morphe_settings";
     private static final String SETTINGS_EXTRA = "morphe";
     private static final String SETTINGS_SECTION_EXTRA = "morphe_settings_section";
+    /** The row the opened page scrolls to and flashes; the fragment reads the same name. */
+    private static final String SETTINGS_TARGET_KEY_EXTRA = "morphe_settings_target_key";
     private static final String SETTINGS_ROOT_TAG = "hushfeed_settings_root";
 
     /***
@@ -84,6 +86,10 @@ public class TikTokActivityHook {
             if (section != null && !section.isEmpty()) {
                 Bundle arguments = new Bundle();
                 arguments.putString(SETTINGS_SECTION_EXTRA, section);
+                String targetKey = intent.getStringExtra(SETTINGS_TARGET_KEY_EXTRA);
+                if (targetKey != null && !targetKey.isEmpty()) {
+                    arguments.putString(SETTINGS_TARGET_KEY_EXTRA, targetKey);
+                }
                 preferenceFragment.setArguments(arguments);
             }
             base.getFragmentManager().beginTransaction()
@@ -118,15 +124,20 @@ public class TikTokActivityHook {
     }
 
     private static void startSettingsActivity() {
-        startSettingsActivity(null);
+        startSettingsActivity(null, null);
     }
 
     /** Opens the extension settings directly at the feed-filter page. */
     public static void openFeedFilterSettings() {
-        startSettingsActivity("FEED_FILTER");
+        startSettingsActivity("FEED_FILTER", null);
     }
 
-    private static void startSettingsActivity(String section) {
+    /** Opens one settings page scrolled to, and flashing, the row with this setting key. */
+    public static void openSettingsRow(String section, String settingKey) {
+        startSettingsActivity(section, settingKey);
+    }
+
+    private static void startSettingsActivity(String section, String settingKey) {
         Context appContext = Utils.getContext();
         if (appContext != null) {
             Intent intent = new Intent(appContext, AdPersonalizationActivity.class);
@@ -135,6 +146,9 @@ public class TikTokActivityHook {
             intent.putExtra(SETTINGS_EXTRA, true);
             if (section != null) {
                 intent.putExtra(SETTINGS_SECTION_EXTRA, section);
+            }
+            if (settingKey != null) {
+                intent.putExtra(SETTINGS_TARGET_KEY_EXTRA, settingKey);
             }
             appContext.startActivity(intent);
         } else {

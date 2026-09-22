@@ -1,3 +1,22 @@
+## [1.8.1](https://github.com/Epxec/android-patches/compare/v1.8.0...v1.8.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* wallet premium accounts and labels ([568e1b6](https://github.com/Epxec/android-patches/commit/568e1b6ff9b7e3efd15cfa8efdffb216845548cb)), closes [#12](https://github.com/Epxec/android-patches/issues/12)
+* wavelet autoeq crash ([cfd8195](https://github.com/Epxec/android-patches/commit/cfd8195290d3b3c21d07916c1d4e19ca882448a3)), closes [#13](https://github.com/Epxec/android-patches/issues/13)
+
+## [1.8.1-dev.2](https://github.com/Epxec/android-patches/compare/v1.8.1-dev.1...v1.8.1-dev.2) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* wavelet autoeq crash ([cfd8195](https://github.com/Epxec/android-patches/commit/cfd8195290d3b3c21d07916c1d4e19ca882448a3)), closes [#13](https://github.com/Epxec/android-patches/issues/13)
+
+## [1.8.1-dev.1](https://github.com/Epxec/android-patches/compare/v1.8.0...v1.8.1-dev.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* wallet premium accounts and labels ([568e1b6](https://github.com/Epxec/android-patches/commit/568e1b6ff9b7e3efd15cfa8efdffb216845548cb)), closes [#12](https://github.com/Epxec/android-patches/issues/12)
+
 ## [1.8.0](https://github.com/Epxec/android-patches/compare/v1.7.0...v1.8.0) (2026-09-16)
 
 ### ✨ New Features

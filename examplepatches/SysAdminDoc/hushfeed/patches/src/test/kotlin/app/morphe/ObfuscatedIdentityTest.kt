@@ -62,6 +62,34 @@ class ObfuscatedIdentityTest {
         )
     }
 
+    /**
+     * The view ids in this record are the ones `RuntimeViewIdAnchorsTest` holds against the target
+     * build through `view-id-anchors.txt`. A short name the extension resolves that the table
+     * doesn't list would still resolve on the phone, as whatever view the new build gave it.
+     */
+    @Test
+    fun `every view id recorded for the extension is in the anchor table`() {
+        val text = checkNotNull(javaClass.getResourceAsStream("/view-id-anchors.txt")) {
+            "view-id-anchors.txt is missing from the test resources"
+        }.bufferedReader().readText()
+        val anchored = text.lineSequence().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+            .flatMap { line ->
+                val fields = line.split('|')
+                fields[2].split(',').map { "$EXTENSION/${fields[0]}|$it" }
+            }.toSet()
+        val viewIds = recorded().filter { it.startsWith("$EXTENSION/") }.filterNot { line ->
+            val name = line.substringAfter('|')
+            MEMBER_NAME.matches(name) || JAVA_BINARY_TYPE.matches(name) || '/' in name
+        }
+        assertTrue("the record holds no view id for the extension, so this compares nothing", viewIds.isNotEmpty())
+        val unanchored = viewIds - anchored
+        assertTrue(
+            "Recorded view ids the anchor table doesn't list. Look them up through a constant and " +
+                "give it a line in view-id-anchors.txt:\n" + unanchored.joinToString("\n"),
+            unanchored.isEmpty(),
+        )
+    }
+
     private fun recorded(): Set<String> {
         val text = javaClass.getResourceAsStream("/obfuscated-identities.txt")
             ?.bufferedReader()?.readText().orEmpty()
@@ -106,6 +134,11 @@ class ObfuscatedIdentityTest {
     }
 
     private companion object {
+        const val EXTENSION = "extensions/tiktok/src/main/java/app/morphe/extension/tiktok"
+
+        /** A whole name of the shape [MEMBER_LITERAL] finds: `LIZ`, `LJFF`, `LL`. */
+        val MEMBER_NAME = Regex("""L[IJLZF]{1,19}""")
+
         /** A class R8 named for one build: `LX/0sIr;`, or a merged lambda group `LY/...;`. */
         val OBFUSCATED_TYPE = Regex("""L[XY]/[0-9A-Za-z_$]+;""")
 

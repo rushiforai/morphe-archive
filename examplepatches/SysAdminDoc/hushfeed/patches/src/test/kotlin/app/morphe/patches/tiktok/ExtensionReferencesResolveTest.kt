@@ -1,5 +1,6 @@
 package app.morphe.patches.tiktok
 
+import app.morphe.Fixtures
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -30,7 +31,6 @@ class ExtensionReferencesResolveTest {
         val extension = extensionDex()
         assumeTrue("no built extension dex on the test classpath", extension != null)
         val apks = fixtures()
-        assumeTrue("no TikTok fixture on this machine", apks.isNotEmpty())
 
         val own = classes(extension!!)
         val references = sortedSetOf<String>()
@@ -115,9 +115,5 @@ class ExtensionReferencesResolveTest {
         return file
     }
 
-    private fun fixtures(): List<File> {
-        val directory = File(System.getenv("HUSHFEED_FIXTURE_DIR") ?: "C:/_claude-backups/tiktok-fixture")
-        if (!directory.isDirectory) return emptyList()
-        return directory.listFiles()?.filter { it.isFile && it.extension == "apk" }?.sortedBy { it.name } ?: emptyList()
-    }
+    private fun fixtures(): List<File> = Fixtures.apks()
 }

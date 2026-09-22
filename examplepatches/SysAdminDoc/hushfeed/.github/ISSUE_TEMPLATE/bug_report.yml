@@ -1,5 +1,5 @@
 name: 🐞 Bug report
-description: Report a bug or an issue.
+description: Something in Hushfeed doesn't work the way it should.
 title: "bug: "
 labels: ["bug"]
 body:
@@ -8,50 +8,57 @@ body:
       value: |
         # Hushfeed bug report
 
-        Before creating a new bug report, please keep the following in mind:
+        Thanks for taking the time to report this. Before you start:
 
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/SysAdminDoc/hushfeed/issues?q=is%3Aissue%20label%3Abug).
-        - **Review the contribution guidelines**: Make sure your bug report adheres to them. You can find the guidelines [here](https://github.com/SysAdminDoc/hushfeed/blob/main/CONTRIBUTING.md).
+        - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/hushfeed/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
+        - **Not sure it's a bug?** Ask in [Discussions](https://github.com/SysAdminDoc/hushfeed/discussions/categories/q-a) instead.
   - type: input
-    id: tiktok_version
+    id: versions
     attributes:
-      label: TikTok package and version
-      description: Include the Android package name and the exact TikTok version.
-      placeholder: com.zhiliaoapp.musically 46.2.3
+      label: Hushfeed and TikTok versions
+      description: In TikTok, open Settings and privacy and tap Hushfeed. The card at the top says "Hushfeed is active", with both versions on the line under it. Copy that line here.
+      placeholder: Version 0.58.0 for TikTok 47.0.3
+    validations:
+      required: true
+  - type: dropdown
+    id: manager
+    attributes:
+      label: What did you patch TikTok with?
+      options:
+        - Morphe Manager (the Android app)
+        - morphe-desktop (on a computer)
+        - Universal ReVanced Manager
+        - Something else
     validations:
       required: true
   - type: input
-    id: host_versions
+    id: manager_version
     attributes:
-      label: Morphe Manager and Hushfeed versions
-      description: Include the Morphe Manager version and the Hushfeed bundle version.
-      placeholder: Morphe Manager 1.29.0, Hushfeed 0.29.0
+      label: Its version
+      description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
+      placeholder: Morphe Manager 1.30.0
     validations:
       required: true
   - type: input
     id: device
     attributes:
       label: Phone and Android version
-      description: The phone model and its Android version. The bundle runs from Android 6 up, and some checks only fail on one version.
+      description: Both are in your phone's Settings, under About phone.
       placeholder: Samsung Galaxy S22, Android 15
     validations:
       required: true
   - type: textarea
     id: selected_patches
     attributes:
-      label: Selected patches
-      description: List the selected Hushfeed patches, including Settings and Diagnostic tools when enabled.
-      placeholder: |
-        Settings
-        Comment tools
-        Translate comments
+      label: Which patches did you select?
+      description: If you kept the manager's own selection, just say so. Otherwise list what you added or removed.
+      placeholder: The default selection, plus Advanced downloads.
     validations:
       required: true
   - type: dropdown
     id: affected_surface
     attributes:
-      label: Affected surface
-      description: Choose where the behavior appeared.
+      label: Where did it happen?
       options:
         - Feed
         - Following
@@ -60,7 +67,7 @@ body:
         - Profile
         - Comments
         - Downloads
-        - Settings
+        - Hushfeed settings
         - Notifications
         - Other
     validations:
@@ -68,49 +75,40 @@ body:
   - type: textarea
     id: bug_description
     attributes:
-      label: Bug description
-      description: |
-        Describe what happened, what you expected, and whether the behavior is repeatable.
-        Add images or videos when they help explain the result.
+      label: What went wrong?
+      description: What happened, and what did you expect to happen instead? A screenshot or a screen recording helps a lot.
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
-      label: Ordered reproduction and settings changes
-      description: List each step in order. Include every Hushfeed setting changed before the first failure, app restarts, and whether the same steps work on a clean install.
+      label: What did you tap, in order?
+      description: Start from opening TikTok. Include every Hushfeed switch you changed before it went wrong, and say whether it still happens after you close TikTok and open it again.
       placeholder: |
-        1. Enabled ...
-        2. Changed ...
-        3. Opened ...
-        4. Saw ...
+        1. Opened TikTok
+        2. Turned on Hide series in Hushfeed settings > Feed filter
+        3. Opened a creator's profile
+        4. The profile showed no videos
     validations:
       required: true
   - type: textarea
-    id: error_logs
+    id: diagnostic_report
     attributes:
-      label: Error logs
-      description: Attach the redacted Hushfeed diagnostic export when possible. Do not paste tokens, cookies, signed URLs, or private messages.
-      render: shell
-  - type: textarea
-    id: solution
-    attributes:
-      label: Solution
-      description: If applicable, add a possible solution to the bug.
+      label: Diagnostic report
+      description: |
+        This file answers most of our questions, so please add it if you can. In TikTok, open Settings and privacy > Hushfeed > Diagnostics > Export diagnostic report and choose Save full report. Then drag the file into this box. It's in your phone's Downloads folder, under Morphe. Copy quick report works too: paste it here.
+        The Diagnostics page is only there if Diagnostic tools was selected when you patched. The report is redacted, but please look it over before you post it.
   - type: textarea
     id: additional_context
     attributes:
-      label: Additional context
-      description: Add additional context here.
+      label: Anything else?
+      description: A workaround you found, an older version where it still worked, or anything else that might help.
   - type: checkboxes
     id: acknowledgements
     attributes:
-      label: Acknowledgements
-      description: Your bug report will be closed if you don't follow the checklist below.
+      label: Before you send it
       options:
-        - label: I have checked all open and closed bug reports and this is not a duplicate.
+        - label: I searched the open and closed bug reports and this isn't one of them.
           required: true
-        - label: I have chosen an appropriate title.
-          required: true
-        - label: All requested information has been provided properly.
+        - label: I answered every question above as well as I could.
           required: true

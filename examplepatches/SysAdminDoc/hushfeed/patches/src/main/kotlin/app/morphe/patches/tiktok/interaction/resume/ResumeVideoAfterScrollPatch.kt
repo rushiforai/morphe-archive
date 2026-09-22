@@ -41,6 +41,7 @@ val resumeVideoAfterScrollPatch = bytecodePatch(
     description = "Continues supported videos from where playback stopped when returning after a scroll. Switch: Hushfeed settings > App.",
     default = true,
 ) {
+    category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

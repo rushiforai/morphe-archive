@@ -93,6 +93,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         JsonPatch(
             it.name!!,
             it.description,
+            it.category,
             it.use,
             // The patch's own name, not its Kotlin class. Every entry used to read
             // "BytecodePatch", which made the only machine-readable dependency record say
@@ -144,12 +145,17 @@ private fun Compatibility.toJsonCompatibility() = JsonCompatibility(
     packageName = packageName ?: "",
     description = description?.takeUnless { it.isBlank() },
     appIconColor = appIconColor,
+    // The certificates Morphe Manager holds a picked APK to. The patches template's generator
+    // writes these and the per-target version codes; this one used to drop both, so the catalog
+    // said nothing about what Manager actually checks.
+    signatures = signatures?.sorted(),
     targets = targets?.map { t -> t.toJsonAppTarget() },
 )
 
 private fun AppTarget.toJsonAppTarget() = JsonAppTarget(
     version = version ?: "",
     experimental = isExperimental,
+    versionCodes = versionCodes?.entries?.sortedBy { it.key.name }?.associate { it.key.name to it.value },
 )
 
 @Suppress("unused")
@@ -158,6 +164,7 @@ private class JsonCompatibility(
     val packageName: String,
     val description: String? = null,
     val appIconColor: Int?,
+    val signatures: List<String>?,
     val targets: List<JsonAppTarget>?,
 )
 
@@ -165,12 +172,14 @@ private class JsonCompatibility(
 private class JsonAppTarget(
     val version: String,
     val experimental: Boolean = false,
+    val versionCodes: Map<String, Int>? = null,
 )
 
 @Suppress("unused")
 private class JsonPatch(
     val name: String? = null,
     val description: String? = null,
+    val category: String? = null,
     val use: Boolean = true,
     val dependencies: List<String>,
     val compatiblePackages: Map<PackageName, Set<VersionName>?>? = null,

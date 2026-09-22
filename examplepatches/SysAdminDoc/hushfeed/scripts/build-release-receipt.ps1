@@ -58,7 +58,7 @@ if (-not $DesktopJar -or -not (Test-Path -LiteralPath $DesktopJar -PathType Leaf
 }
 
 $releaseVersion = Get-BundleVersion -Root $Root
-if (-not $Bundle) { $Bundle = Join-Path $Root "patches/build/libs/patches-$releaseVersion.mpp" }
+if (-not $Bundle) { $Bundle = Get-ReleaseBundlePath -Root $Root -Version $releaseVersion }
 if (-not (Test-Path -LiteralPath $Bundle -PathType Leaf)) {
     throw "No bundle for version ${releaseVersion}: $Bundle. Run :patches:generatePatchesList then :patches:buildAndroid."
 }
@@ -83,9 +83,8 @@ if ($commit -notmatch '^[0-9a-f]{40}$') { throw "git did not answer with a commi
 $commitTimestamp = [long](& git -C $Root log -1 --format=%ct).Trim()
 
 # The bundle is read once, here, before any fixture is patched. Measuring it at the end instead
-# would describe whatever is in build/libs when the run finishes, which is not necessarily what
-# the patch runs used: any Gradle task that reaches `:patches:jar` rewrites that same path with
-# the plain jar, and a run takes long enough for that to happen alongside it.
+# would describe whatever the release path holds when the run finishes, which is not necessarily
+# what the patch runs used: a run takes long enough for another buildAndroid to replace it.
 $bundleManifest = Get-BundleManifestFacts -BundlePath $Bundle
 $bundleSize = (Get-Item -LiteralPath $Bundle).Length
 $bundleHash = Get-Sha256Hex -Path $Bundle

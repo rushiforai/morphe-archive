@@ -72,6 +72,43 @@ public final class TakoAiFilter {
         }
     }
 
+    /**
+     * The Tako entrance floating over the search page (issue #22), either a lone Ask Tako bubble
+     * or a Voice and Ask Tako pill. Asked before TikTok inflates it, so nothing is built.
+     */
+    public static boolean shouldHideSearchEntrance() {
+        boolean enabled = Settings.HIDE_TAKO_AI.get();
+        HookStatus.bound(HOOK_FAMILY, "search entrance " + (enabled ? "hidden" : "left"));
+        return enabled;
+    }
+
+    /**
+     * The commentv2 bridge that hands the Tako service the comments sheet's top bar questions.
+     * Its base class serves nine bridges, ads and shop among them, so the guard on that base
+     * asks here with the service in hand and only this one is answered. The patch pins the class
+     * name against each build, so a rename fails the patch rather than the comparison.
+     */
+    static final String COMMENT_TOP_BAR_BRIDGE = "BgTakoTopBarServiceImpl";
+
+    /**
+     * The Tako bar inside the comments sheet, the "related words" strip above the comment list.
+     * Asked from the Tako service's own canShow: a false answer is the business condition the
+     * sheet's resolver already treats as "no component".
+     */
+    public static boolean shouldHideCommentTopBar() {
+        boolean enabled = Settings.HIDE_TAKO_AI.get();
+        HookStatus.bound(HOOK_FAMILY, "comment bar " + (enabled ? "hidden" : "left"));
+        return enabled;
+    }
+
+    /** The same question from the shared bridge base, answered only for the Tako bridge. */
+    public static boolean shouldHideBridgedCommentTopBar(Object service) {
+        if (service == null || !COMMENT_TOP_BAR_BRIDGE.equals(service.getClass().getSimpleName())) {
+            return false;
+        }
+        return shouldHideCommentTopBar();
+    }
+
     /** The component key TikTok gives the "Ask · topic" banner under a feed video. */
     static final String ASK_BANNER_KEY = "bottom_banner_tako";
     private static final String SEARCH_BANNER_KEY = "bottom_banner_search_rs";

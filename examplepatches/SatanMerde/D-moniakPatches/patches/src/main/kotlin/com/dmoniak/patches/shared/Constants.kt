@@ -9,4 +9,11 @@ object Constants {
         description = "Hungry Shark World by Ubisoft Entertainment / FGOL",
         appIconColor = 0x0088CC
     )
+
+    val COMPATIBILITY_COINSNAP = Compatibility(
+        packageName = "com.coinidentifyer.ai",
+        name = "CoinSnap",
+        description = "CoinSnap: Coin Identifier by Glority Global Group",
+        appIconColor = 0xF5A623
+    )
 }

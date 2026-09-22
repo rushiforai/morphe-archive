@@ -37,7 +37,7 @@ $bash = (Get-Command bash -ErrorAction Stop).Source
 $bashHost = $bash
 $bashArguments = @('-lc')
 $phoneScript = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot 'phone.sh')).Path
-if ($IsWindows) {
+if ($env:OS -eq 'Windows_NT') {
     $bashHost = (Get-Command wsl.exe -ErrorAction Stop).Source
     $bashArguments = @('--exec', '/bin/bash', '-lc')
     $escapedPhoneScript = $phoneScript.Replace("'", "'\''")
@@ -47,7 +47,7 @@ if ($IsWindows) {
     }
 }
 $escapedPhoneScript = $phoneScript.Replace("'", "'\''")
-$phoneParserCommand = "PHONE_SERIAL=R5CT139QJ5F ADB=/not-used " +
+$phoneParserCommand = "PHONE_SERIAL=TESTPHONE01 HUSHFEED_DEVICE_SERIAL=TESTPHONE01 ADB=/not-used " +
     "PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '$escapedPhoneScript' parse_top"
 
 function Invoke-PhoneTopParser {
@@ -105,12 +105,55 @@ fixture=$(mktemp -d)
 trap 'rm -rf "$fixture"' EXIT
 printf '#!/bin/sh\nexit 0\n' > "$fixture/adb.exe"
 chmod +x "$fixture/adb.exe"
-PATH="$fixture:/usr/bin:/bin" PHONE_SERIAL=R5CT139QJ5F \
+PATH="$fixture:/usr/bin:/bin" PHONE_SERIAL=TESTPHONE01 HUSHFEED_DEVICE_SERIAL=TESTPHONE01 \
     PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '__PHONE_SCRIPT__' find_adb
 '@).Replace('__PHONE_SCRIPT__', $escapedPhoneScript)
 $resolvedWindowsAdb = @(& $bashHost @bashArguments $findAdbCommand 2> $null)
 Assert-True ($LASTEXITCODE -eq 0 -and ($resolvedWindowsAdb -join "`n").Trim() -like '*/adb.exe') `
     'phone.sh did not resolve adb.exe from an interoperable Windows path.'
+
+# The device guard. The one phone this machine may drive comes from HUSHFEED_DEVICE_SERIAL rather
+# than a serial written into the script, and anything else, or no named phone at all, is refused
+# before adb is looked for.
+# Windows PowerShell 5.1 turns a native command's stderr into a terminating error under Stop
+# even when 2>&1 redirects it. Relax for the two calls that expect stderr output.
+$savedEAP = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try {
+    $otherPhone = @(& $bashHost @bashArguments ("PHONE_SERIAL=OTHERPHONE02 HUSHFEED_DEVICE_SERIAL=TESTPHONE01 ADB=/not-used " +
+        "PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '$escapedPhoneScript' top") 2>&1)
+    $otherPhoneExit = $LASTEXITCODE
+    $unnamed = @(& $bashHost @bashArguments ("env -u HUSHFEED_DEVICE_SERIAL PHONE_SERIAL=TESTPHONE01 ADB=/not-used " +
+        "PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '$escapedPhoneScript' top") 2>&1)
+    $unnamedExit = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $savedEAP
+}
+Assert-True ($otherPhoneExit -eq 2 -and ($otherPhone -join "`n") -like '*REFUSED*') `
+    'phone.sh drove a device other than the one HUSHFEED_DEVICE_SERIAL names.'
+Assert-True ($unnamedExit -ne 0 -and ($unnamed -join "`n") -like '*HUSHFEED_DEVICE_SERIAL*') `
+    'phone.sh ran with no test phone named in HUSHFEED_DEVICE_SERIAL.'
+
+# A wslpath that fails should refuse the path rather than creating a stray directory.
+$wslpathFailCommand = (@'
+fixture=$(mktemp -d)
+trap 'rm -rf "$fixture"' EXIT
+printf '#!/bin/sh\nexit 1\n' > "$fixture/wslpath"
+chmod +x "$fixture/wslpath"
+out=$(PATH="$fixture:/usr/bin:/bin" PHONE_SERIAL=TESTPHONE01 HUSHFEED_DEVICE_SERIAL=TESTPHONE01 ADB=/not-used PHONE_SHOTS=/tmp/hushfeed-wslpath-contract bash -c '. "__PHONE_SCRIPT__"; normalise_path "C:\\repos\\test"' 2>/dev/null)
+exit_code=$?
+[ "$exit_code" -ne 0 ] && [ -z "$out" ]
+'@).Replace('__PHONE_SCRIPT__', $escapedPhoneScript)
+$savedEAP2 = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try {
+    & $bashHost @bashArguments $wslpathFailCommand 2>$null
+    $wslpathExit = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $savedEAP2
+}
+Assert-True ($wslpathExit -eq 0) `
+    'phone.sh passed through a Windows path when wslpath was present but failed.'
 
 Write-Host '[scripts] guarded phone foreground parser contracts passed'
 
@@ -756,6 +799,41 @@ try {
     Assert-True ($noCommit.Toolchain.PatcherVersion -eq '1.13.0' -and $null -eq $noCommit.Note) `
         'A receipt naming no commit did not fall back quietly to the working catalog.'
 
+    # The patch list, the same way: a patch renamed after the release is held to the name its own
+    # commit carried, which is what the hold after 0.58.0 needed; the released commit itself is
+    # held to the working list; no list at that commit, or no commit, falls back to the working one.
+    $listFile = Join-Path $toolchainRoot 'patches-list.json'
+    function Save-FixtureList([string[]]$Names) {
+        $list = @{ patches = @($Names | ForEach-Object { @{ name = $_; compatiblePackages = @{ 'com.example' = @('1.0.0') } } }) }
+        Set-Content -LiteralPath $listFile -Encoding UTF8 -Value ($list | ConvertTo-Json -Depth 5)
+        Invoke-FixtureGit -Root $toolchainRoot -Arguments @('add', '-A') | Out-Null
+        Invoke-FixtureGit -Root $toolchainRoot -Arguments @('commit', '-m', "list $($Names -join ' ')", '--quiet') | Out-Null
+        return "$(Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rev-parse', 'HEAD') | Select-Object -First 1)".Trim()
+    }
+    $listReleased = Save-FixtureList @('Alpha', 'Beta')
+    $listNow = Save-FixtureList @('Alpha', 'Gamma')
+    $workingList = Get-Content -LiteralPath $listFile -Raw | ConvertFrom-Json
+    $atListRelease = Resolve-ReceiptCatalog -Root $toolchainRoot -Commit $listReleased -WorkingPatchList $workingList
+    $namesAtRelease = @($atListRelease.PatchList.patches | ForEach-Object { [string]$_.name }) -join ','
+    Assert-True ($namesAtRelease -eq 'Alpha,Beta' -and $atListRelease.Note -like '*2 patches*') `
+        "The receipt was not held to the patch list its own commit carried: $namesAtRelease / $($atListRelease.Note)"
+    $atListHead = Resolve-ReceiptCatalog -Root $toolchainRoot -Commit $listNow -WorkingPatchList $workingList
+    Assert-True ((@($atListHead.PatchList.patches | ForEach-Object { [string]$_.name }) -join ',') -eq 'Alpha,Gamma' -and
+        $null -eq $atListHead.Note) "A receipt at the released commit was not held to the working patch list: $($atListHead.Note)"
+    $atNoList = Resolve-ReceiptCatalog -Root $toolchainRoot -Commit $releaseCommitSha -WorkingPatchList $workingList
+    Assert-True ($atNoList.PatchList -eq $workingList -and $atNoList.Note -like '*no patch list*') `
+        "A commit with no patch list did not fall back to the working one: $($atNoList.Note)"
+    $atNoCommit = Resolve-ReceiptCatalog -Root $toolchainRoot -Commit '' -WorkingPatchList $workingList
+    Assert-True ($atNoCommit.PatchList -eq $workingList -and $null -eq $atNoCommit.Note) `
+        'A receipt naming no commit did not fall back quietly to the working patch list.'
+    # And the release check hands the receipt that list, names and target both, rather than the
+    # working one. A helper nothing calls would pass every case above.
+    $factsSource = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'validate-release-facts.ps1') -Raw
+    Assert-True ($factsSource -match '-ExpectedPatchNames @\(\$resolvedList\.PatchList\.patches' -and
+        $factsSource -match '\$receiptTarget = Get-PatchTarget -PatchList \$resolvedList\.PatchList' -and
+        $factsSource -match '-ExpectedPackageName \$receiptTarget\.PackageName') `
+        'validate-release-facts.ps1 no longer holds the receipt to the patch list its own commit carried.'
+
     # A catalog that pins nothing usable still stops the run, rather than being read as blank.
     foreach ($broken in @(
         @{ Name = 'no patcher pin'; Lines = @('[versions]', 'manager-floor = "1.29.0"') },
@@ -791,6 +869,9 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $factsRoot 'gradle') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $Root 'gradle/libs.versions.toml') `
         -Destination (Join-Path $factsRoot 'gradle/libs.versions.toml')
+    $bugFormRelative = '.github/ISSUE_TEMPLATE/bug_report.yml'
+    New-Item -ItemType Directory -Path (Join-Path $factsRoot '.github/ISSUE_TEMPLATE') -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $Root $bugFormRelative) -Destination (Join-Path $factsRoot $bugFormRelative)
 
     function Invoke-Facts {
         param([switch]$WithUrls)
@@ -829,13 +910,26 @@ try {
         }
     }
 
+    # The bug form names the published version, which the synced index above now names too.
+    function Sync-FixtureBugForm {
+        $fixtureVersion = ((Get-Content -LiteralPath (Join-Path $factsRoot 'gradle.properties')) `
+            -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
+        $publishedHere = "$((Get-Content -LiteralPath (Join-Path $Root 'patches-bundle.json') -Raw | ConvertFrom-Json).version)"
+        if ($publishedHere -eq $fixtureVersion) { return }
+        Set-FactsFile $bugFormRelative {
+            param($text) $text -replace ('Version ' + [regex]::Escape($publishedHere) + ' for TikTok'), "Version $fixtureVersion for TikTok"
+        }
+    }
+
     function Reset-FactsFile {
         param([string]$Name)
         Copy-Item -LiteralPath (Join-Path $Root $Name) -Destination (Join-Path $factsRoot $Name) -Force
         if ($Name -eq 'patches-bundle.json') { Sync-FixtureIndex }
+        if ($Name -eq $bugFormRelative) { Sync-FixtureBugForm }
     }
 
     Sync-FixtureIndex
+    Sync-FixtureBugForm
 
     # The control. Everything below is this same tree with one fact moved, so a failure there is
     # the moved fact talking and not the fixture being wrong.
@@ -922,6 +1016,21 @@ try {
     Assert-Throws { Invoke-Facts } '*' 'A CHANGELOG with no heading for the built version was accepted.'
     Reset-FactsFile 'CHANGELOG.md'
 
+    # The bug form's placeholders, which sat three TikTok releases behind the target before
+    # anything read them. One for the version line, one for the manager line.
+    Set-FactsFile $bugFormRelative {
+        param($text) $text -replace '(placeholder:\s*Version \S+ for TikTok )\S+', '${1}46.2.3'
+    }
+    Assert-Throws { Invoke-Facts } '*bug report form version placeholder*' `
+        'A bug report form naming an old TikTok build was accepted.'
+    Reset-FactsFile $bugFormRelative
+    Set-FactsFile $bugFormRelative {
+        param($text) $text -replace '(placeholder:\s*Morphe Manager )\S+', '${1}1.20.0'
+    }
+    Assert-Throws { Invoke-Facts } '*bug report form Manager placeholder*' `
+        'A bug report form naming a Manager below the floor was accepted.'
+    Reset-FactsFile $bugFormRelative
+
     # A dead link in the index, answered from this machine so the case needs no network of its
     # own: nothing listens on port 1, so the request is refused before it leaves the host.
     Set-FactsFile 'patches-bundle.json' {
@@ -930,6 +1039,102 @@ try {
     }
     Assert-Throws { Invoke-Facts -WithUrls } '*' 'An index pointing at a dead address was accepted.'
     Reset-FactsFile 'patches-bundle.json'
+
+    # The test counts the description quotes, which only the strict path reads: a release, or the
+    # push that rewrites the index. The copied tree holds no test results, so each folder gets a
+    # suite of exactly as many tests as the copied description names, and one fact moves per case.
+    $factsDescription = [string](Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw |
+        ConvertFrom-Json).description
+    $runtimeQuoted = [int]([regex]::Match($factsDescription, '\b(\d+) runtime tests passed\b').Groups[1].Value)
+    $patchQuoted = [int]([regex]::Match($factsDescription, '\b(\d+) patch tests passed\b').Groups[1].Value)
+    Assert-True ($runtimeQuoted -gt 0 -and $patchQuoted -gt 0) `
+        "The copied description quotes no test counts, so these cases would prove nothing: $factsDescription"
+    function Write-FactsResults {
+        param([string]$Folder, [string]$Suite, [int]$Tests, [int]$Skipped = 0)
+        $directory = Join-Path $factsRoot $Folder
+        Remove-Item -LiteralPath $directory -Recurse -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+        $cases = (1..$Tests | ForEach-Object {
+            if ($_ -le $Skipped) { "<testcase name=`"t$_`" classname=`"fixture.$Suite`"><skipped/></testcase>" }
+            else { "<testcase name=`"t$_`" classname=`"fixture.$Suite`"/>" }
+        }) -join ''
+        Set-Content -LiteralPath (Join-Path $directory "TEST-fixture.$Suite.xml") -Encoding UTF8 -Value (
+            "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"$Tests`" " +
+            "skipped=`"$Skipped`" failures=`"0`" errors=`"0`">$cases</testsuite>")
+    }
+    function Invoke-StrictFacts { & $factsScript -Root $factsRoot -SkipUrlCheck 6> $null }
+    $runtimeResults = 'extensions/tiktok/build/test-results/testDebugUnitTest'
+    $patchResults = 'patches/build/test-results/test'
+    try {
+        Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Invoke-StrictFacts
+        Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+            'The strict release check refused test results that match the description.'
+
+        # A fixture test that skipped, which Gradle reports as a pass.
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted -Skipped 1
+        Assert-Throws { Invoke-StrictFacts } '*skipped 1 test*' `
+            'A release was checked against patch test results with a skipped fixture test.'
+
+        # A count the run doesn't have, which is how "All 269 patch tests passed" was written.
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted + 1)
+        Assert-Throws { Invoke-StrictFacts } '*patch test count*' `
+            'A description quoting a patch test count the run does not have was accepted.'
+
+        # A test class deleted since the last run. Its results stay until the tests run again,
+        # no source left is newer than them, and every class left has results, so its tests
+        # were counted as passing. The sources go in first so the results are the newer files.
+        $runtimeSource = Join-Path $factsRoot 'extensions/tiktok/src/test/java/fixture/RuntimeTest.java'
+        $patchSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/PatchTest.kt'
+        foreach ($source in @($runtimeSource, $patchSource)) {
+            New-Item -ItemType Directory -Path (Split-Path -Parent $source) -Force | Out-Null
+            Set-Content -LiteralPath $source -Value '' -Encoding ASCII
+        }
+        function Add-OrphanResult([string]$Folder, [string]$Suite) {
+            Set-Content -LiteralPath (Join-Path (Join-Path $factsRoot $Folder) "TEST-fixture.$Suite.xml") -Encoding UTF8 -Value (
+                "<?xml version=`"1.0`" encoding=`"UTF-8`"?><testsuite name=`"fixture.$Suite`" tests=`"1`" " +
+                "skipped=`"0`" failures=`"0`" errors=`"0`"><testcase name=`"t1`" classname=`"fixture.$Suite`"/></testsuite>")
+        }
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Write-FactsResults $runtimeResults 'RuntimeTest' ($runtimeQuoted - 1)
+        Add-OrphanResult $runtimeResults 'GoneTest'
+        Assert-Throws { Invoke-StrictFacts } '*runtime test results include 1 test class*GoneTest*' `
+            'The runtime results of a deleted test class were counted.'
+        Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
+        Write-FactsResults $patchResults 'PatchTest' ($patchQuoted - 1)
+        Add-OrphanResult $patchResults 'GonePatchTest'
+        Assert-Throws { Invoke-StrictFacts } '*patch test results include 1 test class*GonePatchTest*' `
+            'The patch results of a deleted test class were counted.'
+        # The control: the same sources with no orphan pass.
+        Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
+        Write-FactsResults $patchResults 'PatchTest' $patchQuoted
+        Invoke-StrictFacts
+        Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+            'The strict release check refused results that match their sources and the description.'
+        foreach ($folder in @('extensions/tiktok/src', 'patches/src')) {
+            Remove-Item -LiteralPath (Join-Path $factsRoot $folder) -Recurse -Force
+        }
+
+        Remove-Item -LiteralPath (Join-Path $factsRoot 'patches') -Recurse -Force
+        Assert-Throws { Invoke-StrictFacts } '*No patch test results*' `
+            'A release was checked with no patch test results at all.'
+
+        # Results the check is told to leave unread, as the pre-push hook does in its worktree,
+        # where they can belong to another commit: read, a skipped runtime test fails the lenient
+        # check; unread, it doesn't. A check that quotes counts can't be told to skip them.
+        Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted -Skipped 1
+        Assert-Throws { Invoke-Facts } '*skipped=1*' 'A lenient check read past a skipped runtime test.'
+        & $factsScript -Root $factsRoot -SkipDescriptionTestCount -SkipUrlCheck -SkipTestResults 6> $null
+        Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+            'A check told to leave the test results unread read them anyway.'
+        Assert-Throws { & $factsScript -Root $factsRoot -SkipUrlCheck -SkipTestResults 6> $null } `
+            '*SkipDescriptionTestCount*' 'A check holding the description to its counts left the results unread.'
+    } finally {
+        foreach ($folder in @('patches', 'extensions')) {
+            Remove-Item -LiteralPath (Join-Path $factsRoot $folder) -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
 
     # And the same tree, once every fact is put back, is accepted again. Without this the cases
     # above would also pass against a fixture that had become permanently broken.
@@ -967,7 +1172,7 @@ try {
     Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
         'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
         '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath)',
-        "Set-Content -LiteralPath '$factsMarker' -Value `"lag=`$AllowPublishedIndexLag`"",
+        "Set-Content -LiteralPath '$factsMarker' -Value `"lag=`$AllowPublishedIndexLag verify=`$VerifyPublishedAsset artifact=`$ArtifactPath`"",
         'exit 0')
     Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/test-script-contracts.ps1') -Encoding UTF8 -Value @(
         'param([string]$Root)',
@@ -1003,10 +1208,33 @@ try {
     Assert-True (Test-Path -LiteralPath $factsMarker) `
         'A push that changed only the CHANGELOG ran no release check.'
 
+    Invoke-Hook -Paths @('.github/ISSUE_TEMPLATE/bug_report.yml')
+    Assert-True (Test-Path -LiteralPath $factsMarker) `
+        'A push that changed only the bug report form ran no release check.'
+
     Invoke-Hook -Paths @('patches-bundle.json')
     Assert-True (Test-Path -LiteralPath $factsMarker) 'An index change ran no release check.'
     Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=False*') `
         'An index change was allowed to lag behind the published release.'
+
+    # The order that shipped a dexless bundle: buildAndroid, then any task that reruns
+    # :patches:jar, which leaves the plain jar in build/libs under the bundle's own name. The
+    # finished bundle sits in build/release, and the index push must be compared against that
+    # one. A plain jar left beside it in build/libs is the state :patches:test produces.
+    $releaseDirectory = Join-Path $hookRoot 'patches/build/release'
+    $libsDirectory = Join-Path $hookRoot 'patches/build/libs'
+    New-Item -ItemType Directory -Path $releaseDirectory, $libsDirectory -Force | Out-Null
+    # Normalized, because the hook hands over the listing's own full name.
+    $releaseCopy = [System.IO.Path]::GetFullPath((Join-Path $releaseDirectory 'patches-9.9.9.mpp'))
+    Set-Content -LiteralPath $releaseCopy -Value 'bundle with classes.dex' -Encoding ASCII
+    Set-Content -LiteralPath (Join-Path $libsDirectory 'patches-9.9.9.mpp') -Value 'plain jar' -Encoding ASCII
+    Invoke-Hook -Paths @('patches-bundle.json')
+    $routed = Get-Content -LiteralPath $factsMarker -Raw
+    Assert-True ($routed -like '*verify=True*') `
+        'An index push with a built release bundle did not compare it against the published asset.'
+    Assert-True ($routed -like "*artifact=$releaseCopy*") `
+        "The index push compared something other than the release copy: $routed"
+    Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force
 
     # A new remote branch can contain several unpublished commits. The code change here is in
     # the first commit and the tip changes only documentation. Looking at HEAD^..HEAD silently
@@ -1111,6 +1339,274 @@ try {
             'A file no gate reads was routed into the build gates.'
     } finally {
         $env:PATH = $savedPath
+        $env:GITHUB_ACTOR = $savedActor
+        $env:GITHUB_TOKEN = $savedToken
+    }
+
+    # The build wrapper. HUSHFEED_BUILD_WRAPPER names the script that runs Gradle on this
+    # machine, and the hook hands it the repository and the tasks. A stub stands in for it and
+    # records what it was given, so no build starts.
+    $savedWrapper = $env:HUSHFEED_BUILD_WRAPPER
+    $savedActor = $env:GITHUB_ACTOR
+    $savedToken = $env:GITHUB_TOKEN
+    try {
+        $env:GITHUB_ACTOR = 'contract'
+        $env:GITHUB_TOKEN = 'contract'
+        $wrapperMarker = Join-Path $hookRoot 'wrapper-ran.txt'
+        $wrapperStub = Join-Path $hookRoot 'build-wrapper.ps1'
+        Set-Content -LiteralPath $wrapperStub -Encoding UTF8 -Value @(
+            'param([string]$ProjectDir, [string[]]$Tasks)',
+            "Set-Content -LiteralPath '$wrapperMarker' -Value (`"dir=`$ProjectDir tasks=`" + (`$Tasks -join ','))",
+            'exit 0')
+        $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
+        & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/main/java/Any.java') 6> $null
+        Assert-True (Test-Path -LiteralPath $wrapperMarker) `
+            'The hook did not run the build through the wrapper HUSHFEED_BUILD_WRAPPER names.'
+        $wrapped = Get-Content -LiteralPath $wrapperMarker -Raw
+        Assert-True ($wrapped -like "dir=$hookRoot tasks=*:extensions:tiktok:test*:patches:test*") `
+            "The build wrapper was not handed the repository and the test tasks: $wrapped"
+
+        $env:HUSHFEED_BUILD_WRAPPER = Join-Path $hookRoot 'no-such-wrapper.ps1'
+        Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('patches/build.gradle.kts') 6> $null } `
+            '*HUSHFEED_BUILD_WRAPPER*' 'A build wrapper that is not there was ignored rather than reported.'
+
+        # The gate builds what is pushed, not what happens to be in the working tree. A stub build
+        # fails on any tree whose marker says broken, and records the tree it was handed.
+        $gateRepo = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-gate-" + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path (Join-Path $gateRepo 'extensions') -Force | Out-Null
+        & git -C $gateRepo init --quiet
+        $actualGateGitDir = (& git -C $gateRepo rev-parse --absolute-git-dir).Trim()
+        Assert-True ([IO.Path]::GetFullPath($actualGateGitDir).TrimEnd('\', '/') -ieq
+            [IO.Path]::GetFullPath((Join-Path $gateRepo '.git')).TrimEnd('\', '/')) `
+            'The gate fixture resolved outside its temporary repository; refusing to write.'
+        & git -C $gateRepo config user.name 'Gate Contract'
+        & git -C $gateRepo config user.email 'gate@example.invalid'
+        $gateMarker = Join-Path $hookRoot 'gate-ran.txt'
+        $gateStub = Join-Path $hookRoot 'gate-wrapper.ps1'
+        Set-Content -LiteralPath $gateStub -Encoding UTF8 -Value @(
+            'param([string]$ProjectDir, [string[]]$Tasks)',
+            '$state = (Get-Content -LiteralPath (Join-Path $ProjectDir ''extensions/marker.txt'') -Raw).Trim()',
+            "Set-Content -LiteralPath '$gateMarker' -Value (`"dir=`$ProjectDir marker=`$state gitdir=`$env:GIT_DIR`")",
+            'if ($state -eq ''broken'') { exit 1 }',
+            'exit 0')
+        $env:HUSHFEED_BUILD_WRAPPER = $gateStub
+        $gateFile = Join-Path $gateRepo 'extensions/marker.txt'
+        function Save-GateCommit([string]$State) {
+            Set-Content -LiteralPath $gateFile -Value $State -Encoding ASCII
+            & git -C $gateRepo add extensions/marker.txt
+            & git -C $gateRepo commit --quiet -m $State
+            return (& git -C $gateRepo rev-parse HEAD).Trim()
+        }
+        try {
+            $good = Save-GateCommit 'good'
+            Set-Content -LiteralPath $gateFile -Value 'broken' -Encoding ASCII
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $good refs/heads/main $('0' * 40)" 6> $null
+            Assert-True ($LASTEXITCODE -eq 0) 'An uncommitted edit in the working tree failed a clean commit.'
+            $built = Get-Content -LiteralPath $gateMarker -Raw
+            Assert-True ($built -like '*marker=good*' -and $built -notlike "*dir=$gateRepo marker*") `
+                "The gate built the working tree instead of the pushed commit: $built"
+
+            $broken = Save-GateCommit 'broken'
+            Set-Content -LiteralPath $gateFile -Value 'good' -Encoding ASCII
+            Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $broken refs/heads/main $good" 6> $null } `
+                '*did not pass*' 'An uncommitted fix in the working tree passed a broken commit.'
+            Assert-True ((& git -C $gateRepo status --porcelain) -like '*extensions/marker.txt*') `
+                'Building the pushed commit touched the working tree it was kept apart from.'
+
+            # A clean tree still builds in place.
+            $fixed = Save-GateCommit 'good'
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null
+            Assert-True ($LASTEXITCODE -eq 0) 'A clean tree with a good commit did not pass.'
+            Assert-True ((Get-Content -LiteralPath $gateMarker -Raw) -like "*dir=$gateRepo marker=good*") `
+                'A clean tree was not built in place.'
+
+            # A tree that changes while it is built in place: an edit landing mid-build was tested
+            # along with the commit, so that build says nothing about the commit alone.
+            $meddler = Join-Path $hookRoot 'gate-wrapper-meddles.ps1'
+            $meddled = Join-Path $gateRepo 'README.md'
+            Set-Content -LiteralPath $meddler -Encoding UTF8 -Value @(
+                'param([string]$ProjectDir, [string[]]$Tasks)',
+                'Set-Content -LiteralPath (Join-Path $ProjectDir ''README.md'') -Value ''edited mid-build'' -Encoding ASCII',
+                'exit 0')
+            $env:HUSHFEED_BUILD_WRAPPER = $meddler
+            try {
+                Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null } `
+                    '*changed while the runtime test build ran in place*' `
+                    'A working tree that changed during an in-place build passed on that build.'
+            } finally {
+                $env:HUSHFEED_BUILD_WRAPPER = $gateStub
+                Remove-Item -LiteralPath $meddled -Force -ErrorAction SilentlyContinue
+            }
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null
+            Assert-True ($LASTEXITCODE -eq 0) 'A clean tree failed once the mid-build edit was gone.'
+
+            # But only for HEAD. A clean tree whose HEAD is good says nothing about an older commit
+            # pushed by name, or another branch, and those used to have HEAD built in their place.
+            Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/other $broken refs/heads/other $good" 6> $null } `
+                '*did not pass*' 'A clean tree passed a broken commit that was pushed but is not HEAD.'
+
+            # Uncommitted files anywhere count, not only under the source folders: the tests read
+            # README.md and patches-list.json from the root.
+            $rootFile = Join-Path $gateRepo 'README.md'
+            Set-Content -LiteralPath $rootFile -Value 'uncommitted' -Encoding ASCII
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null
+            $built = Get-Content -LiteralPath $gateMarker -Raw
+            Assert-True ($LASTEXITCODE -eq 0 -and $built -like '*marker=good*' -and $built -notlike "*dir=$gateRepo marker*") `
+                "An uncommitted root file was built in place with the push: $built"
+            Remove-Item -LiteralPath $rootFile -Force
+
+            # Git hands a hook GIT_DIR and GIT_WORK_TREE. Neither may steer the worktree commands
+            # into this working tree, nor reach the build.
+            Set-Content -LiteralPath $gateFile -Value 'broken' -Encoding ASCII
+            $headBefore = (& git -C $gateRepo symbolic-ref HEAD).Trim()
+            try {
+                $env:GIT_DIR = Join-Path $gateRepo '.git'
+                $env:GIT_WORK_TREE = $gateRepo
+                & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null
+            } finally {
+                Remove-Item -LiteralPath Env:\GIT_DIR, Env:\GIT_WORK_TREE -ErrorAction SilentlyContinue
+            }
+            $built = Get-Content -LiteralPath $gateMarker -Raw
+            Assert-True ($LASTEXITCODE -eq 0 -and $built.Trim() -like '*marker=good gitdir=') `
+                "The build ran with git's hook variables set: $built"
+            Assert-True ((Get-Content -LiteralPath $gateFile -Raw).Trim() -eq 'broken' -and
+                (& git -C $gateRepo symbolic-ref HEAD).Trim() -eq $headBefore) `
+                "With GIT_DIR set, building the pushed commit rewrote the working tree it was kept apart from."
+
+            # One push at a time through the gate worktree. With the lock held here, a hook in
+            # another process has to give up rather than check its commit out under a running build.
+            $gateHasher = [System.Security.Cryptography.SHA256]::Create()
+            try {
+                $gateDigest = $gateHasher.ComputeHash([Text.Encoding]::UTF8.GetBytes(
+                    [IO.Path]::GetFullPath($gateRepo).ToLowerInvariant()))
+            } finally {
+                $gateHasher.Dispose()
+            }
+            $gateKey = -join ($gateDigest[0..5] | ForEach-Object { $_.ToString('x2') })
+            $shell = (Get-Process -Id $PID).Path
+            $childRefs = "refs/heads/main $fixed refs/heads/main $broken"
+            function Invoke-ChildPush {
+                # Windows PowerShell stops on a native command's first line of standard error.
+                $preference = $ErrorActionPreference
+                $ErrorActionPreference = 'Continue'
+                try {
+                    return (& $shell -NoProfile -File $prePushScript -Root $gateRepo -PushedRefs $childRefs `
+                        -GateLockTimeoutSeconds 1 2>&1 | Out-String)
+                } finally {
+                    $ErrorActionPreference = $preference
+                }
+            }
+            $held = New-Object System.Threading.Mutex($false, "Local\hushfeed-pre-push-$gateKey")
+            Assert-True ($held.WaitOne(0)) 'The contract could not take the gate lock itself.'
+            try {
+                $waited = Invoke-ChildPush
+                Assert-True ($LASTEXITCODE -ne 0 -and $waited -like '*held the gate worktree*') `
+                    "A second push used the gate worktree while another push held it: $waited"
+            } finally {
+                $held.ReleaseMutex()
+                $held.Dispose()
+            }
+            # The control: the same child push, with the lock free, goes through.
+            $free = Invoke-ChildPush
+            Assert-True ($LASTEXITCODE -eq 0) "The child push failed with the gate lock free: $free"
+
+            # The release facts half checks the files a push carries as well. A stub check, committed
+            # the way the real one is, fails on a README that says broken and records where it ran
+            # and whether it read test results. Its own commit is never in a pushed range, so no
+            # push below touches scripts/ and asks for contract tests this repository doesn't have.
+            $gateFacts = Join-Path $hookRoot 'gate-facts-ran.txt'
+            & git -C $gateRepo checkout --quiet -- extensions/marker.txt
+            New-Item -ItemType Directory -Path (Join-Path $gateRepo 'scripts') -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $gateRepo 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value @(
+                'param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
+                '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath, [switch]$SkipTestResults)',
+                '$state = (Get-Content -LiteralPath (Join-Path $Root ''README.md'') -Raw).Trim()',
+                "Set-Content -LiteralPath '$gateFacts' -Value (`"root=`$Root readme=`$state results=`$(-not `$SkipTestResults)`")",
+                'if ($state -eq ''broken'') { exit 1 }',
+                'exit 0')
+            $gateReadme = Join-Path $gateRepo 'README.md'
+            function Save-GateReadme([string]$State) {
+                Set-Content -LiteralPath $gateReadme -Value $State -Encoding ASCII
+                & git -C $gateRepo add README.md
+                & git -C $gateRepo commit --quiet -m "readme $State"
+                return (& git -C $gateRepo rev-parse HEAD).Trim()
+            }
+            & git -C $gateRepo add scripts/validate-release-facts.ps1
+            $factsBase = Save-GateReadme 'base'
+            $factsGood = Save-GateReadme 'good'
+
+            # An uncommitted README that would fail the check doesn't fail a push without it.
+            Set-Content -LiteralPath $gateReadme -Value 'broken' -Encoding ASCII
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $factsGood refs/heads/main $factsBase" 6> $null
+            $checked = Get-Content -LiteralPath $gateFacts -Raw
+            Assert-True ($LASTEXITCODE -eq 0 -and $checked -like '*readme=good results=False*' -and
+                $checked -notlike "*root=$gateRepo *") `
+                "The release facts were read from the working tree instead of the pushed commit: $checked"
+
+            # And an uncommitted fix doesn't pass a push whose own README fails.
+            $factsBroken = Save-GateReadme 'broken'
+            Set-Content -LiteralPath $gateReadme -Value 'good' -Encoding ASCII
+            Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $factsBroken refs/heads/main $factsGood" 6> $null } `
+                '*release facts do not agree*' 'An uncommitted README fix passed a push whose README fails the release facts.'
+
+            # An index push is checked against the bundle and results this checkout built, so from a
+            # dirty tree it is refused by name rather than checked against the wrong files.
+            Set-Content -LiteralPath (Join-Path $gateRepo 'patches-bundle.json') -Value '{}' -Encoding ASCII
+            & git -C $gateRepo add patches-bundle.json
+            & git -C $gateRepo commit --quiet -m 'index'
+            $factsIndex = (& git -C $gateRepo rev-parse HEAD).Trim()
+            Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $factsIndex refs/heads/main $factsBroken" 6> $null } `
+                '*clean checkout of the commit it pushes*' 'An index push from a dirty tree was checked against files it does not carry.'
+
+            # The control: a clean tree pushing HEAD is checked in place, results and all.
+            & git -C $gateRepo checkout --quiet -- README.md
+            $factsFixed = Save-GateReadme 'good'
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $factsFixed refs/heads/main $factsIndex" 6> $null
+            $checked = Get-Content -LiteralPath $gateFacts -Raw
+            Assert-True ($LASTEXITCODE -eq 0 -and $checked -like "*root=$gateRepo readme=good results=True*") `
+                "A clean tree pushing HEAD was not checked in place: $checked"
+
+            # The script suites are the pushed commit's too, run against that commit: they copy the
+            # root files into their fixtures, and ran from the working tree until 2026-09-21. A stub
+            # suite records where it ran and the state it was committed with.
+            $gateContracts = Join-Path $hookRoot 'gate-contracts-ran.txt'
+            $contractsStub = Join-Path $gateRepo 'scripts/test-script-contracts.ps1'
+            function Save-GateContracts([string]$State) {
+                Set-Content -LiteralPath $contractsStub -Encoding UTF8 -Value @(
+                    'param([string]$Root)',
+                    "Set-Content -LiteralPath '$gateContracts' -Value (`"root=`$Root state=$State`")",
+                    $(if ($State -eq 'broken') { 'exit 1' } else { 'exit 0' }))
+                & git -C $gateRepo add scripts/test-script-contracts.ps1
+                & git -C $gateRepo commit --quiet -m "contracts $State"
+                return (& git -C $gateRepo rev-parse HEAD).Trim()
+            }
+            $contractsGood = Save-GateContracts 'good'
+            Set-Content -LiteralPath $contractsStub -Encoding UTF8 -Value @('param([string]$Root)', 'exit 1')
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $contractsGood refs/heads/main $factsFixed" 6> $null
+            $ran = Get-Content -LiteralPath $gateContracts -Raw
+            Assert-True ($LASTEXITCODE -eq 0 -and $ran -like '*state=good*' -and $ran -notlike "*root=$gateRepo *") `
+                "The script contract tests ran from the working tree instead of the pushed commit: $ran"
+            & git -C $gateRepo checkout --quiet -- scripts/test-script-contracts.ps1
+            & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $contractsGood refs/heads/main $factsFixed" 6> $null
+            $ran = Get-Content -LiteralPath $gateContracts -Raw
+            Assert-True ($LASTEXITCODE -eq 0 -and $ran -like "*root=$gateRepo state=good*") `
+                "A clean tree pushing HEAD did not run its script contract tests in place: $ran"
+            $contractsBroken = Save-GateContracts 'broken'
+            Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $contractsBroken refs/heads/main $contractsGood" 6> $null } `
+                '*script contract tests did not pass*' 'A push whose own script contract tests fail was let through.'
+        } finally {
+            foreach ($line in @(& git -C $gateRepo worktree list --porcelain)) {
+                if ($line -like 'worktree *') {
+                    $listed = $line.Substring('worktree '.Length)
+                    if ([IO.Path]::GetFullPath($listed).TrimEnd('\', '/') -ine [IO.Path]::GetFullPath($gateRepo).TrimEnd('\', '/')) {
+                        & git -C $gateRepo worktree remove --force $listed
+                    }
+                }
+            }
+            Remove-Item -LiteralPath $gateRepo -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    } finally {
+        $env:HUSHFEED_BUILD_WRAPPER = $savedWrapper
         $env:GITHUB_ACTOR = $savedActor
         $env:GITHUB_TOKEN = $savedToken
     }
@@ -1396,6 +1892,87 @@ try {
 }
 
 Write-Host '[scripts] shared helper contracts passed'
+
+# --- release bundle path ---------------------------------------------------------------------
+#
+# Every release step reads the bundle from patches/build/release. The plugin's buildAndroid
+# finishes the bundle inside the jar task's own output, so a task run after it that reruns
+# :patches:jar put the plain jar back under the same name in build/libs: v0.43.0 shipped with no
+# classes.dex that way. buildAndroid copies the finished bundle to build/release, where nothing
+# else writes, and the Gradle file and this helper have to agree on that directory.
+
+$bundlePathRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-bundle-path-" + [guid]::NewGuid().ToString('N'))
+try {
+    New-Item -ItemType Directory -Path $bundlePathRoot -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $bundlePathRoot 'gradle.properties') -Value 'version = 9.9.9' -Encoding ASCII
+    $expectedRelease = Join-Path $bundlePathRoot 'patches/build/release/patches-9.9.9.mpp'
+    Assert-True ((Get-ReleaseBundlePath -Root $bundlePathRoot) -eq $expectedRelease) `
+        'The release bundle path did not follow gradle.properties into patches/build/release.'
+    Assert-True ((Get-ReleaseBundlePath -Root $bundlePathRoot -Version '1.2.3') -eq
+        (Join-Path $bundlePathRoot 'patches/build/release/patches-1.2.3.mpp')) `
+        'An explicit version was not used for the release bundle path.'
+} finally {
+    Remove-Item -LiteralPath $bundlePathRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+$gradleFile = Get-Content -LiteralPath (Join-Path $Root 'patches/build.gradle.kts') -Raw
+Assert-True ($gradleFile -match 'buildDirectory\.dir\("release"\)' -and
+    $gradleFile -match 'buildDirectory\.file\("release/\$releaseBundleName"\)' -and
+    $gradleFile -match 'buildDirectory\.file\("release/bundle\.sha256"\)') `
+    'patches/build.gradle.kts no longer writes and verifies the bundle in build/release, where the scripts read it.'
+
+# Code only: a comment may say where the bundle used to be read from.
+$libsReaders = New-Object System.Collections.Generic.List[string]
+foreach ($script in @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1' -File)) {
+    if ($script.Name -eq 'test-script-contracts.ps1') { continue }
+    $inBlockComment = $false
+    $number = 0
+    foreach ($line in @(Get-Content -LiteralPath $script.FullName)) {
+        $number++
+        $trimmed = $line.Trim()
+        if ($inBlockComment) {
+            if ($trimmed -like '*#>*') { $inBlockComment = $false }
+            continue
+        }
+        if ($trimmed.StartsWith('<#')) {
+            if ($trimmed -notlike '*#>*') { $inBlockComment = $true }
+            continue
+        }
+        if ($trimmed.StartsWith('#')) { continue }
+        if ($trimmed -match 'build[\\/]+libs') { $libsReaders.Add("$($script.Name):$number") }
+    }
+}
+Assert-True ($libsReaders.Count -eq 0) `
+    ("These script lines read patches/build/libs, which :patches:jar rewrites with the plain jar: " +
+        ($libsReaders -join ', '))
+
+Write-Host '[scripts] release bundle path contracts passed'
+
+# --- tracked files name no machine -----------------------------------------------------------
+#
+# No tracked file names the working-notes folder .gitignore keeps out, the backup folders on the
+# maintainer's machine that share its name, or a phone's adb serial. Four fixture tests fell back
+# to one of those folders, which skipped quietly on every other machine and published this one's
+# layout, and five scripts carried the test phone's serial. .gitignore is the one exception: it
+# has to name what it keeps out. Both patterns are built from parts so this file cannot match
+# itself, and the serial is matched by its shape, a Samsung serial being R5C and eight more
+# letters or digits.
+
+$assistantPattern = 'cla' + 'ude'
+$serialPattern = 'R5' + 'C[A-Z0-9]{8}'
+$machineNames = New-Object System.Collections.Generic.List[string]
+foreach ($scan in @(@('-i', $assistantPattern), @('-E', $serialPattern))) {
+    $hits = @(& git -C $Root grep -n -a $scan[0] -e $scan[1] -- '.' ':!.gitignore' 2>$null)
+    # 1 is git grep's "no match". Anything above it means the search did not run, which must not
+    # read as a clean tree.
+    if ($LASTEXITCODE -gt 1) { throw "git grep could not search the tracked files for $($scan[1])." }
+    foreach ($hit in $hits) { $machineNames.Add([string]$hit) }
+}
+$global:LASTEXITCODE = 0
+Assert-True ($machineNames.Count -eq 0) `
+    ("Tracked files name the maintainer's machine or phone: " + ($machineNames -join '; '))
+
+Write-Host '[scripts] tracked-file machine name contracts passed'
 
 $global:LASTEXITCODE = 0
 Write-Host '[scripts] report, target, Java and guarded replacement contracts passed'

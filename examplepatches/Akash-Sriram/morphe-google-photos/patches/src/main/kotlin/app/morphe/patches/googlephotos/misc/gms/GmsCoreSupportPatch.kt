@@ -16,12 +16,15 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPrefer
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.asSequence
 import app.morphe.util.findMutableMethodOf
+import app.morphe.util.getNode
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import org.w3c.dom.Element
 
 @Suppress("unused")
 val gmsCoreSupportPatch = gmsCoreSupportPatch(
@@ -100,6 +103,10 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
                 "$PHOTOS_PACKAGE_NAME.mars.",
                 "content://$PHOTOS_PACKAGE_NAME.mars.",
             )
+            val marsLibPrefixes = listOf(
+                "com.google.android.libraries.photos.api.mars",
+                "content://com.google.android.libraries.photos.api.mars",
+            )
             classDefForEach { classDef ->
                 val mutableClass by lazy { mutableClassDefBy(classDef) }
 
@@ -115,10 +122,13 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
                                 ?: return@forEachIndexed
 
                         val original = stringRef.string
-                        val transformed = marsPackagePrefixes
-                            .firstOrNull { original.startsWith(it) }
-                            ?.let { original.replace(PHOTOS_PACKAGE_NAME, targetPackageName) }
-                            ?: return@forEachIndexed
+                        val transformed = when {
+                            marsLibPrefixes.any { original.startsWith(it) } ->
+                                original.replace("com.google.android.libraries.photos.api.mars", "$targetPackageName.api.mars")
+                            marsPackagePrefixes.any { original.startsWith(it) } ->
+                                original.replace(PHOTOS_PACKAGE_NAME, targetPackageName)
+                            else -> null
+                        } ?: return@forEachIndexed
 
                         mutableMethod.replaceInstruction(
                             index,
@@ -167,6 +177,12 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
                 "return-void",
             )
         }
+
+        // 6) Hook CurrentLocationMixin.ar(View, Bundle) to eagerly wire location source to map on view creation.
+        CurrentLocationMixinOnViewCreatedFingerprint.method.addInstruction(
+            0,
+            "invoke-static {p0}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->initMapLocation(Ljava/lang/Object;)V",
+        )
     },
 ) {
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
@@ -194,4 +210,37 @@ private fun gmsCoreSupportResourcePatch() =
         toPackageName = MORPHE_PHOTOS_PACKAGE_NAME,
         spoofedPackageSignature = "24bb24c05e47e0aefa68a58a766179d9b613a600",
         screen = DummyPreferenceScreen.SCREEN,
-    )
+    ) {
+        finalize {
+            if (PackageNameConfig.isPackageNameChangeEnabled) {
+                val targetPackageName = PackageNameConfig.effectivePackageName.ifEmpty { MORPHE_PHOTOS_PACKAGE_NAME }
+
+                document("AndroidManifest.xml").use { document ->
+                    val manifest = document.getNode("manifest") as Element
+                    val originalPackageName = manifest.getAttribute("package")
+
+                    manifest.setAttribute("package", targetPackageName)
+
+                    val permissions = manifest.getElementsByTagName("permission").asSequence()
+                    val usesPermissions = manifest.getElementsByTagName("uses-permission").asSequence()
+                    val receiverNotExported = "DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+
+                    (permissions + usesPermissions)
+                        .map { it as Element }
+                        .filter { it.getAttribute("android:name") == "$originalPackageName.$receiverNotExported" }
+                        .forEach { it.setAttribute("android:name", "$targetPackageName.$receiverNotExported") }
+
+                    val providers = manifest.getElementsByTagName("provider").asSequence()
+                    for (node in providers) {
+                        val provider = node as Element
+                        val authorities = provider.getAttribute("android:authorities")
+                        if (authorities.contains("api.mars")) {
+                            provider.setAttribute("android:authorities", "$targetPackageName.api.mars")
+                        } else if (authorities.startsWith("$originalPackageName.")) {
+                            provider.setAttribute("android:authorities", authorities.replace(originalPackageName, targetPackageName))
+                        }
+                    }
+                }
+            }
+        }
+    }

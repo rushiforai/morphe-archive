@@ -211,6 +211,87 @@ public final class Probe extends Instrumentation {
                     case "banner-evidence":
                         Log.i(TAG, "ok banner-evidence\n" + bannerEvidence(intent.getStringExtra("aid")));
                         break;
+                    case "webviews": {
+                        // Which page a WebView is showing and what it was built with. Hosts and
+                        // paths only: a query can carry tokens, so it is never printed.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        StringBuilder out = new StringBuilder();
+                        if (activity != null) {
+                            out.append("activity=").append(activity.getClass().getName());
+                            android.net.Uri data = activity.getIntent() == null ? null : activity.getIntent().getData();
+                            out.append("\nintentData=").append(hostAndPath(data));
+                            if (data != null && data.isHierarchical()) {
+                                String inner = data.getQueryParameter("url");
+                                out.append("\nintentUrlParam=").append(inner == null ? "none"
+                                        : hostAndPath(android.net.Uri.parse(inner)));
+                            }
+                            android.os.Bundle extras = activity.getIntent() == null ? null : activity.getIntent().getExtras();
+                            out.append("\nextraKeys=").append(extras == null ? "none" : String.valueOf(extras.keySet()));
+                        }
+                        for (android.view.View root : windowRoots()) {
+                            java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>();
+                            queue.add(root);
+                            while (!queue.isEmpty()) {
+                                android.view.View view = queue.poll();
+                                if (view instanceof android.webkit.WebView) {
+                                    android.webkit.WebView web = (android.webkit.WebView) view;
+                                    out.append("\nwebview=").append(web.getClass().getName())
+                                            .append(" url=").append(hostAndPath(web.getUrl() == null
+                                                    ? null : android.net.Uri.parse(web.getUrl())))
+                                            .append(" context=");
+                                    Context holder = web.getContext();
+                                    for (int depth = 0; holder != null && depth < 6; depth++) {
+                                        out.append(holder.getClass().getName()).append(" > ");
+                                        if (holder instanceof android.app.Activity) {
+                                            Intent hosting = ((android.app.Activity) holder).getIntent();
+                                            android.net.Uri hostData = hosting == null ? null : hosting.getData();
+                                            out.append("[data=").append(hostAndPath(hostData));
+                                            if (hostData != null && hostData.isHierarchical()
+                                                    && hostData.getQueryParameter("url") != null) {
+                                                out.append(" urlParam=").append(hostAndPath(
+                                                        android.net.Uri.parse(hostData.getQueryParameter("url"))));
+                                            }
+                                            android.os.Bundle held = hosting == null ? null : hosting.getExtras();
+                                            if (held != null) {
+                                                for (String key : held.keySet()) {
+                                                    Object value = held.get(key);
+                                                    out.append(' ').append(key).append('=');
+                                                    String text = value instanceof String ? (String) value : null;
+                                                    out.append(text != null && text.contains("://")
+                                                            ? hostAndPath(android.net.Uri.parse(text))
+                                                            : value == null ? "null" : value.getClass().getName());
+                                                }
+                                            }
+                                            out.append("] ");
+                                        }
+                                        holder = holder instanceof android.content.ContextWrapper
+                                                ? ((android.content.ContextWrapper) holder).getBaseContext() : null;
+                                    }
+                                }
+                                if (view instanceof android.view.ViewGroup) {
+                                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                    for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                                }
+                            }
+                        }
+                        Log.i(TAG, "ok webviews\n" + out);
+                        break;
+                    }
+                    case "series-evidence":
+                        Log.i(TAG, "ok series-evidence\n" + seriesEvidence());
+                        break;
+                    case "marker-corpus": {
+                        // One log line per loaded video, so no line nears logcat's size limit.
+                        String route = intent.getStringExtra("route");
+                        if (route == null || !route.matches("[a-z-]{1,24}")) {
+                            throw new IllegalArgumentException("marker-corpus needs -e route <for-you|profile|following|search>");
+                        }
+                        List<String> lines = markerCorpus(route);
+                        for (String line : lines) Log.i(TAG, "corpus\t" + route + "\t" + line);
+                        Log.i(TAG, "ok marker-corpus " + route + " items=" + lines.size());
+                        break;
+                    }
                     case "commerce-evidence":
                         // Each line is deliberately structural. Strings are represented only by
                         // length, hash and fixed marker booleans so a diagnostic cannot collect
@@ -291,6 +372,92 @@ public final class Probe extends Instrumentation {
                                 .getMethod("report").invoke(null);
                         for (Object line : lines) Log.i(TAG, "hook " + line);
                         Log.i(TAG, "ok hooks " + lines.size());
+                        break;
+                    }
+                    case "hookdetails": {
+                        // The names behind each family's counts: which anchors bound and which
+                        // were missed. "tako AI: 2 found" cannot say whether the comments bar
+                        // guard ran; "comment bar hidden" can. Technical names only, the same
+                        // as the counts above. With -e family <name> only that family prints.
+                        Class<?> status = loader.loadClass(
+                                "app.morphe.extension.shared.diagnostics.HookStatus");
+                        Field familiesField = status.getDeclaredField("FAMILIES");
+                        familiesField.setAccessible(true);
+                        Map<?, ?> families = (Map<?, ?>) familiesField.get(null);
+                        String only = intent.getStringExtra("family");
+                        List<String> names = new ArrayList<>();
+                        for (Object key : families.keySet()) names.add(String.valueOf(key));
+                        Collections.sort(names);
+                        int printed = 0;
+                        for (String name : names) {
+                            if (only != null && !only.equals(name)) continue;
+                            Object family = families.get(name);
+                            Field boundField = family.getClass().getDeclaredField("bound");
+                            boundField.setAccessible(true);
+                            Field orderField = family.getClass().getDeclaredField("order");
+                            orderField.setAccessible(true);
+                            StringBuilder line = new StringBuilder("hookdetail ").append(name)
+                                    .append(" bound=").append(boundField.get(family));
+                            List<?> misses = (List<?>) orderField.get(family);
+                            if (!misses.isEmpty()) {
+                                line.append(" missed=[");
+                                for (int i = 0; i < misses.size(); i++) {
+                                    Object miss = misses.get(i);
+                                    Field keyField = miss.getClass().getDeclaredField("key");
+                                    keyField.setAccessible(true);
+                                    if (i > 0) line.append(", ");
+                                    line.append(keyField.get(miss));
+                                }
+                                line.append(']');
+                            }
+                            Log.i(TAG, line.toString());
+                            printed++;
+                        }
+                        Log.i(TAG, "ok hookdetails " + printed);
+                        break;
+                    }
+                    case "topbar": {
+                        // The comment sheet's server-driven top bar components on the current
+                        // video, by biz type and component name only: which of them TikTok
+                        // offered says whether a guard on one of them could have run at all.
+                        // No text, id or url leaves the phone.
+                        Class<?> author = loader.loadClass(
+                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
+                        Object aweme = author.getMethod("getAweme").invoke(null);
+                        if (aweme == null) throw new IllegalStateException("no current video");
+                        // The resolver reads AwemeCommentConfig.commentTopBarComponent; the
+                        // model's own getCommentTopBarStructList is a different, older list.
+                        Object config = aweme.getClass().getMethod("getCommentConfig").invoke(aweme);
+                        Object components = null;
+                        if (config != null) {
+                            Field field = config.getClass().getField("commentTopBarComponent");
+                            components = field.get(config);
+                        }
+                        Object legacy = aweme.getClass()
+                                .getMethod("getCommentTopBarStructList").invoke(aweme);
+                        StringBuilder out = new StringBuilder("config=")
+                                .append(config == null ? "null" : "present")
+                                .append(" legacyList=").append(legacy == null ? "null" : ((List<?>) legacy).size())
+                                .append(" components=");
+                        if (components == null) {
+                            out.append("null");
+                        } else {
+                            List<?> list = (List<?>) components;
+                            out.append(list.size());
+                            for (Object component : list) {
+                                Object bizType = null, name = null;
+                                try {
+                                    Field field = component.getClass().getField("bizType");
+                                    bizType = field.get(component);
+                                } catch (NoSuchFieldException ignored) { }
+                                try {
+                                    Field field = component.getClass().getField("name");
+                                    name = field.get(component);
+                                } catch (NoSuchFieldException ignored) { }
+                                out.append("\n  bizType=").append(bizType).append(" name=").append(name);
+                            }
+                        }
+                        Log.i(TAG, "ok topbar\n" + out);
                         break;
                     }
                     case "doubletap": {
@@ -857,6 +1024,282 @@ public final class Probe extends Instrumentation {
                     + "\nnativeGetterInput=1\nnativeGetterRemaining=" + remaining.size()
                     + "\nexpectedPublicVideo=" + (expectedId == null ? "not checked" :
                     String.valueOf(expectedId.equals(model.getMethod("getAid").invoke(aweme))));
+        }
+
+        private static String hostAndPath(android.net.Uri uri) {
+            if (uri == null) return "null";
+            return uri.getScheme() + "://" + uri.getHost() + uri.getPath();
+        }
+
+        /**
+         * Which paid-series markers the current video carries. Strings are reported by length and
+         * by whether they are a bare number, never by content, so no collection name is recorded.
+         */
+        private String seriesEvidence() throws Exception {
+            Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                    .getMethod("getAweme").invoke(null);
+            if (aweme == null) return "aweme=null";
+            Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
+            Object info = model.getMethod("getMPaidContentInfo").invoke(aweme);
+            StringBuilder out = new StringBuilder("isPaidContent=" + model.getMethod("isPaidContent").invoke(aweme));
+            out.append("\ninfoPresent=").append(info != null);
+            if (info != null) {
+                for (String getter : new String[] {"getPaidCollectionId", "getCategory", "getDisplayPrompt",
+                        "isPaidCollectionIntro", "isLimitedFreeShortDrama", "getShowSeriesPurchaseLabel",
+                        "getShouldShowPreview", "getHasPurchased"}) {
+                    out.append('\n').append(getter).append('=').append(info.getClass().getMethod(getter).invoke(info));
+                }
+                for (String getter : new String[] {"getCollectionName", "getEpisodeNumber", "getMiniDramaInfo",
+                        "getBottomButtonText", "getVoucherId"}) {
+                    Object value = info.getClass().getMethod(getter).invoke(info);
+                    String text = value == null ? null : value.toString();
+                    out.append('\n').append(getter).append('=').append(text == null ? "null"
+                            : "length " + text.length() + (text.matches("-?[0-9]+") ? " number " + text : ""));
+                }
+                for (String getter : new String[] {"getPrice", "getCoverUrl", "getMiniDramaCardInfo"}) {
+                    out.append('\n').append(getter).append("Present=")
+                            .append(info.getClass().getMethod(getter).invoke(info) != null);
+                }
+            }
+            try {
+                Object filter = loader.loadClass(
+                        "app.morphe.extension.tiktok.feedfilter.ContentMarkerFilters$SeriesFilter")
+                        .getConstructor().newInstance();
+                Method filtered = filter.getClass().getMethod("getFiltered", model);
+                out.append("\nclassifiedSeries=").append(filtered.invoke(filter, aweme));
+            } catch (Throwable unavailable) {
+                out.append("\nclassifiedSeries=unavailable ").append(unavailable.getClass().getSimpleName());
+            }
+            out.append("\nhideSeries=").append(valueOf(find("hide_series")));
+            // The playlist filter reads strings the same way, so its defaults are recorded too.
+            Object mix = model.getMethod("getMixInfo").invoke(aweme);
+            out.append("\nmixPresent=").append(mix != null);
+            if (mix != null) {
+                for (String name : new String[] {"mixId", "mixName"}) {
+                    Object value = null;
+                    for (Class<?> type = mix.getClass(); type != null && value == null; type = type.getSuperclass()) {
+                        try {
+                            Field field = type.getDeclaredField(name);
+                            field.setAccessible(true);
+                            value = field.get(mix);
+                        } catch (NoSuchFieldException absent) {
+                            // keep climbing
+                        }
+                    }
+                    String text = value == null ? null : value.toString();
+                    out.append('\n').append(name).append('=').append(text == null ? "null"
+                            : "length " + text.length() + (text.matches("-?[0-9]+") && text.length() < 3 ? " number " + text : ""));
+                }
+            }
+            try {
+                Object filter = loader.loadClass(
+                        "app.morphe.extension.tiktok.feedfilter.ContentMarkerFilters$PlaylistFilter")
+                        .getConstructor().newInstance();
+                out.append("\nclassifiedPlaylist=")
+                        .append(filter.getClass().getMethod("getFiltered", model).invoke(filter, aweme));
+            } catch (Throwable unavailable) {
+                out.append("\nclassifiedPlaylist=unavailable ").append(unavailable.getClass().getSimpleName());
+            }
+            return out.toString();
+        }
+
+        /**
+         * The marker fields the content filters read, for every video TikTok has loaded on the
+         * current screen, one line each: a key for dropping repeats, the verdicts of the live
+         * filters, and the shape of every field they read.
+         *
+         * <p>Only shapes leave the phone. Booleans stay; numbers stay below 10,000 and become
+         * plus or minus 10,000 above it, so a zero stays a zero and an id stays non-zero without
+         * being an id; text becomes its trimmed length, or a blank marker; a bare numeral stays
+         * as written up to six digits and becomes its digit count beyond that. The key is the
+         * first 12 hex digits of a SHA-256 of the video id, which the host drops before anything
+         * is committed. Every field is read through Hushfeed's own Reflect, getter first and
+         * field second, which is exactly the read the filters make.
+         */
+        private List<String> markerCorpus(String route) throws Exception {
+            android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                    .getMethod("getActivity").invoke(null);
+            if (activity == null) return Collections.singletonList("{\"error\":\"no activity\"}");
+            Class<?> model = loader.loadClass("com.ss.android.ugc.aweme.feed.model.Aweme");
+            java.util.IdentityHashMap<Object, Boolean> seen = new java.util.IdentityHashMap<>();
+            List<Object> videos = new ArrayList<>();
+            List<android.view.View> views = new ArrayList<>();
+            views.add(activity.getWindow().getDecorView());
+            for (int index = 0; index < views.size(); index++) {
+                android.view.View view = views.get(index);
+                if (view instanceof android.view.ViewGroup) {
+                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                    for (int child = 0; child < group.getChildCount(); child++) views.add(group.getChildAt(child));
+                }
+                Object adapter = null;
+                try {
+                    adapter = view.getClass().getMethod("getAdapter").invoke(view);
+                } catch (NoSuchMethodException none) {
+                    // not an adapter view
+                }
+                if (adapter != null) collectVideos(adapter, model, seen, videos);
+            }
+            // The feed pager's adapter does not hold its list where a walk can reach it, so the
+            // videos Hushfeed saw bound (up to 16, CurrentVideoAuthor.RECENT) are added as well.
+            try {
+                Field recent = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                        .getDeclaredField("RECENT");
+                recent.setAccessible(true);
+                Map<?, ?> map = (Map<?, ?>) recent.get(null);
+                List<Object> items;
+                synchronized (map) {
+                    items = new ArrayList<>(map.values());
+                }
+                for (Object item : items) {
+                    Field aweme = item.getClass().getDeclaredField("aweme");
+                    aweme.setAccessible(true);
+                    Object video = aweme.get(item);
+                    if (model.isInstance(video) && seen.put(video, Boolean.TRUE) == null) videos.add(video);
+                }
+            } catch (Throwable unavailable) {
+                Log.w(TAG, "marker-corpus: recent binds unavailable, adapters only", unavailable);
+            }
+            String[] filterNames = {"AiGeneratedFilter", "PaidPartnershipFilter", "SeriesFilter", "PlaylistFilter"};
+            String[] markerNames = {"ai", "paid", "series", "playlist"};
+            Object[] filters = new Object[filterNames.length];
+            for (int i = 0; i < filterNames.length; i++) {
+                filters[i] = loader.loadClass("app.morphe.extension.tiktok.feedfilter.ContentMarkerFilters$"
+                        + filterNames[i]).getConstructor().newInstance();
+            }
+            Method property = loader.loadClass("app.morphe.extension.tiktok.blockauthor.Reflect")
+                    .getMethod("property", Object.class, String.class, String.class);
+            java.security.MessageDigest sha = java.security.MessageDigest.getInstance("SHA-256");
+            List<String> lines = new ArrayList<>();
+            for (Object video : videos) {
+                JSONArray markers = new JSONArray();
+                for (int i = 0; i < filters.length; i++) {
+                    Object matched = filters[i].getClass().getMethod("getFiltered", model).invoke(filters[i], video);
+                    if (Boolean.TRUE.equals(matched)) markers.put(markerNames[i]);
+                }
+                JSONObject line = new JSONObject();
+                Object aid = model.getMethod("getAid").invoke(video);
+                byte[] digest = sha.digest(String.valueOf(aid).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                StringBuilder key = new StringBuilder();
+                for (int i = 0; i < 6; i++) key.append(String.format(Locale.ROOT, "%02x", digest[i] & 0xff));
+                line.put("key", key.toString());
+                line.put("markers", markers);
+                line.put("shape", markerShape(video, property));
+                lines.add(line.toString());
+            }
+            return lines;
+        }
+
+        /** Breadth-first through an adapter's own objects, at most four levels, for loaded videos. */
+        private static void collectVideos(Object root, Class<?> model,
+                java.util.IdentityHashMap<Object, Boolean> seen, List<Object> videos) {
+            List<Object> level = new ArrayList<>();
+            level.add(root);
+            for (int depth = 0; depth < 5 && !level.isEmpty(); depth++) {
+                List<Object> next = new ArrayList<>();
+                for (Object node : level) {
+                    if (node == null || seen.put(node, Boolean.TRUE) != null || seen.size() > 50_000) continue;
+                    if (model.isInstance(node)) {
+                        videos.add(node);
+                        continue;
+                    }
+                    if (node instanceof Collection) {
+                        next.addAll((Collection<?>) node);
+                    } else if (node instanceof Map) {
+                        next.addAll(((Map<?, ?>) node).values());
+                    } else if (node.getClass().isArray() && !node.getClass().getComponentType().isPrimitive()) {
+                        for (int i = 0; i < Array.getLength(node); i++) next.add(Array.get(node, i));
+                    } else if (depth < 4 && worthOpening(node)) {
+                        for (Class<?> type = node.getClass(); type != null && worthOpening(type.getName()); type = type.getSuperclass()) {
+                            for (Field field : type.getDeclaredFields()) {
+                                if (Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                                try {
+                                    field.setAccessible(true);
+                                    next.add(field.get(node));
+                                } catch (Throwable unreadable) {
+                                    // skip it
+                                }
+                            }
+                        }
+                    }
+                }
+                level = next;
+            }
+        }
+
+        /** TikTok's own model and adapter classes, never views, contexts or the platform. */
+        private static boolean worthOpening(Object node) {
+            if (node instanceof android.view.View || node instanceof Context) return false;
+            return worthOpening(node.getClass().getName());
+        }
+
+        private static boolean worthOpening(String name) {
+            return name.startsWith("com.ss.") || name.startsWith("com.bytedance.") || name.startsWith("X.")
+                    || name.startsWith("androidx.recyclerview.") || name.startsWith("androidx.viewpager");
+        }
+
+        /** The fields ContentMarkerFilters reads, as privacy-safe typed tokens. */
+        private static JSONObject markerShape(Object video, Method property) throws Exception {
+            JSONObject shape = new JSONObject();
+            shape.put("aigcInfo", struct(read(property, video, "getAigcInfo", "aigcInfo"), property,
+                    "getAIGCLabelType", "aigcLabelType"));
+            shape.put("moderationAigcInfo", struct(read(property, video, "getModerationAigcInfo", "moderationAigcInfo"),
+                    property, "getModerationAigcLabelType", "moderationAigcLabelType",
+                    "getModerationUserLabelStatus", "moderationUserLabelStatus"));
+            shape.put("brandContentAccounts", token(read(property, video, "getBrandContentAccounts", "brandContentAccounts")));
+            shape.put("commerceVideoAuthInfo", struct(read(property, video, "getCommerceVideoAuthInfo", "commerceVideoAuthInfo"),
+                    property, "isBrandedContent", "isBrandedContent", "isBrandOrganicContent", "isBrandOrganicContent",
+                    "getBrandedContentType", "brandedContentType", "getBrandOrganicType", "brandOrganicType",
+                    "getEcSearchBoBcLabelText", "ecSearchBoBcLabelText", "isCommerce", "isCommerce"));
+            shape.put("commercialVideoInfo", token(read(property, video, "getCommercialVideoInfo", "commercialVideoInfo")));
+            shape.put("isPaidContent", token(read(property, video, "isPaidContent", "isPaidContent")));
+            shape.put("mPaidContentInfo", struct(read(property, video, "getMPaidContentInfo", "mPaidContentInfo"),
+                    property, "getPaidCollectionId", "paidCollectionId", "getCollectionName", "collectionName",
+                    "getEpisodeNumber", "episodeNumber", "isPaidCollectionIntro", "isPaidCollectionIntro"));
+            shape.put("mixInfo", struct(read(property, video, "getMixInfo", "mixInfo"), property,
+                    "getMixId", "mixId", "getMixName", "mixName"));
+            return shape;
+        }
+
+        private static Object read(Method property, Object target, String getter, String field) throws Exception {
+            return property.invoke(null, target, getter, field);
+        }
+
+        /** A struct as {field: token}, from getter and field name pairs, or JSON null when absent. */
+        private static Object struct(Object value, Method property, String... pairs) throws Exception {
+            if (value == null) return JSONObject.NULL;
+            JSONObject out = new JSONObject();
+            for (int i = 0; i < pairs.length; i += 2) out.put(pairs[i + 1], token(read(property, value, pairs[i], pairs[i + 1])));
+            return out;
+        }
+
+        /** One value as a typed token that keeps what the filters test and drops what identifies. */
+        private static Object token(Object value) throws Exception {
+            if (value == null) return JSONObject.NULL;
+            JSONObject out = new JSONObject();
+            if (value instanceof Boolean) {
+                out.put("b", value);
+            } else if (value instanceof Number) {
+                long number = ((Number) value).longValue();
+                out.put("n", Math.abs(number) >= 10_000L ? Long.signum(number) * 10_000L : number);
+            } else if (value instanceof CharSequence) {
+                String text = value.toString().trim();
+                if (text.isEmpty()) {
+                    out.put("sblank", value.toString().length());
+                } else if (text.matches("-?[0-9]+")) {
+                    int digits = text.startsWith("-") ? text.length() - 1 : text.length();
+                    if (digits <= 6) out.put("s", text);
+                    else out.put("snum", text.startsWith("-") ? -digits : digits);
+                } else {
+                    out.put("slen", text.length());
+                }
+            } else if (value instanceof Collection) {
+                out.put("c", ((Collection<?>) value).size());
+            } else if (value instanceof Map) {
+                out.put("m", ((Map<?, ?>) value).size());
+            } else {
+                out.put("o", 1);
+            }
+            return out;
         }
 
         /** Finds the fixed disclosure label and reports only its native view structure. */

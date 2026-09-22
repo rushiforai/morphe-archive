@@ -6,7 +6,6 @@ import java.nio.ByteOrder
 import java.util.zip.ZipFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 /**
@@ -24,7 +23,6 @@ class StrippedLibrariesAreLeavesTest {
     @Test
     fun `no emptied library is needed by one that stays`() {
         val apks = fixtures()
-        assumeTrue("no TikTok fixture on this machine", apks.isNotEmpty())
         val stripped = strippedLibraryNames()
         assertTrue("the scan found too few emptied libraries to mean anything: $stripped", stripped.size > 10)
 
@@ -57,11 +55,7 @@ class StrippedLibrariesAreLeavesTest {
     }
 
     /** Every TikTok APK in the fixture directory, the declared target and the retained newer builds. */
-    private fun fixtures(): List<File> {
-        val directory = File(System.getenv("HUSHFEED_FIXTURE_DIR") ?: "C:/_claude-backups/tiktok-fixture")
-        if (!directory.isDirectory) return emptyList()
-        return directory.listFiles()?.filter { it.isFile && it.extension == "apk" }?.sortedBy { it.name } ?: emptyList()
-    }
+    private fun fixtures(): List<File> = Fixtures.apks()
 
     /** Library name to the names it declares as DT_NEEDED, for every arm64 library in the APK. */
     private fun neededGraph(apk: File): Map<String, List<String>> {

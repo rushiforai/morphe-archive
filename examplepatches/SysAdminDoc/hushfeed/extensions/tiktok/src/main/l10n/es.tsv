@@ -379,7 +379,7 @@ Hide TikTok Shop	Ocultar TikTok Shop
 Hide TikTok Shop posts from the feed.	Ocultar las publicaciones de TikTok Shop en el feed.
 Hide TikTok Shop updates and coupon messages.	Ocultar las novedades de TikTok Shop y los mensajes de cupones.
 Hide the Tako chat	Ocultar el chat de Tako
-Hide TikTok's exposed quick emoji row in supported comment inputs.	Ocultar la fila de emojis rápidos que TikTok deja a la vista en los campos de comentario compatibles.
+Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.	Oculta la fila de emojis rápidos y las sugerencias automáticas de stickers que aparecen mientras escribes. Los botones de emojis y stickers siguen funcionando.
 Hide activity	Ocultar la actividad
 Hide activity status	Ocultar el estado de actividad
 Hide archive	Ocultar el archivo
@@ -408,7 +408,7 @@ Hide photo posts	Ocultar las publicaciones de fotos
 Hide picture comments	Ocultar los comentarios con imagen
 Hide playlist videos	Ocultar los vídeos de listas de reproducción
 Hide promotional music	Ocultar la música promocional
-Hide quick comment reactions	Ocultar las reacciones rápidas a los comentarios
+Hide comment typing suggestions	Ocultar sugerencias al escribir comentarios
 Hide rows by title	Ocultar filas por título
 Hide the Inbox search button	Ocultar el botón de búsqueda de la bandeja de entrada
 Hide suggestions on the search page	Ocultar sugerencias en la página de búsqueda
@@ -428,7 +428,7 @@ Hide LIVE videos from the feed.	Ocultar vídeos LIVE del feed.
 Hide the Message requests row.	Ocultar la fila de Solicitudes de mensaje.
 Hide the New followers row.	Ocultar la fila de Nuevos seguidores.
 Hide the Send to row	Ocultar la fila Enviar a
-Hide the Tako AI bubble above the profile button and the Ask bar under videos.	Ocultar la burbuja de Tako AI encima del botón de perfil y la barra de Tako debajo de los videos.
+Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments.	Ocultar la burbuja de Tako AI encima del botón de perfil, la barra de Tako debajo de los videos, el botón Preguntar a Tako en la página de búsqueda y la barra de Tako encima de los comentarios.
 Hide the Tako assistant conversation in Inbox.	Ocultar la conversación del asistente Tako en Recibidos.
 Hide the activity status control in the Inbox header.	Ocultar el control de estado de actividad en la cabecera de la bandeja.
 Hide the add people icon	Ocultar el icono de añadir personas
@@ -884,7 +884,7 @@ Stop a long press on Share from opening TikTok's quick share action.	Impedir que
 Stop feature gate recording	Parar de grabar los interruptores
 Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.	Parar la animación de marca que sale sobre los comentarios cuando lo que alguien escribió coincide con el disparador de un anunciante.
 Stop the bubble that asks you to share a video with friends after you like it.	Detiene la burbuja que pide compartir un video con amigos tras darle me gusta.
-Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so leave this off unless you want them cut off too.	Impide que el navegador integrado entregue el puente de JavaScript de TikTok a las páginas que carga. La mayoría de las páginas web del propio TikTok necesitan ese puente, incluidas la caja de la tienda y la página del CAPTCHA, así que déjalo apagado a menos que quieras desconectarlas también.
+Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. TikTok's own pages need that bridge too. With this on, Activity center and Watch history stop responding, and the shop checkout and the CAPTCHA page break. Leave it off unless you want those cut off as well.	Impide que el navegador integrado entregue el puente de JavaScript de TikTok a las páginas que carga. Las páginas del propio TikTok también necesitan ese puente. Con esto activado, el Centro de actividades y el Historial de reproducciones dejan de responder, y la caja de la tienda y la página del CAPTCHA fallan. Déjalo apagado a menos que quieras desconectarlas también.
 Stop video looping	Parar la repetición de los vídeos
 Stop videos at the end instead of replaying them.	Parar los vídeos al final en vez de volver a reproducirlos.
 Stopped after dismissing %1$s suggested accounts	Se detuvo tras descartar %1$s cuentas sugeridas
@@ -1159,3 +1159,9 @@ Location-tagged videos	Videos con ubicación
 Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. Text, Reply and other controls keep their own space.	Amplía el área táctil del corazón hacia el espacio vacío cercano. El icono y el espacio entre filas no cambian. El texto, Responder y los demás controles conservan su propia área.
 Start with comments. Hide the comment count, sort and close buttons, plus the suggestion area above them. Use Back or swipe down to close comments.	Empieza directamente con los comentarios. Oculta el número de comentarios, los botones de ordenar y cerrar y el área de sugerencias de arriba. Usa Atrás o desliza hacia abajo para cerrar los comentarios.
 Hide TikTok's "Search: ..." banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.	Oculta el banner «Buscar: ...» de TikTok sobre el número de comentarios. No oculta los comentarios ni el cuadro de búsqueda de comentarios de Hushfeed.
+Hide the Report button on videos	Ocultar el botón Denunciar en los videos
+Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.	Oculta el botón con la bandera que TikTok pone encima de la foto del creador en algunas regiones. Puedes seguir denunciando un video desde el menú de compartir.
+Hide search rewards	Ocultar las recompensas de búsqueda
+Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.	Oculta el aviso de puntos debajo del cuadro de búsqueda y el contador de monedas que flota sobre los resultados, que TikTok muestra en algunas regiones. La búsqueda funciona como antes.
+%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.	%1$s ocultó todo lo que TikTok envió, %2$d veces seguidas. Desactívalo si no era lo que querías.
+Show the switch	Mostrar el ajuste

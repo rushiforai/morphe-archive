@@ -6,13 +6,8 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.Typeface;
 import android.os.Build;
 import android.preference.Preference;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.view.View;
 
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -76,22 +71,14 @@ public class HookStatusPreference extends Preference {
                     ? L10n.t(context, "One area was checked and everything it needs is here.")
                     : L10n.f(context, "%1$d areas were checked and everything they need is here.",
                             report.size());
-            return toned("✓ ", SettingsUi.okColor(), text);
+            return SettingsUi.tonedSummary("✓ ", SettingsUi.okColor(), text);
         }
         lastOk = Boolean.FALSE;
         String surfaces = String.join(", ", broken);
         String text = L10n.f(context, "Something is missing from %1$s. Tap for the whole report.",
                 surfaces);
-        return toned(SettingsUi.ATTENTION_GLYPH + " ", SettingsUi.attentionColor(), text);
-    }
-
-    private static CharSequence toned(String glyph, int color, String body) {
-        SpannableString result = new SpannableString(glyph + body);
-        result.setSpan(new ForegroundColorSpan(color), 0, glyph.length(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        result.setSpan(new StyleSpan(Typeface.BOLD), 0, glyph.length(),
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        return result;
+        return SettingsUi.tonedSummary(
+                SettingsUi.ATTENTION_GLYPH + " ", SettingsUi.attentionColor(), text);
     }
 
     private void showReport() {

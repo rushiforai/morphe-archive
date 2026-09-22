@@ -1,0 +1,57 @@
+package app.morphe
+
+import com.google.gson.JsonParser
+import java.io.File
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Every shipped patch carries one category from the compact taxonomy Morphe Manager groups by.
+ *
+ * <p>Manager 1.30.0 sections the patch list by category when the reader asks it to, and a patch
+ * with none lands in an ungrouped remainder at the bottom. The generated catalog is what the
+ * README and the site read, so it is held here as well as the bundle: a declaration without a
+ * category, a misspelt one, or a catalog generated before the declarations landed all fail.
+ */
+class PatchCategoriesTest {
+    /** One name per group, and no more than fits on a phone screen without scrolling. */
+    private val taxonomy = setOf(
+        "Feed", "Playback", "Comments", "Downloads", "Interaction",
+        "Inbox", "Privacy", "Search", "Settings", "Performance",
+    )
+
+    private fun shippedPatches() = run {
+        val catalog = File("../patches-list.json").takeIf { it.isFile } ?: File("patches-list.json")
+        assertTrue("could not find the patch list from ${File(".").absolutePath}", catalog.isFile)
+        JsonParser.parseString(catalog.readText()).asJsonObject.getAsJsonArray("patches")
+            .map { it.asJsonObject }
+    }
+
+    @Test
+    fun `every shipped patch has one category from the taxonomy`() {
+        val patches = shippedPatches()
+        assertTrue("the catalog holds no patches", patches.size > 50)
+        val missing = patches.filter { patch ->
+            val category = patch.get("category")
+            category == null || category.isJsonNull || category.asString.isBlank()
+        }.map { it.get("name").asString }
+        assertEquals("patches shipped with no category", emptyList<String>(), missing.sorted())
+        val unknown = patches.filter { it.get("category").asString !in taxonomy }
+            .map { "${it.get("name").asString} (${it.get("category").asString})" }
+        assertEquals("patches shipped with a category outside the taxonomy",
+            emptyList<String>(), unknown.sorted())
+    }
+
+    @Test
+    fun `the catalog order is stable and every group is used`() {
+        val patches = shippedPatches()
+        val names = patches.map { it.get("name").asString }
+        // Natural string order, capitals first: AMOLED dark theme sorts before Advanced downloads.
+        assertEquals("the generator sorts by name, so a diff only ever shows real changes",
+            names.sorted(), names)
+        val used = patches.map { it.get("category").asString }.toSet()
+        assertEquals("a taxonomy name no patch uses is a heading Manager would never show",
+            emptyList<String>(), (taxonomy - used).sorted())
+    }
+}

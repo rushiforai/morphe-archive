@@ -35,6 +35,7 @@ val commentSortControlsPatch = bytecodePatch(
     // nobody here has watched it on a device yet.
     default = false,
 ) {
+    category("Comments")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

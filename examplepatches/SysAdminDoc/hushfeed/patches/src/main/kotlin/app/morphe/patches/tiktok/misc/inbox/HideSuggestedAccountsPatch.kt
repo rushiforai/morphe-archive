@@ -40,6 +40,7 @@ val hideSuggestedAccountsPatch = bytecodePatch(
         "profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
+    category("Inbox")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

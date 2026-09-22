@@ -18,6 +18,7 @@ import app.morphe.patches.music.video.information.musicVideoIdHook
 import app.morphe.patches.music.video.information.musicVideoInformationPatch
 import app.morphe.patches.shared.layout.returnyoutubedislike.DislikeFingerprint
 import app.morphe.patches.shared.layout.returnyoutubedislike.EndpointServiceNameFingerprint
+import app.morphe.patches.shared.layout.returnyoutubedislike.hookLikeDislikeButtons
 import app.morphe.patches.shared.layout.returnyoutubedislike.likeEndpointParserFingerprint
 import app.morphe.patches.shared.layout.returnyoutubedislike.requestParameterCheckFingerprint
 import app.morphe.patches.shared.misc.settings.preference.NonInteractivePreference
@@ -38,7 +39,6 @@ private val returnYouTubeDislikeResourcePatch = resourcePatch {
         PreferenceScreen.RETURN_YOUTUBE_DISLIKE.addPreferences(
             SwitchPreference("morphe_ryd_enabled"),
             SwitchPreference("morphe_ryd_dislike_percentage", summary = true),
-            SwitchPreference("morphe_ryd_compact_layout", summary = true),
             SwitchPreference("morphe_ryd_estimated_like", summary = true),
             SwitchPreference("morphe_ryd_toast_on_connection_error", summary = true),
             NonInteractivePreference(
@@ -120,5 +120,7 @@ val returnYouTubeDislikePatch = bytecodePatch(
         musicVideoIdHook("$EXTENSION_CLASS->newVideoLoaded(Ljava/lang/String;)V")
 
         // endregion
+
+        hookLikeDislikeButtons(EXTENSION_CLASS)
     }
 }

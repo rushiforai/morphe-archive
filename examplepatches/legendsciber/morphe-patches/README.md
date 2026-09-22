@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.26.1](https://github.com/legendsciber/morphe-patches/releases/tag/v1.26.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.28.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.28.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 Toolbox for Minecraft PE&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -115,7 +115,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [World Soccer Champs Anti-Tamper Bypass](#world-soccer-champs-anti-tamper-bypass) | Disables all Pairip anti-tamper checks: native VMRunner, signature verification, anti-hijack, and Play Store redirect. |  |
+| [World Soccer Champs Anti-Tamper Bypass](#world-soccer-champs-anti-tamper-bypass) | Disables all Pairip anti-tamper checks including CRC32 integrity verification. |  |
 | [World Soccer Champs Free IAP](#world-soccer-champs-free-iap) | All in-app purchases are granted instantly and free without Google Play billing. |  |
 
 </details>

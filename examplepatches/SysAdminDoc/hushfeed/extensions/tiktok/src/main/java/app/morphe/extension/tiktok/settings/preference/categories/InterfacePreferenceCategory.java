@@ -202,6 +202,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Hide the Report button on videos",
+                    "Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.",
+                    Settings.HIDE_FEED_REPORT_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Hide location labels",
                     "Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.",
                     Settings.HIDE_LOCATION_LABELS

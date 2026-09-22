@@ -12,8 +12,12 @@ val travianNotifierPatch = bytecodePatch(
     description = "Notifies you when a building upgrade or troop training queue finishes, with " +
         "the building/unit name, level, and village, and warns you about incoming attacks and " +
         "raids (who, from where, and when they arrive) with a second warning about a minute " +
-        "before they land, and tells you when reinforcements or your own returning troops " +
-        "arrive. Uses the session you're already logged in " +
+        "before they land, tells you when an attack was called off, warns you when a warehouse " +
+        "or granary is about to fill up, tells you when your hero has a new adventure, is back home, " +
+        "died or is low on health, and tells you " +
+        "when reinforcements or your own returning troops " +
+        "arrive. Tapping a notification opens the game, and a second \"Travian Tools\" icon opens a " +
+        "home screen where you switch each type of notification on or off, see what is building and training, and see your recent ones. Uses the session you're already logged in " +
         "with in the game — no separate login, no password ever handled by this patch. Checks " +
         "run quietly in the background: one is scheduled for just after each build/training is " +
         "due to finish, plus a regular check every 5 minutes (Android may delay background " +

@@ -61,7 +61,7 @@ if (-not $apk) {
         'The heap a patch needs depends on the APK, so there is no sensible default.')
 }
 $version = Get-BundleVersion -Root $root
-$bundle = Get-Item -LiteralPath (Join-Path $root "patches/build/libs/patches-$version.mpp") -ErrorAction SilentlyContinue
+$bundle = Get-Item -LiteralPath (Get-ReleaseBundlePath -Root $root -Version $version) -ErrorAction SilentlyContinue
 if ($null -eq $bundle) { throw "No bundle for version $version. Run :patches:buildAndroid first." }
 if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) { throw "Desktop CLI jar not found: $jar" }
 if (-not (Test-Path -LiteralPath $apk -PathType Leaf)) { throw "APK not found: $apk" }

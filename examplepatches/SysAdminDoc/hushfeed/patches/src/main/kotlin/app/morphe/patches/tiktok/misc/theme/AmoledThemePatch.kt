@@ -19,6 +19,7 @@ val amoledThemePatch = resourcePatch(
     description = "Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
     val background by colorOption(
         key = "backgroundColor",

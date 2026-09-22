@@ -68,6 +68,7 @@ val hideFeedSearchButtonPatch = bytecodePatch(
     description = "Hide the search button at the top right of video feeds. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

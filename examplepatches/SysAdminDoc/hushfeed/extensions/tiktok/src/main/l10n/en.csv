@@ -29,6 +29,7 @@ source,target
 %1$s has an invalid value. %2$s,%1$s has an invalid value. %2$s
 %1$s has no supported override boundary in this Lab build.,%1$s has no supported override boundary in this Lab build.
 "%1$s has type %2$s, but the file says %3$s.","%1$s has type %2$s, but the file says %3$s."
+"%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.","%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted."
 %1$s is already hidden,%1$s is already hidden
 "%1$s is not a country code, so no video would ever match it. Use two letters, like GB, IE or US.","%1$s is not a country code, so no video would ever match it. Use two letters, like GB, IE or US."
 %1$s is not in this Lab catalog.,%1$s is not in this Lab catalog.
@@ -396,7 +397,6 @@ Hide TikTok Shop,Hide TikTok Shop
 Hide TikTok Shop posts from the feed.,Hide TikTok Shop posts from the feed.
 Hide TikTok Shop updates and coupon messages.,Hide TikTok Shop updates and coupon messages.
 "Hide TikTok's ""Search: ..."" banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.","Hide TikTok's ""Search: ..."" banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box."
-Hide TikTok's exposed quick emoji row in supported comment inputs.,Hide TikTok's exposed quick emoji row in supported comment inputs.
 Hide activity,Hide activity
 Hide activity status,Hide activity status
 "Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.","Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships."
@@ -406,6 +406,7 @@ Hide bottom tabs TikTok adds later unless you allow them.,Hide bottom tabs TikTo
 Hide buttons in the right column,Hide buttons in the right column
 Hide comment polls,Hide comment polls
 Hide comment popup ads,Hide comment popup ads
+Hide comment typing suggestions,Hide comment typing suggestions
 Hide comments made of an image or a sticker instead of words.,Hide comments made of an image or a sticker instead of words.
 "Hide comments that contain any of the words below, or that come from the accounts below.","Hide comments that contain any of the words below, or that come from the accounts below."
 Hide controls after each video starts. Tap to restore them.,Hide controls after each video starts. Tap to restore them.
@@ -427,9 +428,9 @@ Hide picture comments,Hide picture comments
 "Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged.","Hide place badges on videos, including cards with multiple places. Videos and your location permissions stay unchanged."
 Hide playlist videos,Hide playlist videos
 Hide promotional music,Hide promotional music
-Hide quick comment reactions,Hide quick comment reactions
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.,Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.
 Hide rows by title,Hide rows by title
+Hide search rewards,Hide search rewards
 Hide search suggestions above comments,Hide search suggestions above comments
 Hide share actions,Hide share actions
 Hide sharing apps,Hide sharing apps
@@ -451,8 +452,9 @@ Hide the LIVE button,Hide the LIVE button
 Hide the LIVE button in the top left corner of the feed.,Hide the LIVE button in the top left corner of the feed.
 Hide the Message requests row.,Hide the Message requests row.
 Hide the New followers row.,Hide the New followers row.
+Hide the Report button on videos,Hide the Report button on videos
 Hide the Send to row,Hide the Send to row
-Hide the Tako AI bubble above the profile button and the Ask bar under videos.,Hide the Tako AI bubble above the profile button and the Ask bar under videos.
+"Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments.","Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments."
 Hide the Tako assistant conversation in Inbox.,Hide the Tako assistant conversation in Inbox.
 Hide the Tako bubble,Hide the Tako bubble
 Hide the Tako chat,Hide the Tako chat
@@ -462,6 +464,7 @@ Hide the add people icon in the Inbox header.,Hide the add people icon in the In
 Hide the caption,Hide the caption
 Hide the description under the creator's name on the feed.,Hide the description under the creator's name on the feed.
 Hide the event badge,Hide the event badge
+Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.,Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.
 Hide the floating promotional badge over the feed.,Hide the floating promotional badge over the feed.
 Hide the follow button on the feed,Hide the follow button on the feed
 Hide the friend recommendation card and the other cards TikTok slots between videos.,Hide the friend recommendation card and the other cards TikTok slots between videos.
@@ -471,8 +474,10 @@ Hide the music line,Hide the music line
 Hide the playlist bar,Hide the playlist bar
 Hide the playlist bar along the bottom of videos that belong to a series.,Hide the playlist bar along the bottom of videos that belong to a series.
 Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.,Hide the plus button under the creator's picture in the right column. Ticking Avatar and follow button above hides the picture with it.
+"Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.","Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before."
 Hide the purple rewards button beside Add friends on your profile.,Hide the purple rewards button beside Add friends on your profile.
 Hide the question cards TikTok slides over a video near its end.,Hide the question cards TikTok slides over a video near its end.
+Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.,Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.
 Hide the rewards shortcut,Hide the rewards shortcut
 Hide the right column,Hide the right column
 Hide the row of story avatars across the top of the Inbox.,Hide the row of story avatars across the top of the Inbox.
@@ -873,6 +878,7 @@ Show the hide button on videos,Show the hide button on videos
 Show the progress bar,Show the progress bar
 Show the progress bar thumbnail,Show the progress bar thumbnail
 "Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.","Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments."
+Show the switch,Show the switch
 Show the whole Activity and New followers lists instead of stopping at a View all button.,Show the whole Activity and New followers lists instead of stopping at a View all button.
 "Show the whole video instead of cropping it to the window. Nothing changes on a tall phone, where it already fits. On a folding phone opened up, a squarer screen or a split view the sides or the ends stop being cut off.","Show the whole video instead of cropping it to the window. Nothing changes on a tall phone, where it already fits. On a folding phone opened up, a squarer screen or a split view the sides or the ends stop being cut off."
 Show what is left of the budget,Show what is left of the budget
@@ -918,7 +924,7 @@ Stop a long press on Share from opening TikTok's quick share action.,Stop a long
 Stop feature gate recording,Stop feature gate recording
 Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.,Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.
 Stop the bubble that asks you to share a video with friends after you like it.,Stop the bubble that asks you to share a video with friends after you like it.
-"Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so leave this off unless you want them cut off too.","Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so leave this off unless you want them cut off too."
+"Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. TikTok's own pages need that bridge too. With this on, Activity center and Watch history stop responding, and the shop checkout and the CAPTCHA page break. Leave it off unless you want those cut off as well.","Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. TikTok's own pages need that bridge too. With this on, Activity center and Watch history stop responding, and the shop checkout and the CAPTCHA page break. Leave it off unless you want those cut off as well."
 Stop video looping,Stop video looping
 Stop videos at the end instead of replaying them.,Stop videos at the end instead of replaying them.
 Stopped after dismissing %1$s suggested accounts,Stopped after dismissing %1$s suggested accounts

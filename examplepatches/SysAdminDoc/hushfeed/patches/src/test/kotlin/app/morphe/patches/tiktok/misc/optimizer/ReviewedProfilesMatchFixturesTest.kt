@@ -1,5 +1,6 @@
 package app.morphe.patches.tiktok.misc.optimizer
 
+import app.morphe.Fixtures
 import java.io.File
 import java.io.InputStream
 import java.security.MessageDigest
@@ -7,7 +8,6 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 /**
@@ -35,7 +35,6 @@ class ReviewedProfilesMatchFixturesTest {
     @Test
     fun `every fixture matches one reviewed profile of every strip, byte for byte`() {
         val apks = fixtures()
-        assumeTrue("no TikTok fixture on this machine", apks.isNotEmpty())
         val wanted = groups.values.flatten().flatMap { it.files }.map { it.path }.toSet()
         val problems = mutableListOf<String>()
         for (apk in apks) {
@@ -67,7 +66,6 @@ class ReviewedProfilesMatchFixturesTest {
     @Test
     fun `every fixture's language packs match one reviewed inventory`() {
         val apks = fixtures()
-        assumeTrue("no TikTok fixture on this machine", apks.isNotEmpty())
         val problems = mutableListOf<String>()
         for (apk in apks) {
             val files = digests(apk) { it.startsWith(LANGUAGE_PREFIX) }
@@ -95,13 +93,7 @@ class ReviewedProfilesMatchFixturesTest {
     }
 
     /** Every TikTok APK and split bundle in the fixture directory. */
-    private fun fixtures(): List<File> {
-        val directory = File(System.getenv("HUSHFEED_FIXTURE_DIR") ?: "C:/_claude-backups/tiktok-fixture")
-        if (!directory.isDirectory) return emptyList()
-        return directory.listFiles()
-            ?.filter { it.isFile && (it.extension == "apk" || it.extension == "apkm") }
-            ?.sortedBy { it.name } ?: emptyList()
-    }
+    private fun fixtures(): List<File> = Fixtures.files { it.extension == "apk" || it.extension == "apkm" }
 
     /**
      * Path to lowercase sha256 for every entry [keep] accepts. For an .apkm, the entries of every

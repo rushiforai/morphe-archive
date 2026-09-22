@@ -83,10 +83,10 @@ val disableDeveloperOptionsPatch = bytecodePatch(
             }
         }
 
-        // MainActivity channel dispatcher: reads "development_settings_enabled" and "adb_enabled"
+        // MainActivity channel dispatcher: reads "development_settings_enabled" and "adb_enabled".
+        // Omit method name so it matches both direct configureFlutterEngine and synthetic lambdas.
         val mainActivitySettingsFingerprint = object : Fingerprint(
             definingClass = "Lcom/example/ooredoo_selfcare_algeria/MainActivity;",
-            name = "configureFlutterEngine",
             returnType = "V",
             strings = listOf("development_settings_enabled"),
         ) {}
@@ -120,7 +120,7 @@ val disableDeveloperOptionsPatch = bytecodePatch(
             name = "isDeveloperMode",
             returnType = "Z",
             parameters = listOf(),
-            strings = listOf("isDeveloperMode"),
+            strings = listOf("development_settings_enabled"),
         ) {}
 
         listOf(

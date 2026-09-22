@@ -2,6 +2,7 @@ import com.android.build.api.dsl.ApplicationExtension
 
 dependencies {
     implementation(libs.hiddenapi)
+    implementation("org.mozilla:rhino:1.8.0")
 }
 
 configure<ApplicationExtension> {

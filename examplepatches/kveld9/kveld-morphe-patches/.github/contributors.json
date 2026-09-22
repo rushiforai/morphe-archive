@@ -62,6 +62,24 @@
           "issue": 17
         }
       ]
+    },
+    {
+      "username": "rafipasya",
+      "contributions": [
+        {
+          "title": "TikTok Auto-translate comments",
+          "issue": 48
+        }
+      ]
+    },
+    {
+      "username": "Fahry-a",
+      "contributions": [
+        {
+          "title": "Brave ARMv7a (32-bit) architecture support",
+          "issue": 50
+        }
+      ]
     }
   ]
 }

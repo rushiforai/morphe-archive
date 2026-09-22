@@ -5,7 +5,7 @@
 .DESCRIPTION
     The generated patches-list.json is the local source for the release version, target
     package, target version and patch count. This check makes README.md, patches-bundle.json
-    and the recorded runtime test count agree before a release is published. It also checks
+    and the recorded runtime and patch test counts agree before a release is published. It also checks
     the canonical Morphe add-source link in the README and verifies that its landing page is live. A guarded
     preparation mode lets the source commit reach GitHub while the public index still points
     at the previous working bundle. Published-asset verification remains strict.
@@ -30,9 +30,15 @@ param(
     # when patches-bundle.json is not among the changed files; a release, which rewrites that
     # file, does not. With it, a checkout that has no test results at all (a fresh clone pushing
     # a README edit, which runs no tests) is not held to a run it had no reason to make; any
-    # results that are there are still checked for age, completeness, failures and skips. A
+    # runtime results that are there are still checked for age, completeness, failures and skips.
+    # The patch test results are read only without it: their fixture tests skip on any machine
+    # with no HUSHFEED_FIXTURE_DIR, and a skip matters only to a count a description quotes. A
     # release and a run by hand check everything.
     [switch]$SkipDescriptionTestCount,
+    # Leaves the test results unread. The pre-push hook passes it when it checks a pushed commit in
+    # its gate worktree, whose build folders can hold another commit's results. Only with
+    # -SkipDescriptionTestCount, since a description's counts are read off those results.
+    [switch]$SkipTestResults,
     # Release source changes have to reach GitHub before their tag and bundle can be published.
     # During that preparation, patches-bundle.json still describes the working release. This
     # includes a newer source version and an unreleased catalog change held at the current version.
@@ -272,13 +278,22 @@ if ($SkipUrlCheck) {
 }
 
 $testRoot = Join-Path $rootPath 'extensions/tiktok/build/test-results/testDebugUnitTest'
-$testFiles = @(Get-ChildItem -LiteralPath $testRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
+if ($SkipTestResults -and -not $SkipDescriptionTestCount) {
+    throw '-SkipTestResults leaves nothing to hold the description test counts to. Pass -SkipDescriptionTestCount with it.'
+}
+$testFiles = @(if (-not $SkipTestResults) {
+    Get-ChildItem -LiteralPath $testRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue
+})
 if ($testFiles.Count -eq 0) {
     if (-not $SkipDescriptionTestCount) {
         throw "No runtime test results found under $testRoot. Run :extensions:tiktok:test first."
     }
-    Write-Host ('[release] no runtime test results here, and this push rewrites no release ' +
-        'description, so there is no run to check')
+    if ($SkipTestResults) {
+        Write-Host '[release] the test results here were left unread, since they can belong to another commit'
+    } else {
+        Write-Host ('[release] no runtime test results here, and this push rewrites no release ' +
+            'description, so there is no run to check')
+    }
 }
 
 # Gradle leaves the previous run's XML in place, so results from before the last edit satisfy
@@ -289,9 +304,9 @@ if ($testFiles.Count -eq 0) {
 # the task up to date, no XML is rewritten, and comparing against it would refuse every release
 # from then on with no rerun that could clear it.
 #
-# The newest result is the one to compare. Gradle never removes the XML of a test class that was
-# deleted or renamed, and that file keeps its original timestamp through every later run, so
-# taking the oldest would refuse forever after the first class is dropped.
+# The newest result is the one to compare: it is the last evidence of a run, and an older one
+# could predate the latest source edit. Orphaned results from deleted or renamed test classes
+# are caught separately below.
 $sourceRoots = @('extensions/tiktok/src', 'extensions/tiktok/stub/src', 'extensions/shared/library/src') |
     ForEach-Object { Join-Path $rootPath $_ } |
     Where-Object { Test-Path -LiteralPath $_ }
@@ -305,7 +320,9 @@ if ($null -ne $newestSource -and $testFiles.Count -gt 0) {
         throw ("Runtime test results are older than the sources. The newest result " +
             "$($newestResult.Name) was written $($newestResult.LastWriteTimeUtc.ToString('u')) but " +
             "$($newestSource.FullName) changed $($newestSource.LastWriteTimeUtc.ToString('u')). " +
-            'Run :extensions:tiktok:test again.')
+            'Run :extensions:tiktok:testDebugUnitTest --rerun. A checkout that only moves a file''s ' +
+            'date leaves Gradle calling the tests up to date, and naming :extensions:tiktok:test reruns ' +
+            'only that umbrella task.')
     }
 }
 # Gradle clears the results directory on every run and writes only the classes that ran, so a
@@ -325,6 +342,16 @@ if ($testFiles.Count -gt 0 -and (Test-Path -LiteralPath $testSourceRoot)) {
             " test classes, so the counts here describe part of a run: " +
             (($missing | Select-Object -First 8) -join ', ') +
             ". Run :extensions:tiktok:test unfiltered.")
+    }
+    # The other way round: a class deleted or renamed since the last run leaves its results until
+    # the tests run again, and nothing above notices. No remaining source is newer than the
+    # results, and every class that is left has one, so its tests would be counted as passing.
+    $orphaned = @($ranClasses | Where-Object { $sourceClasses -notcontains $_ } | Sort-Object)
+    if ($orphaned.Count -gt 0) {
+        throw ("Runtime test results include " + $orphaned.Count + " test class(es) with no source " +
+            "any more, left from a run before they were deleted or renamed: " +
+            (($orphaned | Select-Object -First 8) -join ', ') +
+            ". Run :extensions:tiktok:testDebugUnitTest --rerun.")
     }
 }
 
@@ -354,9 +381,82 @@ if ($SkipDescriptionTestCount) {
     Require-Match -Text ([string]$bundle.description) -Pattern "\b$testCount runtime tests passed\b" -Description 'bundle description test count'
 }
 
+# The patch module's tests, which the description quotes as "All N patch tests passed". Until
+# 2026-09-21 nothing read that number; it was typed by hand. Their fixture tests skip when
+# HUSHFEED_FIXTURE_DIR is unset, and Gradle counts a skip as a pass, so a release could quote a
+# run that never opened a TikTok APK. Only a check that holds the description to its counts reads
+# them: they are a fact about the release, and a push that rewrites no description has no count
+# to compare them with and no reason to have run them.
+if (-not $SkipDescriptionTestCount) {
+    $patchTestRoot = Join-Path $rootPath 'patches/build/test-results/test'
+    $patchTestFiles = @(Get-ChildItem -LiteralPath $patchTestRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
+    if ($patchTestFiles.Count -eq 0) {
+        throw ("No patch test results found under $patchTestRoot. Run :patches:test with " +
+            'HUSHFEED_FIXTURE_DIR set first.')
+    }
+    # Stale and partial runs, read the same way as the runtime results above: the trees the patch
+    # tests build from, and every test class the module has.
+    $patchSourceRoots = @('patches/src', 'extensions/tiktok/src/main', 'extensions/shared/library/src/main') |
+        ForEach-Object { Join-Path $rootPath $_ } |
+        Where-Object { Test-Path -LiteralPath $_ }
+    $newestPatchSource = $patchSourceRoots |
+        ForEach-Object { Get-ChildItem -LiteralPath $_ -Recurse -File -ErrorAction SilentlyContinue } |
+        Sort-Object LastWriteTimeUtc -Descending |
+        Select-Object -First 1
+    $newestPatchResult = $patchTestFiles | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1
+    if ($null -ne $newestPatchSource -and $newestPatchResult.LastWriteTimeUtc -lt $newestPatchSource.LastWriteTimeUtc) {
+        throw ("Patch test results are older than the sources. The newest result " +
+            "$($newestPatchResult.Name) was written $($newestPatchResult.LastWriteTimeUtc.ToString('u')) but " +
+            "$($newestPatchSource.FullName) changed $($newestPatchSource.LastWriteTimeUtc.ToString('u')). " +
+            'Run :patches:test --rerun.')
+    }
+    $patchTestSourceRoot = Join-Path $rootPath 'patches/src/test'
+    if (Test-Path -LiteralPath $patchTestSourceRoot) {
+        $patchClasses = @(Get-ChildItem -LiteralPath $patchTestSourceRoot -Recurse -File -Filter '*Test.kt' |
+            ForEach-Object { $_.BaseName })
+        $ranPatchClasses = @($patchTestFiles | ForEach-Object { ($_.BaseName -replace '^TEST-', '') -replace '^.*\.', '' })
+        $missing = @($patchClasses | Where-Object { $ranPatchClasses -notcontains $_ } | Sort-Object)
+        if ($missing.Count -gt 0) {
+            throw ("Patch test results are missing " + $missing.Count + " of " + $patchClasses.Count +
+                " test classes, so the counts here describe part of a run: " +
+                (($missing | Select-Object -First 8) -join ', ') + ". Run :patches:test unfiltered.")
+        }
+        $orphaned = @($ranPatchClasses | Where-Object { $patchClasses -notcontains $_ } | Sort-Object)
+        if ($orphaned.Count -gt 0) {
+            throw ("Patch test results include " + $orphaned.Count + " test class(es) with no source " +
+                "any more, left from a run before they were deleted or renamed: " +
+                (($orphaned | Select-Object -First 8) -join ', ') + ". Run :patches:test --rerun.")
+        }
+    }
+    $patchTestCount = 0
+    foreach ($file in $patchTestFiles) {
+        try {
+            $results = [xml](Get-Content -LiteralPath $file.FullName -Raw)
+        } catch {
+            throw "Could not read test results from $($file.FullName): $($_.Exception.Message)"
+        }
+        foreach ($suite in @($results.testsuite)) {
+            $failed = [int]$suite.failures
+            $errors = [int]$suite.errors
+            $skipped = [int]$suite.skipped
+            if ($skipped -gt 0) {
+                throw ("Patch test suite $($file.Name) skipped $skipped test(s). A fixture test skips " +
+                    'when HUSHFEED_FIXTURE_DIR is not set, and a release quotes only a run that read the fixtures.')
+            }
+            if ($failed -gt 0 -or $errors -gt 0) {
+                throw "Patch test suite $($file.Name) has failures=$failed, errors=$errors."
+            }
+        }
+        $patchTestCount += @($results.testsuite.testcase).Count
+    }
+    Require-Match -Text ([string]$bundle.description) -Pattern "\b$patchTestCount patch tests passed\b" `
+        -Description 'bundle description patch test count'
+    $testFacts += ", $patchTestCount patch tests"
+}
+
 if ($VerifyPublishedAsset) {
     if ([string]::IsNullOrWhiteSpace($ArtifactPath)) {
-        $ArtifactPath = Join-Path $rootPath "patches/build/libs/patches-$releaseVersion.mpp"
+        $ArtifactPath = Get-ReleaseBundlePath -Root $rootPath -Version $releaseVersion
     }
     if (-not (Test-Path -LiteralPath $ArtifactPath -PathType Leaf)) {
         throw "The local release artifact is missing: $ArtifactPath"
@@ -460,7 +560,7 @@ if ($VerifyPublishedAsset) {
             $localStamp = [long]$stampMatch.Groups[1].Value
         } finally { $zip.Dispose() }
         if ($localStamp -ne $expectedStamp) {
-            throw ("The bundle in patches/build/libs is pinned to $localStamp but release tag " +
+            throw ("The bundle at $ArtifactPath is pinned to $localStamp but release tag " +
                 "v$publishedVersion ($releaseCommit) is $expectedStamp. Build the bundle from " +
                 'the tagged commit so rebuilding from the tag reproduces the published hash.')
         }
@@ -557,6 +657,22 @@ $managerFloor = $workingToolchain.ManagerFloor
 $managerFloorPattern = "\bMorphe Manager\s+$([regex]::Escape($managerFloor))\s+or newer\b"
 Require-Match -Text $readme -Pattern $managerFloorPattern -Description 'README Manager floor'
 Write-Host "[release] README requires Morphe Manager $managerFloor or newer for patcher $pinnedPatcher"
+
+# The bug form's placeholders are what a reporter copies when unsure what to write, and they had
+# drifted a long way: TikTok 46.2.3, Manager 1.29.0 and Hushfeed 0.29.0 while the bundle targeted
+# 47.0.3. The version line reads the way Hushfeed's settings card does, with the version the index
+# publishes, and the manager line names the Manager floor.
+$bugFormPath = Join-Path $rootPath '.github/ISSUE_TEMPLATE/bug_report.yml'
+if (-not (Test-Path -LiteralPath $bugFormPath -PathType Leaf)) {
+    throw "The bug report form is missing: $bugFormPath"
+}
+$bugForm = Get-Content -LiteralPath $bugFormPath -Raw
+$bugFormVersions = "Version $publishedVersion for TikTok $targetVersion"
+Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*$([regex]::Escape($bugFormVersions))\s*$" `
+    -Description 'bug report form version placeholder'
+Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($managerFloor))\s*$" `
+    -Description 'bug report form Manager placeholder'
+Write-Host "[release] the bug report form's placeholders say `"$bugFormVersions`" and Morphe Manager $managerFloor"
 
 function Test-ChangelogHere {
     <#
@@ -685,12 +801,17 @@ function Test-ReleaseReceiptHere {
         -WorkingToolchain $workingToolchain
     $expectedToolchain = $resolved.Toolchain
     if ($resolved.Note) { Write-Host "[release] $($resolved.Note)" }
+    # And the patch list its own commit carried, for the same reason: a patch added or renamed
+    # after the release doesn't make the release's receipt wrong.
+    $resolvedList = Resolve-ReceiptCatalog -Root $rootPath -Commit $receiptCommit -WorkingPatchList $patchList
+    if ($resolvedList.Note) { Write-Host "[release] $($resolvedList.Note)" }
+    $receiptTarget = Get-PatchTarget -PatchList $resolvedList.PatchList
 
     $receiptCheck = Test-ReleaseReceipt -Receipt $receiptDocument -ExpectedVersion $releaseVersion `
-        -ExpectedPatchNames @($patches | ForEach-Object { [string]$_.name }) `
+        -ExpectedPatchNames @($resolvedList.PatchList.patches | ForEach-Object { [string]$_.name }) `
         -ExpectedPatcherVersion $expectedToolchain.PatcherVersion `
         -ExpectedManagerFloor $expectedToolchain.ManagerFloor `
-        -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion `
+        -ExpectedPackageName $receiptTarget.PackageName -ExpectedPackageVersion $receiptTarget.PackageVersion `
         -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
         -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit
     if (-not $receiptCheck.Valid) {
@@ -704,7 +825,7 @@ function Test-ReleaseReceiptHere {
 
 
 $bundlePath = if ($ArtifactPath) { $ArtifactPath } else {
-    Join-Path $rootPath "patches/build/libs/patches-$releaseVersion.mpp"
+    Get-ReleaseBundlePath -Root $rootPath -Version $releaseVersion
 }
 if (-not (Test-Path -LiteralPath $bundlePath -PathType Leaf)) {
     # The stamp is a fact about a built bundle, and only the hash comparison needs one built

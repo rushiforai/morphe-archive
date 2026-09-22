@@ -289,11 +289,11 @@ public class GmsCoreSupportPatch {
                 reply.writeString("com.google.android.gms.maps.internal.ILocationSourceDelegate");
                 return true;
             }
-            if (code == 1) { // activate(IOnLocationChangeListener listener)
+            if (code == 1 || code == 0) { // activate(IOnLocationChangeListener listener)
                 data.enforceInterface("com.google.android.gms.maps.internal.ILocationSourceDelegate");
                 android.os.IBinder b = data.readStrongBinder();
                 this.listenerBinder = b;
-                android.util.Log.d("MorpheLocation", "LocationSourceBinder: activated with listener " + b);
+                android.util.Log.d("MorpheLocation", "LocationSourceBinder: activated with listener " + b + " (code " + code + ")");
                 android.location.Location loc = sLastLocation;
                 if (loc != null) {
                     pushLocation(loc);
@@ -312,37 +312,43 @@ public class GmsCoreSupportPatch {
         public void pushLocation(android.location.Location loc) {
             android.os.IBinder b = this.listenerBinder;
             if (b == null || loc == null) return;
-            android.os.Parcel p = android.os.Parcel.obtain();
-            android.os.Parcel reply = android.os.Parcel.obtain();
-            try {
-                p.writeInterfaceToken("com.google.android.gms.maps.internal.IOnLocationChangeListener");
-                p.writeInt(1); // indicates Parcelable exists
-                android.location.Location pushLoc = new android.location.Location(loc);
-                if (pushLoc.getProvider() == null || pushLoc.getProvider().isEmpty()) {
-                    pushLoc.setProvider("fused");
+            android.location.Location pushLoc = new android.location.Location(loc);
+            if (pushLoc.getProvider() == null || pushLoc.getProvider().isEmpty()) {
+                pushLoc.setProvider("fused");
+            }
+            if (pushLoc.getTime() == 0) {
+                pushLoc.setTime(System.currentTimeMillis());
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                if (pushLoc.getElapsedRealtimeNanos() == 0) {
+                    pushLoc.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos());
                 }
-                if (pushLoc.getTime() == 0) {
-                    pushLoc.setTime(System.currentTimeMillis());
-                }
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    if (pushLoc.getElapsedRealtimeNanos() == 0) {
-                        pushLoc.setElapsedRealtimeNanos(android.os.SystemClock.elapsedRealtimeNanos());
+            }
+            if (!pushLoc.hasAccuracy() || pushLoc.getAccuracy() <= 0.0f) {
+                pushLoc.setAccuracy(15.0f);
+            }
+
+            for (int code : new int[]{1, 2}) {
+                android.os.Parcel p = android.os.Parcel.obtain();
+                android.os.Parcel reply = android.os.Parcel.obtain();
+                try {
+                    p.writeInterfaceToken("com.google.android.gms.maps.internal.IOnLocationChangeListener");
+                    p.writeInt(1); // indicates Parcelable exists
+                    pushLoc.writeToParcel(p, 0);
+                    boolean sent = b.transact(code, p, reply, 0);
+                    if (sent) {
+                        reply.readException();
+                        android.util.Log.d("MorpheLocation", "Native Location pushed via transact " + code + ": "
+                                + pushLoc.getLatitude() + ", " + pushLoc.getLongitude()
+                                + " (acc=" + pushLoc.getAccuracy() + "m)");
+                        break;
                     }
+                } catch (Throwable t) {
+                    // try next code
+                } finally {
+                    p.recycle();
+                    reply.recycle();
                 }
-                if (!pushLoc.hasAccuracy() || pushLoc.getAccuracy() <= 0.0f) {
-                    pushLoc.setAccuracy(15.0f);
-                }
-                pushLoc.writeToParcel(p, 0);
-                b.transact(2, p, reply, 0); // TRANSACTION_onLocationChanged = 2
-                reply.readException();
-                android.util.Log.d("MorpheLocation", "Native Location pushed to map: "
-                        + pushLoc.getLatitude() + ", " + pushLoc.getLongitude()
-                        + " (acc=" + pushLoc.getAccuracy() + "m)");
-            } catch (Throwable t) {
-                android.util.Log.e("MorpheLocation", "Failed to push location to listenerBinder", t);
-            } finally {
-                p.recycle();
-                reply.recycle();
             }
         }
     }
@@ -359,11 +365,23 @@ public class GmsCoreSupportPatch {
                 } else if (val instanceof android.os.IBinder) {
                     return (android.os.IBinder) val;
                 } else if (val != null) {
+                    try {
+                        java.lang.reflect.Field mRemote = val.getClass().getDeclaredField("mRemote");
+                        mRemote.setAccessible(true);
+                        Object b = mRemote.get(val);
+                        if (b instanceof android.os.IBinder) {
+                            return (android.os.IBinder) b;
+                        }
+                    } catch (Throwable ignored) {}
+
                     for (java.lang.reflect.Field sf : val.getClass().getDeclaredFields()) {
                         sf.setAccessible(true);
                         Object sval = sf.get(val);
                         if (sval instanceof android.os.IBinder) {
                             return (android.os.IBinder) sval;
+                        } else if (sval instanceof android.os.IInterface) {
+                            android.os.IBinder b = ((android.os.IInterface) sval).asBinder();
+                            if (b != null) return b;
                         }
                     }
                 }
@@ -376,37 +394,193 @@ public class GmsCoreSupportPatch {
 
     private static void setLocationSource(android.os.IBinder mapBinder, android.os.IBinder locationSource) {
         if (mapBinder == null || locationSource == null) return;
-        android.os.Parcel data = android.os.Parcel.obtain();
-        android.os.Parcel reply = android.os.Parcel.obtain();
-        try {
-            data.writeInterfaceToken("com.google.android.gms.maps.internal.IGoogleMapDelegate");
-            data.writeStrongBinder(locationSource);
-            mapBinder.transact(24, data, reply, 0);
-            reply.readException();
-            android.util.Log.d("MorpheLocation", "Successfully called setLocationSource (transact 24)");
-        } catch (Throwable t) {
-            android.util.Log.e("MorpheLocation", "Failed to call setLocationSource", t);
-        } finally {
-            data.recycle();
-            reply.recycle();
+        // Try transaction 23 (official AIDL), then fallback to 24
+        for (int code : new int[]{23, 24}) {
+            android.os.Parcel data = android.os.Parcel.obtain();
+            android.os.Parcel reply = android.os.Parcel.obtain();
+            try {
+                data.writeInterfaceToken("com.google.android.gms.maps.internal.IGoogleMapDelegate");
+                data.writeStrongBinder(locationSource);
+                boolean success = mapBinder.transact(code, data, reply, 0);
+                if (success) {
+                    reply.readException();
+                    android.util.Log.d("MorpheLocation", "Successfully called setLocationSource (transact " + code + ")");
+                    break;
+                }
+            } catch (Throwable t) {
+                android.util.Log.w("MorpheLocation", "transact " + code + " for setLocationSource failed", t);
+            } finally {
+                data.recycle();
+                reply.recycle();
+            }
         }
     }
 
     private static void setMyLocationEnabled(android.os.IBinder mapBinder, boolean enabled) {
         if (mapBinder == null) return;
-        android.os.Parcel data = android.os.Parcel.obtain();
-        android.os.Parcel reply = android.os.Parcel.obtain();
+        // Try transaction 21 (official AIDL), then fallback to 22
+        for (int code : new int[]{21, 22}) {
+            android.os.Parcel data = android.os.Parcel.obtain();
+            android.os.Parcel reply = android.os.Parcel.obtain();
+            try {
+                data.writeInterfaceToken("com.google.android.gms.maps.internal.IGoogleMapDelegate");
+                data.writeInt(enabled ? 1 : 0);
+                boolean success = mapBinder.transact(code, data, reply, 0);
+                if (success) {
+                    reply.readException();
+                    android.util.Log.d("MorpheLocation", "Successfully called setMyLocationEnabled (transact " + code + ")");
+                    break;
+                }
+            } catch (Throwable t) {
+                android.util.Log.w("MorpheLocation", "transact " + code + " for setMyLocationEnabled failed", t);
+            } finally {
+                data.recycle();
+                reply.recycle();
+            }
+        }
+    }
+
+    private static boolean isMapObject(Object obj) {
+        if (obj == null) return false;
+        Class<?> cls = obj.getClass();
+        for (java.lang.reflect.Method m : cls.getMethods()) {
+            if (m.getReturnType() != null && m.getReturnType().getName().contains("CameraPosition")) {
+                return true;
+            }
+        }
+        boolean hasLocationOrCamera = false;
+        for (java.lang.reflect.Method m : cls.getMethods()) {
+            if (m.getName().equals("f") && m.getParameterTypes().length == 1 && m.getParameterTypes()[0] == boolean.class) {
+                hasLocationOrCamera = true;
+            }
+            if ((m.getName().equals("t") || m.getName().equals("s") || m.getName().equals("r"))
+                    && (m.getParameterTypes().length == 1 || m.getParameterTypes().length == 2)) {
+                if (hasLocationOrCamera) return true;
+            }
+        }
+        return hasLocationOrCamera;
+    }
+
+    private static Object findMapObject(Object mixin) {
+        if (mixin == null) return null;
+        Class<?> clazz = mixin.getClass();
+        for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
+            try {
+                f.setAccessible(true);
+                Object val = f.get(mixin);
+                if (val == null) continue;
+
+                if (isMapObject(val)) {
+                    return val;
+                }
+
+                // Check if val is a Lazy/Provider/Holder
+                for (java.lang.reflect.Method m : val.getClass().getDeclaredMethods()) {
+                    if ((m.getName().equals("a") || m.getName().equals("get")) && m.getParameterTypes().length == 0) {
+                        try {
+                            m.setAccessible(true);
+                            Object inner = m.invoke(val);
+                            if (inner != null && isMapObject(inner)) {
+                                return inner;
+                            }
+                        } catch (Throwable ignored) {}
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
+    private static Object createCameraUpdate(ClassLoader cl, Object latLng, float zoom) {
+        if (latLng == null) return null;
+        Class<?> latLngClass = latLng.getClass();
+        String[] knownClasses = new String[]{
+            "bprq", "defpackage.bprq",
+            "brwd", "defpackage.brwd",
+            "com.google.android.gms.maps.CameraUpdateFactory"
+        };
+        for (String clsName : knownClasses) {
+            try {
+                Class<?> c = null;
+                try { c = Class.forName(clsName); } catch (Throwable ignored) {}
+                if (c == null && cl != null) {
+                    try { c = cl.loadClass(clsName); } catch (Throwable ignored) {}
+                }
+                if (c != null) {
+                    for (java.lang.reflect.Method m : c.getMethods()) {
+                        if (java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                            Class<?>[] pts = m.getParameterTypes();
+                            if (pts.length == 2 && pts[0] == latLngClass && (pts[1] == float.class || pts[1] == Float.class)) {
+                                m.setAccessible(true);
+                                Object cu = m.invoke(null, latLng, zoom);
+                                if (cu != null) return cu;
+                            }
+                        }
+                    }
+                    for (java.lang.reflect.Method m : c.getMethods()) {
+                        if (java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
+                            Class<?>[] pts = m.getParameterTypes();
+                            if (pts.length == 1 && pts[0] == latLngClass) {
+                                m.setAccessible(true);
+                                Object cu = m.invoke(null, latLng);
+                                if (cu != null) return cu;
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
+    public static void initMapLocation(Object mixinObj) {
+        if (mixinObj == null) return;
         try {
-            data.writeInterfaceToken("com.google.android.gms.maps.internal.IGoogleMapDelegate");
-            data.writeInt(enabled ? 1 : 0);
-            mapBinder.transact(22, data, reply, 0);
-            reply.readException();
-            android.util.Log.d("MorpheLocation", "Successfully called setMyLocationEnabled (transact 22)");
+            android.util.Log.d("MorpheLocation", "initMapLocation called for: " + mixinObj.getClass().getName());
+            final Object finalMixin = mixinObj;
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
+                int attempts = 0;
+                @Override
+                public void run() {
+                    try {
+                        Object mapObj = findMapObject(finalMixin);
+                        if (mapObj != null) {
+                            android.util.Log.d("MorpheLocation", "initMapLocation: mapObj found on attempt " + attempts);
+                            android.os.IBinder mapBinder = extractMapBinder(mapObj);
+                            if (mapBinder != null) {
+                                if (sLocationSource == null) {
+                                    sLocationSource = new LocationSourceBinder();
+                                }
+                                if (sAttachedMapObj != mapObj) {
+                                    sAttachedMapObj = mapObj;
+                                    sLocationComponent = null;
+                                    setLocationSource(mapBinder, sLocationSource);
+                                }
+                                setMyLocationEnabled(mapBinder, true);
+                            }
+                            try {
+                                for (java.lang.reflect.Method m : mapObj.getClass().getMethods()) {
+                                    if (m.getName().equals("f") && m.getParameterTypes().length == 1 && m.getParameterTypes()[0] == boolean.class) {
+                                        m.invoke(mapObj, true);
+                                        break;
+                                    }
+                                }
+                            } catch (Throwable ignored) {}
+
+                            if (sLastLocation != null && sLocationSource != null) {
+                                sLocationSource.pushLocation(sLastLocation);
+                            }
+                        } else if (attempts < 6) {
+                            attempts++;
+                            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this, 1000);
+                        }
+                    } catch (Throwable t) {
+                        android.util.Log.e("MorpheLocation", "initMapLocation error in poll", t);
+                    }
+                }
+            }, 500);
         } catch (Throwable t) {
-            android.util.Log.e("MorpheLocation", "Failed to call setMyLocationEnabled", t);
-        } finally {
-            data.recycle();
-            reply.recycle();
+            android.util.Log.e("MorpheLocation", "initMapLocation outer exception", t);
         }
     }
 
@@ -633,6 +807,39 @@ public class GmsCoreSupportPatch {
             final Context finalContext = context;
             final Object finalMixin = currentLocMixinObj;
 
+            // Check runtime permissions
+            boolean hasFine = context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+            boolean hasCoarse = context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+            if (!hasFine && !hasCoarse) {
+                android.util.Log.w("MorpheLocation", "Location permission not granted to Google Photos");
+                Activity activity = null;
+                Context cur = context;
+                while (cur instanceof android.content.ContextWrapper) {
+                    if (cur instanceof Activity) {
+                        activity = (Activity) cur;
+                        break;
+                    }
+                    cur = ((android.content.ContextWrapper) cur).getBaseContext();
+                }
+                if (activity != null) {
+                    final Activity finalAct = activity;
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        try {
+                            android.widget.Toast.makeText(finalAct, "Location permission required for map", android.widget.Toast.LENGTH_SHORT).show();
+                            if (android.os.Build.VERSION.SDK_INT >= 23) {
+                                finalAct.requestPermissions(new String[]{
+                                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                                }, 1001);
+                            }
+                        } catch (Throwable t) {
+                            android.util.Log.e("MorpheLocation", "Failed to request location permissions", t);
+                        }
+                    });
+                }
+                return;
+            }
+
             android.location.LocationManager lm = (android.location.LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
             if (lm == null) {
                 android.util.Log.e("MorpheLocation", "LocationManager is null");
@@ -641,14 +848,20 @@ public class GmsCoreSupportPatch {
 
             boolean isGpsEnabled = false;
             boolean isNetworkEnabled = false;
+            boolean isFusedEnabled = false;
             try {
                 isGpsEnabled = lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER);
             } catch (Exception ignored) {}
             try {
                 isNetworkEnabled = lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER);
             } catch (Exception ignored) {}
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= 31) {
+                    isFusedEnabled = lm.isProviderEnabled(android.location.LocationManager.FUSED_PROVIDER);
+                }
+            } catch (Exception ignored) {}
 
-            if (!isGpsEnabled && !isNetworkEnabled) {
+            if (!isGpsEnabled && !isNetworkEnabled && !isFusedEnabled) {
                 android.util.Log.w("MorpheLocation", "Location providers are disabled on device");
                 new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                     try {
@@ -677,21 +890,7 @@ public class GmsCoreSupportPatch {
 
                 new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                     try {
-                        Object mapObj = null;
-                        for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
-                            f.setAccessible(true);
-                            Object val = f.get(finalMixin);
-                            if (val != null) {
-                                for (java.lang.reflect.Method m : val.getClass().getMethods()) {
-                                    if (m.getName().equals("t") && m.getParameterTypes().length == 1) {
-                                        mapObj = val;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (mapObj != null) break;
-                        }
-
+                        Object mapObj = findMapObject(finalMixin);
                         if (mapObj == null) {
                             android.util.Log.e("MorpheLocation", "Map object not found on mixin");
                             return;
@@ -794,58 +993,57 @@ public class GmsCoreSupportPatch {
                                     Class<?> mbCancelCallbackClass = Class.forName("com.mapbox.mapboxsdk.maps.MapboxMap$CancelableCallback");
                                     java.lang.reflect.Method mAnimate = mapboxMap.getClass().getMethod("animateCamera", mbCamUpdateClass, int.class, mbCancelCallbackClass);
                                     mAnimate.invoke(mapboxMap, mbCamUpdate, 500, null);
-                                    android.util.Log.d("MorpheLocation", "Direct MapboxMap.animateCamera to "
-                                            + loc.getLatitude() + ", " + loc.getLongitude()
-                                            + " at zoom " + currentZoom + " succeeded");
+                                    android.util.Log.d("MorpheLocation", "Direct MapboxMap.animateCamera succeeded");
                                 } catch (Throwable t) {
                                     android.util.Log.w("MorpheLocation", "Direct MapboxMap animation failed, falling back", t);
                                 }
                             }
 
-                            // Also invoke mapObj.t(camUpdate) for GMS client-side consistency
-                            Class<?> latLngClass = Class.forName("com.google.android.gms.maps.model.LatLng");
-                            Object latLng = latLngClass.getConstructor(double.class, double.class)
-                                    .newInstance(loc.getLatitude(), loc.getLongitude());
+                            // Direct mapObj animation (via GMS CameraUpdate)
+                            try {
+                                Class<?> latLngClass = Class.forName("com.google.android.gms.maps.model.LatLng");
+                                Object latLng = latLngClass.getConstructor(double.class, double.class)
+                                        .newInstance(loc.getLatitude(), loc.getLongitude());
 
-                            Object camUpdate = null;
-                            Class<?> brwdClass = null;
-                            for (String className : new String[]{"brwd", "defpackage.brwd", "com.google.android.gms.maps.CameraUpdateFactory"}) {
-                                try {
-                                    brwdClass = Class.forName(className);
-                                    if (brwdClass != null) break;
-                                } catch (Throwable ignored) {}
-                                try {
-                                    brwdClass = clazz.getClassLoader().loadClass(className);
-                                    if (brwdClass != null) break;
-                                } catch (Throwable ignored) {}
-                            }
-
-                            if (brwdClass != null) {
-                                try {
-                                    java.lang.reflect.Method mI = brwdClass.getMethod("I", latLngClass, float.class);
-                                    camUpdate = mI.invoke(null, latLng, 15.0f);
-                                    android.util.Log.d("MorpheLocation", "Created camUpdate using " + brwdClass.getName() + ".I");
-                                } catch (Throwable t) {
-                                    for (java.lang.reflect.Method m : brwdClass.getMethods()) {
-                                        if (java.lang.reflect.Modifier.isStatic(m.getModifiers())
-                                                && m.getParameterTypes().length == 2
-                                                && m.getParameterTypes()[0] == latLngClass
-                                                && (m.getParameterTypes()[1] == float.class || m.getParameterTypes()[1] == Float.class)) {
-                                            camUpdate = m.invoke(null, latLng, 15.0f);
-                                            break;
+                                Object camUpdate = createCameraUpdate(clazz.getClassLoader(), latLng, 15.0f);
+                                if (camUpdate != null) {
+                                    boolean animated = false;
+                                    // 1. Try animateCamera with duration: t(camUpdate, 500)
+                                    for (java.lang.reflect.Method m : mapObj.getClass().getMethods()) {
+                                        if ((m.getName().equals("t") || m.getName().equals("animateCamera")) && m.getParameterTypes().length == 2) {
+                                            try {
+                                                m.setAccessible(true);
+                                                m.invoke(mapObj, camUpdate, 500);
+                                                android.util.Log.d("MorpheLocation", "Invoked map." + m.getName() + "(camUpdate, 500)");
+                                                animated = true;
+                                                break;
+                                            } catch (Throwable t) {
+                                                android.util.Log.w("MorpheLocation", "Failed invoking " + m.getName() + "(camUpdate, 500)", t);
+                                            }
                                         }
                                     }
-                                }
-                            }
-
-                            if (camUpdate != null) {
-                                for (java.lang.reflect.Method m : mapObj.getClass().getMethods()) {
-                                    if (m.getName().equals("t") && m.getParameterTypes().length == 1) {
-                                        m.invoke(mapObj, camUpdate);
-                                        android.util.Log.d("MorpheLocation", "Invoked map.t(camUpdate)");
-                                        break;
+                                    // 2. Try animateCamera without duration: s(camUpdate) or moveCamera: r(camUpdate)
+                                    if (!animated) {
+                                        for (java.lang.reflect.Method m : mapObj.getClass().getMethods()) {
+                                            if ((m.getName().equals("s") || m.getName().equals("animateCamera") || m.getName().equals("r") || m.getName().equals("moveCamera"))
+                                                    && m.getParameterTypes().length == 1) {
+                                                try {
+                                                    m.setAccessible(true);
+                                                    m.invoke(mapObj, camUpdate);
+                                                    android.util.Log.d("MorpheLocation", "Invoked map." + m.getName() + "(camUpdate)");
+                                                    animated = true;
+                                                    break;
+                                                } catch (Throwable t) {
+                                                    android.util.Log.w("MorpheLocation", "Failed invoking " + m.getName() + "(camUpdate)", t);
+                                                }
+                                            }
+                                        }
                                     }
+                                } else {
+                                    android.util.Log.w("MorpheLocation", "Could not create CameraUpdate object");
                                 }
+                            } catch (Throwable t) {
+                                android.util.Log.w("MorpheLocation", "Failed to animate mapObj camera", t);
                             }
 
                             // Synchronize FAB active state reliably
@@ -902,10 +1100,17 @@ public class GmsCoreSupportPatch {
 
             // 1. Try last known location first for immediate response
             android.location.Location lastLoc = null;
-            try {
-                lastLoc = lm.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
-            } catch (Exception ignored) {}
-            if (lastLoc == null) {
+            if (android.os.Build.VERSION.SDK_INT >= 31 && isFusedEnabled) {
+                try {
+                    lastLoc = lm.getLastKnownLocation(android.location.LocationManager.FUSED_PROVIDER);
+                } catch (Exception ignored) {}
+            }
+            if (lastLoc == null && isGpsEnabled) {
+                try {
+                    lastLoc = lm.getLastKnownLocation(android.location.LocationManager.GPS_PROVIDER);
+                } catch (Exception ignored) {}
+            }
+            if (lastLoc == null && isNetworkEnabled) {
                 try {
                     lastLoc = lm.getLastKnownLocation(android.location.LocationManager.NETWORK_PROVIDER);
                 } catch (Exception ignored) {}
@@ -927,6 +1132,7 @@ public class GmsCoreSupportPatch {
             // 2. Request fresh location updates and continuous tracking
             final boolean finalGps = isGpsEnabled;
             final boolean finalNetwork = isNetworkEnabled;
+            final boolean finalFused = isFusedEnabled;
             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                 try {
                     if (sContinuousListener == null) {
@@ -948,11 +1154,20 @@ public class GmsCoreSupportPatch {
                             @Override public void onProviderEnabled(String provider) {}
                             @Override public void onProviderDisabled(String provider) {}
                         };
+                        if (android.os.Build.VERSION.SDK_INT >= 31 && finalFused) {
+                            try {
+                                lm.requestLocationUpdates(android.location.LocationManager.FUSED_PROVIDER, 1000L, 1.0f, sContinuousListener, android.os.Looper.getMainLooper());
+                            } catch (Throwable ignored) {}
+                        }
                         if (finalGps) {
-                            lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 1000L, 1.0f, sContinuousListener, android.os.Looper.getMainLooper());
+                            try {
+                                lm.requestLocationUpdates(android.location.LocationManager.GPS_PROVIDER, 1000L, 1.0f, sContinuousListener, android.os.Looper.getMainLooper());
+                            } catch (Throwable ignored) {}
                         }
                         if (finalNetwork) {
-                            lm.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 1000L, 1.0f, sContinuousListener, android.os.Looper.getMainLooper());
+                            try {
+                                lm.requestLocationUpdates(android.location.LocationManager.NETWORK_PROVIDER, 1000L, 1.0f, sContinuousListener, android.os.Looper.getMainLooper());
+                            } catch (Throwable ignored) {}
                         }
                         android.util.Log.d("MorpheLocation", "Registered continuous LocationListener for map tracking");
                     }
@@ -962,12 +1177,21 @@ public class GmsCoreSupportPatch {
             });
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                try {
-                    lm.getCurrentLocation(android.location.LocationManager.GPS_PROVIDER, null, context.getMainExecutor(), loc -> applyLocation.onLocation(loc));
-                } catch (Exception ignored) {}
-                try {
-                    lm.getCurrentLocation(android.location.LocationManager.NETWORK_PROVIDER, null, context.getMainExecutor(), loc -> applyLocation.onLocation(loc));
-                } catch (Exception ignored) {}
+                if (android.os.Build.VERSION.SDK_INT >= 31 && finalFused) {
+                    try {
+                        lm.getCurrentLocation(android.location.LocationManager.FUSED_PROVIDER, null, context.getMainExecutor(), loc -> applyLocation.onLocation(loc));
+                    } catch (Exception ignored) {}
+                }
+                if (isGpsEnabled) {
+                    try {
+                        lm.getCurrentLocation(android.location.LocationManager.GPS_PROVIDER, null, context.getMainExecutor(), loc -> applyLocation.onLocation(loc));
+                    } catch (Exception ignored) {}
+                }
+                if (isNetworkEnabled) {
+                    try {
+                        lm.getCurrentLocation(android.location.LocationManager.NETWORK_PROVIDER, null, context.getMainExecutor(), loc -> applyLocation.onLocation(loc));
+                    } catch (Exception ignored) {}
+                }
             }
         } catch (Throwable t) {
             android.util.Log.e("MorpheLocation", "handleCurrentLocation exception", t);

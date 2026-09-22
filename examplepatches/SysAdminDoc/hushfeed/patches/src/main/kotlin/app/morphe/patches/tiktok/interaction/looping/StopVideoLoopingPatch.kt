@@ -21,6 +21,7 @@ val stopVideoLoopingPatch = bytecodePatch(
     description = "Stops videos at the end instead of replaying them. Switch: Hushfeed settings > App.",
     default = true,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

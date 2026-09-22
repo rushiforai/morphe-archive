@@ -35,6 +35,7 @@ val notInterestedPatch = bytecodePatch(
         "video. It hides while comments are open. Off by default. Switch: Hushfeed settings > Feed filter.",
     default = false,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
     execute {

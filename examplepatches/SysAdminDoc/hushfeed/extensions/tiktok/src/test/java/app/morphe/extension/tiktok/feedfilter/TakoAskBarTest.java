@@ -46,9 +46,45 @@ public class TakoAskBarTest {
         TakoAiFilter.hideAskBar(null);
     }
 
+    /** Issue #22: the Ask Tako bubble over the search page stayed with Hide Tako AI on. */
+    @Test public void theSearchPageEntranceFollowsTheSameSwitchAndIsNamedInTheExport() {
+        assertFalse("the entrance was removed with the switch off", TakoAiFilter.shouldHideSearchEntrance());
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains("tako AI: 1 found"));
+        Settings.HIDE_TAKO_AI.save(true);
+        assertTrue("the entrance was built with the switch on", TakoAiFilter.shouldHideSearchEntrance());
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains("tako AI: 2 found"));
+    }
+
     @Test public void theExportNamesTheStripWhicheverWayTheSwitchIsSet() {
         TakoAiFilter.shouldHideAskBar();
         String report = HookStatus.report().toString();
         assertTrue(report, report.contains("tako AI"));
+    }
+
+    /** The Tako bar above the comment list follows the same switch and is named in the export. */
+    @Test public void theCommentsBarFollowsTheSameSwitchAndIsNamedInTheExport() {
+        assertFalse("the bar was refused with the switch off", TakoAiFilter.shouldHideCommentTopBar());
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains("tako AI: 1 found"));
+        Settings.HIDE_TAKO_AI.save(true);
+        assertTrue("the bar was allowed with the switch on", TakoAiFilter.shouldHideCommentTopBar());
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains("tako AI: 2 found"));
+    }
+
+    /** Stand-ins for the commentv2 bridges, told apart by class name the way the phone's are. */
+    private static final class BgTakoTopBarServiceImpl {}
+    private static final class BgAdTopBarServiceImpl {}
+
+    /**
+     * The bridge base's canShow serves nine bridges. Only the Tako one is refused, and a null
+     * service (a build whose guard lost its receiver) is left to TikTok rather than hidden.
+     */
+    @Test public void onlyTheTakoBridgeIsRefusedFromTheSharedBase() {
+        Settings.HIDE_TAKO_AI.save(true);
+        assertTrue(TakoAiFilter.shouldHideBridgedCommentTopBar(new BgTakoTopBarServiceImpl()));
+        assertFalse("the ad bridge was refused", TakoAiFilter.shouldHideBridgedCommentTopBar(new BgAdTopBarServiceImpl()));
+        assertFalse("a null service was refused", TakoAiFilter.shouldHideBridgedCommentTopBar(null));
+        Settings.HIDE_TAKO_AI.save(false);
+        assertFalse("the Tako bridge was refused with the switch off",
+                TakoAiFilter.shouldHideBridgedCommentTopBar(new BgTakoTopBarServiceImpl()));
     }
 }

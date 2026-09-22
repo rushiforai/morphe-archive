@@ -29,6 +29,7 @@ val alwaysShowPublishDatePatch = bytecodePatch(
     description = "Always shows the publish date in video author information. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

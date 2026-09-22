@@ -60,6 +60,11 @@ public final class NotifierBootstrap {
         }
     }
 
+    /** Also called by the Travian Tools screens, which can be opened before the game ever was. */
+    static void ensureChannels(Context ctx) {
+        createChannel(ctx);
+    }
+
     private static void askPermissionsOnce(Context ctx) {
         SharedPreferences prefs = ctx.getApplicationContext()
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

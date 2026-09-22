@@ -131,6 +131,20 @@ public class SettingBridgesTest {
     }
 
     @Test
+    public void theSeekbarVisibleBranchStillRunsWhenTheStoredTypeAlreadySaysVisible() {
+        Settings.SHOW_SEEKBAR.save(true);
+        assertEquals(Integer.MIN_VALUE, SeekbarPatch.forceSeekbarRefresh(0, 0));
+        assertEquals("a real type change already runs the host branch",
+                3, SeekbarPatch.forceSeekbarRefresh(3, 0));
+        assertEquals("other requested modes remain the host's decision",
+                1, SeekbarPatch.forceSeekbarRefresh(1, 1));
+
+        Settings.SHOW_SEEKBAR.save(false);
+        assertEquals("the native equality shortcut stays intact while disabled",
+                0, SeekbarPatch.forceSeekbarRefresh(0, 0));
+    }
+
+    @Test
     public void theThumbnailGateAnswersOnlyForItsOwnKey() {
         Settings.SHOW_SEEKBAR_THUMBNAIL.save(true);
         assertEquals(1, SeekbarPatch.overrideThumbnailGate("seekbar_show_thumbnail_when_drag", 0));

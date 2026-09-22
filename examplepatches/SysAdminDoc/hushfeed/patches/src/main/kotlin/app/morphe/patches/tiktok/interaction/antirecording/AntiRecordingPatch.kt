@@ -46,6 +46,7 @@ val antiRecordingPatch = bytecodePatch(
     description = "Prevents TikTok from reacting to screenshots and screen recordings.",
     default = true,
 ) {
+    category("Downloads")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {

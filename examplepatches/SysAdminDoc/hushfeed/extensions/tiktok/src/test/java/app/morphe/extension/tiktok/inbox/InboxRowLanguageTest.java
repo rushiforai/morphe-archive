@@ -43,13 +43,12 @@ public class InboxRowLanguageTest {
         Settings.HIDE_INBOX_MESSAGE_REQUESTS.save(false);
         Settings.HIDE_INBOX_CUSTOM_TITLES.save("");
         String packageName = RuntimeEnvironment.getApplication().getPackageName();
-        InboxFilter.resolveForTests(packageName, "vid", 101);
         InboxFilter.resolveForTests(packageName, "user_name", 102);
-        InboxFilter.resolveForTests(packageName, "tyh", 103);
-        InboxFilter.resolveForTests(packageName, "bo5", 104);
-        InboxFilter.resolveForTests(packageName, "o1l", 201);
-        InboxFilter.resolveForTests(packageName, "kmx", 200);
-        FeedVisibility.resolveForTests(packageName, "o1l", 201);
+        InboxFilter.resolveForTests(packageName, "uy5", 103);
+        InboxFilter.resolveForTests(packageName, "brb", 104);
+        InboxFilter.resolveForTests(packageName, "w1f", 105);
+        InboxFilter.resolveForTests(packageName, "l7b", 200);
+        FeedVisibility.resolveForTests(packageName, "omr", 201);
         predicate = InboxFilter.class.getDeclaredMethod("shouldHideRow", Activity.class, View.class);
         predicate.setAccessible(true);
     }
@@ -167,11 +166,6 @@ public class InboxRowLanguageTest {
         label.setText(title);
         label.setTextColor(android.graphics.Color.WHITE);
         row.addView(label);
-        if (conversation) {
-            View marker = new View(activity);
-            marker.setId(101);
-            row.addView(marker);
-        }
         return row;
     }
 

@@ -1,3 +1,21 @@
+## [1.23.1](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.23.0...v1.23.1) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **bighunter:** drive full purchase flow for free IAP (process lock) ([6831196](https://github.com/durgesh0505/chiggi_morphe_patches/commit/6831196e7154dcc41441331b867442ba57bdaf4b))
+
+## [1.23.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.22.0...v1.23.0) (2026-09-22)
+
+### ✨ New Features
+
+* **bighunter:** bypass PairIP license check (fix Play redirect) ([b7bb4f8](https://github.com/durgesh0505/chiggi_morphe_patches/commit/b7bb4f830d127c2ddfaa41661f41efb4bb69299e))
+
+## [1.22.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.21.2...v1.22.0) (2026-09-21)
+
+### ✨ New Features
+
+* **bighunter:** remove ads + free in-app purchases ([ebcf009](https://github.com/durgesh0505/chiggi_morphe_patches/commit/ebcf009c701e9a1b232f4064da799fa7b78f2a35))
+
 ## [1.21.2](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.21.1...v1.21.2) (2026-09-08)
 
 ### 🐛 Bug Fixes

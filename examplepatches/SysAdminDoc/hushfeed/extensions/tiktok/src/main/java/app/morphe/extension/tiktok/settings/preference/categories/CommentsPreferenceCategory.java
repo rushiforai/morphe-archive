@@ -109,8 +109,8 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.hideCommentQuickReactionsEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Hide quick comment reactions",
-                    "Hide TikTok's exposed quick emoji row in supported comment inputs.",
+                    "Hide comment typing suggestions",
+                    "Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.",
                     Settings.HIDE_COMMENT_QUICK_REACTIONS
             ));
         }

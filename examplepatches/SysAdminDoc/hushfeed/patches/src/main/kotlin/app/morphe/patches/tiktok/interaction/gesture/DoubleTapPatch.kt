@@ -71,6 +71,7 @@ val doubleTapPatch = bytecodePatch(
     description = "Lets double taps do nothing or open the current video's comments. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
+    category("Interaction")
     compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
     execute {

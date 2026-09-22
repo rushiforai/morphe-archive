@@ -46,6 +46,7 @@ val followDiagnosticsPatch = bytecodePatch(
         "and, with diagnostic logging on, writes the whole exchange to the report.",
     default = true,
 ) {
+    category("Interaction")
     dependsOn(sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

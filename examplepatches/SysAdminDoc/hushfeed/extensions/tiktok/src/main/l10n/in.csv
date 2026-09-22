@@ -380,7 +380,7 @@ Hide TikTok Shop,Sembunyikan TikTok Shop
 Hide TikTok Shop posts from the feed.,Sembunyikan kiriman TikTok Shop dari feed.
 Hide TikTok Shop updates and coupon messages.,Sembunyikan info terbaru TikTok Shop dan pesan kupon.
 Hide the Tako chat,Sembunyikan chat Tako
-Hide TikTok's exposed quick emoji row in supported comment inputs.,Sembunyikan baris emoji cepat yang TikTok tampilkan di kolom komentar yang mendukungnya.
+Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.,Sembunyikan baris emoji cepat dan saran stiker otomatis yang muncul saat Anda mengetik. Tombol emoji dan stiker tetap berfungsi.
 Hide activity,Sembunyikan aktivitas
 Hide activity status,Sembunyikan status aktivitas
 Hide archive,Sembunyikan arsip
@@ -409,7 +409,7 @@ Hide photo posts,Sembunyikan publikasi foto
 Hide picture comments,Sembunyikan komentar bergambar
 Hide playlist videos,Sembunyikan video playlist
 Hide promotional music,Sembunyikan musik promosi
-Hide quick comment reactions,Sembunyikan reaksi komentar cepat
+Hide comment typing suggestions,Sembunyikan saran saat mengetik komentar
 Hide rows by title,Sembunyikan baris berdasarkan judul
 Hide the Inbox search button,Sembunyikan tombol pencarian Kotak Masuk
 Hide suggestions on the search page,Sembunyikan saran di halaman pencarian
@@ -429,7 +429,7 @@ Hide LIVE videos from the feed.,Sembunyikan video LIVE dari feed.
 Hide the Message requests row.,Sembunyikan baris Permintaan pesan.
 Hide the New followers row.,Sembunyikan baris Pengikut baru.
 Hide the Send to row,Sembunyikan baris Kirim ke
-Hide the Tako AI bubble above the profile button and the Ask bar under videos.,Sembunyikan gelembung Tako AI di atas tombol profil dan bilah Tako di bawah video.
+"Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments.","Sembunyikan gelembung Tako AI di atas tombol profil, bilah Tako di bawah video, tombol Tanya Tako di halaman pencarian, dan bilah Tako di atas komentar."
 Hide the Tako assistant conversation in Inbox.,Sembunyikan percakapan asisten Tako di Kotak Masuk.
 Hide the activity status control in the Inbox header.,Sembunyikan kontrol status aktivitas di header Kotak Masuk.
 Hide the add people icon,Sembunyikan ikon tambah orang
@@ -885,7 +885,7 @@ Stop a long press on Share from opening TikTok's quick share action.,Cegah tekan
 Stop feature gate recording,Hentikan rekaman feature gate
 Stop the brand animation that plays over the comments when what someone typed matches an advertiser's trigger.,Hentikan animasi merek yang muncul di atas komentar saat ketikan seseorang cocok dengan pemicu pengiklan.
 Stop the bubble that asks you to share a video with friends after you like it.,Menghentikan gelembung yang meminta kamu berbagi video dengan teman setelah menyukainya.
-"Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so leave this off unless you want them cut off too.","Mencegah peramban dalam aplikasi menyerahkan jembatan JavaScript TikTok ke halaman yang dimuatnya. Sebagian besar halaman web milik TikTok memerlukan jembatan itu, termasuk kasir toko dan halaman CAPTCHA, jadi biarkan mati kecuali Anda ingin memutus halaman itu juga."
+"Stop the in-app browser handing TikTok's JavaScript bridge to the pages it loads. TikTok's own pages need that bridge too. With this on, Activity center and Watch history stop responding, and the shop checkout and the CAPTCHA page break. Leave it off unless you want those cut off as well.","Mencegah peramban dalam aplikasi menyerahkan jembatan JavaScript TikTok ke halaman yang dimuatnya. Halaman milik TikTok sendiri juga memerlukan jembatan itu. Jika ini aktif, Pusat aktivitas dan Riwayat tontonan berhenti merespons, dan kasir toko serta halaman CAPTCHA tidak berfungsi. Biarkan mati kecuali Anda ingin memutus halaman itu juga."
 Stop video looping,Hentikan pengulangan video
 Stop videos at the end instead of replaying them.,"Hentikan video di akhir, bukan memutarnya ulang."
 Stopped after dismissing %1$s suggested accounts,Berhenti setelah menutup %1$s akun yang disarankan
@@ -1160,3 +1160,9 @@ Location-tagged videos,Video berlabel lokasi
 "Extend the heart's touch area into nearby blank space. The icon and row spacing stay the same. Text, Reply and other controls keep their own space.","Perluas area sentuh hati ke ruang kosong di sekitarnya. Ikon dan jarak antarbaris tetap sama. Teks, Balas, dan kontrol lain tetap memiliki area sendiri."
 "Start with comments. Hide the comment count, sort and close buttons, plus the suggestion area above them. Use Back or swipe down to close comments.","Langsung tampilkan komentar. Sembunyikan jumlah komentar, tombol urutkan dan tutup, serta area saran di atasnya. Gunakan Kembali atau geser ke bawah untuk menutup komentar."
 "Hide TikTok's ""Search: ..."" banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.","Sembunyikan banner ""Cari: ..."" TikTok di atas jumlah komentar. Ini tidak menyembunyikan komentar atau kotak pencarian komentar Hushfeed."
+"Hide the Report button on videos","Sembunyikan tombol Laporkan di video"
+"Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.","Sembunyikan tombol bendera yang ditaruh TikTok di atas foto kreator di beberapa wilayah. Anda tetap bisa melaporkan video dari menu bagikan."
+"Hide search rewards","Sembunyikan hadiah pencarian"
+"Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.","Sembunyikan banner poin di bawah kotak pencarian dan penghitung koin yang melayang di atas hasil pencarian, yang ditampilkan TikTok di beberapa wilayah. Pencarian tetap berfungsi seperti biasa."
+"%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.","%1$s menyembunyikan semua yang dikirim TikTok, %2$d kali berturut-turut. Matikan jika bukan itu yang kamu inginkan."
+Show the switch,Tampilkan sakelarnya

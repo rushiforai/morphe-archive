@@ -42,8 +42,10 @@ pluginManagement {
 // where the patcher's own kotlin-stdlib and kotlin-reflect stay at 2.4.10.
 //
 // The same classpath brings Bouncy Castle 1.79, by way of the patcher's 1.77 pin and the
-// Android build tools' own 1.79 request, and both are inside CVE-2025-8916 (1.44 to 1.79) and
-// CVE-2026-5588 (1.49 to 1.84). :patches and :extensions:tiktok each force their own graphs to
+// Android build tools' own 1.79 request: 1.77 is inside all six advisories (CVE-2025-8916
+// 1.44 to 1.78, CVE-2026-5588 1.67 to 1.83, CVE-2025-14813, CVE-2026-0636 fixed in 1.84,
+// CVE-2026-8763, CVE-2026-13506 fixed in 1.85) and 1.79 is inside all but CVE-2025-8916.
+// :patches and :extensions:tiktok each force their own graphs to
 // the reviewed release, but neither reaches this one: a force on a project configuration cannot
 // touch the classpath the plugins themselves resolve on, and that classpath is where the
 // signing code actually runs. 1.86 is spelled out here rather than read from

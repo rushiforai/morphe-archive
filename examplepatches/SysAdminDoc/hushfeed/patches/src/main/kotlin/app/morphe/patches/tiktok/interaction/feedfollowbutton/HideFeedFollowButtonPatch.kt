@@ -57,6 +57,7 @@ val hideFeedFollowButtonPatch = bytecodePatch(
     description = "Hide the + follow button below creator avatars in video feeds. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

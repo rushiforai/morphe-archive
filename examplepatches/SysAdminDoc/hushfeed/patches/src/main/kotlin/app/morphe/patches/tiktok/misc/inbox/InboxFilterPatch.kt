@@ -64,6 +64,7 @@ val inboxFilterPatch = bytecodePatch(
         "hidden individually. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
+    category("Inbox")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

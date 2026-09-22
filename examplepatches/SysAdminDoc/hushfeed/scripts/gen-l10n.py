@@ -86,9 +86,18 @@ def add(entries, english, translated, path, number):
     # A dropped, added, renumbered or retyped placeholder, in one comparison. The runtime hands
     # the same arguments to whichever table is loaded, so a translation that asks for different
     # ones formats the wrong value or throws on the phone.
+    #
+    # When every placeholder is numbered (%1$d, %2$s), a translation may use them in any order
+    # and the set must match. Unnumbered placeholders (%d, %s) keep their order, because
+    # String.format fills them positionally.
     wanted = PLACEHOLDER.findall(english)
     given = PLACEHOLDER.findall(translated)
-    if wanted != given:
+    all_numbered = all("$" in p for p in wanted) if wanted else False
+    if all_numbered:
+        if sorted(wanted) != sorted(given):
+            sys.exit("%s:%d: numbered placeholders %s became %s in: %s"
+                     % (path, number, wanted, given, english.replace("\n", "\\n")))
+    elif wanted != given:
         sys.exit("%s:%d: placeholders %s became %s in: %s"
                  % (path, number, wanted, given, english.replace("\n", "\\n")))
     entries[english] = translated

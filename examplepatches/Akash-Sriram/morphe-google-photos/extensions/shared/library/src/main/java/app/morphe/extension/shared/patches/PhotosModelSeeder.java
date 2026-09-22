@@ -64,21 +64,20 @@ public final class PhotosModelSeeder {
                 int expected = getExpectedModelCount();
                 int modelCount = countModelsInDir(targetModelsDir);
                 File groupsXml = new File(prefsDir, MDD_GROUPS_XML);
-                boolean hasGroups = groupsXml.exists() && groupsXml.length() > 500;
+                boolean manifestReady = isManifestConfiguredForPackage(groupsXml, pkg);
 
-                Logger.printInfo(() -> "PhotosModelSeeder: ensureSeeded() called. Current models count=" + modelCount + ", expected=" + expected);
+                Logger.printInfo(() -> "PhotosModelSeeder: ensureSeeded() called for " + pkg + ". Current models count=" + modelCount + ", expected=" + expected + ", manifestReady=" + manifestReady);
 
-                if (expected > 0 && modelCount >= expected && hasGroups) {
+                if (expected > 0 && modelCount >= expected && manifestReady) {
                     isSeeded = true;
                     return;
                 }
 
                 // Inject manifest registry immediately so app knows all groups
-                if (!hasGroups) {
-                    Logger.printInfo(() -> "PhotosModelSeeder: Injecting MDD manifests into shared_prefs");
+                if (!manifestReady) {
+                    Logger.printInfo(() -> "PhotosModelSeeder: Injecting/patching MDD manifests into shared_prefs for " + pkg);
                     CdnAssetDownloader.unlockDirectory(prefsDir);
                     injectManifests(prefsDir, pkg);
-                    patchMddManifests(prefsDir, pkg);
                 }
 
                 startDynamicDownload(context, targetModelsDir, prefsDir);
@@ -177,7 +176,6 @@ public final class PhotosModelSeeder {
                 final int expectedCount = urlToFile.size();
                 if (finalDownloaded >= expectedCount) {
                     injectManifests(prefsDir, context.getPackageName());
-                    patchMddManifests(prefsDir, context.getPackageName());
 
                     CdnAssetDownloader.lockDirectory(targetModelsDir);
 
@@ -322,6 +320,25 @@ public final class PhotosModelSeeder {
         return groupMap;
     }
 
+    private static final String STOCK_PACKAGE = "com.google.android.apps.photos";
+    private static final String MORPHE_PACKAGE = "app.morphe.android.apps.photos";
+
+    private static boolean isManifestConfiguredForPackage(File groupsXml, String targetPackageName) {
+        if (groupsXml == null || !groupsXml.exists() || groupsXml.length() < 500) return false;
+        try {
+            String content = readFileToString(groupsXml);
+            String expectedKeyPart = STOCK_PACKAGE.equals(targetPackageName)
+                    ? "Eh5jb20uZ29vZ2xlLmFuZHJvaWQuYXBwcy5waG90b3M"
+                    : "Eh5hcHAubW9ycGhlLmFuZHJvaWQuYXBwcy5waG90b3M";
+            String unexpectedKeyPart = STOCK_PACKAGE.equals(targetPackageName)
+                    ? "Eh5hcHAubW9ycGhlLmFuZHJvaWQuYXBwcy5waG90b3M"
+                    : "Eh5jb20uZ29vZ2xlLmFuZHJvaWQuYXBwcy5waG90b3M";
+            return content.contains(expectedKeyPart) && !content.contains("CgR1ZG9u" + unexpectedKeyPart);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
     private static void injectManifests(File destDir, String newPackageName) {
         if (!destDir.exists()) destDir.mkdirs();
         for (Map.Entry<String, String> entry : MddManifests.MANIFESTS.entrySet()) {
@@ -340,40 +357,108 @@ public final class PhotosModelSeeder {
     private static void patchMddManifests(File manifestsDir, String newPackageName) {
         File[] xmlFiles = manifestsDir.listFiles();
         if (xmlFiles == null) return;
-        String oldPackage = "com.google.android.apps.photos";
-        if (oldPackage.length() != newPackageName.length()) return;
+
+        Pattern entryPattern = Pattern.compile("<string\\s+name=\"([^\"]+)\">([^<]+)</string>");
 
         for (File xml : xmlFiles) {
             if (!xml.getName().endsWith(".xml")) continue;
             try {
                 String content = readFileToString(xml);
-                boolean changed = false;
-                Matcher m = Pattern.compile(">([^<]+)</string>").matcher(content);
-                StringBuffer sb = new StringBuffer();
-                while (m.find()) {
-                    String base64 = m.group(1);
-                    try {
-                        byte[] decoded = Base64.decode(base64, Base64.DEFAULT);
-                        String decodedStr = new String(decoded, "ISO-8859-1");
-                        if (decodedStr.contains(oldPackage)) {
-                            decodedStr = decodedStr.replace(oldPackage, newPackageName);
-                            String newBase64 = Base64.encodeToString(decodedStr.getBytes("ISO-8859-1"), Base64.NO_WRAP);
-                            m.appendReplacement(sb, ">" + newBase64 + "</string>");
-                            changed = true;
-                            continue;
-                        }
-                    } catch (Exception ignored) {}
-                    m.appendReplacement(sb, ">" + base64 + "</string>");
+                Matcher m = entryPattern.matcher(content);
+                if (!m.find()) {
+                    continue; // Skip files without <string name="..."> entries (e.g. metadata with only ints/booleans)
                 }
-                m.appendTail(sb);
+                m.reset();
 
-                if (changed) {
+                boolean changed = false;
+                Map<String, String> deduplicated = new LinkedHashMap<>();
+
+                while (m.find()) {
+                    String rawKeyB64 = m.group(1);
+                    String rawValB64 = m.group(2);
+
+                    String patchedKeyB64 = patchProtobufBase64(rawKeyB64, newPackageName, true);
+                    String patchedValB64 = patchProtobufBase64(rawValB64, newPackageName, false);
+
+                    if (!patchedKeyB64.equals(rawKeyB64) || !patchedValB64.equals(rawValB64)) {
+                        changed = true;
+                    }
+                    deduplicated.put(patchedKeyB64, patchedValB64);
+                }
+
+                if (changed || deduplicated.size() < countXmlEntries(content)) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("<?xml version='1.0' encoding='utf-8'?>\n<map>\n");
+                    for (Map.Entry<String, String> entry : deduplicated.entrySet()) {
+                        sb.append("    <string name=\"")
+                          .append(entry.getKey())
+                          .append("\">")
+                          .append(entry.getValue())
+                          .append("</string>\n");
+                    }
+                    sb.append("</map>\n");
+
                     try (FileOutputStream fos = new FileOutputStream(xml)) {
                         fos.write(sb.toString().getBytes("UTF-8"));
                     }
+                    Logger.printInfo(() -> "PhotosModelSeeder: Successfully patched manifest " + xml.getName() + " for " + newPackageName + " (" + deduplicated.size() + " entries)");
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                Logger.printInfo(() -> "PhotosModelSeeder: Failed to patch manifest " + xml.getName() + ": " + e.getMessage());
+            }
         }
+    }
+
+    private static String patchProtobufBase64(String b64, String targetPackageName, boolean isKey) {
+        if (b64 == null || b64.isEmpty()) return b64;
+        try {
+            byte[] decoded = Base64.decode(b64, Base64.DEFAULT);
+            String decodedStr = new String(decoded, "ISO-8859-1");
+            boolean modified = false;
+
+            if (STOCK_PACKAGE.equals(targetPackageName)) {
+                if (decodedStr.contains(MORPHE_PACKAGE)) {
+                    decodedStr = decodedStr.replace(MORPHE_PACKAGE, STOCK_PACKAGE);
+                    modified = true;
+                }
+            } else if (MORPHE_PACKAGE.equals(targetPackageName)) {
+                if (decodedStr.contains(STOCK_PACKAGE)) {
+                    decodedStr = decodedStr.replace(STOCK_PACKAGE, MORPHE_PACKAGE);
+                    modified = true;
+                }
+            } else {
+                if (targetPackageName.length() == STOCK_PACKAGE.length()) {
+                    if (decodedStr.contains(MORPHE_PACKAGE)) {
+                        decodedStr = decodedStr.replace(MORPHE_PACKAGE, targetPackageName);
+                        modified = true;
+                    }
+                    if (decodedStr.contains(STOCK_PACKAGE)) {
+                        decodedStr = decodedStr.replace(STOCK_PACKAGE, targetPackageName);
+                        modified = true;
+                    }
+                }
+            }
+
+            if (modified) {
+                int flags = Base64.NO_WRAP;
+                if (isKey || !b64.endsWith("=")) {
+                    flags |= Base64.NO_PADDING;
+                }
+                return Base64.encodeToString(decodedStr.getBytes("ISO-8859-1"), flags);
+            }
+        } catch (Throwable ignored) {}
+        return b64;
+    }
+
+    private static int countXmlEntries(String content) {
+        if (content == null) return 0;
+        int count = 0;
+        int idx = 0;
+        while ((idx = content.indexOf("<string ", idx)) != -1) {
+            count++;
+            idx += 8;
+        }
+        return count;
     }
 
     private static String readFileToString(File file) throws IOException {

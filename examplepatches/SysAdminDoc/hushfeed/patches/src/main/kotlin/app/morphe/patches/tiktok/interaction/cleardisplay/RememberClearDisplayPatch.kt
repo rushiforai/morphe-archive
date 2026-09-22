@@ -28,6 +28,7 @@ val rememberClearDisplayPatch = bytecodePatch(
     description = "Remembers clear display between videos, or enters it automatically after a chosen delay. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
     execute {

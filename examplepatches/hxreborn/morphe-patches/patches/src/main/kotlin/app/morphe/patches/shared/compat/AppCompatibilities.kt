@@ -122,8 +122,15 @@ internal object AppCompatibilities {
             AppTarget(version = "4.0.02.0828.03", versionCode = 50020125, minSdk = 29),
             AppTarget(version = "4.0.02.0831.03", versionCode = 50020126, minSdk = 29),
             AppTarget(version = "4.0.02.0903.02", versionCode = 50020128, minSdk = 29),
-            AppTarget(version = "4.0.03.0918.03", versionCode = 50020129, minSdk = 29),
         ),
+    )
+
+    val MYMOVESET = Compatibility(
+        name = "MyMoveset",
+        packageName = "com.soulbreakers.mymoveset",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x9F1C3B,
+        targets = listOf(AppTarget(version = "1.3.1", versionCode = 14, minSdk = 24)),
     )
 
     val NOTESNOOK = Compatibility(
@@ -214,6 +221,14 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x0061BD,
         targets = listOf(AppTarget(version = "26.05.20+2300", versionCode = 2300, minSdk = 16)),
+    )
+
+    val REALME_LINK = Compatibility(
+        name = "Realme Link",
+        packageName = "com.realme.link",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x3575C4,
+        targets = listOf(AppTarget(version = "5.5.514.11421", versionCode = 530121, minSdk = 33)),
     )
 
     val RINGTONE_MAKER = Compatibility(

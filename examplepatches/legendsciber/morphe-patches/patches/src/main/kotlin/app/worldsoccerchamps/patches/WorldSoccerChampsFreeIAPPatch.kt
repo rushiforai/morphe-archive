@@ -59,16 +59,12 @@ val worldSoccerChampsFreeIAPPatch = bytecodePatch(
 @Suppress("unused")
 val worldSoccerChampsAntiTamperPatch = bytecodePatch(
     name = "World Soccer Champs Anti-Tamper Bypass",
-    description = "Disables all Pairip anti-tamper checks: native VMRunner, signature verification, anti-hijack, and Play Store redirect.",
+    description = "Disables all Pairip anti-tamper checks including CRC32 integrity verification.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WSC)
 
     execute {
-        StartupLauncherFingerprint.method.addInstructions(0, """
-            return-void
-        """.trimIndent())
-
         SignatureCheckFingerprint.method.addInstructions(0, """
             return-void
         """.trimIndent())
@@ -83,9 +79,44 @@ val worldSoccerChampsAntiTamperPatch = bytecodePatch(
             return v0
         """.trimIndent())
 
-        ApplicationAttachFingerprint.method.addInstructions(0, """
-            invoke-super {p0, p1}, Landroid/app/Application;->attachBaseContext(Landroid/content/Context;)V
-            return-void
+        AntiHookFingerprint.method.addInstructions(0, """
+            const/4 v0, 0x0
+            return v0
+        """.trimIndent())
+
+        NativeFlagFingerprint.method.addInstructions(0, """
+            const/4 v0, 0x0
+            return v0
+        """.trimIndent())
+
+        DexCrcFingerprint.method.addInstructions(0, """
+            const-string v0, "ok"
+            return-object v0
+        """.trimIndent())
+
+        AssetCrcFingerprint.method.addInstructions(0, """
+            const-string v0, "ok"
+            return-object v0
+        """.trimIndent())
+
+        InstalledAppsFingerprint.method.addInstructions(0, """
+            const-string v0, ""
+            return-object v0
+        """.trimIndent())
+
+        PlayIntegrityTokenFingerprint.method.addInstructions(0, """
+            const-string v0, "fake_integrity_token"
+            return-object v0
+        """.trimIndent())
+
+        PlayIntegrityVerdictFingerprint.method.addInstructions(0, """
+            const-string v0, "fake_integrity_verdict"
+            return-object v0
+        """.trimIndent())
+
+        PlayIntegrityStatusFingerprint.method.addInstructions(0, """
+            const/4 v0, 0x0
+            return v0
         """.trimIndent())
     }
 }

@@ -19,6 +19,15 @@ public final class SearchSuggestions {
         return SettingsStatus.hideSearchSuggestionsEnabled && Settings.HIDE_SEARCH_SUGGESTIONS.get();
     }
 
+    /**
+     * Whether the search rewards service is withheld (issue #21): the points banner under the
+     * search box and the coin counter over results. TikTok's pages treat a missing service as
+     * an account with no rewards.
+     */
+    public static boolean shouldHideRewards() {
+        return SettingsStatus.hideSearchSuggestionsEnabled && Settings.HIDE_SEARCH_REWARDS.get();
+    }
+
     public static boolean filterCachedSuggestions(boolean nativeValue) {
         return nativeValue && !shouldHide();
     }

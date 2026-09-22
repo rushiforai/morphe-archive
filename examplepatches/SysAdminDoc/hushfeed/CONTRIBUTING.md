@@ -14,6 +14,9 @@ If you open an issue, include:
 - ordered reproduction steps, including each Hushfeed setting changed before the first failure
 - logs or screenshots if the issue is visual or crash related
 
+GitHub doesn't let the person who opened an issue reopen it once a maintainer closes it. So a
+closing comment always says how to get it reopened: comment there and we'll reopen it.
+
 Small focused pull requests are easier to test than large mixed changes.
 
 For patch changes, please include what APK version you tested against and what behavior you verified.
@@ -21,9 +24,13 @@ For patch changes, please include what APK version you tested against and what b
 Diagnostic tools can copy or save a redacted report. Attach that report instead of raw logcat
 when possible, and remove any private messages or account details from screenshots.
 
-Before publishing a release, run `scripts/validate-release-facts.ps1` after the runtime tests
-and patch list generation. It checks the generated version, target package, target version,
-patch count and test count against the README and `patches-bundle.json`. After uploading the
+Before publishing a release, run `scripts/validate-release-facts.ps1` after the runtime tests,
+the patch tests and patch list generation. It checks the generated version, target package,
+target version, patch count and both test counts against the README and `patches-bundle.json`.
+Run the patch tests with `HUSHFEED_FIXTURE_DIR` set: a skipped fixture test fails the check,
+because the description can only quote a run that read the fixtures. The check also holds the
+bug report form's placeholders to the published version, the TikTok target and the Manager floor,
+so update them in the same commit that moves `patches-bundle.json` to the new release. After uploading the
 bundle and `SHA256SUMS.txt`, run it again with `-VerifyPublishedAsset` to check the indexed URL,
 the local artifact hash and the hosted checksum entry. The local release helpers are
 `scripts/gen-l10n.py`, `scripts/verify-all-patches.ps1`, `scripts/patch-for-device.ps1` and
@@ -43,6 +50,28 @@ only during that first step. During the index push, it checks the artifact times
 published version tag, not the later index commit. It won't compare a new artifact with an old
 release.
 
+When the TikTok target moves, record the content-marker corpus again on the new build.
+`ContentMarkerCorpusTest` replays shapes recorded from real videos through the AI label, paid
+partnership, series and playlist filters, because hand-built test objects never carried the
+defaults TikTok actually sends. `tools/verification-probe/record-markers.ps1` records them on the
+test phone, route by route, and `-Write` turns the recordings into
+`extensions/tiktok/src/test/resources/feed-markers/<route>-<version>.json`. The files hold shapes
+only: no ids, names or captions.
+
+The view ids the extension looks up by name move too. TikTok hands its short resource names out
+again on every build, mostly to other views, so a name that still resolves can be the wrong one.
+`patches/src/test/resources/view-id-anchors.txt` lists every lookup with an owner where there is
+one: a class of the target, with a real name, whose code loads the id, or, written
+`layout:<class>`, loads a layout that sets it. The classes of TikTok's dynamic feature modules
+count too. Each module's code ships in the APK as `lib/<abi>/libdex_<module>.so`, which the test
+also reads. `RuntimeViewIdAnchorsTest` fails for each owner
+that no longer does so on the declared target. Read that group off the
+new build's live view tree, then change the code and the table together, because the test also
+holds the table to the code. Replace the old name rather than keeping it as a fallback. On the new
+build the old name belongs to some other view, and a fallback hides or clicks that view wherever
+the new name finds nothing. The test only lets a group look up more than one name when its entry
+in `MORE_THAN_ONE_NAME` says why.
+
 Translations live in `extensions/tiktok/src/main/l10n/`, either as a tab separated `<code>.tsv`
 or as the `source,target` CSV a Weblate export gives you. `scripts/gen-l10n.py` reads both and
 writes `en.csv`, the base a Weblate project translates from. Rerun it after touching a table:
@@ -51,10 +80,39 @@ The release check also refuses results older than the sources, so rerun the test
 rather than reusing the last run's XML.
 
 Run `scripts/install-hooks.ps1` once per checkout. It installs a pre-push hook that runs the
-runtime tests when a push changes anything under `extensions/` or `patches/`, and the release
-check when it changes `README.md`, `gradle.properties`, `patches-list.json` or
-`patches-bundle.json`. Nothing builds on GitHub, so a push is the last place either can run.
-Set `HUSHFEED_SKIP_PRE_PUSH=1` to push without it.
+runtime tests when a push changes anything under `extensions/` or `patches/`, the release check
+when it changes `README.md`, `gradle.properties`, `patches-list.json` or `patches-bundle.json`,
+and the script contract tests when it changes anything under `scripts/`. Nothing builds on
+GitHub, so a push is the last place any of them can run. Set `HUSHFEED_SKIP_PRE_PUSH=1` to push
+without it. Every check looks at each commit the push carries, with that commit's own copy of
+the check. It works in place only when that commit is HEAD and nothing in the working tree differs
+from it. Otherwise it uses a clean worktree of the commit in the temp folder, one push at a time,
+so work that isn't part of the push can neither fail it nor pass it. An in-place check reads the
+tree again when it finishes, even after a build failure, and stops the push if anything changed
+meanwhile: a tree that moved during a build invalidates the result whether it passed or failed.
+Each commit is checked by its own copy of the check script, so a renamed or removed helper
+cannot cause one commit's check to run through another commit's code. The one exception
+is the push that rewrites `patches-bundle.json`: it's checked against the bundle and test results
+this checkout built, so it has to come from a clean checkout of the commit it pushes.
+
+## Settings for your machine
+
+Nothing in the repository points at a folder or a phone on anybody's machine. These variables do
+that instead, and none of them has a default:
+
+- `HUSHFEED_FIXTURE_DIR` is the folder that holds the vendor TikTok APKs the fixture tests read.
+  They're hundreds of megabytes each, so they aren't in the repository. When it's unset the
+  fixture tests skip and say which variable to set. When it names a folder that holds none of
+  them they fail, because a skip there would look like a pass. `scripts/patch-for-device.ps1` and
+  `scripts/verify-injected-registers.ps1` take their default APK from the same folder.
+- `HUSHFEED_DESKTOP_JAR` is the Morphe desktop CLI jar. `HUSHFEED_WORKDIR` or a jar under
+  `build/morphe-tools` works too.
+- `HUSHFEED_BUILD_WRAPPER` names a PowerShell script the pre-push hook runs Gradle through,
+  called as `<wrapper> -ProjectDir <repository> -Tasks <task>...`. It helps when several builds
+  share one machine and need to queue. Unset, the hook runs `gradlew.bat` itself.
+- `HUSHFEED_DEVICE_SERIAL` is the adb serial of the one test phone `scripts/phone.sh` may drive.
+  The script refuses every other device, and it won't run at all while this is unset. Keep your
+  own phone out of it.
 
 ## Source notices
 

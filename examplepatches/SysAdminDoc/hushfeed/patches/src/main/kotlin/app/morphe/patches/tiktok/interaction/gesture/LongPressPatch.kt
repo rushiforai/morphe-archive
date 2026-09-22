@@ -202,6 +202,7 @@ val longPressPatch = bytecodePatch(
         "or forward. Brings Double-tap controls with it, which supplies the comment control. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
+    category("Interaction")
     compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(settingsPatch, blockAuthorPatch, doubleTapPatch)
 

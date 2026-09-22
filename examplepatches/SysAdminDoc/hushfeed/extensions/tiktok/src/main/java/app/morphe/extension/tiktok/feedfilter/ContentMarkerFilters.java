@@ -123,8 +123,23 @@ public final class ContentMarkerFilters {
             }
             return nonZero(info, "getPaidCollectionId", "paidCollectionId")
                     || Reflect.string(info, "getCollectionName", "collectionName") != null
-                    || Reflect.string(info, "getEpisodeNumber", "episodeNumber") != null
+                    || isEpisode(Reflect.string(info, "getEpisodeNumber", "episodeNumber"))
                     || Boolean.TRUE.equals(Reflect.property(info, "isPaidCollectionIntro", "isPaidCollectionIntro"));
+        }
+
+        /**
+         * Episodes count from one. TikTok 47.0.3 fills episode_num with "0" on every ordinary
+         * profile post, which is the default and emptied every profile grid in issue #20.
+         */
+        private static boolean isEpisode(String episodeNumber) {
+            if (episodeNumber == null) {
+                return false;
+            }
+            try {
+                return Long.parseLong(episodeNumber) > 0L;
+            } catch (NumberFormatException notANumber) {
+                return false;
+            }
         }
     }
 

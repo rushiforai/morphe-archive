@@ -19,6 +19,7 @@ val instantLaunchSplashBlockerPatch = bytecodePatch(
     description = "Stops TikTok's splash-ad preload tasks and returns false from its reviewed splash and TopView gates. Other startup behavior is left in place.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
@@ -79,6 +80,7 @@ val networkTrafficGovernorPatch = bytecodePatch(
     description = "Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
@@ -96,6 +98,7 @@ val runtimeMemoryGovernorPatch = bytecodePatch(
     description = "Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
@@ -143,6 +146,7 @@ val updatePromptSuppressorPatch = bytecodePatch(
     description = "Skips TikTok's background and boot-finished device-ID update-check tasks. This may suppress some in-app update checks. Play Store updates are unaffected.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {

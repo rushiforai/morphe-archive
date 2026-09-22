@@ -171,9 +171,10 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                     context,
                     "Cut the in-app browser off from TikTok",
                     "Stop the in-app browser handing TikTok's JavaScript bridge to the pages it "
-                            + "loads. Most of TikTok's own web pages need that bridge, including the "
-                            + "shop checkout and the CAPTCHA page, so leave this off unless you want "
-                            + "them cut off too.",
+                            + "loads. TikTok's own pages need that bridge too. With this on, Activity "
+                            + "center and Watch history stop responding, and the shop checkout and "
+                            + "the CAPTCHA page break. Leave it off unless you want those cut off as "
+                            + "well.",
                     Settings.BLOCK_WEBVIEW_JS_INTERFACES
             ));
         }

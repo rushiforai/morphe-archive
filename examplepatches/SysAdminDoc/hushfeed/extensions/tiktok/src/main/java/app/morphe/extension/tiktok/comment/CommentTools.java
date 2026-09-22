@@ -53,7 +53,8 @@ import java.util.WeakHashMap;
  *
  * The thumbs down is a RelativeLayout ({@code k0k} on 47.0.3, {@code jlk} on 46.x) holding an
  * icon ({@code mmt} on 47.0.3, {@code m3b} on 46.x) at the
- * right end of the comment's action row; both ids were read off a live comment panel. TikTok
+ * right end of the comment's action row; both ids were read off a live comment panel. Only
+ * the 47.0.3 names are looked up: on 47.0.3 jlk and m3b name other views. TikTok
  * drives it with a touch listener that can be installed only once per view. A native install
  * hook keeps that listener in a view-owned wrapper, and the posted cell bind switches the
  * wrapper to blocking while the setting is enabled. The icon stays; a tap blocks the commenter
@@ -79,11 +80,11 @@ public final class CommentTools {
 
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     private static final String POLL_HOOK_FAMILY = "comment polls";
-    private static final String[] DISLIKE_BUTTON_IDS = {"k0k", "jlk"};
+    private static final String[] DISLIKE_BUTTON_IDS = {"k0k"};
 
     /** One log line for a cell with no thumbs down, not a verdict on the build. */
     private static boolean warnedNoDislikeControl;
-    private static final String[] DISLIKE_ICON_IDS = {"mmt", "m3b"};
+    private static final String[] DISLIKE_ICON_IDS = {"mmt"};
     /**
      * Faded enough to read as blocked, still readable. At 0.35 the comment text dropped to about
      * 3:1 on the sheet, which is below the floor for text of that size.

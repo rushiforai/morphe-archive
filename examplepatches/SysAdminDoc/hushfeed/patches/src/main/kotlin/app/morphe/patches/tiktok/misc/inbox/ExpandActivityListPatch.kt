@@ -41,6 +41,7 @@ val expandActivityListPatch = bytecodePatch(
         "of collapsing them behind a View all button. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
+    category("Inbox")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

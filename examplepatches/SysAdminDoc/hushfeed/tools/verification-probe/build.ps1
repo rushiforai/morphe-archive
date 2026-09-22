@@ -15,20 +15,22 @@
     reference, so the password value is not in the child process command line.
 
 .EXAMPLE
-    tools/verification-probe/build.ps1 -Serial R5CT139QJ5F -Install
+    tools/verification-probe/build.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Install
 
 .EXAMPLE
     Load it into TikTok, then send it work. It answers in the log rather than through
     "am instrument -w", because TikTok replaces the thread's instrumentation and there is no
     result bundle to answer with by the time the probe is running. Reinstalling TikTok or
     stopping it drops the probe, so run the instrument line again after either.
+    HUSHFEED_DEVICE_SERIAL names the test phone.
 
-    adb -s R5CT139QJ5F shell am instrument app.hushfeed.verification/.Probe
-    adb -s R5CT139QJ5F shell am broadcast -a app.hushfeed.verification.PROBE `
+    $phone = $env:HUSHFEED_DEVICE_SERIAL
+    adb -s $phone shell am instrument app.hushfeed.verification/.Probe
+    adb -s $phone shell am broadcast -a app.hushfeed.verification.PROBE `
         -p com.zhiliaoapp.musically -e action dump
-    adb -s R5CT139QJ5F shell am broadcast -a app.hushfeed.verification.PROBE `
+    adb -s $phone shell am broadcast -a app.hushfeed.verification.PROBE `
         -p com.zhiliaoapp.musically -e action set -e key auto_advance -e value true
-    adb -s R5CT139QJ5F logcat -d | Select-String HushfeedProbe
+    adb -s $phone logcat -d | Select-String HushfeedProbe
 #>
 [CmdletBinding()]
 param(

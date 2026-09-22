@@ -21,6 +21,7 @@ val installedAppsBlockerPatch = bytecodePatch(
     description = "Answers TikTok's scan of the apps installed on your phone with an empty list. Checks for one named app, which TikTok also uses to open an app you tap, are left alone. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
+    category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

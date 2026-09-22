@@ -29,6 +29,7 @@ val showAuthorRegionPatch = bytecodePatch(
         "creator's name on the feed. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

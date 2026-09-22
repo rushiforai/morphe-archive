@@ -26,6 +26,7 @@ val sanitizeShareUrlsPatch = bytecodePatch(
     description = "Removes tracking parameters from TikTok links before they are shared, and can put a host of your choosing in place of tiktok.com. Switch: Hushfeed settings > Privacy.",
     default = true,
 ) {
+    category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

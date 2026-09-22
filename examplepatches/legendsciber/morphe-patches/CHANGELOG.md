@@ -1,3 +1,39 @@
+## [1.28.0](https://github.com/legendsciber/morphe-patches/compare/v1.27.0...v1.28.0) (2026-09-21)
+
+### ✨ New Features
+
+* **worldsoccerchamps:** bypass Play Integrity checks in native AntiHackBlueScreen ([28bfc25](https://github.com/legendsciber/morphe-patches/commit/28bfc25ce704eed868761a48ad1e00d19699587c))
+
+## [1.27.0](https://github.com/legendsciber/morphe-patches/compare/v1.26.5...v1.27.0) (2026-09-21)
+
+### ✨ New Features
+
+* **worldsoccerchamps:** bypass CRC32 and installed apps checks ([fb2eb81](https://github.com/legendsciber/morphe-patches/commit/fb2eb81d0d43a9462aae78bb6363d4dbf52c57d6))
+
+## [1.26.5](https://github.com/legendsciber/morphe-patches/compare/v1.26.4...v1.26.5) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **worldsoccerchamps:** remove StartupLauncher patch, add anti-hook+flag bypass ([bdb3030](https://github.com/legendsciber/morphe-patches/commit/bdb30307454750ea406b2de6b654330985ccaec7))
+
+## [1.26.4](https://github.com/legendsciber/morphe-patches/compare/v1.26.3...v1.26.4) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **worldsoccerchamps:** load pairipcore.so without running VM bytecode ([2c8b68a](https://github.com/legendsciber/morphe-patches/commit/2c8b68a1eb86c7a0772694d5b90ea065e0e7776f))
+
+## [1.26.3](https://github.com/legendsciber/morphe-patches/compare/v1.26.2...v1.26.3) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **worldsoccerchamps:** remove StartupLauncher bypass, keep 3 safe patches ([d2ecf9f](https://github.com/legendsciber/morphe-patches/commit/d2ecf9fd5a65510b88733285fe5f297cf1a45927))
+
+## [1.26.2](https://github.com/legendsciber/morphe-patches/compare/v1.26.1...v1.26.2) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **worldsoccerchamps:** remove ApplicationAttachFingerprint patch ([7653544](https://github.com/legendsciber/morphe-patches/commit/7653544f9d9289c2e5052a80f57fd80703ac131f))
+
 ## [1.26.1](https://github.com/legendsciber/morphe-patches/compare/v1.26.0...v1.26.1) (2026-09-20)
 
 ### 🐛 Bug Fixes

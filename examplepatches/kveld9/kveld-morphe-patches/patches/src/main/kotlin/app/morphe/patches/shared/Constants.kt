@@ -16,7 +16,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = BRAVE_TARGET_VERSION,
-                description = "Download Bravemonoarm64.apk (v1.95.104) from github.com/brave/brave-browser/releases"
+                description = "Download Bravemonoarm64.apk or BraveMonoarm.apk (v1.95.104) from github.com/brave/brave-browser/releases"
             )
         )
     )
@@ -104,12 +104,29 @@ object Constants {
         )
     )
 
+    const val NOKOPRINT_PACKAGE_NAME = "com.nokoprint"
+    const val NOKOPRINT_TARGET_VERSION = "5.10.8"
+
+    val COMPATIBILITY_NOKOPRINT = Compatibility(
+        name = "NokoPrint - WiFi, Bluetooth, USB",
+        packageName = NOKOPRINT_PACKAGE_NAME,
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x0288D1,
+        targets = listOf(
+            AppTarget(
+                version = NOKOPRINT_TARGET_VERSION,
+                description = "Download com.nokoprint v$NOKOPRINT_TARGET_VERSION (nodpi APK) from APKMirror",
+            )
+        )
+    )
+
     const val TIKTOK_EXTENSION_FILTER_CLASS = "Lcom/kveld9/morphe/extension/tiktok/TikTokFeedAdFilter;"
     const val TIKTOK_EXTENSION_MEDIA_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokMediaHook;"
     const val TIKTOK_EXTENSION_SPEED_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSpeedHook;"
     const val TIKTOK_EXTENSION_QUALITY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokVideoQualityHook;"
     const val TIKTOK_EXTENSION_BROWSER_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokBrowserHook;"
     const val TIKTOK_EXTENSION_COMMENT_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokCommentHook;"
+    const val TIKTOK_EXTENSION_COMMENT_TRANSLATE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokCommentTranslateHook;"
     const val TIKTOK_EXTENSION_SEEKBAR_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSeekbarHook;"
     const val TIKTOK_EXTENSION_PRIVACY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokPrivacyHook;"
     const val TIKTOK_EXTENSION_REFRESH_RATE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokRefreshRateHook;"

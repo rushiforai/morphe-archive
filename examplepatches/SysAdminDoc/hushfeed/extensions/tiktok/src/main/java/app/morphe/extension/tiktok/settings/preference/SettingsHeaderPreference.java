@@ -86,6 +86,7 @@ public final class SettingsHeaderPreference extends Preference {
                 14, SettingsUi.textSecondary(), 0);
         LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(-1, -2);
         subtitleParams.topMargin = SettingsUi.dp(getContext(), 12);
+        subtitleParams.setMarginStart(SettingsUi.dp(getContext(), 8));
         // The "YOUR EXPERIENCE" label that used to sit here headed one card holding every row
         // from Search to Licenses. The master menu carries its own group headings now.
         subtitleParams.bottomMargin = SettingsUi.dp(getContext(), 8);
@@ -95,12 +96,20 @@ public final class SettingsHeaderPreference extends Preference {
 
     private View createSectionHeader() { return createHeader(getContext(), heading, backAction); }
 
-    /** Shared app-owned heading used by settings and the Lab. Parent supplies the 16 dp gutter. */
+    /**
+     * Shared app-owned heading used by settings and the Lab. Parent supplies the 16 dp gutter.
+     *
+     * <p>The back control sits flush with the header's start edge, and everything else keeps an
+     * 8 dp inset of its own. That puts the arrow where the 8 dp gutter wants it and still leaves the
+     * whole 48 dp control inside the header. It used to get there with a negative 8 dp margin
+     * inside the inset, which the toolbar clipped: the S25's accessibility tree read the control
+     * as 40 by 48 dp, and the clipped strip took no touches.
+     */
     public static LinearLayout createHeader(Context context, String title, Runnable onBack) {
         LinearLayout header = new LinearLayout(context);
         header.setTag("hushfeed_page_header");
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setPadding(SettingsUi.dp(context, 8), SettingsUi.dp(context, 8), SettingsUi.dp(context, 8), 0);
+        header.setPaddingRelative(0, SettingsUi.dp(context, 8), SettingsUi.dp(context, 8), 0);
         header.setBackgroundColor(SettingsUi.background());
         LinearLayout toolbar = new LinearLayout(context);
         toolbar.setTag("hushfeed_toolbar");
@@ -117,11 +126,7 @@ public final class SettingsHeaderPreference extends Preference {
                 android.content.res.ColorStateList.valueOf(SettingsUi.rippleTint()),
                 SettingsUi.focusRing(context, 6),
                 SettingsUi.roundedSurface(context, SettingsUi.RADIUS_CONTROL, false)));
-        LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48));
-        // -8 lines the glyph up with the 8dp gutter. Anything more pushes the button's
-        // leading edge outside the header, where it is clipped and takes no touches.
-        backParams.setMarginStart(SettingsUi.dp(context, -8));
-        toolbar.addView(back, backParams);
+        toolbar.addView(back, new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48)));
         TextView brand = SettingsUi.text(context, BRAND_MARK, 12, SettingsUi.accent(), 1);
         brand.setLetterSpacing(0.12f);
         LinearLayout.LayoutParams brandParams = new LinearLayout.LayoutParams(0, -2, 1);
@@ -135,6 +140,7 @@ public final class SettingsHeaderPreference extends Preference {
         if (android.os.Build.VERSION.SDK_INT >= 28) heading.setAccessibilityHeading(true);
         LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2);
         titleParams.topMargin = SettingsUi.dp(context, 24);
+        titleParams.setMarginStart(SettingsUi.dp(context, 8));
         header.addView(heading, titleParams);
         return header;
     }

@@ -64,8 +64,20 @@ public class StickerSourceTransportTest {
         assertNull("a save button could fetch cleartext media or keep the previous sticker", resolved(sheet));
     }
 
+    /** A sheet with TikTok's two like-typed actions, so the button step has nothing to report. */
+    private static final class SheetWithActions extends android.widget.LinearLayout {
+        final android.widget.Button share;
+        final android.widget.Button favorite;
+
+        SheetWithActions(android.content.Context context) {
+            super(context);
+            addView(share = new android.widget.Button(context));
+            addView(favorite = new android.widget.Button(context));
+        }
+    }
+
     @Test public void rejectingTheDirectUrlStillAllowsAnHttpsPreviewFallback() {
-        View sheet = new View(RuntimeEnvironment.getApplication());
+        View sheet = new SheetWithActions(RuntimeEnvironment.getApplication());
         PreviewModel preview = new PreviewModel(new PreviewUrls("https://cdn.example/preview.png"));
         RichSticker untrusted = new RichSticker("http://cdn.example/source.gif", "GIF");
         StickerGallerySaver.registerStickerSource(preview, new SourceHolder(untrusted));

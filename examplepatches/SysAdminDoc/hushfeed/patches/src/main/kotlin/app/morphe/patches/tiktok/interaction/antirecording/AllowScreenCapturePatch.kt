@@ -42,6 +42,7 @@ val allowScreenCapturePatch = bytecodePatch(
     description = "Removes secure window flags and disables the Circle to Search block. Off by default; restart after changing. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {
+    category("Downloads")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
     execute {

@@ -3,8 +3,12 @@
 Patches for the **Travian: Legends** Android app that notify you about what's happening in your game, even when the app is closed:
 
 - **Build and troop training finished**, with the building or unit, level and village.
-- **Incoming attacks and raids**, with who is attacking, where from and when they land, plus a second warning about a minute before they arrive.
+- **Incoming attacks and raids**, with who is attacking, where from and when they land, plus a second warning about a minute before they arrive, and a message if the attacker calls the attack off.
+- **Warehouse or granary almost full**, when a village's storage will be full within about 30 minutes at its current production.
+- **Your hero**: a new adventure is available, the hero is back home, or it died or is low on health.
 - **Reinforcements and your own troops arriving**, with where they came from and how many.
+- **Tap a notification to open the game.**
+- **A "Travian Tools" app** (its own icon, the game's icon with a bell) where you switch each type of notification on or off, see how many of each you got in the last 24 hours, check how the background checks are doing, see what is building and training in each village with the time left, and look through your recent notifications. More tools are planned.
 
 It uses the session you are already logged in with in the game, so **no password is ever entered or stored by the patch**, and it works the same whichever way you log in. There is no permanent notification icon: checks run quietly in the background (about every 5 minutes, and again right when something is due), and you only see a notification when something happened. On first launch it asks once for notification permission and for a battery-optimization exemption so Android doesn't stop the background checks.
 
@@ -49,7 +53,7 @@ Pick the resulting file in Morphe with **"I already have an APK"**.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/Amitaisela/travian-morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.12.1](https://github.com/Amitaisela/travian-morphe-patches/releases/tag/v1.12.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Travian: Legends&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -61,8 +65,8 @@ Pick the resulting file in Morphe with **"I already have an APK"**.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Build/troop queue notifications](#build-troop-queue-notifications) | Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village, and warns you about incoming attacks and raids (who, from where, and when they arrive) with a second warning about a minute before they land, and tells you when reinforcements or your own returning troops arrive. Uses the session you're already logged in with in the game — no separate login, no password ever handled by this patch. Checks run quietly in the background: one is scheduled for just after each build/training is due to finish, plus a regular check every 5 minutes (Android may delay background work slightly). Nothing is shown unless something actually finished. The first time you open the app it asks once for notification permission and to exempt the app from battery optimization, so the background checks aren't killed by the system. |  |
-| [Travian notifier manifest entry](#travian-notifier-manifest-entry) | Adds the permission needed to ask for a battery optimization exemption. |  |
+| [Build/troop queue notifications](#build-troop-queue-notifications) | Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village, and warns you about incoming attacks and raids (who, from where, and when they arrive) with a second warning about a minute before they land, tells you when an attack was called off, warns you when a warehouse or granary is about to fill up, tells you when your hero has a new adventure, is back home, died or is low on health, and tells you when reinforcements or your own returning troops arrive. Tapping a notification opens the game, and a second "Travian Tools" icon opens a home screen where you switch each type of notification on or off, see what is building and training, and see your recent ones. Uses the session you're already logged in with in the game — no separate login, no password ever handled by this patch. Checks run quietly in the background: one is scheduled for just after each build/training is due to finish, plus a regular check every 5 minutes (Android may delay background work slightly). Nothing is shown unless something actually finished. The first time you open the app it asks once for notification permission and to exempt the app from battery optimization, so the background checks aren't killed by the system. |  |
+| [Travian notifier manifest entry](#travian-notifier-manifest-entry) | Adds the permission needed to ask for a battery optimization exemption, and the Travian Tools screens. |  |
 
 </details>
 

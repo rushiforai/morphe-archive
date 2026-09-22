@@ -71,6 +71,7 @@ val disableTelemetryPatch = bytecodePatch(
         "reporting. TikTok's own diagnostics go quiet with them. Off by default. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
+    category("Privacy")
     dependsOn(
         sharedExtensionPatch,
         settingsPatch,

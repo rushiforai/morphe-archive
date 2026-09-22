@@ -1,7 +1,7 @@
 ![Hushfeed. Take back your feed with focused controls for filtering, gestures, playback, downloads and privacy.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.57.0-6f42c1.svg" /></a>
+  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.58.0-6f42c1.svg" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue.svg" /></a>
   <a href="https://www.android.com/"><img alt="platform" src="https://img.shields.io/badge/platform-Android-3ddc84.svg" /></a>
   <a href="https://github.com/MorpheApp/morphe-manager"><img alt="Morphe" src="https://img.shields.io/badge/works%20with-Morphe-00b894.svg" /></a>
@@ -35,7 +35,15 @@ Feed screen has separate options to hide the **Full screen button** and **locati
 
 Want to skip those videos entirely? Turn on **Filter location-tagged videos** under Feed filter > Ads. It's independent of badge hiding and includes posts that aren't paid ads. These options are off by default and need a restart.
 
+If one Feed filter switch (Hide Series, say, or Hide playlist videos) empties three lists of five or more in a row, a banner names that switch and its button opens the row. A filter that has started matching everything shouldn't read as TikTok breaking. Nothing gets switched off for you.
+
 **Hide the search bar below videos**, under Feed screen, removes the suggested-search strip above the bottom tabs. Video details and side controls can use its space. The top search button and comment suggestions have their own switches. This option is off by default and needs a restart.
+
+**Hide the Tako bubble**, under Feed tabs, also covers the Tako bar TikTok draws above the comment list, the strip of suggested questions and image prompts. Same switch, nothing extra to turn on. Restart TikTok after changing it.
+
+Some regions get extras the rest never see. **Hide the Report button on videos**, under Feed screen, removes the flag button above the creator's picture. **Hide search rewards**, under App, removes the points banner under the search box and the coin counter floating over results. Both are off by default, and neither could be tried on our own phones, so reports on how they behave are welcome.
+
+The settings screen comes in English, German, Spanish, Indonesian, Brazilian Portuguese and Turkish. It follows the language TikTok runs in, which is your phone's language unless you've picked another one for the app.
 
 One-tap blocking skips to the next video as soon as TikTok confirms the block. A compact **Unblock** button appears at the top left for two seconds. You can also unblock later in TikTok's **Privacy > Blocked accounts**. A delayed response won't skip another video if you've already moved on.
 
@@ -49,9 +57,9 @@ The compact Unblock action, also rendered from the actual control in a local UI 
 
 ## Install
 
-1. Get the TikTok 47.0.3 APK. Google Play only offers the newest build, so take it from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-0-3-release/tiktok-47-0-3-3-android-apk-download/).
+1. Get the TikTok 47.0.3 APK. Google Play only offers the newest build, so take it from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-0-3-release/tiktok-47-0-3-3-android-apk-download/). When you pick that file in Morphe Manager on Android 11 or newer, Manager checks that TikTok's own key signed it and warns you if a different one did. That warning means the file was changed after TikTok published it, so download it again instead of patching it.
 2. Use Morphe Manager 1.30.0 or newer. Manager refuses a bundle built against a patcher newer than its own, and this one is built against patcher 1.13.0, which Manager 1.30.0 was the first to ship. On anything older the bundle simply will not load.
-3. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). Some in-app browsers block Android from handing a web link to another app. If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download `patches-0.57.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
+3. Add Hushfeed as a source in Morphe Manager. The quickest way is this link on the phone: [Add Hushfeed to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2Fhushfeed). Some in-app browsers block Android from handing a web link to another app. If **Open in Morphe** leaves you in the browser, open Morphe Manager, tap **Sources**, tap **+**, and paste `https://github.com/SysAdminDoc/hushfeed`. You can also download `patches-0.58.0.mpp` from the [latest release](https://github.com/SysAdminDoc/hushfeed/releases/latest) and load it as a local bundle.
 4. Pick the patches you want and patch the APK. Keep the manager's existing signing key so TikTok stays logged in across updates. Every patch here fits the manager's 640 MB memory default except AMOLED dark theme, which rewrites TikTok's color resources and needs the limit raised to 768 MB. That 640 is the manager's default and not a measured minimum: the whole set apart from AMOLED fits in 576 MB. If patching stops with an out of memory error, that setting is the one to raise. A run that sits at 24 or 25 percent and never moves is the same problem wearing a different face: cancel it, set the limit to 768 MB and start again, and if that still stalls try 512 MB, which gives the patcher less to hold at once.
 5. Install the patched APK. From 2026-09-30, phones in Brazil, Indonesia, Singapore and Thailand ask for more before they will install an app from a developer Google has not verified. The flow is the same every time: turn on the option in Developer options, confirm the device lock, restart the phone, then wait 24 hours before the install goes through. After that it stays open for 7 days, or indefinitely if you chose that. This is not a one-off. Every Hushfeed release is an update, and an update goes through it again once the window closes. `adb install` from a computer skips the whole thing.
 6. Open TikTok and go to Settings and privacy. Hushfeed is the first row. Tap it to find the switches for every patch you selected.
@@ -59,6 +67,48 @@ The compact Unblock action, also rendered from the actual control in a local UI 
 Selected patches activate when TikTok starts. The Settings patch adds the entry point and is selected by default. Deselect it and the other patches still apply, but their switches have nowhere to live. `patches-bundle.json` in the repository root is the source index Morphe reads for the published bundle.
 
 If Morphe reported "The remote metadata file is unavailable" for Hushfeed v0.51.0, refresh the source. The v0.52.0 source update corrects a timestamp that Manager couldn't read. You don't need to reinstall Manager, clear its data or change its signing key.
+
+### Which managers can load it
+
+Morphe Manager 1.30.0 or newer loads Hushfeed on the phone, and morphe-desktop does it from a computer. Universal ReVanced Manager can't import a Morphe bundle, so patches picked there never reach TikTok ([its issue #733](https://github.com/Jman-Github/Universal-ReVanced-Manager/issues/733)). Use Morphe Manager instead.
+
+## Troubleshooting
+
+### Logging in fails
+
+Login trouble is the most common complaint about any patched TikTok. These are the fixes people report:
+
+- Turn off Private DNS, AdGuard or any other ad blocker while you log in. They can block the addresses TikTok checks a login against.
+- After several failed tries TikTok stops taking new ones for a while. Wait an hour, then try again.
+- Facebook login can't work on a patched build. Facebook checks the app's signing key, and a patched TikTok carries your manager's key instead of TikTok's. Log in with your email or phone number and a code, or with Google.
+- Hide CAPTCHA popups leaves login and account checks on screen, so it shouldn't be the cause. If a login stalls with nothing showing, turn it off and try once more to rule it out.
+
+### Patching stops at 24 or 25 percent
+
+The manager has run short of memory. Step 4 of [Install](#install) says which limit to change and what to try if it still stalls.
+
+### The file from APKMirror ends in .apkm
+
+That's a split bundle. Morphe Manager merges it, with one catch for AMOLED dark theme, which [Why you have to fetch that APK yourself](#why-you-have-to-fetch-that-apk-yourself) explains.
+
+### Can I select every patch at once?
+
+Yes. Every release is patched with all of them selected before it ships, so no two refuse to go in together. The one thing to watch is memory: with AMOLED dark theme selected, raise the manager's limit as step 4 of [Install](#install) says. Mixing Hushfeed with another TikTok bundle is a different question, and [Moving from Kveld](#moving-from-kveld) covers the overlap we know about.
+
+## Going back
+
+### To plain TikTok
+
+1. If you might come back, save your Hushfeed settings first: Hushfeed settings > Backup and restore > Back up settings. The file goes wherever you pick, so choose a folder you'll find again.
+2. Uninstall the patched TikTok, then install TikTok from Google Play. Android won't put one over the other, because they're signed with different keys. Uninstalling clears the app's data, so you'll log in again afterwards.
+
+### To an older Hushfeed
+
+Download that release's `.mpp` from the [releases page](https://github.com/SysAdminDoc/hushfeed/releases) and load it in Morphe Manager as a local bundle, then patch and install as usual. As long as the manager signs with the same key, it installs over the current build and keeps your login and settings.
+
+### Keeping the signing key
+
+The manager signs every patched build with its own key, and Android only installs an update over the old app when both carry the same one. So don't reset that key, and remember it when you move to a new phone or reinstall the manager. A build signed with a new key means uninstalling first, which clears your login and data. Your settings come back from Backup and restore > Restore settings.
 
 <br>
 
@@ -114,14 +164,14 @@ If Morphe reported "The remote metadata file is unavailable" for Hushfeed v0.51.
 | `Hide floating promotions` | Removes floating promotional badges from the feed and can hide the rewards shortcut on Profile. Switches: Hushfeed settings > Feed screen and App. |
 | `Hide inbox items` | Adds a switch for each row and header control on the Inbox tab, so message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be hidden individually. Switch: Hushfeed settings > Inbox. |
 | `Hide inbox stories` | Hides the stories tray at the top of the Inbox and restores it immediately when the switch is turned off. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox. |
-| `Hide quick comment reactions` | Hides the emoji row above the comment box and the quick comment strip on videos. Switch: Hushfeed settings > Comments. |
-| `Hide search suggestions` | Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. Switch: Hushfeed settings > App. |
+| `Hide comment typing suggestions` | Hides automatic emoji and sticker suggestions above the comment box. Manual buttons stay available. Switch: Hushfeed settings > Comments. |
+| `Hide search suggestions` | Hides the suggested searches TikTok offers on the search page before you type, and stops the page asking for them. Your own search history is left alone. A separate switch hides the search rewards banner and coin counter some regions get. Switch: Hushfeed settings > App. |
 | `Hide suggested accounts` | Stops the suggested accounts list from being built on the Activity, New followers and Inbox pages, and collapses every other People you may like card: the profile header, the Friends tab and the feed. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox. |
 | `Hide the launcher shortcuts` | Empties the menu that opens on pressing and holding TikTok's icon on the home screen. The entries are built while the app runs rather than declared in it, and TikTok only rewrites them when it notices a difference, so this takes away what is already published and answers the handover that would publish more. Turning it off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut pinned to a home screen is left alone. Switch: Hushfeed settings > App. |
 | `Hide the risk control CAPTCHA` | Hides TikTok's risk control CAPTCHA dialog, raised by its BdTuring service, which the browsing CAPTCHA patch does not cover. Answers the Hide CAPTCHA popups setting, never touches SMS or two factor verification, and never hides a check the server raised over a follow, like, comment or repost. Off by default. |
-| `Hide video overlays` | Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar. Separate switches hide the Full screen button and location labels without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen. |
+| `Hide video overlays` | Hides the visual search prompt TikTok lays over videos, the Live entrance in the top left corner, caption and music text, selected action buttons or their counts in the right column, survey cards and the status bar. Separate switches hide the Full screen button, location labels and the Report button some regions get above the creator's picture, without removing videos or changing location permissions. Switch: Hushfeed settings > Feed screen. |
 | `Hold-and-slide 2x lock` | Enables TikTok's native hold, slide down, and release gesture to lock 2x speed. Switch: Hushfeed settings > Feed screen. |
-| `In-app browser privacy guard` | Can stop TikTok's in-app browser handing its JavaScript bridge to the pages it loads. Most of TikTok's own web pages need that bridge, including the shop checkout and the CAPTCHA page, so the switch is off until you turn it on. Switch: Hushfeed settings > Privacy. |
+| `In-app browser privacy guard` | Can stop TikTok's in-app browser handing its JavaScript bridge to the pages it loads. TikTok's own pages need that bridge too, so turning it on also breaks Activity center, Watch history, the shop checkout and the CAPTCHA page. The switch is off until you turn it on. Switch: Hushfeed settings > Privacy. |
 | `Keep the Favorites tab` | Keeps the Favorites tab on your profile when TikTok's server puts the account into an experiment that empties it. Two people saw that after patching: the tab was there and the saved videos were not. Switch: Hushfeed settings > App. |
 | `Keep the screen's refresh rate` | Stops TikTok asking the screen to run slower than it can, which it does by asking for the frame rate of the video it is playing. On a 90 or 120 Hz phone that ask takes the whole app down to that rate, scrolling included. A request that is not slower than the screen is left alone. Switch: Hushfeed settings > App. |
 | `Limit background traffic` | Turns off TikTok's buffer-preload gate and skips its push initialization task. Videos may start buffering later, and TikTok push notifications may stop. |
@@ -266,7 +316,7 @@ Playback has two switches for a feed that keeps going when nobody is watching it
 
 Playback also carries a daily budget for the feed, on builds that include the block author patch, which is where the hook that knows which video is on screen comes from. It is off until you put a number in it, and until then nothing is counted at all. Set a video count, a number of minutes, or both, and Hushfeed says once that the day is used up. Set a hold too and the current player pauses behind a countdown for that many minutes, with a way through it on the countdown itself for the times you decide otherwise. It resumes only when the held video is still current, the feed is visible and audio focus permits playback. If another app holds focus past the countdown, Hushfeed waits for native focus to return before handing that video back. This also works when TikTok hasn't applied the queued pause yet. The panel follows the tab row as the screen layout changes. Messages, profiles and search are untouched, and so is the feed itself: nothing is dropped, so TikTok never refetches a batch it already sent. The day rolls over at four in the morning unless you move it, and the count and the hold both survive the app being killed. If a hold arriving out of nowhere is not what you want, there is a switch that fades the feed out over the last three quarters of a minute of a time budget, so you can see it coming. It needs a budget in minutes to follow and a hold to lead into, and it stays out of the way if you have turned system animations off.
 
-Diagnostics includes Back up settings, Restore settings and Reset settings even without the logging patch. Backups include patch preferences and Feature Gate Lab rules with their enabled state. Choose a JSON file through Android's file picker. Invalid files leave settings unchanged. Restore and reset keep one undo copy inside TikTok. An interrupted write can recover from its backup file, and a current Hushfeed copy always wins over a copy written under the project's earlier name. Export a backup first if you plan to clear app data or reinstall, since that removes the undo copy too. Restart after restoring or resetting. Show failures on screen decides whether a failure inside Hushfeed is also put in front of you while diagnostic logging is on. Turn it off and failures go to the report alone.
+Backup and restore holds Back up settings, Restore settings and Reset settings, and it's there whichever patches you picked. Backups include patch preferences and Feature Gate Lab rules with their enabled state. Choose a JSON file through Android's file picker. Invalid files leave settings unchanged. Restore and reset keep one undo copy inside TikTok. An interrupted write can recover from its backup file, and a current Hushfeed copy always wins over a copy written under the project's earlier name. Export a backup first if you plan to clear app data or reinstall, since that removes the undo copy too. Restart after restoring or resetting. Show failures on screen decides whether a failure inside Hushfeed is also put in front of you while diagnostic logging is on. Turn it off and failures go to the report alone.
 
 Backups record which settings they contain, so missing entries are rejected. A backup is a set of values to apply rather than a picture of the whole app, so anything it predates is left as you have it and the restore says how many that was. A backup from before the download destinations were split carries the one folder it knew about, and that fills in all three. If saving fails, recovery attempts both preference stores and keeps the undo copy available.
 
@@ -286,16 +336,17 @@ Feature Gate Lab saves its master switch immediately. Its menu can reset overrid
 
 Use JDK 21 or newer and an Android SDK configured through `local.properties`. GitHub Packages needs `GITHUB_ACTOR` and a `GITHUB_TOKEN` with `read:packages` access for the Morphe dependencies.
 
-Run the runtime tests, then build the Morphe patch bundle and metadata:
+Run the runtime and patch tests, then build the Morphe patch bundle and metadata. The patch tests read the vendor TikTok APKs from the folder `HUSHFEED_FIXTURE_DIR` names (see CONTRIBUTING.md), and the release check refuses a run in which any of them skipped:
 
 ```bash
 ./gradlew :extensions:tiktok:test
+./gradlew :patches:test
 ./gradlew :patches:generatePatchesList
 pwsh -File scripts/validate-release-facts.ps1
 ./gradlew :patches:buildAndroid
 ```
 
-The bundle is byte reproducible: two builds of the same commit produce the same file and the same SHA-256, so you can rebuild it yourself and check the published checksum against your own. The one field that would otherwise differ, the build timestamp in the bundle manifest, is pinned to the commit being built. Set `SOURCE_DATE_EPOCH` to override it. `patches/build/bundle.sha256` is written from the finished bundle at the end of `buildAndroid`, so it always describes the file beside it.
+The bundle is byte reproducible: two builds of the same commit produce the same file and the same SHA-256, so you can rebuild it yourself and check the published checksum against your own. The one field that would otherwise differ, the build timestamp in the bundle manifest, is pinned to the commit being built. Set `SOURCE_DATE_EPOCH` to override it. `buildAndroid` ends by copying the finished bundle to `patches/build/release/` and writing `bundle.sha256` beside it, so the checksum always describes the file next to it.
 
 Run these tasks in this order. The Android build finishes with `verifyBundle`, which checks the patch list and all three DEX payloads against the checksum recorded by the Android build. You can also run `./gradlew :patches:verifyBundle` on its own to re-check the bundle this checkout built. It compares against a checksum only `buildAndroid` writes, so it will not verify a bundle from anywhere else.
 
@@ -324,18 +375,20 @@ Video overlay traversals reuse their id, visibility and match buffers, so repeat
 Legacy settings import tests cover complete JSON and older text fragments, rejecting invalid values before any preference changes.
 Numeric tokens retain their precision until validation, and literal NUL characters cannot hide trailing data in imports or undo files.
 
-The generated bundle is written to:
+The finished bundle is written to:
 
 ```text
-patches/build/libs/patches-<version>.mpp
+patches/build/release/patches-<version>.mpp
 ```
+
+Publish that file. `patches/build/libs` holds one with the same name, but any later Gradle task that rebuilds the jar (the patch tests do) turns it back into a plain jar with no DEX payload, and Morphe Manager then shows zero patches. Nothing in `scripts/` reads from there.
 
 Morphe reads `patches-bundle.json` from this repository, downloads the `.mpp` release asset listed there, and loads the patch metadata from that bundle.
 
 After uploading the bundle and a `SHA256SUMS.txt` file to the GitHub release, verify the published asset against the local build:
 
 ```bash
-pwsh -File scripts/validate-release-facts.ps1 -VerifyPublishedAsset -ArtifactPath patches/build/libs/patches-<version>.mpp
+pwsh -File scripts/validate-release-facts.ps1 -VerifyPublishedAsset -ArtifactPath patches/build/release/patches-<version>.mpp
 ```
 
 The check follows the indexed URL, compares its SHA-256 with the local artifact, checks the matching entry in `SHA256SUMS.txt`, and counts the patches inside the published bundle against the number the index advertises.
@@ -441,6 +494,16 @@ Hushfeed stands on a lot of other people's work, and the licence asks that this 
 Files that came from another project keep their original notices, and files written here say so in their header. A test holds every source file the bundle ships to having one, so a file cannot arrive without saying where it came from.
 
 The notices are also in the app, under Settings, About, Licenses, because Morphe asks that they reach the person using the software and not just the person reading the source.
+
+## Privacy
+
+Hushfeed has no server of its own and collects nothing. Everything it adds runs inside TikTok on your phone.
+
+It goes online by itself for one job. When you save a video, a photo, a sound, subtitles, a sticker or a profile picture, it downloads that file over HTTPS from the address TikTok's own data holds for it. It won't fetch from an address on your own network, and it gives up after five redirects. Anything else Hushfeed does online, such as translating a comment or blocking a creator, goes through TikTok's own code to TikTok's servers, the way the app's own buttons do.
+
+The only web addresses written into Hushfeed's code are github.com for this project, gitlab.com and gnu.org for licence texts, and tiktok.com for the share links TikTok itself uses. A test fails the build if another one turns up, or if code outside that download path opens a connection.
+
+The diagnostic report stays on your phone until you copy or save it. It leaves out web addresses, login tokens and cookies, device ids, the ids of videos, comments and messages, and creator names and handles. Read it through before you share it anyway.
 
 ## Notes
 

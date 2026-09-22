@@ -35,9 +35,16 @@ import org.robolectric.annotation.LooperMode;
 @Config(sdk = 28, qualifiers = "en")
 @LooperMode(LooperMode.Mode.PAUSED)
 public class InboxLayoutLifecycleTest {
-    private static final String[] RESOURCE_NAMES = {"o1l", "omr", "kmx", "l7b", "pgu", "t4g",
-            "fnc", "vpj", "wqq", "vid", "zci", "user_name", "tyh", "uy5", "bo5", "brb",
-            "v15", "olv", "f8t", "fg5", "k_f", "kp1", "kmz", "l7d"};
+    /**
+     * TikTok 47.0.3's names, two of the 46.2.3 names they replaced (v15, vid) and the wrapper
+     * every 47.0.3 chat cell shares (zci). Either older name put back into InboxFilter as a
+     * fallback would resolve here and fail the test that says it is never tried. The other
+     * 46.2.3 names are not registered, so this class would not notice one of them coming back;
+     * RuntimeViewIdAnchorsTest's rule that a group looks up one name is what stops those.
+     */
+    private static final String[] RESOURCE_NAMES = {"omr", "l7b", "q3m", "u1n", "fwz", "wqq",
+            "user_name", "uy5", "brb", "w1f", "tv_request_unread_count", "olv", "zci", "fg5",
+            "kp1", "l7d", "v15", "vid"};
     private final List<Inbox> inboxes = new ArrayList<>();
     private BooleanSetting[] switches;
 
@@ -54,7 +61,6 @@ public class InboxLayoutLifecycleTest {
         Settings.HIDE_INBOX_CUSTOM_TITLES.save("");
         String packageName = RuntimeEnvironment.getApplication().getPackageName();
         for (String name : RESOURCE_NAMES) InboxFilter.resolveForTests(packageName, name, id(name));
-        FeedVisibility.resolveForTests(packageName, "o1l", id("o1l"));
         FeedVisibility.resolveForTests(packageName, "omr", id("omr"));
     }
 
@@ -99,7 +105,7 @@ public class InboxLayoutLifecycleTest {
         int[] dismissed = {0};
         LinearLayout account = new LinearLayout(inbox.activity);
         View remove = new View(inbox.activity);
-        remove.setId(id("fnc"));
+        remove.setId(id("fwz"));
         remove.setContentDescription("Remove current account from suggested accounts");
         remove.setOnClickListener(view -> { dismissed[0]++; inbox.rows.removeView(account); });
         account.addView(remove, new LinearLayout.LayoutParams(48, 48));
@@ -126,7 +132,7 @@ public class InboxLayoutLifecycleTest {
         LinearLayout row = new LinearLayout(inbox.activity);
         inbox.rows.addView(row, new LinearLayout.LayoutParams(-1, 72));
         Settings.HIDE_INBOX_ARCHIVE.save(true);
-        reshape(inbox, row, "tyh", "bo5", "Archiv");
+        reshape(inbox, row, "uy5", "brb", "Archiv");
         InboxFilter.onRowBound(new Holder(row), 0, new Archive());
         inbox.layout();
         assertRow(row, true);
@@ -152,34 +158,31 @@ public class InboxLayoutLifecycleTest {
         Settings.HIDE_INBOX_SEARCH.save(false);
         Settings.HIDE_INBOX_ACTIVITY_STATUS.save(false);
 
+        // A chat row titled like a system row: the archive switch leaves it alone and the
+        // request count alone decides which of the two chat switches it answers to.
         Settings.HIDE_INBOX_ARCHIVE.save(true);
         Settings.HIDE_INBOX_CONVERSATIONS.save(true);
-        reshape(inbox, row, "v15", "user_name", "Archiv");
+        reshape(inbox, row, "w1f", "user_name", "Archiv");
         InboxFilter.onRowBound(new Holder(row), 1, new Object());
         inbox.layout();
-        assertRow(row, false);
+        assertRow(row, true);
         assertEquals(View.VISIBLE, inbox.search.getVisibility());
-        LinearLayout conversationMarker = new LinearLayout(inbox.activity);
-        conversationMarker.setId(id("vid"));
-        View conversationTitle = row.getChildAt(0);
-        row.removeView(conversationTitle);
-        conversationMarker.addView(conversationTitle);
-        row.addView(conversationMarker);
+        View requestCount = new View(inbox.activity);
+        requestCount.setId(id("tv_request_unread_count"));
+        row.addView(requestCount);
+        inbox.layout();
+        assertRow(row, false);
+        row.removeView(requestCount);
         inbox.layout();
         assertRow(row, true);
-        conversationMarker.removeView(conversationTitle);
-        row.removeView(conversationMarker);
-        row.addView(conversationTitle);
-        inbox.layout();
-        assertRow(row, false);
 
         Settings.HIDE_INBOX_STORIES.save(true);
-        reshape(inbox, row, null, "vpj", "Story account");
+        reshape(inbox, row, null, "wqq", "Story account");
         InboxFilter.onRowBound(new Holder(row), 2, new Object());
         inbox.layout();
         assertRow(row, true);
         Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.save(false);
-        reshape(inbox, row, null, "fnc", "Suggested account");
+        reshape(inbox, row, null, "fwz", "Suggested account");
         InboxFilter.onRowBound(new Holder(row), 3, new Object());
         inbox.layout();
         assertRow(row, false);
@@ -192,29 +195,76 @@ public class InboxLayoutLifecycleTest {
         assertRow(row, false);
     }
 
-    @Test public void currentNamesWinWhenOlderResourcesStillExistElsewhere() {
-        Inbox inbox = openInbox(true);
-        Settings.HIDE_INBOX_ADD_PEOPLE.save(true);
-        Settings.HIDE_INBOX_SEARCH.save(true);
-        Settings.HIDE_INBOX_ACTIVITY_STATUS.save(true);
-        Settings.HIDE_INBOX_CONVERSATIONS.save(true);
+    /**
+     * The row shapes TikTok 47.0.3 builds. The three chat cells come from its precompiled
+     * inflaters: each has the root w1f and the name wrapper zci, only the single chat has
+     * its own title wrapper, and only the requests row has the request count. The "Say hi
+     * to" row is as the S22's Inbox showed it on 2026-09-21, an account with a Follow
+     * button and a wave, which 0.58.0 took for a conversation.
+     */
+    @Test public void chatRowsSortOnTheRequestCountAndSayHiRowsAreSuggestions() {
+        Inbox inbox = openInbox();
+        LinearLayout single = chatRow(inbox, "w1f", "Sam", true, false);
+        LinearLayout group = chatRow(inbox, "w1f", "Weekend plans", false, false);
+        LinearLayout requests = chatRow(inbox, "w1f", "Message requests", false, true);
+        LinearLayout sayHi = chatRow(inbox, "olv", "Andrew", false, false);
 
-        LinearLayout conversation = new LinearLayout(inbox.activity);
-        conversation.setId(id("olv"));
-        LinearLayout titleWrapper = new LinearLayout(inbox.activity);
-        titleWrapper.setId(id("zci"));
-        TextView title = new TextView(inbox.activity);
-        title.setId(id("user_name"));
-        titleWrapper.addView(title);
-        conversation.addView(titleWrapper);
-        inbox.rows.addView(conversation, new LinearLayout.LayoutParams(-1, 72));
+        Settings.HIDE_INBOX_CONVERSATIONS.save(true);
+        inbox.layout();
+        assertRow(single, true);
+        assertRow(group, true);
+        assertRow(requests, false);
+        assertRow(sayHi, false);
+
+        Settings.HIDE_INBOX_CONVERSATIONS.save(false);
+        Settings.HIDE_INBOX_MESSAGE_REQUESTS.save(true);
+        inbox.layout();
+        assertRow(single, false);
+        assertRow(group, false);
+        assertRow(requests, true);
+        assertRow(sayHi, false);
+
+        Settings.HIDE_INBOX_MESSAGE_REQUESTS.save(false);
+        Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.save(true);
+        inbox.layout();
+        assertRow(single, false);
+        assertRow(group, false);
+        assertRow(requests, false);
+        assertRow(sayHi, true);
+
+        Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.save(false);
+        Settings.HIDE_INBOX_CUSTOM_TITLES.save("Weekend plans, Message requests, Andrew");
+        inbox.layout();
+        assertRow(single, false);
+        assertRow(group, true);
+        assertRow(requests, true);
+        assertRow(sayHi, false);
+    }
+
+    /**
+     * On 47.0.3 the 46.2.3 names are other views, and zci, the name wrapper, sits in every
+     * chat cell and in dozens of unrelated layouts. None of them may mark a conversation.
+     */
+    @Test public void olderBuildNamesAndTheSharedWrapperMarkNothing() {
+        Inbox inbox = openInbox();
+        for (BooleanSetting setting : switches) setting.save(true);
+        LinearLayout oldContainer = chatRow(inbox, "v15", "Sam", false, false);
+        LinearLayout oldConversation = new LinearLayout(inbox.activity);
+        LinearLayout oldWrapper = new LinearLayout(inbox.activity);
+        oldWrapper.setId(id("vid"));
+        TextView oldTitle = new TextView(inbox.activity);
+        oldTitle.setId(id("user_name"));
+        oldTitle.setText("Alex");
+        oldWrapper.addView(oldTitle);
+        oldConversation.addView(oldWrapper);
+        inbox.rows.addView(oldConversation, new LinearLayout.LayoutParams(-1, 72));
+        LinearLayout wrapperOnly = chatRow(inbox, null, "Pat", false, false);
 
         inbox.layout();
 
-        assertEquals(View.GONE, inbox.addPeople.getVisibility());
-        assertEquals(View.GONE, inbox.search.getVisibility());
-        assertEquals(View.GONE, inbox.status.getVisibility());
-        assertRow(conversation, true);
+        assertRow(oldContainer, false);
+        assertRow(oldConversation, false);
+        assertRow(wrapperOnly, false);
     }
 
     @Test public void storiesOnlyModeLeavesOtherInboxViewsAloneAndRestoresRecycledRows() {
@@ -223,7 +273,7 @@ public class InboxLayoutLifecycleTest {
         Inbox inbox = openInbox();
 
         LinearLayout story = new LinearLayout(inbox.activity);
-        reshape(inbox, story, null, "vpj", "Story account");
+        reshape(inbox, story, null, "wqq", "Story account");
         inbox.rows.addView(story, new LinearLayout.LayoutParams(-1, 72));
 
         View nativeHidden = new View(inbox.activity);
@@ -254,7 +304,7 @@ public class InboxLayoutLifecycleTest {
         inbox.layout();
         assertRow(story, false);
 
-        reshape(inbox, story, null, "vpj", "Another story account");
+        reshape(inbox, story, null, "wqq", "Another story account");
         inbox.layout();
         assertRow(story, true);
         inbox.tab.setSelected(false);
@@ -268,7 +318,7 @@ public class InboxLayoutLifecycleTest {
         Settings.HIDE_INBOX_STORIES.save(true);
         Inbox restarted = openInbox();
         LinearLayout restartedStory = new LinearLayout(restarted.activity);
-        reshape(restarted, restartedStory, null, "vpj", "Story after restart");
+        reshape(restarted, restartedStory, null, "wqq", "Story after restart");
         restarted.rows.addView(restartedStory, new LinearLayout.LayoutParams(-1, 72));
         restarted.layout();
         assertRow(restartedStory, true);
@@ -315,11 +365,7 @@ public class InboxLayoutLifecycleTest {
     }
 
     private Inbox openInbox() {
-        return openInbox(false);
-    }
-
-    private Inbox openInbox(boolean currentNames) {
-        Inbox inbox = new Inbox(currentNames);
+        Inbox inbox = new Inbox();
         inboxes.add(inbox);
         InboxFilter.install(inbox.activity);
         Shadows.shadowOf(Looper.getMainLooper()).idle();
@@ -327,11 +373,43 @@ public class InboxLayoutLifecycleTest {
         return inbox;
     }
 
+    /**
+     * A chat-shaped row: the root, then the name wrapper every 47.0.3 chat cell has (zci)
+     * holding the title. A single chat adds a title wrapper of its own around that, and the
+     * requests row the request count.
+     */
+    private static LinearLayout chatRow(Inbox inbox, String rootName, String title,
+                                        boolean singleChatWrapper, boolean requestCount) {
+        LinearLayout row = new LinearLayout(inbox.activity);
+        row.setId(rootName == null ? View.NO_ID : id(rootName));
+        LinearLayout nameWrapper = new LinearLayout(inbox.activity);
+        nameWrapper.setId(id("zci"));
+        TextView name = new TextView(inbox.activity);
+        name.setId(id("user_name"));
+        name.setText(title);
+        nameWrapper.addView(name);
+        if (singleChatWrapper) {
+            LinearLayout titleWrapper = new LinearLayout(inbox.activity);
+            titleWrapper.addView(nameWrapper);
+            row.addView(titleWrapper);
+        } else {
+            row.addView(nameWrapper);
+        }
+        if (requestCount) {
+            TextView count = new TextView(inbox.activity);
+            count.setId(id("tv_request_unread_count"));
+            count.setText("3");
+            row.addView(count);
+        }
+        inbox.rows.addView(row, new LinearLayout.LayoutParams(-1, 72));
+        return row;
+    }
+
     private static TextView addHeading(Inbox inbox, ViewGroup header, int color) {
-        header.setId(id("pgu"));
+        header.setId(id("q3m"));
         LinearLayout titleWrapper = new LinearLayout(inbox.activity);
         TextView title = new TextView(inbox.activity);
-        title.setId(id("t4g"));
+        title.setId(id("u1n"));
         title.setText("Suggested accounts");
         title.setTextColor(color);
         titleWrapper.addView(title);
@@ -387,19 +465,15 @@ public class InboxLayoutLifecycleTest {
         final View tab = new View(activity), addPeople = new View(activity), search = new View(activity), status = new View(activity);
 
         Inbox() {
-            this(false);
-        }
-
-        Inbox(boolean currentNames) {
             LinearLayout root = new LinearLayout(activity);
             root.setOrientation(LinearLayout.VERTICAL);
-            tab.setId(id(currentNames ? "omr" : "o1l"));
+            tab.setId(id("omr"));
             tab.setSelected(true);
-            addPeople.setId(id(currentNames ? "fg5" : "f8t"));
-            search.setId(id(currentNames ? "kp1" : "k_f"));
-            status.setId(id(currentNames ? "l7d" : "kmz"));
+            addPeople.setId(id("fg5"));
+            search.setId(id("kp1"));
+            status.setId(id("l7d"));
             for (View view : new View[]{tab, addPeople, search, status}) root.addView(view, new LinearLayout.LayoutParams(-1, 48));
-            rows.setId(id(currentNames ? "l7b" : "kmx"));
+            rows.setId(id("l7b"));
             rows.setOrientation(LinearLayout.VERTICAL);
             root.addView(rows, new LinearLayout.LayoutParams(-1, -1));
             activity.setContentView(root);

@@ -38,6 +38,7 @@ val hideCommentEggsPatch = bytecodePatch(
         "matches an advertiser's trigger word or emoji. Switch: Hushfeed settings > Comments.",
     default = false,
 ) {
+    category("Comments")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

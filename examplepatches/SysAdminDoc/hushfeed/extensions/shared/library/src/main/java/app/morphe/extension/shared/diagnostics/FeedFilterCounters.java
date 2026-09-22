@@ -39,6 +39,9 @@ public final class FeedFilterCounters {
         /** Lists this route handed back with nothing left in them. */
         final AtomicLong emptied = new AtomicLong();
         volatile String lastReason;
+        /** The one filter that wiped list after list on this route, and the longest such run. */
+        volatile String suspect;
+        final AtomicLong suspectLists = new AtomicLong();
     }
 
     private static final ConcurrentHashMap<String, Counter> COUNTERS = new ConcurrentHashMap<>();
@@ -64,8 +67,8 @@ public final class FeedFilterCounters {
 
     private static final class Line {
         final String source;
-        final long lists, itemsIn, removed, unreadable, emptied;
-        final String lastReason;
+        final long lists, itemsIn, removed, unreadable, emptied, suspectLists;
+        final String lastReason, suspect;
 
         Line(String source, Counter counter) {
             this.source = source;
@@ -75,6 +78,8 @@ public final class FeedFilterCounters {
             this.unreadable = counter.unreadable.get();
             this.emptied = counter.emptied.get();
             this.lastReason = counter.lastReason;
+            this.suspect = counter.suspect;
+            this.suspectLists = counter.suspectLists.get();
         }
     }
 
@@ -121,6 +126,25 @@ public final class FeedFilterCounters {
         counter.emptied.incrementAndGet();
     }
 
+    /**
+     * One filter has wiped {@code lists} lists in a row on this route.
+     *
+     * <p>Issue #20's export showed 29 profile pages of 10 reduced to 0 with SeriesFilter as
+     * the last reason on every one, and it still took a reader to notice that the last reason
+     * never changed. The longest run and its filter are kept, so a run that ended before the
+     * report was sent is still in it.
+     */
+    public static void suspect(String source, String filter, int lists) {
+        if (filter == null || lists <= 0) return;
+        Counter counter = counter(source);
+        if (counter == null) return;
+        synchronized (STATE_LOCK) {
+            if (lists < counter.suspectLists.get()) return;
+            counter.suspect = filter;
+            counter.suspectLists.set(lists);
+        }
+    }
+
     /** What this route took out of the list it was just handed. */
     public static void removed(String source, int count, String reason) {
         if (count <= 0) return;
@@ -160,6 +184,11 @@ public final class FeedFilterCounters {
                 if (unreadable > 0) line.append(", ").append(unreadable).append(" not videos");
                 long emptied = counter.emptied.get();
                 if (emptied > 0) line.append(", ").append(emptied).append(" left empty");
+                String suspect = counter.suspect;
+                if (suspect != null) {
+                    line.append(", suspect=").append(suspect)
+                            .append(" lists=").append(counter.suspectLists.get());
+                }
                 String reason = counter.lastReason;
                 if (reason != null) line.append(". Last reason: ").append(reason);
                 lines.add(line.toString());
@@ -214,6 +243,11 @@ public final class FeedFilterCounters {
                 counter.unreadable.addAndGet(saved.unreadable);
                 counter.emptied.addAndGet(saved.emptied);
                 if (counter.lastReason == null) counter.lastReason = saved.lastReason;
+                // The longest run wins, whichever side of the clear it was on.
+                if (saved.suspect != null && saved.suspectLists >= counter.suspectLists.get()) {
+                    counter.suspect = saved.suspect;
+                    counter.suspectLists.set(saved.suspectLists);
+                }
             }
 
             // The restored routes were reached first. Keep newer ones after them.

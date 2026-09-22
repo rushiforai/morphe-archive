@@ -14,8 +14,13 @@
     through a temporary Java argument file so the password value is not in the child process
     command line. The file is deleted when patching exits.
 
+    The vendor APK defaults to the build of the target version in the folder
+    HUSHFEED_FIXTURE_DIR names. The desktop CLI is found through -DesktopJar,
+    HUSHFEED_DESKTOP_JAR or HUSHFEED_WORKDIR, and Java through -Java, HUSHFEED_JAVA or
+    JAVA_HOME. None of them has a machine-specific default.
+
 .EXAMPLE
-    scripts/patch-for-device.ps1 -Serial R5CT139QJ5F -Replace
+    scripts/patch-for-device.ps1 -Serial $env:HUSHFEED_DEVICE_SERIAL -Replace
 #>
 [CmdletBinding()]
 param(
@@ -30,8 +35,8 @@ param(
     # check needs a build without it.
     [string[]]$Exclude = @(),
     [string]$Apk,
-    [string]$DesktopJar = (Get-ChildItem 'C:\_claude-backups\morphe-tools' -Filter 'morphe-desktop*.jar' -File | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName,
-    [string]$Java = 'C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\java.exe',
+    [string]$DesktopJar,
+    [string]$Java,
     [string]$Keystore = "$HOME\.android\sideload-release.jks",
     [string]$KeyAlias = 'sideload',
     [string]$OutDir = (Join-Path $env:TEMP 'hushfeed-device')
@@ -42,19 +47,22 @@ $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'patch-target.ps1')
 . (Join-Path $PSScriptRoot 'patch-report.ps1')
 . (Join-Path $PSScriptRoot 'common.ps1')
+. (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
+$Java = Resolve-Java -Explicit $Java
+$DesktopJar = Resolve-DesktopCli -Explicit $DesktopJar -Root $root -Required
 $catalogPath = Join-Path $root 'patches-list.json'
 if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch list found: $catalogPath" }
 try { $catalog = Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json }
 catch { throw "Could not read patch list ${catalogPath}: $($_.Exception.Message)" }
 $target = Get-PatchTarget -PatchList $catalog
-if (-not $Apk) {
-    $Apk = (Get-ChildItem 'C:\_claude-backups\tiktok-fixture' `
+if (-not $Apk -and $env:HUSHFEED_FIXTURE_DIR -and (Test-Path -LiteralPath $env:HUSHFEED_FIXTURE_DIR -PathType Container)) {
+    $Apk = (Get-ChildItem -LiteralPath $env:HUSHFEED_FIXTURE_DIR `
         -Filter "*$($target.PackageVersion)*.apk" -File | Select-Object -First 1).FullName
 }
-# The defaults above are evaluated before this line, so a missing folder leaves them empty
-# and the failure would surface later as a confusing Split-Path error.
-if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) { throw "No vendor APK. Pass -Apk with the $($target.PackageVersion) build." }
-if (-not $DesktopJar -or -not (Test-Path -LiteralPath $DesktopJar -PathType Leaf)) { throw 'No Morphe desktop CLI jar. Pass -DesktopJar.' }
+if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
+    throw ("No vendor APK. Pass -Apk with the $($target.PackageVersion) build, or set " +
+        'HUSHFEED_FIXTURE_DIR to the folder that holds it.')
+}
 $passwordVariable = 'HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD'
 $keystorePassword = [Environment]::GetEnvironmentVariable(
     $passwordVariable, [EnvironmentVariableTarget]::Process)
@@ -63,7 +71,7 @@ if ([string]::IsNullOrEmpty($keystorePassword)) {
     Write-Host "[device] $passwordVariable is unset; using the documented local test-key fallback"
 }
 $version = Get-BundleVersion -Root $root
-$bundle = Join-Path $root "patches\build\libs\patches-$version.mpp"
+$bundle = Get-ReleaseBundlePath -Root $root -Version $version
 if (-not (Test-Path $bundle)) { throw "No bundle at $bundle. Build it first: :patches:generatePatchesList then :patches:buildAndroid, through the governor." }
 $names = @($catalog.patches | ForEach-Object { $_.name } | Where-Object { $_ -notin $Exclude })
 foreach ($excluded in $Exclude) {

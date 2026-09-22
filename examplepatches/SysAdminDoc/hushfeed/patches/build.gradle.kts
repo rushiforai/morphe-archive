@@ -100,8 +100,11 @@ patches {
 }
 
 // Morphe patcher 1.12.0 asks for Bouncy Castle 1.77 and the Android build tools it brings ask
-// for 1.79, so this module's graph resolved at 1.79: inside CVE-2025-8916 (1.44 to 1.79) and
-// CVE-2026-5588 (1.49 to 1.84). None of it reaches the payload, and the APK a user gets is
+// for 1.79, so this module's graph resolved at 1.79: 1.77 is inside all six advisories
+// (CVE-2025-8916 1.44 to 1.78, CVE-2026-5588 1.67 to 1.83, CVE-2025-14813, CVE-2026-0636
+// fixed in 1.84, CVE-2026-8763, CVE-2026-13506 fixed in 1.85) and 1.79 is inside all but
+// CVE-2025-8916. None of it reaches the
+// payload, and the APK a user gets is
 // signed by their own Manager with its own patcher, so this is the build and signing classpath
 // here rather than anything shipped. The repository's rule is that a known-affected component
 // does not stay in a reproducible graph either way. Every request is rewritten to the reviewed
@@ -225,6 +228,9 @@ dependencies {
     // as well as the compile one.
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.morphe.patcher)
+    // Reads the signing certificate of every retained fixture. The patcher already brings this
+    // exact version at run time; this puts it on the test compile classpath as well.
+    testImplementation("com.android.tools.build:apksig:9.1.1")
 }
 
 tasks {
@@ -246,7 +252,25 @@ tasks {
         inputs.dir(rootProject.file("concepts/marketing/2026-09-12"))
             .withPropertyName("marketingArchive")
             .withPathSensitivity(PathSensitivity.RELATIVE)
+        // The fixture tests skip when this is unset and read the folder when it is set. What the
+        // folder holds is the input, not its name: a run whose APK was swapped, re-signed or
+        // deleted under the same path has to run again, not come back up to date or out of the
+        // build cache with the last folder's verdict. Relative, so where the folder sits on this
+        // machine does not count, and an APK moved into or out of a subfolder does: the tests
+        // read only the folder's top level, and name only would call that move no change.
+        // Blank counts as unset, as Fixtures.kt reads it; File("") would be the whole project.
+        val fixtureDirectory = providers.environmentVariable("HUSHFEED_FIXTURE_DIR")
+        inputs.files(fixtureDirectory.map { if (it.isBlank()) emptyList() else listOf(File(it)) }.orElse(emptyList()))
+            .withPropertyName("fixtures")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     }
+    // The bundle a release publishes lives in build/release, not build/libs. The plugin's
+    // buildAndroid merges the DEX payload into the jar task's own output in place, so any later
+    // task that reruns jar (test does) put the plain jar back over the finished bundle under the
+    // same name: v0.43.0 shipped with no classes.dex that way, and on 2026-09-21 the pre-push
+    // test run did it again between the build and the index push. Nothing but buildAndroid
+    // writes build/release. scripts/common.ps1 names the same path for every release script.
+    val releaseBundleName = "patches-${project.version}.mpp"
     val verifyBundle = register<JavaExec>("verifyBundle") {
         group = "verification"
         description = "Check the Android bundle and its published patch list without rebuilding it"
@@ -255,28 +279,37 @@ tasks {
         mainClass.set("app.morphe.util.BundleVerifier")
         args(
             providers.gradleProperty("patchBundle").getOrElse(
-                layout.buildDirectory.file("libs/patches-${project.version}.mpp").get().asFile.absolutePath
+                layout.buildDirectory.file("release/$releaseBundleName").get().asFile.absolutePath
             ),
             rootProject.file("patches-list.json").absolutePath,
             project.version.toString(),
-            layout.buildDirectory.file("bundle.sha256").get().asFile.absolutePath
+            layout.buildDirectory.file("release/bundle.sha256").get().asFile.absolutePath
         )
     }
     named("buildAndroid") {
         // Resolved at configuration time. Reaching for project inside doLast is what the
         // configuration cache refuses, and Gradle 10 turns that refusal into an error.
-        val bundleFile = layout.buildDirectory.file("libs/patches-${project.version}.mpp")
-        val checksumFile = layout.buildDirectory.file("bundle.sha256")
+        val bundleFile = layout.buildDirectory.file("libs/$releaseBundleName")
+        val releaseDirectory = layout.buildDirectory.dir("release")
         val pinnedEpoch = sourceDateEpoch
         doLast {
+            // Emptied first, so the directory never holds a bundle of another version or a
+            // checksum of another build: the release scripts take the one file they find.
+            val directory = releaseDirectory.get().asFile
+            directory.mkdirs()
+            directory.listFiles()?.filter { it.isFile }?.forEach { stale ->
+                if (!stale.delete()) throw GradleException("Could not clear the old release file $stale")
+            }
+            val releaseBundle = directory.resolve(releaseBundleName)
+            bundleFile.get().asFile.copyTo(releaseBundle)
             // Before the checksum, so what is recorded is what a rebuild will produce.
-            pinBundleTimestamp(bundleFile.get().asFile, pinnedEpoch)
+            pinBundleTimestamp(releaseBundle, pinnedEpoch)
             // Record only at the producer boundary. Standalone verification must not
             // bless a modified bundle by generating its own expected checksum.
             val digest = MessageDigest.getInstance("SHA-256")
-                .digest(bundleFile.get().asFile.readBytes())
+                .digest(releaseBundle.readBytes())
                 .joinToString("") { "%02x".format(it) }
-            checksumFile.get().asFile.writeText(digest)
+            directory.resolve("bundle.sha256").writeText(digest)
         }
         finalizedBy(verifyBundle)
     }
@@ -299,5 +332,20 @@ tasks {
     // The patch list has to be regenerated before anything publishes the bundle.
     publish {
         dependsOn("generatePatchesList")
+    }
+    // Rebuilds the Feature Gate Lab's four offline catalogs from a TikTok APK:
+    // ./gradlew :patches:generateGateCatalog -Papk=<TikTok APK>. The generator is a test-source
+    // tool because the test classpath is the one that carries dexlib2 and apksig.
+    register<JavaExec>("generateGateCatalog") {
+        description = "Rebuild the Feature Gate Lab catalogs from the TikTok APK given as -Papk"
+        dependsOn(testClasses)
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("app.morphe.gatecatalog.GateCatalogGenerator")
+        maxHeapSize = "8g"
+        args(
+            providers.gradleProperty("apk").getOrElse(""),
+            rootProject.file("extensions/tiktok/src/main/java/app/morphe/extension/tiktok/featuregatelab").absolutePath,
+            file("src/test/resources/gate-catalog-curated.tsv").absolutePath
+        )
     }
 }

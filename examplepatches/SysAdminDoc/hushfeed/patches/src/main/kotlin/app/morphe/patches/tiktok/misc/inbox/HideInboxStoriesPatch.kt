@@ -22,6 +22,7 @@ val hideInboxStoriesPatch = bytecodePatch(
         "when the switch is turned off. Shares its switch with Hide inbox items. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
+    category("Inbox")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

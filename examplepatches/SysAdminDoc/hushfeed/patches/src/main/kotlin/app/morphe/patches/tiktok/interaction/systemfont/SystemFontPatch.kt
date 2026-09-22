@@ -43,6 +43,7 @@ val systemFontPatch = bytecodePatch(
         "restart after changing. Switch: Hushfeed settings > App.",
     default = false,
 ) {
+    category("Performance")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

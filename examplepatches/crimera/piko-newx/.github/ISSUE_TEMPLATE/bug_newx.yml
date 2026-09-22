@@ -1,0 +1,71 @@
+name: "🐞 NewX bug"
+description: Report a reproducible NewX (X/Twitter) bug.
+title: "bug: "
+labels: ["bug", "twitter"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search open and closed issues first.
+        Report one bug per issue. Keep the title prefix unchanged.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include expected behavior, actual behavior, and steps to reproduce.
+      placeholder: |
+        Expected:
+        Actual:
+        Steps:
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: X version
+      description: Version of the patched X app (e.g. 12.27.0-prod.01).
+    validations:
+      required: true
+
+  - type: input
+    id: patches-version
+    attributes:
+      label: Piko / NewX patch version
+      description: Version of the Piko patch bundle (e.g. 3.30.3).
+    validations:
+      required: true
+
+  - type: input
+    id: android-version
+    attributes:
+      label: Android version
+      description: Android OS version of the device (e.g. Android 15).
+    validations:
+      required: true
+
+  - type: input
+    id: device-model
+    attributes:
+      label: Device model
+      description: Device manufacturer and model (e.g. Pixel 8 Pro).
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Paste relevant logs, if available.
+      render: shell
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Confirm
+      options:
+        - label: I searched open and closed issues; this is not a duplicate.
+          required: true
+        - label: I included all relevant details.
+          required: true

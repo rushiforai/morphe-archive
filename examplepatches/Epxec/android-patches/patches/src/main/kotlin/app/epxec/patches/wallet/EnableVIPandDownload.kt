@@ -6,6 +6,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.epxec.patches.wallet.Fingerprints.WalletPaidFingerprint
 import app.epxec.patches.wallet.Fingerprints.WalletLifetimeFingerprint
 import app.epxec.patches.wallet.Fingerprints.WalletFreeFingerprint
+import app.epxec.patches.wallet.Fingerprints.WalletAddAccountFingerprint
+import app.epxec.patches.wallet.Fingerprints.WalletAddRecordFingerprint
+import app.epxec.patches.wallet.Fingerprints.WalletUsePremiumFeatureFingerprint
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
 
 @Suppress("unused")
@@ -42,6 +45,30 @@ val enableVipPatch = bytecodePatch(
             """
                     const/4 p0, 0x0
                     return p0
+            """
+        )
+
+        WalletAddAccountFingerprint.method.addInstructions(
+            0,
+            """
+                    const/4 v2, 0x1
+                    return v2
+            """
+        )
+
+        WalletAddRecordFingerprint.method.addInstructions(
+            0,
+            """
+                    const/4 v0, 0x1
+                    return v0
+            """
+        )
+
+        WalletUsePremiumFeatureFingerprint.method.addInstructions(
+            0,
+            """
+                    const/4 v2, 0x1
+                    return v2
             """
         )
     }

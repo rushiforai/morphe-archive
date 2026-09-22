@@ -47,6 +47,7 @@ val hideFeedSaveButtonPatch = bytecodePatch(
     description = "Hide the save button from video feeds. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

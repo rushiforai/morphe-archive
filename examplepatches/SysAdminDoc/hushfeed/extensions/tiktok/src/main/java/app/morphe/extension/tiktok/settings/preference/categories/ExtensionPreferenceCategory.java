@@ -154,6 +154,12 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.",
                     Settings.HIDE_SEARCH_SUGGESTIONS
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide search rewards",
+                    "Hide the points banner under the search box and the coin counter floating over search results, which TikTok shows in some regions. Searching works as before.",
+                    Settings.HIDE_SEARCH_REWARDS
+            ));
         }
         if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.promotionalBannersEnabled) {
             addPreference(new SectionHeadingPreference(context, "Profile"));

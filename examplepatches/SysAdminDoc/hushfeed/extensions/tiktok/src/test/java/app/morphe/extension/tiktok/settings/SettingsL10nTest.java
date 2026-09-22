@@ -339,11 +339,17 @@ public class SettingsL10nTest {
                 String key = row.getKey();
                 String value = row.getValue();
 
-                // Both directions and both spellings, so a dropped, changed, added or
-                // renumbered placeholder is all the same finding.
+                // Both directions and both spellings, so a dropped, changed or added
+                // placeholder is all the same finding. When every placeholder is numbered,
+                // a translation may use them in any order: the set must match, not the order.
                 java.util.List<String> wanted = placeholders(key);
                 java.util.List<String> given = placeholders(value);
-                if (!wanted.equals(given)) {
+                boolean allNumbered = !wanted.isEmpty()
+                        && wanted.stream().allMatch(p -> p.contains("$"));
+                boolean mismatch = allNumbered
+                        ? !sorted(wanted).equals(sorted(given))
+                        : !wanted.equals(given);
+                if (mismatch) {
                     problems.add(language + " placeholders " + wanted + " became " + given
                             + " in: " + key);
                 }
@@ -380,8 +386,15 @@ public class SettingsL10nTest {
         // the check exists for, put in front of it on purpose.
         assertNotEquals("a dropped placeholder", placeholders("across %1$d surfaces"),
                 placeholders("auf %d Oberflachen"));
-        assertNotEquals("a renumbered placeholder", placeholders("%1$s and %2$s"),
-                placeholders("%2$s and %1$s"));
+        assertEquals("reordered numbered placeholders are valid",
+                sorted(placeholders("%1$s and %2$s")),
+                sorted(placeholders("%2$s and %1$s")));
+        assertEquals("String.format fills numbered positions regardless of order",
+                "B then A",
+                String.format("%2$s then %1$s", "A", "B"));
+        assertNotEquals("a dropped numbered placeholder",
+                sorted(placeholders("%1$s and %2$s")),
+                sorted(placeholders("%1$s only")));
         assertNotEquals("an invented placeholder", placeholders("no placeholder here"),
                 placeholders("keiner %1$s hier"));
         assertNotEquals("a dropped full stop", terminator("Hide the caption."),
@@ -404,6 +417,12 @@ public class SettingsL10nTest {
         var match = java.util.regex.Pattern.compile("%(?:\\d+\\$)?[a-zA-Z]").matcher(text);
         while (match.find()) found.add(match.group());
         return found;
+    }
+
+    private static java.util.List<String> sorted(java.util.List<String> list) {
+        java.util.List<String> copy = new java.util.ArrayList<>(list);
+        java.util.Collections.sort(copy);
+        return copy;
     }
 
     /**

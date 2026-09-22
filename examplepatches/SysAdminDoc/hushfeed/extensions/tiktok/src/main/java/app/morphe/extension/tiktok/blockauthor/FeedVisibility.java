@@ -28,9 +28,8 @@ import java.util.WeakHashMap;
  * the user onto every screen.
  *
  * The bottom navigation tabs carry their selected state, so the Home tab being selected
- * is a reliable and cheap signal. Verified against TikTok 46.2.3, where the bottom
- * navigation ids are o1k Home, o1j Friends, o1g Create, o1l Inbox, o1m Profile. TikTok
- * 47.0.3 renamed that row to omq Home, omp Friends, omm Create, omr Inbox, oms Profile.
+ * is a reliable and cheap signal. On 47.0.3 the bottom navigation ids are omq Home, omp
+ * Friends, omm Create, omr Inbox, oms Profile.
  *
  * <p>Selected is not enough on its own. A creator's profile opened from the feed by the name
  * or the avatar is a page of the same horizontal pager as the feed, and the pager scrolls the
@@ -39,15 +38,10 @@ import java.util.WeakHashMap;
  * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
-    /** Bottom navigation Home tab, newest reviewed build first. */
-    private static final String[] HOME_TAB_RESOURCE_NAMES = {"omq", "o1k"};
-
-    /** Bottom navigation Inbox tab, newest reviewed build first. */
-    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"omr", "o1l"};
-
-    /** Full-screen comment sheet root and its title, newest reviewed build first. */
-    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"pvp", "p_5"};
-    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"wk7", "vjb"};
+    private static final String[] HOME_TAB_RESOURCE_NAMES = {"omq"};
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"omr"};
+    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"pvp"};
+    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"wk7"};
 
     /**
      * The story viewer's pager. One id rather than the comment sheet's two: this one is not
@@ -229,9 +223,12 @@ public final class FeedVisibility {
     /**
      * @return true while TikTok's comment sheet is visibly covering the feed.
      *
-     * <p>The sheet stays inflated and translated below the screen while another panel is open,
-     * so the root and its title must both be shown. Using both ids also avoids treating an
-     * unrelated layout that happens to reuse one obfuscated id as the comment sheet.
+     * <p>The sheet stays inflated and translated below the screen after it closes, so a shown
+     * flag alone is not enough. The root has to remain inside TikTok's own clipped layout.
+     * The title only identifies the sheet: Hushfeed's compact-header setting deliberately makes
+     * that view {@link View#GONE}, and requiring it to be shown put the block button over the
+     * comment list and send action. Using both ids still avoids treating an unrelated layout
+     * that happens to reuse one obfuscated id as the comment sheet.
      */
     public static boolean isCommentSheetVisible(Activity activity) {
         View sheet = namedView(activity, COMMENT_SHEET_RESOURCE_NAMES, commentSheetReference,
@@ -240,7 +237,7 @@ public final class FeedVisibility {
         View title = namedView(activity, COMMENT_TITLE_RESOURCE_NAMES, commentTitleReference,
                 reference -> commentTitleReference = reference, "comments sheet",
                 "title (" + joinResourceNames(COMMENT_TITLE_RESOURCE_NAMES) + ")");
-        return sheet != null && title != null && sheet.isShown() && title.isShown();
+        return sheet != null && title != null && sheet.isShown() && !isScrolledAway(sheet);
     }
 
     /**
@@ -302,13 +299,13 @@ public final class FeedVisibility {
             return cached;
         }
         try {
+            boolean anyNameResolved = false;
             for (String resourceName : resourceNames) {
                 int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
                         resourceName, false);
                 if (id == 0) continue;
+                anyNameResolved = true;
 
-                // TikTok 47.0.3 retains the 46.x names in its table. Only a candidate in the
-                // current hierarchy is an anchor, and the newest live candidate wins.
                 View view = activity.findViewById(id);
                 if (view == null) continue;
 
@@ -317,7 +314,9 @@ public final class FeedVisibility {
                 store.accept(new WeakReference<>(view));
                 return view;
             }
-            HookStatus.missingViewId(family, diagnosticName);
+            if (!anyNameResolved) {
+                HookStatus.missingViewId(family, diagnosticName);
+            }
             return null;
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not resolve " + family + " " + diagnosticName, ex);
@@ -351,14 +350,13 @@ public final class FeedVisibility {
         }
 
         try {
+            boolean anyNameResolved = false;
             for (String resourceName : resourceNames) {
                 int id = IDS.resolve(activity.getResources(), activity.getPackageName(),
                         resourceName, false);
                 if (id == 0) continue;
+                anyNameResolved = true;
 
-                // An obfuscated name can survive in a newer resource table while referring to
-                // something unrelated. It is a usable anchor only when that id is in the live
-                // activity tree. This is the exact 47.0.3 shape: o1k resolves, but Home is omq.
                 View tab = activity.findViewById(id);
                 if (tab == null) continue;
 
@@ -367,8 +365,10 @@ public final class FeedVisibility {
                 store.accept(new WeakReference<>(tab));
                 return tab;
             }
-            HookStatus.missingViewId(FAMILY, diagnosticName);
-            if ("Home".equals(tabName)) warnMissing(resourceNames);
+            if (!anyNameResolved) {
+                HookStatus.missingViewId(FAMILY, diagnosticName);
+                if ("Home".equals(tabName)) warnMissing(resourceNames);
+            }
             return null;
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not resolve the " + tabName + " tab", ex);

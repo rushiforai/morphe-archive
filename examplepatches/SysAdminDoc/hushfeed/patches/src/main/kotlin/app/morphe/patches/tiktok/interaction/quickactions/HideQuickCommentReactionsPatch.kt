@@ -18,10 +18,11 @@ private const val FEATURE_CONTROLS_DESCRIPTOR =
 
 @Suppress("unused")
 val hideQuickCommentReactionsPatch = bytecodePatch(
-    name = "Hide quick comment reactions",
-    description = "Hides the emoji row above the comment box and the quick comment strip on videos. Switch: Hushfeed settings > Comments.",
+    name = "Hide comment typing suggestions",
+    description = "Hides automatic emoji and sticker suggestions above the comment box. Manual buttons stay available. Switch: Hushfeed settings > Comments.",
     default = true,
 ) {
+    category("Comments")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 
@@ -35,23 +36,24 @@ val hideQuickCommentReactionsPatch = bytecodePatch(
         val row = QuickCommentBindFingerprint.originalClassDef.fields.singleOrNull {
             it.type == QUICK_COMMENT_ROW
         } ?: throw PatchException(
-            "Hide quick comment reactions: $QUICK_COMMENT_ASSEM does not hold exactly one " +
+            "Hide comment typing suggestions: $QUICK_COMMENT_ASSEM does not hold exactly one " +
                 "LinearLayout reaction row.",
         )
         QuickCommentBindFingerprint.method.hookQuickCommentVisibility(row)
 
-        // The row of emoji clusters above the comment box is a different surface: the comment
-        // keyboard adds it through a slot trigger whose predicate decides whether the mini panel
-        // exists at all. Answering "no" there removes the row in both keyboard states; the
-        // visibility hook above never sees it. Found on the S22 on 2026-09-17, where the switch
-        // left the comment sheet's row in place.
         ExposedEmojiPanelTriggerFingerprint.method.guardAtEntry(
-            "Hide quick comment reactions",
+            "Hide comment typing suggestions",
             "invoke-static {}, $FEATURE_CONTROLS_DESCRIPTOR->hideQuickCommentReactions()Z",
             """
                 const/4 v0, 0x0
                 return v0
             """,
         )
+
+        // TikTok 47.0.3's four-second sticker suggestion row is owned by the real-named
+        // TypingStickerRecommendAssem, separate from the emoji row above. Its lone void(boolean)
+        // method is the show/hide boundary.
+        TypingStickerRecommendVisibilityFingerprint.method
+            .forceCommentTypingStickerSuggestionsHidden()
     }
 }

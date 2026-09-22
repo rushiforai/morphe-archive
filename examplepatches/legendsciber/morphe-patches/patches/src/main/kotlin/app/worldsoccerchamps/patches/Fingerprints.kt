@@ -42,17 +42,66 @@ object PlayStoreCheckFingerprint : Fingerprint(
     parameters = listOf("Landroid/app/Activity;")
 )
 
-object StartupLauncherFingerprint : Fingerprint(
-    definingClass = "Lcom/pairip/StartupLauncher;",
-    name = "launch",
-    returnType = "V",
+object AntiHookFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/g;",
+    name = "e",
+    returnType = "Z",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     parameters = emptyList()
 )
 
-object ApplicationAttachFingerprint : Fingerprint(
-    definingClass = "Lcom/pairip/application/Application;",
-    name = "attachBaseContext",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PROTECTED),
+object NativeFlagFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/g;",
+    name = "j",
+    returnType = "Z",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = emptyList()
+)
+
+object DexCrcFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/g;",
+    name = "k",
+    returnType = "Ljava/lang/String;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     parameters = listOf("Landroid/content/Context;")
+)
+
+object AssetCrcFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/g;",
+    name = "m",
+    returnType = "Ljava/lang/String;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = listOf("Landroid/content/Context;")
+)
+
+object InstalledAppsFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/g;",
+    name = "a",
+    returnType = "Ljava/lang/String;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = listOf("Landroid/content/Context;")
+)
+
+object PlayIntegrityTokenFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/n;",
+    name = "k",
+    returnType = "Ljava/lang/String;",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    parameters = emptyList()
+)
+
+object PlayIntegrityVerdictFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/n;",
+    name = "l",
+    returnType = "Ljava/lang/String;",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    parameters = emptyList()
+)
+
+object PlayIntegrityStatusFingerprint : Fingerprint(
+    definingClass = "Lorg/cocos2dx/cpp/n;",
+    name = "m",
+    returnType = "I",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    parameters = emptyList()
 )

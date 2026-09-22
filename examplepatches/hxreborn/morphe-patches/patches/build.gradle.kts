@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 group = "app.hxreborn"
 
 patches {
@@ -28,11 +30,33 @@ val patchListGeneratorClasspath: Configuration by configurations.creating
 dependencies {
     compileOnly(libs.gson)
     implementation(libs.morphe.patches.library)
+    implementation(libs.pngj)
     patchListGeneratorClasspath(libs.gson)
     testImplementation(kotlin("test"))
 }
 
 tasks {
+    jar {
+        exclude("ar/com/hjg/pngj/pixels/ImageLine*.class")
+
+        doLast {
+            val desktopOnlyPackages = listOf("java/awt/", "javax/imageio/", "javax/swing/")
+            val offenders = ZipFile(archiveFile.get().asFile).use { zip ->
+                zip.entries().asSequence()
+                    .filter { it.name.endsWith(".class") }
+                    .filter { entry ->
+                        val text = zip.getInputStream(entry).readBytes().toString(Charsets.ISO_8859_1)
+                        desktopOnlyPackages.any(text::contains)
+                    }
+                    .map { it.name }
+                    .toList()
+            }
+            if (offenders.isNotEmpty()) {
+                throw GradleException("Android has no desktop JDK, referenced from: $offenders")
+            }
+        }
+    }
+
     processResources {
         inputs.property("version", project.version)
         filesMatching("protonmail-bundle-version.txt") {

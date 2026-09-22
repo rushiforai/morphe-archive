@@ -38,7 +38,7 @@ public class DownloadsPatch {
         String path = DownloadDestination.resolve(configuredPath, kind);
         if (BaseSettings.DEBUG.get() && (lastLoggedPath == null || !lastLoggedPath.equals(path))) {
             lastLoggedPath = path;
-            Logger.printInfo(() -> "[Morphe Downloads] " + kind.name().toLowerCase()
+            Logger.printInfo(() -> "[Morphe Downloads] " + kind.name().toLowerCase(java.util.Locale.ROOT)
                     + "_path=\"" + path + "\"");
         }
         return path;

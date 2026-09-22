@@ -74,6 +74,7 @@ val commentPublishDiagnosticsPatch = bytecodePatch(
         "comment to the request. A comment that never posts leaves no other trace.",
     default = true,
 ) {
+    category("Comments")
     dependsOn(sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

@@ -31,6 +31,7 @@ val simSpoofPatch = bytecodePatch(
     description = "Spoofs SIM country and operator information retrieved by TikTok, with country presets for easier setup. Switch: Hushfeed settings > Region.",
     default = true,
 ) {
+    category("Settings")
     dependsOn(
         sharedExtensionPatch,
         settingsPatch,

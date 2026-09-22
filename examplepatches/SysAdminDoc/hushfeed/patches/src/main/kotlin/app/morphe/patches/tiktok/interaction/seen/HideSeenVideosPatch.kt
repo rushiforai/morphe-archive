@@ -42,6 +42,7 @@ val hideSeenVideosPatch = bytecodePatch(
         "settings. Switch: Hushfeed settings > Feed filter.",
     default = false,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch, feedFilterPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

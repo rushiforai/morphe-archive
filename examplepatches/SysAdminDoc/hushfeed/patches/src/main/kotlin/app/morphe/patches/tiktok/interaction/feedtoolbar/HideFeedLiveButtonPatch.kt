@@ -32,6 +32,7 @@ val hideFeedLiveButtonPatch = bytecodePatch(
         "button before it is built rather than hiding it once it is on screen. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

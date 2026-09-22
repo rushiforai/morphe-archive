@@ -40,6 +40,28 @@ public class SearchSuggestionsEntryTest {
         SettingsStatus.hideSearchSuggestionsEnabled = false;
     }
 
+    /**
+     * Issue #21: the search rewards service is withheld only by its own switch, only while the
+     * patch that hooks it is applied, and never as a side effect of hiding suggestions.
+     */
+    @Test
+    public void searchRewardsFollowTheirOwnSwitchAndNeedThePatch() {
+        try {
+            assertFalse("hiding suggestions must not take the rewards with it",
+                    SearchSuggestions.shouldHideRewards());
+            Settings.HIDE_SEARCH_REWARDS.save(true);
+            assertTrue(SearchSuggestions.shouldHideRewards());
+            Settings.HIDE_SEARCH_SUGGESTIONS.save(false);
+            assertTrue("rewards hiding depended on the suggestions switch", SearchSuggestions.shouldHideRewards());
+            SettingsStatus.hideSearchSuggestionsEnabled = false;
+            assertFalse("an unpatched build answered for a hook it does not have",
+                    SearchSuggestions.shouldHideRewards());
+            assertEquals(Boolean.FALSE, Settings.HIDE_SEARCH_REWARDS.defaultValue);
+        } finally {
+            Settings.HIDE_SEARCH_REWARDS.resetToDefault();
+        }
+    }
+
     @Test
     public void rawFirstScreenCacheDoesNotRestoreRecommendationsAfterRestart() throws Exception {
         assertCacheSuppressed(false);

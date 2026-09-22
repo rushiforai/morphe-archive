@@ -33,6 +33,17 @@ internal object ExposedEmojiPanelTriggerFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The typing sticker recommendation row owned by {@code TypingStickerRecommendAssem}. Its lone
+ * {@code void(boolean)} method is the show/hide boundary and binds
+ * {@code id/typing_sticker_recommend_view} ({@code 0x7f0a9680}).
+ */
+internal object TypingStickerRecommendVisibilityFingerprint : Fingerprint(
+    definingClass = COMMENT_TYPING_STICKER_RECOMMEND_ASSEM,
+    returnType = "V",
+    parameters = listOf("Z"),
+)
+
 internal object LongPressRepostGateFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/feed/assem/digg/VideoDiggAssem;",
     returnType = "Z",

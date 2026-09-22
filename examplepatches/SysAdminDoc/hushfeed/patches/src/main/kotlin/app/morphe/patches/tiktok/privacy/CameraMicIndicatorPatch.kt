@@ -48,6 +48,7 @@ val cameraMicIndicatorPatch = bytecodePatch(
     description = "Shows a small dot in the top corner while TikTok has the camera open or is recording sound. Green for the camera, orange for the microphone, both when both. It goes when the access ends. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
+    category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

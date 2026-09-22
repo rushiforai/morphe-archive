@@ -2,6 +2,17 @@
 
 Every Hushfeed release, newest first.
 
+## 0.58.0 (2026-09-21)
+
+This week's bug reports, two requested switches and Turkish.
+
+* **TikTok:** Hide series no longer empties creator profiles. TikTok 47.0.3 tags every ordinary profile video as episode 0, and Hushfeed took that for a series. Only a real episode number counts now. (#20)
+* **TikTok:** Hide the Tako bubble now also removes the Ask Tako button floating over the search page, including the version paired with a Voice button. (#22)
+* **TikTok:** The Save media button is back on comment stickers. TikTok renames its button class with every build, so the button had quietly gone missing since 46.7.3. Hushfeed finds the sheet's buttons by their layout now. (#23)
+* **TikTok:** Cut the in-app browser off from TikTok now says plainly that it also stops Activity center and Watch history from responding. If Watch history ignores your taps, turn that switch off under Privacy. (#16)
+* **TikTok:** Feed screen adds Hide the Report button on videos, for the flag button some regions get above the creator's picture. App adds Hide search rewards, for the points banner under the search box and the coin counter floating over results. Both are off by default. TikTok doesn't show either one in our region, so they were checked against the app's code and not on a phone. Tell us how they behave for you. (#21)
+* **TikTok:** Hushfeed's settings now come in Turkish. It's a first pass, and corrections from Turkish speakers are very welcome. (#13)
+
 ## 0.57.0 (2026-09-20)
 
 Block a creator and move on.

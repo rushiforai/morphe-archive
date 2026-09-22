@@ -39,14 +39,14 @@ import java.util.WeakHashMap;
  * people or share options, or the whole "Send to" row.
  *
  * Ids were read off the live view hierarchy with the share sheet open. TikTok 47.0.3 moved
- * the panel into its own window and renamed all four anchors; the older names remain as
- * fallbacks for 46.x:
+ * the panel into its own window and renamed all four anchors. The 46.x names (ibc, u3t, dqr,
+ * a59) are not kept as fallbacks: on 47.0.3 each of them names some other view.
  * <pre>
- *   ip5 / ibc   frame around the "Send to" contacts row
- *   v3j / u3t   the contacts list; each child is the contact cell, content description
+ *   ip5   frame around the "Send to" contacts row
+ *   v3j   the contacts list; each child is the contact cell, content description
  *         = the display name, and is itself clickable
- *   dwr / dqr   the share channels row (Repost, Copy link, SMS, Facebook, ...)
- *   a5t / a59   the actions row (Report, Not interested, Download, Create group, ...)
+ *   dwr   the share channels row (Repost, Copy link, SMS, Facebook, ...)
+ *   a5t   the actions row (Report, Not interested, Download, Create group, ...)
  * </pre>
  * Every cell in the three rows carries its label as its content description, which is
  * what the hidden list matches against.
@@ -60,10 +60,10 @@ public final class ShareSheetTools {
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";
     /** One family for everything that touches the sheet, so an export reads as one surface. */
     private static final String FAMILY = ShareModelFilter.FAMILY;
-    private static final String[] CONTACTS_SECTION_IDS = {"ip5", "ibc"};
-    private static final String[] CONTACTS_LIST_IDS = {"v3j", "u3t"};
-    private static final String[] CHANNELS_LIST_IDS = {"dwr", "dqr"};
-    private static final String[] ACTIONS_LIST_IDS = {"a5t", "a59"};
+    private static final String[] CONTACTS_SECTION_IDS = {"ip5"};
+    private static final String[] CONTACTS_LIST_IDS = {"v3j"};
+    private static final String[] CHANNELS_LIST_IDS = {"dwr"};
+    private static final String[] ACTIONS_LIST_IDS = {"a5t"};
 
     /** How long a first tap stays armed before a second tap is needed again. */
     private static final long ARM_WINDOW_MS = 4000;

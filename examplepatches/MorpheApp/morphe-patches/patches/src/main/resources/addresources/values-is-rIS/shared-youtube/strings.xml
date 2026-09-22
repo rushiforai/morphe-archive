@@ -65,6 +65,15 @@ Staðfestu að pakkanafnið er rétt og að forritið er uppsett"</string>
   <string name="morphe_custom_branding_icon_entry_6">Morphe spila svartur</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Sérsniðin</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Þetta breytir tákninu sem birtist í forritaræsinum þínum.
+
+Þessi stilling mun ekki breyta tákninu í neinum af eftirfarandi tilvikum:
+• forritalistanum í kerfisstillingum tækisins
+• ákveðnum push-tilkynningum
+• forritavalinu 'Opna með'
+• Android Auto-tákninu
+
+Til að breyta tákninu alls staðar skaltu keyra plástra aftur og breyta plástravalkostinum 'Forritstákn'."</string>
   <string name="morphe_custom_branding_notification_icon_title">Tákn tilkynninga</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Passa við tákn app</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe spila</string>
@@ -226,12 +235,11 @@ Ef þú slökkvir þetta síðar er mælt með því að eyða gögnum appsins t
   <string name="morphe_ryd_failure_generic">Dislikes eru óþægilegt (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Falinn af eiganda</string>
+  <string name="morphe_ryd_accessibility_dislike_count">Mislíkaðu þetta myndband, ásamt %s öðrum</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">Mislíkaðu þetta myndband, %s atkvæða eru mislíkanir</string>
   <string name="morphe_ryd_enabled_title">Virkaðu Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">Sýna dislikes sem prósentuhlutfall</string>
   <string name="morphe_ryd_dislike_percentage_summary">Sýnir dislikes sem prósentuhlutfall af likes, frekar en tala</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Nota samningsfulla Like hnapp</string>
-  <string name="morphe_ryd_compact_layout_summary">Minnkar breidd Like hnappsins til að spara pláss</string>
   <string name="morphe_ryd_estimated_like_title">Sýna álíkaða likes</string>
   <string name="morphe_ryd_estimated_like_summary">Sýnir álíkaðan like fjölda á myndböndum þar sem búðandi hefur slökkt á likes</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Sýna tengingu villuskilaboð</string>

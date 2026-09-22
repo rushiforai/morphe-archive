@@ -122,6 +122,15 @@ STREAMING_DATA_REQUEST_CLIENT_ORDER_CONFLICT_BLOBS = (
     "e3b9f5eebb00b69212c17ac4bc213fc1d9fa4c7b",
 )
 
+# Morphe 1.44.0 stable contains both download changes above, while the Dual
+# stable branch still has only the direct-stream path. Compose the two verified
+# transformations only for this exact cumulative stable conflict.
+STREAMING_DATA_REQUEST_STABLE_CLIENT_ORDER_CONFLICT_BLOBS = (
+    "2d468bc3ba3464b15b72dde8eadc35eeaced8811",
+    "997cfd829f487b438b4190409c5e8059c09a89eb",
+    "e3b9f5eebb00b69212c17ac4bc213fc1d9fa4c7b",
+)
+
 DUAL_YANDEX_STRINGS_PATH = re.compile(
     r"^patches/src/main/resources/addresources/values(?:-[^/]+)?/youtube/strings\.xml$"
 )
@@ -670,6 +679,12 @@ def merge_streaming_data_request_client_order(ours: str) -> str:
     return merged
 
 
+def merge_streaming_data_request_stable_client_order(ours: str) -> str:
+    """Apply both verified download merges for the cumulative stable update."""
+    with_downloads = merge_streaming_data_request_download_support(ours)
+    return merge_streaming_data_request_client_order(with_downloads)
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -682,6 +697,8 @@ def resolve_streaming_data_request_conflict() -> None:
         merge_known_conflict = merge_streaming_data_request_download_support
     elif stage_blobs == STREAMING_DATA_REQUEST_CLIENT_ORDER_CONFLICT_BLOBS:
         merge_known_conflict = merge_streaming_data_request_client_order
+    elif stage_blobs == STREAMING_DATA_REQUEST_STABLE_CLIENT_ORDER_CONFLICT_BLOBS:
+        merge_known_conflict = merge_streaming_data_request_stable_client_order
     else:
         return
 

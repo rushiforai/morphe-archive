@@ -50,6 +50,7 @@ val duetStitchPatch = bytecodePatch(
         "whether the upload is accepted is the server's decision, not the app's. Switch: Hushfeed settings > App.",
     default = false,
 ) {
+    category("Downloads")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

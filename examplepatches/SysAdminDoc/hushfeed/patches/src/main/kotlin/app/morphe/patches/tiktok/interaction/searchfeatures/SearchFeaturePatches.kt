@@ -56,6 +56,7 @@ val enableNonPersonalizedSearchPatch = bytecodePatch(
     description = "Uses TikTok's non-personalized search mode instead of its saved account choice. Switch: Hushfeed settings > App.",
     default = true,
 ) {
+    category("Search")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 
@@ -80,6 +81,7 @@ val enableLiveSearchPatch = bytecodePatch(
     description = "Shows TikTok's search entry in the LIVE drawer where supported.",
     default = true,
 ) {
+    category("Search")
     dependsOn(sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

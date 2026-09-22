@@ -154,6 +154,24 @@ public class ContentAndSoundFilterTest {
         assertTrue("a named mix is a playlist", markers[3].getFiltered(playlist));
     }
 
+    /**
+     * Issue #20: with Hide series on, every profile grid came up empty. TikTok 47.0.3 sends
+     * profile posts with a PaidContentInfo whose only filled field is episode_num "0", read off
+     * an ordinary video on the S22. A zero episode is the default, not an episode.
+     */
+    @Test public void anEpisodeNumberOfZeroIsTheDefaultAndNotASeries() {
+        Item profilePost = new Item();
+        profilePost.mPaidContentInfo = new PaidContent(0L, "", "0", false);
+        assertFalse("episode \"0\" emptied every profile grid in issue #20",
+                markers[2].getFiltered(profilePost));
+        for (String notAnEpisode : new String[] {" 0 ", "00", "-1", "0.0", "episode"}) {
+            profilePost.mPaidContentInfo = new PaidContent(0L, "", notAnEpisode, false);
+            assertFalse(notAnEpisode, markers[2].getFiltered(profilePost));
+        }
+        profilePost.mPaidContentInfo = new PaidContent(0L, "", " 12 ", false);
+        assertTrue("a positive episode number is still a series", markers[2].getFiltered(profilePost));
+    }
+
     @Test public void verifiedAccountsMatchNumericCustomAndEnterpriseMarkers() {
         Item item = new Item();
         Author author = new Author();

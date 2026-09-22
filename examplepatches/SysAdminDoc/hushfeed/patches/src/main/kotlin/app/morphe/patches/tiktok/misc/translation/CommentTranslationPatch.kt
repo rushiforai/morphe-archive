@@ -115,6 +115,7 @@ val commentTranslationPatch = bytecodePatch(
     description = "Adds comment translation controls using TikTok's translation system, with selectable language exclusions. Switch: Hushfeed settings > Comments.",
     default = true,
 ) {
+    category("Comments")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

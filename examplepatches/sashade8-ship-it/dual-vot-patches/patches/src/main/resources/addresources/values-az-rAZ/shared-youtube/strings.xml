@@ -65,6 +65,15 @@ Paket adının düzgün olduğunu və tətbiqin quraşdırıldığını yoxla"</
   <string name="morphe_custom_branding_icon_entry_6">Qara Morphe oynat</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Fərdi</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Bu tətbiq başladıcınızda göstərilən simvolu dəyişdirir.
+
+​Bu tənzimləmə aşağıdakı yerlərin heç birində simvolu dəyişməyəcək:
+• Cihazın sistem tənzimləmələrinin tətbiq siyahısı
+• Bəzi təkan bildirişləri
+• 'Bununla aç' tətbiq seçicisi
+• Android Auto simvolu
+
+Simvolu hər yerdə dəyişdirmək üçün təkrar yamaqlayın və 'Tətbiq simvolu' yamaq seçimini dəyişin"</string>
   <string name="morphe_custom_branding_notification_icon_title">Bildiriş simvolu</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Uyğun tətbiq simvolu</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe oynat</string>
@@ -229,9 +238,6 @@ Sonradan qapadılarsa, UI səhvlərin önləmək üçün tətbiq məlumatların 
   <string name="morphe_ryd_enabled_title">Return YouTube Dislike-ı aktivləşdir</string>
   <string name="morphe_ryd_dislike_percentage_title">Bəyənməmələri faiz nisbəti olaraq göstər</string>
   <string name="morphe_ryd_dislike_percentage_summary">Bəyənməmələri rəqəm əvəzinə bəyənmələrin faiz nisbəti kimi göstərir</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Yığcam Bəyənmə düyməsini istifadə et</string>
-  <string name="morphe_ryd_compact_layout_summary">Yerə qənaət etmək üçün Bəyən düyməsinin enini azaldır</string>
   <string name="morphe_ryd_estimated_like_title">Təxmini bəyənmələri göstər</string>
   <string name="morphe_ryd_estimated_like_summary">Müəllif bəyənmələri qapatdığı videolarda təxmini bəyənmə sayını göstərir</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Bağlantı xətası xəbərdarlıqlarını göstər</string>

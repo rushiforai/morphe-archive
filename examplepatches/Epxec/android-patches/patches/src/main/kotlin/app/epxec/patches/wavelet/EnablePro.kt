@@ -7,6 +7,7 @@ import app.epxec.patches.wavelet.Fingerprints.WaveletProFingerprint
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.patcher.patch.PatchException
+import app.epxec.patches.shared.signature.spoofSignatureVerificationPatch
 
 
 @Suppress("unused")
@@ -17,7 +18,7 @@ val enableVipPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_Wavelet)
 
-    dependsOn(changePackageInstallerPatch())
+    dependsOn(changePackageInstallerPatch(), spoofSignatureVerificationPatch)
 
     execute {
 

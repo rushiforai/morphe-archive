@@ -7,14 +7,62 @@ package app.morphe.patches.tiktok.interaction.seekbar
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.tiktok.misc.absettings.hookAppAbIntBoundary
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/seekbar/SeekbarPatch;"
+
+/**
+ * Inserts a call to [SeekbarPatch.forceSeekbarRefresh] between the stored show-type read and
+ * the native equality shortcut, so a zero rewrite from [SeekbarPatch.overrideSeekbarShowType]
+ * cannot match a stored zero and skip the visible branch.
+ */
+internal fun MutableMethod.hookSeekbarTypeRefresh() {
+    val instructions = implementation!!.instructions.toList()
+    data class Candidate(val igetIndex: Int, val storedReg: Int, val paramReg: Int)
+    val candidates = mutableListOf<Candidate>()
+    for (i in instructions.indices) {
+        val insn = instructions[i]
+        if (insn.opcode != Opcode.IGET) continue
+        val field = insn.getReference<FieldReference>() ?: continue
+        if (field.type != "I") continue
+        val two = insn as? TwoRegisterInstruction ?: continue
+        val storedReg = two.registerA
+        if (i + 1 >= instructions.size) continue
+        val next = instructions[i + 1]
+        if (next.opcode != Opcode.IF_EQ) continue
+        val cmp = next as? TwoRegisterInstruction ?: continue
+        val paramReg = when {
+            cmp.registerA == storedReg -> cmp.registerB
+            cmp.registerB == storedReg -> cmp.registerA
+            else -> continue
+        }
+        candidates.add(Candidate(i, storedReg, paramReg))
+    }
+    if (candidates.size != 1) {
+        throw PatchException(
+            "Expected exactly one stored-type equality check, found ${candidates.size}."
+        )
+    }
+    val (igetIndex, storedReg, paramReg) = candidates.single()
+    addInstructions(
+        igetIndex + 1,
+        """
+            invoke-static {v$storedReg, v$paramReg}, $EXTENSION_CLASS_DESCRIPTOR->forceSeekbarRefresh(II)I
+            move-result v$storedReg
+        """,
+    )
+}
 
 @Suppress("unused")
 val showSeekbarPatch = bytecodePatch(
@@ -22,6 +70,7 @@ val showSeekbarPatch = bytecodePatch(
     description = "Shows TikTok's native video seekbar where it would normally be hidden. Switch: Hushfeed settings > App.",
     default = true,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())
@@ -62,6 +111,7 @@ val showSeekbarPatch = bytecodePatch(
                     move-result v$typeRegister
                 """,
             )
+            hookSeekbarTypeRefresh()
         }
     }
 }
@@ -72,6 +122,7 @@ val showSeekbarThumbnailPatch = bytecodePatch(
     description = "Shows TikTok's video preview thumbnail while dragging the seekbar.",
     default = true,
 ) {
+    category("Playback")
     dependsOn(sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

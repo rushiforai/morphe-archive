@@ -16,6 +16,7 @@ val p2pRelayBlockerPatch = rawResourcePatch(
     description = "Strips TikTok's peer-to-peer CDN libraries so your phone is not used as a relay node for other people's video traffic. Saves battery and mobile data.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
@@ -43,6 +44,7 @@ val coreAssetDebloatPatch = rawResourcePatch(
     description = "Empties TikTok's bundled C2PA and Microblink card-scanning assets, the Pitaya AI model libraries, the live-cast dynamic feature, and the ART log monitor probe.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
@@ -93,6 +95,7 @@ val languagePackPurgerPatch = rawResourcePatch(
     description = "Empties unselected TikTok language bundles while always keeping English. Selected language codes are checked before any file changes.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
     val targetLocales by stringOption(
         key = "locales",
@@ -113,6 +116,7 @@ val studioCreationDebloatPatch = rawResourcePatch(
     description = "Empties TikTok's reviewed editor, camera-effect and face-model assets. The Create tab and all recording, editing and effects tools stop working. Switch: Hushfeed settings > App behavior.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
@@ -144,6 +148,7 @@ val liveStreamSuiteOptimizerPatch = rawResourcePatch(
     description = "Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop.",
     default = false,
 ) {
+    category("Performance")
     compatibleWith(*AppCompatibilities.tiktok4703())
     dependsOn(liveGiftEffectOptimizerPatch)
 

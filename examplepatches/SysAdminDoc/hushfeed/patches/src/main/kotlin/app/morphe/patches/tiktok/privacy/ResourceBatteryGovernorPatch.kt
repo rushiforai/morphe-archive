@@ -22,6 +22,7 @@ val resourceBatteryGovernorPatch = bytecodePatch(
     description = "Stops TikTok listening to the motion sensors it polls for device fingerprinting: the accelerometer, gyroscope, magnetometer, rotation, gravity and linear acceleration sensors. Saves the battery they wake. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
+    category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

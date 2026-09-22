@@ -32,6 +32,7 @@ val keepFavoritesTabPatch = bytecodePatch(
         "there and the saved videos were not. Switch: Hushfeed settings > App.",
     default = true,
 ) {
+    category("Settings")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

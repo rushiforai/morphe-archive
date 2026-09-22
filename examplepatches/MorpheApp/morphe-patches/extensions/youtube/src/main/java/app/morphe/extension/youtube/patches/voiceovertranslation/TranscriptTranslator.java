@@ -837,7 +837,7 @@ public final class TranscriptTranslator {
                     final String data = sseLine.substring(6).trim();
                     if (data.equals("[DONE]")) break;
 
-                    final JSONObject chunk;
+                    JSONObject chunk;
                     try {
                         chunk = new JSONObject(data);
                     } catch (Exception ignored) {
@@ -933,7 +933,7 @@ public final class TranscriptTranslator {
                         conn.setReadTimeout(READ_TIMEOUT_MS);
                         conn.setRequestProperty("Accept-Encoding", "identity");
                         final int responseCode = conn.getResponseCode();
-                        if (responseCode == 200) {
+                        if (responseCode == Requester.HTTP_STATUS_CODE_SUCCESS) {
                             JSONArray data = new JSONObject(Requester.parseString(conn)).getJSONArray("data");
                             for (int i = 0, length = data.length(); i < length; i++) {
                                 JSONObject entry = data.getJSONObject(i);

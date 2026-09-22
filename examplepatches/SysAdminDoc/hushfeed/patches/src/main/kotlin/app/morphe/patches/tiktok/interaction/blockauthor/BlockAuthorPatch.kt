@@ -35,6 +35,7 @@ val blockAuthorPatch = bytecodePatch(
         "Hushfeed settings > Feed filter.",
     default = false,
 ) {
+    category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

@@ -21,6 +21,7 @@ val contactListBlockerPatch = bytecodePatch(
     description = "Answers TikTok's reads of your phone contacts with an empty list. Find Friends and People you may know lose access to your contact list. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
+    category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

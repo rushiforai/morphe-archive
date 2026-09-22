@@ -11,12 +11,15 @@ import android.app.Activity;
 import android.view.ViewGroup;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
 import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.TikTokActivityHook;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +32,102 @@ final class FeedFilterFeedback {
     private static final long NOTICE_COOLDOWN_MS = 60_000L;
     private static final String OTHER_REASON = "Other feed filters";
     private static final long NO_WINDOW = Long.MIN_VALUE;
+    /**
+     * Lists in a row that one marker switch has to wipe on one route before the notice names
+     * it. Issue #20 was 29 profile pages of 10 reduced to 0 by SeriesFilter, and #24's reporter
+     * read the generic notice and still wrote that no filter was on: a predicate that has
+     * started matching the default shape looks like TikTok breaking until something says which
+     * switch did it. Nothing here turns the switch off; the reader does, or does not.
+     */
+    static final int SUSPECT_AFTER_LISTS = 3;
+    /**
+     * A wiped list smaller than this says nothing about a predicate (a page of two series
+     * episodes really is all series), so it neither counts towards a run nor breaks one.
+     */
+    static final int SUSPECT_MIN_LIST_SIZE = 5;
+    private static final int MAX_SUSPECT_SOURCES = 64;
+
+    /** A switch the notice can name: its settings page, its row key and the row's title. */
+    private static final class MarkerSwitch {
+        final String section;
+        final String key;
+        final String title;
+
+        MarkerSwitch(String section, String key, String title) {
+            this.section = section;
+            this.key = key;
+            this.title = title;
+        }
+    }
+
+    /**
+     * The filters a wiped run can be pinned on. Each reads one marker TikTok attaches to a
+     * video, so three lists of five in a row with nothing else left in them is a predicate
+     * matching the default shape rather than a feed that is all one thing. Left out on purpose:
+     * ads and LIVE rooms, which a page can legitimately be all of; the reader's own lists and
+     * ranges (keywords, creators, sounds, counts, countries, age, quality), which do what they
+     * were told; and seen videos, which a re-served batch really can be all of.
+     */
+    private static final Map<String, MarkerSwitch> MARKER_SWITCHES = new HashMap<>();
+
+    static {
+        String feedFilter = "FEED_FILTER";
+        MARKER_SWITCHES.put("StoryFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_STORY.key, "Hide stories"));
+        MARKER_SWITCHES.put("ImageVideoFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_IMAGE.key, "Hide photo posts"));
+        MARKER_SWITCHES.put("ShopFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_SHOP.key, "Hide TikTok Shop"));
+        MARKER_SWITCHES.put("PaidPartnershipFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_PAID_PARTNERSHIP.key, "Hide paid partnerships"));
+        MARKER_SWITCHES.put("LocationBadgeFilter",
+                new MarkerSwitch(feedFilter, Settings.FILTER_LOCATION_VIDEOS.key, "Filter location-tagged videos"));
+        MARKER_SWITCHES.put("AiGeneratedFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_AI_GENERATED.key, "Hide AI-generated videos"));
+        MARKER_SWITCHES.put("VerifiedFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_VERIFIED.key, "Hide verified accounts"));
+        MARKER_SWITCHES.put("SeriesFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_SERIES.key, "Hide Series"));
+        MARKER_SWITCHES.put("PlaylistFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_PLAYLIST_VIDEOS.key, "Hide playlist videos"));
+        MARKER_SWITCHES.put("PromotionalMusicFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_PROMOTIONAL_MUSIC.key, "Hide promotional music"));
+        MARKER_SWITCHES.put("LiveReplayFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_LIVE_REPLAYS.key, "Hide LIVE replays"));
+        MARKER_SWITCHES.put("InsertedCardFilter",
+                new MarkerSwitch("INTERFACE", Settings.HIDE_INSERTED_CARDS.key, "Hide inserted cards"));
+    }
+
+    /** The lists in a row one marker filter has wiped on one route. */
+    private static final class Streak {
+        final String filter;
+        int lists;
+
+        Streak(String filter) {
+            this.filter = filter;
+        }
+    }
+
+    /** What a batch decided to show: the words, and the row the action lands on when it names one. */
+    static final class Notice {
+        final String message;
+        /** Null for the generic notice, whose action opens the Feed filter page. */
+        final MarkerSwitch suspect;
+
+        Notice(String message, MarkerSwitch suspect) {
+            this.message = message;
+            this.suspect = suspect;
+        }
+
+        /** The setting key the action scrolls to, or null when it opens the page alone. */
+        String settingKey() {
+            return suspect == null ? null : suspect.key;
+        }
+    }
 
     private static final Object LOCK = new Object();
     private static final Map<String, Integer> reasons = new LinkedHashMap<>();
+    private static final Map<String, Streak> streaks = new HashMap<>();
     private static int filteredBatches;
     private static long windowStartedAt = NO_WINDOW;
     private static long lastNoticeAt = Long.MIN_VALUE;
@@ -41,16 +137,17 @@ final class FeedFilterFeedback {
     }
 
     /** Records one completed feed-list filtering pass and schedules a notice when needed. */
-    static void onBatchResult(int before, int after, Map<String, Integer> batchReasons, long nowMs) {
-        String message = recordBatch(before, after, batchReasons, nowMs);
-        if (message == null) return;
+    static void onBatchResult(String source, int before, int after, Map<String, Integer> batchReasons, long nowMs) {
+        Notice notice = recordBatch(source, before, after, batchReasons, nowMs);
+        if (notice == null) return;
 
-        Utils.runOnMainThread(() -> showNotice(message));
+        Utils.runOnMainThread(() -> showNotice(notice));
     }
 
-    /** Returns the next notice text, or null when this pass should stay quiet. */
-    static String recordBatch(int before, int after, Map<String, Integer> batchReasons, long nowMs) {
+    /** Returns the next notice, or null when this pass should stay quiet. */
+    static Notice recordBatch(String source, int before, int after, Map<String, Integer> batchReasons, long nowMs) {
         synchronized (LOCK) {
+            Streak suspect = recordSuspectLocked(source, before, after, batchReasons);
             boolean allFiltered = before > 0 && after == 0;
             if (!allFiltered) {
                 resetWindowLocked();
@@ -64,19 +161,84 @@ final class FeedFilterFeedback {
             }
             filteredBatches++;
             addReasonsLocked(batchReasons);
-            if (filteredBatches < NOTICE_AFTER_BATCHES
-                    || noticePending
-                    || (lastNoticeAt != Long.MIN_VALUE
-                    && (nowMs < lastNoticeAt || nowMs - lastNoticeAt < NOTICE_COOLDOWN_MS))) {
-                return null;
+            if (noticePending) return null;
+            boolean coolingDown = lastNoticeAt != Long.MIN_VALUE
+                    && (nowMs < lastNoticeAt || nowMs - lastNoticeAt < NOTICE_COOLDOWN_MS);
+
+            // A named switch beats the generic count: the reader who gets "Hide Series did
+            // this" has no use for "your filters did this" a moment later. The first time a
+            // run gets long enough it also beats the cooldown, since a banner replaces the one
+            // before it and the generic notice a few seconds earlier said less.
+            if (suspect != null && suspect.lists >= SUSPECT_AFTER_LISTS
+                    && (!coolingDown || suspect.lists == SUSPECT_AFTER_LISTS)) {
+                MarkerSwitch named = MARKER_SWITCHES.get(suspect.filter);
+                String message = L10n.f(
+                        "%1$s hid everything TikTok sent, %2$d times in a row. Turn it off if that's not what you wanted.",
+                        L10n.t(named.title),
+                        suspect.lists
+                );
+                lastNoticeAt = nowMs;
+                noticePending = true;
+                resetWindowLocked();
+                return new Notice(message, named);
             }
+
+            if (coolingDown || filteredBatches < NOTICE_AFTER_BATCHES) return null;
 
             String message = formatMessageLocked();
             lastNoticeAt = nowMs;
             noticePending = true;
             resetWindowLocked();
-            return message;
+            return new Notice(message, null);
         }
+    }
+
+    /**
+     * Advances or breaks this route's run and returns it once it is long enough to name.
+     *
+     * <p>A list counts when it was five or more, nothing was kept, and one marker filter took
+     * out more than half of it: an ad or a LIVE room in the same batch is not a reason to doubt
+     * the run. A list that kept anything breaks the run, because the predicate plainly does not
+     * match everything. An empty response or a small wiped list says nothing either way.
+     */
+    private static Streak recordSuspectLocked(String source, int before, int after, Map<String, Integer> batchReasons) {
+        if (source == null || before <= 0) return null;
+        if (after > 0) {
+            streaks.remove(source);
+            return null;
+        }
+        if (before < SUSPECT_MIN_LIST_SIZE) return null;
+
+        String dominant = dominantMarkerFilter(batchReasons, before);
+        if (dominant == null) return null;
+
+        Streak streak = streaks.get(source);
+        if (streak == null || !streak.filter.equals(dominant)) {
+            if (streak == null && streaks.size() >= MAX_SUSPECT_SOURCES) return null;
+            streak = new Streak(dominant);
+            streaks.put(source, streak);
+        }
+        streak.lists++;
+        if (streak.lists >= SUSPECT_AFTER_LISTS) {
+            FeedFilterCounters.suspect(source, streak.filter, streak.lists);
+            return streak;
+        }
+        return null;
+    }
+
+    /** The marker filter that took out more than half of a wiped list, or null when none did. */
+    private static String dominantMarkerFilter(Map<String, Integer> batchReasons, int size) {
+        if (batchReasons == null) return null;
+        String best = null;
+        int bestCount = 0;
+        for (Map.Entry<String, Integer> entry : batchReasons.entrySet()) {
+            int count = entry.getValue() == null ? 0 : entry.getValue();
+            if (count > bestCount && MARKER_SWITCHES.containsKey(entry.getKey())) {
+                best = entry.getKey();
+                bestCount = count;
+            }
+        }
+        return bestCount * 2 > size ? best : null;
     }
 
     private static void addReasonsLocked(Map<String, Integer> batchReasons) {
@@ -163,7 +325,7 @@ final class FeedFilterFeedback {
         return OTHER_REASON;
     }
 
-    private static void showNotice(String message) {
+    private static void showNotice(Notice notice) {
         synchronized (LOCK) {
             noticePending = false;
         }
@@ -172,7 +334,7 @@ final class FeedFilterFeedback {
         // the next one taking its place, when isFinishing is already false again and only
         // isDestroyed says the window token is gone. A dialog on it throws; a toast does not.
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
-            Utils.showToastLong(message);
+            Utils.showToastLong(notice.message);
             return;
         }
         // This used to be a modal over the feed. Its only action was opening a settings page,
@@ -181,12 +343,19 @@ final class FeedFilterFeedback {
         // focus, announces itself once and takes itself away.
         ViewGroup root = activity.findViewById(android.R.id.content);
         if (root == null) {
-            Utils.showToastLong(message);
+            Utils.showToastLong(notice.message);
             return;
         }
-        BlockAuthorOverlay.showActionBanner(root, message,
-                L10n.t(activity, "Filter settings"),
-                TikTokActivityHook::openFeedFilterSettings);
+        MarkerSwitch suspect = notice.suspect;
+        if (suspect == null) {
+            BlockAuthorOverlay.showActionBanner(root, notice.message,
+                    L10n.t(activity, "Filter settings"),
+                    TikTokActivityHook::openFeedFilterSettings);
+            return;
+        }
+        BlockAuthorOverlay.showActionBanner(root, notice.message,
+                L10n.t(activity, "Show the switch"),
+                () -> TikTokActivityHook.openSettingsRow(suspect.section, suspect.key));
     }
 
     private static void resetWindowLocked() {
@@ -198,7 +367,15 @@ final class FeedFilterFeedback {
     static void resetForTests() {
         synchronized (LOCK) {
             resetWindowLocked();
+            streaks.clear();
             lastNoticeAt = Long.MIN_VALUE;
+            noticePending = false;
+        }
+    }
+
+    /** What the main thread does with a notice: the tests never post one there. */
+    static void noticeShownForTests() {
+        synchronized (LOCK) {
             noticePending = false;
         }
     }

@@ -27,6 +27,7 @@ val disableLongPressQuickSharePatch = bytecodePatch(
     description = "Keeps long-pressing Share from opening TikTok's quick-share interaction. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

@@ -117,6 +117,27 @@ final class AttackAlerts {
         return alerts;
     }
 
+    /**
+     * True if this village of the poll response carries the attack list at all. When it doesn't (the
+     * game answered without the movements), "no attacks listed" must not be read as "they are gone".
+     */
+    static boolean hasMovementData(JSONObject village) {
+        JSONObject troops = village.optJSONObject("troops");
+        return troops != null && troops.optJSONObject("attacks") != null;
+    }
+
+    /** "Home (1|2)": the attacked village. */
+    static String targetLabel(Alert a) {
+        return a.targetVillage + " (" + a.targetX + "|" + a.targetY + ")";
+    }
+
+    /** "Bob — Enemy (5|6)": who is attacking and from where. */
+    static String originLabel(Alert a) {
+        String who = a.originPlayer.length() > 0 ? a.originPlayer : "an unknown player";
+        return who + (a.originVillage.length() > 0 ? " — " + a.originVillage : "")
+                + " (" + a.originX + "|" + a.originY + ")";
+    }
+
     /** "raid" if the game's movement type says so, otherwise "attack". */
     static String kindOf(String type) {
         return type.toUpperCase(Locale.ROOT).contains("RAID") ? "raid" : "attack";

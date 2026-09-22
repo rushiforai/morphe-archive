@@ -100,6 +100,7 @@ val featureGateLabPatch = bytecodePatch(
     description = "Adds a menu for viewing and overriding supported TikTok feature flags and configuration values.",
     default = true,
 ) {
+    category("Settings")
     dependsOn(settingsPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

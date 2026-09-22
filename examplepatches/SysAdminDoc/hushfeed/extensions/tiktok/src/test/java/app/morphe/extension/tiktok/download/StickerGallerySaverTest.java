@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.view.View;
@@ -153,6 +154,82 @@ public class StickerGallerySaverTest {
 
         // The button reads this when it is pressed, so it has to be the sticker on screen.
         assertEquals("https://example.invalid/second.png", url(attached().get(sheet)));
+    }
+
+    /**
+     * Issue #23: the Save media button vanished on TikTok 47.0.3. The sheet's two action buttons
+     * were looked up by their obfuscated class name, which TikTok renames with every build, so
+     * the lookup found nothing and gave up quietly. The sheet is recognised by its own shape now:
+     * the fields of one shared TextView subclass are its actions, whatever that class is called.
+     */
+    @Test public void theSaveButtonJoinsTheSheetsOwnActionsWhateverTheirClassIsCalled() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        StickerSheet sheet = new StickerSheet(context);
+
+        PreviewModel preview = new PreviewModel();
+        StickerGallerySaver.registerStickerSource(preview, new Sticker("https://example.invalid/sticker.png"));
+        StickerGallerySaver.attachSaveImageButton(sheet, preview);
+
+        assertEquals("the Save media button was not added", 3, sheet.actions.getChildCount());
+        assertSame(sheet.share, sheet.actions.getChildAt(0));
+        assertSame(sheet.favorite, sheet.actions.getChildAt(1));
+        View save = sheet.actions.getChildAt(2);
+        assertEquals("morphe_save_media", save.getTag());
+        assertEquals("the caption was taken for an action", 1, sheet.indexOfChild(sheet.caption));
+
+        // The same sheet bound again for the next sticker keeps one button.
+        StickerGallerySaver.attachSaveImageButton(sheet, preview);
+        assertEquals(3, sheet.actions.getChildCount());
+    }
+
+    /** A sheet with no pair of like-typed actions is left alone and named in the export. */
+    @Test public void aSheetWithNoActionPairIsLeftAloneAndReported() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        app.morphe.extension.shared.diagnostics.HookStatus.clear();
+        android.widget.LinearLayout bare = new android.widget.LinearLayout(context);
+        bare.addView(new android.widget.TextView(context));
+
+        PreviewModel preview = new PreviewModel();
+        StickerGallerySaver.registerStickerSource(preview, new Sticker("https://example.invalid/sticker.png"));
+        StickerGallerySaver.attachSaveImageButton(bare, preview);
+
+        assertEquals(1, bare.getChildCount());
+        String report = app.morphe.extension.shared.diagnostics.HookStatus.report().toString();
+        assertTrue(report, report.contains("sticker saves") && report.contains("1 missing"));
+    }
+
+    /** TikTok's action button: a TextView subclass with a name that changes every build. */
+    private static final class RenamedEveryBuild extends android.widget.TextView {
+        RenamedEveryBuild(android.content.Context context) { super(context); }
+    }
+
+    /** The preview row's shape: a caption, a picture, two icons and two like-typed actions. */
+    private static final class StickerSheet extends android.widget.LinearLayout {
+        final android.widget.TextView caption;
+        final android.widget.ImageView picture;
+        final RenamedEveryBuild favorite;
+        final RenamedEveryBuild share;
+        final android.widget.ImageView close;
+        final android.widget.LinearLayout actions;
+
+        StickerSheet(android.content.Context context) {
+            super(context);
+            setOrientation(VERTICAL);
+            picture = new android.widget.ImageView(context);
+            caption = new android.widget.TextView(context);
+            close = new android.widget.ImageView(context);
+            share = new RenamedEveryBuild(context);
+            favorite = new RenamedEveryBuild(context);
+            actions = new android.widget.LinearLayout(context);
+            actions.addView(share);
+            actions.addView(favorite);
+            addView(picture);
+            addView(caption);
+            addView(actions);
+            addView(close);
+        }
     }
 
     @SuppressWarnings("unchecked")

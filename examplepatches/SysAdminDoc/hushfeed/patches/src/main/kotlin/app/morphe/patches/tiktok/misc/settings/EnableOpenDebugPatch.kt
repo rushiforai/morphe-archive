@@ -27,6 +27,7 @@ val enableOpenDebugPatch = bytecodePatch(
         "The switches are under Diagnostics in Hushfeed settings. Switch: Hushfeed settings > Diagnostics.",
     default = false,
 ) {
+    category("Settings")
     dependsOn(sharedExtensionPatch, settingsPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

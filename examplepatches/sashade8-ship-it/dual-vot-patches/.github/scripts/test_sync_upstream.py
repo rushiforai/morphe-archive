@@ -141,6 +141,34 @@ class SyncUpstreamTests(unittest.TestCase):
             merged,
         )
 
+    def test_merges_cumulative_stable_download_changes(self):
+        root = MODULE_PATH.parents[2]
+        source = (root / sync_upstream.STREAMING_DATA_REQUEST_PATH).read_text(
+            encoding="utf-8"
+        )
+
+        merged = sync_upstream.merge_streaming_data_request_stable_client_order(
+            source
+        )
+
+        self.assertIn("private static List<ClientType> buildClientOrder", merged)
+        self.assertIn("fetchDirectStreamRequest", merged)
+        self.assertIn("DIRECT_STREAM_CLIENT_ORDER, false, true", merged)
+        self.assertIn("clientOrderToUse, false, false", merged)
+        self.assertIn("clientOrder, true, false", merged)
+        self.assertIn("boolean isDownload,", merged)
+        self.assertIn("boolean directStreamsOnly", merged)
+        self.assertIn("No direct stream client succeeded", merged)
+        self.assertIn("No client could resolve the download", merged)
+        self.assertEqual(
+            sync_upstream.STREAMING_DATA_REQUEST_STABLE_CLIENT_ORDER_CONFLICT_BLOBS,
+            (
+                "2d468bc3ba3464b15b72dde8eadc35eeaced8811",
+                "997cfd829f487b438b4190409c5e8059c09a89eb",
+                "e3b9f5eebb00b69212c17ac4bc213fc1d9fa4c7b",
+            ),
+        )
+
     def test_rejects_changed_streaming_conflict_shape(self):
         with self.assertRaises(sync_upstream.SyncError):
             sync_upstream.merge_streaming_data_request_download_support(

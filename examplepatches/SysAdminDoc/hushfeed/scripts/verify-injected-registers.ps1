@@ -36,7 +36,9 @@
     scripts/verify-injected-registers.ps1 -PatchedApk C:\work\patched.apk
 
 .EXAMPLE
-    scripts/verify-injected-registers.ps1 -FromDevice -Serial R5CT139QJ5F
+    scripts/verify-injected-registers.ps1 -FromDevice -Serial $env:HUSHFEED_DEVICE_SERIAL
+
+    The clean APK defaults to the 46.2.3 vendor build in the folder HUSHFEED_FIXTURE_DIR names.
 #>
 [CmdletBinding()]
 param(
@@ -78,13 +80,14 @@ function Resolve-Adb {
     throw 'No adb found. Pass -Adb or set HUSHFEED_ADB.'
 }
 
-if (-not $CleanApk) {
-    $fixture = Get-ChildItem 'C:\_claude-backups\tiktok-fixture' -Filter '*46.2.3*.apk' -ErrorAction SilentlyContinue |
+if (-not $CleanApk -and $env:HUSHFEED_FIXTURE_DIR) {
+    $fixture = Get-ChildItem -LiteralPath $env:HUSHFEED_FIXTURE_DIR -Filter '*46.2.3*.apk' -File -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($fixture) { $CleanApk = $fixture.FullName }
 }
 if (-not $CleanApk -or -not (Test-Path -LiteralPath $CleanApk -PathType Leaf)) {
-    throw 'No clean APK. Pass -CleanApk with the vendor build this bundle targets.'
+    throw ('No clean APK. Pass -CleanApk with the vendor build this bundle targets, or set ' +
+        'HUSHFEED_FIXTURE_DIR to the folder that holds it.')
 }
 # The clean side has to be the vendor build, not the largest file in a folder that also holds
 # patched output and newer builds: two patched files differ from each other, both halves

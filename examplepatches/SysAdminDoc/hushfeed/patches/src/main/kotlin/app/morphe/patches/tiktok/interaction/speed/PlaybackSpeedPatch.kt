@@ -38,6 +38,7 @@ val playbackSpeedPatch = bytecodePatch(
     description = "Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x. Switch: Hushfeed settings > Playback.",
     default = true,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

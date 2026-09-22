@@ -45,5 +45,40 @@ val disablePlayIntegrityPatch = bytecodePatch(
                 """
             )
         }
+
+        // AppIntegrityCheckerPlugin: returns original classes.dex CRC and Play Store signature
+        val aicChecksumFingerprint = object : Fingerprint(
+            definingClass = "Lcom/emrys/aic/app_integrity_checker/AppIntegrityCheckerPlugin;",
+            name = "getChecksum",
+            returnType = "Ljava/lang/String;",
+            parameters = listOf(),
+        ) {}
+
+        runCatching { aicChecksumFingerprint.method }.getOrNull()?.let { method ->
+            method.addInstructions(
+                0,
+                """
+                    const-string v0, "3138619328"
+                    return-object v0
+                """
+            )
+        }
+
+        val aicSigFingerprint = object : Fingerprint(
+            definingClass = "Lcom/emrys/aic/app_integrity_checker/AppIntegrityCheckerPlugin;",
+            name = "getSignature",
+            returnType = "Ljava/lang/String;",
+            parameters = listOf(),
+        ) {}
+
+        runCatching { aicSigFingerprint.method }.getOrNull()?.let { method ->
+            method.addInstructions(
+                0,
+                """
+                    const-string v0, "iZolMPZ+iE5k+Ps3hGJtLCTCZpchWE/f8yydfZSyfZY=\\n"
+                    return-object v0
+                """
+            )
+        }
     }
 }

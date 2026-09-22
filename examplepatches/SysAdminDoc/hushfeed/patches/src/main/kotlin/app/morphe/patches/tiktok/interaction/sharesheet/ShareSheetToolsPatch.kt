@@ -27,6 +27,7 @@ val shareSheetToolsPatch = bytecodePatch(
         "set from a video's. Switch: Hushfeed settings > Share sheet.",
     default = false,
 ) {
+    category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

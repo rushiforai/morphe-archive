@@ -38,6 +38,28 @@ private const val SUGGEST_WORDS_VIEW_MODEL =
 private const val SEARCH_MIDDLE_MONITOR =
     "Lcom/ss/android/ugc/aweme/search/performance/metrics/SearchMiddleMonitor;"
 
+internal const val SEARCH_REWARDS_SERVICE =
+    "Lcom/ss/android/ugc/aweme/search/df/api/incentivetask/spi/ISearchIncentiveTaskBridgeService;"
+
+/**
+ * The one door to TikTok's search rewards (issue #21): the points banner under the search box
+ * and the coin counter floating over results, served in some regions. Every search page reaches
+ * the service through a single static accessor and checks the answer for null before using it,
+ * since the feature ships as an optional module, so null is the answer an account without
+ * rewards already gets. The accessor's class is renamed on every build (0OHX, 0OS5, 0OID, 0HgS,
+ * 0IgL); its return type is a real name and nothing else returns it from a static no-argument
+ * method.
+ */
+internal fun isSearchRewardsAccessor(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.isEmpty() &&
+        method.returnType == SEARCH_REWARDS_SERVICE && method.implementation != null
+
+private object SearchRewardsServiceFingerprint : Fingerprint(
+    returnType = SEARCH_REWARDS_SERVICE,
+    parameters = listOf(),
+    custom = { method, _ -> isSearchRewardsAccessor(method) },
+)
+
 /** Whether the method calls the named method on the search page's own timing monitor. */
 private fun Method.marks(monitorMethod: String) =
     implementation?.instructions?.any { instruction ->
@@ -147,17 +169,29 @@ private object SearchReentryFingerprint : Fingerprint(
 val hideSearchSuggestionsPatch = bytecodePatch(
     name = "Hide search suggestions",
     description = "Hides the suggested searches TikTok offers on the search page before you " +
-        "type, and stops the page asking for them. Your own search history is left alone. Switch: Hushfeed settings > App.",
+        "type, and stops the page asking for them. Your own search history is left alone. A separate switch hides the search rewards banner and coin counter some regions get. Switch: Hushfeed settings > App.",
     default = false,
 ) {
+    category("Search")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
+        // Resolved before anything is written, so a build without it leaves the patch unapplied
+        // rather than half applied.
+        val rewards = SearchRewardsServiceFingerprint.method
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, " +
                 "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableHideSearchSuggestions()V",
+        )
+        rewards.guardAtEntry(
+            "Hide search suggestions",
+            "invoke-static {}, $EXTENSION->shouldHideRewards()Z",
+            """
+                const/4 v0, 0x0
+                return-object v0
+            """,
         )
 
         IntermediatePreloadEnableFingerprint.method.guard("const/4 v0, 0x0\n                    return v0")

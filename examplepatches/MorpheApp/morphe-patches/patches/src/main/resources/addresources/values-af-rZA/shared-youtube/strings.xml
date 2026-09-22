@@ -65,6 +65,15 @@ Verifieer dat die pakketnaam korrek is en die app geïnstalleer is"</string>
   <string name="morphe_custom_branding_icon_entry_6">Morphe speel swart</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Pasgemaak</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Dit verander die ikoon wat in jou toepassingslanseerder gewys word.
+
+Hierdie instelling sal nie die ikoon in enige van hierdie plekke verander nie:
+• Toestelstelselinstellings se toepassingslys
+• Sekere stootkennisgewings
+• 'Maak oop met'-toepassingskieser
+• Android Auto-ikoon
+
+Om die ikoon oral te verander, pas die patch weer toe en verander die patchopsie 'Toepassingsikoon'.##key:morphe_custom_branding_icon_user_dialog_message##context:morphe_custom_branding_icon_user_dialog_message##maxLength:null"</string>
   <string name="morphe_custom_branding_notification_icon_title">Kennisgewingikoon</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Pas app-ikoon</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe speel</string>
@@ -226,12 +235,11 @@ Indien later afgeskakel, word dit aanbeveel om die app se data uit te vee om UI-
   <string name="morphe_ryd_failure_generic">Dislikes is nie beskikbaar nie (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Verberg deur eienaar</string>
+  <string name="morphe_ryd_accessibility_dislike_count">Keur hierdie video af, saam met %s ander mense</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">Keur hierdie video af, %s van die stemme is afkeure</string>
   <string name="morphe_ryd_enabled_title">Aktiveer Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">Wys dislikes as persentasie</string>
   <string name="morphe_ryd_dislike_percentage_summary">Wys dislikes as \'n persentasie van likes in plaas van \'n getal</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Gebruik kompakte Like-knoppie</string>
-  <string name="morphe_ryd_compact_layout_summary">Verminder die wydte van die Like-knoppie om spasie te bespaar</string>
   <string name="morphe_ryd_estimated_like_title">Wys geskatte likes</string>
   <string name="morphe_ryd_estimated_like_summary">Wys \'n geskatte like-telling op video\'s waar die skepper likes gedeaktiveer het</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Wys konneksiefoutwaarskuwings</string>

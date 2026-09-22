@@ -105,7 +105,15 @@ public final class EdgeReporterHistory {
         return true;
     }
     /** The 191 editor uses Views; retain its matching-mode controls and normal save action. */
-    public static void addLegacyButton(Object fragment, View root) {
+    public static void addLegacyButton(Object fragment) {
+        try {
+            Object root = fragment.getClass().getMethod("getView").invoke(fragment);
+            if (root instanceof View) addLegacyButton(fragment, (View) root);
+        } catch (ReflectiveOperationException error) {
+            Log.w("HaiagaruReporter", "Unable to resolve legacy editor view", error);
+        }
+    }
+    private static void addLegacyButton(Object fragment, View root) {
         try {
             Object type = fragment.getClass().getField("c").get(fragment);
             if (!(type instanceof Enum) || !"THREAD".equals(((Enum<?>) type).name())) return;

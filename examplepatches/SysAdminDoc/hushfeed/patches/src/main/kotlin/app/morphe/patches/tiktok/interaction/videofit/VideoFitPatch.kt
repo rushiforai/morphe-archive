@@ -88,6 +88,7 @@ val videoFitPatch = bytecodePatch(
         "being cut off. Switch: Hushfeed settings > Playback.",
     default = false,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

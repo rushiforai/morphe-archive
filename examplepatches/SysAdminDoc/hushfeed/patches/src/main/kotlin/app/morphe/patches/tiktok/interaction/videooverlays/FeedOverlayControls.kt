@@ -19,6 +19,23 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 internal const val FULLSCREEN_COMPONENT = "Lcom/ss/android/ugc/aweme/feed/landscape/LandscapeEntranceAssem;"
+
+/** The gate key behind the Report button TikTok shows above the creator's avatar in some regions. */
+internal const val FEED_REPORT_GATE_KEY = "id_hide_report_entrance"
+
+/**
+ * Whether the feed shows its regional Report button (issue #21), Indonesia at the time of
+ * writing. `ReportViewAssem.onBind` shows the button only when this answers true and hides it
+ * otherwise, which is the state every other region already runs in. Its class is renamed on
+ * every build (17q6, 15MA, 19jl, 08zM, 099k), so it is found as the one static `()Z` that reads
+ * the gate key. The other method naming that key registers it and returns nothing.
+ */
+internal fun isFeedReportButtonGate(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+        method.parameterTypes.isEmpty() &&
+        method.implementation?.instructions?.any {
+            it.getReference<StringReference>()?.string == FEED_REPORT_GATE_KEY
+        } == true
 internal val locationCardMarkers = listOf("PoiAnchorView2", "PoiDealAnchorView")
 private const val AWEME = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
 private const val ANCHOR = "Lcom/ss/android/ugc/aweme/feed/model/AnchorCommonStruct;"

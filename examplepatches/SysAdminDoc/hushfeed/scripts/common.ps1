@@ -83,6 +83,24 @@ function Get-BundleVersion {
     return $version
 }
 
+function Get-ReleaseBundlePath {
+    <#
+    .SYNOPSIS
+        Where :patches:buildAndroid leaves the bundle a release publishes.
+    .DESCRIPTION
+        patches/build/release, never patches/build/libs. The Morphe plugin's buildAndroid adds the
+        DEX payload to the jar task's own output in place, so any later task that reruns
+        :patches:jar (:patches:test does) wrote the plain jar back over the finished bundle under
+        the same name. v0.43.0 shipped that jar, and on 2026-09-21 it happened again between the
+        build and the index push. buildAndroid now ends by copying the finished bundle here, where
+        no other task writes, with bundle.sha256 beside it.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Root, [string]$Version)
+
+    if (-not $Version) { $Version = Get-BundleVersion -Root $Root }
+    return Join-Path $Root "patches/build/release/patches-$Version.mpp"
+}
+
 function Resolve-DesktopCli {
     <#
     .SYNOPSIS

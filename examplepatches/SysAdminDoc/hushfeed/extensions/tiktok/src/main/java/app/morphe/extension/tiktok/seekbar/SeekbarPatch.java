@@ -27,6 +27,20 @@ public final class SeekbarPatch {
         return 0;
     }
 
+    /**
+     * TikTok 47.0.3 returns from its show-type setter when the stored type already equals the
+     * requested type. After {@link #overrideSeekbarShowType(int)} changes a hidden request to
+     * zero, that shortcut can leave the actual progress view invisible even though the stored
+     * type says it is visible. Give only that equality check a value that cannot match so the
+     * host runs its normal visible branch and writes the real requested type back to the field.
+     */
+    public static int forceSeekbarRefresh(int storedType, int requestedType) {
+        if (!Settings.SHOW_SEEKBAR.get() || requestedType != 0 || storedType != requestedType) {
+            return storedType;
+        }
+        return Integer.MIN_VALUE;
+    }
+
     public static int overrideThumbnailGate(String key, int value) {
         if (!"seekbar_show_thumbnail_when_drag".equals(key)) return value;
         return Settings.SHOW_SEEKBAR_THUMBNAIL.get() ? 1 : value;

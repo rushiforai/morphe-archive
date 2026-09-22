@@ -1,3 +1,63 @@
+## [1.12.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.12.0...v1.12.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** don't report arrivals when the game leaves out the movement lists ([4444a3c](https://github.com/Amitaisela/travian-morphe-patches/commit/4444a3c5c448d83a427f9e5ae01d8ba702a34cfd))
+
+## [1.12.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.11.1...v1.12.0) (2026-09-21)
+
+### ✨ New Features
+
+* **Travian: Legends:** add a Queues screen showing what is building and training with the time left ([2e9257d](https://github.com/Amitaisela/travian-morphe-patches/commit/2e9257d98165e9446229fbf9b9dec03a35c60656))
+
+## [1.11.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.11.0...v1.11.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** write farm list data to the log, to prepare the farm list screen ([4c38ce2](https://github.com/Amitaisela/travian-morphe-patches/commit/4c38ce255b172d59bd68c4b5d79758b857bcc32b))
+
+## [1.11.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.10.1...v1.11.0) (2026-09-21)
+
+### ✨ New Features
+
+* **Travian: Legends:** tell when the hero has a new adventure, is back home, died or is low on health ([29d93b3](https://github.com/Amitaisela/travian-morphe-patches/commit/29d93b35eca3f73373dba795c14490b4184f12f1))
+
+## [1.10.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.10.0...v1.10.1) (2026-09-21)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** stop Travian Tools crashing when opened before the game has ever run ([48a61b1](https://github.com/Amitaisela/travian-morphe-patches/commit/48a61b15c2138ca3aba4de0906c0d57068c32152))
+
+## [1.10.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.9.0...v1.10.0) (2026-09-21)
+
+### ✨ New Features
+
+* **Travian: Legends:** warn when a warehouse or granary is about to fill up ([608a325](https://github.com/Amitaisela/travian-morphe-patches/commit/608a3250b3672eee99262deffd84c57abe404bd9))
+
+## [1.9.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.8.0...v1.9.0) (2026-09-21)
+
+### ✨ New Features
+
+* **Travian: Legends:** give the Travian Tools screens a cleaner look with cards, light and dark colours ([3ef665d](https://github.com/Amitaisela/travian-morphe-patches/commit/3ef665d59a054e5db6955ce0434f59d45643e184))
+
+## [1.8.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.7.0...v1.8.0) (2026-09-21)
+
+### ✨ New Features
+
+* **Travian: Legends:** tell when the attacker calls an incoming attack off ([0014db8](https://github.com/Amitaisela/travian-morphe-patches/commit/0014db893a2112c28ba422c7f6747dce8149dc8a))
+
+## [1.7.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.6.0...v1.7.0) (2026-09-21)
+
+### ✨ New Features
+
+* **Travian: Legends:** add a registry of notification types ([dbb3802](https://github.com/Amitaisela/travian-morphe-patches/commit/dbb3802fc617a0470a464106bc12acffed6ab7d6))
+* **Travian: Legends:** add an alerts screen with on/off switches, and open the game when a notification is tapped ([3a18257](https://github.com/Amitaisela/travian-morphe-patches/commit/3a18257dd49f5e58c9478ce499340b2d42a6dfca))
+* **Travian: Legends:** add the status shown on the alerts screen ([53204d6](https://github.com/Amitaisela/travian-morphe-patches/commit/53204d6f9dd312e5a82b30c03a01f9090cf67ea3))
+* **Travian: Legends:** declare the alerts screen and describe it in the patch and readme ([ebf3b05](https://github.com/Amitaisela/travian-morphe-patches/commit/ebf3b0596ee291d154a8b04a5079c8c8be37ae5b))
+* **Travian: Legends:** keep a short history of notifications ([473152a](https://github.com/Amitaisela/travian-morphe-patches/commit/473152a5a241fe5035dc05bad276c31e10c6fbb7))
+* **Travian: Legends:** put the bell badge in the top left of the Travian Tools icon ([ab5e331](https://github.com/Amitaisela/travian-morphe-patches/commit/ab5e33130e93d45c5103730d81d202bbcb8c9fcb))
+* **Travian: Legends:** turn the alerts screen into Travian Tools, with a bell icon, recent notifications and 24-hour counts ([3e84928](https://github.com/Amitaisela/travian-morphe-patches/commit/3e849281ff239a7b043ba1764e9fd4244973e066))
+
 ## [1.6.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.5.2...v1.6.0) (2026-09-18)
 
 ### ✨ New Features

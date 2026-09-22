@@ -151,6 +151,7 @@ val autoAdvancePatch = bytecodePatch(
         "accounts outside its rollout. Switch: Hushfeed settings > Playback.",
     default = false,
 ) {
+    category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
     execute {

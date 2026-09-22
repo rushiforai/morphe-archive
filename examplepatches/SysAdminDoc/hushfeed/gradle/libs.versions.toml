@@ -23,9 +23,11 @@ guava = "33.7.1-jre"
 # test graph and in :patches' build graph. It has to be a version that publishes all three
 # modules: 1.85.2 is a bcprov-only patch release, so forcing bcpkix and bcutil to it resolved
 # nothing and the dependency report said FAILED while the build still succeeded. 1.86
-# (2026-09-11) publishes bcprov, bcpkix and bcutil, and sits outside CVE-2025-8916 (1.44 to
-# 1.79) and CVE-2026-5588 (1.49 to 1.84), which the patcher's own 1.77 pin and the Android
-# build tools' 1.79 are both inside.
+# (2026-09-11) publishes bcprov, bcpkix and bcutil, and sits outside six advisories on
+# versions below 1.85: CVE-2025-8916 (1.44 to 1.78), CVE-2026-5588 (1.67 to 1.83),
+# CVE-2025-14813 and CVE-2026-0636 (both fixed in 1.84), CVE-2026-8763 and CVE-2026-13506
+# (both fixed in 1.85). The patcher's own 1.77 is inside all six; the Android build tools'
+# 1.79 is outside CVE-2025-8916 but inside the other five.
 bouncycastle = "1.86"
 
 [libraries]

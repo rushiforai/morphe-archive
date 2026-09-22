@@ -68,9 +68,11 @@ enum class TargetApp(
         appName = "Brave Browser",
         packageName = Constants.BRAVE_PACKAGE_NAME,
         candidateFilenames = listOf(
+            "BraveMonoarm64_${Constants.BRAVE_TARGET_VERSION}_orig.apk",
+            "BraveMonoarm_${Constants.BRAVE_TARGET_VERSION}_orig.apk",
             "Bravemonoarm64_v${Constants.BRAVE_TARGET_VERSION}.apk",
             "BraveMonoarm64.apk",
-            "Bravemonoarm64_v1.94.121.apk",
+            "BraveMonoarm.apk",
         ),
         filePattern = Regex("(?i).*brave.*\\.apk$"),
         patchDirectoryPart = "brave",
@@ -98,6 +100,19 @@ enum class TargetApp(
         ),
         filePattern = Regex("(?i).*hevy.*\\.(?:apk|apkm)$"),
         patchDirectoryPart = "hevy",
+    ),
+    NOKOPRINT(
+        id = "nokoprint",
+        appName = "NokoPrint",
+        packageName = Constants.NOKOPRINT_PACKAGE_NAME,
+        candidateFilenames = listOf(
+            "com.nokoprint_${Constants.NOKOPRINT_TARGET_VERSION}-318_minAPI21(nodpi)_apkmirror.com.apk",
+            "com.nokoprint_${Constants.NOKOPRINT_TARGET_VERSION}.apk",
+            "nokoprint_${Constants.NOKOPRINT_TARGET_VERSION}.apk",
+            "nokoprint.apk",
+        ),
+        filePattern = Regex("(?i).*nokoprint.*\\.apk$"),
+        patchDirectoryPart = "nokoprint",
     );
 
     companion object {
@@ -120,6 +135,7 @@ enum class TargetApp(
                 lower.contains("brave") -> BRAVE
                 lower.contains("vivaldi") -> VIVALDI
                 lower.contains("hevy") -> HEVY
+                lower.contains("nokoprint") -> NOKOPRINT
                 else -> entries.firstOrNull { it.filePattern.containsMatchIn(fileName) }
             }
         }
@@ -138,13 +154,13 @@ private fun getDownloadDirectory(): File? {
 
 private fun getSearchDirectories(userHome: String): List<File> {
     val dirs = mutableListOf<File>()
+    dirs.add(File("candidate_apks"))
+    dirs.add(File("../candidate_apks"))
+    dirs.add(File("."))
+    dirs.add(File(".."))
     getDownloadDirectory()?.let { dirs.add(it) }
     dirs.add(File(userHome, "Downloads"))
     dirs.add(File(userHome, "Descargas"))
-    dirs.add(File("."))
-    dirs.add(File(".."))
-    dirs.add(File("candidate_apks"))
-    dirs.add(File("../candidate_apks"))
     dirs.add(File(userHome, "candidate_apks"))
     return dirs.distinctBy { it.absolutePath }.filter { it.isDirectory }
 }
@@ -352,7 +368,7 @@ fun main(args: Array<String>) {
         aaptBinaryPath = null,
         frameworkFileDirectory = null,
         useArsclib = false,
-        keepArchitectures = setOf(CpuArchitecture.ARM64_V8A),
+        keepArchitectures = setOf(CpuArchitecture.ARM64_V8A, CpuArchitecture.ARMEABI_V7A),
         useBytecodeMode = BytecodeMode.STRIP_FAST,
         verifier = NoOpDexVerifier
     )

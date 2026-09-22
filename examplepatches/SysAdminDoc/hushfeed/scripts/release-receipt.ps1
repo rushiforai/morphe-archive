@@ -497,9 +497,14 @@ function Invoke-RepoGit {
         $saved[$variable.Name] = $variable.Value
         Remove-Item -LiteralPath ('Env:\' + $variable.Name) -ErrorAction SilentlyContinue
     }
+    # Windows PowerShell 5.1 turns a native command's stderr into a terminating error under
+    # Stop even when it is redirected. Relax for the call and restore afterwards.
+    $preference = $ErrorActionPreference
     try {
+        $ErrorActionPreference = 'Continue'
         return & git -C $Root @Arguments 2>$null
     } finally {
+        $ErrorActionPreference = $preference
         foreach ($name in $saved.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $saved[$name] }
     }
 }
@@ -587,6 +592,60 @@ function Resolve-ReceiptToolchain {
         Note = ("the receipt is held to patcher $($atCommit.PatcherVersion) and Manager floor " +
             "$($atCommit.ManagerFloor), which its own commit $short pinned; the catalog now pins " +
             "$($WorkingToolchain.PatcherVersion) and $($WorkingToolchain.ManagerFloor)")
+    }
+}
+
+function Resolve-ReceiptCatalog {
+    <#
+    .SYNOPSIS
+        The patch list a receipt should be held to: the one its own commit carried.
+    .DESCRIPTION
+        The same reasoning as Resolve-ReceiptToolchain, for the patch names and the target. A patch
+        added or renamed after a release doesn't make that release's receipt wrong, but holding
+        the receipt to the working patch list said it was. While the source version stays on the
+        released one, as it did through the hold after 0.58.0, every such push failed on the one
+        machine that has a receipt: "The receipt reports com.zhiliaoapp.musically 46.2.3 patch Hide
+        quick comment reactions, which the catalog does not list."
+
+        On a release push the receipt's commit is the release commit, so this reads the list the
+        working tree has and nothing is relaxed.
+
+        Answers @{ PatchList; Note }: the parsed patches-list.json to hold the receipt to, and a
+        line worth printing, or $null when the answer is simply the working list.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [string]$Commit,
+        [Parameter(Mandatory = $true)]$WorkingPatchList
+    )
+
+    if ($Commit -notmatch '^[0-9a-f]{40}$') {
+        return [pscustomobject]@{ PatchList = $WorkingPatchList; Note = $null }
+    }
+    $listAtCommit = (Invoke-RepoGit -Root $Root -Arguments @('show', "${Commit}:patches-list.json")) -join "`n"
+    $short = $Commit.Substring(0, 8)
+    if ([string]::IsNullOrWhiteSpace($listAtCommit)) {
+        return [pscustomobject]@{
+            PatchList = $WorkingPatchList
+            Note = "commit $short has no patch list, so the receipt is held to the working one"
+        }
+    }
+    try {
+        $atCommit = $listAtCommit | ConvertFrom-Json
+    } catch {
+        throw "patches-list.json at $short is not readable: $($_.Exception.Message)"
+    }
+    $namesThen = @($atCommit.patches | ForEach-Object { [string]$_.name } | Sort-Object) -join "`n"
+    $namesNow = @($WorkingPatchList.patches | ForEach-Object { [string]$_.name } | Sort-Object) -join "`n"
+    $targetsThen = ($atCommit.patches | ForEach-Object { $_.compatiblePackages | ConvertTo-Json -Compress -Depth 4 } | Sort-Object -Unique) -join "`n"
+    $targetsNow = ($WorkingPatchList.patches | ForEach-Object { $_.compatiblePackages | ConvertTo-Json -Compress -Depth 4 } | Sort-Object -Unique) -join "`n"
+    if ($namesThen -eq $namesNow -and $targetsThen -eq $targetsNow) {
+        return [pscustomobject]@{ PatchList = $atCommit; Note = $null }
+    }
+    return [pscustomobject]@{
+        PatchList = $atCommit
+        Note = ("the receipt is held to the $(@($atCommit.patches).Count) patches and the target its " +
+            "own commit $short carried; the working list has $(@($WorkingPatchList.patches).Count)")
     }
 }
 

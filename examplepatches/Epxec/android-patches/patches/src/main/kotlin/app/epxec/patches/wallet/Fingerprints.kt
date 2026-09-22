@@ -25,3 +25,15 @@ object WalletFreeFingerprint : Fingerprint(
     definingClass = "Lcom/ribeez/RibeezUser;",
     name = "isFree",
 )
+
+object WalletAddAccountFingerprint : Fingerprint(
+    name = "isAllowedToAddAccount"
+)
+
+object WalletAddRecordFingerprint : Fingerprint(
+    name = "isAllowedToAddRecord"
+)
+
+object WalletUsePremiumFeatureFingerprint : Fingerprint(
+    name = "isAllowedToUsePremiumFeature"
+)

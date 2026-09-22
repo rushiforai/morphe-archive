@@ -82,6 +82,7 @@ val ghostModePatch = bytecodePatch(
         "profile or that you are typing. Online status is unchanged. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
+    category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
     compatibleWith(*AppCompatibilities.tiktok4703())

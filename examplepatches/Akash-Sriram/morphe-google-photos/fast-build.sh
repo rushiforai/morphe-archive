@@ -15,7 +15,7 @@ SOURCE_TARGET="main"
 DO_PATCH=true
 DO_INSTALL=false
 CLEAN=false
-RENAME_PKG=true
+OFFICIAL_PKG=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -24,8 +24,12 @@ while [[ $# -gt 0 ]]; do
             SOURCE_TARGET="$2"
             shift 2
             ;;
-        --rename|-r)
-            RENAME_PKG=true
+        --official|--original)
+            OFFICIAL_PKG=true
+            shift
+            ;;
+        --mod)
+            OFFICIAL_PKG=false
             shift
             ;;
         --mpp-only)
@@ -42,7 +46,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [--source test|main] [--rename|-r] [--mpp-only] [--install|-i] [--clean]"
+            echo "Usage: $0 [--source test|main] [--official|--original|--mod] [--mpp-only] [--install|-i] [--clean]"
             exit 1
             ;;
     esac
@@ -97,6 +101,7 @@ chmod +x "$FAST_CACHE_DIR/src/gradlew"
 
 # Step 2: Compile MPP on Native Linux SSD
 echo "🔨 [2/4] Compiling MPP bundle with Gradle on native ext4..."
+rm -rf "$FAST_CACHE_DIR/src/patches/build/libs"
 BUILD_START=$(date +%s)
 (
     cd "$FAST_CACHE_DIR/src"
@@ -108,7 +113,7 @@ BUILD_END=$(date +%s)
 echo "✅ MPP build completed in $((BUILD_END - BUILD_START))s"
 
 # Locate generated binary MPP (exclude -sources and -javadoc)
-MPP_FILE=$(find "$FAST_CACHE_DIR/src/patches/build/libs" -name "*.mpp" ! -name "*-sources.mpp" ! -name "*-javadoc.mpp" -type f | head -n 1)
+MPP_FILE=$(find "$FAST_CACHE_DIR/src/patches/build/libs" -name "*.mpp" ! -name "*-sources.mpp" ! -name "*-javadoc.mpp" -type f | sort -V | tail -n 1)
 if [ -z "$MPP_FILE" ]; then
     echo "❌ Failed to locate compiled .mpp in $FAST_CACHE_DIR/src/patches/build/libs"
     exit 1
@@ -144,7 +149,6 @@ rsync -u "$CLI_JAR" "$FAST_CACHE_DIR/morphe-desktop.jar"
         --patches="$MPP_FILE"
         --exclusive
         -e "Account avatar"
-        -e "Disable Play Store updates"
         -e "Enable DCIM folders backup control"
         -e "Enable Phenotype flag manager"
         -e "Fix memory style font loading"
@@ -153,18 +157,16 @@ rsync -u "$CLI_JAR" "$FAST_CACHE_DIR/morphe-desktop.jar"
         -e "Spoof features"
     )
 
-    if [ "$SOURCE_TARGET" = "main" ]; then
-        # morphe-google-photos has Change package name enabled by default
-        PATCH_ARGS+=(-e "Change package name")
-        APP_PKG="app.morphe.android.apps.photos"
-        echo "🏷️ Mode: Renamed package (morphe-google-photos default) -> $APP_PKG"
-    elif [ "$RENAME_PKG" = true ]; then
-        PATCH_ARGS+=(-e "Change package name")
-        APP_PKG="app.morphe.android.apps.photos"
-        echo "🏷️ Mode: Renaming package to $APP_PKG (Experimental)"
-    else
+    if [ "$OFFICIAL_PKG" = true ]; then
+        PATCH_ARGS+=(
+            -e "Change to official package name"
+            -e "Disable Play Store updates"
+        )
         APP_PKG="com.google.android.apps.photos"
-        echo "🏷️ Mode: Retaining official package name $APP_PKG"
+        echo "🏷️ Mode: Official package name $APP_PKG (Experimental)"
+    else
+        APP_PKG="app.morphe.android.apps.photos"
+        echo "🏷️ Mode: Mod package (default) -> $APP_PKG"
     fi
 
     (

@@ -112,6 +112,7 @@ val hideCaptchaPopupsPatch = bytecodePatch(
         "like, comment or repost, because hiding one of those makes the action fail with no message. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch, captchaRequestRecorderPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

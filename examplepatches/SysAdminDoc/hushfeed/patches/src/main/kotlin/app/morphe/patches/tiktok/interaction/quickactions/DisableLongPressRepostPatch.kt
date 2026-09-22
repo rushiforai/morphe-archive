@@ -24,6 +24,7 @@ val disableLongPressRepostPatch = bytecodePatch(
     description = "Keeps holding Like from opening TikTok's repost action. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
+    category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
 

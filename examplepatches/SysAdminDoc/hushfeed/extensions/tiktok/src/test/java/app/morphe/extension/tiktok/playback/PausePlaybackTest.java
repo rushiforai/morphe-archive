@@ -286,7 +286,7 @@ public class PausePlaybackTest {
             homeTab.setSelected(true);
             root.addView(homeTab, new FrameLayout.LayoutParams(60, 40));
             Shadows.shadowOf(Looper.getMainLooper()).idle();
-            FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", homeTab.getId());
+            FeedVisibility.resolveForTests(activity.getPackageName(), "omq", homeTab.getId());
             try {
                 PausePlayback.setWasAwayForTests(true);
                 PausePlayback.onForeground(activity);
@@ -306,7 +306,7 @@ public class PausePlaybackTest {
                 assertFalse("the sound was held for a feed nobody is looking at",
                         PausePlayback.quietenedForTests());
             } finally {
-                FeedVisibility.resolveForTests(activity.getPackageName(), "o1k", 0);
+                FeedVisibility.resolveForTests(activity.getPackageName(), "omq", 0);
             }
         }
     }

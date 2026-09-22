@@ -270,9 +270,9 @@ Schimbari incluse:
   <string name="morphe_hide_comments_top_fans_button_title">Ascunde butonul \'Top fani\'</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_title">Dezactivează legăturile de căutare evidențiate</string>
   <string name="morphe_sanitize_comments_highlighted_search_links_summary">Dezactivează legăturile de căutare evidențiate, afișând doar textul original simplu</string>
-  <string name="morphe_hide_keyword_content_screen_title">Filtru de cuvinte cheie</string>
-  <string name="morphe_hide_keyword_content_screen_summary">Alegeți cuvinte sau fraze specifice pentru a ascunde videoclipuri în fluxuri și căutare</string>
-  <string name="morphe_hide_keyword_content_comments_title">Ascunde comentariile după cuvinte cheie</string>
+  <string name="morphe_hide_keyword_content_screen_title">Filtru de cuvinte-cheie</string>
+  <string name="morphe_hide_keyword_content_screen_summary">Alege cuvinte sau expresii specifice pentru a ascunde videoclipuri în fluxuri și căutare</string>
+  <string name="morphe_hide_keyword_content_comments_title">Ascunde comentariile după cuvinte-cheie</string>
   <string name="morphe_hide_keyword_content_home_title">Ascunde videoclipurile de acasă după cuvintele cheie</string>
   <string name="morphe_hide_keyword_content_search_title">Ascunde rezultatele căutării după cuvinte cheie</string>
   <string name="morphe_hide_keyword_content_subscriptions_title">Ascunde abonarea videoclipurilor după cuvintele-cheie</string>
@@ -284,21 +284,21 @@ Schimbari incluse:
 Cuvintele cheie pot fi orice text afișat în titlurile videoclipurilor sau numele canalelor
 
 Cuvintele cu litere mari în mijloc trebuie să se potrivească exact (de exemplu, iPhone, TikTok, LeBlanc)"</string>
-  <string name="morphe_hide_keyword_content_about_summary">"Pagina de pornire / Abonamente / Căutare / Comentarii sunt filtrate pentru a ascunde conținutul care se potrivește cu expresiile de cuvinte cheie
+  <string name="morphe_hide_keyword_content_about_summary">"Pagina de pornire / Abonamente / Căutare / Comentariile sunt filtrate pentru a ascunde conținutul care corespunde unor expresii formate din cuvinte-cheie
 
 Limitări:
-• Shorts nu pot fi ascunse după numele canalului
-• Este posibil ca anumite componente ale interfeței de utilizare să nu fie ascunse
-• Căutarea unui cuvânt cheie poate să nu afișeze rezultate"</string>
+• Shorturile nu pot fi ascunse după numele canalului
+• Este posibil ca anumite componente ale interfeței utilizatorului să nu fie ascunse
+• Căutarea unui cuvânt-cheie poate să nu afișeze rezultate"</string>
   <string name="morphe_hide_keyword_content_about_whole_words_title">Potrivește cuvinte întregi</string>
   <!-- Translations must use a localized example. For languages that do not use spaces between words (Chinese, Japanese, etc.) the English AI example should be used since no localized examples exist. Or if using machine translations, or if nobody wants to think of a localized example, then the English 'ai' example should be left as-is. -->
   <string name="morphe_hide_keyword_content_about_whole_words_summary">Înconjurarea unui cuvânt cheie/frază cu ghilimele va împiedica potrivirile parțiale ale titlurilor videoclipurilor și numelor de canale&lt;br&gt;&lt;br&gt;De exemplu,&lt;br&gt;&lt;b&gt;\"ai\"&lt;/b&gt; va ascunde videoclipul: &lt;b&gt;Cum funcționează AI?&lt;/b&gt;&lt;br&gt;dar nu va ascunde: &lt;b&gt;What does fair use mean?&lt;/b&gt;</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_hide_keyword_toast_invalid_common">Nu se poate folosi cuvantul cheie: %s</string>
-  <string name="morphe_hide_keyword_toast_invalid_common_whole_word_required">Adaugă oferte pentru a utiliza cuvântul cheie: %s</string>
+  <string name="morphe_hide_keyword_toast_invalid_common">Nu se poate folosi cuvântul-cheie: %s</string>
+  <string name="morphe_hide_keyword_toast_invalid_common_whole_word_required">Adaugă ghilimele pentru a utiliza cuvântul-cheie: %s</string>
   <string name="morphe_hide_keyword_toast_invalid_conflicting">Cuvântul-cheie are declarații contradictorii: %s</string>
-  <string name="morphe_hide_keyword_toast_invalid_length">Cuvântul cheie este prea scurt și necesită oferte: %s</string>
-  <string name="morphe_hide_keyword_toast_invalid_broad">Cuvântul cheie va ascunde toate videoclipurile: %s</string>
+  <string name="morphe_hide_keyword_toast_invalid_length">Cuvântul-cheie este prea scurt și necesită ghilimele: %s</string>
+  <string name="morphe_hide_keyword_toast_invalid_broad">Cuvântul-cheie va ascunde toate videoclipurile: %s</string>
   <string name="morphe_hide_keyword_content_stats_hidden_breakdown">"• Acasă: %s
 • Abonamente: %s
 • Căutare: %s
@@ -381,6 +381,12 @@ Rapoartele sunt publice și sunt analizate înainte ca un canal să fie adăugat
   <string name="morphe_channel_whitelist_channel_added">Canal adăugat în lista albă</string>
   <string name="morphe_channel_whitelist_channel_removed">Canal eliminat din lista albă</string>
   <!-- interaction.doubletap.doubleTapLengthPatch -->
+  <!-- interaction.channelsearch.channelSearchPatch -->
+  <string name="morphe_channel_search_title">Căutare în canal</string>
+  <string name="morphe_channel_search_summary">Căutarea în timp ce un canal este deschis se limitează la acel canal.</string>
+  <string name="morphe_channel_search_results">Rezultatele căutării în canal</string>
+  <string name="morphe_channel_search_no_results">Nu s-a găsit nimic în acest canal.</string>
+  <string name="morphe_channel_search_failed">Nu s-a putut căuta în acest canal.</string>
   <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
   <string name="morphe_share_copy_link_button_success">Link copiat în clipboard</string>
   <string name="morphe_share_copy_link_with_timestamp_button_success">Link cu marcaj temporal copiat în clipboard</string>
@@ -502,8 +508,12 @@ Info: S-ar putea să nu funcționeze pe transmisiuni live"</string>
   <string name="morphe_save_to_watch_later_already_exists_toast">Acest video este deja salvat în lista de vizionare ulterioară</string>
   <string name="morphe_save_to_watch_later_error_toast">Nu se poate salva acest video în lista de vizionare ulterioară</string>
   <string name="morphe_save_to_watch_later_flyout_title">Salvează în Urmărește mai târziu</string>
+  <string name="morphe_save_to_watch_later_flyout_button_title">Afișează butonul Salvează în Vizionează mai târziu în meniul de setări al playerului</string>
+  <string name="morphe_save_to_watch_later_flyout_button_summary">Permite salvarea videoclipului în curs de vizionare în „Vizionează mai târziu” din meniul de setări al playerului</string>
   <string name="morphe_save_to_watch_later_kids_flyout_button_title">Afișează butonul Salvează în Urmărește mai târziu în videoclipurile pentru copii</string>
-  <string name="morphe_save_to_watch_later_kids_flyout_button_summary">Permite salvarea videoclipurilor pentru copii în meniul derulant \'Urmărește mai târziu\'.</string>
+  <string name="morphe_save_to_watch_later_kids_flyout_button_summary">Permite salvarea videoclipurilor pentru copii în „Vizionează mai târziu” din meniul derulant</string>
+  <string name="morphe_save_to_watch_later_shorts_flyout_button_title">Afișează butonul Salvează în Vizionează mai târziu în meniul pentru Shorts</string>
+  <string name="morphe_save_to_watch_later_shorts_flyout_button_summary">Permite salvarea shorts-urilor în „Vizionează mai târziu” din meniul derulant</string>
   <string name="morphe_queue_flyout_title">Adaugă în coada Morphe</string>
   <string name="morphe_queue_restore_title">Menține coada între sesiuni</string>
   <string name="morphe_queue_restore_summary">Coada este păstrată după repornirea aplicației</string>
@@ -911,6 +921,9 @@ Setări → Redare (sau Redare automată) → Redare automată următorul videoc
   <string name="morphe_exit_fullscreen_entry_2">Portret</string>
   <string name="morphe_exit_fullscreen_entry_3">Peisaj</string>
   <string name="morphe_exit_fullscreen_entry_4">Portret și peisaj</string>
+  <!-- layout.player.fullscreen.forceFullscreenLandscapePatch -->
+  <string name="morphe_force_fullscreen_landscape_title">Forțează modul peisaj în ecran complet</string>
+  <string name="morphe_force_fullscreen_landscape_summary">Rotește playerul în modul peisaj când intri în ecran complet. Indisponibil pe ecranele mici, care se deschid deja în ecran complet în modul peisaj</string>
   <!-- layout.player.fullscreen.disableFullscreenGesturesPatch -->
   <string name="morphe_disable_fullscreen_gestures_title">Gesturi ecran complet</string>
   <string name="morphe_disable_fullscreen_gestures_summary">Gesturi pentru player în modul ecran complet</string>
@@ -1034,6 +1047,7 @@ Limitare: Dacă 'Restaurare bara de acțiuni video veche' este dezactivată, str
   <string name="morphe_miniplayer_screen_title">Minijucător</string>
   <string name="morphe_miniplayer_screen_summary">Personalizează aspectul și comportamentul miniplayerului mic</string>
   <string name="morphe_miniplayer_type_title">Tip minijucător</string>
+  <string name="morphe_miniplayer_hide_title_title">Ascunde titlul</string>
   <string name="morphe_miniplayer_type_entry_0">Dezactivat</string>
   <string name="morphe_miniplayer_type_entry_1">Implicit</string>
   <string name="morphe_miniplayer_type_entry_2">Minimă</string>
@@ -1258,6 +1272,7 @@ Redarea video cu AV1 poate sacada sau pierde cadre."</string>
   <string name="morphe_spoof_video_streams_about_no_av1">• Fara codec video AV1</string>
   <string name="morphe_spoof_video_streams_about_no_immersive_mode">• Mod 360° VR immersiv nu este disponibil</string>
   <string name="morphe_spoof_video_streams_about_no_stable_volume">• Volumul stabil nu este disponibil</string>
+  <string name="morphe_spoof_video_streams_about_end_early">• Redarea se poate încheia cu 1 secundă mai devreme.</string>
   <string name="morphe_spoof_video_streams_about_js">• Dacă deobfuscarea eșuează, reproducerea poate eșua</string>
   <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
   <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Forțarea sunetului original nu este disponibilă</string>

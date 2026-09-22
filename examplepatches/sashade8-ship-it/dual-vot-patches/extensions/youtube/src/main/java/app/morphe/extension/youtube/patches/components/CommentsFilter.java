@@ -33,6 +33,7 @@ import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
 import app.morphe.extension.youtube.innertube.NextResponseOuterClass.NewElement;
 import app.morphe.extension.youtube.patches.VersionCheckPatch;
+import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.PlayerType;
 
@@ -94,7 +95,8 @@ public class CommentsFilter extends Filter {
         comments = new StringFilterGroup(
                 null,
                 "video_metadata_carousel",
-                "_comments"
+                "_comments",
+                "teaser_carousel_with_controller"
         );
 
         var commentsByMembers = new StringFilterGroup(
@@ -139,7 +141,6 @@ public class CommentsFilter extends Filter {
 
         var previewComment = new StringFilterGroup(
                 Settings.HIDE_COMMENTS_PREVIEW_COMMENT,
-                "|carousel_item",
                 "comments_entry_point_teaser",
                 "comments_entry_point_simplebox"
         );
@@ -370,6 +371,8 @@ public class CommentsFilter extends Filter {
      * Injection point.
      */
     public static byte[] onCommentsLoaded(byte[] bytes) {
+        FlyoutUtils.onCommentsLoaded(bytes);
+
         if (Settings.HIDE_COMMENTS_CAROUSEL.get() && !commentsCarouselFilterStrings.isEmpty()) {
             try {
                 var newElement = NewElement.parseFrom(bytes).toBuilder();

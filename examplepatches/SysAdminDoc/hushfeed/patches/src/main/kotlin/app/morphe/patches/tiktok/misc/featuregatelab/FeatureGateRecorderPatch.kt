@@ -18,6 +18,7 @@ val featureGateRecorderPatch = bytecodePatch(
     description = "Records feature gate reads while you use TikTok and compares them with their previous values. Switch: Hushfeed settings > Diagnostics.",
     default = false,
 ) {
+    category("Settings")
     dependsOn(settingsPatch, featureGateLabPatch)
     compatibleWith(*AppCompatibilities.tiktok4703())
     execute {
