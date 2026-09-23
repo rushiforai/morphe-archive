@@ -152,6 +152,13 @@ public final class ContentMarkerFilters {
 
         @Override
         public boolean getFiltered(Aweme item) {
+            // TikTok 47's native playlist bar reads PlayListInfo directly from playlist_info.
+            // Keep the older MixStruct route for retained builds that still populate it.
+            Object playlist = Reflect.property(item, "getPlaylist_info", "playlist_info");
+            if (playlist != null
+                    && Reflect.string(playlist, "getMixId", "mixId") != null) {
+                return true;
+            }
             // A MixStruct with no id and no name is not a playlist the video belongs to.
             Object mix = Reflect.property(item, "getMixInfo", "mixInfo");
             if (mix == null) {

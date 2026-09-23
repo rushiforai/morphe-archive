@@ -1,6 +1,8 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
 import app.morphe.patcher.patch.Patch
+import dev.jason.gboardpatches.patches.gboard.features.editingaccesspoints.gboardEditingAccessPointsFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.editingaccesspoints.gboardEditingAccessPointsLifecyclePatch
 import app.morphe.patcher.patch.ResourcePatchBuilder
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
@@ -34,6 +36,10 @@ import dev.jason.gboardpatches.patches.gboard.features.closeproactivesuggestions
 import dev.jason.gboardpatches.patches.gboard.features.developeroptions.gboardDeveloperOptionsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.cursortrackpad.gboardCursorTrackpadFlagValuePatch
+import dev.jason.gboardpatches.patches.gboard.features.customtheme.gboardCustomThemeAssetsPatch
+import dev.jason.gboardpatches.patches.gboard.features.customtheme.gboardCustomThemeFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.customtheme.gboardCustomThemeManifestPatch
+import dev.jason.gboardpatches.patches.gboard.features.customtheme.gboardCustomThemeOfficialImportPatch
 import dev.jason.gboardpatches.patches.gboard.features.emojisize.gboardEmojiSizeFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.emojisize.gboardEmojiSizeFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.webclipboard.gboardWebClipboardAssetsPatch
@@ -190,6 +196,23 @@ val gboardManualIncognitoModePatch = gboardPublicResourcePatch(
         gboardManualIncognitoFeatureMarkerPatch,
         gboardManualIncognitoLifecyclePatch,
         gboardManualIncognitoPolicyPatch,
+        gboardAccessPointContributions1803Patch,
+    )
+}
+
+@Suppress("unused")
+val gboardEditingAccessPointsPatch = gboardPublicResourcePatch(
+    featureId = "editing_access_points",
+    name = "Toolbar Editing Buttons",
+    description = "將全選、複製、剪下與貼上加入選單。\n" +
+        "Add Select All, Copy, Cut and Paste to the menu.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardEditingAccessPointsFeatureMarkerPatch,
+        gboardEditingAccessPointsLifecyclePatch,
         gboardAccessPointContributions1803Patch,
     )
 }
@@ -408,6 +431,24 @@ val gboardFlowModeAnimationPatch = gboardPublicResourcePatch(
     dependsOn(
         gboardPatchesSettingsPatch,
         gboardFlowModeFeatureMarkerPatch,
+    )
+}
+
+@Suppress("unused")
+val gboardCustomThemePatch = gboardPublicResourcePatch(
+    featureId = "custom_theme",
+    name = "Custom Theme",
+    description = "支援匯入自訂 ZIP 主題，並支援從 Rboard 官方儲存庫匯入精美主題。\n" +
+        "Import custom ZIP themes and beautiful themes from the official Rboard repository.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardCustomThemeFeatureMarkerPatch,
+        gboardCustomThemeAssetsPatch,
+        gboardCustomThemeManifestPatch,
+        gboardCustomThemeOfficialImportPatch,
     )
 }
 
@@ -805,6 +846,7 @@ object GboardPublishedPatchCatalog {
         gboardSpacebarLogoPatch,
         gboardManualIncognitoModePatch,
         gboardFloatingWebSearchPatch,
+        gboardEditingAccessPointsPatch,
         gboardSimpleCalculatorPatch,
         gboardAdvancedVoiceTypingPatch,
         gboardBluetoothMicrophonePatch,
@@ -817,6 +859,7 @@ object GboardPublishedPatchCatalog {
         gboardAccessPointCountPatch,
         gboardCloseProactiveSuggestionsPatch,
         gboardFlowModeAnimationPatch,
+        gboardCustomThemePatch,
         gboardQuickInsertPatch,
         gboardZhuyinQuickTraditionalSimplifiedTogglePatch,
         gboardCustomSymbolsPatch,

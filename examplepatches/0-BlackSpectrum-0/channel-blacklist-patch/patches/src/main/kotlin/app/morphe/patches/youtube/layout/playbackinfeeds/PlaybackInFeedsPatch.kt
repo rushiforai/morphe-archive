@@ -32,6 +32,7 @@ private const val EXTENSION_CONTROLLER_INTERFACE =
 
 @Suppress("unused")
 val playbackInFeedsPatch = bytecodePatch(
+    name = "Playback in feeds",
     description = "Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, " +
             "where it is always available even if YouTube hides it."
 ) {

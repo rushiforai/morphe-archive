@@ -1,6 +1,7 @@
 package app.template.patches.steamlink.binary
 
 import app.morphe.patcher.patch.PatchException
+import app.template.patches.steamlink.androidxr.MODERN_TONGUE_LIBRARY_SIZE_5002363
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFailsWith
@@ -15,10 +16,7 @@ class PermissionPromptPatchTest {
 
     private val legacyLayouts = listOf(
         Layout("2.0.20", "5001712", 2_221_072, 0x142c0c),
-        Layout("2.0.20", "5001740", 2_220_528, 0x142a9c),
         Layout("2.0.22", "5002244", 2_251_920, 0x1422c4),
-        Layout("2.0.22", "5002296", 2_265_656, 0x14478c),
-        Layout("2.0.22", "5002313", 2_276_872, 0x1472a8),
     )
 
     private val original = byteArrayOf(
@@ -63,13 +61,8 @@ class PermissionPromptPatchTest {
 
     @Test
     fun `native permission requests remain untouched`() {
-        listOf(
-            Triple("5002318", 2_277_488, 0x147418),
-            Triple("5002322", 2_283_400, 0x148aac),
-        ).forEach { (versionCode, size, offset) ->
-            val input = ByteArray(size).apply { original.copyInto(this, offset) }
-            assertContentEquals(input, patchPermissionPrompt(input, "2.0.22", versionCode), versionCode)
-        }
+        val input = ByteArray(MODERN_TONGUE_LIBRARY_SIZE_5002363).apply { original.copyInto(this, 0x148aac) }
+        assertContentEquals(input, patchPermissionPrompt(input, "2.0.23", "5002363"))
     }
 
     @Test

@@ -74,9 +74,10 @@ public class BooleanSetting extends Setting<Boolean> {
         preferences.saveBoolean(key, value);
     }
 
+    /** A switch answers off while Hushfeed is paused: every one of them changes TikTok when on. */
     @NonNull
     @Override
-    public Boolean get() {
-        return value;
+    protected Boolean pausedValue() {
+        return Boolean.FALSE;
     }
 }

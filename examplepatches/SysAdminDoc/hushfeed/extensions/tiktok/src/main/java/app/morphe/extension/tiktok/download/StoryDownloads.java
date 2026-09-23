@@ -147,7 +147,7 @@ public final class StoryDownloads {
         if (android.os.Build.VERSION.SDK_INT < 29
                 && context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            Utils.showToastLong(L10n.t("Allow storage for TikTok in Android settings to save stories."));
+            Utils.showToastLong(L10n.t("Allow storage for TikTok in Android settings to save stories"));
             return false;
         }
 

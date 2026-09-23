@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.3.2 (2026-09-22)
+
+### Fixes
+* **Auto-Sync verpasst keine Nacht mehr.** Bisher synchronisierte der Patch nur beim Oeffnen von RingConn und danach fruehestens 4 Stunden spaeter. Kam die Nacht erst waehrend der Sitzung vom Ring, wurde die vorletzte Nacht hochgeladen und die neue blieb liegen. Jetzt vergleicht der Patch die letzten drei Naechte mit dem zuletzt erfolgreich hochgeladenen Stand und laedt jede neue oder nachtraeglich geaenderte Nacht hoch; Fehlschlaege werden beim naechsten Anlass wiederholt.
+* Zusaetzliche Ausloeser: zwei Nachpruefungen 90 Sekunden und 5 Minuten nach dem Oeffnen von RingConn sowie jede Abfrage einer berechtigten Companion-App (gedrosselt auf einmal pro Minute).
+
+## 1.3.1 (2026-09-22)
+
+### Fixes
+* **Allowlist um `HistoryHrSyncInfo` und `PressureAsyncModel` erweitert.** 1.3.0 hatte die Liste aus den Aliassen des alten Providers gebildet, ohne die Abfragen der Companion-Apps zu pruefen. CyclingCoach verlor dadurch still Tagespuls, Intraday-HRV und Tagesstress.
+
+### Security
+* **selection-Filter whitespace-fest.** Die Pruefung auf `" union "` liess sich unter API 26 bis 29 mit Zeilenumbruch oder Tab umgehen, etwa `1=1\nUNION\nSELECT ...`. Jetzt wird mit Wortgrenzen gesucht, ausserdem sind Schreib- und DDL-Schluesselwoerter gesperrt. Geprueft gegen alle Abfragen der Companion-Apps.
+* **`exportBackup` und `enforceGen2` aus `call()` entfernt.** Das Framework prueft `android:permission` bei `call()` nicht. Beide Methoden liessen sich mit der Leseberechtigung ausloesen: die eine schrieb Gesundheitsdaten in den oeffentlichen Download-Ordner, die andere schrieb in die Datenbank. Einzige IPC-Methode ist jetzt `triggerSync`.
+
+## 1.3.0 (2026-09-22)
+
+### Security
+* **Provider ist jetzt permission-gated:** Neue Berechtigung `com.gdjztech.ringconn.permission.ACCESS_HEALTH_DATA` mit `protectionLevel="dangerous"`. Fremd-Apps brauchen die ausdrueckliche Zustimmung des Nutzers, um Gesundheitsdaten zu lesen. `android:grantUriPermissions` steht auf `false`, damit sich die Berechtigung nicht ueber temporaere URI-Grants umgehen laesst.
+* **`android:debuggable="true"` entfernt.** Das Flag erlaubte `adb run-as` auf das private Datenverzeichnis samt `ring_conn.db` und dem intervals.icu-API-Key, und es war fuer ContentResolver-Zugriff nie noetig.
+* **`execSql` und `rawQuery` aus `ContentProvider.call()` ersatzlos entfernt.** Jede App auf dem Geraet konnte damit beliebiges SQL auf der Gesundheitsdatenbank ausfuehren, einschliesslich `DROP TABLE`. `getTables` (Schema-Enumeration) ist ebenfalls weg, unbekannte Methoden werden jetzt abgelehnt statt still mit einem leeren Bundle beantwortet.
+* **Tabellen-Allowlist statt freiem Tabellennamen aus der URI.** Bisher landete das letzte Pfadsegment ungeprueft im `FROM`. Lesbar sind nur noch `SleepSyncModel`, `DailyModel`, `TempOffsetModel`, `HistoryHrModel` und `OSADataModel`.
+* **Projektionsmap und selection-Filter.** Spalten werden zur Laufzeit aus der Tabelle gelesen und gegen die Projektion geprueft, verdaechtige selection- und sortOrder-Klauseln abgelehnt. Ab API 30 zusaetzlich `SQLiteQueryBuilder.setStrict(true)`.
+* **Schreibpfade hart gesperrt:** `insert`, `update` und `delete` werfen `UnsupportedOperationException` statt still `null` beziehungsweise `0` zurueckzugeben.
+
 ## 1.2.10 (2026-09-19)
 
 ### Localization & UI Consistency

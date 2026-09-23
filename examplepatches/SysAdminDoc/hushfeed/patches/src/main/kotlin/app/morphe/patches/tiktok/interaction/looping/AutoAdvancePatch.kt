@@ -148,7 +148,8 @@ val autoAdvancePatch = bytecodePatch(
     name = "Automatic video advance",
     description = "Keeps TikTok's automatic advance enabled while preserving its pause, dialog " +
         "and gesture checks, and shows TikTok's own Auto scroll action in the video panel for " +
-        "accounts outside its rollout. Switch: Hushfeed settings > Playback.",
+        "accounts outside its rollout, with a switch that hides that action instead. " +
+        "Switch: Hushfeed settings > Playback.",
     default = false,
 ) {
     category("Playback")
@@ -289,7 +290,7 @@ val autoAdvancePatch = bytecodePatch(
         panelAction.addInstructions(
             panelResultIndex + 1,
             """
-                invoke-static/range {v$panelRegister .. v$panelRegister}, $EXTENSION->available(Z)Z
+                invoke-static/range {v$panelRegister .. v$panelRegister}, $EXTENSION->panelAvailable(Z)Z
                 move-result v$panelRegister
             """,
         )
@@ -305,7 +306,7 @@ val autoAdvancePatch = bytecodePatch(
             panelGate.addInstructionsAtControlFlowLabel(
                 index,
                 """
-                    invoke-static/range {v$register .. v$register}, $EXTENSION->available(Z)Z
+                    invoke-static/range {v$register .. v$register}, $EXTENSION->panelAvailable(Z)Z
                     move-result v$register
                 """,
             )

@@ -65,6 +65,15 @@ Skontrolujte, či je názov balíka správny a či je aplikácia nainštalovaná
   <string name="morphe_custom_branding_icon_entry_6">Morphe hra s čiernou</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Vlastná</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Toto zmení ikonu zobrazenú vo vašom spúšťači aplikácií.
+
+Toto nastavenie nezmení ikonu v žiadnom z týchto miest:
+• Zoznam aplikácií v systémových nastaveniach zariadenia
+• Niektoré push notifikácie
+• Výber aplikácie „Otvoriť pomocou“
+• Ikona Android Auto
+
+Ak chcete zmeniť ikonu všade, znova aplikujte záplatu a zmeňte možnosť záplaty „Ikona aplikácie“"</string>
   <string name="morphe_custom_branding_notification_icon_title">Ikona upozornenia</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Zmeniť ikonu aplikácie</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe hra</string>
@@ -226,12 +235,11 @@ Ak ju neskôr vypnete, odporúda sa vymazať dáta aplikácie, aby ste predišli
   <string name="morphe_ryd_failure_generic">Počet \'Nepáči sa mi\' nie je dostupný (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Skryté vlastníkom</string>
+  <string name="morphe_ryd_accessibility_dislike_count">Toto video sa mi nepáči, spolu s %s ďalšími ľuďmi</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">Toto video sa mi nepáči, %s hlasov je negatívnych</string>
   <string name="morphe_ryd_enabled_title">Povoliť Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">Zobraziť počet \'Nepáči sa mi\' v percentách</string>
   <string name="morphe_ryd_dislike_percentage_summary">Zobrazuje počet \'Nepáči sa mi\' ako percentuálny podiel počtu \'Páči sa mi\' namiesto čísla</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Použiť kompaktné tlačidlo \'Páči sa mi\'</string>
-  <string name="morphe_ryd_compact_layout_summary">Zmenšuje šírku tlačidla \'Páči sa mi\' pre úsporu miesta</string>
   <string name="morphe_ryd_estimated_like_title">Zobraziť odhadovaný počet \'Páči sa mi\'</string>
   <string name="morphe_ryd_estimated_like_summary">Zobrazuje odhadovaný počet \'Páči sa mi\' na videách, kde autor zakázal hodnotenie</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Zobrazovať upozornenia o chybách pripojenia</string>

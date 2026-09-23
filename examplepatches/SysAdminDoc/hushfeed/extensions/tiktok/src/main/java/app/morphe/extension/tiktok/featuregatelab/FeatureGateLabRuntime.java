@@ -18,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.lang.reflect.Type;
 
+import app.morphe.extension.shared.settings.Setting;
+
 public final class FeatureGateLabRuntime {
     private static final String TAG = "MorpheFeatureGateLab";
     private static volatile Snapshot snapshot;
@@ -816,7 +818,9 @@ public final class FeatureGateLabRuntime {
                 active.put(identity(rule.manager, rule.key, rule.type), rule);
             }
         }
-        boolean masterEnabled = FeatureGateLabStore.masterEnabled();
+        // The Lab's master switch lives in its own store, outside the settings Pause Hushfeed
+        // answers for, so a paused process turns it off here.
+        boolean masterEnabled = FeatureGateLabStore.masterEnabled() && !Setting.isPaused();
         Log.i(TAG, "snapshot master=" + masterEnabled
                 + " active_rules=" + active.size()
                 + " identities=" + summarizeRules(active));

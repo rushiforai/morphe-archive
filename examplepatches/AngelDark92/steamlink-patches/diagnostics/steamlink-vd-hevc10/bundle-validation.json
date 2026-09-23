@@ -1,0 +1,10 @@
+{
+  "archive": "build/vd-sdr-package/patches/build/libs/patches-1.18.0-dev.11-local-check.mpp",
+  "sha256": "2a638f1e300b57d4c218a81ba760de46e77233620a47f00768670fd707494888",
+  "entries": 166,
+  "dex": [
+    "classes.dex"
+  ],
+  "blue_noise_payload_sha256": "f9951b536fa24198799af6778165cbb53951ce0b9d49afa923e4384c9738f602",
+  "boundary": "Current cached compile/resources plus D8 Release API26; not Gradle release, pristine APK or headset validation"
+}

@@ -1,0 +1,118 @@
+{
+  "generator": "generate_noise.py",
+  "algorithm": "original toroidal void-and-cluster integer Gaussian ranking",
+  "seed_hex": "0x475852424c554531",
+  "sigma": 1.5,
+  "integer_kernel_scale": 16777216,
+  "kernel_sha256_le_i64": "05b3af2b60788b7ab34065dce6307179746ced4eef737ef951421b1f11de7803",
+  "relaxation_moves": 602,
+  "width": 128,
+  "height": 128,
+  "format": "GL_R8 / row-major unsigned bytes",
+  "bytes": 16384,
+  "sha256": "bd714ed8957aa7dd2ba2aada91484e487e17322e68d96ac91be48ba4c59e77f5",
+  "histogram": {
+    "bins": 256,
+    "occurrences_per_bin": 64
+  },
+  "arithmetic": {
+    "input_bits": [
+      8,
+      10
+    ],
+    "output_bits": 8,
+    "formula": "floor(clamp(encoded_rgb,0,1)*255+(byte+0.5)/256)/255",
+    "calibration_and_fade_cases": 90,
+    "calibration_and_fade_max_mean_error_codes": 0.001952914062542277,
+    "fractional_samples": 65537,
+    "fractional_max_mean_error_codes": 0.001953125,
+    "ideal_mean_error_bound_codes": 0.001953125,
+    "float32_max_mean_error_codes": 0.001953125,
+    "float32_allowed_extra_error_codes": 1.52587890625e-05,
+    "passed": [
+      "endpoints",
+      "clamping",
+      "all_256_exact_output_codes",
+      "8_and_10_bit_inputs",
+      "calibration_and_fade",
+      "monotonicity",
+      "adjacent_codes_only",
+      "finite_threshold_mean_bound",
+      "r8_threshold_decode",
+      "unorm8_output_roundtrip"
+    ]
+  },
+  "spatial": {
+    "boundary": "periodic torus in both axes",
+    "white_baseline": "deterministic shuffle of identical 256-bin histogram",
+    "white_seed_hex": "0x4758525748495445",
+    "low_band_cycles_per_tile": [
+      1,
+      8
+    ],
+    "intensity_low_power_ratio": 6.389732763937771e-05,
+    "intensity_ratio_required_below": 0.15,
+    "threshold_mask_low_power_ratios": {
+      "16": 0.047434208210871624,
+      "32": 0.03153780686482865,
+      "64": 0.019937529017543972,
+      "128": 0.015320445963247577,
+      "192": 0.01891863718793739,
+      "224": 0.03403026479702983,
+      "240": 0.061133800187319814
+    },
+    "threshold_mask_ratio_required_below": 0.2,
+    "radial_power": [
+      {
+        "radius_cycles_per_tile": [
+          1,
+          4
+        ],
+        "blue_to_white_power": 5.652235305564616e-05
+      },
+      {
+        "radius_cycles_per_tile": [
+          4,
+          8
+        ],
+        "blue_to_white_power": 6.168701210414354e-05
+      },
+      {
+        "radius_cycles_per_tile": [
+          8,
+          16
+        ],
+        "blue_to_white_power": 0.00039340881859051215
+      },
+      {
+        "radius_cycles_per_tile": [
+          16,
+          24
+        ],
+        "blue_to_white_power": 0.002892647475287811
+      },
+      {
+        "radius_cycles_per_tile": [
+          24,
+          32
+        ],
+        "blue_to_white_power": 0.01965651608369176
+      },
+      {
+        "radius_cycles_per_tile": [
+          32,
+          48
+        ],
+        "blue_to_white_power": 0.5169767729145004
+      },
+      {
+        "radius_cycles_per_tile": [
+          48,
+          64
+        ],
+        "blue_to_white_power": 1.6042884474667805
+      }
+    ]
+  },
+  "limits": "CPU arithmetic/spatial validation only; no GPU, decoder, compositor or panel proof"
+}

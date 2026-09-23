@@ -9,11 +9,13 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ShareActionChecklistPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
+import app.morphe.extension.tiktok.share.ShareSheetTools;
 import app.morphe.extension.tiktok.share.ShareSurface;
 
 @SuppressWarnings("deprecation")
@@ -35,19 +37,19 @@ public final class SharePreferenceCategory extends ConditionalPreferenceCategory
 
     @Override
     public void addPreferences(Context context) {
-        addPreference(new TogglePreference(context, "Hide sharing apps", "Remove the Share via row.", Settings.HIDE_SHARE_CHANNELS));
-        addPreference(new TogglePreference(context, "Hide video actions", "Remove the actions row from the share sheet.", Settings.HIDE_SHARE_ACTIONS));
+        addPreference(new TogglePreference(context, "Hide sharing apps", "Hide the Share via row.", Settings.HIDE_SHARE_CHANNELS));
+        addPreference(new TogglePreference(context, "Hide video actions", "Hide the actions row of the share sheet.", Settings.HIDE_SHARE_ACTIONS));
         addPreference(new TogglePreference(
                 context,
                 "Confirm before sending to a friend",
-                "A tap on a person in the Send to row only selects them. A second tap on the "
-                        + "same person within four seconds sends the video.",
+                L10n.f(context, "A tap on a person in the Send to row only selects them. A second tap on the "
+                        + "same person within %1$d seconds sends the video.", ShareSheetTools.ARM_WINDOW_SECONDS),
                 Settings.SHARE_CONFIRM_SEND
         ));
         addPreference(new TogglePreference(
                 context,
                 "Hide the Send to row",
-                "Remove the row of friends from the top of the share sheet.",
+                "Hide the row of friends at the top of the share sheet.",
                 Settings.HIDE_SHARE_CONTACTS
         ));
         addPreference(new ShareActionChecklistPreference(context));

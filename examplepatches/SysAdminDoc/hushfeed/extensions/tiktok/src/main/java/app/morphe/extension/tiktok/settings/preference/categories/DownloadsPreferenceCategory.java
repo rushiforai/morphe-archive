@@ -9,6 +9,8 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.tiktok.offline.CustomOfflineVideosLimitPatch;
+import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.DownloadPathPreference;
@@ -117,7 +119,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         }
         if (SettingsStatus.advancedDownloadsEnabled) {
             addPreference(new TogglePreference(context, "Download original photos",
-                    "Save every photo in the post directly from its source URL, without rendering it again.", Settings.DOWNLOAD_ORIGINAL_PHOTOS));
+                    "Save every photo in the post as TikTok received it, not as the screen shows it.", Settings.DOWNLOAD_ORIGINAL_PHOTOS));
         }
         if (SettingsStatus.downloadEnabled) {
             addPreference(new ChoicePreference(context, "Animated sticker format", Settings.DOWNLOAD_STICKER_FORMAT,
@@ -172,7 +174,8 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new NumberInputPreference(
                     context,
                     "Offline videos limit",
-                    "Choose 1-1000 videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.",
+                    L10n.f(context, "Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.",
+                            CustomOfflineVideosLimitPatch.MIN_LIMIT, CustomOfflineVideosLimitPatch.MAX_LIMIT),
                     Settings.CUSTOM_OFFLINE_VIDEO_LIMIT
             ));
         }

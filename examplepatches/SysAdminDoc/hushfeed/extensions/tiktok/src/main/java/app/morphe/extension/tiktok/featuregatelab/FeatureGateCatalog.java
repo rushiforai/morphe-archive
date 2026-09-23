@@ -704,7 +704,7 @@ public final class FeatureGateCatalog {
         public String shortSourceName() {
             if (FeatureGateLabStore.MANAGER_PIA_ACTIVITY_CENTER.equals(manager)) return "Activity";
             if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) return "Player";
-            if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) return "Live";
+            if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) return "LIVE";
             if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) return "Media";
             if (FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) return "Config";
             if (FeatureGateLabStore.MANAGER_ABMOCK.equals(manager)) return "App AB";

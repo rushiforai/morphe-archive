@@ -50,7 +50,7 @@ public class Settings extends BaseSettings {
             // of the declarations is what a settings backup writes its keys in, so it stays.
             new Setting.Availability() {
                 @Override public boolean isAvailable() {
-                    return SIM_SPOOF.get();
+                    return SIM_SPOOF.savedValue();
                 }
 
                 @Override public java.util.List<Setting<?>> getParentSettings() {
@@ -66,7 +66,7 @@ public class Settings extends BaseSettings {
             // greyed until Override SIM details is on, so a reader is never sent two steps back.
             new Setting.Availability() {
                 @Override public boolean isAvailable() {
-                    return SIM_SPOOF.get() && REGION_SPOOF.get();
+                    return SIM_SPOOF.savedValue() && REGION_SPOOF.savedValue();
                 }
 
                 @Override public java.util.List<Setting<?>> getParentSettings() {
@@ -101,7 +101,7 @@ public class Settings extends BaseSettings {
     private static final Setting.Availability YTDLNIS_ONLY = new Setting.Availability() {
         @Override
         public boolean isAvailable() {
-            return YTDLNIS_PACKAGE_NAME.equals(EXTERNAL_DOWNLOADER_PACKAGE.get().trim());
+            return YTDLNIS_PACKAGE_NAME.equals(EXTERNAL_DOWNLOADER_PACKAGE.savedValue().trim());
         }
 
         @Override
@@ -169,6 +169,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting REMOVE_ADS = new BooleanSetting("remove_ads", TRUE, true);
     public static final BooleanSetting HIDE_LIVE = new BooleanSetting("hide_live", FALSE, true);
     public static final BooleanSetting HIDE_SHOP = new BooleanSetting("hide_shop", FALSE, true);
+    /** TikTok Shop cards in search results: the Products block and single product cards (issue #21). */
+    public static final BooleanSetting HIDE_SEARCH_SHOP = new BooleanSetting("hide_search_shop", FALSE);
     public static final BooleanSetting HIDE_STORY = new BooleanSetting("hide_story", FALSE, true);
     public static final BooleanSetting HIDE_IMAGE = new BooleanSetting("hide_image", FALSE, true);
     public static final BooleanSetting HIDE_CAPTCHA_POPUPS = new BooleanSetting("hide_captcha_popups", FALSE, true);
@@ -223,6 +225,8 @@ public class Settings extends BaseSettings {
             false,
             false
     );
+    /** The red count on Inbox and the dot on Profile, the pull that reopens the app. */
+    public static final BooleanSetting HIDE_TAB_BADGES = new BooleanSetting("hide_tab_badges", FALSE, true);
     public static final BooleanSetting HIDE_TAKO_AI = new BooleanSetting("hide_tako_ai", FALSE, true);
     public static final BooleanSetting HIDE_BOTTOM_SEARCH_BAR = new BooleanSetting("hide_bottom_search_bar", FALSE, true);
     public static final BooleanSetting COMMENT_BATCH_TRANSLATION = new BooleanSetting("comment_batch_translation", FALSE);
@@ -283,6 +287,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting AUTO_ADVANCE = new BooleanSetting("auto_advance", FALSE, true);
     public static final IntegerSetting AUTO_ADVANCE_LIMIT = new IntegerSetting(
             "auto_advance_limit", 0, false, Setting.parent(AUTO_ADVANCE)).withRange(0, 1000);
+    /**
+     * Takes TikTok's own Auto scroll action out of the video panel (upstream #116). The patch
+     * surfaces that action for accounts outside its rollout; a reader who only wants advance on
+     * end has no use for it, and it read as a second, unexplained switch.
+     */
+    public static final BooleanSetting AUTO_ADVANCE_HIDE_PANEL_ACTION = new BooleanSetting(
+            "auto_advance_hide_panel_action", FALSE, false, Setting.parent(AUTO_ADVANCE));
     /**
      * Quietens the feed while a comment sheet is open, and gives the sound back when it closes.
      * Off by default.
@@ -514,8 +525,26 @@ public class Settings extends BaseSettings {
     );
 
     static {
-        if (!DOWNLOAD_PATHS_MIGRATED.get()) {
-            String legacyPath = DOWNLOAD_PATH.get();
+        // Hushfeed's own state: remembered positions and choices, lists it observed, counters.
+        // They keep their values while Hushfeed is paused; every other setting answers its
+        // unpatched value then (Setting#get).
+        Setting.keepWhenPaused(LAUNCHER_SHORTCUTS_REMOVED, FEED_NAVIGATION_OBSERVED_TABS,
+                BOTTOM_NAVIGATION_OBSERVED_TABS, DOWNLOAD_PATH, DOWNLOAD_PATHS_MIGRATED,
+                REMEMBERED_SPEED, SESSION_BUDGET_STATE, BLOCK_AUTHOR_BUTTON_POSITION,
+                LOCAL_HIDE_BUTTON_POSITION, BLOCK_SOUND_BUTTON_POSITION, NOT_INTERESTED_BUTTON_POSITION,
+                SHARE_ACTION_CATALOG, DIAGNOSTIC_REPORT_SALT,
+                // The budget's day is worked out from this hour. Paused, the budget counts
+                // nothing and holds nothing, but its record still has to name the right day.
+                SESSION_BUDGET_RESET_HOUR);
+        // Downloads rewrite TikTok's own save folder and file name with no switch in front, so
+        // pausing cannot give TikTok its own back. They keep the reader's choice instead of
+        // falling back to Hushfeed's defaults. The README lists them as not paused.
+        Setting.keepWhenPaused(DOWNLOAD_VIDEO_PATH, DOWNLOAD_PHOTO_PATH, DOWNLOAD_STICKER_PATH,
+                DOWNLOAD_STICKER_FORMAT, DOWNLOAD_VIDEO_FILENAME_TEMPLATE, DOWNLOAD_PHOTO_FILENAME_TEMPLATE,
+                DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE);
+
+        if (!DOWNLOAD_PATHS_MIGRATED.savedValue()) {
+            String legacyPath = DOWNLOAD_PATH.savedValue();
             DOWNLOAD_VIDEO_PATH.save(legacyPath);
             DOWNLOAD_PHOTO_PATH.save(legacyPath);
             DOWNLOAD_STICKER_PATH.save(legacyPath);

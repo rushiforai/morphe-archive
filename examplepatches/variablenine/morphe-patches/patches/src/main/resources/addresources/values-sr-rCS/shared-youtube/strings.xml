@@ -65,6 +65,15 @@ Proverite da li je naziv paketa ispravan i da li je aplikacija instalirana"</str
   <string name="morphe_custom_branding_icon_entry_6">Morphe crno</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Prilagođeno</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Ovo menja ikonu koja se prikazuje u vašem pokretaču aplikacija.
+
+Ova postavka neće promeniti ikonu na sledećim mestima:
+• Lista aplikacija u sistemskim podešavanjima uređaja
+• Određena push obaveštenja
+• Birač aplikacija „Otvori pomoću“
+• Android Auto ikona
+
+Da biste promenili ikonu svuda, ponovo izvršite patch i promenite opciju patch-a „App icon“."</string>
   <string name="morphe_custom_branding_notification_icon_title">Ikona obaveštenja</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Uparite ikonu aplikacije</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe pleј</string>
@@ -225,12 +234,11 @@ Ako se kasnije isključi, preporučuje se da izbrišete podatke aplikacije da bi
   <string name="morphe_ryd_failure_generic">Nesviđanja nisu dostupna (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">Skriveno od strane vlasnika</string>
+  <string name="morphe_ryd_accessibility_dislike_count">Ne sviđa mi se ovaj video, zajedno sa još %s korisnika</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">Ne sviđa mi se ovaj video, %s glasova je negativno</string>
   <string name="morphe_ryd_enabled_title">Omogući Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">Prikaži nesviđanja kao procenat</string>
   <string name="morphe_ryd_dislike_percentage_summary">Prikazuje nesviđanja kao procenat lajkova umesto broja</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Koristi kompaktno dugme Lajk</string>
-  <string name="morphe_ryd_compact_layout_summary">Smanjuje širinu dugmeta Lajk kako bi se uštedeo prostor</string>
   <string name="morphe_ryd_estimated_like_title">Prikaži procenjeni broj sviđanja</string>
   <string name="morphe_ryd_estimated_like_summary">Prikazuje procenjeni broj lajkova na video zapisima gde je kreator onemogućio lajkove</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Prikaži upozorenja o grešci konekcije</string>

@@ -1,0 +1,4 @@
+GXR_DBUF_V1 {
+    global: gxr_decoder_buffering_config;
+    local: *;
+};

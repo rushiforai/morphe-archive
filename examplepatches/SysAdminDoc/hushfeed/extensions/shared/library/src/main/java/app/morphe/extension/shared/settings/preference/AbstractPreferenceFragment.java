@@ -159,7 +159,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             if (!runningValues.containsKey(setting.key)) runningValues.put(setting.key, valueBefore);
             running = runningValues.get(setting.key);
         }
-        boolean pending = !Objects.equals(running, setting.get());
+        boolean pending = !Objects.equals(running, setting.savedValue());
         if (pending) restartPending.add(setting.key);
         else restartPending.remove(setting.key);
         onRestartPendingChanged();
@@ -209,7 +209,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             }
             Logger.printDebug(() -> "Preference changed: " + key);
             // Read before the Setting takes the new value: this is what the process runs with.
-            Object valueBefore = setting.get();
+            Object valueBefore = setting.savedValue();
 
             updatingPreference = true;
             if (!settingImportInProgress) {
@@ -276,7 +276,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     /** Keeps the Setting contract that default values are represented by an absent preference. */
     private static boolean persistSettingValue(@NonNull SharedPreferences preferences,
                                                @NonNull Setting<?> setting) {
-        Object value = setting.get();
+        Object value = setting.savedValue();
         SharedPreferences.Editor editor = preferences.edit();
         if (setting.defaultValue.equals(value)) {
             editor.remove(setting.key);
@@ -291,7 +291,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     /** Lets app-specific Preference classes verify that recovery put the saved value on screen. */
     protected boolean preferenceShowsSettingValue(@NonNull Preference pref,
                                                   @NonNull Setting<?> setting) {
-        Object value = setting.get();
+        Object value = setting.savedValue();
         if (pref instanceof SwitchPreference switchPref) {
             return value instanceof Boolean && switchPref.isChecked() == (Boolean) value;
         }
@@ -307,7 +307,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
     private static boolean storedPreferenceMatchesSetting(@NonNull SharedPreferences preferences,
                                                           @NonNull Setting<?> setting) {
-        Object expected = setting.get();
+        Object expected = setting.savedValue();
         Object stored = preferences.getAll().get(setting.key);
         if (stored == null && !preferences.contains(setting.key)) stored = setting.defaultValue;
         if (expected instanceof Boolean) return Objects.equals(expected, stored);
@@ -327,7 +327,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      */
     protected void initialize() {
         String preferenceResourceName;
-        if (BaseSettings.SHOW_MENU_ICONS.get()) {
+        if (BaseSettings.SHOW_MENU_ICONS.savedValue()) {
             preferenceResourceName = Utils.appIsUsingBoldIcons()
                     ? "morphe_prefs_icons_bold"
                     : "morphe_prefs_icons";
@@ -365,7 +365,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
                 null, // OK button text.
                 () -> {
                     // OK button action. User confirmed, save to the Setting.
-                    Object valueBefore = setting.get();
+                    Object valueBefore = setting.savedValue();
                     updatePreference(pref, setting, true, false);
 
                     // Update availability of other preferences that may be changed.
@@ -446,7 +446,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
                 if (setting != null) {
                     updatePreference(pref, setting, syncSettingValue, applySettingToPreference);
-                } else if (BaseSettings.DEBUG.get() && (pref instanceof SwitchPreference
+                } else if (BaseSettings.DEBUG.savedValue() && (pref instanceof SwitchPreference
                         || pref instanceof EditTextPreference || pref instanceof ListPreference)) {
                     // Probably a typo in the patches preference declaration.
                     Logger.printException(() -> "Preference key has no setting: " + key);
@@ -481,19 +481,19 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
         if (pref instanceof SwitchPreference switchPref) {
             BooleanSetting boolSetting = (BooleanSetting) setting;
             if (applySettingToPreference) {
-                switchPref.setChecked(boolSetting.get());
+                switchPref.setChecked(boolSetting.savedValue());
             } else {
                 BooleanSetting.privateSetValue(boolSetting, switchPref.isChecked());
             }
         } else if (pref instanceof EditTextPreference editPreference) {
             if (applySettingToPreference) {
-                editPreference.setText(setting.get().toString());
+                editPreference.setText(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, editPreference.getText());
             }
         } else if (pref instanceof ListPreference listPref) {
             if (applySettingToPreference) {
-                listPref.setValue(setting.get().toString());
+                listPref.setValue(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, listPref.getValue());
             }
@@ -529,7 +529,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     }
 
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
-        String objectStringValue = setting.get().toString();
+        String objectStringValue = setting.savedValue().toString();
         final int entryIndex = listPreference.findIndexOfValue(objectStringValue);
         if (entryIndex >= 0) {
             listPreference.setSummary(listPreference.getEntries()[entryIndex]);

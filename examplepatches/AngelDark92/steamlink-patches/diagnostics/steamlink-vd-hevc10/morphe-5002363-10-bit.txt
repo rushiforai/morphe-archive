@@ -1,0 +1,19 @@
+Fixture: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\decoded-fixture-apks\decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk; SHA-256=681008c6e00f48eea64dd0a6534e2e73b390c71626025f86e401d9cc59a281bf
+Case: 2.0.23/5002363, declared 10-bit, VD SDR foveal option
+Evidence boundary: analysis/decoded-fixture APK; actual Morphe DSL finalize and unsigned packaging only. Not pristine APK, Android linking, GPU execution, install, headset or panel proof.
+Warning: Universal patches must be declared with default false: VD SDR fixture metadata audit
+Sept 22, 2026 9:59:28 PM app.morphe.patcher.patch.ResourcePatchContext decodeResources$morphe_patcher
+INFO: Decoding resources in raw mode
+Sept 22, 2026 9:59:29 PM app.morphe.patcher.Patcher$invoke$1 invokeSuspend
+INFO: Executing patches
+Morphe PASS: OLED color calibration
+Morphe PASS: VD SDR fixture metadata audit
+Sept 22, 2026 9:59:29 PM app.morphe.patcher.patch.BytecodePatchContext get
+INFO: Compiling patched dex files (mode: NONE)
+Sept 22, 2026 9:59:29 PM app.morphe.patcher.resource.coder.ArsclibResourceCoder getOtherResourceFiles
+INFO: Moving 2 resource files
+Sept 22, 2026 9:59:29 PM app.morphe.patcher.apk.ApkUtils applyTo
+INFO: Aligning APK
+PASS: exact scene output; no added entries; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.
+Output: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\vd-sdr-morphe\5002363-10-bit\steamlink-5002363-10-bit-vd-sdr-unsigned.apk; SHA-256=e7a59b7542e967a7caf45637870fb78e7f0c15475575aaa938dc71a79ee5daf7
+Final scene SHA-256=10d52bfba9406ef39fb1b94c500d75032fa42c8ad6df343e373db24ce4566a48

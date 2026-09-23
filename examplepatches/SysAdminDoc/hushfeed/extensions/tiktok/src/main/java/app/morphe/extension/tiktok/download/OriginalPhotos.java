@@ -64,9 +64,8 @@ public final class OriginalPhotos {
                         if (!MediaCache.delete(temp)) Logger.printInfo(() -> "Could not remove original photo temporary file");
                     }
                 }
-                Utils.showToastShort(saved == 1
-                        ? L10n.t("Saved one original photo")
-                        : L10n.f("Saved %1$s original photos", saved));
+                Utils.showToastShort(L10n.quantity(Utils.getContext(), saved,
+                        "Saved one original photo", "Saved %1$s original photos"));
             } catch (IOException | RuntimeException exception) {
                 int completed = saved;
                 Logger.printException(() -> "Original photo download failed after " + completed + " photos", exception);

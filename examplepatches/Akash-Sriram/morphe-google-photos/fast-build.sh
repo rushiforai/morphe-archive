@@ -16,6 +16,7 @@ DO_PATCH=true
 DO_INSTALL=false
 CLEAN=false
 OFFICIAL_PKG=false
+ENABLE_BRANDING=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -32,6 +33,10 @@ while [[ $# -gt 0 ]]; do
             OFFICIAL_PKG=false
             shift
             ;;
+        --branding)
+            ENABLE_BRANDING=true
+            shift
+            ;;
         --mpp-only)
             DO_PATCH=false
             shift
@@ -46,7 +51,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: $0 [--source test|main] [--official|--original|--mod] [--mpp-only] [--install|-i] [--clean]"
+            echo "Usage: $0 [--source test|main] [--official|--original|--mod] [--branding] [--mpp-only] [--install|-i] [--clean]"
             exit 1
             ;;
     esac
@@ -155,7 +160,13 @@ rsync -u "$CLI_JAR" "$FAST_CACHE_DIR/morphe-desktop.jar"
         -e "GmsCore support"
         -e "Model Readiness Gates"
         -e "Spoof features"
+        -e "AMOLED dark theme"
     )
+
+    if [ "$ENABLE_BRANDING" = true ]; then
+        PATCH_ARGS+=(-e "Custom Morphe branding")
+        echo "🎨 Branding: Custom Morphe branding enabled"
+    fi
 
     if [ "$OFFICIAL_PKG" = true ]; then
         PATCH_ARGS+=(
@@ -163,9 +174,11 @@ rsync -u "$CLI_JAR" "$FAST_CACHE_DIR/morphe-desktop.jar"
             -e "Disable Play Store updates"
         )
         APP_PKG="com.google.android.apps.photos"
+        OUTPUT_APK="$PROJECT_DIR/photos_official_patched.apk"
         echo "🏷️ Mode: Official package name $APP_PKG (Experimental)"
     else
         APP_PKG="app.morphe.android.apps.photos"
+        OUTPUT_APK="$PROJECT_DIR/photos_patched.apk"
         echo "🏷️ Mode: Mod package (default) -> $APP_PKG"
     fi
 

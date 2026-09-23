@@ -271,7 +271,7 @@ public class FeatureGateLabActionsTest {
             waitFor("Lab overrides reset.");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
             action(fragment, 6);
-            waitFor("Restored the previous Lab settings.");
+            waitFor("Lab settings put back.");
             assertEquals(1, FeatureGateLabStore.rules().size());
             action(fragment, 5);
             waitFor("Lab data reset.");
@@ -318,7 +318,7 @@ public class FeatureGateLabActionsTest {
             assertEquals(1, FeatureGateLabStore.rules().size());
             assertFalse("the result dialog was dismissed", ShadowDialog.getLatestDialog().isShowing());
             action(fragment, 6);
-            waitFor("Restored the previous Lab settings.");
+            waitFor("Lab settings put back.");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
         }
     }
@@ -550,7 +550,7 @@ public class FeatureGateLabActionsTest {
                 reset.invoke(fragment, false);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-                assertEquals("Could not start the Lab change. Try again shortly.",
+                assertEquals("Couldn't start the Lab change. Try again shortly.",
                         ShadowToast.getTextOfLatestToast());
                 assertFalse("the Lab remained busy after rejected scheduling", changing.get());
                 assertNotNull("the rejected reset changed Lab storage",
@@ -585,7 +585,7 @@ public class FeatureGateLabActionsTest {
                 master.performClick();
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-                assertEquals("Could not start the Lab change. Try again shortly.",
+                assertEquals("Couldn't start the Lab change. Try again shortly.",
                         ShadowToast.getTextOfLatestToast());
                 assertFalse("the rejected change altered storage",
                         FeatureGateLabStore.masterEnabled());

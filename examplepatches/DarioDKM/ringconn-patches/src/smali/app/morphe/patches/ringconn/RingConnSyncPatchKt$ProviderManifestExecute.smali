@@ -25,6 +25,60 @@
     move-object v1, v0
     check-cast v1, Lapp/morphe/patcher/util/Document;
 
+    # --- Custom-Permission am manifest-Wurzelelement sicherstellen (idempotent) ---
+    const-string v2, "permission"
+    invoke-virtual {v1, v2}, Lapp/morphe/patcher/util/Document;->getElementsByTagName(Ljava/lang/String;)Lorg/w3c/dom/NodeList;
+    move-result-object v2
+    invoke-interface {v2}, Lorg/w3c/dom/NodeList;->getLength()I
+    move-result v3
+    const/4 v4, 0x0
+
+    :goto_perm
+    if-ge v4, v3, :cond_perm_missing
+    invoke-interface {v2, v4}, Lorg/w3c/dom/NodeList;->item(I)Lorg/w3c/dom/Node;
+    move-result-object v5
+    check-cast v5, Lorg/w3c/dom/Element;
+    const-string v6, "android:name"
+    invoke-interface {v5, v6}, Lorg/w3c/dom/Element;->getAttribute(Ljava/lang/String;)Ljava/lang/String;
+    move-result-object v6
+    const-string v7, "com.gdjztech.ringconn.permission.ACCESS_HEALTH_DATA"
+    invoke-virtual {v7, v6}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+    move-result v7
+    if-eqz v7, :cond_perm_next
+    goto :done_permission
+
+    :cond_perm_next
+    add-int/lit8 v4, v4, 0x1
+    goto :goto_perm
+
+    :cond_perm_missing
+    const-string v2, "permission"
+    invoke-virtual {v1, v2}, Lapp/morphe/patcher/util/Document;->createElement(Ljava/lang/String;)Lorg/w3c/dom/Element;
+    move-result-object v2
+
+    const-string v3, "android:name"
+    const-string v4, "com.gdjztech.ringconn.permission.ACCESS_HEALTH_DATA"
+    invoke-interface {v2, v3, v4}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
+
+    const-string v3, "android:protectionLevel"
+    const-string v4, "dangerous"
+    invoke-interface {v2, v3, v4}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
+
+    const-string v3, "android:label"
+    const-string v4, "Read RingConn health data"
+    invoke-interface {v2, v3, v4}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
+
+    const-string v3, "manifest"
+    invoke-virtual {v1, v3}, Lapp/morphe/patcher/util/Document;->getElementsByTagName(Ljava/lang/String;)Lorg/w3c/dom/NodeList;
+    move-result-object v3
+    const/4 v4, 0x0
+    invoke-interface {v3, v4}, Lorg/w3c/dom/NodeList;->item(I)Lorg/w3c/dom/Node;
+    move-result-object v3
+    check-cast v3, Lorg/w3c/dom/Element;
+    invoke-interface {v3, v2}, Lorg/w3c/dom/Element;->appendChild(Lorg/w3c/dom/Node;)Lorg/w3c/dom/Node;
+
+    :done_permission
+
     # Hole <application> Element
     const-string v2, "application"
     invoke-virtual {v1, v2}, Lapp/morphe/patcher/util/Document;->getElementsByTagName(Ljava/lang/String;)Lorg/w3c/dom/NodeList;
@@ -33,11 +87,6 @@
     invoke-interface {v2, v3}, Lorg/w3c/dom/NodeList;->item(I)Lorg/w3c/dom/Node;
     move-result-object v2
     check-cast v2, Lorg/w3c/dom/Element;
-
-    # Setze android:debuggable="true"
-    const-string v3, "android:debuggable"
-    const-string v4, "true"
-    invoke-interface {v2, v3, v4}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
 
     # Pruefe ob Provider bereits existiert
     const-string v3, "provider"
@@ -83,8 +132,18 @@
     const-string v5, "true"
     invoke-interface {v3, v4, v5}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
 
+    # Lesezugriff nur mit der oben deklarierten Berechtigung
+    const-string v4, "android:permission"
+    const-string v5, "com.gdjztech.ringconn.permission.ACCESS_HEALTH_DATA"
+    invoke-interface {v3, v4, v5}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
+
+    const-string v4, "android:readPermission"
+    const-string v5, "com.gdjztech.ringconn.permission.ACCESS_HEALTH_DATA"
+    invoke-interface {v3, v4, v5}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
+
+    # Keine temporaeren URI-Grants, sonst laesst sich die Berechtigung umgehen
     const-string v4, "android:grantUriPermissions"
-    const-string v5, "true"
+    const-string v5, "false"
     invoke-interface {v3, v4, v5}, Lorg/w3c/dom/Element;->setAttribute(Ljava/lang/String;Ljava/lang/String;)V
 
     invoke-interface {v2, v3}, Lorg/w3c/dom/Element;->appendChild(Lorg/w3c/dom/Node;)Lorg/w3c/dom/Node;

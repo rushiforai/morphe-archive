@@ -59,39 +59,35 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                 "Zero switches this off. Count every video that comes up in the feed, however you "
                         + "got to it, and say so once the count is reached. This is separate from "
                         + "the auto-advance session limit under Playback, which only counts videos "
-                        + "Hushfeed itself advanced past.", Settings.SESSION_BUDGET_VIDEOS, "video", "videos") {
+                        + "Hushfeed itself advanced past.", Settings.SESSION_BUDGET_VIDEOS, "%1$s video", "%1$s videos") {
             @Override protected String extraSummaryLine() {
-                if (Settings.SESSION_BUDGET_VIDEOS.get() <= 0) return null;
+                if (Settings.SESSION_BUDGET_VIDEOS.savedValue() <= 0) return null;
                 int seen = SessionBudget.videosSeen();
-                return seen == 1
-                        ? L10n.f(getContext(), "Today: %1$d video", seen)
-                        : L10n.f(getContext(), "Today: %1$d videos", seen);
+                return L10n.quantity(getContext(), seen, "Today: %1$d video", "Today: %1$d videos");
             }
         }.zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Daily time budget",
                 "Zero switches this off. Count the minutes the player spends running in the feed. "
                         + "Time on messages, a profile or search does not count.",
-                Settings.SESSION_BUDGET_MINUTES, "minute", "minutes") {
+                Settings.SESSION_BUDGET_MINUTES, "%1$s minute", "%1$s minutes") {
             @Override protected String extraSummaryLine() {
-                if (Settings.SESSION_BUDGET_MINUTES.get() <= 0) return null;
+                if (Settings.SESSION_BUDGET_MINUTES.savedValue() <= 0) return null;
                 // Whole minutes down, so a budget of 30 never reads "Today: 30 minutes" while
                 // there is still time left on it.
                 long minutes = SessionBudget.watchedMs() / 60_000L;
-                return minutes == 1
-                        ? L10n.f(getContext(), "Today: %1$d minute", minutes)
-                        : L10n.f(getContext(), "Today: %1$d minutes", minutes);
+                return L10n.quantity(getContext(), minutes, "Today: %1$d minute", "Today: %1$d minutes");
             }
         }.zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Remind me every",
                 "Zero switches this off. A short reminder after that many minutes of watching, "
                         + "and again after the same again. Time on messages, a profile or search "
                         + "does not count, and nothing is shown while the feed is on hold.",
-                Settings.SESSION_BUDGET_NOTICE_MINUTES, "minute", "minutes").zeroMeansOff());
+                Settings.SESSION_BUDGET_NOTICE_MINUTES, "%1$s minute", "%1$s minutes").zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Hold the feed after the budget",
                 "Zero shows the notice and leaves the feed alone. Anything else covers the feed "
                         + "for that many minutes once a budget is reached. Messages, profiles and "
                         + "search keep working, and nothing in the feed is thrown away.",
-                Settings.SESSION_BUDGET_LOCK_MINUTES, "minute", "minutes"));
+                Settings.SESSION_BUDGET_LOCK_MINUTES, "%1$s minute", "%1$s minutes"));
         addPreference(new TogglePreference(context, "Fade the feed out before the hold",
                 "The feed dims over the last three quarters of a minute before the hold, "
                         + "so you arrive at it rather than land on it. Needs a time budget and "
@@ -115,7 +111,7 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                         + "always done. Anything else is how many times a day it works, and once "
                         + "they are gone the hold stays up until the day starts over. Ignored "
                         + "while the budget is locked, which takes the way out away entirely.",
-                Settings.SESSION_BUDGET_PASSES_PER_DAY, "time", "times").zeroMeansOff());
+                Settings.SESSION_BUDGET_PASSES_PER_DAY, "%1$s time", "%1$s times").zeroMeansOff());
 
         // Everything the budget is made of, refused for the rest of a locked day. A commitment
         // anyone can edit their way out of in two taps is a suggestion.

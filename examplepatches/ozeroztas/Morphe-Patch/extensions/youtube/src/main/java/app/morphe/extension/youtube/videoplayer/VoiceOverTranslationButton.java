@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import java.lang.ref.WeakReference;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.youtube.patches.LegacyPlayerControlsPatch;
 import app.morphe.extension.youtube.patches.voiceovertranslation.VoiceOverTranslationPatch;
@@ -50,6 +51,9 @@ public final class VoiceOverTranslationButton {
                         return true;
                     });
             overlayButtonRef = button != null ? new WeakReference<>(button) : null;
+            if (button != null) {
+                button.setContentDescription(ResourceUtils.getString("morphe_vot_enabled_title"));
+            }
             refreshActivatedState();
         } catch (Exception ex) {
             Logger.printException(() -> "initializeButton failure", ex);

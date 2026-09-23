@@ -1,0 +1,610 @@
+OpenTK-1.1.dll SHA256 c02d86c5389c0b60ec004eb1ac3fc7cd78db4ca4a2997d72a18603c6f81ad068
+
+OpenTK.Graphics.ES31.GL::BindTexture 0x6002e86 RVA 0x63930 sig=0002011193c008
+0001 ldarg.0 
+0002 ldarg.1 
+0003 call 0x60033d3 OpenTK.Graphics.ES31.GL::glBindTexture
+0008 ret 
+
+OpenTK.Graphics.ES31.GL::BindTexture 0x6002e87 RVA 0x63930 sig=0002011193c009
+0001 ldarg.0 
+0002 ldarg.1 
+0003 call 0x60033d3 OpenTK.Graphics.ES31.GL::glBindTexture
+0008 ret 
+
+OpenTK.Graphics.ES31.GL::BindTexture 0x6002e88 RVA 0x63930 sig=00020111990c08
+0001 ldarg.0 
+0002 ldarg.1 
+0003 call 0x60033d3 OpenTK.Graphics.ES31.GL::glBindTexture
+0008 ret 
+
+OpenTK.Graphics.ES31.GL::BindTexture 0x6002e89 RVA 0x63930 sig=00020111990c09
+0001 ldarg.0 
+0002 ldarg.1 
+0003 call 0x60033d3 OpenTK.Graphics.ES31.GL::glBindTexture
+0008 ret 
+
+OpenTK.Graphics.ES31.GL::Disable 0x6002f68 RVA 0x64e79 sig=0001011193c0
+0001 ldarg.0 
+0002 call 0x600340a OpenTK.Graphics.ES31.GL::glDisable
+0007 ret 
+
+OpenTK.Graphics.ES31.GL::Disable 0x6002f69 RVA 0x64e79 sig=0001011194e4
+0001 ldarg.0 
+0002 call 0x600340a OpenTK.Graphics.ES31.GL::glDisable
+0007 ret 
+
+OpenTK.Graphics.ES31.GL::Enable 0x6002fb5 RVA 0x657d5 sig=0001011193c0
+0001 ldarg.0 
+0002 call 0x6003416 OpenTK.Graphics.ES31.GL::glEnable
+0007 ret 
+
+OpenTK.Graphics.ES31.GL::Enable 0x6002fb6 RVA 0x657d5 sig=0001011194e4
+0001 ldarg.0 
+0002 call 0x6003416 OpenTK.Graphics.ES31.GL::glEnable
+0007 ret 
+
+OpenTK.Graphics.ES31.GL::ShaderSource 0x60032a5 RVA 0x6ab18 sig=00040108081d0e1d08
+000c ldarg.0 
+000d ldarg.1 
+000e ldarg.2 
+000f call 0x600000a OpenTK.BindingsBase::MarshalStringArrayToPtr
+0014 stloc.0 
+0015 ldloc.0 
+0016 ldarg.3 
+0017 brfalse.s 30
+0019 ldarg.3 
+001a ldlen 
+001b conv.i4 
+001c brtrue.s 34
+001e ldc.i4.0 
+001f conv.u 
+0020 br.s 41
+0022 ldarg.3 
+0023 ldc.i4.0 
+0024 ldelema 0x100001b System.Int32
+0029 stloc.1 
+002a ldloc.1 
+002b conv.i 
+002c call 0x60034c0 OpenTK.Graphics.ES31.GL::glShaderSource
+0031 ldloc.0 
+0032 ldarg.2 
+0033 ldlen 
+0034 conv.i4 
+0035 call 0x600000b OpenTK.BindingsBase::FreeStringArrayPtr
+003a ret 
+
+OpenTK.Graphics.ES31.GL::ShaderSource 0x60032a6 RVA 0x6ab54 sig=00040108081d0e1008
+000c ldarg.0 
+000d ldarg.1 
+000e ldarg.2 
+000f call 0x600000a OpenTK.BindingsBase::MarshalStringArrayToPtr
+0014 stloc.0 
+0015 ldloc.0 
+0016 ldarg.3 
+0017 stloc.1 
+0018 ldloc.1 
+0019 conv.i 
+001a call 0x60034c0 OpenTK.Graphics.ES31.GL::glShaderSource
+001f ldloc.0 
+0020 ldarg.2 
+0021 ldlen 
+0022 conv.i4 
+0023 call 0x600000b OpenTK.BindingsBase::FreeStringArrayPtr
+0028 ret 
+
+OpenTK.Graphics.ES31.GL::ShaderSource 0x60032a7 RVA 0x6ab80 sig=00040108081d0e0f08
+000c ldarg.0 
+000d ldarg.1 
+000e ldarg.2 
+000f call 0x600000a OpenTK.BindingsBase::MarshalStringArrayToPtr
+0014 stloc.0 
+0015 ldloc.0 
+0016 ldarg.3 
+0017 call 0x60034c0 OpenTK.Graphics.ES31.GL::glShaderSource
+001c ldloc.0 
+001d ldarg.2 
+001e ldlen 
+001f conv.i4 
+0020 call 0x600000b OpenTK.BindingsBase::FreeStringArrayPtr
+0025 ret 
+
+OpenTK.Graphics.ES31.GL::ShaderSource 0x60032a8 RVA 0x6aba8 sig=00040109081d0e1d08
+000c ldarg.0 
+000d ldarg.1 
+000e ldarg.2 
+000f call 0x600000a OpenTK.BindingsBase::MarshalStringArrayToPtr
+0014 stloc.0 
+0015 ldloc.0 
+0016 ldarg.3 
+0017 brfalse.s 30
+0019 ldarg.3 
+001a ldlen 
+001b conv.i4 
+001c brtrue.s 34
+001e ldc.i4.0 
+001f conv.u 
+0020 br.s 41
+0022 ldarg.3 
+0023 ldc.i4.0 
+0024 ldelema 0x100001b System.Int32
+0029 stloc.1 
+002a ldloc.1 
+002b conv.i 
+002c call 0x60034c0 OpenTK.Graphics.ES31.GL::glShaderSource
+0031 ldloc.0 
+0032 ldarg.2 
+0033 ldlen 
+0034 conv.i4 
+0035 call 0x600000b OpenTK.BindingsBase::FreeStringArrayPtr
+003a ret 
+
+OpenTK.Graphics.ES31.GL::ShaderSource 0x60032a9 RVA 0x6abe4 sig=00040109081d0e1008
+000c ldarg.0 
+000d ldarg.1 
+000e ldarg.2 
+000f call 0x600000a OpenTK.BindingsBase::MarshalStringArrayToPtr
+0014 stloc.0 
+0015 ldloc.0 
+0016 ldarg.3 
+0017 stloc.1 
+0018 ldloc.1 
+0019 conv.i 
+001a call 0x60034c0 OpenTK.Graphics.ES31.GL::glShaderSource
+001f ldloc.0 
+0020 ldarg.2 
+0021 ldlen 
+0022 conv.i4 
+0023 call 0x600000b OpenTK.BindingsBase::FreeStringArrayPtr
+0028 ret 
+
+OpenTK.Graphics.ES31.GL::ShaderSource 0x60032aa RVA 0x6ac10 sig=00040109081d0e0f08
+000c ldarg.0 
+000d ldarg.1 
+000e ldarg.2 
+000f call 0x600000a OpenTK.BindingsBase::MarshalStringArrayToPtr
+0014 stloc.0 
+0015 ldloc.0 
+0016 ldarg.3 
+0017 call 0x60034c0 OpenTK.Graphics.ES31.GL::glShaderSource
+001c ldloc.0 
+001d ldarg.2 
+001e ldlen 
+001f conv.i4 
+0020 call 0x600000b OpenTK.BindingsBase::FreeStringArrayPtr
+0025 ret 
+
+OpenTK.Graphics.ES31.GL::ShaderSource 0x60035dc RVA 0x6c63c sig=000201080e
+000c ldarg.1 
+000d callvirt 0xa00000e System.String::get_Length
+0012 stloc.0 
+0013 ldarg.0 
+0014 ldc.i4.1 
+0015 ldc.i4.1 
+0016 newarr 0x100000e System.String
+001b dup 
+001c ldc.i4.0 
+001d ldarg.1 
+001e stelem.ref 
+001f ldloca.s local(0x0000)
+0021 conv.u 
+0022 call 0x60032aa OpenTK.Graphics.ES31.GL::ShaderSource
+0027 ret 
+
+OpenTK.BindingsBase::MarshalStringArrayToPtr 0x600000a RVA 0x2154
+000c ldsfld 0xa000005 System.IntPtr::Zero
+0011 stloc.0 
+0012 ldarg.0 
+0013 brfalse.s 141
+0015 ldarg.0 
+0016 ldlen 
+0017 brfalse.s 141
+0019 ldarg.0 
+001a ldlen 
+001b conv.i4 
+001c call 0xa000017 System.IntPtr::get_Size
+0021 mul 
+0022 call 0xa000010 System.Runtime.InteropServices.Marshal::AllocHGlobal
+0027 stloc.0 
+0028 ldloc.0 
+0029 ldsfld 0xa000005 System.IntPtr::Zero
+002e call 0xa000006 System.IntPtr::op_Equality
+0033 brfalse.s 59
+0035 newobj 0xa000011 System.OutOfMemoryException::.ctor
+003a throw 
+003b ldc.i4.0 
+003c stloc.1 
+003d ldc.i4.0 
+003e stloc.1 
+003f br.s 92
+0041 ldarg.0 
+0042 ldloc.1 
+0043 ldelem.ref 
+0044 call 0x6000008 OpenTK.BindingsBase::MarshalStringToPtr
+0049 stloc.2 
+004a ldloc.0 
+004b ldloc.1 
+004c call 0xa000017 System.IntPtr::get_Size
+0051 mul 
+0052 ldloc.2 
+0053 call 0xa000018 System.Runtime.InteropServices.Marshal::WriteIntPtr
+0058 ldloc.1 
+0059 ldc.i4.1 
+005a add 
+005b stloc.1 
+005c ldloc.1 
+005d ldarg.0 
+005e ldlen 
+005f conv.i4 
+0060 blt.s 65
+0062 leave.s 141
+0064 pop 
+0065 ldloc.1 
+0066 ldc.i4.1 
+0067 sub 
+0068 stloc.1 
+0069 br.s 129
+006b ldloc.0 
+006c ldloc.1 
+006d call 0xa000017 System.IntPtr::get_Size
+0072 mul 
+0073 call 0xa000019 System.Runtime.InteropServices.Marshal::ReadIntPtr
+0078 call 0xa000016 System.Runtime.InteropServices.Marshal::FreeHGlobal
+007d ldloc.1 
+007e ldc.i4.1 
+007f sub 
+0080 stloc.1 
+0081 ldloc.1 
+0082 ldc.i4.0 
+0083 bge.s 107
+0085 ldloc.0 
+0086 call 0xa000016 System.Runtime.InteropServices.Marshal::FreeHGlobal
+008b rethrow 
+008d ldloc.0 
+008e ret 
+
+OpenTK.BindingsBase::FreeStringArrayPtr 0x600000b RVA 0x21f4
+000c ldc.i4.0 
+000d stloc.0 
+000e br.s 38
+0010 ldarg.0 
+0011 ldloc.0 
+0012 call 0xa000017 System.IntPtr::get_Size
+0017 mul 
+0018 call 0xa000019 System.Runtime.InteropServices.Marshal::ReadIntPtr
+001d call 0xa000016 System.Runtime.InteropServices.Marshal::FreeHGlobal
+0022 ldloc.0 
+0023 ldc.i4.1 
+0024 add 
+0025 stloc.0 
+0026 ldloc.0 
+0027 ldarg.1 
+0028 blt.s 16
+002a ldarg.0 
+002b call 0xa000016 System.Runtime.InteropServices.Marshal::FreeHGlobal
+0030 ret 
+
+OpenTK.Graphics.ES31.GL::glBindTexture 0x60033d3 RVA 0x0
+PINVOKE libGLESv2.dll ! glBindTexture
+
+OpenTK.Graphics.ES31.GL::glDisable 0x600340a RVA 0x0
+PINVOKE libGLESv2.dll ! glDisable
+
+OpenTK.Graphics.ES31.GL::glEnable 0x6003416 RVA 0x0
+PINVOKE libGLESv2.dll ! glEnable
+
+OpenTK.Graphics.ES31.GL::glShaderSource 0x60034c0 RVA 0x0
+PINVOKE libGLESv2.dll ! glShaderSource
+
+VirtualDesktop.Android.dll SHA256 e9046db10173059fd822d9e8918176e8ee6d54d15fb738790fde03fdb28ae984
+
+VirtualDesktop.VrApp::OnCreate 0x6000018 RVA 0x2248
+000c ldarg.0 
+000d stsfld 0xa000032 Xenko.Core.PlatformAndroid::Context
+0012 ldsfld 0x4000014 VirtualDesktop.VrApp::_game
+0017 brtrue 361
+001c ldnull 
+001d ldftn 0x6000024 VirtualDesktop.VrApp::OnDllImportResolver
+0023 newobj 0xa000033 System.Runtime.InteropServices.DllImportResolver::.ctor
+0028 stloc.0 
+0029 ldtoken 0x100005e OpenTK.Graphics.ES31.GL
+002e call 0xa000034 System.Type::GetTypeFromHandle
+0033 callvirt 0xa000035 System.Type::get_Assembly
+0038 ldloc.0 
+0039 call 0xa000036 System.Runtime.InteropServices.NativeLibrary::SetDllImportResolver
+003e ldtoken 0x1000060 Xenko.Graphics.GraphicsAdapter
+0043 call 0xa000034 System.Type::GetTypeFromHandle
+0048 callvirt 0xa000035 System.Type::get_Assembly
+004d ldloc.0 
+004e call 0xa000036 System.Runtime.InteropServices.NativeLibrary::SetDllImportResolver
+[Remaining OnCreate omitted: unrelated startup code; registration prefix above complete.]
+
+VirtualDesktop.VrApp::OnDllImportResolver 0x6000024 RVA 0x272f
+0001 ldarg.0 
+0002 call 0xa000078 System.IO.Path::GetExtension
+0007 ldstr '.dll'
+000c call 0xa000079 System.String::op_Equality
+0011 brfalse.s 32
+0013 ldarg.0 
+0014 ldstr '.so'
+0019 call 0xa00007a System.IO.Path::ChangeExtension
+001e starg.s argument(0x0000)
+0020 ldarg.0 
+0021 ldarg.1 
+0022 ldarg.2 
+0023 call 0xa00007b System.Runtime.InteropServices.NativeLibrary::Load
+0028 ret 
+
+Xenko.Graphics.dll SHA256 2cab7a326d45a328639cb7df380a212c9801e18d80876282e4b4b731feb0b3fa
+Source: build/vd-audit/Xenko.Graphics.il.txt:20029 (complete method)
+
+Xenko.Graphics.EffectProgram::CreateShaders RVA 0xfbdc
+000c ldarg.0 
+000d call Xenko.Graphics.GraphicsResourceBase::get_GraphicsDevice
+0012 callvirt Xenko.Graphics.GraphicsDevice::UseOpenGLCreationContext
+0017 stloc.0 
+0018 ldarg.0 
+0019 call OpenTK.Graphics.ES31.GL::CreateProgram
+001e stfld Xenko.Graphics.EffectProgram::ProgramId
+0023 ldarg.0 
+0024 ldfld Xenko.Graphics.EffectProgram::effectBytecode
+0029 ldfld Xenko.Shaders.EffectBytecode::Stages
+002e stloc.2 
+002f ldc.i4.0 
+0030 stloc.3 
+0031 br 390
+0036 ldloc.2 
+0037 ldloc.3 
+0038 ldelem.ref 
+0039 stloc.s local(0x0004)
+003b ldloc.s local(0x0004)
+003d ldfld Xenko.Shaders.ShaderBytecode::Stage
+0042 stloc.s local(0x000A)
+0044 ldloc.s local(0x000A)
+0046 ldc.i4.1 
+0047 beq.s 80
+0049 ldloc.s local(0x000A)
+004b ldc.i4.5 
+004c beq.s 89
+004e br.s 98
+0050 ldc.i4 35633
+0055 stloc.s local(0x0005)
+0057 br.s 109
+0059 ldc.i4 35632
+005e stloc.s local(0x0005)
+0060 br.s 109
+0062 ldstr 'Unsupported shader stage'
+0067 newobj System.Exception::.ctor
+006c throw 
+006d ldloc.s local(0x0004)
+006f callvirt Xenko.Shaders.ShaderBytecode::get_Data
+0074 call Xenko.Core.Serialization.BinarySerialization::Read
+0079 stloc.s local(0x0006)
+007b ldarg.0 
+007c call Xenko.Graphics.GraphicsResourceBase::get_GraphicsDevice
+0081 callvirt Xenko.Graphics.GraphicsDevice::get_IsOpenGLES2
+0086 brtrue.s 145
+0088 ldloc.s local(0x0006)
+008a ldfld Xenko.Shaders.ShaderLevelBytecode::DataES3
+008f br.s 152
+0091 ldloc.s local(0x0006)
+0093 ldfld Xenko.Shaders.ShaderLevelBytecode::DataES2
+0098 stloc.s local(0x0007)
+009a ldarg.0 
+009b ldfld Xenko.Graphics.EffectProgram::emulateDepthClamp
+00a0 brfalse.s 254
+00a2 ldstr 'void\\s+main\\s*\\(\\)'
+00a7 newobj System.Text.RegularExpressions.Regex::.ctor
+00ac stloc.s local(0x000B)
+00ae ldloc.s local(0x0005)
+00b0 ldc.i4 35633
+00b5 bne.un.s 215
+00b7 ldloc.s local(0x000B)
+00b9 ldloc.s local(0x0007)
+00bb ldstr 'void _edc_main()'
+00c0 callvirt System.Text.RegularExpressions.Regex::Replace
+00c5 stloc.s local(0x0007)
+00c7 ldloc.s local(0x0007)
+00c9 ldstr '\r\nout float _edc_z;\r\nvoid main()\r\n{\r\n    _edc_main();\r\n\r\n    // transform z to window coordinates\r\n    _edc_z = gl_Position.z / gl_Position.w;\r\n    _edc_z = (gl_DepthRange.diff * _edc_z + gl_DepthRange.near + gl_DepthRange.far) * 0.5;\r\n\r\n    // prevent z-clipping\r\n    gl_Position.z = clamp(_edc_z, 0.0, 1.0);\r\n}\r\n'
+00ce call System.String::Concat
+00d3 stloc.s local(0x0007)
+00d5 br.s 254
+00d7 ldloc.s local(0x0005)
+00d9 ldc.i4 35632
+00de bne.un.s 254
+00e0 ldloc.s local(0x000B)
+00e2 ldloc.s local(0x0007)
+00e4 ldstr 'void _edc_main()'
+00e9 callvirt System.Text.RegularExpressions.Regex::Replace
+00ee stloc.s local(0x0007)
+00f0 ldloc.s local(0x0007)
+00f2 ldstr '\r\nin float _edc_z;\r\nvoid main()\r\n{\r\n    gl_FragDepth = clamp(_edc_z, 0.0, 1.0);\r\n\r\n    _edc_main();\r\n}\r\n'
+00f7 call System.String::Concat
+00fc stloc.s local(0x0007)
+00fe ldloc.s local(0x0007)
+0100 ldstr '#define texelFetchBufferPlaceholder'
+0105 ldarg.0 
+0106 call Xenko.Graphics.GraphicsResourceBase::get_GraphicsDevice
+010b ldfld Xenko.Graphics.GraphicsDevice::HasTextureBuffers
+0110 brtrue.s 281
+0112 ldstr '#define samplerBuffer sampler2D\n#define isamplerBuffer isampler2D\n#define usamplerBuffer usampler2D\n#define texelFetchBuffer(sampler, P) texelFetch(sampler, ivec2((P) & 0xFFF, (P) >> 12), 0)\n'
+0117 br.s 286
+0119 ldstr '#define texelFetchBuffer(sampler, P) texelFetch(sampler, P)'
+011e callvirt System.String::Replace
+0123 stloc.s local(0x0007)
+0125 ldloc.s local(0x0005)
+0127 call OpenTK.Graphics.ES31.GL::CreateShader
+012c stloc.s local(0x0008)
+012e ldloc.s local(0x0008)
+0130 ldloc.s local(0x0007)
+0132 call OpenTK.Graphics.ES31.GL::ShaderSource
+0137 ldloc.s local(0x0008)
+0139 call OpenTK.Graphics.ES31.GL::CompileShader
+013e ldloc.s local(0x0008)
+0140 ldc.i4 35713
+0145 ldloca.s local(0x0009)
+0147 call OpenTK.Graphics.ES31.GL::GetShader
+014c ldloc.s local(0x0009)
+014e ldc.i4.1 
+014f beq.s 373
+0151 ldloc.s local(0x0008)
+0153 call OpenTK.Graphics.ES31.GL::GetShaderInfoLog
+0158 stloc.s local(0x000C)
+015a ldstr 'Error while compiling GLSL shader. [{0}]'
+015f ldc.i4.1 
+0160 newarr System.Object
+0165 dup 
+0166 ldc.i4.0 
+0167 ldloc.s local(0x000C)
+0169 stelem.ref 
+016a call Xenko.Core.StringExtensions::ToFormat
+016f newobj System.InvalidOperationException::.ctor
+0174 throw 
+0175 ldarg.0 
+0176 ldfld Xenko.Graphics.EffectProgram::ProgramId
+017b ldloc.s local(0x0008)
+017d call OpenTK.Graphics.ES31.GL::AttachShader
+0182 ldloc.3 
+0183 ldc.i4.1 
+0184 add 
+0185 stloc.3 
+0186 ldloc.3 
+0187 ldloc.2 
+0188 ldlen 
+0189 conv.i4 
+018a blt 54
+018f ldarg.0 
+0190 ldfld Xenko.Graphics.EffectProgram::ProgramId
+0195 call OpenTK.Graphics.ES31.GL::LinkProgram
+019a ldarg.0 
+019b ldfld Xenko.Graphics.EffectProgram::ProgramId
+01a0 ldc.i4 35714
+01a5 ldloca.s local(0x0001)
+01a7 call OpenTK.Graphics.ES31.GL::GetProgram
+01ac ldloc.1 
+01ad ldc.i4.1 
+01ae beq.s 463
+01b0 ldarg.0 
+01b1 ldfld Xenko.Graphics.EffectProgram::ProgramId
+01b6 call OpenTK.Graphics.ES31.GL::GetProgramInfoLog
+01bb stloc.s local(0x000D)
+01bd ldstr 'Error while linking GLSL shaders.\n'
+01c2 ldloc.s local(0x000D)
+01c4 call System.String::Concat
+01c9 newobj System.InvalidOperationException::.ctor
+01ce throw 
+01cf ldarg.0 
+01d0 call Xenko.Graphics.EffectProgram::get_Attributes
+01d5 callvirt <class 'dnfile.mdtable.TypeSpecRow'>::get_Count
+01da brtrue.s 575
+01dc ldarg.0 
+01dd ldfld Xenko.Graphics.EffectProgram::ProgramId
+01e2 ldc.i4 35721
+01e7 ldloca.s local(0x000E)
+01e9 call OpenTK.Graphics.ES31.GL::GetProgram
+01ee ldc.i4.0 
+01ef stloc.s local(0x000F)
+01f1 br.s 569
+01f3 ldarg.0 
+01f4 ldfld Xenko.Graphics.EffectProgram::ProgramId
+01f9 ldloc.s local(0x000F)
+01fb ldloca.s local(0x0010)
+01fd ldloca.s local(0x0011)
+01ff call OpenTK.Graphics.ES31.GL::GetActiveAttrib
+0204 stloc.s local(0x0012)
+0206 ldarg.0 
+0207 ldfld Xenko.Graphics.EffectProgram::ProgramId
+020c ldloc.s local(0x0012)
+020e call OpenTK.Graphics.ES31.GL::GetAttribLocation
+0213 stloc.s local(0x0013)
+0215 ldarg.0 
+0216 call Xenko.Graphics.EffectProgram::get_Attributes
+021b ldloc.s local(0x0012)
+021d callvirt <class 'dnfile.mdtable.TypeSpecRow'>::ContainsKey
+0222 brtrue.s 563
+0224 ldarg.0 
+0225 call Xenko.Graphics.EffectProgram::get_Attributes
+022a ldloc.s local(0x0012)
+022c ldloc.s local(0x0013)
+022e callvirt <class 'dnfile.mdtable.TypeSpecRow'>::Add
+0233 ldloc.s local(0x000F)
+0235 ldc.i4.1 
+0236 add 
+0237 stloc.s local(0x000F)
+0239 ldloc.s local(0x000F)
+023b ldloc.s local(0x000E)
+023d blt.s 499
+023f ldarg.0 
+0240 ldarg.0 
+0241 ldfld Xenko.Graphics.EffectProgram::Reflection
+0246 ldarg.0 
+0247 ldfld Xenko.Graphics.EffectProgram::effectBytecode
+024c ldfld Xenko.Shaders.EffectBytecode::Stages
+0251 ldc.i4.0 
+0252 ldelem.ref 
+0253 ldfld Xenko.Shaders.ShaderBytecode::Stage
+0258 call Xenko.Graphics.EffectProgram::CreateReflection
+025d ldarg.0 
+025e ldarg.0 
+025f ldfld Xenko.Graphics.EffectProgram::ConstantBufferOffsets
+0264 ldarg.0 
+0265 ldfld Xenko.Graphics.EffectProgram::ConstantBufferOffsets
+026a ldlen 
+026b conv.i4 
+026c ldc.i4.1 
+026d sub 
+026e ldelem.i4 
+026f newarr System.Byte
+0274 stfld Xenko.Graphics.EffectProgram::BoundUniforms
+0279 leave.s 649
+027b ldloca.s local(0x0000)
+027d constrained. Xenko.Graphics.UseOpenGLCreationContext
+0283 callvirt System.IDisposable::Dispose
+0288 endfinally 
+0289 ldarg.0 
+028a ldfld Xenko.Graphics.EffectProgram::reflectionResult
+028f callvirt Xenko.Core.Diagnostics.LoggerResult::get_Messages
+0294 callvirt <class 'dnfile.mdtable.TypeSpecRow'>::GetEnumerator
+0299 stloc.s local(0x0014)
+029b br.s 681
+029d ldloca.s local(0x0014)
+029f call <class 'dnfile.mdtable.TypeSpecRow'>::get_Current
+02a4 call System.Console::WriteLine
+02a9 ldloca.s local(0x0014)
+02ab call <class 'dnfile.mdtable.TypeSpecRow'>::MoveNext
+02b0 brtrue.s 669
+02b2 leave.s 706
+02b4 ldloca.s local(0x0014)
+02b6 constrained. <class 'dnfile.mdtable.TypeSpecRow'>
+02bc callvirt System.IDisposable::Dispose
+02c1 endfinally 
+02c2 ldarg.0 
+02c3 ldfld Xenko.Graphics.EffectProgram::reflectionResult
+02c8 callvirt Xenko.Core.Diagnostics.Logger::get_HasErrors
+02cd brfalse.s 808
+02cf ldarg.0 
+02d0 ldfld Xenko.Graphics.EffectProgram::reflectionResult
+02d5 callvirt Xenko.Core.Diagnostics.LoggerResult::get_Messages
+02da ldsfld .<>c::<>9__21_0
+02df dup 
+02e0 brtrue.s 761
+02e2 pop 
+02e3 ldsfld .<>c::<>9
+02e8 ldftn .<>c::<CreateShaders>b__21_0
+02ee newobj <class 'dnfile.mdtable.TypeSpecRow'>::.ctor
+02f3 dup 
+02f4 stsfld .<>c::<>9__21_0
+02f9 call System.Linq.Enumerable::Select
+02fe ldsfld .<>c::<>9__21_1
+0303 dup 
+0304 brtrue.s 797
+0306 pop 
+0307 ldsfld .<>c::<>9
+030c ldftn .<>c::<CreateShaders>b__21_1
+0312 newobj <class 'dnfile.mdtable.TypeSpecRow'>::.ctor
+0317 dup 
+0318 stsfld .<>c::<>9__21_1
+031d call System.Linq.Enumerable::Aggregate
+0322 newobj System.Exception::.ctor
+0327 throw 
+0328 ret 

@@ -1,0 +1,587 @@
+{
+  "schema": 1,
+  "measured_utc_date": "2026-09-22",
+  "scope": "Read-only static analysis of actual decoded inputs. No APK packaging, Android loader/GPU execution, headset, or panel proof. 5001712 decoded base is an analysis reconstruction.",
+  "strategy": "Rename 6 exact undefined import names and 4 exact chewInit lookup names; replace libGLESv3.so dependency with helper whose dependencies include original GLESv3/EGL. No executable instructions or dynsym definitions change.",
+  "bases": [
+    {
+      "version_name": "2.0.20",
+      "version_code": "5001712",
+      "file": "decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712/lib/arm64-v8a/libvrlink_scene.so",
+      "file_size": 2221072,
+      "sha256": "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495",
+      "build_id": "8a708e0235d67b2242920512a1915ba38f71f4d6",
+      "gles_dependency": {
+        "file_offset": "0x6f686",
+        "original": "libGLESv3.so",
+        "replacement": "libgxd.so",
+        "byte_length_including_nul": 12
+      },
+      "direct_import_renames": [
+        {
+          "original": "glShaderSource",
+          "replacement": "gxShaderSource",
+          "file_offset": "0x4a1b4",
+          "dynsym_index": 243,
+          "plt_got_vaddr": "0x21cb30"
+        },
+        {
+          "original": "glDrawArrays",
+          "replacement": "gxDrawArrays",
+          "file_offset": "0x318b6",
+          "dynsym_index": 20,
+          "plt_got_vaddr": "0x21ae48"
+        },
+        {
+          "original": "eglCreateContext",
+          "replacement": "gxdCreateContext",
+          "file_offset": "0x49af7",
+          "dynsym_index": 193,
+          "plt_got_vaddr": "0x21c968"
+        },
+        {
+          "original": "eglDestroyContext",
+          "replacement": "gxdDestroyContext",
+          "file_offset": "0x49b47",
+          "dynsym_index": 197,
+          "plt_got_vaddr": "0x21c988"
+        },
+        {
+          "original": "eglMakeCurrent",
+          "replacement": "gxdMakeCurrent",
+          "file_offset": "0x49b2c",
+          "dynsym_index": 195,
+          "plt_got_vaddr": "0x21c978"
+        },
+        {
+          "original": "eglTerminate",
+          "replacement": "gxdTerminate",
+          "file_offset": "0x49b6b",
+          "dynsym_index": 199,
+          "plt_got_vaddr": "0x21c998"
+        }
+      ],
+      "loader_name_renames": [
+        {
+          "original": "glCompileShader",
+          "replacement": "gxCompileShader",
+          "file_offset": "0xa59a7",
+          "lookup_table_index": 40,
+          "name_table_entry_vaddr": "0x21f718",
+          "function_pointer_table_entry_vaddr": "0x21f970",
+          "function_pointer_vaddr": "0xc5dda8",
+          "wrapper": {
+            "symbol": "glCompileShader",
+            "vaddr": "0x16c840",
+            "file_offset": "0x16c840",
+            "size": 16,
+            "sha256": "76b218da0d5c29c9a9f22833ef63917d3fcab0cc5f275b2d68af9b355b52ec51"
+          }
+        },
+        {
+          "original": "glLinkProgram",
+          "replacement": "gxLinkProgram",
+          "file_offset": "0xab149",
+          "lookup_table_index": 46,
+          "name_table_entry_vaddr": "0x21f748",
+          "function_pointer_table_entry_vaddr": "0x21f9a0",
+          "function_pointer_vaddr": "0xc5ddd8",
+          "wrapper": {
+            "symbol": "glLinkProgram",
+            "vaddr": "0x16c8a0",
+            "file_offset": "0x16c8a0",
+            "size": 16,
+            "sha256": "857a6127732e16291e7e8cd161322d336105bc6b633e3a250b77c2048ed5f1c7"
+          }
+        },
+        {
+          "original": "glDeleteShader",
+          "replacement": "gxDeleteShader",
+          "file_offset": "0x984da",
+          "lookup_table_index": 44,
+          "name_table_entry_vaddr": "0x21f738",
+          "function_pointer_table_entry_vaddr": "0x21f990",
+          "function_pointer_vaddr": "0xc5ddc8",
+          "wrapper": {
+            "symbol": "glDeleteShader",
+            "vaddr": "0x16c880",
+            "file_offset": "0x16c880",
+            "size": 16,
+            "sha256": "28db6dc044aa1ffac4884e93ec2cb8e7d9442311d0304ffbc5fb292aa6ef5dcc"
+          }
+        },
+        {
+          "original": "glDeleteProgram",
+          "replacement": "gxDeleteProgram",
+          "file_offset": "0xaa5bc",
+          "lookup_table_index": 43,
+          "name_table_entry_vaddr": "0x21f730",
+          "function_pointer_table_entry_vaddr": "0x21f988",
+          "function_pointer_vaddr": "0xc5ddc0",
+          "wrapper": {
+            "symbol": "glDeleteProgram",
+            "vaddr": "0x16c870",
+            "file_offset": "0x16c870",
+            "size": 16,
+            "sha256": "8f9e741858c85994ddb78f13d4de7c5519680db9877b5e7b7c1e017fae477e72"
+          }
+        }
+      ],
+      "loader": {
+        "symbol": "chewInit",
+        "vaddr": "0x16caac",
+        "file_offset": "0x16caac",
+        "size": 160,
+        "sha256": "4c478a48c72a9c1463a4ff7f5e6da1c29022899f9b1b6d606517ada6780202f6",
+        "name_table_vaddr": "0x21f5d8",
+        "pointer_table_vaddr": "0x21f830",
+        "entry_count": 75,
+        "resolution": "dlsym(RTLD_NEXT, name), then dlsym(NULL, name) on NULL result; preserve both calls and dynsym wrappers"
+      },
+      "stock_prefix": {
+        "file_offset": "0x9b4b8",
+        "size": 1087,
+        "sha256": "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a"
+      },
+      "suffixes": {
+        "base": {
+          "file_offset": "0x9d23d",
+          "size": 29,
+          "sha256": "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"
+        },
+        "fovea": {
+          "file_offset": "0xa6582",
+          "size": 296,
+          "sha256": "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623"
+        }
+      },
+      "renderer": {
+        "symbol": "_ZN18SRGBCorrectionPass14RenderSpecificEibj",
+        "vaddr": "0xf1af4",
+        "file_offset": "0xf1af4",
+        "size": 616,
+        "sha256": "4c905f1e24f02ea5e0c99bdba69aab311443c14af9a85f03005520985d490e7b",
+        "fovea_shader_member_offset": "0x28",
+        "base_shader_member_offset": "0x20",
+        "fovea_draw_call_vaddr": "0xf1c44",
+        "base_draw_call_vaddr": "0xf1d24",
+        "fovea_draw_return_vaddr": "0xf1c48",
+        "base_draw_return_vaddr": "0xf1d28"
+      },
+      "uniform_update": {
+        "symbol": "_ZN18SRGBCorrectionPass20UpdateShaderUniformsEv",
+        "vaddr": "0xf1948",
+        "file_offset": "0xf1948",
+        "size": 428,
+        "sha256": "dd38203bb41b89c84575a8318ab1bf9986aae93d310dfd4640dcd47c01bf0887"
+      },
+      "reserved_uniform_locations": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "new_uniform_locations": {
+        "SL_blueNoise": 14,
+        "SL_enabled": 15
+      },
+      "uniform_limit_note": "Disassembled UpdateShaderUniforms writes 4-11; RenderSpecific writes 3,6,12,13; embedded sampler uses 2. Reserve 0-13. Confirm active program uniform locations after every successful link; reject conflicts."
+    },
+    {
+      "version_name": "2.0.22",
+      "version_code": "5002244",
+      "file": "decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244/lib/arm64-v8a/libvrlink_scene.so",
+      "file_size": 2251920,
+      "sha256": "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12",
+      "build_id": "e3940de27daa672adfac32123a4145917357759b",
+      "gles_dependency": {
+        "file_offset": "0x68717",
+        "original": "libGLESv3.so",
+        "replacement": "libgxd.so",
+        "byte_length_including_nul": 12
+      },
+      "direct_import_renames": [
+        {
+          "original": "glShaderSource",
+          "replacement": "gxShaderSource",
+          "file_offset": "0x417b2",
+          "dynsym_index": 245,
+          "plt_got_vaddr": "0x227150"
+        },
+        {
+          "original": "glDrawArrays",
+          "replacement": "gxDrawArrays",
+          "file_offset": "0x28c7f",
+          "dynsym_index": 21,
+          "plt_got_vaddr": "0x225448"
+        },
+        {
+          "original": "eglCreateContext",
+          "replacement": "gxdCreateContext",
+          "file_offset": "0x410f4",
+          "dynsym_index": 195,
+          "plt_got_vaddr": "0x226f88"
+        },
+        {
+          "original": "eglDestroyContext",
+          "replacement": "gxdDestroyContext",
+          "file_offset": "0x4116c",
+          "dynsym_index": 201,
+          "plt_got_vaddr": "0x226fb8"
+        },
+        {
+          "original": "eglMakeCurrent",
+          "replacement": "gxdMakeCurrent",
+          "file_offset": "0x41129",
+          "dynsym_index": 197,
+          "plt_got_vaddr": "0x226f98"
+        },
+        {
+          "original": "eglTerminate",
+          "replacement": "gxdTerminate",
+          "file_offset": "0x41190",
+          "dynsym_index": 203,
+          "plt_got_vaddr": "0x226fc8"
+        }
+      ],
+      "loader_name_renames": [
+        {
+          "original": "glCompileShader",
+          "replacement": "gxCompileShader",
+          "file_offset": "0xa05f0",
+          "lookup_table_index": 40,
+          "name_table_entry_vaddr": "0x22cfd8",
+          "function_pointer_table_entry_vaddr": "0x22d230",
+          "function_pointer_vaddr": "0xc6b6d8",
+          "wrapper": {
+            "symbol": "glCompileShader",
+            "vaddr": "0x1739a0",
+            "file_offset": "0x1739a0",
+            "size": 16,
+            "sha256": "dfd3c9287bfaab31edefc5d32b13fc24b7afe4f1eb39d48b6a5c1a410e09e529"
+          }
+        },
+        {
+          "original": "glLinkProgram",
+          "replacement": "gxLinkProgram",
+          "file_offset": "0xa6003",
+          "lookup_table_index": 46,
+          "name_table_entry_vaddr": "0x22d008",
+          "function_pointer_table_entry_vaddr": "0x22d260",
+          "function_pointer_vaddr": "0xc6b708",
+          "wrapper": {
+            "symbol": "glLinkProgram",
+            "vaddr": "0x173a00",
+            "file_offset": "0x173a00",
+            "size": 16,
+            "sha256": "c0d7dabaa12c638746ce1afcb2e0b12cbc75b127a16ba676ab27def0722ea632"
+          }
+        },
+        {
+          "original": "glDeleteShader",
+          "replacement": "gxDeleteShader",
+          "file_offset": "0x92485",
+          "lookup_table_index": 44,
+          "name_table_entry_vaddr": "0x22cff8",
+          "function_pointer_table_entry_vaddr": "0x22d250",
+          "function_pointer_vaddr": "0xc6b6f8",
+          "wrapper": {
+            "symbol": "glDeleteShader",
+            "vaddr": "0x1739e0",
+            "file_offset": "0x1739e0",
+            "size": 16,
+            "sha256": "a4943f10686a85266bf0c5729f1497aefce14be8dc2115695485ac6d4dc65b48"
+          }
+        },
+        {
+          "original": "glDeleteProgram",
+          "replacement": "gxDeleteProgram",
+          "file_offset": "0xa5396",
+          "lookup_table_index": 43,
+          "name_table_entry_vaddr": "0x22cff0",
+          "function_pointer_table_entry_vaddr": "0x22d248",
+          "function_pointer_vaddr": "0xc6b6f0",
+          "wrapper": {
+            "symbol": "glDeleteProgram",
+            "vaddr": "0x1739d0",
+            "file_offset": "0x1739d0",
+            "size": 16,
+            "sha256": "1210188af534c55c8ced4ba24fea7f4715acbb0b5d87fc99d4819d65b2993d03"
+          }
+        }
+      ],
+      "loader": {
+        "symbol": "chewInit",
+        "vaddr": "0x173c0c",
+        "file_offset": "0x173c0c",
+        "size": 160,
+        "sha256": "715cf977c45b045d148e098f7988ceb37310c3feb31cca93c5769c0682fda23f",
+        "name_table_vaddr": "0x22ce98",
+        "pointer_table_vaddr": "0x22d0f0",
+        "entry_count": 75,
+        "resolution": "dlsym(RTLD_NEXT, name), then dlsym(NULL, name) on NULL result; preserve both calls and dynsym wrappers"
+      },
+      "stock_prefix": {
+        "file_offset": "0x957bc",
+        "size": 1087,
+        "sha256": "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a"
+      },
+      "suffixes": {
+        "base": {
+          "file_offset": "0x976e6",
+          "size": 29,
+          "sha256": "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"
+        },
+        "fovea": {
+          "file_offset": "0xa11d7",
+          "size": 296,
+          "sha256": "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623"
+        }
+      },
+      "renderer": {
+        "symbol": "_ZN18SRGBCorrectionPass14RenderSpecificEibj",
+        "vaddr": "0xee910",
+        "file_offset": "0xee910",
+        "size": 616,
+        "sha256": "8ce7ad238e140586f2914445a683d9260f83fe33a61e2e9c2fc53abc3908bdf5",
+        "fovea_shader_member_offset": "0x28",
+        "base_shader_member_offset": "0x20",
+        "fovea_draw_call_vaddr": "0xeea60",
+        "base_draw_call_vaddr": "0xeeb40",
+        "fovea_draw_return_vaddr": "0xeea64",
+        "base_draw_return_vaddr": "0xeeb44"
+      },
+      "uniform_update": {
+        "symbol": "_ZN18SRGBCorrectionPass20UpdateShaderUniformsEv",
+        "vaddr": "0xee764",
+        "file_offset": "0xee764",
+        "size": 428,
+        "sha256": "3d85244eb48e008561b0911f49450533299d1471b416c0b1ec9a2bf64d7a70ec"
+      },
+      "reserved_uniform_locations": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "new_uniform_locations": {
+        "SL_blueNoise": 14,
+        "SL_enabled": 15
+      },
+      "uniform_limit_note": "Disassembled UpdateShaderUniforms writes 4-11; RenderSpecific writes 3,6,12,13; embedded sampler uses 2. Reserve 0-13. Confirm active program uniform locations after every successful link; reject conflicts."
+    },
+    {
+      "version_name": "2.0.23",
+      "version_code": "5002363",
+      "file": "decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363/lib/arm64-v8a/libvrlink_scene.so",
+      "file_size": 2292008,
+      "sha256": "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0",
+      "build_id": "c31bb979123b76736930d3c820d8d0619fb5bed2",
+      "gles_dependency": {
+        "file_offset": "0x69956",
+        "original": "libGLESv3.so",
+        "replacement": "libgxd.so",
+        "byte_length_including_nul": 12
+      },
+      "direct_import_renames": [
+        {
+          "original": "glShaderSource",
+          "replacement": "gxShaderSource",
+          "file_offset": "0x425b2",
+          "dynsym_index": 246,
+          "plt_got_vaddr": "0x230cd0"
+        },
+        {
+          "original": "glDrawArrays",
+          "replacement": "gxDrawArrays",
+          "file_offset": "0x28f77",
+          "dynsym_index": 21,
+          "plt_got_vaddr": "0x22ef50"
+        },
+        {
+          "original": "eglCreateContext",
+          "replacement": "gxdCreateContext",
+          "file_offset": "0x41ef4",
+          "dynsym_index": 196,
+          "plt_got_vaddr": "0x230b08"
+        },
+        {
+          "original": "eglDestroyContext",
+          "replacement": "gxdDestroyContext",
+          "file_offset": "0x41f6c",
+          "dynsym_index": 202,
+          "plt_got_vaddr": "0x230b38"
+        },
+        {
+          "original": "eglMakeCurrent",
+          "replacement": "gxdMakeCurrent",
+          "file_offset": "0x41f29",
+          "dynsym_index": 198,
+          "plt_got_vaddr": "0x230b18"
+        },
+        {
+          "original": "eglTerminate",
+          "replacement": "gxdTerminate",
+          "file_offset": "0x41f90",
+          "dynsym_index": 204,
+          "plt_got_vaddr": "0x230b48"
+        }
+      ],
+      "loader_name_renames": [
+        {
+          "original": "glCompileShader",
+          "replacement": "gxCompileShader",
+          "file_offset": "0xa25b4",
+          "lookup_table_index": 40,
+          "name_table_entry_vaddr": "0x236bf0",
+          "function_pointer_table_entry_vaddr": "0x236e48",
+          "function_pointer_vaddr": "0xc74fb8",
+          "wrapper": {
+            "symbol": "glCompileShader",
+            "vaddr": "0x17c440",
+            "file_offset": "0x17c440",
+            "size": 16,
+            "sha256": "f696de7cf2419c18a1c452a1770d088145691d966390a095554a68a035aa4c6e"
+          }
+        },
+        {
+          "original": "glLinkProgram",
+          "replacement": "gxLinkProgram",
+          "file_offset": "0xa8140",
+          "lookup_table_index": 46,
+          "name_table_entry_vaddr": "0x236c20",
+          "function_pointer_table_entry_vaddr": "0x236e78",
+          "function_pointer_vaddr": "0xc74fe8",
+          "wrapper": {
+            "symbol": "glLinkProgram",
+            "vaddr": "0x17c4a0",
+            "file_offset": "0x17c4a0",
+            "size": 16,
+            "sha256": "7460e8d6d80b5c2c345a62f388fda723892fdb19c43286ab5f947169493bbb7d"
+          }
+        },
+        {
+          "original": "glDeleteShader",
+          "replacement": "gxDeleteShader",
+          "file_offset": "0x93c25",
+          "lookup_table_index": 44,
+          "name_table_entry_vaddr": "0x236c10",
+          "function_pointer_table_entry_vaddr": "0x236e68",
+          "function_pointer_vaddr": "0xc74fd8",
+          "wrapper": {
+            "symbol": "glDeleteShader",
+            "vaddr": "0x17c480",
+            "file_offset": "0x17c480",
+            "size": 16,
+            "sha256": "dc8c76065aedde40772dac980793605d4e2cf3d00634dfd2680501827bdba3cb"
+          }
+        },
+        {
+          "original": "glDeleteProgram",
+          "replacement": "gxDeleteProgram",
+          "file_offset": "0xa74a5",
+          "lookup_table_index": 43,
+          "name_table_entry_vaddr": "0x236c08",
+          "function_pointer_table_entry_vaddr": "0x236e60",
+          "function_pointer_vaddr": "0xc74fd0",
+          "wrapper": {
+            "symbol": "glDeleteProgram",
+            "vaddr": "0x17c470",
+            "file_offset": "0x17c470",
+            "size": 16,
+            "sha256": "dbdedd4db1ce76c6c85a38e6b7fc6c67be3e816cde3e620d53d6acec9d8c144e"
+          }
+        }
+      ],
+      "loader": {
+        "symbol": "chewInit",
+        "vaddr": "0x17c6ac",
+        "file_offset": "0x17c6ac",
+        "size": 160,
+        "sha256": "3f90f3e44ced8bf344e81d9fe1e08be2d8039e239e053e2efcf2f55e0071c6e3",
+        "name_table_vaddr": "0x236ab0",
+        "pointer_table_vaddr": "0x236d08",
+        "entry_count": 75,
+        "resolution": "dlsym(RTLD_NEXT, name), then dlsym(NULL, name) on NULL result; preserve both calls and dynsym wrappers"
+      },
+      "stock_prefix": {
+        "file_offset": "0x970a1",
+        "size": 1087,
+        "sha256": "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a"
+      },
+      "suffixes": {
+        "base": {
+          "file_offset": "0x99013",
+          "size": 29,
+          "sha256": "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"
+        },
+        "fovea": {
+          "file_offset": "0xa31bb",
+          "size": 296,
+          "sha256": "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623"
+        }
+      },
+      "renderer": {
+        "symbol": "_ZN18SRGBCorrectionPass14RenderSpecificEibj",
+        "vaddr": "0xf1a50",
+        "file_offset": "0xf1a50",
+        "size": 616,
+        "sha256": "d3ad75422bac1df96b5a647ef0c4fbdf34facf0800f0164c2eedfdfd0daac4d0",
+        "fovea_shader_member_offset": "0x28",
+        "base_shader_member_offset": "0x20",
+        "fovea_draw_call_vaddr": "0xf1ba0",
+        "base_draw_call_vaddr": "0xf1c80",
+        "fovea_draw_return_vaddr": "0xf1ba4",
+        "base_draw_return_vaddr": "0xf1c84"
+      },
+      "uniform_update": {
+        "symbol": "_ZN18SRGBCorrectionPass20UpdateShaderUniformsEv",
+        "vaddr": "0xf18a4",
+        "file_offset": "0xf18a4",
+        "size": 428,
+        "sha256": "cd6ec95d09c7fead86e91fdcec38e1576ac61ef1466f574f17d4c138f4fe3f5f"
+      },
+      "reserved_uniform_locations": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "new_uniform_locations": {
+        "SL_blueNoise": 14,
+        "SL_enabled": 15
+      },
+      "uniform_limit_note": "Disassembled UpdateShaderUniforms writes 4-11; RenderSpecific writes 3,6,12,13; embedded sampler uses 2. Reserve 0-13. Confirm active program uniform locations after every successful link; reject conflicts."
+    }
+  ]
+}

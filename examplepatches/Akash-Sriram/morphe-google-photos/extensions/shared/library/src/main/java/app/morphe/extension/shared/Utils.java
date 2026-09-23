@@ -431,19 +431,11 @@ public class Utils {
         } catch (Throwable t) {
             Logger.printInfo(() -> "seedPhenotypeEarly: PhenotypeSeedData failed: " + t);
         }
-        try {
-            app.morphe.extension.shared.patches.PhotosModelSeeder.ensureSeeded(context);
-        } catch (Throwable t) {
-            Logger.printInfo(() -> "seedPhenotypeEarly: PhotosModelSeeder failed: " + t);
-        }
     }
 
     public static void seedPhenotypeFlags(Context context) {
         try {
             app.morphe.extension.shared.patches.PhenotypeSeedData.ensureSeeded(context);
-        } catch (Throwable ignored) {}
-        try {
-            app.morphe.extension.shared.patches.PhotosModelSeeder.ensureSeeded(context);
         } catch (Throwable ignored) {}
     }
 

@@ -14,6 +14,31 @@ class PlaylistBottomBarFixturesTest {
     fun `playlist bar availability remains unique and guardable on every retained fixture`() {
         for (apk in Fixtures.apks()) {
             val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val modelClasses = container.dexEntryNames.flatMap { entry ->
+                container.getEntry(entry)!!.dexFile.classes.filter { classDef ->
+                    classDef.type == "Lcom/ss/android/ugc/aweme/feed/model/Aweme;" ||
+                        classDef.type == "Lcom/ss/android/ugc/aweme/feed/model/PlayListInfo;"
+                }
+            }
+            val aweme = modelClasses.single { it.type.endsWith("/Aweme;") }
+            val playlistInfo = modelClasses.single { it.type.endsWith("/PlayListInfo;") }
+            assertTrue(
+                "${apk.name}: Aweme playlist_info model",
+                aweme.fields.any {
+                    it.name == "playlist_info" &&
+                        it.type == "Lcom/ss/android/ugc/aweme/feed/model/PlayListInfo;"
+                } && aweme.methods.any {
+                    it.name == "getPlaylist_info" &&
+                        it.returnType == "Lcom/ss/android/ugc/aweme/feed/model/PlayListInfo;"
+                },
+            )
+            assertTrue(
+                "${apk.name}: PlayListInfo mix id contract",
+                playlistInfo.methods.any {
+                    it.name == "getMixId" && it.parameterTypes.isEmpty() &&
+                        it.returnType == "Ljava/lang/String;"
+                },
+            )
             val matches = container.dexEntryNames.flatMap { entry ->
                 container.getEntry(entry)!!.dexFile.classes.filter { classDef ->
                     classDef.type.endsWith("/InteractPlayListBottomBarAssem;")

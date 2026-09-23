@@ -507,9 +507,7 @@ public final class CommentSearch {
                 // "So far": TikTok pages comments and this has only seen the ones it loaded.
                 // The old line said "3 results" about the three rows that happened to be on
                 // screen, and changed as the reader scrolled past them.
-                next = matches.found == 1
-                        ? L10n.t(context, "1 result so far")
-                        : L10n.f(context, "%1$d results so far", matches.found);
+                next = L10n.quantity(context, matches.found, "1 result so far", "%1$d results so far");
             }
             if (!TextUtils.equals(status.getText(), next)) status.setText(next);
         }

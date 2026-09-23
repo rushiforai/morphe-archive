@@ -1,3 +1,5 @@
+import java.util.UUID
+
 group = "app.template"
 
 patches {
@@ -45,6 +47,12 @@ dependencies {
     testImplementation(kotlin("test-junit"))
 }
 
+// Morphe's D8 task unions compile and runtime classpaths, which resolve separately.
+// Follow runtime versions so that the union cannot contain 2 versions of a library.
+configurations.named("compileClasspath") {
+    shouldResolveConsistentlyWith(configurations.getByName("runtimeClasspath"))
+}
+
 val patchListGeneratorClasspath: Configuration =
     configurations.create("patchListGeneratorClasspath")
 
@@ -57,7 +65,7 @@ val extensionOutputDir = layout.buildDirectory.dir("generated/extension-resource
 val minimalExtensionOutputDir = layout.buildDirectory.dir("generated/minimal-extension-resources")
 
 // Assemble GxrSdlBridge + GalaxyXRPermissionActivity smali files into extension.mpe.
-val assembleExtension by tasks.registering(JavaExec::class) {
+val assembleExtension: TaskProvider<JavaExec> = tasks.register("assembleExtension", JavaExec::class) {
     group = "build"
     description = "Assemble extension smali files to extension.mpe (no Android SDK required)"
 
@@ -92,7 +100,7 @@ val assembleExtension by tasks.registering(JavaExec::class) {
 
 // Native-XR builds already have SDL/controller/hand routing. Their surviving permission/settings
 // patches need only new helper classes, never the legacy SDL class fragments from extension.mpe.
-val assembleMinimalExtension by tasks.registering(JavaExec::class) {
+val assembleMinimalExtension: TaskProvider<JavaExec> = tasks.register("assembleMinimalExtension", JavaExec::class) {
     group = "build"
     description = "Assemble the native-XR-safe permission/overlay helper extension"
 
@@ -122,7 +130,7 @@ val assembleMinimalExtension by tasks.registering(JavaExec::class) {
 }
 
 val batteryExtensionOutputDir = layout.buildDirectory.dir("generated/battery-extension-resources")
-val assembleBatteryExtension by tasks.registering(JavaExec::class) {
+val assembleBatteryExtension: TaskProvider<JavaExec> = tasks.register("assembleBatteryExtension", JavaExec::class) {
     group = "build"
     description = "Assemble battery-only settings helper without launcher or runtime permission changes"
     val source = file("src/main/resources/steamlink/androidxr/smali/com/valvesoftware/steamlink/GxrBatterySettings.smali")
@@ -156,16 +164,29 @@ tasks.named("sourcesJar") {
 tasks {
     register<JavaExec>("auditOledDecodedCompatibility") {
         group = "verification"
-        description = "Read-only OLED option audit against hash-pinned decoded 5001712, 5002322 and 5002363 libraries"
+        description = "Read-only OLED option audit across the 3 exact color-supported bases (5001712, 5002244, 5002363); a missing decoded input reports BLOCKED"
         dependsOn(classes)
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("util.OledDecodedCompatibilityAudit")
         args(rootProject.projectDir.absolutePath)
     }
 
+    register<JavaExec>("auditSdr10ShaderAssemble") {
+        group = "verification"
+        description = "Assemble the complete opaque/masked video shaders (production common prefix + each base's actual native suffixes) for the 3 exact color-supported bases; a missing decoded input reports BLOCKED; writes .glsl files and a report to a fresh output directory"
+        dependsOn(classes)
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("util.Sdr10ShaderAssembleAudit")
+        // The audit requires its output directory to be absent or empty, so give it a fresh one.
+        val assembleOutput = rootProject.layout.buildDirectory
+            .dir("sdr10-shader-assemble-${UUID.randomUUID()}")
+            .get().asFile
+        args(rootProject.projectDir.absolutePath, assembleOutput.absolutePath)
+    }
+
     register<JavaExec>("auditDecodedSteamLinkPatches") {
         group = "verification"
-        description = "Audit public 5001712/5002363 patches, high resolution on 7 bases, Visual Delay on 6 bases, and 5 recommendation fixtures"
+        description = "Audit public 5001712/5002363 patches, high resolution on 3 bases, Visual Delay on 3 bases, and 3 recommendation fixtures"
 
         dependsOn(classes)
         classpath = sourceSets["main"].runtimeClasspath
@@ -200,7 +221,7 @@ tasks {
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("util.VideoOutputAbGeneratorKt")
         args(
-            project.layout.projectDirectory.dir("../android-steamlinkvr-release-base-2.0.22-5002244").asFile.absolutePath,
+            project.layout.projectDirectory.dir("../decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244").asFile.absolutePath,
             rootProject.layout.buildDirectory.dir("video-output-ab-5002244").get().asFile.absolutePath,
         )
     }
@@ -209,6 +230,8 @@ tasks {
         description = "Build patch with patch list"
 
         dependsOn(build)
+        // Validate Android DEX packaging before release preparation updates catalogs.
+        dependsOn("buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")

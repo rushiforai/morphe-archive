@@ -823,6 +823,57 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoTalkPostInte
         )
         else -> error("ChMate 226 Talk posting invocation registers were not found")
     }
+
+    val sessionMethod = mutableClassDefBy("Lo/getSelectedProtocol;").methods.single { candidate ->
+        candidate.name == "d"
+            && candidate.returnType == "Ljava/lang/String;"
+            && candidate.parameterTypes.map(CharSequence::toString) ==
+                listOf("Lo/OpenJSSEPlatformCompanion;")
+    }
+    val sessionInstructions = sessionMethod.implementation?.instructions
+        ?: error("ChMate 226 Talk session method has no implementation")
+    val sessionInvocations = sessionInstructions.indices.filter { sessionIndex ->
+        val reference = (sessionInstructions[sessionIndex] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@filter false
+        if (reference.definingClass != "Ljava/lang/reflect/Method;"
+            || reference.name != "invoke"
+            || reference.returnType != "Ljava/lang/Object;"
+            || reference.parameterTypes.map(CharSequence::toString) != listOf(
+                "Ljava/lang/Object;", "[Ljava/lang/Object;"
+            )
+            || sessionInstructions.getOrNull(sessionIndex + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT
+        ) return@filter false
+        val cast = sessionInstructions.getOrNull(sessionIndex + 2) as? ReferenceInstruction
+            ?: return@filter false
+        cast.opcode == Opcode.CHECK_CAST && cast.reference.toString() == "Ljava/lang/String;"
+    }
+    check(sessionInvocations.size == 1) {
+        "Expected one ChMate 226 Talk session invocation, found ${sessionInvocations.size}"
+    }
+    val sessionIndex = sessionInvocations.single()
+    when (val invocation = sessionInstructions[sessionIndex]) {
+        is FiveRegisterInstruction -> sessionMethod.replaceInstruction(
+            sessionIndex,
+            "invoke-static {v${invocation.registerC}, v${invocation.registerD}, " +
+                "v${invocation.registerE}}, $EXTENSION->invokePreIoTalkAuthenticator(" +
+                "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                "Ljava/lang/Object;",
+        )
+        is RegisterRangeInstruction -> sessionMethod.replaceInstruction(
+            sessionIndex,
+            "invoke-static/range {v${invocation.startRegister} .. " +
+                "v${invocation.startRegister + 2}}, " +
+                "$EXTENSION->invokePreIoTalkAuthenticator(Ljava/lang/reflect/Method;" +
+                "Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;",
+        )
+        else -> error("ChMate 226 Talk session invocation registers were not found")
+    }
+
+    // Unlike 191, 226 resolves its generated write key before the reflected
+    // poster is invoked. Removing talk_write_key at method entry makes that
+    // resolver throw NullPointerException before the integrity wrapper can run.
+    // Keep 226's persisted session intact and repair only o.head at the exact
+    // reflected invocation boundary, which is the proven 1.3.0 behavior.
 }
 
 /**
@@ -939,6 +990,50 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkAuthInt
             else -> error("ChMate legacy Talk authenticator registers were not found")
         }
     }
+
+    val postMethod = mutableClassDefBy("Lo/getLabel;").methods.single { candidate ->
+        candidate.name == "b"
+            && candidate.returnType == "Lo/getMediatedNetwork;"
+            && candidate.parameterTypes.map(CharSequence::toString) == listOf(
+                "Lo/r8lambdaz0gPFulMuhJ_LGn4qb5HDvuDsis;",
+                "Lo/getCredentials\$write;",
+                "Lo/getLabel\$read;",
+            )
+    }
+    postMethod.addInstruction(
+        0,
+        "invoke-static {}, $EXTENSION->prepareLegacyTalkPostSession()V",
+    )
+
+    // The 401 confirmation flow persists x-write-key before asking the user.
+    // Cancelling drops the matching one-shot extend token, so discard only the
+    // renewable Talk write session before the original error path continues.
+    val postInstructions = postMethod.implementation?.instructions?.toList()
+        ?: error("ChMate legacy Talk post method has no implementation")
+    val confirmationCallbacks = postInstructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: return@mapIndexedNotNull null
+        if (reference.definingClass == "Lo/getLabel\$read;"
+            && reference.name == "e"
+            && reference.returnType == "Z"
+            && reference.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;")
+            && postInstructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
+        ) index else null
+    }
+    check(confirmationCallbacks.size == 1) {
+        "Expected one ChMate legacy Talk confirmation callback, found ${confirmationCallbacks.size}"
+    }
+    val callbackIndex = confirmationCallbacks.single()
+    val acceptedRegister = (postInstructions[callbackIndex + 1] as OneRegisterInstruction).registerA
+    postMethod.addInstructionsWithLabels(
+        callbackIndex + 2,
+        """
+            if-nez v$acceptedRegister, :haiagaru_talk_confirmation_accepted
+            invoke-static {}, $EXTENSION->resetLegacyTalkPostSession()V
+            :haiagaru_talk_confirmation_accepted
+            nop
+        """.trimIndent(),
+    )
 }
 
 /** Bypass 241's generated signature gate by publishing the Talk JSON as DAT. */
@@ -1037,6 +1132,51 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoTalkPostIntegri
                 "Ljava/lang/Object;",
         )
         else -> error("ChMate 241 Talk posting invocation registers were not found")
+    }
+
+    // 241 resolves the renewable Talk key through another generated method
+    // immediately before the poster. The reflected call returns a small holder
+    // whose `c` field contains the key, rather than returning String directly.
+    // Protect that invocation as well; otherwise stale/signature-derived state
+    // can fail before the already-wrapped header builder is reached.
+    val currentInstructions = method.implementation!!.instructions
+    val keyInvocations = currentInstructions.indices.filter { keyIndex ->
+        if (keyIndex >= index) return@filter false
+        val reference = (currentInstructions[keyIndex] as? ReferenceInstruction)?.reference
+            as? MethodReference ?: return@filter false
+        if (reference.definingClass != "Ljava/lang/reflect/Method;"
+            || reference.name != "invoke"
+            || reference.returnType != "Ljava/lang/Object;"
+            || reference.parameterTypes.map(CharSequence::toString) != listOf(
+                "Ljava/lang/Object;", "[Ljava/lang/Object;"
+            )
+            || currentInstructions.getOrNull(keyIndex + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT
+        ) return@filter false
+        val cast = currentInstructions.getOrNull(keyIndex + 2) as? ReferenceInstruction
+            ?: return@filter false
+        cast.opcode == Opcode.CHECK_CAST
+            && cast.reference.toString() == "Lo/setTimeUpdate\$RemoteActionCompatParcelizer;"
+    }
+    check(keyInvocations.size == 1) {
+        "Expected one ChMate 241 Talk key invocation, found ${keyInvocations.size}"
+    }
+    val keyIndex = keyInvocations.single()
+    when (val invocation = currentInstructions[keyIndex]) {
+        is FiveRegisterInstruction -> method.replaceInstruction(
+            keyIndex,
+            "invoke-static {v${invocation.registerC}, v${invocation.registerD}, " +
+                "v${invocation.registerE}}, $EXTENSION->invokeIoTalkPoster(" +
+                "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                "Ljava/lang/Object;",
+        )
+        is RegisterRangeInstruction -> method.replaceInstruction(
+            keyIndex,
+            "invoke-static/range {v${invocation.startRegister} .. " +
+                "v${invocation.startRegister + 2}}, $EXTENSION->invokeIoTalkPoster(" +
+                "Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)" +
+                "Ljava/lang/Object;",
+        )
+        else -> error("ChMate 241 Talk key invocation registers were not found")
     }
 }
 
@@ -2810,8 +2950,11 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoDomainCompat
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompatibility() {
     // The 191 Talk menu adapter converts classic.talk-platform.com entries to
-    // talk.jp/boards/<board>. Its legacy BBSUrlInfo parser only accepts the
-    // root form talk.jp/<board>, so every parsed board is otherwise discarded.
+    // talk.jp/boards/<board>. Keep that form: the legacy BBSUrlInfo parser
+    // recognizes /boards/<board> as Talk type 4, while talk.jp/<board> returns
+    // null and causes BBSMenuUpdateWork to reject an otherwise valid menu as
+    // containing zero boards. Validate the structural site so a future target
+    // change fails during patching instead of silently disabling Talk menus.
     val talkMenuAdapter = mutableClassDefBy("Lo/setRequestLatencyMillis;")
     val talkBoardPrefixSites = talkMenuAdapter.methods.flatMap { method ->
         method.implementation?.instructions.orEmpty().mapIndexedNotNull { index, instruction ->
@@ -2827,9 +2970,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
     check(talkBoardPrefixSites.size == 1) {
         "ChMate 191 Talk board URL prefix site was not uniquely identified"
     }
-    talkBoardPrefixSites.single().let { (method, index, register) ->
-        method.replaceInstruction(index, "const-string v$register, \"https://talk.jp/\"")
-    }
+    talkBoardPrefixSites.single()
 
     val urlInfoClass = mutableClassDefBy("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
     val legacyLinkParserType =
@@ -3464,7 +3605,22 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchEdgeReporterHisto
         }
     }
     check(captures > 0) { "Subject metadata capture missing: $version" }
-    if (version != "0.8.10.191 dev") {
+    if (version == "0.8.10.191 dev") {
+        // 1.3.4 moved the legacy editor bridge to a fragment-only API so it can
+        // resolve the current view after recreation, but accidentally removed
+        // the bytecode call site at the same time.  Without this hook, captured
+        // reporter IDs still reach history while the NG editor never exposes
+        // the reporter-ID choices.  Invoke it after onViewCreated has completed;
+        // EdgeReporterHistory resolves getView() and preserves the stock editor.
+        mutableClassDefBy("Lo/MaxFullscreenAdImplExternalSyntheticLambda4;").methods.single {
+            it.name == "onViewCreated"
+                && it.returnType == "V"
+                && it.parameters.map(CharSequence::toString) ==
+                listOf("Landroid/view/View;", "Landroid/os/Bundle;")
+        }.addBeforeEveryReturn(
+            "invoke-static/range {p0 .. p0}, $runtime->addLegacyButton(Ljava/lang/Object;)V"
+        )
+    } else {
         val owner = when (version) {
             "0.8.10.226 dev" -> "Lo/getSegmentsokio;"
             "0.8.10.241" -> "Lo/TTRewardVideoActivity2;"

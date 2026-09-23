@@ -1,0 +1,535 @@
+{
+  "date": "2026-09-15",
+  "experiment": "udp-receive-buffer-v1",
+  "artifact": {
+    "Status": "passed",
+    "Artifact": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\patches\\build\\libs\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+    "Sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+    "AuditDirectory": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915",
+    "ApkCases": 16,
+    "Inputs": "2 verified original APKs; no reconstructed fallback",
+    "Validation": "Cached compile/JUnit; MPP-first Morphe APK audits; 4 catalogs",
+    "SignedOrInstalled": false
+  },
+  "tests": {
+    "tests": 118,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "sources": {
+    "patches/src/main/kotlin/app/template/patches/steamlink/binary/UdpReceiveBufferPatch.kt": "40f517f9d2240ef6a0cfe86820a0e4d4a0fc64d1160bfa5fef5667a778c7b1c2",
+    "patches/src/test/kotlin/app/template/patches/steamlink/binary/UdpReceiveBufferPatchTest.kt": "7de5c9c0247c272c6ec13e8696f85da3c2cf41b1f2baf8686918e7f693925abf",
+    "patches/src/main/kotlin/util/UdpReceiveBufferApkAudit.kt": "d4e332059b17365e4abdff7820ddf87392188f0955899206f4335850c29ca916",
+    "diagnostics/steamlink-hitches/Build-UdpExperiment.ps1": "6c105e8b6e9afe9f3ce921849690acfaf4e04906ba53a40872297feab330bad4",
+    "patches/src/main/kotlin/app/template/patches/steamlink/RecommendedPatchBundles.kt": "e83dfbd58b903db751a2bae513ae18a76327156dd14140665671b229a13fe3e0"
+  },
+  "cases": [
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "baseline",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "output_sha256": "3bc948b89bc751c1441ef7f8651a2477fa9ade1d5f31b9e4a1200af491c1a114",
+      "scene_sha256": "8696a639cb0bf7c4b4dd9f63676f518b6392e7d8dad14a52af51210bb3c50452",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "UDP archive audit: baseline"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "baseline-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-baseline-observe\\result-unsigned.apk",
+      "output_sha256": "71dd452c1c306e1b75c4ff089c7700efd328db4a0e7d1b0fcef628b3b6c16aed",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: baseline-observe"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-bundle-first\\result-unsigned.apk",
+      "output_sha256": "48f16293dc959dde1151e25d9812ba94f9d294c8a4847a7e19b1ee4307776d91",
+      "scene_sha256": "79bdf38ff1a5556eb6f90f39204b0c286d67f73fb229533591e48e29a36db975",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "reference_sha256": "3bc948b89bc751c1441ef7f8651a2477fa9ade1d5f31b9e4a1200af491c1a114",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1745a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "observe-udp-last",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-observe-udp-last\\result-unsigned.apk",
+      "output_sha256": "18b48a70a4d2a0f2b9819b23bdf6286876804b0ccf71ab1133c89807fcbe8217",
+      "scene_sha256": "4ea1fb27c39767a8b2f55a146af98a779fa676979e9ca4b460b8318d3fcfb3cb",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "71dd452c1c306e1b75c4ff089c7700efd328db4a0e7d1b0fcef628b3b6c16aed",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1745a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)",
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: observe-udp-last"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "reapply",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-observe-udp-last\\result-unsigned.apk",
+      "input_sha256": "18b48a70a4d2a0f2b9819b23bdf6286876804b0ccf71ab1133c89807fcbe8217",
+      "signature_check_skipped_reason": "Unsigned previous audit result",
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-reapply\\result-unsigned.apk",
+      "output_sha256": "18b48a70a4d2a0f2b9819b23bdf6286876804b0ccf71ab1133c89807fcbe8217",
+      "scene_sha256": "4ea1fb27c39767a8b2f55a146af98a779fa676979e9ca4b460b8318d3fcfb3cb",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-observe-udp-last\\result-unsigned.apk",
+      "reference_sha256": "18b48a70a4d2a0f2b9819b23bdf6286876804b0ccf71ab1133c89807fcbe8217",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [],
+      "reapplication_all_content_identical": true,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: reapply"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-standalone\\result-unsigned.apk",
+      "output_sha256": "1a0a49ce743fd07fa93a4536689445fcd0d568e254d2b474e287313e82d6b5f3",
+      "scene_sha256": "e945223f841c578e2a71d81d311fb89f7742ce534562212e9138ab569cefea84",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "reference_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1745a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "udp-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-udp-first\\result-unsigned.apk",
+      "output_sha256": "fbef276375fd9f2efb5ead3ff8de316cb2f2ca39297c5a5b09f8a905d2e85103",
+      "scene_sha256": "79bdf38ff1a5556eb6f90f39204b0c286d67f73fb229533591e48e29a36db975",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "reference_sha256": "3bc948b89bc751c1441ef7f8651a2477fa9ade1d5f31b9e4a1200af491c1a114",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1745a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "UDP archive audit: udp-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "udp-first-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-udp-first-observe\\result-unsigned.apk",
+      "output_sha256": "359afa28c8125c83a07403c3fa4f3e199cde174a087d34399b0a5ee40a8aa234",
+      "scene_sha256": "4ea1fb27c39767a8b2f55a146af98a779fa676979e9ca4b460b8318d3fcfb3cb",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002322-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "71dd452c1c306e1b75c4ff089c7700efd328db4a0e7d1b0fcef628b3b6c16aed",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1745a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: udp-first-observe"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "baseline",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "output_sha256": "d5f925d48367c92f8a7487e290147760638ddfb5ec6b2c699c95dcacf54cdf89",
+      "scene_sha256": "377547082a561b7c1f9eb3cfe9314f94b2e57602f3dea917fa8a27526d626f5b",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "UDP archive audit: baseline"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "baseline-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-baseline-observe\\result-unsigned.apk",
+      "output_sha256": "8629fe811badda0742994cecca69e8d69bc89d497f6ca397b78842ce7d6b936b",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: baseline-observe"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-bundle-first\\result-unsigned.apk",
+      "output_sha256": "926cdf403872f2add69404f66e4347cfbf5e0007f715003fcce73f4a9aa2339f",
+      "scene_sha256": "df596eeb8af785c086baff8f91d0a00052a988e8020a6e8a3f0ebafe61603111",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "reference_sha256": "d5f925d48367c92f8a7487e290147760638ddfb5ec6b2c699c95dcacf54cdf89",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1757a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "observe-udp-last",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-observe-udp-last\\result-unsigned.apk",
+      "output_sha256": "dd27ea5e07a8d46e58b3f2cf426375059493527d0baea018cd89a70cb366729f",
+      "scene_sha256": "cbf0478462361237cd07329b84cf32d9119453e8a6ff9f0540bb78ff246c2d90",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "8629fe811badda0742994cecca69e8d69bc89d497f6ca397b78842ce7d6b936b",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1757a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)",
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: observe-udp-last"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "reapply",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-observe-udp-last\\result-unsigned.apk",
+      "input_sha256": "dd27ea5e07a8d46e58b3f2cf426375059493527d0baea018cd89a70cb366729f",
+      "signature_check_skipped_reason": "Unsigned previous audit result",
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-reapply\\result-unsigned.apk",
+      "output_sha256": "dd27ea5e07a8d46e58b3f2cf426375059493527d0baea018cd89a70cb366729f",
+      "scene_sha256": "cbf0478462361237cd07329b84cf32d9119453e8a6ff9f0540bb78ff246c2d90",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-observe-udp-last\\result-unsigned.apk",
+      "reference_sha256": "dd27ea5e07a8d46e58b3f2cf426375059493527d0baea018cd89a70cb366729f",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [],
+      "reapplication_all_content_identical": true,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: reapply"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-standalone\\result-unsigned.apk",
+      "output_sha256": "29aaa2558831d83b5a3714f3f52244e30f4da4c31b0f2b4ffe7bba9547d52b52",
+      "scene_sha256": "3bd6db60bac74055ce434c6e6a2128ae6e77fbb04626df70dcd2a0c86279a579",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "reference_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1757a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "udp-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-udp-first\\result-unsigned.apk",
+      "output_sha256": "c649b37feb0d9d9793a58104b1c3447ead7195ad4fc3a215b1e6c11265e1c163",
+      "scene_sha256": "df596eeb8af785c086baff8f91d0a00052a988e8020a6e8a3f0ebafe61603111",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "reference_sha256": "d5f925d48367c92f8a7487e290147760638ddfb5ec6b2c699c95dcacf54cdf89",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1757a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "UDP archive audit: udp-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "udp-first-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\patches-1.18.0-dev.3-udp-receive-buffer-local.mpp",
+      "archive_sha256": "10dea5f3cb501903f527a2fd31ebfce50c22fb4e14c40cb32f522a6238c30de6",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-udp-first-observe\\result-unsigned.apk",
+      "output_sha256": "b7be356c6ebea0000d3640d89f4b06b83447975463bee24dd21c8c15e5dcb950",
+      "scene_sha256": "cbf0478462361237cd07329b84cf32d9119453e8a6ff9f0540bb78ff246c2d90",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\udp-receive-buffer\\validation-20260915\\apks\\5002363-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "8629fe811badda0742994cecca69e8d69bc89d497f6ca397b78842ce7d6b936b",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "udp_changed_offsets": [
+        "0x1757a9"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "UDP receive buffer (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "UDP archive audit: udp-first-observe"
+      ],
+      "signed_or_installed": false
+    }
+  ],
+  "catalog_regression": [
+    {
+      "catalog": "patches-list.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.3"
+    },
+    {
+      "catalog": "patches-list-all.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.3"
+    },
+    {
+      "catalog": "patches-list-stable.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 0,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.3"
+    },
+    {
+      "catalog": "patches-list-experimental.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.3"
+    }
+  ],
+  "runtime": "Pending user installation; no ADB, signing/deployment or measured improvement in this build",
+  "prior_experiments": "asyncSend=true, decoder staging v1, and 400-to-150 Mbps comparison did not solve freezes; see TRIED-EXPERIMENTS.md"
+}

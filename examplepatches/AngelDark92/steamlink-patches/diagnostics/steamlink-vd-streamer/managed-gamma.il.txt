@@ -1,0 +1,1084 @@
+0x6000413 'VirtualDesktop.Streamer.OculusStreamer'::'\x01' RVA 0x28ab8 signature=200201080a
+000c ldc.i4.s 14
+000e localloc 
+0010 conv.u 
+0011 br 2221
+0016 br 1919
+001b br 1929
+0020 br 1935
+0025 br 1941
+002a stfld 0x40002d0 '.\x04'::'\x01'
+002f br 1947
+0034 ldfld 0x400028c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0039 ldc.i4.0 
+003a conv.u 
+003b bne.un.s 66
+003d leave 2220
+0042 br 1953
+0047 ldfld 0x4000297 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+004c br 1959
+0051 br 1965
+0056 brtrue.s 91
+0058 ldc.i4.0 
+0059 br.s 97
+005b ldloc.2 
+005c callvirt 0x602115a '\x88\x02.\x05'::'\x01'
+0061 ldloc.1 
+0062 ldfld 0x40002d0 '.\x04'::'\x01'
+0067 beq.s 217
+0069 ldarg.0 
+006a ldloc.1 
+006b ldfld 0x40002d0 '.\x04'::'\x01'
+0070 newobj 0x6021159 '\x88\x02.\x05'::'.ctor'
+0075 stfld 0x4000297 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+007a ldarg.0 
+007b ldfld 0x4000297 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+0080 ldarg.0 
+0081 ldftn 0x600042f 'VirtualDesktop.Streamer.OculusStreamer'::'\x1c'
+0087 newobj 0xa0006ee 'System.EventHandler'::'.ctor'
+008c callvirt 0x6021156 '\x88\x02.\x05'::'\x01'
+0091 ldloc.2 
+0092 brfalse.s 217
+0094 ldloc.2 
+0095 ldarg.0 
+0096 ldftn 0x600042f 'VirtualDesktop.Streamer.OculusStreamer'::'\x1c'
+009c newobj 0xa0006ee 'System.EventHandler'::'.ctor'
+00a1 callvirt 0x6021157 '\x88\x02.\x05'::'\x02'
+00a6 ldarg.0 
+00a7 ldfld 0x4000296 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+00ac callvirt 0x602115e '\x88\x02.\x05'::'\x01'
+00b1 brfalse.s 211
+00b3 ldarg.0 
+00b4 ldfld 0x4000296 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+00b9 callvirt 0x602115a '\x88\x02.\x05'::'\x01'
+00be ldloc.2 
+00bf callvirt 0x602115a '\x88\x02.\x05'::'\x01'
+00c4 bne.un.s 211
+00c6 ldloc.2 
+00c7 callvirt 0x6021165 '\x88\x02.\x05'::'\x03'
+00cc call 0x60001e2 'VirtualDesktop.Streamer.GameManager'::'\x01'
+00d1 br.s 217
+00d3 ldloc.2 
+00d4 callvirt 0x6021161 '\x88\x02.\x05'::'\x02'
+00d9 ldarg.0 
+00da ldfld 0x4000297 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+00df dup 
+00e0 brtrue.s 230
+00e2 pop 
+00e3 ldnull 
+00e4 br.s 235
+00e6 call 0x602115c '\x88\x02.\x05'::'\x01'
+00eb stloc.3 
+00ec ldloc.0 
+00ed ldc.i4.s 12
+00ef add 
+00f0 ldsfld 0x4016107 '.\x13'::'\x9e\x02'
+00f5 ldloc.3 
+00f6 ldstr 0x7000729f 'vrserver'
+00fb call 0x6022d2e '.\x13'::'Invoke'
+0100 stind.i1 
+0101 ldloc.0 
+0102 ldc.i4.s 13
+0104 add 
+0105 ldc.i4.0 
+0106 stind.i1 
+0107 ldloc.0 
+0108 ldc.i4.s 12
+010a add 
+010b ldind.i1 
+010c brfalse.s 354
+010e call 0x600045a 'VirtualDesktop.Streamer.StreamerManager'::'\x01'
+0113 callvirt 0x60003fd 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0118 brtrue.s 354
+011a call 0xa0006ff TypeSpecRow::'get_Default'
+011f callvirt 0x6021393 'VirtualDesktop.Mobile.SharedUserSettings'::'get_ForwardTrackingData'
+0124 brfalse.s 354
+0126 ldloc.0 
+0127 ldc.i4.s 13
+0129 add 
+012a ldc.i4.1 
+012b stind.i1 
+012c ldc.i4.s 40
+012e call 0x6021485 'VirtualDesktop.Net.NetMessage'::'\x01'
+0133 call 0x600016f 'VirtualDesktop.Streamer.ConnectionManager'::'\x01'
+0138 callvirt 0x602147e 'VirtualDesktop.Net.NetMessage'::'\x01'
+013d ldsfld 0x40002ca '.<>c'::'<>9__124_0'
+0142 dup 
+0143 brtrue.s 348
+0145 pop 
+0146 ldsfld 0x40002c7 '.<>c'::'<>9'
+014b ldftn 0x600043f '.<>c'::'\x01'
+0151 newobj 0xa0006ef 'System.Action'::'.ctor'
+0156 dup 
+0157 stsfld 0x40002ca '.<>c'::'<>9__124_0'
+015c call 0xa0001c2 'System.Threading.Tasks.Task'::'Run'
+0161 pop 
+0162 ldarg.0 
+0163 ldloc.3 
+0164 brfalse.s 371
+0166 ldsfld 0x400027a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+016b ldloc.3 
+016c callvirt 0xa0006e5 TypeSpecRow::'Contains'
+0171 br.s 372
+0173 ldc.i4.0 
+0174 stfld 0x40002b6 'VirtualDesktop.Streamer.OculusStreamer'::'\x04'
+0179 ldloc.1 
+017a ldftn 0x6000447 '.\x04'::'\x01'
+0180 newobj 0xa00082f TypeSpecRow::'.ctor'
+0185 ldc.i4.0 
+0186 ldc.i4.s 50
+0188 call 0xa00090c TypeSpecRow::'\x01'
+018d pop 
+018e ldarg.0 
+018f ldfld 0x400029d 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0194 brfalse.s 431
+0196 ldarg.2 
+0197 ldarg.0 
+0198 ldflda 0x4000299 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+019d ldfld 0x400933d 'SharpDX.DXGI.AdapterDescription'::'Luid'
+01a2 bne.un.s 431
+01a4 ldarg.0 
+01a5 ldfld 0x40002b3 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+01aa brfalse 1703
+01af ldarg.0 
+01b0 call 0x6000404 'VirtualDesktop.Streamer.OculusStreamer'::'\x03'
+01b5 ldarg.0 
+01b6 call 0x600040b 'VirtualDesktop.Streamer.OculusStreamer'::'\x07'
+01bb newobj 0x600b2cd 'SharpDX.DXGI.Factory1'::'.ctor'
+01c0 stloc.s local(0x0009)
+01c2 ldarg.0 
+01c3 ldloc.s local(0x0009)
+01c5 ldarg.2 
+01c6 ldarg.0 
+01c7 ldflda 0x4000299 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+01cc call 0x60000f2 '\x1b\x02.\x01'::'\x01'
+01d1 stfld 0x4000298 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+01d6 leave.s 489
+01d8 ldloc.s local(0x0009)
+01da brfalse.s 488
+01dc ldsfld 0x401603c '.\x08'::'~\x11'
+01e1 ldloc.s local(0x0009)
+01e3 call 0x6022d1c '.\x08'::'Invoke'
+01e8 endfinally 
+01e9 ldarg.0 
+01ea ldarg.0 
+01eb ldfld 0x4000298 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+01f0 newobj 0x600a6c0 'SharpDX.Direct3D11.Device'::'.ctor'
+01f5 stfld 0x400029a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+01fa ldarg.0 
+01fb ldarg.0 
+01fc ldfld 0x400029a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0201 callvirt 0x600a6e1 'SharpDX.Direct3D11.Device'::'get_ImmediateContext'
+0206 stfld 0x400029b 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+020b ldarg.0 
+020c ldarg.0 
+020d ldfld 0x400029b 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0212 callvirt 0x2b000077 'SharpDX.ComObject'::'QueryInterfaceOrNull'
+0217 stfld 0x400029c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+021c ldc.i4.0 
+021d brtrue 1437
+0222 ldarg.0 
+0223 ldfld 0x400029a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0228 callvirt 0x2b000078 'SharpDX.ComObject'::'QueryInterfaceOrNull'
+022d stloc.s local(0x000A)
+022f ldloc.s local(0x000A)
+0231 brtrue.s 565
+0233 leave.s 598
+0235 ldloc.s local(0x000A)
+0237 ldc.i4.1 
+0238 call 0x60098e2 'SharpDX.Mathematics.Interop.RawBool'::'op_Implicit'
+023d call 0x6009902 'SharpDX.Direct3D.DeviceMultithread'::'SetMultithreadProtected'
+0242 pop 
+0243 leave.s 598
+0245 ldloc.s local(0x000A)
+0247 brfalse.s 597
+0249 ldsfld 0x401603c '.\x08'::'~\x11'
+024e ldloc.s local(0x000A)
+0250 call 0x6022d1c '.\x08'::'Invoke'
+0255 endfinally 
+0256 ldarg.0 
+0257 ldfld 0x400029a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+025c callvirt 0x2b000079 'SharpDX.ComObject'::'QueryInterface'
+0261 stloc.s local(0x000B)
+0263 ldloc.s local(0x000B)
+0265 ldc.i4.1 
+0266 callvirt 0x600b37d 'SharpDX.DXGI.Device1'::'set_MaximumFrameLatency'
+026b ldloc.s local(0x000B)
+026d ldc.i4.7 
+026e callvirt 0x600b346 'SharpDX.DXGI.Device'::'set_GPUThreadPriority'
+0273 leave.s 646
+0275 ldloc.s local(0x000B)
+0277 brfalse.s 645
+0279 ldsfld 0x401603c '.\x08'::'~\x11'
+027e ldloc.s local(0x000B)
+0280 call 0x6022d1c '.\x08'::'Invoke'
+0285 endfinally 
+0286 ldarg.0 
+0287 ldfld 0x400029a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+028c callvirt 0x2b00007a 'SharpDX.ComObject'::'QueryInterfaceOrNull'
+0291 stloc.s local(0x000C)
+0293 ldc.i4.5 
+0294 brfalse.s 682
+0296 ldloc.s local(0x000C)
+0298 brfalse.s 684
+029a ldarg.0 
+029b ldloc.s local(0x000C)
+029d ldc.i4.0 
+029e conv.i8 
+029f ldc.i4.0 
+02a0 newobj 0x600a7c5 'SharpDX.Direct3D11.Fence'::'.ctor'
+02a5 stfld 0x400029e 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+02aa leave.s 738
+02ac ldarg.0 
+02ad ldarg.0 
+02ae ldfld 0x400029a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+02b3 ldloca.s local(0x000D)
+02b5 initobj 0x2001af2 'SharpDX.Direct3D11.QueryDescription'
+02bb ldloca.s local(0x000D)
+02bd ldc.i4.0 
+02be stfld 0x40081e9 'SharpDX.Direct3D11.QueryDescription'::'Type'
+02c3 ldloc.s local(0x000D)
+02c5 newobj 0x600a993 'SharpDX.Direct3D11.Query'::'.ctor'
+02ca stfld 0x40002a0 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+02cf leave.s 738
+02d1 ldloc.s local(0x000C)
+02d3 brfalse.s 737
+02d5 ldsfld 0x401603c '.\x08'::'~\x11'
+02da ldloc.s local(0x000C)
+02dc call 0x6022d1c '.\x08'::'Invoke'
+02e1 endfinally 
+02e2 ldarg.0 
+02e3 ldarg.0 
+02e4 ldfld 0x400029a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+02e9 call 0x600d6e3 'SharpDX.Toolkit.Graphics.GraphicsDevice'::'New'
+02ee stfld 0x400029d 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+02f3 ldarg.0 
+02f4 ldsfld 0xa000702 'System.EventArgs'::'Empty'
+02f9 call 0x6000408 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+02fe call 0xa000738 TypeSpecRow::'get_Default'
+0303 callvirt 0x60212d1 'VirtualDesktop.Mobile.SharedMobileSettings'::'get_HmdType'
+0308 dup 
+0309 call 0x60212a6 '\x1c\x02.\x02'::'\x03'
+030e stloc.s local(0x0004)
+0310 ldarg.0 
+0311 ldarg.0 
+0312 ldfld 0x400027c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0317 ldloc.s local(0x0004)
+0319 brtrue.s 802
+031b ldstr 0x7000a78d 'Effects\\Sharpening'
+0320 br.s 807
+0322 ldstr 0x7000a7b3 'Effects\\Foveation'
+0327 ldnull 
+0328 callvirt 0x2b00007b 'SharpDX.Toolkit.Content.ContentManager'::'Load'
+032d stfld 0x40002a1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0332 ldarg.0 
+0333 ldfld 0x40002a1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0338 callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+033d ldstr 0x7000a7d7 'Sampler'
+0342 callvirt 0xa000912 TypeSpecRow::'get_Item'
+0347 ldarg.0 
+0348 ldfld 0x400029d 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+034d ldfld 0x400b8a5 'SharpDX.Toolkit.Graphics.GraphicsDevice'::'SamplerStates'
+0352 ldfld 0x400b5aa 'SharpDX.Toolkit.Graphics.SamplerStateCollection'::'AnisotropicClamp'
+0357 callvirt 0x2b00007c 'SharpDX.Toolkit.Graphics.EffectParameter'::'SetResource'
+035c ldarg.0 
+035d ldarg.0 
+035e ldfld 0x40002a1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0363 callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+0368 ldstr 0x7000a7e7 'PixelSize'
+036d callvirt 0xa000912 TypeSpecRow::'get_Item'
+0372 stfld 0x40002a4 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+0377 ldarg.0 
+0378 ldarg.0 
+0379 ldfld 0x40002a1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+037e callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+0383 ldstr 0x7000a7fb 'EyeTexture'
+0388 callvirt 0xa000912 TypeSpecRow::'get_Item'
+038d stfld 0x40002a3 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0392 ldarg.0 
+0393 ldarg.0 
+0394 ldfld 0x40002a1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0399 callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+039e ldstr 0x7000a811 'Gamma'
+03a3 callvirt 0xa000912 TypeSpecRow::'get_Item'
+03a8 stfld 0x40002a5 'VirtualDesktop.Streamer.OculusStreamer'::'\x03'
+03ad ldarg.0 
+03ae ldarg.0 
+03af ldfld 0x40002a1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+03b4 callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+03b9 ldstr 0x7000a258 'Sharpening'
+03be callvirt 0xa000912 TypeSpecRow::'get_Item'
+03c3 stfld 0x40002a6 'VirtualDesktop.Streamer.OculusStreamer'::'\x04'
+03c8 ldarg.0 
+03c9 ldarg.0 
+03ca ldfld 0x40002a1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+03cf callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+03d4 ldstr 0x7000a23c 'UseSharpening'
+03d9 callvirt 0xa000912 TypeSpecRow::'get_Item'
+03de stfld 0x40002a7 'VirtualDesktop.Streamer.OculusStreamer'::'\x05'
+03e3 ldarg.0 
+03e4 ldarg.0 
+03e5 ldfld 0x400027c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+03ea ldstr 0x7000a81d 'Effects\\Fovea'
+03ef ldnull 
+03f0 callvirt 0x2b00007b 'SharpDX.Toolkit.Content.ContentManager'::'Load'
+03f5 stfld 0x40002a2 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+03fa ldarg.0 
+03fb ldarg.0 
+03fc ldfld 0x40002a2 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+0401 callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+0406 ldstr 0x7000a7fb 'EyeTexture'
+040b callvirt 0xa000912 TypeSpecRow::'get_Item'
+0410 stfld 0x40002a8 'VirtualDesktop.Streamer.OculusStreamer'::'\x06'
+0415 ldarg.0 
+0416 ldarg.0 
+0417 ldfld 0x40002a2 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+041c callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+0421 ldstr 0x7000a811 'Gamma'
+0426 callvirt 0xa000912 TypeSpecRow::'get_Item'
+042b stfld 0x40002a9 'VirtualDesktop.Streamer.OculusStreamer'::'\x07'
+0430 ldarg.0 
+0431 ldarg.0 
+0432 ldfld 0x40002a2 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+0437 callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+043c ldstr 0x7000a258 'Sharpening'
+0441 callvirt 0xa000912 TypeSpecRow::'get_Item'
+0446 stfld 0x40002aa 'VirtualDesktop.Streamer.OculusStreamer'::'\x08'
+044b ldarg.0 
+044c ldarg.0 
+044d ldfld 0x40002a2 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+0452 callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+0457 ldstr 0x7000a23c 'UseSharpening'
+045c callvirt 0xa000912 TypeSpecRow::'get_Item'
+0461 stfld 0x40002ab 'VirtualDesktop.Streamer.OculusStreamer'::'\x0e'
+0466 ldarg.0 
+0467 ldarg.0 
+0468 ldfld 0x40002a2 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+046d callvirt 0x600d17c 'SharpDX.Toolkit.Graphics.Effect'::'get_Parameters'
+0472 ldstr 0x7000a839 'TopLeft'
+0477 callvirt 0xa000912 TypeSpecRow::'get_Item'
+047c stfld 0x40002ac 'VirtualDesktop.Streamer.OculusStreamer'::'\x0f'
+0481 ldarg.0 
+0482 call 0xa0006ff TypeSpecRow::'get_Default'
+0487 callvirt 0x6021381 'VirtualDesktop.Mobile.SharedUserSettings'::'get_VRGraphicsQuality'
+048c stfld 0x40002b1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0491 ldarg.0 
+0492 ldfld 0x40002b1 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0497 ldloc.0 
+0498 ldloc.0 
+0499 ldc.i4.4 
+049a add 
+049b call 0x60212a5 '\x1c\x02.\x02'::'\x01'
+04a0 ldarg.0 
+04a1 ldloc.0 
+04a2 ldind.i4 
+04a3 ldloc.0 
+04a4 ldc.i4.4 
+04a5 add 
+04a6 ldind.i4 
+04a7 newobj 0x60096a5 'SharpDX.Size2'::'.ctor'
+04ac stfld 0x40002ae 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+04b1 ldloc.0 
+04b2 ldc.i4.8 
+04b3 add 
+04b4 call 0xa0006e7 TypeSpecRow::'get_Default'
+04b9 callvirt 0x60003ba 'VirtualDesktop.Streamer.StreamerSettings'::'get_FoveaSize'
+04be stind.r4 
+04bf ldarg.0 
+04c0 ldloc.0 
+04c1 ldind.i4 
+04c2 conv.r4 
+04c3 ldloc.0 
+04c4 ldc.i4.8 
+04c5 add 
+04c6 ldind.r4 
+04c7 mul 
+04c8 conv.i4 
+04c9 ldc.i4.s 64
+04cb call 0x602108d '\x18.\x01'::'\x01'
+04d0 ldloc.0 
+04d1 ldc.i4.4 
+04d2 add 
+04d3 ldind.i4 
+04d4 conv.r4 
+04d5 ldloc.0 
+04d6 ldc.i4.8 
+04d7 add 
+04d8 ldind.r4 
+04d9 mul 
+04da conv.i4 
+04db ldc.i4.s 64
+04dd call 0x602108d '\x18.\x01'::'\x01'
+04e2 newobj 0x60096a5 'SharpDX.Size2'::'.ctor'
+04e7 stfld 0x40002b0 'VirtualDesktop.Streamer.OculusStreamer'::'\x03'
+04ec ldloca.s local(0x0005)
+04ee ldc.r4 1.0
+04f3 ldloc.0 
+04f4 ldind.i4 
+04f5 conv.r4 
+04f6 div 
+04f7 ldc.r4 1.0
+04fc ldloc.0 
+04fd ldc.i4.4 
+04fe add 
+04ff ldind.i4 
+0500 conv.r4 
+0501 div 
+0502 call 0x6022798 'Xenko.Core.Mathematics.Vector2'::'.ctor'
+0507 ldarg.0 
+0508 ldfld 0x40002a4 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+050d ldloca.s local(0x0005)
+050f callvirt 0x2b00007d 'SharpDX.Toolkit.Graphics.EffectParameter'::'SetValue'
+0514 call 0xa0006e7 TypeSpecRow::'get_Default'
+0519 dup 
+051a callvirt 0x60003bc 'VirtualDesktop.Streamer.StreamerSettings'::'get_UseSharpening'
+051f stloc.s local(0x0006)
+0521 ldarg.0 
+0522 ldfld 0x40002a7 'VirtualDesktop.Streamer.OculusStreamer'::'\x05'
+0527 ldloc.s local(0x0006)
+0529 callvirt 0x2b00007e 'SharpDX.Toolkit.Graphics.EffectParameter'::'SetValue'
+052e ldarg.0 
+052f ldfld 0x40002ab 'VirtualDesktop.Streamer.OculusStreamer'::'\x0e'
+0534 ldloc.s local(0x0006)
+0536 callvirt 0x2b00007e 'SharpDX.Toolkit.Graphics.EffectParameter'::'SetValue'
+053b callvirt 0x60003be 'VirtualDesktop.Streamer.StreamerSettings'::'get_Sharpening'
+0540 stloc.s local(0x0007)
+0542 ldarg.0 
+0543 ldfld 0x40002a6 'VirtualDesktop.Streamer.OculusStreamer'::'\x04'
+0548 ldloc.s local(0x0007)
+054a callvirt 0x2b000071 'SharpDX.Toolkit.Graphics.EffectParameter'::'SetValue'
+054f ldarg.0 
+0550 ldfld 0x40002aa 'VirtualDesktop.Streamer.OculusStreamer'::'\x08'
+0555 ldloc.s local(0x0007)
+0557 callvirt 0x2b000071 'SharpDX.Toolkit.Graphics.EffectParameter'::'SetValue'
+055c ldarg.0 
+055d ldc.i4.2 
+055e newarr 0x20000a5 '.\x01'
+0563 stfld 0x4000283 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0568 ldloca.s local(0x000E)
+056a initobj 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+0570 ldloca.s local(0x000E)
+0572 ldc.i4.1 
+0573 stfld 0x4008274 'SharpDX.Direct3D11.Texture2DDescription'::'ArraySize'
+0578 ldloca.s local(0x000E)
+057a ldc.i4.s 40
+057c stfld 0x4008278 'SharpDX.Direct3D11.Texture2DDescription'::'BindFlags'
+0581 ldloca.s local(0x000E)
+0583 ldc.i4.0 
+0584 stfld 0x4008279 'SharpDX.Direct3D11.Texture2DDescription'::'CpuAccessFlags'
+0589 ldloca.s local(0x000E)
+058b ldc.i4.s 91
+058d stfld 0x4008275 'SharpDX.Direct3D11.Texture2DDescription'::'Format'
+0592 ldloca.s local(0x000E)
+0594 ldloc.0 
+0595 ldc.i4.4 
+0596 add 
+0597 ldind.i4 
+0598 stfld 0x4008272 'SharpDX.Direct3D11.Texture2DDescription'::'Height'
+059d ldloca.s local(0x000E)
+059f ldc.i4.1 
+05a0 stfld 0x4008273 'SharpDX.Direct3D11.Texture2DDescription'::'MipLevels'
+05a5 ldloca.s local(0x000E)
+05a7 ldc.i4.2 
+05a8 stfld 0x400827a 'SharpDX.Direct3D11.Texture2DDescription'::'OptionFlags'
+05ad ldloca.s local(0x000E)
+05af ldc.i4.1 
+05b0 ldc.i4.0 
+05b1 newobj 0x600b436 'SharpDX.DXGI.SampleDescription'::'.ctor'
+05b6 stfld 0x4008276 'SharpDX.Direct3D11.Texture2DDescription'::'SampleDescription'
+05bb ldloca.s local(0x000E)
+05bd ldc.i4.0 
+05be stfld 0x4008277 'SharpDX.Direct3D11.Texture2DDescription'::'Usage'
+05c3 ldloca.s local(0x000E)
+05c5 ldloc.0 
+05c6 ldind.i4 
+05c7 stfld 0x4008271 'SharpDX.Direct3D11.Texture2DDescription'::'Width'
+05cc ldloc.s local(0x000E)
+05ce stloc.s local(0x0008)
+05d0 ldarg.0 
+05d1 ldfld 0x4000283 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+05d6 ldc.i4.0 
+05d7 ldarg.0 
+05d8 ldfld 0x400029d 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+05dd ldloc.s local(0x0008)
+05df call 0x600d766 'SharpDX.Toolkit.Graphics.RenderTarget2D'::'New'
+05e4 newobj 0x6000437 '.\x01'::'.ctor'
+05e9 stelem 0x20000a5 '.\x01'
+05ee ldarg.0 
+05ef ldfld 0x4000283 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+05f4 ldc.i4.1 
+05f5 ldarg.0 
+05f6 ldfld 0x400029d 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+05fb ldloc.s local(0x0008)
+05fd call 0x600d766 'SharpDX.Toolkit.Graphics.RenderTarget2D'::'New'
+0602 newobj 0x6000437 '.\x01'::'.ctor'
+0607 stelem 0x20000a5 '.\x01'
+060c ldsfld 0x4016106 '.\x12'::'\x9d\x02'
+0611 call 0x6022d2b '.\x12'::'Invoke'
+0616 call 0x6021094 '\x0e.\x04'::'\x07'
+061b brtrue.s 1684
+061d ldloca.s local(0x000E)
+061f initobj 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+0625 ldloca.s local(0x000E)
+0627 ldc.i4.1 
+0628 stfld 0x4008274 'SharpDX.Direct3D11.Texture2DDescription'::'ArraySize'
+062d ldloca.s local(0x000E)
+062f ldc.i4.0 
+0630 stfld 0x4008278 'SharpDX.Direct3D11.Texture2DDescription'::'BindFlags'
+0635 ldloca.s local(0x000E)
+0637 ldc.i4.s 87
+0639 stfld 0x4008275 'SharpDX.Direct3D11.Texture2DDescription'::'Format'
+063e ldloca.s local(0x000E)
+0640 ldc.i4.1 
+0641 stfld 0x4008272 'SharpDX.Direct3D11.Texture2DDescription'::'Height'
+0646 ldloca.s local(0x000E)
+0648 ldc.i4.1 
+0649 stfld 0x4008273 'SharpDX.Direct3D11.Texture2DDescription'::'MipLevels'
+064e ldloca.s local(0x000E)
+0650 ldc.i4 256
+0655 stfld 0x400827a 'SharpDX.Direct3D11.Texture2DDescription'::'OptionFlags'
+065a ldloca.s local(0x000E)
+065c ldc.i4.1 
+065d ldc.i4.0 
+065e newobj 0x600b436 'SharpDX.DXGI.SampleDescription'::'.ctor'
+0663 stfld 0x4008276 'SharpDX.Direct3D11.Texture2DDescription'::'SampleDescription'
+0668 ldloca.s local(0x000E)
+066a ldc.i4.0 
+066b stfld 0x4008277 'SharpDX.Direct3D11.Texture2DDescription'::'Usage'
+0670 ldloca.s local(0x000E)
+0672 ldc.i4.1 
+0673 stfld 0x4008271 'SharpDX.Direct3D11.Texture2DDescription'::'Width'
+0678 ldloc.s local(0x000E)
+067a stloc.s local(0x000F)
+067c ldarg.0 
+067d ldarg.0 
+067e ldfld 0x400029d 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0683 ldloc.s local(0x000F)
+0685 call 0x600d766 'SharpDX.Toolkit.Graphics.RenderTarget2D'::'New'
+068a newobj 0x6000437 '.\x01'::'.ctor'
+068f stfld 0x4000284 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0694 call 0xa0006e1 TypeSpecRow::'get_Default'
+0699 callvirt 0x602133a 'VirtualDesktop.Mobile.SharedStreamerSettings'::'get_StreamingSource'
+069e ldc.i4.1 
+069f bne.un.s 1703
+06a1 ldarg.0 
+06a2 call 0x6000403 'VirtualDesktop.Streamer.OculusStreamer'::'\x02'
+06a7 ldarg.0 
+06a8 ldfld 0x400028c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+06ad ldc.i4.0 
+06ae conv.u 
+06af bne.un.s 1718
+06b1 leave 2220
+06b6 ldarg.0 
+06b7 ldfld 0x400028c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+06bc ldarg.0 
+06bd ldfld 0x4000283 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+06c2 ldc.i4.0 
+06c3 ldelema 0x20000a5 '.\x01'
+06c8 ldfld 0x40002c4 '.\x01'::'\x01'
+06cd stfld 0x4000370 '\x94.\x02'::'\x01'
+06d2 ldarg.0 
+06d3 ldfld 0x400028c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+06d8 ldarg.0 
+06d9 ldfld 0x4000283 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+06de ldc.i4.1 
+06df ldelema 0x20000a5 '.\x01'
+06e4 ldfld 0x40002c4 '.\x01'::'\x01'
+06e9 stfld 0x4000371 '\x94.\x02'::'\x02'
+06ee ldarg.0 
+06ef ldfld 0x400028c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+06f4 ldarg.0 
+06f5 ldflda 0x4000284 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+06fa ldfld 0x40002c4 '.\x01'::'\x01'
+06ff stfld 0x4000372 '\x94.\x02'::'\x03'
+0704 ldarg.0 
+0705 ldfld 0x4000281 'VirtualDesktop.Streamer.OculusStreamer'::'\x05'
+070a dup 
+070b brtrue.s 1808
+070d pop 
+070e br.s 1814
+0710 call 0xa000084 'System.Threading.EventWaitHandle'::'Reset'
+0715 pop 
+0716 ldarg.0 
+0717 ldfld 0x4000282 'VirtualDesktop.Streamer.OculusStreamer'::'\x06'
+071c dup 
+071d brtrue.s 1826
+071f pop 
+0720 br.s 1832
+0722 call 0xa000083 'System.Threading.EventWaitHandle'::'Set'
+0727 pop 
+0728 call 0xa0006e1 TypeSpecRow::'get_Default'
+072d ldc.i4.1 
+072e callvirt 0x6021339 'VirtualDesktop.Mobile.SharedStreamerSettings'::'set_HasVR'
+0733 call 0xa0006e1 TypeSpecRow::'get_Default'
+0738 ldloc.0 
+0739 ldc.i4.s 12
+073b add 
+073c ldind.i1 
+073d brtrue.s 1890
+073f ldarg.0 
+0740 ldfld 0x400028c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0745 ldfld 0x4000376 '\x94.\x02'::'\x04'
+074a brtrue.s 1871
+074c ldc.i4.0 
+074d br.s 1891
+074f ldarg.0 
+0750 ldfld 0x400028c 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0755 ldfld 0x4000377 '\x94.\x02'::'\x05'
+075a brtrue.s 1887
+075c ldc.i4.2 
+075d br.s 1891
+075f ldc.i4.3 
+0760 br.s 1891
+0762 ldc.i4.1 
+0763 callvirt 0x6021345 'VirtualDesktop.Mobile.SharedStreamerSettings'::'set_ActiveRuntime'
+0768 ldloc.0 
+0769 ldc.i4.s 13
+076b add 
+076c ldind.i1 
+076d brtrue.s 1914
+076f call 0xa0006e1 TypeSpecRow::'get_Default'
+0774 ldc.i4.1 
+0775 callvirt 0x602133b 'VirtualDesktop.Mobile.SharedStreamerSettings'::'set_StreamingSource'
+077a leave 2220
+077f newobj 0x6000446 '.\x04'::'.ctor'
+0784 br 27
+0789 stloc.1 
+078a br 32
+078f ldloc.1 
+0790 br 37
+0795 ldarg.1 
+0796 br 42
+079b ldarg.0 
+079c br 52
+07a1 ldarg.0 
+07a2 br 71
+07a7 stloc.2 
+07a8 br 81
+07ad ldloc.2 
+07ae br 86
+07b3 ldc.i4.s 23
+07b5 newarr 0x1000020 'System.Object'
+07ba stloc.s local(0x0010)
+07bc ldloc.s local(0x0010)
+07be ldc.i4.0 
+07bf ldloc.1 
+07c0 stelem.ref 
+07c1 ldloc.s local(0x0010)
+07c3 ldc.i4.1 
+07c4 ldloc.2 
+07c5 stelem.ref 
+07c6 ldloc.s local(0x0010)
+07c8 ldc.i4.2 
+07c9 ldloc.3 
+07ca stelem.ref 
+07cb ldloc.s local(0x0010)
+07cd ldc.i4.3 
+07ce ldloc.0 
+07cf ldc.i4.s 12
+07d1 add 
+07d2 ldind.i1 
+07d3 box 0x100046c 'System.Boolean'
+07d8 stelem.ref 
+07d9 ldloc.s local(0x0010)
+07db ldc.i4.4 
+07dc ldloc.0 
+07dd ldc.i4.s 13
+07df add 
+07e0 ldind.i1 
+07e1 box 0x100046c 'System.Boolean'
+07e6 stelem.ref 
+07e7 ldloc.s local(0x0010)
+07e9 ldc.i4.5 
+07ea ldloc.s local(0x0004)
+07ec box 0x100046c 'System.Boolean'
+07f1 stelem.ref 
+07f2 ldloc.s local(0x0010)
+07f4 ldc.i4.6 
+07f5 ldloc.0 
+07f6 ldind.i4 
+07f7 box 0x100046a 'System.Int32'
+07fc stelem.ref 
+07fd ldloc.s local(0x0010)
+07ff ldc.i4.7 
+0800 ldloc.0 
+0801 ldc.i4.4 
+0802 add 
+0803 ldind.i4 
+0804 box 0x100046a 'System.Int32'
+0809 stelem.ref 
+080a ldloc.s local(0x0010)
+080c ldc.i4.8 
+080d ldloc.0 
+080e ldc.i4.8 
+080f add 
+0810 ldind.r4 
+0811 box 0x1000478 'System.Single'
+0816 stelem.ref 
+0817 ldloc.s local(0x0010)
+0819 ldc.i4.s 9
+081b ldloc.s local(0x0005)
+081d box 0x2004136 'Xenko.Core.Mathematics.Vector2'
+0822 stelem.ref 
+0823 ldloc.s local(0x0010)
+0825 ldc.i4.s 10
+0827 ldloc.s local(0x0006)
+0829 box 0x100046c 'System.Boolean'
+082e stelem.ref 
+082f ldloc.s local(0x0010)
+0831 ldc.i4.s 11
+0833 ldloc.s local(0x0007)
+0835 box 0x1000478 'System.Single'
+083a stelem.ref 
+083b ldloc.s local(0x0010)
+083d ldc.i4.s 12
+083f ldloc.s local(0x0008)
+0841 box 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+0846 stelem.ref 
+0847 ldloc.s local(0x0010)
+0849 ldc.i4.s 13
+084b ldloc.s local(0x0009)
+084d stelem.ref 
+084e ldloc.s local(0x0010)
+0850 ldc.i4.s 14
+0852 ldloc.s local(0x000A)
+0854 stelem.ref 
+0855 ldloc.s local(0x0010)
+0857 ldc.i4.s 15
+0859 ldloc.s local(0x000B)
+085b stelem.ref 
+085c ldloc.s local(0x0010)
+085e ldc.i4.s 16
+0860 ldloc.s local(0x000C)
+0862 stelem.ref 
+0863 ldloc.s local(0x0010)
+0865 ldc.i4.s 17
+0867 ldloc.s local(0x000D)
+0869 box 0x2001af2 'SharpDX.Direct3D11.QueryDescription'
+086e stelem.ref 
+086f ldloc.s local(0x0010)
+0871 ldc.i4.s 18
+0873 ldloc.s local(0x000E)
+0875 box 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+087a stelem.ref 
+087b ldloc.s local(0x0010)
+087d ldc.i4.s 19
+087f ldloc.s local(0x000F)
+0881 box 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+0886 stelem.ref 
+0887 ldloc.s local(0x0010)
+0889 ldc.i4.s 20
+088b ldarg.0 
+088c stelem.ref 
+088d ldloc.s local(0x0010)
+088f ldc.i4.s 21
+0891 ldarg.1 
+0892 box 0x100046a 'System.Int32'
+0897 stelem.ref 
+0898 ldloc.s local(0x0010)
+089a ldc.i4.s 22
+089c ldarg.2 
+089d box 0x100046d 'System.Int64'
+08a2 stelem.ref 
+08a3 ldloc.s local(0x0010)
+08a5 call 0x600d894 '\x9e\x02.\x01'::'\x01'
+08aa rethrow 
+08ac ret 
+08ad stloc.0 
+08ae br 22
+
+0x60212b0 '\x1c\x02.\x02'::'\x04' RVA 0x8766b8 signature=00010211c0010584
+000c ldc.i4.0 
+000d br.s 17
+000f leave.s 33
+0011 stloc.0 
+0012 br.s 15
+0014 ldarg.0 
+0015 box 0x2004161 'Xenko.VR.HmdType'
+001a call 0x600d88a '\x9e\x02.\x01'::'\x01'
+001f rethrow 
+0021 br.s 36
+0023 ret 
+0024 ldloc.0 
+0025 br.s 35
+
+0x60213e1 '\x18\x02.\x03'::'\x01' RVA 0x87ec80 signature=00010211c000f730
+000c br.s 42
+000e ldc.i4.1 
+000f beq.s 29
+0011 br.s 45
+0013 ldc.i4.5 
+0014 ceq 
+0016 br.s 48
+0018 ldc.i4.m1 
+0019 brfalse.s 29
+001b leave.s 67
+001d ldc.i4.1 
+001e dup 
+001f brfalse.s 22
+0021 ldc.i4.0 
+0022 brfalse.s 51
+0024 pop 
+0025 ldc.i4.1 
+0026 brfalse.s 29
+0028 leave.s 67
+002a ldarg.0 
+002b br.s 14
+002d ldarg.0 
+002e br.s 19
+0030 stloc.0 
+0031 br.s 24
+0033 stloc.0 
+0034 br.s 37
+0036 ldarg.0 
+0037 box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+003c call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0041 rethrow 
+0043 br.s 70
+0045 ret 
+0046 ldloc.0 
+0047 br.s 69
+
+0x6021527 '\x13\x02.\x01'::'\x01' RVA 0x88d2f4 signature=200002
+000c br.s 23
+000e ldfld 0x4014d9b '\x13\x02.\x01'::'\x02'
+0013 br.s 26
+0015 leave.s 37
+0017 ldarg.0 
+0018 br.s 14
+001a stloc.0 
+001b br.s 21
+001d ldarg.0 
+001e call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0023 rethrow 
+0025 br.s 40
+0027 ret 
+0028 ldloc.0 
+0029 br.s 39
+
+0x6021528 '\x13\x02.\x01'::'\x02' RVA 0x88d330 signature=20010102
+000c br.s 49
+000e br.s 52
+0010 ldfld 0x4014d9b '\x13\x02.\x01'::'\x02'
+0015 beq.s 44
+0017 br.s 55
+0019 br.s 58
+001b stfld 0x4014d9b '\x13\x02.\x01'::'\x02'
+0020 ldc.i4.m1 
+0021 brfalse.s 23
+0023 br.s 61
+0025 ldsfld 0xa000702 'System.EventArgs'::'Empty'
+002a br.s 64
+002c ldc.i4.1 
+002d brfalse.s 32
+002f leave.s 85
+0031 ldarg.1 
+0032 br.s 14
+0034 ldarg.0 
+0035 br.s 16
+0037 ldarg.0 
+0038 br.s 25
+003a ldarg.1 
+003b br.s 27
+003d ldarg.0 
+003e br.s 37
+0040 callvirt 0x602154f '\x13\x02.\x01'::'\x06'
+0045 br.s 44
+0047 ldarg.0 
+0048 ldarg.1 
+0049 box 0x100046c 'System.Boolean'
+004e call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0053 rethrow 
+0055 ret 
+
+0x602152c '\x13\x02.\x01'::'\x03' RVA 0x88d44c signature=20010102
+000c br.s 23
+000e br.s 26
+0010 stfld 0x4014d9f '\x13\x02.\x01'::'\x03'
+0015 leave.s 43
+0017 ldarg.0 
+0018 br.s 14
+001a ldarg.1 
+001b br.s 16
+001d ldarg.0 
+001e ldarg.1 
+001f box 0x100046c 'System.Boolean'
+0024 call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0029 rethrow 
+002b ret 
+
+0x602152d '\x13\x02.\x01'::'\x03' RVA 0x88d488 signature=200002
+000c br.s 23
+000e ldfld 0x4014da0 '\x13\x02.\x01'::'\x04'
+0013 br.s 26
+0015 leave.s 37
+0017 ldarg.0 
+0018 br.s 14
+001a stloc.0 
+001b br.s 21
+001d ldarg.0 
+001e call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0023 rethrow 
+0025 br.s 40
+0027 ret 
+0028 ldloc.0 
+0029 br.s 39
+
+0x602152e '\x13\x02.\x01'::'\x04' RVA 0x88d4c4 signature=20010102
+000c br.s 23
+000e br.s 26
+0010 stfld 0x4014da0 '\x13\x02.\x01'::'\x04'
+0015 leave.s 43
+0017 ldarg.0 
+0018 br.s 14
+001a ldarg.1 
+001b br.s 16
+001d ldarg.0 
+001e ldarg.1 
+001f box 0x100046c 'System.Boolean'
+0024 call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0029 rethrow 
+002b ret 
+
+0x602152f '\x13\x02.\x01'::'\x04' RVA 0x88d500 signature=200002
+000c br.s 23
+000e ldfld 0x4014da1 '\x13\x02.\x01'::'\x05'
+0013 br.s 26
+0015 leave.s 37
+0017 ldarg.0 
+0018 br.s 14
+001a stloc.0 
+001b br.s 21
+001d ldarg.0 
+001e call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0023 rethrow 
+0025 br.s 40
+0027 ret 
+0028 ldloc.0 
+0029 br.s 39
+
+0x6021530 '\x13\x02.\x01'::'\x05' RVA 0x88d53c signature=20010102
+000c br.s 23
+000e br.s 26
+0010 stfld 0x4014da1 '\x13\x02.\x01'::'\x05'
+0015 leave.s 43
+0017 ldarg.0 
+0018 br.s 14
+001a ldarg.1 
+001b br.s 16
+001d ldarg.0 
+001e ldarg.1 
+001f box 0x100046c 'System.Boolean'
+0024 call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0029 rethrow 
+002b ret 
+
+0x6021531 '\x13\x02.\x01'::'\x05' RVA 0x88d578 signature=200002
+000c br.s 23
+000e ldfld 0x4014da2 '\x13\x02.\x01'::'\x06'
+0013 br.s 26
+0015 leave.s 37
+0017 ldarg.0 
+0018 br.s 14
+001a stloc.0 
+001b br.s 21
+001d ldarg.0 
+001e call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0023 rethrow 
+0025 br.s 40
+0027 ret 
+0028 ldloc.0 
+0029 br.s 39
+
+0x6021532 '\x13\x02.\x01'::'\x06' RVA 0x88d5b4 signature=20010102
+000c br.s 23
+000e br.s 26
+0010 stfld 0x4014da2 '\x13\x02.\x01'::'\x06'
+0015 leave.s 43
+0017 ldarg.0 
+0018 br.s 14
+001a ldarg.1 
+001b br.s 16
+001d ldarg.0 
+001e ldarg.1 
+001f box 0x100046c 'System.Boolean'
+0024 call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0029 rethrow 
+002b ret 
+
+0x6021561 '\x89\x02.\x02'::'\x01' RVA 0x88e330 signature=20060112c000717012c0008a3411c000f73011c001058411c000f5b411c000f728
+000c br.s 133
+000e br 139
+0013 stfld 0x4014db4 '\x89\x02.\x02'::'\x01'
+0018 br 145
+001d br 151
+0022 stfld 0x4014db5 '\x89\x02.\x02'::'\x01'
+0027 br 158
+002c br 164
+0031 stfld 0x4014db6 '\x89\x02.\x02'::'\x01'
+0036 br.s 171
+0038 br 177
+003d br 183
+0042 stloc.1 
+0043 ldloca.s local(0x0001)
+0045 call 0x6021557 '\x12\x03.\x05'::'\x04'
+004a stfld 0x4014db7 '\x89\x02.\x02'::'\x01'
+004f ldarg.0 
+0050 ldarg.2 
+0051 call 0x600d706 'SharpDX.Toolkit.Graphics.GraphicsDevice'::'op_Implicit'
+0056 callvirt 0x60095d2 'SharpDX.CppObject'::'get_NativePointer'
+005b call 0x6021577 '\x89\x02.\x02'::'\x01'
+0060 stfld 0x4014db8 '\x89\x02.\x02'::'\x01'
+0065 ldarg.s argument(0x0006)
+0067 ldc.i4.1 
+0068 beq.s 113
+006a ldc.i4.0 
+006b brtrue.s 131
+006d ldc.i4.s 87
+006f br.s 115
+0071 ldc.i4.s 91
+0073 stloc.0 
+0074 ldarg.0 
+0075 ldloc.0 
+0076 call 0x602156d '\x89\x02.\x02'::'\x01'
+007b ldarg.0 
+007c ldarg.3 
+007d ldc.i4.0 
+007e callvirt 0x6021544 '\x13\x02.\x01'::'\x01'
+0083 leave.s 242
+0085 ldarg.0 
+0086 br 14
+008b ldarg.2 
+008c br 19
+0091 ldarg.0 
+0092 br 29
+0097 ldarg.s argument(0x0004)
+0099 br 34
+009e ldarg.0 
+009f br 44
+00a4 ldarg.s argument(0x0005)
+00a6 br 49
+00ab ldarg.0 
+00ac br 56
+00b1 ldarg.1 
+00b2 br 61
+00b7 callvirt 0x600b2b2 'SharpDX.DXGI.Adapter'::'get_Description'
+00bc br 66
+00c1 ldloc.0 
+00c2 box 0x2001c7e 'SharpDX.DXGI.Format'
+00c7 ldloc.1 
+00c8 box 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+00cd ldarg.0 
+00ce ldarg.1 
+00cf ldarg.2 
+00d0 ldarg.3 
+00d1 box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+00d6 ldarg.s argument(0x0004)
+00d8 box 0x2004161 'Xenko.VR.HmdType'
+00dd ldarg.s argument(0x0005)
+00df box 0x2003d6d 'VirtualDesktop.Interfaces.Features'
+00e4 ldarg.s argument(0x0006)
+00e6 box 0x2003dca 'VirtualDesktop.Net.StreamingSource'
+00eb call 0x600d892 '\x9e\x02.\x01'::'\x01'
+00f0 rethrow 
+00f2 ret 

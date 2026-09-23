@@ -242,8 +242,11 @@ public final class NavigationTabsFilter {
             lastObservedSignature = signature;
         }
 
-        if (!newlyObservedKeys.isEmpty() && !Settings.FEED_NAVIGATION_BLOCK_NEW_TABS.get()) {
-            Set<String> enabledKeys = NavigationTabOptions.parseEnabledKeys(Settings.FEED_NAVIGATION_TABS.get());
+        // Bookkeeping on the reader's own list, paused or not: paused, get() would answer the
+        // default list and an open door, and a tab Hushfeed has no name for would be saved over
+        // the reader's list together with every tab it knows.
+        if (!newlyObservedKeys.isEmpty() && !Settings.FEED_NAVIGATION_BLOCK_NEW_TABS.savedValue()) {
+            Set<String> enabledKeys = NavigationTabOptions.parseEnabledKeys(Settings.FEED_NAVIGATION_TABS.savedValue());
             if (enabledKeys.addAll(newlyObservedKeys)) {
                 Settings.FEED_NAVIGATION_TABS.save(NavigationTabOptions.serializeEnabledKeys(enabledKeys));
             }
@@ -267,8 +270,8 @@ public final class NavigationTabsFilter {
             lastBottomObservedSignature = signature;
         }
 
-        if (!newlyObservedKeys.isEmpty() && !Settings.BOTTOM_NAVIGATION_BLOCK_NEW_TABS.get()) {
-            Set<String> enabledKeys = BottomNavigationTabOptions.parseEnabledKeys(Settings.BOTTOM_NAVIGATION_TABS.get());
+        if (!newlyObservedKeys.isEmpty() && !Settings.BOTTOM_NAVIGATION_BLOCK_NEW_TABS.savedValue()) {
+            Set<String> enabledKeys = BottomNavigationTabOptions.parseEnabledKeys(Settings.BOTTOM_NAVIGATION_TABS.savedValue());
             if (enabledKeys.addAll(newlyObservedKeys)) {
                 Settings.BOTTOM_NAVIGATION_TABS.save(BottomNavigationTabOptions.serializeEnabledKeys(enabledKeys));
             }

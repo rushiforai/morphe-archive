@@ -76,7 +76,7 @@ private val androidXrLibPatch = resourcePatch {
 
     execute {
         // Dependencies run without a compatibility re-check. Install the legacy bridge only on
-        // exact decoded layouts, including high-resolution-only build 5002296.
+        // exact decoded layouts.
         if (!isLegacyXrFoundationSteamLinkBuild(
                 packageMetadata.versionName,
                 packageMetadata.versionCode,
@@ -194,7 +194,7 @@ val xrManifestCapabilityPackPatch = resourcePatch(
     finalize {
         document("AndroidManifest.xml").use { doc ->
             // Preserve unknown/native builds. Recursive execution is allowed only for the exact
-            // legacy foundation set, including high-resolution-only build 5002296.
+            // legacy foundation set.
             if (!isLegacyXrFoundationSteamLinkBuild(
                     packageMetadata.versionName,
                     packageMetadata.versionCode,
@@ -508,7 +508,7 @@ val xrLauncherBootstrapPatch = resourcePatch(
     finalize {
         document("AndroidManifest.xml").use { doc ->
             // Dependencies execute without checking their own public compatibility. Restrict legacy
-            // launcher mutations to exact decoded layouts, including high-resolution-only 5002296.
+            // launcher mutations to exact decoded layouts.
             if (!isEarlierStartupSteamLinkBuild(
                     packageMetadata.versionName,
                     packageMetadata.versionCode,
@@ -517,7 +517,7 @@ val xrLauncherBootstrapPatch = resourcePatch(
             val app = doc.documentElement.getElementsByTagName("application").item(0) as Element
             val xrStartMode = "android.window.PROPERTY_XR_ACTIVITY_START_MODE"
 
-            // Build 5002313 declares this at application scope. Replace it with the direct
+            // Some legacy builds declare this at application scope. Replace it with the direct
             // activity property required by the OpenXR VRLink activity.
             upsertVrLinkUnmanagedFullSpace(doc, app)
 
@@ -561,7 +561,7 @@ val xrLauncherBootstrapPatch = resourcePatch(
                 ?: doc.createElement("layout").also { splash.appendChild(it) }
             splashLayout.setAttribute("android:defaultWidth", "1280.0px")
             splashLayout.setAttribute("android:defaultHeight", "800.0px")
-            // Native 5002318 retains its stock picker and native intent routing.
+            // Native builds retain their stock picker and native intent routing.
             if (!isLegacyXrFoundationSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) return@use
 
             app.getElementsByTagName("activity").asSequence()

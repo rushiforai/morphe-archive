@@ -17,7 +17,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.all.misc.resources.addAppResources
 import app.morphe.patches.all.misc.resources.addResourcesPatch
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.settings.preference.BasePreference
 import app.morphe.patches.shared.misc.settings.preference.InputType
 import app.morphe.patches.shared.misc.settings.preference.ListPreference
@@ -65,7 +64,6 @@ fun categoryPreference(settingKey: String): BasePreference =
 private val sponsorBlockResourcePatch = resourcePatch {
     dependsOn(
         settingsPatch,
-        resourceMappingPatch,
         legacyPlayerControlsPatch,
         addResourcesPatch
     )
@@ -227,11 +225,11 @@ private const val EXTENSION_SPONSORBLOCK_VIEW_CONTROLLER_CLASS =
 
 @Suppress("unused")
 val sponsorBlockPatch = bytecodePatch(
+    name = "SponsorBlock",
     description = "Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored content."
 ) {
     dependsOn(
         sharedExtensionPatch,
-        resourceMappingPatch,
         videoIdPatch,
         videoInformationPatch,
         playerTypeHookPatch,

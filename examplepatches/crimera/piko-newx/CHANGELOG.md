@@ -1,3 +1,22 @@
+## [3.33.1](https://github.com/crimera/piko-newx/compare/v3.33.0...v3.33.1) (2026-09-22)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** rename inline download template token to userName ([c0dd037](https://github.com/crimera/piko/commit/c0dd037aa96ce20b538b523d2af5baae58890e67))
+
+## [3.33.0](https://github.com/crimera/piko-newx/compare/v3.32.0...v3.33.0) (2026-09-22)
+
+### ✨ New Features
+* **Twitter:** add support for 12.28.0-prod.01 ([f77d602](https://github.com/crimera/piko/commit/f77d6029120c16c298eb54cc001599de444c216a))
+
+## [3.32.0](https://github.com/crimera/piko-newx/compare/v3.31.0...v3.32.0) (2026-09-22)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** resolve obfuscated Compose types in photos gallery ([61c0a87](https://github.com/crimera/piko/commit/61c0a876d67866ed5530de82580d3fcad37740e8))
+* **Twitter - newx:** resolve bottom paginator StateFlow getValue dynamically ([2f284b1](https://github.com/crimera/piko/commit/2f284b194dead1375ac89f5ec1c95a21a52f897b))
+
+### ✨ New Features
+* **Twitter:** allow custom download folders ([9cc2c6f](https://github.com/crimera/piko/commit/9cc2c6f3865160c3722cee7d827123bc85662ed8))
+
 ## [3.31.0](https://github.com/crimera/piko-newx/compare/v3.30.4...v3.31.0) (2026-09-21)
 
 ### ✨ New Features

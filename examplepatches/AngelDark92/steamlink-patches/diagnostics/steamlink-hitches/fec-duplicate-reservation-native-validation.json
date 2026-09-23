@@ -1,0 +1,99 @@
+{
+  "status": "passed",
+  "device_test": false,
+  "toolchain": "Android NDK 27.2.12479018, Clang 18, arm64-v8a/android-29",
+  "sources": {
+    "extensions\\decoder-input-buffering\\src\\decoder_buffering.cpp": "92449bb22d9787d4454b04cf56cbde6bece40764113015439416e2de2d22ba2d",
+    "extensions\\decoder-input-buffering\\src\\fec_guard_compat.h": "0a6e8ec297f4583e0674b95c27c0aaa54d6e9ada11cc8850419ea9566056a880",
+    "extensions\\decoder-input-buffering\\src\\install_hooks.cpp": "159e307ad7c4eab52d6a85b0727868a8481eee34d8177964411ca46c985f7203",
+    "extensions\\decoder-input-buffering\\src\\install_hooks.h": "80a263f45c535f925a8c9aa9bab29ea7860de209733943fed7ab9cfb25b0c476",
+    "extensions\\decoder-input-buffering\\src\\pipeline_telemetry.cpp": "f1114c96f021305b6973e072fa1fd06b775cc8f63595ce43b95da00a8855d4fe",
+    "extensions\\decoder-input-buffering\\src\\pipeline_telemetry.h": "b097f516d75343a947eb44be5dfc8d998eff55679ba1646d0527fdcbbe9bccb9",
+    "extensions\\decoder-input-buffering\\src\\staging_pool.h": "7836bb4b3ac48c48638c53e898159b2ed77517dd0939ebb8343cc27fac0c8fc7"
+  },
+  "payloads": {
+    "libgxr_dbuf_5002322.so": {
+      "size": 253504,
+      "sha256": "54b2486151a1ecda67f2bd214f892b9df34798116d125e9e3d3869bcaf64bbdc"
+    },
+    "libgxr_dbuf_5002322_telemetry.so": {
+      "size": 262552,
+      "sha256": "202a84fd1211f3e2816ba1e0c01de27be9e11f0be7ac323b172ad7e6bc87852b"
+    },
+    "libgxr_dbuf_5002363.so": {
+      "size": 253504,
+      "sha256": "fc8934f90c96aef04c36117ab3ac9677e7d8f5755701d030e6e9d019ac50cd1b"
+    },
+    "libgxr_dbuf_5002363_telemetry.so": {
+      "size": 262552,
+      "sha256": "027a00121ad19b2a48eaa9331dac15864c74e07f3e2099bea6936e1f0a8691d7"
+    }
+  },
+  "periodic_return_address": {
+    "5002322": "AArch64 object saves entry LR before hooksActive call and strips pointer authentication before the exact PC comparison",
+    "5002363": "AArch64 object saves entry LR before hooksActive call and strips pointer authentication before the exact PC comparison"
+  },
+  "native_tests": {
+    "DeviceTest": false,
+    "Status": "passed",
+    "Sources": [
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\src\\decoder_buffering.cpp",
+        "Sha256": "92449bb22d9787d4454b04cf56cbde6bece40764113015439416e2de2d22ba2d"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\src\\fec_guard_compat.h",
+        "Sha256": "0a6e8ec297f4583e0674b95c27c0aaa54d6e9ada11cc8850419ea9566056a880"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\src\\install_hooks.cpp",
+        "Sha256": "159e307ad7c4eab52d6a85b0727868a8481eee34d8177964411ca46c985f7203"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\src\\install_hooks.h",
+        "Sha256": "80a263f45c535f925a8c9aa9bab29ea7860de209733943fed7ab9cfb25b0c476"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\src\\pipeline_telemetry.cpp",
+        "Sha256": "f1114c96f021305b6973e072fa1fd06b775cc8f63595ce43b95da00a8855d4fe"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\src\\pipeline_telemetry.h",
+        "Sha256": "b097f516d75343a947eb44be5dfc8d998eff55679ba1646d0527fdcbbe9bccb9"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\src\\staging_pool.h",
+        "Sha256": "7836bb4b3ac48c48638c53e898159b2ed77517dd0939ebb8343cc27fac0c8fc7"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\tests\\bridge_test.cpp",
+        "Sha256": "986f62d00486b367826735ca240c37931da4a2dd9ca1537b536d063ef8d3f90e"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\tests\\fec_guard_compat_test.cpp",
+        "Sha256": "65c8853e3ef9092dc454fac8b63777308048943beaf1772d1bea685083472443"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\tests\\pipeline_api_fake.h",
+        "Sha256": "2ba31142a38ab8ae74a7b6aceab0ffbe4835532915a4016e94c7bea6488ce5c1"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\tests\\pipeline_test.cpp",
+        "Sha256": "17afe5ea163f555fafa2fb39ad2d5e2554cd65f25bd14fdcdb54c58c839b29d5"
+      },
+      {
+        "Path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\decoder-input-buffering\\tests\\staging_pool_test.cpp",
+        "Sha256": "d39162c29c1e5665e7b3abad64ffa0c822f4cdb02a048af2bf1820cc8b264455"
+      }
+    ],
+    "BridgeScenariosPerBuild": 15,
+    "Cases": [
+      "pool",
+      "fec-compat",
+      "pipeline",
+      "bridge-5002322",
+      "bridge-5002363"
+    ]
+  },
+  "parser": "PASS: candidate marker flags, unknown context -1, uint32 marker and legacy input-result fields"
+}

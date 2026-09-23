@@ -1,0 +1,52 @@
+[
+  {
+    "path": "decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712\\lib\\arm64-v8a\\libvrlink_scene.so",
+    "size": 2221072,
+    "sha256": "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495"
+  },
+  {
+    "path": "build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712.apk",
+    "size": 40416703,
+    "sha256": "02f87bb8c599de003f49bb95a7b1cdd65e52557c2e76279865ac252e87686e09"
+  },
+  {
+    "path": "decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244\\lib\\arm64-v8a\\libvrlink_scene.so",
+    "size": 2251920,
+    "sha256": "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12"
+  },
+  {
+    "path": "build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244.apk",
+    "size": 41365790,
+    "sha256": "b1be6f92cb8258963ee6790463c6cf77e181729e1c3498021d86e25d2eac6df8"
+  },
+  {
+    "path": "decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363\\lib\\arm64-v8a\\libvrlink_scene.so",
+    "size": 2292008,
+    "sha256": "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"
+  },
+  {
+    "path": "build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk",
+    "size": 41348637,
+    "sha256": "681008c6e00f48eea64dd0a6534e2e73b390c71626025f86e401d9cc59a281bf"
+  },
+  {
+    "path": "patches\\src\\main\\resources\\steamlink\\blue-noise\\libgxd.so",
+    "size": 413816,
+    "sha256": "f9951b536fa24198799af6778165cbb53951ce0b9d49afa923e4384c9738f602"
+  },
+  {
+    "path": "patches\\src\\main\\cpp\\blue_noise\\blue_noise_128_r8.bin",
+    "size": 16384,
+    "sha256": "bd714ed8957aa7dd2ba2aada91484e487e17322e68d96ac91be48ba4c59e77f5"
+  },
+  {
+    "path": "build\\tooling\\bin\\glslang.exe",
+    "size": 5125120,
+    "sha256": "63eb8a7dd8a059110bc38fcc33ae0f7954a9219763913a95d50038ec56d66cfe"
+  },
+  {
+    "path": "VirtualDesktop\\split_config.arm64_v8a\\lib\\arm64-v8a\\libassemblies.arm64-v8a.blob.so",
+    "size": 13389016,
+    "sha256": "2b879cfa184921586e5ee6e25c777f3c7c65ce45e51e1fbad3676ca3f5cb3505"
+  }
+]

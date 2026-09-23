@@ -1,0 +1,20 @@
+PASS 2.0.20/5001712: shader=0x9b4b8; opaqueSuffix=29B; maskSuffix=296B
+  5001712/off: opaque=1116B masked=1383B
+  5001712/low: opaque=1116B masked=1383B
+  5001712/standard: opaque=1116B masked=1383B
+  5001712/fovea-input-8bit: opaque=1116B masked=1383B
+  5001712/fovea-input-10bit: opaque=1116B masked=1383B
+PASS 2.0.22/5002244: shader=0x957bc; opaqueSuffix=29B; maskSuffix=296B
+  5002244/off: opaque=1116B masked=1383B
+  5002244/low: opaque=1116B masked=1383B
+  5002244/standard: opaque=1116B masked=1383B
+  5002244/fovea-input-8bit: opaque=1116B masked=1383B
+  5002244/fovea-input-10bit: opaque=1116B masked=1383B
+PASS 2.0.23/5002363: shader=0x970a1; opaqueSuffix=29B; maskSuffix=296B
+  5002363/off: opaque=1116B masked=1383B
+  5002363/low: opaque=1116B masked=1383B
+  5002363/standard: opaque=1116B masked=1383B
+  5002363/fovea-input-8bit: opaque=1116B masked=1383B
+  5002363/fovea-input-10bit: opaque=1116B masked=1383B
+Summary: 3 PASS, 0 BLOCKED of 3 bases
+Scope: production common prefix + actual native suffixes, assembled byte-for-byte. A separate strict GLSL check and GLSL driver compilation remain; runtime format acceptance and panel output are not tested.

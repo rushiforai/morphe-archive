@@ -9,6 +9,10 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import java.text.NumberFormat;
+
+import app.morphe.extension.tiktok.seen.SeenVideoHistory;
+import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.RangeValuePreference;
@@ -76,10 +80,15 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         ));
         addPreference(new TogglePreference(
                 context,
+                "Hide TikTok Shop in search", "Hide the Products block and product cards in search results.",
+                Settings.HIDE_SEARCH_SHOP
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Hide LIVE videos", "Hide LIVE videos from the feed.",
                 Settings.HIDE_LIVE
         ));
-        addPreference(new TogglePreference(context, "Hide LIVE replays", "Skip recorded LIVE broadcasts in the feed.", Settings.HIDE_LIVE_REPLAYS));
+        addPreference(new TogglePreference(context, "Hide LIVE replays", "Hide recorded LIVE broadcasts from the feed.", Settings.HIDE_LIVE_REPLAYS));
         addPreference(new TogglePreference(
                 context,
                 "Hide stories", "Hide stories from the feed.",
@@ -131,43 +140,43 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 Settings.HIDE_PAID_PARTNERSHIP
         ));
         addPreference(new TogglePreference(context, "Hide promotional music",
-                "Skip videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
+                "Hide videos marked as using promotional music.", Settings.HIDE_PROMOTIONAL_MUSIC));
         addPreference(new TogglePreference(context, "Filter location-tagged videos",
-                "Skip feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.",
+                "Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.",
                 Settings.FILTER_LOCATION_VIDEOS));
     }
 
     private void addLimits(Context context) {
         addPreference(new SectionHeadingPreference(context, "Limits"));
-        addPreference(new NumberInputPreference(context, "Maximum video length", "Seconds. Zero keeps every length. If a whole batch would be filtered out, the video closest to your limit is kept so the feed is not empty.", Settings.MAX_VIDEO_SECONDS, "second", "seconds").zeroMeansOff());
+        addPreference(new NumberInputPreference(context, "Maximum video length", "Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed is not empty.", Settings.MAX_VIDEO_SECONDS, "%1$s second", "%1$s seconds").zeroMeansOff());
         addPreference(new NumberInputPreference(context, "Maximum post age",
                 "Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.",
-                Settings.MAX_PUBLICATION_AGE_DAYS, "day", "days").zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Maximum views per like", "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if a whole batch would go.", Settings.MAX_VIEWS_PER_LIKE, "view per like", "views per like").zeroMeansOff());
-        addPreference(new NumberInputPreference(context, "Maximum views per comment", "Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.", Settings.MAX_VIEWS_PER_COMMENT, "view per comment", "views per comment").zeroMeansOff());
+                Settings.MAX_PUBLICATION_AGE_DAYS, "%1$s day", "%1$s days").zeroMeansOff());
+        addPreference(new NumberInputPreference(context, "Maximum views per like", "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if everything the feed just sent would go.", Settings.MAX_VIEWS_PER_LIKE, "%1$s view per like", "%1$s views per like").zeroMeansOff());
+        addPreference(new NumberInputPreference(context, "Maximum views per comment", "Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.", Settings.MAX_VIEWS_PER_COMMENT, "%1$s view per comment", "%1$s views per comment").zeroMeansOff());
         addPreference(new RangeValuePreference(
                 context,
-                "Min/Max views", "The minimum or maximum views of a video to show.",
+                "Views range", "Show only videos with this many views.",
                 Settings.MIN_MAX_VIEWS
         ));
         addPreference(new RangeValuePreference(
                 context,
-                "Min/Max likes", "The minimum or maximum likes of a video to show.",
+                "Likes range", "Show only videos with this many likes.",
                 Settings.MIN_MAX_LIKES
         ));
         addPreference(new RangeValuePreference(
                 context,
-                "Min/Max comments", "The minimum or maximum comments on a video to show.",
+                "Comments range", "Show only videos with this many comments.",
                 Settings.MIN_MAX_COMMENTS
         ));
         addPreference(new RangeValuePreference(
                 context,
-                "Min/Max favorites", "The minimum or maximum favorites of a video to show.",
+                "Favorites range", "Show only videos with this many favorites.",
                 Settings.MIN_MAX_FAVOURITES
         ));
         addPreference(new RangeValuePreference(
                 context,
-                "Min/Max shares", "The minimum or maximum shares of a video to show.",
+                "Shares range", "Show only videos with this many shares.",
                 Settings.MIN_MAX_SHARES
         ));
     }
@@ -178,7 +187,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (!any) return;
         addPreference(new SectionHeadingPreference(context, "Creators and sounds"));
         if (SettingsStatus.feedFilterEnabled) {
-            addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. These accounts are always skipped. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
+            addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
                     .withCheck(AdvancedFeedRules::creatorEntryProblem));
             addPreference(new CreatorListPreference(context, "Creators hidden on this phone",
                     "Creators you hid from a video. Search the list and remove one at a time.",
@@ -216,8 +225,8 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         if (SettingsStatus.feedFilterEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Skip blocked sounds",
-                    "Skip videos that use a sound blocked with the player's sound button, or named below.",
+                    "Hide videos with blocked sounds",
+                    "Hide videos that use a sound blocked with the player's sound button, or named below.",
                     Settings.HIDE_BLOCKED_SOUNDS
             ));
             addPreference(new InputTextPreference(
@@ -238,7 +247,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     private void addWordsAndCountries(Context context) {
         addPreference(new SectionHeadingPreference(context, "Words and countries"));
         addPreference(new InputTextPreference(context, "Blocked caption words",
-                "Comma separated words or phrases. Matching captions are skipped. Case does not matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
+                "Comma separated words or phrases. Videos whose caption matches are hidden. Case does not matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
                 Settings.BLOCKED_CAPTION_WORDS)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
         addPreference(new InputTextPreference(context, "Only from these countries",
@@ -256,15 +265,16 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new TogglePreference(
                 context,
                 "Hide videos you have already seen",
-                "Keep a local record of what you have watched and drop those videos from "
-                        + "later feed pages.",
+                "Keep a local record of what you have watched and hide those videos when "
+                        + "the feed sends them again.",
                 Settings.HIDE_SEEN_VIDEOS
         ));
         addPreference(new NumberInputPreference(
                 context,
                 "Forget seen videos after",
-                "Days to remember a video. Zero removes the age limit. History keeps at most 10,000 videos.",
-                Settings.SEEN_VIDEO_RETENTION_DAYS, "day", "days"
+                L10n.f(context, "Days to remember a video. Zero removes the age limit. History keeps at most %1$s videos.",
+                        NumberFormat.getInstance().format(SeenVideoHistory.MAX_RECORDS)),
+                Settings.SEEN_VIDEO_RETENTION_DAYS, "%1$s day", "%1$s days"
         ).zeroMeansOff());
         addPreference(new ClearSeenVideoHistoryPreference(context));
     }
@@ -273,7 +283,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new SectionHeadingPreference(context, "Advanced"));
         addPreference(new TogglePreference(
                 context,
-                "Filter offline fallback videos",
+                "Filter TikTok's offline videos",
                 "Also apply these filters to downloaded videos TikTok uses when the feed cannot load enough new items.",
                 Settings.FILTER_OFFLINE_FALLBACK_VIDEOS
         ));

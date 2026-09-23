@@ -25,6 +25,7 @@ fun baseAppRefreshRatePatch(
     block: BytecodePatchBuilder.() -> Unit,
     executeBlock: BytecodePatchContext.() -> Unit = {},
 ) = bytecodePatch(
+    name = "App refresh rate",
     description = "Adds an option to change the app refresh rate."
 ) {
     block()

@@ -28,6 +28,7 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val hideSettingsMenuFilterPatch = bytecodePatch(
+    name = "Settings menu filter",
     description = "Adds an option to hide items on the standard YouTube settings screen by their visible name."
 ) {
     dependsOn(

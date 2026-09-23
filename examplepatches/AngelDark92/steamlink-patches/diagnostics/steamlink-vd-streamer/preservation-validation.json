@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-22",
+  "checks": {
+    "blue_noise": {
+      "checked": 50,
+      "unchanged": 50,
+      "result": "PASS"
+    },
+    "installed_vd_inputs": {
+      "checked": 7,
+      "unchanged": 7,
+      "result": "PASS"
+    }
+  },
+  "python_syntax": "PASS",
+  "local_report_links_checked": 25,
+  "shader_bodies_disassembled": 76,
+  "shader_disassembly_bytes": 260760,
+  "scope": "Read-only installed-app audit. Production unchanged in this follow-up; no runtime or headset test.",
+  "blue_noise_baseline": "../steamlink-vd-hevc10/blue-noise-preservation.json",
+  "installed_baseline": "installed-inputs.json"
+}

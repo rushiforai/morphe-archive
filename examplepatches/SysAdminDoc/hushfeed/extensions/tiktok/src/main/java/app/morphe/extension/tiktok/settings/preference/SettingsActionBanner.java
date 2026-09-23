@@ -130,7 +130,7 @@ public final class SettingsActionBanner {
                 action.run();
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Could not run the settings banner action", throwable);
-                Utils.showToastShort(L10n.t(activity, "Could not undo the clear. Try again."));
+                Utils.showToastShort(L10n.t(activity, "Couldn't undo the clear. Try again."));
             }
         });
         banner.addView(button, new LinearLayout.LayoutParams(

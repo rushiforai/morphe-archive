@@ -16,9 +16,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patches.all.misc.resources.ResourceType
-import app.morphe.patches.all.misc.resources.getResourceId
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resource.resourceId
 import app.morphe.patches.shared.ad.hideFullscreenAdsPatch
 import app.morphe.patches.shared.misc.litho.filter.addLithoFilter
 import app.morphe.patches.shared.misc.proto.hookElement
@@ -86,12 +85,12 @@ private val hideAdsResourcePatch = resourcePatch {
 
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
+    name = "Hide ads",
     description = "Adds options to hide general ads, Premium promotions and video ads."
 ) {
     dependsOn(
         hideAdsResourcePatch,
         elementProtoParserHookPatch,
-        resourceMappingPatch,
         versionCheckPatch,
         sharedExtensionPatch,
         elementProtoParserHookPatch,
@@ -207,7 +206,7 @@ val hideAdsPatch = bytecodePatch(
 
         // Hide ad views
 
-        var adAttributionId = getResourceId(ResourceType.ID, "ad_attribution")
+        var adAttributionId = resourceId(ResourceType.ID, "ad_attribution")
 
         classDefForEach { classDef ->
             val mutableClassDef by lazy {

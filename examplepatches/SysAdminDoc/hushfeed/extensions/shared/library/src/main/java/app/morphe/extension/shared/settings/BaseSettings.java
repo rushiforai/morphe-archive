@@ -50,10 +50,25 @@ public class BaseSettings {
 
     public static final StringSetting EXPERIMENTAL_APP_CONFIRMED = new StringSetting("morphe_experimental_app_target_confirmed", "", false, false);
 
+    /**
+     * Pause Hushfeed: from the next start TikTok runs as if it were not patched for every hook a
+     * setting controls, and every saved value stays as it is. Left out of backups, so restoring
+     * one never pauses a phone by surprise.
+     */
+    public static final BooleanSetting PAUSED = new BooleanSetting("hushfeed_paused", FALSE, true, false, null, null);
+
+    /** Set by {@link HushfeedPause} after three starts in a row crashed within a minute. */
+    public static final BooleanSetting SAFE_MODE = new BooleanSetting("hushfeed_safe_mode", FALSE, true, false, null, null);
+
     static {
+        // Hushfeed's own state and its diagnostics, which keep working while it is paused.
+        Setting.keepWhenPaused(DEBUG, DEBUG_LOG_FILTERS, CAPTURE_JAVA_CRASHES, DEBUG_STACKTRACE,
+                DEBUG_TOAST_ON_ERROR, CHECK_ENVIRONMENT_WARNINGS_ISSUED, MORPHE_LANGUAGE, SHOW_MENU_ICONS,
+                FIRST_TIME_APP_LAUNCHED, EXPERIMENTAL_APP_CONFIRMED, PAUSED, SAFE_MODE);
+
         final long now = System.currentTimeMillis();
 
-        if (FIRST_TIME_APP_LAUNCHED.get() < 0) {
+        if (FIRST_TIME_APP_LAUNCHED.savedValue() < 0) {
             Logger.printInfo(() -> "First launch of installation with no prior app data");
             FIRST_TIME_APP_LAUNCHED.save(now);
         }

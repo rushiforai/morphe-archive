@@ -317,6 +317,13 @@ Limitations:
 • Comments: %s
 • Total: %s"</string>
 
+    <string name="morphe_hide_stats_category_title">Stats</string>
+    <string name="morphe_hide_stats_hidden_24h_title">Videos hidden, last 24 hours</string>
+    <string name="morphe_hide_stats_hidden_all_title">Videos hidden, all time</string>
+    <string name="morphe_hide_stats_hidden_24h_reset_title">Reset last 24 hours counter?</string>
+    <string name="morphe_hide_stats_hidden_all_reset_title">Reset all time counter?</string>
+    <string name="morphe_hide_about_category_title">About</string>
+
     <string name="morphe_hide_channel_blacklist_screen_title">Channel blacklist</string>
     <string name="morphe_hide_channel_blacklist_screen_summary">Hide videos from specific channels you have blacklisted</string>
     <string name="morphe_hide_channel_blacklist_home_title">Hide Home videos by channel</string>
@@ -343,13 +350,6 @@ Tap the 3-dot menu on any video and select \'Add channel to blacklist\' to add c
 • Comments: %s
 • Total: %s"</string>
     <string name="morphe_channel_blacklist_toast_invalid_broad">Channel name will hide all videos: %s</string>
-
-    <string name="morphe_hide_stats_category_title">Stats</string>
-    <string name="morphe_hide_stats_hidden_24h_title">Videos hidden, last 24 hours</string>
-    <string name="morphe_hide_stats_hidden_all_title">Videos hidden, all time</string>
-    <string name="morphe_hide_stats_hidden_24h_reset_title">Reset last 24 hours counter?</string>
-    <string name="morphe_hide_stats_hidden_all_reset_title">Reset all time counter?</string>
-    <string name="morphe_hide_about_category_title">About</string>
 
     <string name="morphe_hide_aislist_screen_title">AI channel filter</string>
     <string name="morphe_hide_aislist_screen_summary">Hide videos from channels flagged as AI-generated content by the AiSList community list</string>
@@ -436,6 +436,13 @@ Reports are public and are reviewed before a channel is added to a list. Removal
     <string name="morphe_double_tap_length_120s" translatable="false">120</string>
     <string name="morphe_double_tap_length_180s" translatable="false">180</string>
     <string name="morphe_double_tap_length_240s" translatable="false">240</string>
+
+    <!-- interaction.channelsearch.channelSearchPatch -->
+    <string name="morphe_channel_search_title">Search within channel</string>
+    <string name="morphe_channel_search_summary">Searching while a channel is open searches only that channel</string>
+    <string name="morphe_channel_search_results">Channel search results</string>
+    <string name="morphe_channel_search_no_results">Nothing found on this channel</string>
+    <string name="morphe_channel_search_failed">Could not search this channel</string>
 
     <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
     <string name="morphe_share_copy_link_button_success">Link copied to clipboard</string>
@@ -574,8 +581,12 @@ Info: May not work on live streams"</string>
     <string name="morphe_save_to_watch_later_already_exists_toast">This video is already saved in watch later playlist</string>
     <string name="morphe_save_to_watch_later_error_toast">Cannot save this video in watch later playlist</string>
     <string name="morphe_save_to_watch_later_flyout_title">Save to Watch later</string>
+    <string name="morphe_save_to_watch_later_flyout_button_title">Show Save to Watch later button in the player settings flyout</string>
+    <string name="morphe_save_to_watch_later_flyout_button_summary">Allows saving the current watching video in the \'Watch later\' from the video settings flyout</string>
     <string name="morphe_save_to_watch_later_kids_flyout_button_title">Show Save to Watch later button in kids videos</string>
-    <string name="morphe_save_to_watch_later_kids_flyout_button_summary">Allows saving kid related videos in the \'Watch later\' flyout menu</string>
+    <string name="morphe_save_to_watch_later_kids_flyout_button_summary">Allows saving kid related videos in the \'Watch later\' from the flyout menu</string>
+    <string name="morphe_save_to_watch_later_shorts_flyout_button_title">Show Save to Watch later button in the shorts flyout</string>
+    <string name="morphe_save_to_watch_later_shorts_flyout_button_summary">Allows saving shorts in the \'Watch later\' from the flyout menu</string>
     <string name="morphe_queue_flyout_title">Add to Morphe queue</string>
     <string name="morphe_queue_restore_title">Keep queue between sessions</string>
     <string name="morphe_queue_restore_summary">Queue is kept after restarting the app</string>
@@ -1015,6 +1026,10 @@ Settings → Playback (or Autoplay) → Autoplay next video"</string>
     <string name="morphe_exit_fullscreen_entry_3">Landscape only</string>
     <string name="morphe_exit_fullscreen_entry_4">Portrait and landscape</string>
 
+    <!-- layout.player.fullscreen.forceFullscreenLandscapePatch -->
+    <string name="morphe_force_fullscreen_landscape_title">Force landscape in fullscreen</string>
+    <string name="morphe_force_fullscreen_landscape_summary">Rotate the player to landscape when entering fullscreen. Unavailable on small screens, which already open fullscreen in landscape</string>
+
     <!-- layout.player.fullscreen.disableFullscreenGesturesPatch -->
     <string name="morphe_disable_fullscreen_gestures_title">Fullscreen gestures</string>
     <string name="morphe_disable_fullscreen_gestures_summary">Player gestures in fullscreen mode</string>
@@ -1154,6 +1169,7 @@ Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' o
     <string name="morphe_miniplayer_screen_title">Miniplayer</string>
     <string name="morphe_miniplayer_screen_summary">Customize the appearance and behavior of the minimized video player</string>
     <string name="morphe_miniplayer_type_title">Miniplayer type</string>
+    <string name="morphe_miniplayer_hide_title_title">Hide title and channel</string>
     <string name="morphe_miniplayer_type_entry_0">Disabled</string>
     <string name="morphe_miniplayer_type_entry_1">Default</string>
     <string name="morphe_miniplayer_type_entry_2">Minimal</string>
@@ -1414,6 +1430,7 @@ Video playback with AV1 may stutter or drop frames."</string>
     <string name="morphe_spoof_video_streams_about_no_av1">• No AV1 video codec</string>
     <string name="morphe_spoof_video_streams_about_no_immersive_mode">• 360° VR immersive mode is not available</string>
     <string name="morphe_spoof_video_streams_about_no_stable_volume">• Stable volume is not available</string>
+    <string name="morphe_spoof_video_streams_about_end_early">• Playback may end 1 second early</string>
     <string name="morphe_spoof_video_streams_about_js">• If deobfuscation fails, playback may fail</string>
     <!-- "Force original audio" should match the language used in 'morphe_force_original_audio_title'. -->
     <string name="morphe_spoof_video_streams_about_no_force_original_audio">• Force original audio is not available</string>

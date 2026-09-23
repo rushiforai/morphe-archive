@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.colorOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import java.io.File
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
@@ -29,9 +30,15 @@ val amoledThemePatch = resourcePatch(
         values = mapOf("Black" to "#000000", "Mocha" to "#181825", "Dark gray" to "#121212"),
     )
     execute {
-        document("AndroidManifest.xml").use { manifest ->
-            if (isMergedSplitBundle(manifest)) throw PatchException(MERGED_BUNDLE_REFUSAL)
-        }
+        val packageRoot = get("res").parentFile
+        val decodedRoots = decodedPackageRoots(packageRoot)
+        val collisions = renamedPathCollisions(
+            entries = listApkEntries("res/"),
+            decodedDirectories = decodedResourceDirectories(decodedRoots),
+            aliasOf = { name -> get(name).relativeTo(packageRoot).invariantSeparatorsPath },
+            isDecoded = { name -> decodedRoots.any { it.resolve(name).isFile } },
+        )
+        if (collisions.isNotEmpty()) throw PatchException(renamedPathsRefusal(collisions.size))
         val color = background ?: throw PatchException("Choose a background color")
         if (!Regex("#[0-9a-fA-F]{6}|#[fF]{2}[0-9a-fA-F]{6}").matches(color)) {
             throw PatchException("Background color must be opaque #RRGGBB or #FFRRGGBB")
@@ -71,28 +78,54 @@ val amoledThemePatch = resourcePatch(
     }
 }
 
-internal const val MERGED_BUNDLE_REFUSAL =
-    "AMOLED dark theme: this TikTok APK was merged from a split bundle (an .apkm file), and " +
-        "rebuilding its resources loses about 1,400 of them, so TikTok would crash at launch. " +
-        "Nothing was changed. Untick this patch, or patch the full APK from APKMirror."
+internal fun renamedPathsRefusal(collisions: Int) =
+    "AMOLED dark theme: this TikTok APK was merged from a split bundle in a way that moved " +
+        "its resource files into new folders, and $collisions of their paths clash with the " +
+        "names the resource rebuild gives other files. The rebuild would drop files and " +
+        "TikTok would crash at launch. Nothing was changed. Patch the .apkm in Morphe Manager, " +
+        "which keeps TikTok's own paths, or patch the full APK from APKMirror."
 
 /**
- * Whether the APK was merged from split APKs rather than shipped whole.
- *
- * <p>This is the one patch that rewrites resources, and on the APKMirror 46.2.3 bundle merged
- * by Morphe the rewritten APK came out with 1,375 resource entries pointing at files it no
- * longer carried (23,668 res files in, 22,293 out). TikTok then died inflating its first feed
- * layout (layout/ceo, a missing background drawable) on the S22, 2026-09-18. The same patch
- * on the universal APK leaves nothing dangling. Every whole APK on the desk keeps Play's
- * `com.android.vending.splits` meta-data, and merging removes it, so its absence is the tell.
+ * The decoded package directories: the one holding [packageRoot] and its siblings that have a
+ * `res` directory. Every resource package decodes to its own directory, and a clash can be in
+ * any of them.
  */
-internal fun isMergedSplitBundle(manifest: Document): Boolean {
-    val metaData = manifest.getElementsByTagName("meta-data")
-    for (index in 0 until metaData.length) {
-        val name = (metaData.item(index) as Element).getAttribute("android:name")
-        if (name == "com.android.vending.splits") return false
+internal fun decodedPackageRoots(packageRoot: File): List<File> =
+    (listOf(packageRoot) + packageRoot.parentFile?.listFiles().orEmpty()
+        .filter { it.isDirectory && it.resolve("res").isDirectory })
+        .distinctBy { it.absoluteFile.normalize() }
+
+/** Every `res/<folder>` the decoder wrote, across [roots]. */
+internal fun decodedResourceDirectories(roots: List<File>): Set<String> =
+    roots.flatMapTo(mutableSetOf()) { root ->
+        root.resolve("res").listFiles().orEmpty().filter { it.isDirectory }.map { "res/${it.name}" }
     }
-    return true
+
+/**
+ * Input resource paths that Morphe's resource rebuild can drop: a path whose own file was
+ * decoded under another name (the path map renamed it) while another resource's decoded file
+ * sits at that same path.
+ *
+ * <p>The decoder writes every resource file to `res/<type>/<entry name>` and records the
+ * original archive path beside it; the rebuild renames each file back. TikTok's own paths are
+ * short folders (`res/b/cfz.xml`), so nothing clashes, and Morphe Manager's merge of an .apkm
+ * keeps them. The desktop CLI's merge moves every file into a folder named for its type and
+ * keeps the short name, so entry `ac`'s file becomes `res/drawable/a0.xml`, which is also where
+ * entry `a0`'s file decodes. On APKMirror's 46.2.3 and 47.0.3 bundles that made 14,468 and
+ * 14,925 such clashes, the rebuild lost 1,375 and 1,361 files, all clashing paths, and TikTok died
+ * inflating its first feed layout on the S22 (2026-09-18). Manager's merge of the same bundles
+ * and both universal APKs have none and lose nothing. A file kept at its own path (Play's
+ * `res/xml/splits0.xml` in a universal APK) is not a clash: its alias is itself.
+ */
+internal fun renamedPathCollisions(
+    entries: Iterable<String>,
+    decodedDirectories: Set<String>,
+    aliasOf: (String) -> String,
+    isDecoded: (String) -> Boolean,
+): List<String> = entries.filter { name ->
+    // The folder check comes first and is free: a clash can only sit where the decoder writes,
+    // and on a clean input none of the archive's folders is one of those.
+    name.substringBeforeLast('/', "") in decodedDirectories && aliasOf(name) != name && isDecoded(name)
 }
 
 /** The builds this patch is declared for, where the sheet style names are known to be right. */

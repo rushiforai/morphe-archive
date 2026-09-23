@@ -1,3 +1,33 @@
+## [1.14.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.13.2...v1.14.0) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** fix Build order screen layout and text contrast ([4b7f5c6](https://github.com/Amitaisela/travian-morphe-patches/commit/4b7f5c634204d7dbc71221c3225a04c39d66bbf1))
+
+### ✨ New Features
+
+* **Travian: Legends:** add BuildOrderStore, the saved per-village build order ([cf8d22c](https://github.com/Amitaisela/travian-morphe-patches/commit/cf8d22c3a785a14ca686870a0b20d70cbedfb7eb))
+* **Travian: Legends:** add the Build order screen ([1275b1d](https://github.com/Amitaisela/travian-morphe-patches/commit/1275b1dc6e4b036f3c7ac81c80e721a13ace3fd2))
+* **Travian: Legends:** store the village list from each poll, keyed by id ([f6ef285](https://github.com/Amitaisela/travian-morphe-patches/commit/f6ef28526ab2fcc17000149bd437c2303eb1c1d8))
+
+## [1.13.2](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.13.1...v1.13.2) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** try the real building-cost field name in the diagnostic probe ([77db674](https://github.com/Amitaisela/travian-morphe-patches/commit/77db674f0df71d53196b936cd52354960428eac2))
+
+## [1.13.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.13.0...v1.13.1) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** log GraphQL errors alongside data in the diagnostic probes ([146c8ad](https://github.com/Amitaisela/travian-morphe-patches/commit/146c8adbe54f764f5f65f3c905383de6aa9536c8))
+
+## [1.13.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.12.1...v1.13.0) (2026-09-22)
+
+### ✨ New Features
+
+* **Travian: Legends:** show idle villages and Gold Club status in Travian Tools ([51d56f4](https://github.com/Amitaisela/travian-morphe-patches/commit/51d56f4d44c801a759d7502968d1a13a90b0862a))
+
 ## [1.12.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.12.0...v1.12.1) (2026-09-21)
 
 ### 🐛 Bug Fixes

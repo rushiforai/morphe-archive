@@ -7,10 +7,6 @@ import app.template.patches.shared.Constants.isModernTongueBridgeSteamLinkBuild
 import app.template.patches.steamlink.util.BinaryPatchHelper.vaddrToFileOffset
 import java.security.MessageDigest
 
-internal const val MODERN_TONGUE_LIBRARY_SIZE_5002322 = 2_283_400
-internal const val MODERN_TONGUE_VADDR_5002322 = 0x140ea4L
-internal const val MODERN_TONGUE_STOCK_SHA256_5002322 =
-    "e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f"
 internal const val MODERN_TONGUE_LIBRARY_SIZE_5002363 = 2_292_008
 internal const val MODERN_TONGUE_VADDR_5002363 = 0x141c6cL
 internal const val MODERN_TONGUE_STOCK_SHA256_5002363 =
@@ -18,7 +14,7 @@ internal const val MODERN_TONGUE_STOCK_SHA256_5002363 =
 
 // Valve's native Android-XR mapper already translates face expressions 0..62 and preserves
 // standard FB2 TongueOut at slot 68. This final block currently zeros FB2 slots 63..67.
-internal val MODERN_TONGUE_ORIGINAL_5002322 = byteArrayOf(
+internal val MODERN_TONGUE_ORIGINAL = byteArrayOf(
     0xe0.toByte(), 0x3f, 0x41, 0xbd.toByte(), // ldr s0, [sp, #0x13c] (Android TongueOut)
     0x1f, 0xcd.toByte(), 0x0f, 0xf8.toByte(), // str xzr, [x8, #0xfc]!
     0x1f, 0x19, 0x00, 0xb9.toByte(),          // str wzr, [x8, #0x18]
@@ -30,7 +26,7 @@ internal val MODERN_TONGUE_ORIGINAL_5002322 = byteArrayOf(
 // Transport slots consumed by the Galaxy XR LinkFT module:
 // 63=out, 64=left, 65=right, 66=up, 67=down. Slot 68 remains standard FB2 TongueOut,
 // and slot 69 (TongueRetreat) remains zero.
-internal val MODERN_TONGUE_REPLACEMENT_5002322 = byteArrayOf(
+internal val MODERN_TONGUE_REPLACEMENT = byteArrayOf(
     0xa1.toByte(), 0x42, 0xc0.toByte(), 0x3d, // ldr q1, [x21, #0x100] (Android 64..67)
     0xa0.toByte(), 0xfe.toByte(), 0x40, 0xbd.toByte(), // ldr s0, [x21, #0xfc] (Android 63)
     0x00, 0xfd.toByte(), 0x00, 0xbd.toByte(), // str s0, [x8, #0xfc] (transport 63)
@@ -43,9 +39,6 @@ internal val MODERN_TONGUE_REPLACEMENT_5002322 = byteArrayOf(
 // still receives the expression array at SP+0x40 (X21), and X8 still points to
 // the FB2 output array at this final block. Both the 24 stock bytes and register
 // contract were checked on this exact ELF; only its independently derived address moves.
-internal val MODERN_TONGUE_ORIGINAL_5002363 = MODERN_TONGUE_ORIGINAL_5002322.copyOf()
-internal val MODERN_TONGUE_REPLACEMENT_5002363 = MODERN_TONGUE_REPLACEMENT_5002322.copyOf()
-
 private data class ModernTongueLayout(
     val versionName: String,
     val versionCode: String,
@@ -58,14 +51,9 @@ private data class ModernTongueLayout(
 
 private val MODERN_TONGUE_LAYOUTS = listOf(
     ModernTongueLayout(
-        "2.0.22", "5002322", MODERN_TONGUE_LIBRARY_SIZE_5002322,
-        MODERN_TONGUE_VADDR_5002322, MODERN_TONGUE_STOCK_SHA256_5002322,
-        MODERN_TONGUE_ORIGINAL_5002322, MODERN_TONGUE_REPLACEMENT_5002322,
-    ),
-    ModernTongueLayout(
         "2.0.23", "5002363", MODERN_TONGUE_LIBRARY_SIZE_5002363,
         MODERN_TONGUE_VADDR_5002363, MODERN_TONGUE_STOCK_SHA256_5002363,
-        MODERN_TONGUE_ORIGINAL_5002363, MODERN_TONGUE_REPLACEMENT_5002363,
+        MODERN_TONGUE_ORIGINAL, MODERN_TONGUE_REPLACEMENT,
     ),
 )
 
@@ -110,7 +98,7 @@ internal fun patchModernTongueTransport(
 @Suppress("unused")
 val gxrModernTongueBridgePatch = rawResourcePatch(
     name = "GXR tongue bridge (version 5002322 and above)",
-    description = "For exact Steam Link 2.0.22/5002322 and 2.0.23/5002363 with Valve's native Android XR face mapping. Each base uses its independently verified native layout. Preserves Valve's face expressions and standard TongueOut while exposing Galaxy XR tongue out/left/right/up/down to the matching Galaxy XR VRCFT module.",
+    description = "For exact Steam Link 2.0.23/5002363 with Valve's native Android XR face mapping and its independently verified native layout. Preserves Valve's face expressions and standard TongueOut while exposing Galaxy XR tongue out/left/right/up/down to the matching Galaxy XR VRCFT module.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE.toTypedArray())

@@ -27,8 +27,8 @@
     # 2. Erzeuge providerPatch (BytecodePatch: RingConn Health Data Provider)
     new-instance v3, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$ProviderBytecodeBuilder;
     invoke-direct {v3}, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$ProviderBytecodeBuilder;-><init>()V
-    const-string v0, "RingConn Health Data Provider (v1.2.10)"
-    const-string v1, "v1.2.10: Enables local SQLite database access for companion apps and third-party tools."
+    const-string v0, "RingConn Health Data Provider (v1.3.2)"
+    const-string v1, "v1.3.2: Enables local SQLite database access for companion apps and third-party tools."
     const/4 v2, 0x1
     const/4 v4, 0x0
     const/4 v5, 0x0
@@ -51,8 +51,8 @@
     # 4. Erzeuge dashboardPatch (BytecodePatch: Intervals.icu Quick-Sync Tile)
     new-instance v3, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$DashboardBytecodeBuilder;
     invoke-direct {v3}, Lapp/morphe/patches/ringconn/RingConnSyncPatchKt$DashboardBytecodeBuilder;-><init>()V
-    const-string v0, "Intervals.icu Quick-Sync Tile (v1.2.10)"
-    const-string v1, "v1.2.10: Streamlined Intervals.icu sync dashboard in the Discover tab. Pure wellness data transfer."
+    const-string v0, "Intervals.icu Quick-Sync Tile (v1.3.2)"
+    const-string v1, "v1.3.2: Streamlined Intervals.icu sync dashboard in the Discover tab. Pure wellness data transfer."
     const/4 v2, 0x1
     const/4 v4, 0x0
     const/4 v5, 0x0

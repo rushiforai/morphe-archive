@@ -40,8 +40,8 @@ https://github.com/areteruhiro/Haiagaru
 履歴タイトルの保存・読み込み時に補完するため、DAT落ち後や再起動後も取得済みの記者IDからNG登録できます。
 導入後に一度エッヂの板一覧を更新してください。既にDAT落ちしており記者IDを一度も取得していないスレッドのIDは復元できません。
 
-記者ID付きスレッドからNGThread追加を開くと、226 dev・241・243 devでは「記者IDだけをNG」を選択できます。
-191 devでは標準のNGThread編集画面を使用します。
+記者ID付きスレッドからNGThread追加を開くと、191 dev・226 dev・241・243 devの全対応版で
+「記者IDだけをNG」を選択できます。191 devでは標準のNGThread編集画面へこの操作を追加します。
 スレタイを手作業で削除する必要はなく、記者ID部分（`[xxxxxxxx★]`）を通常のNGThreadとして保存します。
 登録内容の確認・削除は従来のNGThread設定で行えます。
 
@@ -117,26 +117,51 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 
 [MorpheへHaiagaruを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)
 
-通常版・プレリリース版ともに正式Release `1.3.6`から取得します。
-1.3.6の配布物はAndroid拡張を内包したMPPです。
+通常版・プレリリース版ともに正式Release `1.3.9`から取得します。
+1.3.9の配布物はAndroid拡張を内包したMPPです。
 
-現在の公式版（1.3.6）を取得するパッチソースです。
-
-```text
-https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle.json
-```
-
-プレリリース設定でも1.3.6を配布しています。
+現在の公式版（1.3.9）を取得するパッチソースです。
 
 ```text
-https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/refs/heads/master/patches-bundle-pre.json
+https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json
 ```
 
-現在は通常版・プレリリース版ともに `1.3.6` を配布しています。同じバージョン内で修正版を配布する場合は、
+プレリリース設定でも1.3.9を配布しています。
+
+```text
+https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle-pre.json
+```
+
+現在は通常版・プレリリース版ともに `1.3.9` を配布しています。同じバージョン内で修正版を配布する場合は、
 URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布リビジョンを更新します。
 更新が表示されない場合は、パッチソース画面から手動で更新を実行してください。
 
 ## 更新履歴
+
+### 1.3.9（正式版）
+
+- `1.3.7`／`1.3.8`からアプリデータを残して更新した際、古いTalk書き込みキーが残って`divide by zero`になる問題を修正
+- ChMate本体の同じversionNameではなくAPKの更新時刻を使用し、パッチ済みAPKの更新ごとにTalk書き込みセッションを一度だけ安全に再生成
+- Talkスレ更新時にDAT全体とIDXを作り直さず、不足したレスだけを追記して「自分の書き込み」印を保持
+- Talkテストスレへ実投稿し、別画面へ移動後に再度開いても投稿レスと自分の書き込み印が残ることを実機で確認
+- 191 dev／226 dev／241／243 devの全対応APKへパッチできることを確認
+
+### 1.3.8（正式版）
+
+- ChMate `0.8.10.191 dev`でTalk板一覧のURLから`/boards/`が失われ、板一覧を取得できなくなる回帰を修正
+- ChMate `0.8.10.191 dev`のNGThread編集画面へ「記者IDだけをNG」を復旧
+- Talk投稿直後に読み取りAPIが一世代古い場合、画面遷移後に投稿レスが消えないよう新しいローカルDATを保持
+- 読み取りAPIが追いついた後は通常どおり新しいDATへ更新されることを実機で確認
+- 191 dev／226 dev／241／243 devの全対応APKへパッチできることを確認
+
+### 1.3.7（正式版）
+
+- ChMate `0.8.10.191 dev`で、過去のパッチや確認画面のキャンセルにより不整合になったTalk書き込みキーを、アプリデータを削除せず修復する処理を追加
+- Talkの書き込み確認画面を戻る操作で閉じた場合、次回投稿用のセッションだけを安全に再生成するよう修正
+- Talkへの投稿直後、読み取りAPIの反映が遅れていてもローカルの新しいレスを短いDATで上書きしないよう修正
+- ChMate `0.8.10.226 dev`で、Talk投稿前の生成キー処理に発生する`NullPointerException`対策を追加
+- ChMate `0.8.10.241`で、Talkキー保持オブジェクトと投稿処理の署名依存経路を保護
+- 191 dev／226 dev／241／243 devの全対応APKへ静的にパッチできることと、生成APKの署名を確認
 
 ### 1.3.6（正式版）
 

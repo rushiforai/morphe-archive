@@ -1,0 +1,51 @@
+{
+  "sha256": "f9951b536fa24198799af6778165cbb53951ce0b9d49afa923e4384c9738f602",
+  "bytes": 413816,
+  "architecture": "AArch64",
+  "api": 29,
+  "ndk": "27.2.12479018",
+  "exports_verified": [
+    "gxCompileShader",
+    "gxDeleteProgram",
+    "gxDeleteShader",
+    "gxDrawArrays",
+    "gxLinkProgram",
+    "gxShaderSource",
+    "gxdCreateContext",
+    "gxdDestroyContext",
+    "gxdMakeCurrent",
+    "gxdTerminate"
+  ],
+  "static_cpp_symbols_hidden": true,
+  "needed": [
+    "libGLESv3.so",
+    "libEGL.so",
+    "libdl.so",
+    "liblog.so",
+    "libm.so",
+    "libc.so"
+  ],
+  "load_segments": [
+    {
+      "offset": 0,
+      "vaddr": 0,
+      "align": 16384
+    },
+    {
+      "offset": 152176,
+      "vaddr": 168560,
+      "align": 16384
+    },
+    {
+      "offset": 393328,
+      "vaddr": 426096,
+      "align": 16384
+    },
+    {
+      "offset": 410936,
+      "vaddr": 460088,
+      "align": 16384
+    }
+  ],
+  "boundary": "ARM64 compile, ELF exports/dependencies/alignment only; Android linker and GL execution untested"
+}

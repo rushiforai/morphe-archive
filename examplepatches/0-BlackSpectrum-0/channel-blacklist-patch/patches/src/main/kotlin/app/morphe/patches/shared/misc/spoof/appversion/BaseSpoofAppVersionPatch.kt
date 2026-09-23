@@ -31,6 +31,7 @@ fun baseSpoofAppVersionPatch(
     block: BytecodePatchBuilder.() -> Unit,
     executeBlock: BytecodePatchContext.() -> Unit = {}
 ) = bytecodePatch(
+    name = "Spoof app version",
     description = "Adds an option to trick the app into thinking you are running an older version."
 ) {
     block()

@@ -136,7 +136,7 @@ private val amoledStyleItems = mapOf(
 val amoledDarkThemePatch = resourcePatch(
     name = "AMOLED dark theme",
     description = "Makes Google Photos dark surfaces true black while keeping light mode untouched.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
 

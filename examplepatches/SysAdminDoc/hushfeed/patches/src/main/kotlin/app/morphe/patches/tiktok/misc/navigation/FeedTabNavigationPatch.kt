@@ -5,6 +5,7 @@
 package app.morphe.patches.tiktok.misc.navigation
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -19,6 +20,7 @@ private const val TOP_TAB_LAYOUT_ABILITY =
     "Lcom/ss/android/ugc/aweme/homepage/ui/view/tab/top/TopTabLayoutAbility;"
 
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/NavigationTabsFilter;"
+private const val TAB_BADGES_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/TabBadges;"
 
 internal fun isTopTabLayoutConstructor(method: com.android.tools.smali.dexlib2.iface.Method): Boolean =
     method.definingClass == TOP_TAB_LAYOUT_ABILITY &&
@@ -37,7 +39,7 @@ private object TopTabLayoutConstructorFingerprint : app.morphe.patcher.Fingerpri
 @Suppress("unused")
 val feedTabNavigationPatch = bytecodePatch(
     name = "Feed tab navigation",
-    description = "Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble. Switch: Hushfeed settings > Feed tabs.",
+    description = "Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, and can hide the Tako AI bubble and the unread badges on the bottom tabs. Switch: Hushfeed settings > Feed tabs.",
     default = true,
 ) {
     category("Settings")
@@ -107,6 +109,29 @@ val feedTabNavigationPatch = bytecodePatch(
                 returnIndex,
                 "invoke-static {p1}, $EXTENSION_CLASS_DESCRIPTOR->" +
                     "installLoneForYouHeaderHider(Landroid/view/View;)V",
+            )
+        }
+
+        // The unread badges on the bottom tabs (the red count on Inbox, the dot on Profile):
+        // every show of either passes through the tab icon's own setter, so the visibility is
+        // answered there, and a repeated native update cannot bring a hidden badge back.
+        val countSetter = TabCountDotVisibilityFingerprint.method
+        val dotSetter = TabDotVisibilityFingerprint.method
+        check(countSetter.definingClass == dotSetter.definingClass) {
+            "Feed tab navigation: the badge setters sit on ${countSetter.definingClass} and " +
+                "${dotSetter.definingClass}, not on one tab icon."
+        }
+        val icon = mutableClassDefBy(countSetter.definingClass)
+        check(icon.methods.any { it.name == "getCountDotView" } && icon.methods.any { it.name == "getRedDotVIew" }) {
+            "Feed tab navigation: ${icon.type} has no badge views, so it is not the tab icon."
+        }
+        listOf(countSetter to "countDotVisibility", dotSetter to "tabDotVisibility").forEach { (setter, hook) ->
+            setter.addInstructions(
+                0,
+                """
+                    invoke-static {p1}, $TAB_BADGES_CLASS_DESCRIPTOR->$hook(I)I
+                    move-result p1
+                """,
             )
         }
     }

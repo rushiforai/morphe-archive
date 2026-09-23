@@ -71,6 +71,7 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.settings.AppLanguage;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.HushfeedPause;
 import app.morphe.extension.shared.ui.Dim;
 
 public class Utils {
@@ -491,6 +492,10 @@ public class Utils {
         Logger.printInfo(() -> "Set context: " + appContext);
         // Must initially set context to check the app language.
         context = appContext;
+
+        // Before any hook reads a setting: whether this process runs with Hushfeed paused, and
+        // the record that lets three crashed starts in a row turn safe mode on.
+        HushfeedPause.onProcessStart(appContext);
 
         // Follow the activity rather than keeping the first one. The host recreates its main
         // activity on a configuration change it does not swallow, and this hook runs again for

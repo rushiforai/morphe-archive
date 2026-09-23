@@ -1,3 +1,19 @@
+## [1.9.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.8.0...v1.9.0) (2026-09-22)
+
+### ✨ New Features
+
+* **Google Photos - Branding:** add Custom Morphe branding patch and 46 assets ([38f188e](https://github.com/Akash-Sriram/morphe-google-photos/commit/38f188e795db2525aed643eb3df6111d6469091c))
+
+## [1.8.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.7.0...v1.8.0) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **Google Photos:** repair map binder resolution, Mapbox camera fly-to, and gate ML model seeder ([1ea95c4](https://github.com/Akash-Sriram/morphe-google-photos/commit/1ea95c4b135e64cf2307043a716124c35f789cb8))
+
+### ✨ New Features
+
+* **Google Photos:** remove in-app update checker from base patches repository ([4e8d94b](https://github.com/Akash-Sriram/morphe-google-photos/commit/4e8d94b69f09072bb4e82ce03af30cacdfecff37))
+
 ## [1.7.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.6.2...v1.7.0) (2026-09-21)
 
 ### ✨ New Features

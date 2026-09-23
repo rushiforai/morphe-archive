@@ -25,7 +25,6 @@ import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.insertLiteralOverride
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS =
@@ -47,15 +46,10 @@ internal val fixBackToExitGesturePatch = bytecodePatch(
         )
 
         RecyclerViewTopScrollingFingerprint.let {
-            val alreadyHooked = it.method.implementation?.instructions?.any { inst ->
-                (inst as? ReferenceInstruction)?.reference?.toString()?.contains("onTopView") == true
-            } == true
-            if (!alreadyHooked) {
-                it.method.addInstructionsAtControlFlowLabel(
-                    it.instructionMatches.last().index + 1,
-                    "invoke-static { }, $EXTENSION_CLASS->onTopView()V"
-                )
-            }
+            it.method.addInstructionsAtControlFlowLabel(
+                it.instructionMatches.last().index + 1,
+                "invoke-static { }, $EXTENSION_CLASS->onTopView()V"
+            )
         }
 
         BackToRefreshFeatureFlagFingerprint.matchAll().forEach {
@@ -66,49 +60,34 @@ internal val fixBackToExitGesturePatch = bytecodePatch(
         }
 
         ScrollPositionFingerprint.instructionMatches[1].getMethodCalled().apply {
-            val alreadyHooked = implementation?.instructions?.any { inst ->
-                (inst as? ReferenceInstruction)?.reference?.toString()?.contains("onScrollingViews") == true
-            } == true
-            if (!alreadyHooked) {
-                val index = indexOfFirstInstructionOrThrow {
-                    opcode == Opcode.INVOKE_VIRTUAL && getReference<MethodReference>()?.definingClass ==
-                            "Landroid/support/v7/widget/RecyclerView;"
-                }
-
-                addInstruction(
-                    index,
-                    "invoke-static { }, $EXTENSION_CLASS->onScrollingViews()V"
-                )
+            val index = indexOfFirstInstructionOrThrow {
+                opcode == Opcode.INVOKE_VIRTUAL && getReference<MethodReference>()?.definingClass ==
+                        "Landroid/support/v7/widget/RecyclerView;"
             }
+
+            addInstruction(
+                index,
+                "invoke-static { }, $EXTENSION_CLASS->onScrollingViews()V"
+            )
         }
 
         YouTubeMainActivityOnBackPressedFingerprint.let {
             it.clearMatch()
             it.method.apply {
-                val alreadyHooked = implementation?.instructions?.any { inst ->
-                    (inst as? ReferenceInstruction)?.reference?.toString()?.contains("FixBackToExitGesturePatch;->onBackPressed") == true
-                } == true
-                if (!alreadyHooked) {
-                    val index = it.instructionMatches.first().index + 1
+                val index = it.instructionMatches.first().index + 1
 
-                    addInstructionsAtControlFlowLabel(
-                        index,
-                        "invoke-static { }, $EXTENSION_CLASS->onBackPressed()V"
-                    )
-                }
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    "invoke-static { }, $EXTENSION_CLASS->onBackPressed()V"
+                )
             }
         }
 
         if (is_20_40_or_greater) {
-            val alreadyHooked = PredictiveGesturesOnBackInvokedFingerprint.method.implementation?.instructions?.any { inst ->
-                (inst as? ReferenceInstruction)?.reference?.toString()?.contains("FixBackToExitGesturePatch;->onBackPressed") == true
-            } == true
-            if (!alreadyHooked) {
-                PredictiveGesturesOnBackInvokedFingerprint.method.addInstruction(
-                    0,
-                    "invoke-static { }, $EXTENSION_CLASS->onBackPressed()V"
-                )
-            }
+            PredictiveGesturesOnBackInvokedFingerprint.method.addInstruction(
+                0,
+                "invoke-static { }, $EXTENSION_CLASS->onBackPressed()V"
+            )
         }
     }
 }

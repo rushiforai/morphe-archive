@@ -203,6 +203,18 @@ public final class GboardAddSymbolsRuntimeTest {
     }
 
     @Test
+    public void customHistoryAcceptsOnlyFormal1803M2ClickCase() {
+        Assert.assertTrue(GboardAddSymbolsRuntime.isCustomEmoticonHistoryConsumerCase(
+                Integer.valueOf(5)));
+        Assert.assertFalse(GboardAddSymbolsRuntime.isCustomEmoticonHistoryConsumerCase(
+                Integer.valueOf(9)));
+        Assert.assertFalse(GboardAddSymbolsRuntime.isCustomEmoticonHistoryConsumerCase(
+                Integer.valueOf(4)));
+        Assert.assertFalse(GboardAddSymbolsRuntime.isCustomEmoticonHistoryConsumerCase("5"));
+        Assert.assertFalse(GboardAddSymbolsRuntime.isCustomEmoticonHistoryConsumerCase(null));
+    }
+
+    @Test
     public void persistentReflectionFailureLoggingIsBoundedPerSite() throws Exception {
         Method logWarn = GboardAddSymbolsRuntime.class.getDeclaredMethod(
                 "logWarn", String.class, Throwable.class);

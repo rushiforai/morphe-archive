@@ -19,15 +19,22 @@ $classes = Join-Path $out 'classes'
 $tests = Join-Path $out 'test-classes'
 $resources = Join-Path $out 'resources'
 $null = New-Item -ItemType Directory -Force -Path $classes,$tests,(Join-Path $resources 'extensions')
-$dependencies = @('gson.jar','jcommander.jar','junit.jar','kotlin-test-junit5.jar','kotlin-test.jar','morphe-desktop-1.13.1-all.jar') |
+# Match Gradle's kotlin("test-junit") adapter. The platform console includes
+# Jupiter classes, so keep it OFF the compiler classpath to expose CI mismatches.
+$dependencies = @('gson.jar','jcommander.jar','junit4.jar','hamcrest-core.jar','kotlin-test-junit.jar','kotlin-test.jar','morphe-desktop-1.13.1-all.jar') |
     ForEach-Object { (Resolve-Path (Join-Path $tools $_)).Path }
 $classpath = $dependencies -join ';'
 function Invoke-CheckedJava([string[]]$Arguments) {
-    & $java @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "Java failed with exit code $LASTEXITCODE" }
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        & $java @Arguments 2>&1 | ForEach-Object { "$_" }
+        $exitCode = $LASTEXITCODE
+    } finally { $ErrorActionPreference = $previousPreference }
+    if ($exitCode -ne 0) { throw "Java failed with exit code $exitCode" }
 }
 function Compile-Kotlin([string]$SourceDirectory, [string]$Destination, [string[]]$ExtraArguments) {
-    $arguments = @('-no-stdlib','-no-reflect','-Xcontext-parameters','-jvm-target','17','-classpath',"$classpath;$classes",'-d',$Destination) + $ExtraArguments
+    $arguments = @('-no-stdlib','-no-reflect','-Xcontext-parameters','-jvm-target','11','-classpath',"$classpath;$classes",'-d',$Destination) + $ExtraArguments
     $arguments += (Get-ChildItem $SourceDirectory -Recurse -Filter '*.kt').FullName
     $argumentFile = Join-Path $Destination 'compiler.args'
     $quoted = $arguments | ForEach-Object { '"' + $_.Replace('\','/').Replace('"','\"') + '"' }
@@ -50,6 +57,7 @@ foreach ($name in $extensionInputs.Keys) {
 }
 $runtimeClasspath = "$classes;$resources;$(Join-Path $repo 'patches/src/main/resources');$classpath"
 [IO.File]::WriteAllText((Join-Path $out 'runtime-classpath.txt'), $runtimeClasspath)
-Invoke-CheckedJava @('-cp',"$tests;$(Join-Path $repo 'patches/src/test/resources');$runtimeClasspath",'org.junit.platform.console.ConsoleLauncher','execute','--scan-classpath',"--include-classname=.*Test",'--details=summary',"--reports-dir=$(Join-Path $out 'test-results')")
+$consoleLauncher = (Resolve-Path (Join-Path $tools 'junit.jar')).Path
+Invoke-CheckedJava @('-cp',"$consoleLauncher;$tests;$(Join-Path $repo 'patches/src/test/resources');$runtimeClasspath",'org.junit.platform.console.ConsoleLauncher','execute','--scan-classpath',"--include-classname=.*Test",'--include-engine=junit-vintage','--fail-if-no-tests','--details=summary',"--reports-dir=$(Join-Path $out 'test-results')")
 Write-Host "Compiled current production source and ran JUnit using cached dependencies: $out"
 Write-Host 'This bypasses the unresolved Gradle plugin. It is not a Gradle build or device validation.'

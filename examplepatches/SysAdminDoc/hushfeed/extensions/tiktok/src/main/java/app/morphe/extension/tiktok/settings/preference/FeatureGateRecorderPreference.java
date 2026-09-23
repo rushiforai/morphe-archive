@@ -160,9 +160,7 @@ public final class FeatureGateRecorderPreference extends Preference implements I
     /** "Last recording: 1 gate." or "Last recording: 12 gates.", in the reader's language. */
     private static String lastRecordingLine(Context context) {
         int count = FeatureGateLearnMode.lastCandidateCount();
-        return count == 1
-                ? L10n.t(context, "Last recording: 1 gate.")
-                : L10n.f(context, "Last recording: %1$d gates.", count);
+        return L10n.quantity(context, count, "Last recording: 1 gate.", "Last recording: %1$d gates.");
     }
 
     @Override protected void onBindView(View view) {

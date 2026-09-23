@@ -3,6 +3,9 @@ morphe-patcher = "1.9.0-dev.1"
 #noinspection GradleDependency
 smali = "d92701d947"
 gson = "2.14.0"
+# Match the Android tools runtime used by Morphe patcher 1.9.0-dev.1.
+apksig = "9.1.1"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig" }

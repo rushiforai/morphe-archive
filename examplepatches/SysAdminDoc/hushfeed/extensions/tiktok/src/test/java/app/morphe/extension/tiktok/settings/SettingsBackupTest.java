@@ -1004,7 +1004,7 @@ public class SettingsBackupTest {
             assertEquals(0, (int) Settings.MAX_VIDEO_SECONDS.get());
             var undo = fragment.findPreference("settings_backup_7314");
             undo.getOnPreferenceClickListener().onPreferenceClick(undo);
-            waitFor("The last change is undone. Restart TikTok to apply all changes.");
+            waitFor("Last change put back. Restart TikTok to apply all changes.");
             assertEquals(73, (int) Settings.MAX_VIDEO_SECONDS.get());
             var reset = fragment.findPreference("settings_backup_7313");
             reset.getOnPreferenceClickListener().onPreferenceClick(reset);
@@ -1048,7 +1048,7 @@ public class SettingsBackupTest {
                 run.invoke(null, fragment, 7312, uri);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
 
-                assertEquals("Could not start the settings operation. Try again shortly.",
+                assertEquals("Couldn't start the settings change. Try again shortly.",
                         ShadowToast.getTextOfLatestToast());
                 assertEquals("a rejected restore changed settings", 73,
                         (int) Settings.MAX_VIDEO_SECONDS.get());
@@ -1106,7 +1106,7 @@ public class SettingsBackupTest {
             var undo = fragment.findPreference("settings_backup_7314");
             assertNotNull(undo);
             undo.getOnPreferenceClickListener().onPreferenceClick(undo);
-            waitFor("The last change is undone. The Feature Gate Lab rules were for another "
+            waitFor("Last change put back. The Feature Gate Lab rules were for another "
                     + "TikTok version and were left out. Restart TikTok to apply all changes.");
             assertEquals(73, (int) Settings.MAX_VIDEO_SECONDS.get());
         }

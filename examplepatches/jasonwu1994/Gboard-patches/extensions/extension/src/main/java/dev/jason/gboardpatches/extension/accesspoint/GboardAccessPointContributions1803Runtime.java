@@ -2,6 +2,7 @@ package dev.jason.gboardpatches.extension.accesspoint;
 
 import android.content.Context;
 import android.util.Log;
+import dev.jason.gboardpatches.extension.editingaccesspoints.GboardEditingAccessPoints1803Contribution;
 
 import java.lang.reflect.Field;
 
@@ -34,6 +35,14 @@ public final class GboardAccessPointContributions1803Runtime {
         } catch (Throwable failure) {
             logFailure("Floating Web Search catalog contribution failed", failure);
         }
+        try {
+            if (hasFeature(context, GboardPatchesFeatureAvailability.FEATURE_EDITING_ACCESS_POINTS)) {
+                result = GboardEditingAccessPoints1803Contribution.INSTANCE
+                        .extendOrderCatalog(context, result);
+            }
+        } catch (Throwable failure) {
+            logFailure("Editing buttons catalog contribution failed", failure);
+        }
         return result;
     }
 
@@ -59,6 +68,13 @@ public final class GboardAccessPointContributions1803Runtime {
             }
         } catch (Throwable failure) {
             logFailure("Floating Web Search controller contribution failed", failure);
+        }
+        try {
+            if (hasFeature(context, GboardPatchesFeatureAvailability.FEATURE_EDITING_ACCESS_POINTS)) {
+                GboardEditingAccessPoints1803Contribution.INSTANCE.register(controller, context);
+            }
+        } catch (Throwable failure) {
+            logFailure("Editing buttons controller contribution failed", failure);
         }
     }
 

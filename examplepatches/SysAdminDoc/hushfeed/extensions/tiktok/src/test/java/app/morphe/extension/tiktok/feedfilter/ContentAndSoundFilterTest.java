@@ -114,6 +114,13 @@ public class ContentAndSoundFilterTest {
         item.mixInfo = new Mix("mix-1", null);
         assertFalse(markers[2].getFiltered(item));
         assertTrue(markers[3].getFiltered(item));
+
+        item.mixInfo = null;
+        item.playlist_info = new PlaylistInfo("playlist-47");
+        assertTrue("TikTok 47 uses playlist_info for the visible playlist bar",
+                markers[3].getFiltered(item));
+        item.playlist_info = new PlaylistInfo("  ");
+        assertFalse("an empty playlist_info is not a playlist", markers[3].getFiltered(item));
     }
 
     /**
@@ -258,7 +265,7 @@ public class ContentAndSoundFilterTest {
         public Object aigcInfo, moderationAigcInfo, brandContentAccounts, commerceVideoAuthInfo;
         public String commercialVideoInfo;
         public boolean isPaidContent;
-        public Object mPaidContentInfo, mixInfo, author, music;
+        public Object mPaidContentInfo, mixInfo, playlist_info, author, music;
     }
     private static final class Label {
         private final int value;
@@ -310,6 +317,15 @@ public class ContentAndSoundFilterTest {
         Mix(String mixId, String mixName) {
             this.mixId = mixId;
             this.mixName = mixName;
+        }
+    }
+
+    /** TikTok 47's PlayListInfo, which backs the native playlist bar. */
+    private static final class PlaylistInfo {
+        String mixId;
+
+        PlaylistInfo(String mixId) {
+            this.mixId = mixId;
         }
     }
 

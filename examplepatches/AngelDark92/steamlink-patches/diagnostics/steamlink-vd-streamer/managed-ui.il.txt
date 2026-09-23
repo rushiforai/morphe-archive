@@ -1,0 +1,76 @@
+0x600057d 'VirtualDesktop.Streamer.Controls.VideoCodecProvider'::'BeginQuery' RVA 0x36b6c signature=200001
+000c newobj 0xa000988 TypeSpecRow::'.ctor'
+0011 dup 
+0012 ldc.i4.0 
+0013 box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+0018 ldc.i4.0 
+0019 br.s 129
+001b callvirt 0xa000989 TypeSpecRow::'Add'
+0020 dup 
+0021 ldc.i4.1 
+0022 box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+0027 ldc.i4.1 
+0028 br.s 139
+002a callvirt 0xa000989 TypeSpecRow::'Add'
+002f dup 
+0030 ldc.i4.5 
+0031 box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+0036 ldc.i4.5 
+0037 br.s 149
+0039 callvirt 0xa000989 TypeSpecRow::'Add'
+003e dup 
+003f ldc.i4.2 
+0040 box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+0045 ldc.i4.2 
+0046 br.s 159
+0048 callvirt 0xa000989 TypeSpecRow::'Add'
+004d dup 
+004e ldc.i4.6 
+004f box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+0054 ldc.i4.6 
+0055 br.s 166
+0057 callvirt 0xa000989 TypeSpecRow::'Add'
+005c dup 
+005d ldc.i4.s 11
+005f box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+0064 ldc.i4.s 11
+0066 br.s 173
+0068 br.s 180
+006a br.s 187
+006c ldc.i4.0 
+006d brtrue.s 124
+006f ldsfld 0x40162fc '.\x82\x02'::'\x91\x07'
+0074 br.s 190
+0076 ldloc.0 
+0077 call 0x6022e0c '.\x82\x02'::'Invoke'
+007c ldc.i4.0 
+007d brtrue.s 108
+007f leave.s 202
+0081 call 0x2b000070 'System.EnumExtensions'::'\x02'
+0086 br 27
+008b call 0x2b000070 'System.EnumExtensions'::'\x02'
+0090 br 42
+0095 call 0x2b000070 'System.EnumExtensions'::'\x02'
+009a br 57
+009f call 0x2b000070 'System.EnumExtensions'::'\x02'
+00a4 br.s 72
+00a6 call 0x2b000070 'System.EnumExtensions'::'\x02'
+00ab br.s 87
+00ad call 0x2b000070 'System.EnumExtensions'::'\x02'
+00b2 br.s 104
+00b4 callvirt 0xa000989 TypeSpecRow::'Add'
+00b9 br.s 106
+00bb stloc.0 
+00bc br.s 108
+00be ldarg.0 
+00bf br.s 118
+00c1 ldloc.0 
+00c2 ldarg.0 
+00c3 call 0x600d88b '\x9e\x02.\x01'::'\x01'
+00c8 rethrow 
+00ca ret 
+
+0x600057e 'VirtualDesktop.Streamer.Controls.VideoCodecProvider'::'.ctor' RVA 0x36c48 signature=200001
+0001 ldarg.0 
+0002 call 0x6000572 'VirtualDesktop.Streamer.Controls.EnumDataProvider'::'.ctor'
+0007 ret 

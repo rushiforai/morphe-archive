@@ -52,6 +52,24 @@ private fun Method.isOnlyTabModelList(classDef: ClassDef, scene: String) =
     isTabModelList(classDef, scene) &&
         classDef.methods.count { it.isTabModelList(classDef, scene) } == 1
 
+/**
+ * The bottom tab icon's badge setters. The icon class is renamed on every build (`LX/0ru7;` on
+ * 46.2.3, `LX/066P;` on 47.0.3), but its setters keep their names, and each is the one method of
+ * that name and shape in the app. Every show of the red count (Inbox) or the dot (Profile) goes
+ * through them; the callers that fetch the views themselves animate them and write no visibility.
+ */
+internal object TabCountDotVisibilityFingerprint : Fingerprint(
+    name = "setCountDotVisibility",
+    returnType = "V",
+    parameters = listOf("I"),
+)
+
+internal object TabDotVisibilityFingerprint : Fingerprint(
+    name = "setTabDotVisibility",
+    returnType = "V",
+    parameters = listOf("I"),
+)
+
 internal object TopTabModelListFingerprint : Fingerprint(
     definingClass = TAB_ABILITY,
     returnType = "Ljava/util/List;",

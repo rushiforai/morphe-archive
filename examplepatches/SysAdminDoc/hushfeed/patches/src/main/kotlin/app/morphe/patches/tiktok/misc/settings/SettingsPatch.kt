@@ -213,6 +213,13 @@ val settingsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok4703())
 
     execute {
+        // First, before any other write: TikTok's own crash recovery would delete what this
+        // screen saves.
+        keepHushfeedPreferenceFiles(
+            LaunchCrashKeepListFingerprint.method,
+            LaunchCrashKeepListFingerprint.classDef.methods,
+        )
+
         val initializeSettingsMethodDescriptor =
             "$SETTINGS_EXTENSION_CLASS_DESCRIPTOR->initialize(" +
                 "Lcom/bytedance/ies/ugc/aweme/commercialize/compliance/personalization/AdPersonalizationActivity;" +

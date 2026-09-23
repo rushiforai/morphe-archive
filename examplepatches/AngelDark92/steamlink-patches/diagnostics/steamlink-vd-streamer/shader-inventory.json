@@ -1,0 +1,1062 @@
+{
+  "shaders": [
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94063a",
+      "bytes": 1120,
+      "sha256": "0438a0ccab875fc9fb850acd6831a7f8e89e4ccd159cbb8497cba06de47eb0bd",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94063a.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x940c60",
+      "bytes": 956,
+      "sha256": "961aa2879bf3307e0102ccabd78aa939c2a75b375da895224ed8698fd83986e4",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-940c60.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x941119",
+      "bytes": 924,
+      "sha256": "e30b1d38c4004509f53949b419654b9465a28c3cd07c5c650971d7bdecbaaf76",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-941119.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94166e",
+      "bytes": 756,
+      "sha256": "8ae6934cb18278f46d1c5eec1bb01b0dc410799683dbb17efaafd80b326ab468",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94166e.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x941a52",
+      "bytes": 1184,
+      "sha256": "c00f0c0187266d63471a0ec23d607db235fe6a3d586adb48a7f1f6cb0567b55b",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-941a52.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9420e1",
+      "bytes": 988,
+      "sha256": "11ff90f3a2a00c91eb516c79aa0e0bb9c095eb43f8a5703ab93d18a3d1c6b1d4",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9420e1.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x942838",
+      "bytes": 828,
+      "sha256": "e1f776daea8bdb6f6d9fbe66769e0b29153344720ceb0ca4f9c1283b90f77d3a",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-942838.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x942ccc",
+      "bytes": 488,
+      "sha256": "f624d43ce48876e53639630a66f0011b3d88ac1dfd1508175b395384b6d64f17",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-942ccc.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x943096",
+      "bytes": 704,
+      "sha256": "210fe564165cd7be7f4c3370082a9b2f4843d7851219fcf29888d5117c68456a",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-943096.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x943477",
+      "bytes": 452,
+      "sha256": "481a58e2049653b57133fbc7a0582846bee336a72aa8138338ed5c847fecca6a",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-943477.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x943739",
+      "bytes": 3848,
+      "sha256": "9423b54e53757a97c1e7539f125ee817a55c6d4f558e490e77070b998a0a44a1",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-943739.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x944a10",
+      "bytes": 744,
+      "sha256": "cdd519d94588adc15e7fed0f486f87cac17edf535280f03768d612f7923a9f7a",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-944a10.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x944f68",
+      "bytes": 612,
+      "sha256": "1b547188c95d1e00d1fec49790388dcfbea474d734850217b5d4c5e99622b49d",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-944f68.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94543c",
+      "bytes": 4076,
+      "sha256": "36404e220391f3625bc780e24e2dc9b7e68af164663fecf56bd34da9abc279fb",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94543c.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9467f7",
+      "bytes": 4508,
+      "sha256": "e9aecd44142db96585cee1ef8b04d0a8d238e942d02a9a6044d6f72c673e286b",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9467f7.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x947d62",
+      "bytes": 3012,
+      "sha256": "cfe95c8edc879f9b2f717a480b641784f87c4024f6805e295f2ffa5ec0a155c1",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-947d62.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x948cf5",
+      "bytes": 3240,
+      "sha256": "7d81acd27baf283e5835ee18f8351a28d30a53f97b888693ae7d9002b882424f",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-948cf5.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x949d6c",
+      "bytes": 3672,
+      "sha256": "b257c025bb477939b9736da1a62d97cdddf31b65822318f400ebb3d1a7f63a89",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-949d6c.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94af93",
+      "bytes": 2264,
+      "sha256": "9fd1f16540f94e4a7c0f4fc344d95a5f201dabc74b135e60c37b1931cf3c2ac6",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94af93.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94bc4d",
+      "bytes": 2688,
+      "sha256": "04b9908689406cd963cfe310ae754e90e2e46000422bbc501d72657a72b82509",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94bc4d.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94c950",
+      "bytes": 2492,
+      "sha256": "a948f0c28017d3a4c32e79c676be966b48738e87d7ecda7627d67ce6552d7002",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94c950.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94d6ee",
+      "bytes": 2924,
+      "sha256": "0d9f12630451d67e0cbcc6a1b38ec02652c76630bf4d00e71ecfc4bc23e97ffd",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94d6ee.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94e889",
+      "bytes": 1004,
+      "sha256": "11f3272ed248b6fc12ec27aeab9ca4f828fcd851e12bc28f88673b668269bd0d",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94e889.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94ee14",
+      "bytes": 852,
+      "sha256": "a4fa20529853fa87be4f08390ce2b811da2d29e1cc2143c3cf9c915185ad68f7",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94ee14.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94f246",
+      "bytes": 808,
+      "sha256": "b0dcc0da111e95dd9d253bb5df5bd2fee52df29f0758bbe7cd1049782cc7b510",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94f246.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94f700",
+      "bytes": 684,
+      "sha256": "2aded9357494a2fb6c729eccb7cc765ad02f6b662ea9acb09749a6d6f5c829e5",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94f700.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x94fa7d",
+      "bytes": 1068,
+      "sha256": "908724353acd57815f59a511df50c33f89cbbe36c122335f23b503c3d2cd6d0e",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-94fa7d.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x950072",
+      "bytes": 872,
+      "sha256": "f7e43bb33c04656fbfe380ffc356f760229d8a3eb2d5cfba5dfebeddf0869a45",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-950072.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x950596",
+      "bytes": 928,
+      "sha256": "1e55fdaeff0dc88b6c5538b5ed90db92eddcc3141f6637df4b5ec5efae3e26d2",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-950596.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x950a14",
+      "bytes": 760,
+      "sha256": "32ae1daf03e0dedb5becdb6c4920e958f6e8e60becb85993d523254025b436da",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-950a14.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9510d6",
+      "bytes": 2428,
+      "sha256": "106a8899d428adfe8fd4d3c2ce30b4562f3a64680dd3f9e99f1f00066a13c39f",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9510d6.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x951d74",
+      "bytes": 948,
+      "sha256": "eba37c3e7b5ba677b104a41a7d8147c508394149f2bed5fd90b2768d1401d19f",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-951d74.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95238b",
+      "bytes": 816,
+      "sha256": "e0406bad99dabd6a2b12fb9a34e22a35a99d291d901c96771794ff428794cbb0",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95238b.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95291e",
+      "bytes": 2688,
+      "sha256": "7a89ce3a95682f15d9647b46b963dc25ae68315aafa4c2af32f583cd1179b24f",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95291e.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9536c0",
+      "bytes": 1064,
+      "sha256": "e404c069a251825f6cb1cfa6071d6accff2e2bf3a481b267c0ce4c6ea7b679a1",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9536c0.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x953d4b",
+      "bytes": 932,
+      "sha256": "13bb2ce088ac72e54f04bedb1787a262075d0f28b4a7aa4213df0dc40fc61fb1",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-953d4b.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x954352",
+      "bytes": 2192,
+      "sha256": "650125363053861ea9b623eba079788935a51899812563e65f528a9c31e3ed5d",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-954352.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x954f04",
+      "bytes": 2452,
+      "sha256": "45cf21698d051c4a343bbbad5de93c6e1197cc43fe89dd9096b7f16fa21d069c",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-954f04.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x955f6d",
+      "bytes": 868,
+      "sha256": "42beecc96c2b07cda64e0935716f2f0b9d6c6a0072956dc2c12d1dd706d8194e",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-955f6d.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9565ae",
+      "bytes": 516,
+      "sha256": "3360ef65002e147a80ae52e33e72d28a5a82f7a519afdc20f0c392105923f6a5",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9565ae.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9569e3",
+      "bytes": 672,
+      "sha256": "c997be4f4feae44dafc2d5fd849512b2117993b41438287c6b34b10e038c3562",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9569e3.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x956f53",
+      "bytes": 288,
+      "sha256": "bdb54f3ed56a8457e32110fc6262bee773bd16b96e12c38cc387a105cc0447df",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-956f53.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9570af",
+      "bytes": 936,
+      "sha256": "4e6557fa1670dbb38130a587a7e14ebd660ee81a8cf9cf0e49658edd9312657c",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9570af.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x957761",
+      "bytes": 740,
+      "sha256": "e33a0e78468b016568391c22423e6f755727b9ed18ecfae28c3b483c6dc0ffa3",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-957761.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x957d42",
+      "bytes": 1004,
+      "sha256": "4f2e68db652010b93775a5ca93c40285887da71971019886f2b8737f5f37c1a0",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-957d42.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95844f",
+      "bytes": 688,
+      "sha256": "709e681bb66eee9c53a56a01f7ce315dcad1fe2a141e0b5c81b0708d78af0d29",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95844f.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95895f",
+      "bytes": 808,
+      "sha256": "b0dcc0da111e95dd9d253bb5df5bd2fee52df29f0758bbe7cd1049782cc7b510",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95895f.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x958f9b",
+      "bytes": 488,
+      "sha256": "f624d43ce48876e53639630a66f0011b3d88ac1dfd1508175b395384b6d64f17",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-958f9b.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9593d6",
+      "bytes": 1068,
+      "sha256": "625aef18ae318632229bd1d54e4f406d4bd30568986e5eef001a5df41b2e6a74",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9593d6.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x959b4d",
+      "bytes": 872,
+      "sha256": "f7e43bb33c04656fbfe380ffc356f760229d8a3eb2d5cfba5dfebeddf0869a45",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-959b4d.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95a1f3",
+      "bytes": 3068,
+      "sha256": "a249cdbbb0a480883c9024127d14b7c45460b556943d80c0950c3a9986456f13",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95a1f3.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95b0fa",
+      "bytes": 572,
+      "sha256": "ed7c355a09cb9496ba2a8892b0c6dc6d1db653c28d855973906aaed04c6a9032",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95b0fa.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95b567",
+      "bytes": 416,
+      "sha256": "fc380b368f601d5213ab89f2c2fa7771976aa8ef7a3f9a8685206ac4ba7f02a7",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95b567.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95b750",
+      "bytes": 3180,
+      "sha256": "124d4b54e03b1c4e1903264dde2c8f450fd74ce23e7f1571f3008c36649d4d54",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95b750.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95c6f5",
+      "bytes": 3200,
+      "sha256": "0e1f8924ad55bc25514804fd68bc1058466c717ac8a0288b3ec548b40cde59e0",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95c6f5.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95d6c1",
+      "bytes": 744,
+      "sha256": "cdd519d94588adc15e7fed0f486f87cac17edf535280f03768d612f7923a9f7a",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95d6c1.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95dc09",
+      "bytes": 612,
+      "sha256": "1b547188c95d1e00d1fec49790388dcfbea474d734850217b5d4c5e99622b49d",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95dc09.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95e0cd",
+      "bytes": 3312,
+      "sha256": "fad3fc768da01456a8eb02edfd6400dc95bb675d1db1d574bb1f6f5f2f82c6e5",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95e0cd.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95f136",
+      "bytes": 2244,
+      "sha256": "f6b2744c3ea86d68b60cf21987eed04f24d64fcd062459d9d10cf5f425c7ff93",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95f136.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x95fd05",
+      "bytes": 2340,
+      "sha256": "6b22c11d847e8720ec5f43b02d29583a6315c0e63d5ca077ef1c835e5fc83d4e",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-95fd05.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x960962",
+      "bytes": 2376,
+      "sha256": "5168860182c3860fcbf61c10a3793e6ace11830c359dc1d03c8e886703f2407d",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-960962.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x9615f6",
+      "bytes": 2472,
+      "sha256": "76a1323f9a0cd0bb0355c69ef23b2543ef7c04ed7b01c19e5cd0402f34b03e57",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-9615f6.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x962317",
+      "bytes": 1492,
+      "sha256": "9337a22c3fd8c8f3227eb2958a68796c0d4a61d9f434d54e70f2be2871a4a1aa",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-962317.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x962c09",
+      "bytes": 2512,
+      "sha256": "2ef96561359a3c367aae061500b79dd3a7e4ba2e74203c4d8a6ca4abae55e108",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-962c09.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x96381d",
+      "bytes": 1540,
+      "sha256": "5427024a625768cb8ac44e70ecd7d7784626cf5726f399201498dcf0a5a2de6b",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-96381d.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x96416d",
+      "bytes": 1616,
+      "sha256": "009b1fe754e47d474ad57005b703c008b541739b1d4dadee53373e414d1ef50d",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-96416d.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x964b1c",
+      "bytes": 2688,
+      "sha256": "04b9908689406cd963cfe310ae754e90e2e46000422bbc501d72657a72b82509",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-964b1c.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x96580f",
+      "bytes": 1664,
+      "sha256": "0f02ebdd8338b812d2235ff1e6f9ede9afff1ab4c994ac0e71f030a2b1111cd4",
+      "chunks": [
+        "Aon9",
+        "SHDR",
+        "ISGN",
+        "OSGN"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-96580f.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "offset": "0x152bd66",
+      "bytes": 6352,
+      "sha256": "aa5d92fecd7037e6d21093de162d49055d476162b069ebdd9969ad52ec6ad04d",
+      "chunks": [
+        "RDEF",
+        "ISGN",
+        "OSGN",
+        "SHEX",
+        "STAT"
+      ],
+      "disassembly": "build/vd-streamer-shaders/VirtualDesktop.Streamer-152bd66.asm",
+      "fraction_or_round_ops": 1
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Fovea.tkb",
+      "offset": "0x21",
+      "bytes": 2248,
+      "sha256": "438834ac0e63d9f79ecf35b2cbc01f20098a3facb2d403a2e55f4f896344ae86",
+      "chunks": [
+        "ISGN",
+        "OSGN",
+        "SHDR"
+      ],
+      "disassembly": "build/vd-streamer-shaders/Fovea-21.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Foveation.tkb",
+      "offset": "0x21",
+      "bytes": 248,
+      "sha256": "26d4b1380539ee0575365ea3b161bd189da1595a57e237e21ab61608433eaaff",
+      "chunks": [
+        "ISGN",
+        "OSGN",
+        "SHDR"
+      ],
+      "disassembly": "build/vd-streamer-shaders/Foveation-21.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Foveation.tkb",
+      "offset": "0x1e7",
+      "bytes": 2732,
+      "sha256": "1881724ac8907821fa186c29b859217dd2bc51db0cec9899fba41c23d62835df",
+      "chunks": [
+        "ISGN",
+        "OSGN",
+        "SHDR"
+      ],
+      "disassembly": "build/vd-streamer-shaders/Foveation-1e7.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Sharpening.tkb",
+      "offset": "0x21",
+      "bytes": 248,
+      "sha256": "26d4b1380539ee0575365ea3b161bd189da1595a57e237e21ab61608433eaaff",
+      "chunks": [
+        "ISGN",
+        "OSGN",
+        "SHDR"
+      ],
+      "disassembly": "build/vd-streamer-shaders/Sharpening-21.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Sharpening.tkb",
+      "offset": "0x1e7",
+      "bytes": 2176,
+      "sha256": "ec37089c2c14a004e929f5761df6828931dd4cbe6ab234a06607408db5b21b8e",
+      "chunks": [
+        "ISGN",
+        "OSGN",
+        "SHDR"
+      ],
+      "disassembly": "build/vd-streamer-shaders/Sharpening-1e7.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Supersample.tkb",
+      "offset": "0x21",
+      "bytes": 248,
+      "sha256": "26d4b1380539ee0575365ea3b161bd189da1595a57e237e21ab61608433eaaff",
+      "chunks": [
+        "ISGN",
+        "OSGN",
+        "SHDR"
+      ],
+      "disassembly": "build/vd-streamer-shaders/Supersample-21.asm",
+      "fraction_or_round_ops": 0
+    },
+    {
+      "source": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Supersample.tkb",
+      "offset": "0x1e7",
+      "bytes": 856,
+      "sha256": "6c0c084f5f717faf7211454a236de4b13f5ad3d0d8f8b0c4ca0be62b58ff8faa",
+      "chunks": [
+        "ISGN",
+        "OSGN",
+        "SHDR"
+      ],
+      "disassembly": "build/vd-streamer-shaders/Supersample-1e7.asm",
+      "fraction_or_round_ops": 0
+    }
+  ]
+}

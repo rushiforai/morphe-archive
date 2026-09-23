@@ -4,7 +4,7 @@
 
 ## What this repository contains
 
-The patches adapt Steam Link for Android XR and provide build-specific fixes for resolution, color, microphone input, tracking, permissions, and startup. Recommended bundles select the patches appropriate for your Steam Link build. Optional face tracking works with VRCFaceTracking and the Galaxy XR LinkFT module. Exact older builds use the full GXR face bridge, while exact builds 2.0.22/5002322 and 2.0.23/5002363 use a native tongue-only bridge that preserves Valve's built-in Android XR face mappings.
+The patches adapt Steam Link for Android XR and provide build-specific fixes for resolution, color, microphone input, tracking, permissions, and startup. Recommended bundles select the patches appropriate for your Steam Link build. Optional face tracking works with VRCFaceTracking and the Galaxy XR LinkFT module. Exact older builds use the full GXR face bridge, while exact build 2.0.23/5002363 uses a native tongue-only bridge that preserves Valve's built-in Android XR face mappings.
 
 This repository contains the patch source and downloadable `.mpp` patch bundles, which Morphe applies to a Steam Link VR APK (`com.valvesoftware.steamlinkvr`).
 
@@ -55,34 +55,61 @@ N.D.: Delete the depot folder every time you switch to a new depot or the .apk w
 4. Run patching, then install the resulting APK using Morphe Manager.
 5. Launch the patched Steam Link, complete its permission prompts, and connect to SteamVR on your PC. If the Battery usage page opens, select **Unrestricted** and return to Steam Link.
 
-| Exact version / build | Bundle to select |
-|---|---|
-| 2.0.20 / 5001712 | **Galaxy XR recommended set (2.0.20/5001712)** |
-| 2.0.20 / 5001740 | **Galaxy XR legacy foundation (through 2.0.22/5002244)** — analysis-only adaptation; pristine-APK patching and headset validation pending |
-| 2.0.22 / 5002244 | **Galaxy XR legacy foundation (through 2.0.22/5002244)** |
-| 2.0.22 / 5002318 | **Galaxy XR recommended set (2.0.22/5002318)** |
-| 2.0.22 / 5002322 | **Galaxy XR recommended set (2.0.22/5002322)** |
-| 2.0.23 / 5002363 | **Galaxy XR recommended set (2.0.23/5002363)** — APK/native checks passed; headset validation pending |
+See the [full patch list](TECHNICAL_REFERENCE.md#full-patch-list) before selecting patches manually. Do not assume another build is compatible because it has the same version name.
 
-Builds **2.0.22/5002296** and **2.0.22/5002313** have individually selectable patches but no automatic bundle; 5002296 is recognized only by the high-resolution patch. See the [full patch list](TECHNICAL_REFERENCE.md#full-patch-list) before selecting patches manually. Do not assume another build is compatible because it has the same version name.
+### Patches loaded by each bundle
 
-### Patch selection notes
+A bundle is a pure selector: selecting it loads exactly the patches listed below and performs no additional mutation of its own. Patch names match Morphe's patch list. A listed patch remains a no-op on a build where its own layout guard does not match.
 
-- For either legacy bundle, keep **HMD identity** on **Recommended for this build**, or select **Meta Quest Pro**. If you previously saved Samsung, Stock, or Pico, change that setting to use the recommended identity.
-- The 5002322 and 5002363 bundles include high-resolution output, face tracking support, microphone tuning, OLED color calibration, unrestricted battery usage, and Visual Delay Fix. The 5002318 bundle also includes Device identity.
-- On **2.0.22/5002322** and **2.0.23/5002363**, **Device identity** is available only when explicitly selected; it is not in the recommended bundle. Select **Meta Quest Pro** explicitly to test that identity. Native identity profiles populate the exact `xrvst2ue`/`xrvst2` product entries, because this build does not use `unknown` when its product entry is missing. This correction still needs a new headset run and does not fix the separate streaming regression.
-- Older bundles explicitly include **Startup permission requests (before 5002322)** and **Startup splash and XR launch mode (before 5002322)**. These are separately selectable and unavailable on 5002322 and 5002363. Face/tongue and high-resolution patches do not silently select them.
-- On **5002322 and 5002363**, Valve owns the launcher, splash, XR activity launch mode and tracking/microphone/Bluetooth permission requests. **Unrestricted battery usage** only opens battery settings from the stock activity. The high-resolution rendering fix remains active; the revised startup flow requires headset validation.
-- High-resolution output is unavailable on **5001740**. The high-resolution patch has headset validation on **5002322**; other supported builds have static validation, with further details in the [technical reference](TECHNICAL_REFERENCE.md#compatibility-and-implementation-notes).
-- **Appear on top (legacy)** and **Change package name** are optional and never recommended automatically. Do not add Appear on top to either modern bundle. Change package name allows a separate install alongside the original only on its compatible builds.
+**Galaxy XR recommended set (2.0.20/5001712)** — 17 patches:
+
+1. Android XR native permission names
+2. Force HMD initialization gates
+3. Force lobby permission-state gate
+4. Force stream XR gates
+5. GXR face bridge (version 5002318 and below)
+6. Galaxy XR high-resolution 3-projection fix
+7. Microphone input preset
+8. OLED color calibration
+9. Unrestricted battery usage
+10. Visual Delay Fix
+11. XR Core Runtime
+12. XR Device Config Baseline
+13. XR Input Routing Config
+14. Startup splash and XR launch mode (before 5002322)
+15. Startup permission requests (before 5002322)
+16. XR Manifest Capability Pack
+17. Device identity
+
+**Galaxy XR legacy foundation (through 2.0.22/5002244)** — 6 patches:
+
+1. Galaxy XR high-resolution 3-projection fix
+2. GXR tongue bridge (version 5002322 and above)
+3. Microphone input preset
+4. Unrestricted battery usage
+5. Visual Delay Fix
+6. OLED color calibration
+
+**Galaxy XR recommended set (2.0.23/5002363)** — 6 patches:
+
+1. Galaxy XR high-resolution 3-projection fix
+2. GXR tongue bridge (version 5002322 and above)
+3. Microphone input preset
+4. Unrestricted battery usage
+5. Visual Delay Fix
+6. OLED color calibration
+
+## Optional: USB streaming setup
+
+For **2.0.23/5002363**, the [manual Galaxy XR USB setup guide](Install/USB-STREAMING.md) configures Android RNDIS and the Windows USB network adapter. **USB streaming worked with the existing APK during a short Wi-Fi-off test**, with measured USB traffic and user-confirmed image/head-tracking continuity. No automatic USB patch is provided; [Quest-equivalent NCM remains unimplemented](diagnostics/steamlink-usb/QUEST-PARITY-2026-09-16.md). Keep Wi-Fi on for initial discovery in the tested workflow. Install the Galaxy USB device as NDIS device through windows driver manager. A cable connected only for ADB or file transfer is not a streaming link but it allows for ethernet like capabilities. Longer stability and starting entirely without Wi-Fi remain untested.
 
 ## Optional: face and tongue tracking
 
-Install **VRCFaceTracking** and the matching [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT) on your PC. In Steam Link, enable **OSC**, **eye sharing**, and **face sharing**, and set the output port to **9015**. Recommended older-build bundles include **GXR face bridge (version 5002318 and below)**; the 2.0.22/5002322 bundle instead includes the headset-tested **GXR tongue bridge (version 5002322 and above)**. The tongue patch enables exact 2.0.22/5002322 and 2.0.23/5002363, each with its independently verified native layout. Headset results from 5002322 do not establish runtime behavior on 5002363.
+Install **VRCFaceTracking** and the matching [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT) on your PC. In Steam Link, enable **OSC**, **eye sharing**, and **face sharing**, and set the output port to **9015**. Recommended older-build bundles include **GXR face bridge (version 5002318 and below)**; the 2.0.23/5002363 bundle instead includes the headset-tested **GXR tongue bridge (version 5002322 and above)**. The tongue patch enables exact 2.0.23/5002363 with its independently verified native layout.
 
 ## New base validation
 
-The [2.0.23/5002363 audit](diagnostics/steamlink-5002363/README.md) records the original APK, native addresses, patch scope, option checks and remaining headset validation. The 7 applicable individual patches are supported; the 14 legacy patches remain excluded because this base already uses Valve's native Android XR paths.
+The [2.0.23/5002363 audit](diagnostics/steamlink-5002363/README.md) records the original APK, native addresses, patch scope, option checks and remaining headset validation. Its 7 individual adaptations remain available; the decoder input buffering, UDP receive buffering and FEC duplicate reservation guard experiments were tested, did not work, and were removed from source on 2026-09-19. The 14 legacy patches remain excluded because this base already uses Valve's native Android XR paths.
 
 ## More information
 

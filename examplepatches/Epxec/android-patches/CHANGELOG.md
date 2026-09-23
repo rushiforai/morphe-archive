@@ -1,3 +1,15 @@
+## [1.9.0](https://github.com/Epxec/android-patches/compare/v1.8.1...v1.9.0) (2026-09-22)
+
+### ✨ New Features
+
+* mazaii premium ([0e43baa](https://github.com/Epxec/android-patches/commit/0e43baa02a35b7e33a977019d790e1feb5ed98b2)), closes [#14](https://github.com/Epxec/android-patches/issues/14)
+
+## [1.9.0-dev.1](https://github.com/Epxec/android-patches/compare/v1.8.1...v1.9.0-dev.1) (2026-09-22)
+
+### ✨ New Features
+
+* mazaii premium ([0e43baa](https://github.com/Epxec/android-patches/commit/0e43baa02a35b7e33a977019d790e1feb5ed98b2)), closes [#14](https://github.com/Epxec/android-patches/issues/14)
+
 ## [1.8.1](https://github.com/Epxec/android-patches/compare/v1.8.0...v1.8.1) (2026-09-21)
 
 ### 🐛 Bug Fixes

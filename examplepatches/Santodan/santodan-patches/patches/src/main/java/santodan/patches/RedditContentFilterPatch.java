@@ -31,24 +31,41 @@ public final class RedditContentFilterPatch {
     static final String SUBREDDIT = "Lcom/reddit/domain/model/Subreddit;";
     static final String FLAIR_SOURCE = "Lcom/reddit/flair/impl/data/source/remote/a;";
     static final String SUBREDDIT_SOURCE = "Lcom/reddit/data/remote/e;";
+    static final String POST_BY_ID_SOURCE = "Lcom/reddit/data/remote/g;";
+    static final String LINK_SOURCE = "Lcom/reddit/data/remote/h;";
+    static final String LINK_REPOSITORY = "Lcom/reddit/link/impl/data/repository/d;";
     static final String CHANNEL_COMPOSABLE = "Lcom/reddit/screens/channels/composables/f;";
     static final String SUBREDDIT_HEADER_VIEW = "Lcom/reddit/screens/header/SubredditHeaderView;";
     static final String FLAIR_ROW = "Lca1;";
+    static final String SUBREDDIT_FEED_LAMBDA = "Lcom/reddit/screens/listing/compose/d;";
     static final String FLAIR_CHIP = "Lsm7;";
     static final String FILTER_CHIP_LAMBDA = "La71;";
     static final String LISTING = "Lcom/reddit/domain/model/listing/Listing;";
     static final String FEED_POST_SECTION = "Llsi;";
     static final String FEED_SECTION_MAPPER = "Lcex;";
+    static final String FEED_POST_CELL = "Loc20;";
+    static final String HOME_POST_MAPPER = "Llki;";
+    static final String FEED_LINK_MAPPER = "Lcom/reddit/feeds/impl/data/mapper/link/a;";
+    static final String FEED_LINK_ALTERNATE_MAPPER = "Lxdh;";
+    static final String CLASSIC_POST_MAPPER = "Let8;";
+    static final String CLASSIC_POST_COMPOSABLE = "Lyt8;";
+    static final String FEED_ELEMENT_PROCESSOR = "Lqf80;";
     static final String SETTINGS = "Lapp/morphe/extension/reddit/settings/preference/RedditPreferenceFragment;";
     static final String EXTENSION = "Lsoftware/santodan/extension/redditfilter/RedditContentFilter;";
     private static final Logger LOG = Logger.getLogger("app.morphe.patches.santodan");
+    private static BytecodePatch patch;
 
     private RedditContentFilterPatch() {}
 
     @SuppressWarnings({"unchecked", "deprecation"})
-    public static BytecodePatch getRedditContentFilterPatch() {
+    public static synchronized BytecodePatch getRedditContentFilterPatch() {
+        if (patch == null) patch = createRedditContentFilterPatch();
+        return patch;
+    }
+
+    private static BytecodePatch createRedditContentFilterPatch() {
         return PatchKt.bytecodePatch(NAME,
-            "Adds keyword and per-community flair filters under Morphe > Filters.",
+            "Adds keyword and per-community flair filters under Morphe > Filters, including cached and joined-community posts.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "Reddit", null, ApkFileType.APK,
                     null, null, Collections.singletonList(new AppTarget(VERSION, false, null)), false));
@@ -58,14 +75,29 @@ public final class RedditContentFilterPatch {
                         || !VERSION.equals(context.getPackageMetadata().getVersionName()))
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
                     hookLinkRegistration(findLinkConstructor(context.mutableClassDefBy(LINK)));
+                    hookChildrenGetter(findChildrenGetter(context.mutableClassDefBy(LISTING)));
                     hookSubredditRegistration(findSubredditConstructor(context.mutableClassDefBy(SUBREDDIT)));
                     hookFlairSource(findFlairSourceConstructor(context.mutableClassDefBy(FLAIR_SOURCE)));
                     hookSubredditSource(findSubredditSourceConstructor(context.mutableClassDefBy(SUBREDDIT_SOURCE)));
+                    hookPostByIdSource(context.mutableClassDefBy(POST_BY_ID_SOURCE));
+                    hookLinkSource(context.mutableClassDefBy(LINK_SOURCE));
+                    hookLinkRepository(context.mutableClassDefBy(LINK_REPOSITORY));
                     hookSubredditHeader(findSubredditHeader(context.mutableClassDefBy(SUBREDDIT_HEADER_VIEW)));
+                    hookSubredditFeedLambda(findObjectLambda(context.mutableClassDefBy(SUBREDDIT_FEED_LAMBDA),
+                        "subreddit feed composable"));
                     hookFlairRow(findFlairRow(context.mutableClassDefBy(FLAIR_ROW)));
                     hookFlairChip(findFlairChip(context.mutableClassDefBy(FLAIR_CHIP)));
                     hookFilterChipLambda(findFilterChipLambda(context.mutableClassDefBy(FILTER_CHIP_LAMBDA)));
                     hookFeedSectionMapper(findFeedSectionMapper(context.mutableClassDefBy(FEED_SECTION_MAPPER)));
+                    hookFeedPostCell(findFeedPostCellConstructor(context.mutableClassDefBy(FEED_POST_CELL)));
+                    hookHomePostMapper(findHomePostMapper(context.mutableClassDefBy(HOME_POST_MAPPER)));
+                    hookFeedLinkMapper(findFeedLinkMapper(context.mutableClassDefBy(FEED_LINK_MAPPER), "a"));
+                    hookFeedLinkMapper(findFeedLinkMapper(context.mutableClassDefBy(FEED_LINK_ALTERNATE_MAPPER), "D"));
+                    hookClassicPostMapper(findClassicPostMapper(context.mutableClassDefBy(CLASSIC_POST_MAPPER)));
+                    for (MutableMethod renderer : findClassicPostComposables(
+                        context.mutableClassDefBy(CLASSIC_POST_COMPOSABLE))) hookClassicPostComposable(renderer);
+                    hookFeedElementProcessor(findFeedElementProcessor(
+                        context.mutableClassDefBy(FEED_ELEMENT_PROCESSOR)));
                     MutableClass settings = context.mutableClassDefByOrNull(SETTINGS);
                     if (settings == null) throw unsupported("Morphe's Reddit settings extension is missing; "
                         + "also enable an official Reddit patch that adds the Morphe settings menu");
@@ -209,11 +241,19 @@ public final class RedditContentFilterPatch {
 
     static void hookLinkRegistration(MutableMethod method) {
         List<Instruction> all = instructions(method);
-        int index = -1;
+        int index = -1, linkRegister = -1;
+        for (Instruction instruction : all) if (instruction.getOpcode() == Opcode.IPUT_BOOLEAN
+            && instruction instanceof ReferenceInstruction && instruction instanceof TwoRegisterInstruction) {
+            Object reference = ((ReferenceInstruction) instruction).getReference();
+            if (reference instanceof FieldReference && LINK.equals(((FieldReference) reference).getDefiningClass())
+                && "isBlankAd".equals(((FieldReference) reference).getName()))
+                linkRegister = ((TwoRegisterInstruction) instruction).getRegisterB();
+        }
         for (int i = 0; i < all.size(); i++) if (all.get(i).getOpcode() == Opcode.RETURN_VOID) index = i;
-        if (index < 0) throw unsupported("Link constructor return was not found");
+        if (index < 0 || linkRegister < 0 || linkRegister > 15)
+            throw unsupported("Link constructor instance register or return was not found");
         method.getImplementation().addInstruction(index,
-            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0,
+            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 1, linkRegister, 0, 0, 0, 0,
                 new ImmutableMethodReference(EXTENSION, "rememberLink",
                     Collections.singletonList("Ljava/lang/Object;"), "V")));
     }
@@ -335,6 +375,74 @@ public final class RedditContentFilterPatch {
         return findObjectLambda(owner, "subreddit flair row");
     }
 
+    static void hookPostByIdSource(MutableClass source) {
+        List<MutableMethod> constructors = new ArrayList<>();
+        for (MutableMethod method : source.getMethods())
+            if ("<init>".equals(method.getName()) && method.getImplementation() != null
+                && method.getParameterTypes().size() == 7) constructors.add(method);
+        if (constructors.size() != 1) throw unsupported("Expected one posts-by-ID source constructor");
+        MutableMethod method = constructors.get(0);
+        int thisRegister = method.getImplementation().getRegisterCount() - 8;
+        if (thisRegister < 0) throw unsupported("Posts-by-ID source instance register was not found");
+        List<Instruction> all = instructions(method);
+        int index = -1;
+        for (int i = 0; i < all.size(); i++) if (all.get(i).getOpcode() == Opcode.RETURN_VOID) index = i;
+        if (index < 0) throw unsupported("Posts-by-ID source constructor return was not found");
+        method.getImplementation().addInstruction(index,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, thisRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "rememberPostByIdSource",
+                    Collections.singletonList("Ljava/lang/Object;"), "V")));
+    }
+
+    static void hookLinkSource(MutableClass source) {
+        List<MutableMethod> constructors = new ArrayList<>();
+        for (MutableMethod method : source.getMethods())
+            if ("<init>".equals(method.getName()) && method.getImplementation() != null
+                && method.getParameterTypes().size() == 14) constructors.add(method);
+        if (constructors.size() != 1) throw unsupported("Expected one Link data-source constructor");
+        MutableMethod method = constructors.get(0);
+        int thisRegister = method.getImplementation().getRegisterCount() - 15;
+        if (thisRegister < 0) throw unsupported("Link data-source instance register was not found");
+        List<Instruction> all = instructions(method);
+        int index = -1;
+        for (int i = 0; i < all.size(); i++) if (all.get(i).getOpcode() == Opcode.RETURN_VOID) index = i;
+        if (index < 0) throw unsupported("Link data-source constructor return was not found");
+        method.getImplementation().addInstruction(index,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, thisRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "rememberPostByIdSource",
+                    Collections.singletonList("Ljava/lang/Object;"), "V")));
+    }
+
+    static void hookLinkRepository(MutableClass repository) {
+        List<MutableMethod> constructors = new ArrayList<>();
+        for (MutableMethod method : repository.getMethods())
+            if ("<init>".equals(method.getName()) && method.getImplementation() != null
+                && method.getParameterTypes().size() == 19) constructors.add(method);
+        if (constructors.size() != 1) throw unsupported("Expected one Link repository constructor");
+        MutableMethod method = constructors.get(0);
+        int thisRegister = method.getImplementation().getRegisterCount() - 20;
+        if (thisRegister < 0) throw unsupported("Link repository instance register was not found");
+        List<Instruction> all = instructions(method);
+        int index = -1;
+        for (int i = 0; i < all.size(); i++) if (all.get(i).getOpcode() == Opcode.RETURN_VOID) index = i;
+        if (index < 0) throw unsupported("Link repository constructor return was not found");
+        method.getImplementation().addInstruction(index,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, thisRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "rememberLinkRepository",
+                    Collections.singletonList("Ljava/lang/Object;"), "V")));
+    }
+
+    static void hookSubredditFeedLambda(MutableMethod method) {
+        int first = method.getImplementation().getRegisterCount() - 3;
+        if (first <= 15 || first > 255) throw unsupported("Subreddit feed composable registers changed");
+        method.getImplementation().addInstruction(0,
+            new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, first));
+        method.getImplementation().addInstruction(1,
+            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0,
+                new ImmutableMethodReference(EXTENSION, "rememberSubredditScreen",
+                    Collections.singletonList("Ljava/lang/Object;"), "V")));
+    }
+
     static void hookFlairRow(MutableMethod method) {
         List<Instruction> all = instructions(method);
         int insertion = -1;
@@ -419,7 +527,7 @@ public final class RedditContentFilterPatch {
         return findObjectLambda(owner, "filter chip lambda");
     }
 
-    private static MutableMethod findObjectLambda(MutableClass owner, String label) {
+    static MutableMethod findObjectLambda(MutableClass owner, String label) {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods())
             if ("invoke".equals(method.getName()) && "Ljava/lang/Object;".equals(method.getReturnType())
@@ -555,6 +663,12 @@ public final class RedditContentFilterPatch {
 
     static void hookFeedSectionMapper(MutableMethod method) {
         List<Instruction> all = instructions(method);
+        int sourceRegister = method.getImplementation().getRegisterCount() - 1;
+        method.getImplementation().addInstruction(0,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, sourceRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "inspectFeedSource",
+                    Collections.singletonList("Ljava/lang/Object;"), "V")));
+        all = instructions(method);
         int create = -1, returnIndex = -1, sectionRegister = -1;
         for (int i = 0; i < all.size(); i++) {
             Instruction instruction = all.get(i);
@@ -573,6 +687,173 @@ public final class RedditContentFilterPatch {
                     Collections.singletonList("Ljava/lang/Object;"), "Ljava/lang/Object;")));
         method.getImplementation().addInstruction(returnIndex + 1,
             new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, sectionRegister));
+    }
+
+    static MutableMethod findFeedPostCellConstructor(MutableClass owner) {
+        List<MutableMethod> matches = new ArrayList<>();
+        for (MutableMethod method : owner.getMethods())
+            if ("<init>".equals(method.getName()) && method.getImplementation() != null
+                && method.getParameterTypes().size() == 10
+                && "Lv4p;".contentEquals(method.getParameterTypes().get(1))) matches.add(method);
+        if (matches.size() != 1)
+            throw unsupported("Expected one full feed post cell constructor; found " + matches.size());
+        return matches.get(0);
+    }
+
+    static void hookFeedPostCell(MutableMethod method) {
+        int thisRegister = method.getImplementation().getRegisterCount() - 11;
+        if (thisRegister < 0) throw unsupported("Feed post cell instance register was not found");
+        List<Instruction> all = instructions(method);
+        int calls = 0;
+        for (int i = all.size() - 1; i >= 0; i--) if (all.get(i).getOpcode() == Opcode.RETURN_VOID) {
+            method.getImplementation().addInstruction(i,
+                new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, thisRegister, 1,
+                    new ImmutableMethodReference(EXTENSION, "traceFeedPostCell",
+                        Collections.singletonList("Ljava/lang/Object;"), "V")));
+            calls++;
+        }
+        if (calls == 0) throw unsupported("Feed post cell constructor has no return");
+    }
+
+    static MutableMethod findHomePostMapper(MutableClass owner) {
+        List<MutableMethod> matches = new ArrayList<>();
+        for (MutableMethod method : owner.getMethods())
+            if ("c".equals(method.getName()) && "Lcki;".equals(method.getReturnType())
+                && method.getParameterTypes().equals(Arrays.asList("Li8z;", "Lnd7;", "Ly0h;"))
+                && method.getImplementation() != null) matches.add(method);
+        if (matches.size() != 1)
+            throw unsupported("Expected one home post mapper; found " + matches.size());
+        return matches.get(0);
+    }
+
+    static void hookHomePostMapper(MutableMethod method) {
+        int parameterWords = method.getParameterTypes().size();
+        int firstParameter = method.getImplementation().getRegisterCount() - parameterWords;
+        List<Instruction> all = instructions(method);
+        if (all.isEmpty() || !(all.get(0) instanceof BuilderInstruction))
+            throw unsupported("Home post mapper entry is not mutable");
+        com.android.tools.smali.dexlib2.builder.Label show =
+            ((BuilderInstruction) all.get(0)).getLocation().addNewLabel();
+        method.getImplementation().addInstruction(0,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, firstParameter, 1,
+                new ImmutableMethodReference(EXTENSION, "inspectHomePostModel",
+                    Collections.singletonList("Ljava/lang/Object;"), "V")));
+        method.getImplementation().addInstruction(1,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, firstParameter, 1,
+                new ImmutableMethodReference(EXTENSION, "hideHomePostModel",
+                    Collections.singletonList("Ljava/lang/Object;"), "Z")));
+        method.getImplementation().addInstruction(2, new BuilderInstruction11x(Opcode.MOVE_RESULT, 0));
+        method.getImplementation().addInstruction(3, new BuilderInstruction21t(Opcode.IF_EQZ, 0, show));
+        method.getImplementation().addInstruction(4,
+            new com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n(Opcode.CONST_4, 0, 0));
+        method.getImplementation().addInstruction(5, new BuilderInstruction11x(Opcode.RETURN_OBJECT, 0));
+    }
+
+    static MutableMethod findFeedLinkMapper(MutableClass owner, String name) {
+        List<MutableMethod> matches = new ArrayList<>();
+        for (MutableMethod method : owner.getMethods())
+            if (name.equals(method.getName()) && method.getImplementation() != null
+                && !method.getParameterTypes().isEmpty()
+                && LINK.equals(method.getParameterTypes().get(0).toString())) matches.add(method);
+        if (matches.size() != 1)
+            throw unsupported("Expected one " + owner.getType() + " Link mapper; found " + matches.size());
+        return matches.get(0);
+    }
+
+    static void hookFeedLinkMapper(MutableMethod method) {
+        int parameterWords = 0;
+        for (CharSequence type : method.getParameterTypes())
+            parameterWords += ("J".contentEquals(type) || "D".contentEquals(type)) ? 2 : 1;
+        int linkRegister = method.getImplementation().getRegisterCount() - parameterWords;
+        method.getImplementation().addInstruction(0,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, linkRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "rememberFeedLink",
+                    Collections.singletonList("Ljava/lang/Object;"), "V")));
+    }
+
+    static MutableMethod findClassicPostMapper(MutableClass owner) {
+        List<MutableMethod> matches = new ArrayList<>();
+        for (MutableMethod method : owner.getMethods())
+            if ("b".equals(method.getName()) && "Lpt8;".equals(method.getReturnType())
+                && method.getParameterTypes().equals(Arrays.asList("Limn;", "Lws8;"))
+                && method.getImplementation() != null) matches.add(method);
+        if (matches.size() != 1)
+            throw unsupported("Expected one GraphQL ClassicPostElement mapper; found " + matches.size());
+        return matches.get(0);
+    }
+
+    static void hookClassicPostMapper(MutableMethod method) {
+        List<Instruction> all = instructions(method);
+        List<Integer> returns = new ArrayList<>();
+        for (int i = 0; i < all.size(); i++) if (all.get(i).getOpcode() == Opcode.RETURN_OBJECT)
+            returns.add(i);
+        if (returns.isEmpty()) throw unsupported("GraphQL ClassicPostElement mapper has no object return");
+        for (int n = returns.size() - 1; n >= 0; n--) {
+            int index = returns.get(n);
+            int register = ((OneRegisterInstruction) all.get(index)).getRegisterA();
+            method.getImplementation().addInstruction(index,
+                new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, register, 1,
+                    new ImmutableMethodReference(EXTENSION, "rememberClassicPost",
+                        Collections.singletonList("Ljava/lang/Object;"), "V")));
+        }
+    }
+
+    static List<MutableMethod> findClassicPostComposables(MutableClass owner) {
+        List<MutableMethod> matches = new ArrayList<>();
+        for (MutableMethod method : owner.getMethods())
+            if (("a".equals(method.getName()) || "b".equals(method.getName()) || "c".equals(method.getName()))
+                && "V".equals(method.getReturnType()) && method.getImplementation() != null
+                && !method.getParameterTypes().isEmpty()
+                && "Lpt8;".contentEquals(method.getParameterTypes().get(0))) matches.add(method);
+        if (matches.size() != 3)
+            throw unsupported("Expected three classic post composables; found " + matches.size());
+        return matches;
+    }
+
+    static void hookClassicPostComposable(MutableMethod method) {
+        int parameterWords = 0;
+        for (CharSequence type : method.getParameterTypes())
+            parameterWords += ("J".contentEquals(type) || "D".contentEquals(type)) ? 2 : 1;
+        int postRegister = method.getImplementation().getRegisterCount() - parameterWords;
+        List<Instruction> all = instructions(method);
+        if (all.isEmpty() || !(all.get(0) instanceof BuilderInstruction))
+            throw unsupported("Classic post composable entry is not mutable");
+        com.android.tools.smali.dexlib2.builder.Label show =
+            ((BuilderInstruction) all.get(0)).getLocation().addNewLabel();
+        method.getImplementation().addInstruction(0,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, postRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "hideClassicPost",
+                    Collections.singletonList("Ljava/lang/Object;"), "Z")));
+        method.getImplementation().addInstruction(1, new BuilderInstruction11x(Opcode.MOVE_RESULT, 0));
+        method.getImplementation().addInstruction(2, new BuilderInstruction21t(Opcode.IF_EQZ, 0, show));
+        method.getImplementation().addInstruction(3,
+            new com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x(Opcode.RETURN_VOID));
+    }
+
+    static MutableMethod findFeedElementProcessor(MutableClass owner) {
+        List<MutableMethod> matches = new ArrayList<>();
+        for (MutableMethod method : owner.getMethods())
+            if ("b".equals(method.getName()) && "Lkotlin/Pair;".equals(method.getReturnType())
+                && method.getParameterTypes().equals(Arrays.asList(
+                    "Lcom/reddit/feeds/data/FeedType;", "Ljava/util/List;", "Ljava/util/List;"))
+                && method.getImplementation() != null) matches.add(method);
+        if (matches.size() != 1)
+            throw unsupported("Expected one common feed-element processor; found " + matches.size());
+        return matches.get(0);
+    }
+
+    static void hookFeedElementProcessor(MutableMethod method) {
+        int parameterWords = 0;
+        for (CharSequence type : method.getParameterTypes())
+            parameterWords += ("J".contentEquals(type) || "D".contentEquals(type)) ? 2 : 1;
+        int firstExplicitParameter = method.getImplementation().getRegisterCount() - parameterWords;
+        int elementsRegister = firstExplicitParameter + 1;
+        method.getImplementation().addInstruction(0,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, elementsRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "filterFeedElements",
+                    Collections.singletonList("Ljava/util/List;"), "Ljava/util/List;")));
+        method.getImplementation().addInstruction(1,
+            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, elementsRegister));
     }
 
     static void hookSettings(MutableMethod method) {

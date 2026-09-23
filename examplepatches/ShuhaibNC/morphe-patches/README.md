@@ -29,7 +29,7 @@ A collection of patches that I think would be useful to add, based on features, 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.9.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary>📦 apk-signer&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -153,6 +153,21 @@ A collection of patches that I think would be useful to add, based on features, 
 </details>
 
 <details open>
+<summary>📦 Video to MP3&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.2.7.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium of Video to MP3](#unlock-premium-of-video-to-mp3) | Enables premium features and functionality in the Video to MP3 application. |  |
+
+</details>
+
+<details open>
 <summary>📦 Melon VPN&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -194,6 +209,20 @@ A collection of patches that I think would be useful to add, based on features, 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Vip Of Vidma](#unlock-vip-of-vidma) | Unlock Vip features and removes ads. |  |
+
+</details>
+
+<details open>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Fake System Time](#fake-system-time) | Replaces System.currentTimeMillis() and System.nanoTime() with a fixed timestamp. |  |
+| [Hide launcher icon](#hide-launcher-icon) | Hides the app's launcher icon. |  |
+| [Hide title/action bar](#hide-title-action-bar) | Removes the title/action bar from every declared style, in every res/values*/styles.xml resource file. |  |
+| [Remove all receivers](#remove-all-receivers) | Removes every <receiver> declaration from AndroidManifest.xml. |  |
+| [Spoof Build.SERIAL](#spoof-build-serial) | Replaces every read of Build.SERIAL with the constant string "Serial", across every class in the app. |  |
 
 </details>
 

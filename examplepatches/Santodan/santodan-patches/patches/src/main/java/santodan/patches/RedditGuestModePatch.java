@@ -34,7 +34,7 @@ public final class RedditGuestModePatch {
     @SuppressWarnings({"unchecked", "deprecation"})
     public static BytecodePatch getRedditGuestModePatch() {
         return PatchKt.bytecodePatch(NAME,
-            "Skips the forced startup login screen using Reddit's native browse-logged-out action. Login remains available from the account menu.",
+            "Skips the forced startup login screen using Reddit's native browse-logged-out action. Login remains available from the account menu. Already included upstream in Morphe Patches PR #3109: https://github.com/MorpheApp/morphe-patches/pull/3109",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "Reddit", null, ApkFileType.APK,
                     null, null, Collections.singletonList(new AppTarget(VERSION, false, null)), false));

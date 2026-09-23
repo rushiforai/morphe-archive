@@ -2,6 +2,20 @@
 
 Every Hushfeed release, newest first.
 
+## Unreleased
+
+* **Compatibility:** Every runtime view ID Hushfeed uses is now tied to TikTok 47.0.3 code, including share actions, comment dislike controls and caption text.
+* **TikTok:** In-app browser privacy guard now protects external websites without breaking Activity center, Watch history, shop checkout or CAPTCHA. Its Privacy switch has clearer wording and still starts off.
+* **TikTok:** New Pause Hushfeed switch at the top of Hushfeed settings. From the next start TikTok runs as if it weren't patched, which answers "is it Hushfeed?" without turning things off one at a time, and your settings stay put for when you switch it back. Hushfeed also pauses itself after TikTok crashes within a minute of starting three times in a row. If the settings can't be reached at all, an empty file named `hushfeed-safe-mode` in TikTok's folder under Android/data pauses it too.
+* **TikTok:** New switch on the Feed filter page, Hide TikTok Shop in search, takes the Products block and single product cards out of search results. No account here is shown that block, so if it still turns up for you, a diagnostic export made right after that search now says what kind of card it was. (#21)
+* **TikTok:** Foldable split comment view now follows the fold while TikTok is open. Unfolding past your width setting refreshes the feed so comments can sit beside the video, and folding back refreshes it again. Before, it only took effect if TikTok was started already unfolded. (#26)
+* **TikTok:** AMOLED dark theme works on an .apkm again when Morphe Manager merges it. It used to refuse every merged bundle, because rebuilding the desktop CLI's merge made TikTok crash at launch. Manager's merge keeps TikTok's own file paths and loses nothing, so the dark theme now refuses only an APK whose paths clash with the rebuild, which is what the desktop CLI's merge still produces. (#21)
+* **TikTok:** Feed tabs adds Hide the unread badges on the bottom tabs, for the red count on Inbox and the dot on Profile. The inbox itself still shows what came in.
+* **TikTok:** Playback adds Hide TikTok's Auto scroll button, for readers who want videos to advance on their own but not TikTok's own Auto scroll action in the video panel.
+* **TikTok:** Leaving Hushfeed's settings search with the Back arrow now takes the keyboard down with it. It used to stay up over the next page until Back was pressed once more.
+* **TikTok:** The four optional cleanup patches accept APKMirror's 47.0.3 bundle too, the way they accept 46.2.3's. A merged 47.0.3 bundle carries the full APK's files less 92 armeabi-v7a libraries, byte for byte, and 27 of the 64 language packs. Every file they empty is still checked first. (#21)
+* **TikTok:** Hushfeed's settings now survive TikTok's own crash recovery. After three crashes in a row at launch, TikTok deletes every settings file it doesn't recognize, and that used to take all of Hushfeed's settings with it, Lab rules and the Calm feed undo included.
+
 ## 0.58.0 (2026-09-21)
 
 This week's bug reports, two requested switches and Turkish.

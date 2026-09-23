@@ -158,6 +158,8 @@ public final class RememberClearDisplayPatch {
         clearNow = (Boolean) clear;
         if (posting) return;
         cancelOnMain();
+        // Paused, TikTok's own clear mode is not remembered over the choice kept for later.
+        if (Setting.isPaused()) return;
         Settings.CLEAR_DISPLAY.save((Boolean) clear);
     }
 

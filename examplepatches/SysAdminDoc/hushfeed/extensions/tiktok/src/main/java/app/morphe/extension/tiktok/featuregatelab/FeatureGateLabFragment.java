@@ -86,7 +86,7 @@ public final class FeatureGateLabFragment extends Fragment {
         return translated;
     }
     private static final String[] SOURCE_LABELS = {
-            "All", "App AB", "Config", "Player", "Live", "Media", "Activity"
+            "All", "App AB", "Config", "Player", "LIVE", "Media", "Activity"
     };
     private static final String[] SOURCE_MANAGERS = {
             null,
@@ -175,7 +175,7 @@ public final class FeatureGateLabFragment extends Fragment {
         int containerId = findFragmentContainer(activity);
         if (containerId == View.NO_ID) {
             Utils.showToastLong(L10n.t(Utils.getContext(),
-                    "The Lab could not open. Go back and open it again."));
+                    "The Lab couldn't open. Go back and open it again."));
             return;
         }
         FeatureGateLabSession.begin();
@@ -251,14 +251,14 @@ public final class FeatureGateLabFragment extends Fragment {
         master.setChecked(FeatureGateLabStore.masterEnabled());
         SettingsUi.styleSwitch(master);
         // One row, one screen-reader stop: the row is the switch. It used to be two stops that
-        // both read "Enable overrides", and only the 44dp switch answered a tap.
+        // both read "Apply overrides", and only the 44dp switch answered a tap.
         LinearLayout masterRow = FeatureGateLabUi.switchRow(context,
-                L10n.t(context, "Enable overrides"),
+                L10n.t(context, "Apply overrides"),
                 L10n.t(context, "Replace values when TikTok asks for them"), master);
         controls.addView(masterRow, FeatureGateLabUi.matchWrap());
 
         View warning = SettingsUi.inlineNotice(context,
-                L10n.t(context, "Account warning: forced client values apply to every account in this app data and cannot bypass server controls."),
+                L10n.t(context, "A forced value applies to this copy of TikTok whichever account is signed in. It cannot get past a check the server makes."),
                 SettingsUi.attentionColor());
         LinearLayout.LayoutParams warningParams = FeatureGateLabUi.matchWrap();
         int noticeMargin = FeatureGateLabUi.dp(context, SettingsUi.NOTICE_MARGIN);
@@ -987,7 +987,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private void syncMasterSwitch() {
         if (master == null) return;
         master.setChecked(FeatureGateLabStore.masterEnabled());
-        master.setContentDescription(L10n.t(getContext(), "Enable overrides"));
+        master.setContentDescription(L10n.t(getContext(), "Apply overrides"));
         SettingsUi.styleSwitch(master);
     }
 
@@ -1080,9 +1080,8 @@ public final class FeatureGateLabFragment extends Fragment {
                     list.getPaddingRight(), bottomPad);
         }
         if (selectionCount != null) {
-            selectionCount.setText(selection.size() == 1
-                    ? L10n.t(getContext(), "1 gate selected")
-                    : L10n.f(getContext(), "%1$d gates selected", selection.size()));
+            selectionCount.setText(L10n.quantity(getContext(), selection.size(),
+                    "1 gate selected", "%1$d gates selected"));
         }
         if (adapter != null) adapter.notifyDataSetChanged();
     }
@@ -1106,24 +1105,25 @@ public final class FeatureGateLabFragment extends Fragment {
             android.content.Context context = Utils.getContext();
             if (written == total) {
                 if (value) {
-                    return written == 1
-                            ? L10n.t(context, "Forced 1 gate. Restart TikTok to apply this.")
-                            : L10n.f(context, "Forced %1$d gates. Restart TikTok to apply this.",
-                                    written);
+                    return L10n.quantity(context, written,
+                            "Forced 1 gate. Restart TikTok to apply this.",
+                            "Forced %1$d gates. Restart TikTok to apply this.");
                 }
-                return written == 1
-                        ? L10n.t(context, "Turned off 1 gate. Restart TikTok to apply this.")
-                        : L10n.f(context, "Turned off %1$d gates. Restart TikTok to apply this.",
-                                written);
+                return L10n.quantity(context, written,
+                        "Turned off 1 gate. Restart TikTok to apply this.",
+                        "Turned off %1$d gates. Restart TikTok to apply this.");
             }
+            // Both forms take (written, total); the one form leaves the first unused.
             if (value) {
-                return written == 1
-                        ? L10n.f(context, "Forced 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.", total)
-                        : L10n.f(context, "Forced %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.", written, total);
+                return L10n.quantity(context, written,
+                        "Forced 1 gate of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
+                        "Forced %1$d gates of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
+                        written, total);
             }
-            return written == 1
-                    ? L10n.f(context, "Turned off 1 gate of %1$d; the rest do not take a true or false value. Restart TikTok to apply this.", total)
-                    : L10n.f(context, "Turned off %1$d gates of %2$d; the rest do not take a true or false value. Restart TikTok to apply this.", written, total);
+            return L10n.quantity(context, written,
+                    "Turned off 1 gate of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
+                    "Turned off %1$d gates of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
+                    written, total);
         });
         if (started) {
             selection.clear();
@@ -1145,16 +1145,14 @@ public final class FeatureGateLabFragment extends Fragment {
             // rows no table could hold, and the plural rule of the language never got a say.
             android.content.Context context = Utils.getContext();
             if (dropped == total) {
-                return dropped == 1
-                        ? L10n.t(context, "Reset 1 gate. Restart TikTok to apply this.")
-                        : L10n.f(context, "Reset %1$d gates. Restart TikTok to apply this.",
-                                dropped);
+                return L10n.quantity(context, dropped,
+                        "Reset 1 gate. Restart TikTok to apply this.",
+                        "Reset %1$d gates. Restart TikTok to apply this.");
             }
-            return dropped == 1
-                    ? L10n.f(context, "Reset 1 gate of %1$d. Restart TikTok to apply this.",
-                            total)
-                    : L10n.f(context, "Reset %1$d gates of %2$d. Restart TikTok to apply this.",
-                            dropped, total);
+            return L10n.quantity(context, dropped,
+                    "Reset 1 gate of %2$d. Restart TikTok to apply this.",
+                    "Reset %1$d gates of %2$d. Restart TikTok to apply this.",
+                    dropped, total);
         });
         if (started) {
             selection.clear();
@@ -1230,7 +1228,7 @@ public final class FeatureGateLabFragment extends Fragment {
                         case 4: reset(true); break;
                         default:
                             runLabChange(FeatureGateLabUndo::undo, L10n.t(getContext(),
-                                    "Restored the previous Lab settings. Restart TikTok to apply this."));
+                                    "Lab settings put back. Restart TikTok to apply this."));
                             break;
                     }
                 })
@@ -1242,7 +1240,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private void exportLoadedValues() {
         try {
             if (getActivity() == null) {
-                postToast(L10n.t(Utils.getContext(), "Could not open the export file picker"));
+                postToast(L10n.t(Utils.getContext(), "Couldn't open the file picker to export. Try again."));
                 return;
             }
             if (snapshot == null) {
@@ -1259,7 +1257,7 @@ public final class FeatureGateLabFragment extends Fragment {
             startActivityForResult(intent, REQUEST_EXPORT_LOADED);
         } catch (Throwable throwable) {
             Utils.showToastLong(L10n.t(Utils.getContext(),
-                    "Could not open the export file picker"));
+                    "Couldn't open the file picker to export. Try again."));
         }
     }
 
@@ -1273,7 +1271,7 @@ public final class FeatureGateLabFragment extends Fragment {
             startActivityForResult(intent, REQUEST_IMPORT_LOADED);
         } catch (Throwable throwable) {
             Utils.showToastLong(L10n.t(Utils.getContext(),
-                    "Could not open the import file picker"));
+                    "Couldn't open the file picker to import. Try again."));
         }
     }
 
@@ -1288,15 +1286,13 @@ public final class FeatureGateLabFragment extends Fragment {
                     if (output == null) throw new IllegalStateException("Document provider returned no output stream");
                     output.write(payload.gzipBytes);
                 }
-                postToast(payload.count == 1
-                        ? L10n.t(Utils.getContext(), "Exported 1 loaded value")
-                        : L10n.f(Utils.getContext(), "Exported %1$d loaded values",
-                                payload.count));
+                postToast(L10n.quantity(Utils.getContext(), payload.count,
+                        "Exported 1 loaded value", "Exported %1$d loaded values"));
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Loaded-value file export failed", throwable);
                 postToast(L10n.t(Utils.getContext(), deleteCreatedDocument(resolver, uri)
                         ? "Loaded-value file export failed"
-                        : "The export failed and the partial file could not be removed. Delete it from your Downloads folder."));
+                        : "The export failed and the partial file couldn't be removed. Delete it from your Downloads folder."));
             }
         });
     }
@@ -1306,7 +1302,7 @@ public final class FeatureGateLabFragment extends Fragment {
         ContentResolver resolver = activity == null ? null : activity.getContentResolver();
         if (resolver == null) {
             postToast(L10n.t(Utils.getContext(),
-                    "The selected loaded-values file could not be read. Try again."));
+                    "The loaded-values file you chose couldn't be read. Try again."));
             return;
         }
         FILE_IO_EXECUTOR.execute(() -> {
@@ -1323,7 +1319,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 // used to be reported as invalid or too large, the same as a corrupt one.
                 postToast(throwable instanceof ImportRefused
                         ? throwable.getMessage()
-                        : L10n.t(Utils.getContext(), "That file is not a loaded-values export, or it is larger than the Lab accepts."));
+                        : L10n.t(Utils.getContext(), "That file is not a loaded-values export, or it is larger than the Lab accepts"));
             }
         });
     }
@@ -1473,7 +1469,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 .setPositiveButton(L10n.t(activity, "Done"), null)
                 .setNegativeButton(L10n.t(activity, "Undo"), (ignored, which) -> runLabChange(
                         FeatureGateLabUndo::undo,
-                        L10n.t(activity, "Restored the previous Lab settings. Restart TikTok to apply this.")))
+                        L10n.t(activity, "Lab settings put back. Restart TikTok to apply this.")))
                 .create();
         showStyled(dialog);
     }
@@ -1656,7 +1652,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 result = change.run();
             } catch (Exception error) {
                 Logger.printException(() -> "Lab change failed", error);
-                result = L10n.t(Utils.getContext(), "Could not change Lab settings.");
+                result = L10n.t(Utils.getContext(), "Couldn't change the Lab settings. Try again.");
                 tell = Utils::showToastLong;
             }
             String notice = result;
@@ -1679,7 +1675,7 @@ public final class FeatureGateLabFragment extends Fragment {
             // the reader has to tap a third time before the requested change is submitted.
             syncMasterSwitch();
             postToast(L10n.t(Utils.getContext(),
-                    "Could not start the Lab change. Try again shortly."));
+                    "Couldn't start the Lab change. Try again shortly."));
             return false;
         }
         return true;

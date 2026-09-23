@@ -19,7 +19,7 @@ import java.util.Map;
 
 /** A conservative, reversible starting point for a less commercial feed. */
 public final class CalmFeedPreset {
-    private static final String PREFERENCES = "hushfeed-calm-feed-preset";
+    static final String PREFERENCES = "hushfeed-calm-feed-preset";
     private static final String HAS_SNAPSHOT = "has_snapshot";
     private static final String SNAPSHOT_MASK = "snapshot_mask";
     private static final String SNAPSHOT_SCHEMA = "snapshot_schema";
@@ -73,7 +73,7 @@ public final class CalmFeedPreset {
 
     public static boolean isApplied() {
         for (BooleanSetting setting : SETTINGS) {
-            if (!setting.get()) return false;
+            if (!setting.savedValue()) return false;
         }
         return true;
     }
@@ -81,7 +81,7 @@ public final class CalmFeedPreset {
     public static int changesNeeded() {
         int count = 0;
         for (BooleanSetting setting : SETTINGS) {
-            if (!setting.get()) count++;
+            if (!setting.savedValue()) count++;
         }
         return count;
     }
@@ -140,7 +140,7 @@ public final class CalmFeedPreset {
 
     private static LinkedHashMap<Setting<?>, Object> currentValues() {
         LinkedHashMap<Setting<?>, Object> values = new LinkedHashMap<>();
-        for (BooleanSetting setting : SETTINGS) values.put(setting, setting.get());
+        for (BooleanSetting setting : SETTINGS) values.put(setting, setting.savedValue());
         return values;
     }
 

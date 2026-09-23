@@ -86,8 +86,8 @@ public class DiagnosticRedactorTest {
     }
 
     @Test public void anAccountWithNothingToNameIsNotHiddenAtAll() {
-        // "this account" names nobody, so hiding it says less than the truth.
-        assertEquals("Blocked this account",
+        // "this creator" names nobody, so hiding it says less than the truth.
+        assertEquals("Blocked this creator",
                 DiagnosticRedactor.redact("Blocked "
                         + new VideoAuthor(null, null, null, null).label()));
     }

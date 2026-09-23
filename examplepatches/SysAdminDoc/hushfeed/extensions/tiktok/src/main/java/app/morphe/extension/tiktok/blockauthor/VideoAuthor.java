@@ -6,6 +6,9 @@
  */
 package app.morphe.extension.tiktok.blockauthor;
 
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.settings.L10n;
+
 /** The account that posted the video currently on screen. */
 public final class VideoAuthor {
     public final String uid;
@@ -56,8 +59,12 @@ public final class VideoAuthor {
             return isolate(secUid);
         }
         // Nobody to name, so nothing to hide. Left bare, otherwise a report of a block with no
-        // identifiers at all reads "Blocked [name omitted]" and says less than the truth.
-        return "this account";
+        // identifiers at all reads "Blocked [name omitted]" and says less than the truth. The
+        // feed calls the person a creator everywhere else, and the words sit inside a translated
+        // sentence, so they are translated too. The activity is asked for rather than the
+        // context: the plain lookup logs an error when no context is set, and this can run
+        // before the hook sets one.
+        return L10n.t(Utils.getActivity(), "this creator");
     }
 
     /**

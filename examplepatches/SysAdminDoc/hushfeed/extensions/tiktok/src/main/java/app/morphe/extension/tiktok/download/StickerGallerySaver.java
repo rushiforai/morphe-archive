@@ -61,6 +61,11 @@ import java.util.WeakHashMap;
 public final class StickerGallerySaver {
     private static final String ACTION_LABEL = "Save media";
     private static final String HOOK_FAMILY = "sticker saves";
+
+    static {
+        // The save button reads no switch, so Pause leaves it working; the export says so.
+        HookStatus.runsWhilePaused(HOOK_FAMILY);
+    }
     /**
      * Marks the button this file added, so finding it again does not depend on its wording.
      *

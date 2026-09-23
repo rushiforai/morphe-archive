@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 
 class AndroidXrManifestTargetingTest {
     @Test
-    fun `existing 5002313 features are normalized instead of skipped`() {
+    fun `existing XR features are normalized instead of skipped`() {
         val doc = parse(
             """
             <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -49,7 +49,7 @@ class AndroidXrManifestTargetingTest {
     }
 
     @Test
-    fun `5002313 application start mode is removed without removing activity modes`() {
+    fun `application start mode is removed without removing activity modes`() {
         val propertyName = "android.window.PROPERTY_XR_ACTIVITY_START_MODE"
         val doc = parse(
             """

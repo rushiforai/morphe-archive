@@ -37,19 +37,6 @@ private data class HmdLayout(
 private val HMD_LAYOUTS = listOf(
     HmdLayout(
         versionName = "2.0.20",
-        versionCode = 5001740,
-        fileSize = 2_220_528,
-        hookVaddr = 0x00101378L,
-        velocityPatches = listOf(
-            VelocityPatch(0x001013A4L, 28, paired = true),
-            VelocityPatch(0x001013C0L, 36),
-            VelocityPatch(0x001014A0L, 40),
-            VelocityPatch(0x001014A4L, 44),
-            VelocityPatch(0x001014B0L, 48),
-        ),
-    ),
-    HmdLayout(
-        versionName = "2.0.20",
         versionCode = 5001712,
         fileSize = 2_221_072,
         hookVaddr = 0x001014E8L,
@@ -73,48 +60,6 @@ private val HMD_LAYOUTS = listOf(
             VelocityPatch(0x000FED5CL, 40),
             VelocityPatch(0x000FED60L, 44),
             VelocityPatch(0x000FED6CL, 48),
-        ),
-    ),
-    HmdLayout(
-        versionName = "2.0.22",
-        versionCode = 5002313,
-        fileSize = 2_276_872,
-        hookVaddr = 0x00100B8CL,
-        velocityPatches = listOf(
-            VelocityPatch(0x00100E00L, 28),
-            VelocityPatch(0x00100E04L, 32),
-            VelocityPatch(0x00100E08L, 36),
-            VelocityPatch(0x00100E14L, 40),
-            VelocityPatch(0x00100E18L, 44),
-            VelocityPatch(0x00100E24L, 48),
-        ),
-    ),
-    HmdLayout(
-        versionName = "2.0.22",
-        versionCode = 5002318,
-        fileSize = 2_277_488,
-        hookVaddr = 0x00100B0CL,
-        velocityPatches = listOf(
-            VelocityPatch(0x00100D80L, 28),
-            VelocityPatch(0x00100D84L, 32),
-            VelocityPatch(0x00100D88L, 36),
-            VelocityPatch(0x00100D94L, 40),
-            VelocityPatch(0x00100D98L, 44),
-            VelocityPatch(0x00100DA4L, 48),
-        ),
-    ),
-    HmdLayout(
-        versionName = "2.0.22",
-        versionCode = 5002322,
-        fileSize = 2_283_400,
-        hookVaddr = 0x00101154L,
-        velocityPatches = listOf(
-            VelocityPatch(0x001013C8L, 28),
-            VelocityPatch(0x001013CCL, 32),
-            VelocityPatch(0x001013D0L, 36),
-            VelocityPatch(0x001013DCL, 40),
-            VelocityPatch(0x001013E0L, 44),
-            VelocityPatch(0x001013ECL, 48),
         ),
     ),
     // Independently decoded 2.0.23/5002363: GetPose starts at 0x101eb4. The hook

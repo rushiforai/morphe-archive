@@ -32,7 +32,7 @@ val modelReadinessGatesPatch = bytecodePatch(
         HomeActivityOnCreateFingerprint.method.addInstructions(
             0,
             """
-            invoke-static/range { p0 .. p0 }, Lapp/morphe/extension/shared/patches/PhotosModelSeeder;->ensureSeeded(Landroid/content/Context;)V
+            invoke-static/range { p0 .. p0 }, Lapp/morphe/extension/shared/patches/PhotosModelSeeder;->enableAndEnsureSeeded(Landroid/content/Context;)V
             """.trimIndent(),
         )
 

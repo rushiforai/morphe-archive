@@ -31,6 +31,12 @@ import app.morphe.extension.tiktok.settings.Settings;
 @SuppressWarnings("unused")
 public final class FollowDiagnostics {
     private static final String HOOK_FAMILY = "follow diagnostics";
+
+    static {
+        // Gated on the debug switch, which keeps its value while paused, so Pause leaves these
+        // diagnostics as they were; the export says so.
+        app.morphe.extension.shared.diagnostics.HookStatus.runsWhilePaused(HOOK_FAMILY);
+    }
     private static final int MAX_EVENTS_PER_SESSION = 160;
     private static final long READBACK_WINDOW_MS = 30_000L;
     private static final AtomicInteger eventCount = new AtomicInteger();
@@ -611,12 +617,20 @@ public final class FollowDiagnostics {
     static void warnAboutRefusedFollowOnce(FollowRequestContext context) {
         if (!followWasRefused(context) || !warnedAboutRefusedFollow.compareAndSet(false, true)) return;
 
-        String reason = FollowVerdict.UNKNOWN.equals(context.statusMsg)
-                ? L10n.f("code %1$s", context.statusCode)
-                : context.statusMsg;
-        String message = L10n.f("TikTok refused the follow: %1$s", reason);
-        if (!"none".equals(context.riskCheck)) {
-            message += " " + L10n.t("A hidden puzzle may be the cause.");
+        // One whole sentence per shape rather than a reason, a code and a tail glued together:
+        // a translator sees the sentence, and the language decides where the pieces go.
+        boolean captcha = !"none".equals(context.riskCheck);
+        String message;
+        if (FollowVerdict.UNKNOWN.equals(context.statusMsg)) {
+            message = captcha
+                    ? L10n.f("TikTok refused the follow with code %1$s. A hidden CAPTCHA may be the cause.",
+                            context.statusCode)
+                    : L10n.f("TikTok refused the follow with code %1$s", context.statusCode);
+        } else {
+            message = captcha
+                    ? L10n.f("TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.",
+                            context.statusMsg)
+                    : L10n.f("TikTok refused the follow: %1$s", context.statusMsg);
         }
         Utils.showToastLong(message);
         Logger.printInfo(() -> "[Morphe TikTok FollowProbe] refused"

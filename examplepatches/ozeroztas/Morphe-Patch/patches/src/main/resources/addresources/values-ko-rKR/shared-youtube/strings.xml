@@ -65,6 +65,15 @@ Second \"item\" text"</string>
   <string name="morphe_custom_branding_icon_entry_6">Morphe Play Black</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">사용자 정의</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"이 설정은 앱 런처에 표시되는 아이콘을 변경합니다
+
+하지만 다음 위치에 표시되는 아이콘은 변경되지 않습니다:
+• 기기의 시스템 설정 앱 목록
+• 일부 푸시 알림
+• ‘다음으로 열기’ 앱 선택기
+• Android Auto 아이콘
+
+모든 위치의 아이콘을 변경하려면, 다시 패치하여 ‘App icon’ 패치 옵션을 변경하세요"</string>
   <string name="morphe_custom_branding_notification_icon_title">알림 아이콘</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">앱 아이콘과 맞추기</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe Play</string>
@@ -226,12 +235,11 @@ PotHelper를 다운로드하려면 여기를 탭하세요"</string>
   <string name="morphe_ryd_failure_generic">싫어요 수를 표시할 수 없습니다 (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">소유자에 의해 숨겨짐</string>
+  <string name="morphe_ryd_accessibility_dislike_count">%s 명의 다른 사람들과 함께 이 동영상에 싫어요를 눌렀습니다</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">투표 중 %s %%가 이 동영상에 싫어요를 눌렀습니다</string>
   <string name="morphe_ryd_enabled_title">Return YouTube Dislike 활성화하기</string>
   <string name="morphe_ryd_dislike_percentage_title">싫어요 수를 백분율로 표시하기</string>
   <string name="morphe_ryd_dislike_percentage_summary">싫어요 수를 숫자 대신 좋아요 수 대비 백분율로 표시합니다</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">최소화된 좋아요 버튼 사용하기</string>
-  <string name="morphe_ryd_compact_layout_summary">공간을 절약하기 위해 좋아요 버튼의 너비를 줄입니다</string>
   <string name="morphe_ryd_estimated_like_title">추정되는 좋아요 수 표시하기</string>
   <string name="morphe_ryd_estimated_like_summary">좋아요 수가 숨겨진 동영상에서 추정되는 좋아요 수를 표시합니다</string>
   <string name="morphe_ryd_toast_on_connection_error_title">연결 오류 알림 표시하기</string>

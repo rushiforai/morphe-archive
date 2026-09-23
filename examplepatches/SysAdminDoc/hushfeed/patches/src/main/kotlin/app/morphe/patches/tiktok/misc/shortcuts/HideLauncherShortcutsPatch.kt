@@ -116,7 +116,7 @@ val hideLauncherShortcutsPatch = bytecodePatch(
     name = "Hide the launcher shortcuts",
     description = "Empties the menu that opens on pressing and holding TikTok's icon on the " +
         "home screen. The entries are built while the app runs rather than declared in it, and " +
-        "TikTok only rewrites them when it notices a difference, so this takes away what is " +
+        "TikTok only rewrites them when it notices a difference, so this removes what is " +
         "already published and answers the handover that would publish more. Turning it off " +
         "asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut " +
         "pinned to a home screen is left alone. Switch: Hushfeed settings > App.",

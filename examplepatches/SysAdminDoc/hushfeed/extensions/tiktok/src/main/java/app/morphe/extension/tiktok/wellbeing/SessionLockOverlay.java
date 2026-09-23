@@ -301,9 +301,7 @@ public final class SessionLockOverlay {
         long hours = totalMinutes / 60;
         long minutes = totalMinutes % 60;
         if (hours == 0) {
-            return minutes == 1
-                    ? L10n.t("One minute left")
-                    : L10n.f("%1$d minutes left", minutes);
+            return L10n.quantity(Utils.getContext(), minutes, "One minute left", "%1$d minutes left");
         }
         // Built before the call so the clock face is not mistaken for text to translate.
         String clock = String.format(Locale.getDefault(), "%d:%02d", hours, minutes);

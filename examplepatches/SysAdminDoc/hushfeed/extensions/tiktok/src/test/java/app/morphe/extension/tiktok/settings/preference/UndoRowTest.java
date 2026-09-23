@@ -64,7 +64,7 @@ public class UndoRowTest {
                 "Nothing to undo yet.".equals(message.invoke(null, UNDO, missing)));
         // A reset that really failed still says so.
         assertTrue("a real failure was softened into the empty message",
-                "Could not restore settings.".equals(
+                "Couldn't restore the settings. Try again.".equals(
                         message.invoke(null, RESET, new IllegalStateException("broken"))));
     }
 

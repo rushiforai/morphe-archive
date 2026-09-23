@@ -26,6 +26,9 @@ public class NotificationSettingsActivity extends Activity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Map<NotificationKind, TextView> countViews = new HashMap<NotificationKind, TextView>();
+    private TextView idleVillagesView;
+    /** The idle-villages text last drawn, so the view is only touched when it changed. */
+    private String idleDrawn = "not drawn yet";
 
     private final Runnable refresh = new Runnable() {
         @Override
@@ -59,6 +62,11 @@ public class NotificationSettingsActivity extends Activity {
         column.addView(UiKit.title(this, "Notifications"));
         column.addView(UiKit.muted(this, "Choose which notifications you want. Changes apply right away. "
                 + "A switched-off type is still counted."));
+        column.addView(UiKit.section(this, "Queues"));
+        LinearLayout idleCard = UiKit.card(this);
+        idleVillagesView = UiKit.body(this, "Checking...");
+        idleCard.addView(idleVillagesView);
+        column.addView(idleCard, UiKit.cardParams(this));
         column.addView(UiKit.section(this, "Alerts"));
         for (NotificationKind kind : NotificationKind.values()) {
             column.addView(switchCard(kind), UiKit.cardParams(this));
@@ -87,7 +95,7 @@ public class NotificationSettingsActivity extends Activity {
         return card;
     }
 
-    /** Updates the counts only (never the switches, so a tap in progress isn't fought). */
+    /** Updates the counts and the idle-villages line only (never the switches, so a tap in progress isn't fought). */
     private void refreshCounts() {
         long now = System.currentTimeMillis();
         SharedPreferences state = getSharedPreferences(NotifierWorker.STATE_PREFS, Context.MODE_PRIVATE);
@@ -95,6 +103,11 @@ public class NotificationSettingsActivity extends Activity {
         for (Map.Entry<NotificationKind, TextView> entry : countViews.entrySet()) {
             int count = NotificationHistory.countLast24h(history, entry.getKey().id, now);
             entry.getValue().setText(NotificationHistory.countLabel(count));
+        }
+        String idleJson = state.getString(NotifierWorker.KEY_IDLE_VILLAGES, null);
+        if (!String.valueOf(idleJson).equals(idleDrawn)) {
+            idleDrawn = String.valueOf(idleJson);
+            idleVillagesView.setText(IdleVillages.summary(IdleVillages.fromJson(idleJson)));
         }
     }
 }

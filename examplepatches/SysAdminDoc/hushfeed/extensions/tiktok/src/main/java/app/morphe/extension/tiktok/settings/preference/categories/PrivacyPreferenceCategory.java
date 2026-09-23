@@ -63,7 +63,7 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
         if (SettingsStatus.disableTelemetryEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Disable analytics and tracking",
+                    "Stop analytics and tracking",
                     "Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and "
                             + "crash reporting from being sent. TikTok's own diagnostics go quiet with them.",
                     Settings.DISABLE_ANALYTICS
@@ -169,12 +169,10 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
         if (SettingsStatus.browserPrivacyGuardEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Cut the in-app browser off from TikTok",
-                    "Stop the in-app browser handing TikTok's JavaScript bridge to the pages it "
-                            + "loads. TikTok's own pages need that bridge too. With this on, Activity "
-                            + "center and Watch history stop responding, and the shop checkout and "
-                            + "the CAPTCHA page break. Leave it off unless you want those cut off as "
-                            + "well.",
+                    "Protect external pages in TikTok's browser",
+                    "Keep websites outside TikTok from using its connection back into the app. "
+                            + "TikTok pages such as Activity center, Watch history, shop checkout "
+                            + "and CAPTCHA keep working.",
                     Settings.BLOCK_WEBVIEW_JS_INTERFACES
             ));
         }

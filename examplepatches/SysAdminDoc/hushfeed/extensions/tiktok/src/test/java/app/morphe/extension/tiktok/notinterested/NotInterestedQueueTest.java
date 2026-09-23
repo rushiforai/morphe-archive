@@ -43,7 +43,7 @@ import java.lang.reflect.Method;
 public class NotInterestedQueueTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    private static final String REFUSED = "Could not send the feedback. Try again shortly.";
+    private static final String REFUSED = "Couldn't send the feedback. Try again shortly.";
 
     @Before public void setUp() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());

@@ -7,55 +7,26 @@ import kotlin.test.assertFailsWith
 
 class GxrTongueBridgePatchTest {
     @Test
-    fun `5002322 native tongue block is patched and idempotent`() {
-        val stock = fixture(MODERN_TONGUE_ORIGINAL_5002322)
-        val patched = patchModernTongueTransport(stock, "2.0.22", "5002322")
-
-        assertContentEquals(
-            MODERN_TONGUE_REPLACEMENT_5002322,
-            patched.copyOfRange(
-                MODERN_TONGUE_VADDR_5002322.toInt(),
-                MODERN_TONGUE_VADDR_5002322.toInt() + MODERN_TONGUE_REPLACEMENT_5002322.size,
-            ),
-        )
-        assertContentEquals(
-            patched,
-            patchModernTongueTransport(patched, "2.0.22", "5002322"),
-        )
-    }
-
-    @Test
-    fun `other exact builds remain byte identical`() {
-        val input = fixture(MODERN_TONGUE_ORIGINAL_5002322)
-        assertContentEquals(
-            input,
-            patchModernTongueTransport(input, "2.0.22", "5002318"),
-        )
-    }
-
-    @Test
-    fun `unexpected 5002322 bytes fail without mutating input`() {
-        val input = fixture(ByteArray(MODERN_TONGUE_ORIGINAL_5002322.size) { 0x55 })
-        val before = input.copyOf()
-        assertFailsWith<PatchException> {
-            patchModernTongueTransport(input, "2.0.22", "5002322")
+    fun `unsupported builds remain byte identical`() {
+        val input = fixture(MODERN_TONGUE_ORIGINAL)
+        listOf("5002318", "5002322").forEach { versionCode ->
+            assertContentEquals(
+                input,
+                patchModernTongueTransport(input, "2.0.22", versionCode),
+                versionCode,
+            )
         }
-        assertContentEquals(before, input)
-    }
-
-    @Test
-    fun `unexpected 5002322 library size fails closed`() {
-        assertFailsWith<PatchException> {
-            patchModernTongueTransport(ByteArray(64), "2.0.22", "5002322")
-        }
+        assertContentEquals(input, patchModernTongueTransport(input, "2.0.23", "5002322"))
+        val tiny = ByteArray(64)
+        assertContentEquals(tiny, patchModernTongueTransport(tiny, "2.0.22", "5002322"))
     }
 
     @Test
     fun `5002363 native tongue block is restricted and idempotent`() {
-        val stock = fixture(MODERN_TONGUE_ORIGINAL_5002363, MODERN_TONGUE_LIBRARY_SIZE_5002363, MODERN_TONGUE_VADDR_5002363)
+        val stock = fixture(MODERN_TONGUE_ORIGINAL, MODERN_TONGUE_LIBRARY_SIZE_5002363, MODERN_TONGUE_VADDR_5002363)
         val patched = patchModernTongueTransport(stock, "2.0.23", "5002363")
         val offset = MODERN_TONGUE_VADDR_5002363.toInt()
-        assertContentEquals(MODERN_TONGUE_REPLACEMENT_5002363, patched.copyOfRange(offset, offset + 24))
+        assertContentEquals(MODERN_TONGUE_REPLACEMENT, patched.copyOfRange(offset, offset + MODERN_TONGUE_REPLACEMENT.size))
         assertContentEquals(stock.copyOfRange(0, offset), patched.copyOfRange(0, offset))
         assertContentEquals(stock.copyOfRange(offset + 24, stock.size), patched.copyOfRange(offset + 24, patched.size))
         assertContentEquals(patched, patchModernTongueTransport(patched, "2.0.23", "5002363"))
@@ -74,8 +45,8 @@ class GxrTongueBridgePatchTest {
 
     private fun fixture(
         block: ByteArray,
-        librarySize: Int = MODERN_TONGUE_LIBRARY_SIZE_5002322,
-        vaddr: Long = MODERN_TONGUE_VADDR_5002322,
+        librarySize: Int = MODERN_TONGUE_LIBRARY_SIZE_5002363,
+        vaddr: Long = MODERN_TONGUE_VADDR_5002363,
     ) = ByteArray(librarySize).apply {
         byteArrayOf(0x7f, 0x45, 0x4c, 0x46).copyInto(this, 0)
         writeU64LE(32, 64)

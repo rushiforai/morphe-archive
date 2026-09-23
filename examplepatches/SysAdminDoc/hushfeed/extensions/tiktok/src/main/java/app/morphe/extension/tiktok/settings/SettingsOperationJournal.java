@@ -83,10 +83,10 @@ public final class SettingsOperationJournal {
                 message = "Completed an interrupted settings change. Restart TikTok to apply this.";
                 break;
             case MALFORMED:
-                message = "The record of an interrupted settings change could not be read, so it was set aside. Check your settings.";
+                message = "The record of an interrupted settings change couldn't be read, so it was set aside. Check your settings.";
                 break;
             case FAILED:
-                message = "An interrupted settings change could not be recovered, so its record was set aside. Check your settings or restore a backup.";
+                message = "An interrupted settings change couldn't be recovered, so its record was set aside. Check your settings or restore a backup.";
                 break;
             default:
                 return;

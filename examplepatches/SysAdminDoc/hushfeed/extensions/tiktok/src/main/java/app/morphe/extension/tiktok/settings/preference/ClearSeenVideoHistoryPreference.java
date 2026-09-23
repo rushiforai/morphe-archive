@@ -24,7 +24,7 @@ public final class ClearSeenVideoHistoryPreference extends Preference
     static final String CLEAR_TITLE = "Clear seen videos";
     static final String UNDO_TITLE = "Undo clearing seen videos";
     static final String NOT_READY = "Still reading the record. Tap again in a moment.";
-    static final String FAILED = "Could not undo the clear. Try again.";
+    static final String FAILED = "Couldn't undo the clear. Try again.";
 
     public ClearSeenVideoHistoryPreference(Context context) {
         super(context);
@@ -50,11 +50,11 @@ public final class ClearSeenVideoHistoryPreference extends Preference
         SeenVideoHistory.undoClear(result -> {
             String message;
             if (result == SeenVideoHistory.UndoResult.RESTORED) {
-                message = "Seen videos restored.";
+                message = "Seen videos put back";
             } else if (result == SeenVideoHistory.UndoResult.FAILED) {
                 message = FAILED;
             } else if (result == SeenVideoHistory.UndoResult.EMPTY) {
-                message = "There was nothing to undo.";
+                message = "There was nothing to put back";
             } else if (result == SeenVideoHistory.UndoResult.SUPERSEDED) {
                 message = "A newer clear replaced that undo. Tap the row again to undo.";
             } else {

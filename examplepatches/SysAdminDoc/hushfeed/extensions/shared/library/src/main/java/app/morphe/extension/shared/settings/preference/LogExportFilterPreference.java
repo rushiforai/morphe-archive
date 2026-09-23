@@ -167,7 +167,7 @@ public class LogExportFilterPreference extends Preference {
     }
 
     private boolean[] checkedValues() {
-        Set<String> selected = parse(BaseSettings.DEBUG_LOG_FILTERS.get());
+        Set<String> selected = parse(BaseSettings.DEBUG_LOG_FILTERS.savedValue());
         boolean[] checked = new boolean[VALUES.length];
 
         if (selected.isEmpty() || selected.contains(VALUE_ALL)) {
@@ -197,7 +197,7 @@ public class LogExportFilterPreference extends Preference {
     }
 
     private void updateSummary() {
-        Set<String> selected = parse(BaseSettings.DEBUG_LOG_FILTERS.get());
+        Set<String> selected = parse(BaseSettings.DEBUG_LOG_FILTERS.savedValue());
         if (selected.isEmpty() || selected.contains(VALUE_ALL)) {
             setSummary(allEventsSummary());
             return;

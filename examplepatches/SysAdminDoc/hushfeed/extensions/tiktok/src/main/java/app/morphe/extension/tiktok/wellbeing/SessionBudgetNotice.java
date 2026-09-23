@@ -71,17 +71,15 @@ public final class SessionBudgetNotice {
             return videosToday(SessionBudget.videosSeen());
         }
         if (minuteBudget > 0 && watchedMinutes >= minuteBudget) {
-            return watchedMinutes == 1
-                    ? L10n.t("That is one minute today")
-                    : L10n.f("That is %1$d minutes today", watchedMinutes);
+            return L10n.quantity(Utils.getContext(), watchedMinutes,
+                    "That is one minute today", "That is %1$d minutes today");
         }
         return videosToday(SessionBudget.videosSeen());
     }
 
     /** A budget of one produced "That is 1 videos today", which no phrasebook forgives. */
     private static String videosToday(int videos) {
-        return videos == 1
-                ? L10n.t("That is one video today")
-                : L10n.f("That is %1$d videos today", videos);
+        return L10n.quantity(Utils.getContext(), videos,
+                "That is one video today", "That is %1$d videos today");
     }
 }

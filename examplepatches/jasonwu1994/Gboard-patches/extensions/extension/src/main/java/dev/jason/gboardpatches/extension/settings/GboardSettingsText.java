@@ -82,6 +82,16 @@ public final class GboardSettingsText {
 
     private static String resolveLanguageTag(Context context) {
         Locale locale = extractLocale(context);
+        if (context != null) {
+            try {
+                String preference = GboardSettingsLocaleManager.readLanguagePreference(
+                        GboardPatchesSettings.preferences(context));
+                return GboardSettingsLocaleManager.resolveEffectiveLanguageTag(
+                        preference, locale);
+            } catch (Throwable ignored) {
+                // Static feature initialization can request stable text without a usable context.
+            }
+        }
         return isTraditionalChinese(locale)
                 ? LANGUAGE_TRADITIONAL_CHINESE
                 : LANGUAGE_ENGLISH;

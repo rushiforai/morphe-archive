@@ -21,10 +21,11 @@ class ControllerPoseCadenceTest {
     }
 
     @Test
-    fun `controller velocity patch skips native XR builds only`() {
-        assertTrue(isControllerVelocityPatchNoOpBuild("2.0.22", "5002318"))
-        assertTrue(isControllerVelocityPatchNoOpBuild("2.0.22", "5002322"))
+    fun `controller velocity patch skips the native XR build only`() {
+        assertTrue(isControllerVelocityPatchNoOpBuild("2.0.23", "5002363"))
         assertFalse(isControllerVelocityPatchNoOpBuild("2.0.22", "5002313"))
+        assertFalse(isControllerVelocityPatchNoOpBuild("2.0.22", "5002318"))
+        assertFalse(isControllerVelocityPatchNoOpBuild("2.0.22", "5002322"))
         assertFalse(isControllerVelocityPatchNoOpBuild("2.0.20", "5002318"))
     }
 
@@ -92,30 +93,12 @@ class ControllerPoseCadenceTest {
             ),
         ),
         TestLayout(
-            5001740,
-            2_220_528,
-            listOf(
-                TestBlock(0xF6378, 0xF6368, 0xF63C0, 0xF63D4, 0xF63FC, 0xF63E0, 9),
-                TestBlock(0xF6478, 0xF6468, 0xF64C0, 0xF64D4, 0xF64FC, 0xF64E0, 9),
-                TestBlock(0xF6540, 0xF6530, 0xF6588, 0xF6598, 0xF65C4, 0xF65CC, 10),
-            ),
-        ),
-        TestLayout(
             5002244,
             2_251_920,
             listOf(
                 TestBlock(0xF3518, 0xF3508, 0xF3560, 0xF3574, 0xF359C, 0xF3580, 9),
                 TestBlock(0xF361C, 0xF360C, 0xF3664, 0xF3678, 0xF36A0, 0xF3684, 9),
                 TestBlock(0xF36E4, 0xF36D4, 0xF372C, 0xF373C, 0xF3768, 0xF3770, 10),
-            ),
-        ),
-        TestLayout(
-            5002313,
-            2_276_872,
-            listOf(
-                TestBlock(0xF5484, 0xF5474, 0xF54CC, 0xF54E0, 0xF5508, 0xF54EC, 9),
-                TestBlock(0xF5588, 0xF5578, 0xF55D0, 0xF55E4, 0xF560C, 0xF55F0, 9),
-                TestBlock(0xF5650, 0xF5640, 0xF5698, 0xF56A8, 0xF56D4, 0xF56DC, 10),
             ),
         ),
     )

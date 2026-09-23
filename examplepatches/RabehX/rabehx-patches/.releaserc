@@ -41,7 +41,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./gradlew generatePatchesList && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json"
+        "prepareCmd": "./gradlew clean :patches:buildAndroid generatePatchesList && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json"
       }
     ],
     [
@@ -61,10 +61,10 @@
       {
         "assets": [
           {
-            "path": "patches/build/libs/rabehx-patches-${nextRelease.version}.mpp"
+            "path": "patches/build/libs/rabehx-patches-*.mpp"
           }
         ],
-        "successComment": false
+        "successCommentCondition": false
       }
     ]
   ]

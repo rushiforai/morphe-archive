@@ -1,0 +1,5 @@
+PASS 2.0.20/5001712: 24 cases (stock + 7 optional dither-off calibrations), 72 mode transitions, 34 atomic guard rejections; identical 8-/10-bit quantizer, OFF golden, configured helper, exact diffs, sRGB8, NUL boundaries, idempotence; source unchanged
+PASS 2.0.22/5002244: 24 cases (stock + 7 optional dither-off calibrations), 72 mode transitions, 34 atomic guard rejections; identical 8-/10-bit quantizer, OFF golden, configured helper, exact diffs, sRGB8, NUL boundaries, idempotence; source unchanged
+PASS 2.0.23/5002363: 24 cases (stock + 7 optional dither-off calibrations), 72 mode transitions, 34 atomic guard rejections; identical 8-/10-bit quantizer, OFF golden, configured helper, exact diffs, sRGB8, NUL boundaries, idempotence; source unchanged
+Summary: 3 PASS, 0 BLOCKED of 3 exact blue-noise bases
+Scope: real decoded scene bytes + canonical helper configuration. No Morphe APK packaging, Android linker/GPU execution, live host-shader coverage, headset or panel proof.

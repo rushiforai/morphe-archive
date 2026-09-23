@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * https://github.com/MorpheApp/morphe-patches
+ * https://github.com/MorpheApp/morphe-patches/pull/3075
  *
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
@@ -12,31 +12,24 @@ package app.morphe.extension.shared.returnyoutubedislike;
 
 import static app.morphe.extension.shared.StringRef.str;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.OvalShape;
-import android.graphics.drawable.shapes.RectShape;
+import android.icu.number.LocalizedNumberFormatter;
+import android.icu.number.Notation;
+import android.icu.number.NumberFormatter;
 import android.icu.text.CompactDecimalFormat;
 import android.icu.text.DecimalFormat;
 import android.icu.text.DecimalFormatSymbols;
 import android.icu.text.NumberFormat;
 import android.os.Build;
-import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.ImageSpan;
-import android.text.style.ReplacementSpan;
 import android.widget.Toast;
 
 import androidx.annotation.GuardedBy;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -55,7 +48,6 @@ import app.morphe.extension.shared.returnyoutubedislike.requests.ReturnYouTubeDi
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.theme.ThemeColorPatch;
 import app.morphe.extension.shared.theme.ThemeUtils;
-import app.morphe.extension.shared.ui.Dim;
 
 /**
  * Handles fetching and creation/replacing of RYD dislike text spans.
@@ -76,15 +68,9 @@ public class ReturnYouTubeDislike {
         }
     }
 
-    private static boolean isMusic;
-
-    public static void setIsMusic(boolean music) {
-        isMusic = music;
-    }
-
     /**
      * Maximum amount of time to block the UI from updates while waiting for network call to complete.
-     *
+     * <p>
      * Must be less than 5 seconds, as per:
      * <a href="https://developer.android.com/topic/performance/vitals/anr">Android guidelines</a>
      */
@@ -100,12 +86,6 @@ public class ReturnYouTubeDislike {
      * and also the minimum time before retrying again.
      */
     private static final long CACHE_TIMEOUT_FAILURE_MILLISECONDS = 3 * 60 * 1000; // 3 Minutes
-
-    /**
-     * Unique placeholder character, used to detect if a segmented span already has dislikes added to it.
-     * Must be something YouTube is unlikely to use, as it's searched for in all usage of Rolling Number.
-     */
-    private static final char MIDDLE_SEPARATOR_CHARACTER = '◎'; // 'bullseye'
 
     /**
      * Cached lookup of all video IDs.
@@ -130,30 +110,6 @@ public class ReturnYouTubeDislike {
     @GuardedBy("ReturnYouTubeDislike.class")
     private static NumberFormat dislikePercentageFormatter;
 
-    // Used for segmented dislike spans.
-    public static final Rect leftSeparatorBoundsYouTube;
-    public static final Rect leftSeparatorBoundsMusic;
-    private static final Rect middleSeparatorBounds;
-
-    /**
-     * Horizontal padding between the left and middle separator.
-     */
-    public static final int leftSeparatorShapePaddingPixels;
-    private static final ShapeDrawable leftSeparatorShape;
-
-    static {
-        leftSeparatorBoundsYouTube = new Rect(0, 0, Dim.dp(1.2f), Dim.dp(14));
-        leftSeparatorBoundsMusic = new Rect(0, 0, Dim.dp(1.2f), Dim.dp(23));
-
-        final int middleSeparatorSize = Dim.dp(3.7f);
-        middleSeparatorBounds = new Rect(0, 0, middleSeparatorSize, middleSeparatorSize);
-
-        leftSeparatorShapePaddingPixels = Dim.dp(8.4f);
-
-        leftSeparatorShape = new ShapeDrawable(new RectShape());
-        leftSeparatorShape.setBounds(leftSeparatorBoundsYouTube);
-    }
-
     private final String videoId;
 
     /**
@@ -166,12 +122,6 @@ public class ReturnYouTubeDislike {
      * Time this instance and the fetch future was created.
      */
     private final long timeFetched;
-
-    /**
-     * If this instance was previously used for a Short.
-     */
-    @GuardedBy("this")
-    private boolean isShort;
 
     /**
      * Optional current vote status of the UI.
@@ -223,39 +173,6 @@ public class ReturnYouTubeDislike {
         }
     }
 
-    /**
-     * Should be called if the user changes dislikes appearance settings.
-     */
-    public static void clearAllUICaches() {
-        synchronized (fetchCache) {
-            for (ReturnYouTubeDislike fetch : fetchCache.values()) {
-                fetch.clearUICache();
-            }
-        }
-    }
-
-    private static int getSeparatorColor() {
-        return isMusic || Utils.isDarkModeEnabled()
-                ? 0x33FFFFFF
-                : 0xFFD9D9D9;
-    }
-
-    public static ShapeDrawable getLeftSeparatorDrawable() {
-        Rect bounds = isMusic
-                ? leftSeparatorBoundsMusic
-                : leftSeparatorBoundsYouTube;
-        leftSeparatorShape.setBounds(bounds);
-        leftSeparatorShape.getPaint().setColor(getSeparatorColor());
-        return leftSeparatorShape;
-    }
-
-    /**
-     * Pre-emptively set this as a Short.
-     */
-    public synchronized void setVideoIdIsShort(boolean isShort) {
-        this.isShort = isShort;
-    }
-
     public ReturnYouTubeDislike(String videoId) {
         this.videoId = Objects.requireNonNull(videoId);
         this.timeFetched = System.currentTimeMillis();
@@ -265,26 +182,7 @@ public class ReturnYouTubeDislike {
     /**
      * @return the replacement span containing dislikes, or the original span if RYD is not available.
      */
-    public synchronized Spanned getDislikesSpanForRegularVideo(Spanned original,
-                                                               boolean isSegmentedButton,
-                                                               boolean isRollingNumber) {
-        return waitForFetchAndUpdateReplacementSpan(original, isSegmentedButton,
-                isRollingNumber, false, false);
-    }
-
-    /**
-     * Called when a Shorts like Spannable is created.
-     */
-    public synchronized Spanned getLikeSpanForShort(Spanned original) {
-        return waitForFetchAndUpdateReplacementSpan(original, false,
-                false, true, true);
-    }
-
-    private Spanned waitForFetchAndUpdateReplacementSpan(Spanned original,
-                                                         boolean isSegmentedButton,
-                                                         boolean isRollingNumber,
-                                                         boolean spanIsForShort,
-                                                         boolean spanIsForLikes) {
+    public synchronized Spanned getDislikesSpanForRegularVideo(Spanned original) {
         try {
             RYDVoteData votingData = getFetchData(MAX_MILLISECONDS_TO_BLOCK_UI_WAITING_FOR_FETCH);
             if (votingData == null) {
@@ -297,54 +195,29 @@ public class ReturnYouTubeDislike {
                 return original;
             }
 
-            synchronized (this) {
-                if (spanIsForShort) {
-                    isShort = true;
-                } else if (isShort) {
-                    Logger.printDebug(() -> "Ignoring regular video dislike span,"
-                            + " as data loaded was previously used for a Short: " + videoId);
-                    return original;
+            if (originalDislikeSpan != null && replacementLikeDislikeSpan != null) {
+                // Check if colors match to fix changing light/dark mode while player is opened
+                // and avoid recreating the span. But if theme foreground color is replaced
+                // then always use replacement span as-is.
+                if ((ThemeColorPatch.isPatchIncluded() && SharedYouTubeSettings.THEME_COLOR_CHANGE_FOREGROUND.get())
+                        || spansHaveEqualTextAndColor(original, originalDislikeSpan)) {
+                    Logger.printDebug(() -> "Replacing span: " + original + " with " +
+                            "previously created dislike span of data: " + videoId);
+                    return replacementLikeDislikeSpan;
                 }
-
-                if (spanIsForLikes) {
-                    if (!Utils.containsNumber(original)) {
-                        if (!SharedYouTubeSettings.RYD_ESTIMATED_LIKE.get()) {
-                            Logger.printDebug(() -> "Likes are hidden");
-                            return original;
-                        } else {
-                            Logger.printDebug(() -> "Using estimated likes");
-                        }
-                    }
-
-                    Logger.printDebug(() -> "Creating likes span for: " + votingData.videoId);
-                    return newSpannableWithLikes(original, votingData);
-                }
-
-                if (originalDislikeSpan != null && replacementLikeDislikeSpan != null) {
-                    // Check if colors match to fix changing light/dark mode while player is opened
-                    // and avoid recreating the span. But if theme foreground color is replaced
-                    // then always use replacement span as-is.
-                    if ((ThemeColorPatch.isPatchIncluded() && SharedYouTubeSettings.THEME_COLOR_CHANGE_FOREGROUND.get())
-                            || spansHaveEqualTextAndColor(original, originalDislikeSpan)) {
-                        Logger.printDebug(() -> "Replacing span: " + original + " with " +
-                                "previously created dislike span of data: " + videoId);
-                        return replacementLikeDislikeSpan;
-                    }
-                }
-
-                // No replacement span exist, create it now.
-
-                if (userVote != null) {
-                    votingData.updateUsingVote(userVote);
-                }
-                originalDislikeSpan = original;
-                replacementLikeDislikeSpan = createDislikeSpan(original, votingData,
-                        isSegmentedButton, isRollingNumber);
-                Logger.printDebug(() -> "Replaced: '" + originalDislikeSpan + "' with: '"
-                        + replacementLikeDislikeSpan + "'" + " using video: " + videoId);
-
-                return replacementLikeDislikeSpan;
             }
+
+            // No replacement span exist, create it now.
+
+            if (userVote != null) {
+                votingData.updateUsingVote(userVote);
+            }
+            originalDislikeSpan = original;
+            replacementLikeDislikeSpan = createDislikeSpan(original, votingData);
+            Logger.printDebug(() -> "Replaced: '" + originalDislikeSpan + "' with: '"
+                    + replacementLikeDislikeSpan + "'" + " using video: " + videoId);
+
+            return replacementLikeDislikeSpan;
         } catch (Exception ex) {
             Logger.printException(() -> "waitForFetchAndUpdateReplacementSpan failure", ex);
         }
@@ -352,17 +225,7 @@ public class ReturnYouTubeDislike {
         return original;
     }
 
-    private SpannableString createDislikeSpan(Spanned oldSpannable,
-                                              RYDVoteData voteData,
-                                              boolean isSegmentedButton,
-                                              boolean isRollingNumber) {
-        if (!isSegmentedButton) {
-            // Simple replacement of 'dislike' with a number/percentage.
-            return newSpannableWithDislikes(oldSpannable, voteData);
-        }
-
-        // Note: Some locales use right to left layout (Arabic, Hebrew, etc.).
-        // If making changes to this code, change device settings to an RTL language and verify layout is correct.
+    private SpannableString createDislikeSpan(Spanned oldSpannable, RYDVoteData voteData) {
         CharSequence oldLikes = oldSpannable;
 
         // YouTube creators can hide the like count on a video,
@@ -380,55 +243,7 @@ public class ReturnYouTubeDislike {
             oldLikes = formatDislikeCount(voteData.getLikeCount());
         }
 
-        SpannableStringBuilder builder = new SpannableStringBuilder();
-
-        final boolean compactLayout = SharedYouTubeSettings.RYD_COMPACT_LAYOUT.get();
-        if (!compactLayout) {
-            String leftSeparatorString = Utils.getTextDirectionString();
-
-            final Spannable leftSeparatorSpan;
-            if (isRollingNumber) {
-                leftSeparatorSpan = new SpannableString(leftSeparatorString);
-            } else {
-                leftSeparatorString += "   ";
-                leftSeparatorSpan = new SpannableString(leftSeparatorString);
-
-                // Styling spans cannot overwrite RTL or LTR character.
-                leftSeparatorSpan.setSpan(
-                        new VerticallyCenteredImageSpan(getLeftSeparatorDrawable(), false),
-                        1, 2, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-                leftSeparatorSpan.setSpan(
-                        new FixedWidthEmptySpan(leftSeparatorShapePaddingPixels),
-                        2, 3, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-            }
-            builder.append(leftSeparatorSpan);
-        }
-
-        // likes
-        builder.append(newSpanUsingStylingOfAnotherSpan(oldSpannable, oldLikes));
-
-        // middle separator
-        String middleSeparatorString = compactLayout
-                ? "  " + MIDDLE_SEPARATOR_CHARACTER + "  "
-                : " \u2009\u2009" + MIDDLE_SEPARATOR_CHARACTER + "\u2009\u2009 "; // u2009 = 'narrow space'
-
-        final int shapeInsertionIndex = middleSeparatorString.length() / 2;
-        Spannable middleSeparatorSpan = new SpannableString(middleSeparatorString);
-        ShapeDrawable shapeDrawable = new ShapeDrawable(new OvalShape());
-        shapeDrawable.getPaint().setColor(getSeparatorColor());
-        shapeDrawable.setBounds(middleSeparatorBounds);
-        // Use original text width if using Rolling Number,
-        // to ensure the replacement styled span has the same width as the measured String,
-        // otherwise layout can be broken (especially on devices with small system font sizes).
-        middleSeparatorSpan.setSpan(
-                new VerticallyCenteredImageSpan(shapeDrawable, isRollingNumber),
-                shapeInsertionIndex, shapeInsertionIndex + 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
-        builder.append(middleSeparatorSpan);
-
-        // dislikes
-        builder.append(newSpannableWithDislikes(oldSpannable, voteData));
-
-        return new SpannableString(builder);
+        return newSpanUsingStylingOfAnotherSpan(oldSpannable, oldLikes);
     }
 
     private static SpannableString setSpanForegroundColor(SpannableString span) {
@@ -447,13 +262,6 @@ public class ReturnYouTubeDislike {
             );
         }
         return span;
-    }
-
-    /**
-     * @return If the text is likely for a previously created likes/dislikes segmented span.
-     */
-    public static boolean isPreviouslyCreatedSegmentedSpan(String text) {
-        return text.indexOf(MIDDLE_SEPARATOR_CHARACTER) >= 0;
     }
 
     private static boolean spansHaveEqualTextAndColor(Spanned one, Spanned two) {
@@ -508,6 +316,42 @@ public class ReturnYouTubeDislike {
         }
     }
 
+    /**
+     * Formats the like count the way YouTube does, which truncates instead of rounding (2,589 is 2.5K).
+     * Android 10 and lower lack the formatter that can truncate, and round instead.
+     */
+    public static String formatLikeCount(long likeCount) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return TruncatingLikeCountFormatter.format(likeCount);
+        }
+        return formatDislikeCount(likeCount);
+    }
+
+    /**
+     * CompactDecimalFormat ignores its rounding mode, so this uses the newer ICU number formatter.
+     * A separate class keeps the Android 11 classes from loading on older devices.
+     */
+    @RequiresApi(Build.VERSION_CODES.R)
+    private static final class TruncatingLikeCountFormatter {
+        // Immutable and thread safe without synchronization.
+        private static final LocalizedNumberFormatter formatter;
+
+        static {
+            Locale locale = Locale.getDefault();
+            DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(locale);
+            symbols.setDigitStrings(DecimalFormatSymbols.getInstance(Locale.ENGLISH).getDigitStrings());
+
+            formatter = NumberFormatter.withLocale(locale)
+                    .notation(Notation.compactShort())
+                    .roundingMode(RoundingMode.DOWN)
+                    .symbols(symbols);
+        }
+
+        static String format(long count) {
+            return formatter.format(count).toString();
+        }
+    }
+
     protected static String formatDislikePercentage(float dislikePercentage) {
         synchronized (ReturnYouTubeDislike.class) {
             if (dislikePercentageFormatter == null) {
@@ -532,17 +376,6 @@ public class ReturnYouTubeDislike {
 
             return dislikePercentageFormatter.format(dislikePercentage);
         }
-    }
-
-    private static SpannableString newSpannableWithLikes(Spanned sourceStyling, RYDVoteData voteData) {
-        return newSpanUsingStylingOfAnotherSpan(sourceStyling, formatDislikeCount(voteData.getLikeCount()));
-    }
-
-    private static SpannableString newSpannableWithDislikes(Spanned sourceStyling, RYDVoteData voteData) {
-        return newSpanUsingStylingOfAnotherSpan(sourceStyling,
-                SharedYouTubeSettings.RYD_DISLIKE_PERCENTAGE.get()
-                        ? formatDislikePercentage(voteData.getDislikePercentage())
-                        : formatDislikeCount(voteData.getDislikeCount()));
     }
 
     protected boolean isExpired(long now) {
@@ -573,6 +406,56 @@ public class ReturnYouTubeDislike {
      */
     public boolean fetchCompleted() {
         return future.isDone();
+    }
+
+    /**
+     * @return The formatted like count, or null if the fetch has not completed, or it failed.
+     */
+    @Nullable
+    public String getFormattedLikes() {
+        RYDVoteData voteData = getCompletedVoteData();
+        return voteData == null
+                ? null
+                : formatDislikeCount(voteData.getLikeCount());
+    }
+
+    /**
+     * @return The formatted dislike count or percentage, or null if the fetch has not completed, or it failed.
+     */
+    @Nullable
+    public String getFormattedDislikes() {
+        RYDVoteData voteData = getCompletedVoteData();
+        if (voteData == null) {
+            return null;
+        }
+        return SharedYouTubeSettings.RYD_DISLIKE_PERCENTAGE.get()
+                ? formatDislikePercentage(voteData.getDislikePercentage())
+                : formatDislikeCount(voteData.getDislikeCount());
+    }
+
+    /**
+     * @return If the user liked the video after it was opened.
+     */
+    public synchronized boolean isLikedByUser() {
+        return userVote == Vote.LIKE;
+    }
+
+    @Nullable
+    private RYDVoteData getCompletedVoteData() {
+        if (!future.isDone()) {
+            return null;
+        }
+        RYDVoteData voteData = getFetchData(0);
+        if (voteData == null) {
+            return null;
+        }
+        synchronized (this) {
+            // A vote cast before the fetch completed has not been applied yet.
+            if (userVote != null) {
+                voteData.updateUsingVote(userVote);
+            }
+        }
+        return voteData;
     }
 
     private synchronized void clearUICache() {
@@ -625,88 +508,4 @@ public class ReturnYouTubeDislike {
         }
     }
 
-}
-
-/**
- * Styles a Spannable with an empty fixed width.
- */
-class FixedWidthEmptySpan extends ReplacementSpan {
-    final int fixedWidth;
-    /**
-     * @param fixedWith Fixed width in screen pixels.
-     */
-    public FixedWidthEmptySpan(int fixedWith) {
-        this.fixedWidth = fixedWith;
-        if (fixedWith < 0) throw new IllegalArgumentException();
-    }
-    @Override
-    public int getSize(@NonNull Paint paint, @NonNull CharSequence text,
-                       int start, int end, @Nullable Paint.FontMetricsInt fontMetrics) {
-        return fixedWidth;
-    }
-    @Override
-    public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end,
-                     float x, int top, int y, int bottom, @NonNull Paint paint) {
-        // Nothing to draw.
-    }
-}
-
-/**
- * Vertically centers a Spanned Drawable.
- */
-class VerticallyCenteredImageSpan extends ImageSpan {
-    final boolean useOriginalWidth;
-
-    /**
-     * @param useOriginalWidth Use the original layout width of the text this span is applied to,
-     * and not the bounds of the Drawable. Drawable is always displayed using its own bounds,
-     * and this setting only affects the layout width of the entire span.
-     */
-    public VerticallyCenteredImageSpan(Drawable drawable, boolean useOriginalWidth) {
-        super(drawable);
-        this.useOriginalWidth = useOriginalWidth;
-    }
-
-    @Override
-    public int getSize(@NonNull Paint paint, @NonNull CharSequence text,
-                       int start, int end, @Nullable Paint.FontMetricsInt fontMetrics) {
-        Drawable drawable = getDrawable();
-        Rect bounds = drawable.getBounds();
-        if (fontMetrics != null) {
-            Paint.FontMetricsInt paintMetrics = paint.getFontMetricsInt();
-            final int fontHeight = paintMetrics.descent - paintMetrics.ascent;
-            final int drawHeight = bounds.bottom - bounds.top;
-            final int halfDrawHeight = drawHeight / 2;
-            final int yCenter = paintMetrics.ascent + fontHeight / 2;
-
-            fontMetrics.ascent = yCenter - halfDrawHeight;
-            fontMetrics.top = fontMetrics.ascent;
-            fontMetrics.bottom = yCenter + halfDrawHeight;
-            fontMetrics.descent = fontMetrics.bottom;
-        }
-        if (useOriginalWidth) {
-            // Horizontally center the drawable in the same space as the original text.
-            return (int) paint.measureText(text, start, end);
-        }
-        return bounds.right;
-    }
-
-    @Override
-    public void draw(@NonNull Canvas canvas, CharSequence text, int start, int end,
-                     float x, int top, int y, int bottom, @NonNull Paint paint) {
-        Drawable drawable = getDrawable();
-        canvas.save();
-        Paint.FontMetricsInt paintMetrics = paint.getFontMetricsInt();
-        final int fontHeight = paintMetrics.descent - paintMetrics.ascent;
-        final int yCenter = y + paintMetrics.descent - fontHeight / 2;
-        final Rect drawBounds = drawable.getBounds();
-        float translateX = x;
-        if (useOriginalWidth) {
-            translateX += (paint.measureText(text, start, end) - (drawBounds.right - drawBounds.left)) / 2;
-        }
-        final int translateY = yCenter - (drawBounds.bottom - drawBounds.top) / 2;
-        canvas.translate(translateX, translateY);
-        drawable.draw(canvas);
-        canvas.restore();
-    }
 }

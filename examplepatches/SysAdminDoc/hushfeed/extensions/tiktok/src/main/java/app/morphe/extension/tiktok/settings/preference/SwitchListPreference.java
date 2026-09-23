@@ -70,7 +70,7 @@ public final class SwitchListPreference extends Preference {
     @Override
     public CharSequence getSummary() {
         List<String> on = new ArrayList<>();
-        for (Item item : items) if (item.setting.get()) on.add(item.label);
+        for (Item item : items) if (item.setting.savedValue()) on.add(item.label);
         String joined = String.join(", ", on);
         String state = on.isEmpty()
                 ? L10n.t(getContext(), "Nothing hidden.")
@@ -85,7 +85,7 @@ public final class SwitchListPreference extends Preference {
         boolean[] checked = new boolean[items.size()];
         for (int i = 0; i < items.size(); i++) {
             labels[i] = items.get(i).label;
-            checked[i] = items.get(i).setting.get();
+            checked[i] = items.get(i).setting.savedValue();
         }
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(getTitle())
@@ -96,7 +96,7 @@ public final class SwitchListPreference extends Preference {
                 .setPositiveButton(L10n.t(context, "Apply"), (ignored, which) -> {
                     for (int i = 0; i < items.size(); i++) {
                         BooleanSetting setting = items.get(i).setting;
-                        if (setting.get() != checked[i]) setting.save(checked[i]);
+                        if (setting.savedValue() != checked[i]) setting.save(checked[i]);
                     }
                     notifyChanged();
                 })

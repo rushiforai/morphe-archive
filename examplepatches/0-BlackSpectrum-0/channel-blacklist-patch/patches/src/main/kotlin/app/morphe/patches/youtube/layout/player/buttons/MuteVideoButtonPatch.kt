@@ -51,6 +51,7 @@ private val muteVideoButtonResourcePatch = resourcePatch {
 
 @Suppress("unused")
 val muteVideoButtonPatch = bytecodePatch(
+    name = "Mute button",
     description = "Adds an option to show a player button that mutes the video audio.",
 ) {
     dependsOn(

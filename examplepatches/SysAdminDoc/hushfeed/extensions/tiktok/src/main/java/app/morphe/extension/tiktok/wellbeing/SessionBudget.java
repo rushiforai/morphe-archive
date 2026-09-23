@@ -6,6 +6,7 @@ package app.morphe.extension.tiktok.wellbeing;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.util.Calendar;
@@ -268,9 +269,11 @@ public final class SessionBudget {
     }
 
     private static boolean spent() {
-        int videoBudget = Settings.SESSION_BUDGET_VIDEOS.get();
+        return spent(Settings.SESSION_BUDGET_VIDEOS.get(), Settings.SESSION_BUDGET_MINUTES.get());
+    }
+
+    private static boolean spent(int videoBudget, int minuteBudget) {
         if (videoBudget > 0 && videos >= videoBudget) return true;
-        int minuteBudget = Settings.SESSION_BUDGET_MINUTES.get();
         return minuteBudget > 0 && watchedMs >= minuteBudget * 60_000L;
     }
 
@@ -281,6 +284,10 @@ public final class SessionBudget {
      * a screen covered for no reason anyone can see.
      */
     public static boolean claimNotice() {
+        // Asked on every video change. Paused, both budgets read zero through get(), which looked
+        // like a raised budget and wiped a running hold out of the record. The budget is off with
+        // everything else, and the record waits for Hushfeed to come back, as lockRemainingMs has it.
+        if (Setting.isPaused()) return false;
         synchronized (LOCK) {
             load();
             rollOver(clock.now());
@@ -356,8 +363,13 @@ public final class SessionBudget {
         return lockRemainingMs() > 0;
     }
 
-    /** How much of the hold is left, or zero when there is none. */
+    /**
+     * How much of the hold is left, or zero when there is none. Paused, the budget is off with
+     * everything else: the hold stays in the record for when Hushfeed comes back, and answers
+     * zero meanwhile, which is also what {@link #isLocked()} goes by.
+     */
     public static long lockRemainingMs() {
+        if (Setting.isPaused()) return 0;
         synchronized (LOCK) {
             lockChecksUnderTheMonitor++;
             load();
@@ -502,7 +514,10 @@ public final class SessionBudget {
             load();
             long now = clock.now();
             rollOver(now);
-            if (lockedToday || !spent()) return false;
+            // The settings screen's answer, so the reader's budgets: paused, get() reads both as
+            // zero, and a lock turned on then would never take a day that was already spent.
+            boolean spent = spent(Settings.SESSION_BUDGET_VIDEOS.savedValue(), Settings.SESSION_BUDGET_MINUTES.savedValue());
+            if (lockedToday || !spent) return false;
             lockedToday = true;
             long untilReset = dayEndAfter(now);
             if (untilReset > lockUntilMs) lockUntilMs = untilReset;

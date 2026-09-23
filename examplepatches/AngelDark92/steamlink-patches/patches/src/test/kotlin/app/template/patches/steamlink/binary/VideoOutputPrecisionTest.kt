@@ -1,11 +1,14 @@
 package app.template.patches.steamlink.binary
 
 import app.morphe.patcher.patch.PatchException
+import app.template.patches.steamlink.androidxr.retiredNativeProjectionHook
+import java.security.MessageDigest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class VideoOutputPrecisionTest {
@@ -18,11 +21,8 @@ class VideoOutputPrecisionTest {
 
     private val layouts = listOf(
         Layout("2.0.20", "5001712", VIDEO_LIBRARY_SIZE_5001712, SWAPCHAIN_FORMAT_OFFSETS_5001712),
-        Layout("2.0.20", "5001740", VIDEO_LIBRARY_SIZE_5001740, SWAPCHAIN_FORMAT_OFFSETS_5001740),
         Layout("2.0.22", "5002244", VIDEO_LIBRARY_SIZE_5002244, SWAPCHAIN_FORMAT_OFFSETS_5002244),
-        Layout("2.0.22", "5002313", VIDEO_LIBRARY_SIZE_5002313, SWAPCHAIN_FORMAT_OFFSETS_5002313),
-        Layout("2.0.22", "5002318", VIDEO_LIBRARY_SIZE_5002318, SWAPCHAIN_FORMAT_OFFSETS_5002318),
-        Layout("2.0.22", "5002322", VIDEO_LIBRARY_SIZE_5002322, SWAPCHAIN_FORMAT_OFFSETS_5002322),
+        Layout("2.0.23", "5002363", VIDEO_LIBRARY_SIZE_5002363, SWAPCHAIN_FORMAT_OFFSETS_5002363),
     )
 
     @Test
@@ -183,6 +183,67 @@ class VideoOutputPrecisionTest {
     }
 
     @Test
+    fun `fovea toggles are mutually exclusive and resolve to the fovea modes`() {
+        assertEquals(FoveaMode.OFF, resolveFoveaMode(false, false))
+        assertEquals(FoveaMode.INPUT_10BIT, resolveFoveaMode(true, false))
+        assertEquals(FoveaMode.INPUT_8BIT, resolveFoveaMode(false, true))
+        assertFailsWith<PatchException> { resolveFoveaMode(true, true) }
+    }
+
+    @Test
+    fun `legacy shader generator retains old uvmask gate for historical comparisons`() {
+        val off = paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF).ascii()
+        val in10 = paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.STANDARD, true).ascii()
+        val in8 = paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF, true).ascii()
+        // Production OFF keeps these bytes. Historical gated variants below are no longer selected by the UI.
+        assertFalse(off.contains("float f=clamp"))
+        assertFalse(off.contains("vec2 d=abs(fract(uvmask"))
+        assertTrue(off.contains("const float DITHER_ENABLE=0.;"))
+        // 10-bit: fovea weight present, dither enabled, scaled by the fovea weight f.
+        assertTrue(in10.contains("vec2 d=abs(fract(uvmask*vec2(1.,4.))-.5);"))
+        assertTrue(in10.contains("float f=clamp(1.-dot(d,d)*4.,0.,1.);"))
+        assertTrue(in10.contains("const float DITHER_ENABLE=1.;"))
+        assertTrue(in10.contains("*DITHER_SCALE*DITHER_ENABLE*f;"))
+        // 8-bit: fovea weight present, dither disabled (neutral path).
+        assertTrue(in8.contains("float f=clamp(1.-dot(d,d)*4.,0.,1.);"))
+        assertTrue(in8.contains("const float DITHER_ENABLE=0.;"))
+        assertTrue(in8.contains("*DITHER_SCALE*DITHER_ENABLE*f;"))
+    }
+
+    @Test
+    fun `all toggles off emits the pre-change golden bytes`() {
+        // Golden pin (plan slice 5.4): with both fovea toggles off the emitted 1087-byte
+        // shader at the default final-balanced calibration (gamma 1.20, saturation 1.45)
+        // must remain byte-identical to the pre-Fovea-VD-Like srgb8-highp/dither-off
+        // output. The two fovea variants are pinned as well so the gate/dither bytes
+        // cannot drift silently. Current VD options use applyVdSdrFovea instead.
+        val off = paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF)
+        assertEquals(VIDEO_SHADER_SIZE, off.size)
+        assertEquals("a0117d0c0e78b251b979ec4e2094ae03f07eac1386c6971268d8d1543129681b", sha256Hex(off))
+
+        val input8Bit = paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF, true)
+        assertEquals("c18f8cd748f4ab8b9310dbb3e764d63f3ccd7d521971d16767e84980c6fbcbc5", sha256Hex(input8Bit))
+
+        val input10Bit = paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.STANDARD, true)
+        assertEquals("f3f350a9f760d9af49c8fe116abf61bb2b60e774f7120b6fe83f28b40e89bce2", sha256Hex(input10Bit))
+    }
+
+    @Test
+    fun `historical gated variants stay within the 1087-byte block for every calibration`() {
+        listOf(
+            VideoDitherMode.OFF to false,
+            VideoDitherMode.STANDARD to true,
+            VideoDitherMode.OFF to true,
+        ).forEach { (dither, gate) ->
+            listOf(.50f to 0f, 1f to 1f, 1.06f to 1.12f, 2.50f to 3f).forEach { (gamma, saturation) ->
+                val shader = paddedVideoShader(gamma, saturation, VideoOutputPrecision.SRGB8_HIGHP, dither, gate)
+                assertEquals(VIDEO_SHADER_SIZE, shader.size)
+                assertFalse(shader.contains(0.toByte()))
+            }
+        }
+    }
+
+    @Test
     fun `swapchain format patch supports all verified layouts and is reversible`() {
         layouts.forEach { layout ->
             val srgb = syntheticLibrary(layout.size, layout.offsets)
@@ -289,6 +350,56 @@ class VideoOutputPrecisionTest {
         }
     }
 
+    @Test
+    fun `oled patched bytes pass the high-resolution retired hook guard on every layout`() {
+        // The recommended bundles execute xrGalaxyXrHighResolutionPatch and oledCalibrationPatch
+        // together. Its only interaction with libvrlink_scene.so is this read-only guard, so the
+        // OLED mutation (shader + format sites) must never trip it, in any option combination.
+        val stockText = "ordinary guarded scene mutation".toByteArray()
+        assertNull(retiredNativeProjectionHook(stockText), "negative control: guard must accept ordinary bytes")
+        assertEquals(
+            "libgxr_ast_underside.so",
+            retiredNativeProjectionHook("prefix libgxr_ast_underside.so suffix".toByteArray()),
+            "negative control: guard must still reject retired hooks",
+        )
+        layouts.forEach { layout ->
+            isSupportedVideoLibrarySize(layout.size)
+            VideoOutputPrecision.entries.forEach { precision ->
+                VideoDitherMode.entries.forEach { dither ->
+                    val shader = paddedVideoShader(1.06f, 1.12f, precision, dither)
+                    assertNull(retiredNativeProjectionHook(shader), "${layout.versionCode}: emitted shader must not embed a retired hook name")
+                    val bytes = oledCompositionLibrary(layout, shader)
+                    assertEquals(0, findVideoShader(bytes), "${layout.versionCode}: shader locator on composed bytes")
+                    val withFormat = setProjectionSwapchainFormat(bytes, precision, layout.versionName, layout.versionCode)
+                    assertNull(retiredNativeProjectionHook(withFormat), "${layout.versionCode}: OLED-patched bytes must pass the high-resolution guard")
+                    // Order independence: the guard reads whatever the OLED patch wrote last.
+                    val withShaderOnPatched = oledCompositionLibrary(layout, shader)
+                        .let { setProjectionSwapchainFormat(it, precision, layout.versionName, layout.versionCode) }
+                    assertNull(retiredNativeProjectionHook(withShaderOnPatched), "${layout.versionCode}: guard after format mutation")
+                }
+            }
+        }
+    }
+
+    private fun oledCompositionLibrary(layout: Layout, shader: ByteArray): ByteArray =
+        ByteArray(layout.size).apply {
+            shader.copyInto(this, 0)
+            this[shader.size] = 0.toByte()
+        }.apply { layout.offsets.forEach { offset ->
+            byteArrayOf(
+                0xe1.toByte(), 0xa3.toByte(), 0x00, 0x91.toByte(),
+                0xe0.toByte(), 0x03, 0x14, 0xaa.toByte(),
+                0xe2.toByte(), 0x03, 0x1c, 0xaa.toByte(),
+                0xe8.toByte(), 0x22, 0x09, 0x9b.toByte(),
+            ).copyInto(this, offset - 16)
+            byteArrayOf(0x69, 0x88.toByte(), 0x91.toByte(), 0x52).copyInto(this, offset)
+            byteArrayOf(
+                0xe9.toByte(), 0x1b, 0x00, 0xf9.toByte(),
+                0x08, 0x21, 0x40, 0xb9.toByte(),
+                0xe8.toByte(), 0x3b, 0x00, 0xb9.toByte(),
+            ).copyInto(this, offset + 4)
+        }}
+
     private fun syntheticLibrary(
         size: Int = VIDEO_LIBRARY_SIZE_5002244,
         offsets: IntArray = SWAPCHAIN_FORMAT_OFFSETS_5002244,
@@ -313,6 +424,9 @@ class VideoOutputPrecisionTest {
     }
 
     private fun ByteArray.ascii() = toString(Charsets.US_ASCII)
+
+    private fun sha256Hex(bytes: ByteArray): String =
+        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
 
     private fun formatInstruction(precision: VideoOutputPrecision): ByteArray = when (precision) {
         VideoOutputPrecision.SRGB8_HIGHP -> byteArrayOf(0x69, 0x88.toByte(), 0x91.toByte(), 0x52)

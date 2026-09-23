@@ -27,6 +27,7 @@ internal fun sanitizeSharingLinksPatch(
     replaceMusicLinksWithYouTube: Boolean = false,
     replaceLinksWithShortener: Boolean = false
 ) = bytecodePatch(
+    name = "Sanitize sharing links",
     description = "Removes the tracking query parameters from shared links.",
 ) {
     block()

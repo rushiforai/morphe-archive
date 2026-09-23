@@ -1,0 +1,251 @@
+Read-only installed Streamer metadata/IL extraction 2026-09-22.
+Input SHA256: 6bfec9e4e62509f4fdb0ec21c144b4584f9450701dcf5bd756d6fd2aec7cbb51
+Struct field ordering retained; obfuscated field names identified by metadata token.
+The layouts match NVENC API12.0. AV1 bitfield offsets12/15 and HEVC11 are proved below.
+
+Type0x2003e51 '\x97\x02.\x02' sequential=True
+0x4014fb8 signature=0611c000f8d4 static=False
+0x4014fb9 signature=0611c000f87c static=False
+0x4014fba signature=0611c000f894 static=False
+0x4014fbb signature=0611c000f894 static=False
+0x4014fbc signature=0608 static=False
+0x4014fbd signature=0608 static=False
+0x4014fbe signature=0608 static=False
+0x4014fbf signature=0608 static=False
+0x4014fc0 signature=0608 static=False
+0x4014fc1 signature=0608 static=False
+0x4014fc2 signature=0608 static=False
+0x4014fc3 signature=0618 static=False
+0x4014fc4 signature=0618 static=False
+0x4014fc5 signature=0608 static=False
+0x4014fc6 signature=0611c000f8c8 static=False
+0x4014fc7 signature=0611c000f8a8 static=False
+0x4014fc8 signature=0611c000f89c static=False
+0x4014fc9 signature=0608 static=False
+0x4014fca signature=0608 static=False
+0x4014fcb signature=0611c000f888 static=False
+0x4014fcc signature=0618 static=False
+0x4014fcd signature=0611c000f898 static=False
+0x4014fce signature=0611c000f898 static=False
+0x4014fcf signature=0611c000f948 static=False
+0x4014fd0 signature=0611c000f94c static=False
+
+Type0x2003e54 '\x84.\x0f' sequential=True
+0x4014fd3 signature=0611c000f8d4 static=False
+0x4014fd4 signature=0611c000f8cc static=False
+0x4014fd5 signature=0611c000f8c4 static=False
+0x4014fd6 signature=0611c000f8c4 static=False
+0x4014fd7 signature=0608 static=False
+0x4014fd8 signature=0608 static=False
+0x4014fd9 signature=0608 static=False
+0x4014fda signature=0608 static=False
+0x4014fdb signature=0608 static=False
+0x4014fdc signature=0608 static=False
+0x4014fdd signature=0608 static=False
+0x4014fde signature=0608 static=False
+0x4014fdf signature=0608 static=False
+0x4014fe0 signature=0608 static=False
+0x4014fe1 signature=0608 static=False
+0x4014fe2 signature=0608 static=False
+0x4014fe3 signature=0611c000f95c static=False
+0x4014fe4 signature=0608 static=False
+0x4014fe5 signature=0611c000f954 static=False
+0x4014fe6 signature=0611c000f958 static=False
+
+Type0x2003e57 '\x8b.\x04' sequential=True
+0x4014fe9 signature=0608 static=False
+0x4014fea signature=0608 static=False
+0x4014feb signature=0608 static=False
+0x4014fec signature=0611c000f8a4 static=False
+0x4014fed signature=0608 static=False
+0x4014fee signature=0608 static=False
+0x4014fef signature=0611c000f8c8 static=False
+0x4014ff0 signature=0611c000f8a8 static=False
+0x4014ff1 signature=0611c000f89c static=False
+0x4014ff2 signature=0608 static=False
+0x4014ff3 signature=0608 static=False
+0x4014ff4 signature=0608 static=False
+0x4014ff5 signature=0608 static=False
+0x4014ff6 signature=0608 static=False
+0x4014ff7 signature=0608 static=False
+0x4014ff8 signature=0608 static=False
+0x4014ff9 signature=0611c000f960 static=False
+
+Type0x2003e4b '\x11\x02.\x03' sequential=True
+0x4014f8c signature=0608 static=True
+0x4014f8d signature=0608 static=False
+0x4014f8e signature=0611821d static=False
+0x4014f8f signature=0608 static=False
+0x4014f90 signature=0608 static=False
+0x4014f91 signature=0608 static=False
+0x4014f92 signature=0611c000f8e4 static=False
+0x4014f93 signature=0611c000f8dc static=False
+0x4014f94 signature=0611c000faa4 static=False
+0x4014f95 signature=0611c000f91c static=False
+0x4014f96 signature=0611c000f934 static=False
+0x4014f97 signature=0611c000f930 static=False
+
+0x602160c '\x97\x02.\x02'::'\x01' RVA 0x8954f4 signature=20010108
+000c ldc.i4.2 
+000d brfalse.s 46
+000f br.s 51
+0011 br.s 54
+0013 ldfld 0x4014fbc '\x97\x02.\x02'::'\x01'
+0018 ldc.i4 -385
+001d and 
+001e br.s 57
+0020 ldc.i4.7 
+0021 shl 
+0022 ldc.i4 384
+0027 and 
+0028 or 
+0029 stfld 0x4014fbc '\x97\x02.\x02'::'\x01'
+002e ldc.i4.7 
+002f brfalse.s 12
+0031 leave.s 84
+0033 ldarg.0 
+0034 br.s 17
+0036 ldarg.0 
+0037 br.s 19
+0039 ldarg.1 
+003a br.s 32
+003c ldarg.0 
+003d ldobj 0x2003e51 '\x97\x02.\x02'
+0042 box 0x2003e51 '\x97\x02.\x02'
+0047 ldarg.1 
+0048 box 0x100046a 'System.Int32'
+004d call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0052 rethrow 
+0054 ret 
+
+0x602160d '\x97\x02.\x02'::'\x02' RVA 0x89555c signature=20010108
+000c ldc.i4.2 
+000d brfalse.s 47
+000f br.s 52
+0011 br.s 55
+0013 ldfld 0x4014fbc '\x97\x02.\x02'::'\x01'
+0018 ldc.i4 -28673
+001d and 
+001e br.s 58
+0020 ldc.i4.s 12
+0022 shl 
+0023 ldc.i4 28672
+0028 and 
+0029 or 
+002a stfld 0x4014fbc '\x97\x02.\x02'::'\x01'
+002f ldc.i4.7 
+0030 brfalse.s 12
+0032 leave.s 85
+0034 ldarg.0 
+0035 br.s 17
+0037 ldarg.0 
+0038 br.s 19
+003a ldarg.1 
+003b br.s 32
+003d ldarg.0 
+003e ldobj 0x2003e51 '\x97\x02.\x02'
+0043 box 0x2003e51 '\x97\x02.\x02'
+0048 ldarg.1 
+0049 box 0x100046a 'System.Int32'
+004e call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0053 rethrow 
+0055 ret 
+
+0x602160e '\x97\x02.\x02'::'\x03' RVA 0x8955c4 signature=20010108
+000c ldc.i4.2 
+000d brfalse.s 47
+000f br.s 52
+0011 br.s 55
+0013 ldfld 0x4014fbc '\x97\x02.\x02'::'\x01'
+0018 ldc.i4 -229377
+001d and 
+001e br.s 58
+0020 ldc.i4.s 15
+0022 shl 
+0023 ldc.i4 229376
+0028 and 
+0029 or 
+002a stfld 0x4014fbc '\x97\x02.\x02'::'\x01'
+002f ldc.i4.7 
+0030 brfalse.s 12
+0032 leave.s 85
+0034 ldarg.0 
+0035 br.s 17
+0037 ldarg.0 
+0038 br.s 19
+003a ldarg.1 
+003b br.s 32
+003d ldarg.0 
+003e ldobj 0x2003e51 '\x97\x02.\x02'
+0043 box 0x2003e51 '\x97\x02.\x02'
+0048 ldarg.1 
+0049 box 0x100046a 'System.Int32'
+004e call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0053 rethrow 
+0055 ret 
+
+0x602160f '\x84.\x0f'::'\x01' RVA 0x89562c signature=20010108
+000c ldc.i4.2 
+000d brfalse.s 47
+000f br.s 52
+0011 br.s 55
+0013 ldfld 0x4014fd7 '\x84.\x0f'::'\x01'
+0018 ldc.i4 -1537
+001d and 
+001e br.s 58
+0020 ldc.i4.s 9
+0022 shl 
+0023 ldc.i4 1536
+0028 and 
+0029 or 
+002a stfld 0x4014fd7 '\x84.\x0f'::'\x01'
+002f ldc.i4.7 
+0030 brfalse.s 12
+0032 leave.s 85
+0034 ldarg.0 
+0035 br.s 17
+0037 ldarg.0 
+0038 br.s 19
+003a ldarg.1 
+003b br.s 32
+003d ldarg.0 
+003e ldobj 0x2003e54 '\x84.\x0f'
+0043 box 0x2003e54 '\x84.\x0f'
+0048 ldarg.1 
+0049 box 0x100046a 'System.Int32'
+004e call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0053 rethrow 
+0055 ret 
+
+0x6021610 '\x84.\x0f'::'\x02' RVA 0x895694 signature=20010108
+000c ldc.i4.2 
+000d brfalse.s 47
+000f br.s 52
+0011 br.s 55
+0013 ldfld 0x4014fd7 '\x84.\x0f'::'\x01'
+0018 ldc.i4 -14337
+001d and 
+001e br.s 58
+0020 ldc.i4.s 11
+0022 shl 
+0023 ldc.i4 14336
+0028 and 
+0029 or 
+002a stfld 0x4014fd7 '\x84.\x0f'::'\x01'
+002f ldc.i4.7 
+0030 brfalse.s 12
+0032 leave.s 85
+0034 ldarg.0 
+0035 br.s 17
+0037 ldarg.0 
+0038 br.s 19
+003a ldarg.1 
+003b br.s 32
+003d ldarg.0 
+003e ldobj 0x2003e54 '\x84.\x0f'
+0043 box 0x2003e54 '\x84.\x0f'
+0048 ldarg.1 
+0049 box 0x100046a 'System.Int32'
+004e call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0053 rethrow 
+0055 ret 

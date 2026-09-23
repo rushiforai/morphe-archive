@@ -30,6 +30,14 @@ public final class FeedFilterCounters {
      */
     private static final int MAX_SOURCES = 64;
 
+    /**
+     * Distinct element kinds kept per route before the rest are counted together. A kind names a
+     * shape, never content, and the set the host produces is small; the cap is the same kind of
+     * guard as the one on sources.
+     */
+    static final int MAX_KINDS = 12;
+    static final String OTHER_KINDS = "other";
+
     private static final class Counter {
         final AtomicLong lists = new AtomicLong();
         final AtomicLong itemsIn = new AtomicLong();
@@ -42,6 +50,8 @@ public final class FeedFilterCounters {
         /** The one filter that wiped list after list on this route, and the longest such run. */
         volatile String suspect;
         final AtomicLong suspectLists = new AtomicLong();
+        /** How many elements of each shape this route was handed, for routes that name them. */
+        final ConcurrentHashMap<String, AtomicLong> kinds = new ConcurrentHashMap<>();
     }
 
     private static final ConcurrentHashMap<String, Counter> COUNTERS = new ConcurrentHashMap<>();
@@ -69,6 +79,7 @@ public final class FeedFilterCounters {
         final String source;
         final long lists, itemsIn, removed, unreadable, emptied, suspectLists;
         final String lastReason, suspect;
+        final java.util.Map<String, Long> kinds = new java.util.HashMap<>();
 
         Line(String source, Counter counter) {
             this.source = source;
@@ -80,6 +91,9 @@ public final class FeedFilterCounters {
             this.lastReason = counter.lastReason;
             this.suspect = counter.suspect;
             this.suspectLists = counter.suspectLists.get();
+            for (java.util.Map.Entry<String, AtomicLong> kind : counter.kinds.entrySet()) {
+                kinds.put(kind.getKey(), kind.getValue().get());
+            }
         }
     }
 
@@ -145,6 +159,44 @@ public final class FeedFilterCounters {
         }
     }
 
+    /**
+     * One element of this shape was handed to this route.
+     *
+     * <p>For a route whose elements come in kinds a filter cannot see yet. Issue #21 asks for a
+     * block of TikTok Shop products in search results that no account here is served, and a
+     * report from an account that is served it can only say which shape it has if the export
+     * counts shapes. The caller names the shape and nothing it says.
+     */
+    public static void sawKind(String source, String kind) {
+        if (kind == null) return;
+        Counter counter = counter(source);
+        if (counter == null) return;
+        count(counter.kinds, kind, 1);
+    }
+
+    private static void count(ConcurrentHashMap<String, AtomicLong> kinds, String kind, long add) {
+        AtomicLong tally = kinds.get(kind);
+        if (tally == null) {
+            // A new kind takes the map's monitor: the bound is a check on the size followed by
+            // an insert, and two parser threads that both saw eleven kinds each added their own
+            // twelfth. A kind already counted never comes here.
+            synchronized (kinds) {
+                tally = kinds.get(kind);
+                if (tally == null) {
+                    if (kinds.size() >= MAX_KINDS && !OTHER_KINDS.equals(kind)) {
+                        kind = OTHER_KINDS;
+                        tally = kinds.get(kind);
+                    }
+                    if (tally == null) {
+                        tally = new AtomicLong();
+                        kinds.put(kind, tally);
+                    }
+                }
+            }
+        }
+        tally.addAndGet(add);
+    }
+
     /** What this route took out of the list it was just handed. */
     public static void removed(String source, int count, String reason) {
         if (count <= 0) return;
@@ -191,10 +243,26 @@ public final class FeedFilterCounters {
                 }
                 String reason = counter.lastReason;
                 if (reason != null) line.append(". Last reason: ").append(reason);
+                if (!counter.kinds.isEmpty()) line.append(". Kinds: ").append(kindsOf(counter.kinds));
                 lines.add(line.toString());
             }
             return lines;
         }
+    }
+
+    /** The kinds most often seen first, then by name, so two reports read the same way. */
+    private static String kindsOf(ConcurrentHashMap<String, AtomicLong> kinds) {
+        List<java.util.Map.Entry<String, AtomicLong>> sorted = new ArrayList<>(kinds.entrySet());
+        java.util.Collections.sort(sorted, (a, b) -> {
+            int byCount = Long.compare(b.getValue().get(), a.getValue().get());
+            return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
+        });
+        StringBuilder text = new StringBuilder();
+        for (java.util.Map.Entry<String, AtomicLong> kind : sorted) {
+            if (text.length() > 0) text.append(", ");
+            text.append(kind.getKey()).append(' ').append(kind.getValue().get());
+        }
+        return text.toString();
     }
 
     /** Takes the state a diagnostic clear is about to remove. */
@@ -243,6 +311,20 @@ public final class FeedFilterCounters {
                 counter.unreadable.addAndGet(saved.unreadable);
                 counter.emptied.addAndGet(saved.emptied);
                 if (counter.lastReason == null) counter.lastReason = saved.lastReason;
+                // The named kinds go back first, most counted first, and the overflow last, so
+                // an undo with nothing counted in between gives back the same Kinds line. In
+                // hash order, "other" could take a slot and push a named kind into it.
+                List<java.util.Map.Entry<String, Long>> savedKinds = new ArrayList<>(saved.kinds.entrySet());
+                java.util.Collections.sort(savedKinds, (a, b) -> {
+                    boolean otherA = OTHER_KINDS.equals(a.getKey());
+                    boolean otherB = OTHER_KINDS.equals(b.getKey());
+                    if (otherA != otherB) return otherA ? 1 : -1;
+                    int byCount = Long.compare(b.getValue(), a.getValue());
+                    return byCount != 0 ? byCount : a.getKey().compareTo(b.getKey());
+                });
+                for (java.util.Map.Entry<String, Long> kind : savedKinds) {
+                    count(counter.kinds, kind.getKey(), kind.getValue());
+                }
                 // The longest run wins, whichever side of the clear it was on.
                 if (saved.suspect != null && saved.suspectLists >= counter.suspectLists.get()) {
                     counter.suspect = saved.suspect;

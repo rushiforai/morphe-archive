@@ -195,7 +195,7 @@ if not marker_match or END_MARKER not in readme:
         f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
         "Printed to stdout instead.\n"
     )
-    sys.exit(0)
+    sys.exit(1)
 
 actual_start = marker_match.group(0)
 

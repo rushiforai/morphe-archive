@@ -48,6 +48,7 @@ private const val EXTENSION_BUTTON = "Lapp/morphe/extension/youtube/videoplayer/
 
 @Suppress("unused")
 val playAllButtonPatch = bytecodePatch(
+    name = "Play all",
     description = "Adds an option to play all the videos from a channel and to display play all button in the video player.",
 ) {
     dependsOn(

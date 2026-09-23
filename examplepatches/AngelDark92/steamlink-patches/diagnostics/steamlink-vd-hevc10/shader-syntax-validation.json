@@ -1,0 +1,114 @@
+{
+  "boundary": "Check assembled production shaders without altering the APK shader dialect.\n\nStrict ES300 rejects Valve's inherited standalone-uniform locations. Record that\nfailure, then promote BOTH stages only in diagnostic copies to test syntax/linking.\nThis is not Android driver, live shader, decoder, or visible banding validation.",
+  "cases": [
+    {
+      "base": "2.0.20/5001712",
+      "variant": "off.opaque",
+      "production_source_sha256": "53ae7ceae7314c98711cb88c39d687da1a9b777f09fe5d59f404ebdd83b47fa1",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-off.opaque.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-off.opaque-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "variant": "off.masked",
+      "production_source_sha256": "cfa040b6532f9ad45df1eb2c5693265a48de8d4f032e4e61917c228267377de9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-off.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-off.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "variant": "fovea-input-8bit.masked",
+      "production_source_sha256": "c0a61f8d53e5f6a1e6134c92d7daa81503b1f9139064db7044626917e444dd0f",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-fovea-input-8bit.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-fovea-input-8bit.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "variant": "fovea-input-10bit.masked",
+      "production_source_sha256": "c0a61f8d53e5f6a1e6134c92d7daa81503b1f9139064db7044626917e444dd0f",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-fovea-input-10bit.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5001712-fovea-input-10bit.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "variant": "off.opaque",
+      "production_source_sha256": "53ae7ceae7314c98711cb88c39d687da1a9b777f09fe5d59f404ebdd83b47fa1",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-off.opaque.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-off.opaque-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "variant": "off.masked",
+      "production_source_sha256": "cfa040b6532f9ad45df1eb2c5693265a48de8d4f032e4e61917c228267377de9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-off.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-off.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "variant": "fovea-input-8bit.masked",
+      "production_source_sha256": "c0a61f8d53e5f6a1e6134c92d7daa81503b1f9139064db7044626917e444dd0f",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-fovea-input-8bit.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-fovea-input-8bit.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "variant": "fovea-input-10bit.masked",
+      "production_source_sha256": "c0a61f8d53e5f6a1e6134c92d7daa81503b1f9139064db7044626917e444dd0f",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-fovea-input-10bit.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002244-fovea-input-10bit.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "variant": "off.opaque",
+      "production_source_sha256": "53ae7ceae7314c98711cb88c39d687da1a9b777f09fe5d59f404ebdd83b47fa1",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-off.opaque.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-off.opaque-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "variant": "off.masked",
+      "production_source_sha256": "cfa040b6532f9ad45df1eb2c5693265a48de8d4f032e4e61917c228267377de9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-off.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-off.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "variant": "fovea-input-8bit.masked",
+      "production_source_sha256": "c0a61f8d53e5f6a1e6134c92d7daa81503b1f9139064db7044626917e444dd0f",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-fovea-input-8bit.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-fovea-input-8bit.masked-diagnostic310.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "variant": "fovea-input-10bit.masked",
+      "production_source_sha256": "c0a61f8d53e5f6a1e6134c92d7daa81503b1f9139064db7044626917e444dd0f",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-fovea-input-10bit.masked.frag\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-diagnostic310.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\vd-sdr-glsl-check\\5002363-fovea-input-10bit.masked-diagnostic310.frag\n"
+    }
+  ],
+  "glslang_version": "Glslang Version: 11:16.6.0\nESSL Version: OpenGL ES GLSL 3.20 glslang Khronos. 16.6.0\nGLSL Version: 4.60 glslang Khronos. 16.6.0\nSPIR-V Version 0x00010600, Revision 1\nGLSL.std.450 Version 100, Revision 1\nKhronos Tool ID 8\nSPIR-V Generator Version 11\nGL_KHR_vulkan_glsl version 100\nARB_GL_gl_spirv version 100\n"
+}

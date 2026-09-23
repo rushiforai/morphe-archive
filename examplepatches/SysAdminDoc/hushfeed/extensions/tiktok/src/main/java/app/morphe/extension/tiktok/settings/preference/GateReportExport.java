@@ -37,7 +37,7 @@ final class GateReportExport {
             return true;
         } catch (RuntimeException error) {
             Logger.printException(() -> "Could not copy gate report", error);
-            Utils.showToastShort(L10n.t("Could not copy report. Use Save JSON."));
+            Utils.showToastShort(L10n.t("Couldn't copy the report. Use Save JSON instead."));
             return false;
         }
     }
@@ -54,7 +54,7 @@ final class GateReportExport {
         });
         // A full pool refuses the task, and nothing else would have said so: the reader tapped
         // Save JSON and got neither the saved path nor the failure sentence.
-        if (!started) Utils.showToastShort(L10n.t("Could not start the report export. Try again shortly."));
+        if (!started) Utils.showToastShort(L10n.t("Couldn't start the report export. Try again shortly."));
     }
 
     /** The folder under Download the report lands in, spelt the way a file manager shows it. */

@@ -545,7 +545,7 @@ public final class CommentTools {
         try {
             View cell = cellOf(touched);
             if (cell == null) {
-                Utils.showToastShort(L10n.t("Could not read who posted this comment"));
+                Utils.showToastShort(L10n.t("Couldn't read who posted this comment. Open their profile and block them there."));
                 return;
             }
             toggleBlock(cell);
@@ -676,7 +676,7 @@ public final class CommentTools {
         }
         Object user = comment == null ? null : Reflect.property(comment, "getUser", "user");
         if (user == null) {
-            Utils.showToastShort(L10n.t("Could not read who posted this comment"));
+            Utils.showToastShort(L10n.t("Couldn't read who posted this comment. Open their profile and block them there."));
             return;
         }
 
@@ -688,7 +688,7 @@ public final class CommentTools {
                         Reflect.string(user, "getNickname", "nickname")),
                 Reflect.string(comment, "getCid", "cid"));
         if (!author.isUsable()) {
-            Utils.showToastShort(L10n.t("Could not read who posted this comment"));
+            Utils.showToastShort(L10n.t("Couldn't read who posted this comment. Open their profile and block them there."));
             return;
         }
 

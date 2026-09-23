@@ -1,0 +1,14 @@
+PASS SHA-256 known vectors
+PASS exact source/mask allowlist
+PASS split sources and explicit lengths
+PASS unknown/context/type/extension guards
+PASS compile fallback
+PASS link/uniform/resource fallback
+PASS upload and draw state restoration
+PASS framebuffer/resource guards
+PASS deleted attached shader fallback
+PASS reload and shader/program reuse
+PASS context sharing/deferred destroy/reuse
+PASS EGL failure/terminate lifecycle
+PASS disable switch on shader reload
+13/13 native contract tests passed

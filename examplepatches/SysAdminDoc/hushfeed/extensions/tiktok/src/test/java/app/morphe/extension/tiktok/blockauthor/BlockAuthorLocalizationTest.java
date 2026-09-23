@@ -57,11 +57,14 @@ public class BlockAuthorLocalizationTest {
     public void germanOwnsEveryBlockAndUnblockResult() {
         verify(new Expected(
                 NAME + " blockiert",
-                "TikTok hat die Anfrage zum Blockieren von " + NAME + " abgelehnt.",
-                "Die Blockierung von " + NAME + " konnte nicht bestätigt werden.",
+                "TikTok hat " + NAME + " nicht blockiert. Versuch es gleich noch einmal.",
+                "Die Blockierung von " + NAME + " konnte nicht bestätigt werden. Öffne das Profil,"
+                        + " um nachzusehen.",
                 NAME + " entblockt",
-                "TikTok hat die Anfrage zum Entblocken von " + NAME + " abgelehnt.",
+                "TikTok hat die Blockierung von " + NAME + " nicht aufgehoben. Versuch es gleich"
+                        + " noch einmal.",
                 "Die Aufhebung der Blockierung von " + NAME + " konnte nicht bestätigt werden."
+                        + " Öffne das Profil, um nachzusehen."
         ));
     }
 
@@ -69,12 +72,25 @@ public class BlockAuthorLocalizationTest {
     public void indonesianOwnsEveryBlockAndUnblockResult() {
         verify(new Expected(
                 NAME + " diblokir",
-                "TikTok menolak permintaan untuk memblokir " + NAME + ".",
-                "Pemblokiran " + NAME + " tidak dapat dikonfirmasi.",
+                "TikTok tidak memblokir " + NAME + ". Coba lagi sebentar lagi.",
+                "Pemblokiran " + NAME + " tidak dapat dikonfirmasi. Buka profilnya untuk memeriksa.",
                 NAME + " dibuka blokirnya",
-                "TikTok menolak permintaan untuk membuka blokir " + NAME + ".",
-                "Pembukaan blokir " + NAME + " tidak dapat dikonfirmasi."
+                "TikTok tidak membuka blokir " + NAME + ". Coba lagi sebentar lagi.",
+                "Pembukaan blokir " + NAME + " tidak dapat dikonfirmasi. Buka profilnya untuk"
+                        + " memeriksa."
         ));
+    }
+
+    /**
+     * The fallback for a creator with nothing to name sits inside a translated sentence, so it is
+     * translated too. It used to be English on every phone.
+     */
+    @Test @Config(sdk = 28, qualifiers = "de")
+    public void aCreatorWithNothingToNameIsNamedInTheReadersLanguage() {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup()) {
+            Utils.setActivity(owner.get());
+            assertEquals("dieser Creator", new VideoAuthor(null, null, null, null).label());
+        }
     }
 
     private static void verify(Expected expected) {

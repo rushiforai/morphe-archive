@@ -13,7 +13,6 @@ package app.morphe.patches.youtube.layout.hide.signintotvpopup
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -26,13 +25,13 @@ private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/youtube/patches/DisableSignInToTVPopupPatch;"
 
 val disableSignInToTVPopupPatch = bytecodePatch(
+    name = "Disable sign in to TV popup",
     description = "Adds options to disable the popups asking to sign into or connect to a TV " +
         "on the same local network.",
 ) {
     dependsOn(
         settingsPatch,
         sharedExtensionPatch,
-        resourceMappingPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)

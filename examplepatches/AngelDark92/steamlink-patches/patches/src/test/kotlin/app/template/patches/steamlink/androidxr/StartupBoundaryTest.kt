@@ -11,14 +11,10 @@ class StartupBoundaryTest {
     fun `earlier startup accepts only preserved exact version and build pairs`() {
         val supported = setOf(
             "2.0.20" to "5001712",
-            "2.0.20" to "5001740",
             "2.0.22" to "5002244",
-            "2.0.22" to "5002296",
-            "2.0.22" to "5002313",
-            "2.0.22" to "5002318",
         )
         val versions = listOf("2.0.20", "2.0.22", "2.0.23", "")
-        val builds = supported.map { it.second } + listOf("5002322", "5002323", "5002243", "unknown")
+        val builds = supported.map { it.second } + listOf("5001740", "5002296", "5002313", "5002318", "5002322", "5002323", "5002243", "unknown")
         versions.forEach { version ->
             builds.forEach { build ->
                 assertEquals((version to build) in supported,

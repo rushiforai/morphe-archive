@@ -1,0 +1,437 @@
+0x600046a 'VirtualDesktop.Streamer.StreamerManager'::'\x01' RVA 0x2be08 signature=00041281791011c00072a011c0005a0811c000f73002
+000c br 279
+0011 br 285
+0016 brfalse.s 144
+0018 br 295
+001d br 301
+0022 brfalse.s 86
+0024 br 311
+0029 brfalse.s 86
+002b br 321
+0030 ldfld 0x4005f2a 'SharpDX.Size2'::'Width'
+0035 ldc.i4.5 
+0036 brfalse 232
+003b ldc.i4 4096
+0040 bgt.s 86
+0042 br 327
+0047 ldfld 0x4005f2b 'SharpDX.Size2'::'Height'
+004c ldc.i4.0 
+004d brtrue.s 22
+004f ldc.i4 4096
+0054 ble.s 123
+0056 br 333
+005b brfalse.s 101
+005d br 339
+0062 ldc.i4.6 
+0063 bne.un.s 108
+0065 call 0x60215e8 '\x83.\x01'::'\x03'
+006a brtrue.s 123
+006c ldarg.2 
+006d call 0x60213e3 '\x18\x02.\x03'::'\x03'
+0072 brfalse.s 144
+0074 call 0x60215e7 '\x83.\x01'::'\x02'
+0079 brfalse.s 144
+007b ldsfld 0x40161f8 '.\x8a'::'\x11\x05'
+0080 ldtoken 0x2003e44 '\x83.\x01'
+0085 call 0x6022d73 '.\x8a'::'Invoke'
+008a stloc.0 
+008b leave 381
+0090 ldarg.0 
+0091 call 0x6021555 '\x12\x03.\x05'::'\x02'
+0096 brfalse 258
+009b ldarg.2 
+009c call 0x60213e1 '\x18\x02.\x03'::'\x01'
+00a1 brtrue.s 166
+00a3 ldarg.2 
+00a4 brtrue.s 205
+00a6 call 0x602155c '\x89\x02.\x02'::'\x01'
+00ab brfalse.s 205
+00ad ldarg.1 
+00ae ldfld 0x4005f2a 'SharpDX.Size2'::'Width'
+00b3 ldc.i4 4096
+00b8 dup 
+00b9 brfalse 64
+00be bgt.s 205
+00c0 ldarg.1 
+00c1 ldfld 0x4005f2b 'SharpDX.Size2'::'Height'
+00c6 ldc.i4 4096
+00cb ble.s 234
+00cd ldc.i4.0 
+00ce brtrue.s 139
+00d0 ldarg.2 
+00d1 ldc.i4.6 
+00d2 bne.un.s 219
+00d4 call 0x602155e '\x89\x02.\x02'::'\x03'
+00d9 brtrue.s 234
+00db ldarg.2 
+00dc call 0x60213e3 '\x18\x02.\x03'::'\x03'
+00e1 brfalse.s 258
+00e3 call 0x602155d '\x89\x02.\x02'::'\x02'
+00e8 brfalse.s 258
+00ea ldsfld 0x40161f8 '.\x8a'::'\x11\x05'
+00ef ldtoken 0x2003e15 '\x89\x02.\x02'
+00f4 call 0x6022d73 '.\x8a'::'Invoke'
+00f9 stloc.0 
+00fa ldc.i4.0 
+00fb brtrue 144
+0100 leave.s 381
+0102 ldsfld 0x40161f8 '.\x8a'::'\x11\x05'
+0107 ldtoken 0x2003e1c '\x19.\x03'
+010c call 0x6022d73 '.\x8a'::'Invoke'
+0111 stloc.0 
+0112 ldc.i4.0 
+0113 brtrue.s 258
+0115 leave.s 381
+0117 ldarg.0 
+0118 br 17
+011d call 0x6021554 '\x12\x03.\x05'::'\x01'
+0122 br 22
+0127 ldarg.2 
+0128 br 29
+012d call 0x60213e1 '\x18\x02.\x03'::'\x01'
+0132 br 34
+0137 call 0x60215e6 '\x83.\x01'::'\x01'
+013c br 41
+0141 ldarg.1 
+0142 br 48
+0147 ldarg.1 
+0148 br 71
+014d ldarg.2 
+014e br 91
+0153 ldarg.2 
+0154 br 98
+0159 ldarg.0 
+015a ldobj 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+015f box 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0164 ldarg.1 
+0165 box 0x2001682 'SharpDX.Size2'
+016a ldarg.2 
+016b box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+0170 ldarg.3 
+0171 box 0x100046c 'System.Boolean'
+0176 call 0x600d88d '\x9e\x02.\x01'::'\x01'
+017b rethrow 
+017d ldloc.0 
+017e ret 
+
+0x6021554 '\x12\x03.\x05'::'\x01' RVA 0x88dbd8 signature=0001021011c00072a0
+000c ldc.i4.5 
+000d brfalse.s 40
+000f ldc.i4.8 
+0010 brfalse.s 40
+0012 br.s 42
+0014 ldfld 0x4009336 'SharpDX.DXGI.AdapterDescription'::'VendorId'
+0019 ldc.i4 4318
+001e ceq 
+0020 ldc.i4.6 
+0021 brfalse.s 25
+0023 ldc.i4.0 
+0024 brtrue.s 25
+0026 br.s 45
+0028 leave.s 66
+002a ldarg.0 
+002b br.s 20
+002d stloc.0 
+002e br.s 40
+0030 ldarg.0 
+0031 ldobj 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0036 box 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+003b call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0040 rethrow 
+0042 br.s 69
+0044 ret 
+0045 ldloc.0 
+0046 br.s 68
+
+0x6021555 '\x12\x03.\x05'::'\x02' RVA 0x88dc30 signature=0001021011c00072a0
+000c br.s 61
+000e ldfld 0x4009336 'SharpDX.DXGI.AdapterDescription'::'VendorId'
+0013 ldc.i4 4098
+0018 dup 
+0019 brfalse.s 44
+001b beq.s 56
+001d ldc.i4.4 
+001e brfalse.s 12
+0020 br.s 64
+0022 ldfld 0x4009336 'SharpDX.DXGI.AdapterDescription'::'VendorId'
+0027 ldc.i4 4130
+002c dup 
+002d brfalse.s 24
+002f ceq 
+0031 br.s 67
+0033 ldc.i4.0 
+0034 brtrue.s 56
+0036 leave.s 91
+0038 ldc.i4.1 
+0039 br.s 70
+003b leave.s 91
+003d ldarg.0 
+003e br.s 14
+0040 ldarg.0 
+0041 br.s 34
+0043 stloc.0 
+0044 br.s 51
+0046 stloc.0 
+0047 br.s 59
+0049 ldarg.0 
+004a ldobj 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+004f box 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0054 call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0059 rethrow 
+005b br.s 94
+005d ret 
+005e ldloc.0 
+005f br.s 93
+
+0x6021558 '\x12\x03.\x05'::'\x01' RVA 0x88dd84 signature=00020e1011c00072a012c0007170
+000c ldc.i4.s 20
+000e localloc 
+0010 conv.u 
+0011 br 592
+0016 br 463
+001b br 469
+0020 brfalse 206
+0025 br 479
+002a ldc.i4.5 
+002b brtrue 489
+0030 pop 
+0031 ldc.i4.1 
+0032 brfalse 242
+0037 ldsfld 0x4016109 '.\x14'::'\x01\x03'
+003c br 495
+0041 br 501
+0046 brtrue 461
+004b br 511
+0050 ldc.i4.s 16
+0052 add 
+0053 ldsfld 0x4016391 '.\x84\x03'::'\x81\x0e'
+0058 ldc.i4.0 
+0059 ldsfld 0x40160bd '.\x11'::'~\x18\x02'
+005e br 517
+0063 call 0x6022d28 '.\x11'::'Invoke'
+0068 ldc.i4.2 
+0069 sub 
+006a call 0x6022ec0 '.\x84\x03'::'Invoke'
+006f stind.i4 
+0070 ldsfld 0x40164be '.\x8d\x05'::'\x8e\x11'
+0075 ldc.i4.6 
+0076 newarr 0x1000266 'System.String'
+007b dup 
+007c ldc.i4.0 
+007d ldarg.0 
+007e ldfld 0x4009335 'SharpDX.DXGI.AdapterDescription'::'Description'
+0083 stelem.ref 
+0084 dup 
+0085 ldc.i4.1 
+0086 ldstr 0x7004ea2a ' ('
+008b stelem.ref 
+008c dup 
+008d ldc.i4.2 
+008e ldsfld 0x40160b9 '.\x10'::'~\x16\x02'
+0093 ldloc.1 
+0094 ldc.i4.0 
+0095 ldloc.0 
+0096 ldc.i4.s 16
+0098 add 
+0099 ldind.i4 
+009a call 0x6022d25 '.\x10'::'Invoke'
+009f stelem.ref 
+00a0 dup 
+00a1 ldc.i4.3 
+00a2 ldstr 0x700157b1 '.'
+00a7 stelem.ref 
+00a8 dup 
+00a9 ldc.i4.4 
+00aa ldsfld 0x40161ed '.\x86'::'~\x05\x05'
+00af ldloc.1 
+00b0 ldloc.0 
+00b1 ldc.i4.s 16
+00b3 add 
+00b4 ldind.i4 
+00b5 call 0x6022d67 '.\x86'::'Invoke'
+00ba stelem.ref 
+00bb dup 
+00bc ldc.i4.5 
+00bd ldstr 0x7003ada9 ')'
+00c2 stelem.ref 
+00c3 call 0x6023034 '.\x8d\x05'::'Invoke'
+00c8 stloc.2 
+00c9 leave 536
+00ce ldc.i4.0 
+00cf brtrue.s 226
+00d1 ldarg.0 
+00d2 call 0x6021555 '\x12\x03.\x05'::'\x02'
+00d7 brfalse.s 275
+00d9 ldc.i4.0 
+00da brtrue.s 293
+00dc call 0x602155a '\x12\x03.\x05'::'\x02'
+00e1 stloc.3 
+00e2 ldsfld 0x4016109 '.\x14'::'\x01\x03'
+00e7 ldloc.3 
+00e8 call 0x6022d31 '.\x14'::'Invoke'
+00ed brtrue 461
+00f2 ldsfld 0x40164fb '.\x08\x06'::'\x1a\x12'
+00f7 ldarg.0 
+00f8 ldfld 0x4009335 'SharpDX.DXGI.AdapterDescription'::'Description'
+00fd ldstr 0x7004ea2a ' ('
+0102 ldloc.3 
+0103 ldstr 0x7003ada9 ')'
+0108 call 0x6023082 '.\x08\x06'::'Invoke'
+010d stloc.2 
+010e leave 536
+0113 ldarg.1 
+0114 brfalse 461
+0119 ldarg.1 
+011a ldloc.0 
+011b callvirt 0x2b000f4e 'SharpDX.DXGI.Adapter'::'IsInterfaceSupported'
+0120 brfalse 461
+0125 ldsfld 0x40164be '.\x8d\x05'::'\x8e\x11'
+012a ldc.i4.s 10
+012c newarr 0x1000266 'System.String'
+0131 dup 
+0132 ldc.i4.0 
+0133 ldarg.0 
+0134 ldfld 0x4009335 'SharpDX.DXGI.AdapterDescription'::'Description'
+0139 stelem.ref 
+013a dup 
+013b ldc.i4.1 
+013c ldstr 0x7004ea2a ' ('
+0141 stelem.ref 
+0142 dup 
+0143 ldc.i4.2 
+0144 ldloc.0 
+0145 ldc.i4.8 
+0146 add 
+0147 ldloc.0 
+0148 ldind.i8 
+0149 ldc.i4.s 48
+014b shr 
+014c stind.i8 
+014d ldloc.0 
+014e ldc.i4.8 
+014f add 
+0150 call 0xa000ad5 'System.Int64'::'ToString'
+0155 stelem.ref 
+0156 dup 
+0157 ldc.i4.3 
+0158 ldstr 0x700157b1 '.'
+015d stelem.ref 
+015e dup 
+015f ldc.i4.4 
+0160 ldloc.0 
+0161 ldc.i4.8 
+0162 add 
+0163 ldloc.0 
+0164 ldind.i8 
+0165 ldc.i4.s 32
+0167 shr 
+0168 ldc.i4 65535
+016d conv.i8 
+016e and 
+016f stind.i8 
+0170 ldloc.0 
+0171 ldc.i4.8 
+0172 add 
+0173 call 0xa000ad5 'System.Int64'::'ToString'
+0178 stelem.ref 
+0179 dup 
+017a ldc.i4.5 
+017b ldstr 0x700157b1 '.'
+0180 stelem.ref 
+0181 dup 
+0182 ldc.i4.6 
+0183 ldloc.0 
+0184 ldc.i4.8 
+0185 add 
+0186 ldloc.0 
+0187 ldind.i8 
+0188 ldc.i4.s 16
+018a shr 
+018b ldc.i4 65535
+0190 conv.i8 
+0191 and 
+0192 stind.i8 
+0193 ldloc.0 
+0194 ldc.i4.8 
+0195 add 
+0196 call 0xa000ad5 'System.Int64'::'ToString'
+019b stelem.ref 
+019c dup 
+019d ldc.i4.7 
+019e ldstr 0x700157b1 '.'
+01a3 stelem.ref 
+01a4 dup 
+01a5 ldc.i4.8 
+01a6 ldloc.0 
+01a7 ldc.i4.8 
+01a8 add 
+01a9 ldloc.0 
+01aa ldind.i8 
+01ab ldc.i4 65535
+01b0 conv.i8 
+01b1 and 
+01b2 stind.i8 
+01b3 ldloc.0 
+01b4 ldc.i4.8 
+01b5 add 
+01b6 call 0xa000ad5 'System.Int64'::'ToString'
+01bb stelem.ref 
+01bc dup 
+01bd ldc.i4.s 9
+01bf ldstr 0x7003ada9 ')'
+01c4 stelem.ref 
+01c5 call 0x6023034 '.\x8d\x05'::'Invoke'
+01ca stloc.2 
+01cb leave.s 536
+01cd leave.s 526
+01cf ldarg.0 
+01d0 br 27
+01d5 call 0x6021554 '\x12\x03.\x05'::'\x01'
+01da br 32
+01df call 0x6021559 '\x12\x03.\x05'::'\x01'
+01e4 br 42
+01e9 stloc.1 
+01ea br 49
+01ef ldloc.1 
+01f0 br 65
+01f5 call 0x6022d31 '.\x14'::'Invoke'
+01fa br 70
+01ff ldloc.0 
+0200 br 80
+0205 ldloc.1 
+0206 br 99
+020b pop 
+020c leave.s 526
+020e ldarg.0 
+020f ldfld 0x4009335 'SharpDX.DXGI.AdapterDescription'::'Description'
+0214 stloc.s local(0x0004)
+0216 leave.s 589
+0218 ldloc.2 
+0219 stloc.s local(0x0004)
+021b leave.s 589
+021d ldloc.1 
+021e ldloc.0 
+021f ldc.i4.s 16
+0221 add 
+0222 ldind.i4 
+0223 box 0x100046a 'System.Int32'
+0228 ldloc.2 
+0229 ldloc.3 
+022a ldloc.0 
+022b ldind.i8 
+022c box 0x100046d 'System.Int64'
+0231 ldloc.0 
+0232 ldc.i4.8 
+0233 add 
+0234 ldind.i8 
+0235 box 0x100046d 'System.Int64'
+023a ldarg.0 
+023b ldobj 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0240 box 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0245 ldarg.1 
+0246 call 0x600d891 '\x9e\x02.\x01'::'\x01'
+024b rethrow 
+024d ldloc.s local(0x0004)
+024f ret 
+0250 stloc.0 
+0251 br 22

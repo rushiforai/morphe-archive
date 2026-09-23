@@ -72,6 +72,16 @@ public class NotifierWorker extends Worker {
     /** State-prefs keys the Travian Tools screens read. */
     static final String KEY_HISTORY = "notification_history";
     static final String KEY_STATUS = "check_status";
+    /** Villages with nothing building or training, as of the last check; read by the Alerts screen. */
+    static final String KEY_IDLE_VILLAGES = "idle_villages";
+    /** Villages the last poll saw (id, name, x, y); read by the Build order screen. */
+    static final String KEY_VILLAGES = "known_villages";
+    /** "true"/"false" once read, absent until then; read by the Hub screen. */
+    static final String KEY_GOLD_CLUB = "gold_club";
+    private static final String KEY_GOLD_CLUB_LOGGED_AT = "gold_club_logged_at";
+    private static final String KEY_CP_LOGGED_AT = "cp_logged_at";
+    private static final String KEY_BUILD_COST_LOGGED_AT = "build_cost_logged_at";
+    private static final String KEY_MARKET_LOGGED_AT = "market_logged_at";
     private static final int PENDING_FLAGS = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
     private static final String KEY_RETRIES = "retries";
     /** Wait a few seconds past the finish time so the server has processed the completion. */
@@ -493,6 +503,8 @@ public class NotifierWorker extends Worker {
             notify(NotificationKind.forTrackedKind(gone.kind), describeCompletion(gone));
         }
         saveTrackedState(stillActive);
+        saveIdleVillages(villages, stillActive.values());
+        saveVillageList(villages);
         int buildCount = 0;
         for (TrackedEvent ev : stillActive.values()) {
             if ("build".equals(ev.kind)) {
@@ -537,6 +549,146 @@ public class NotifierWorker extends Worker {
             logFarmLists(http, gameworldHost);
         } catch (Exception e) {
             Log.w(TAG, "farm list log failed: " + e);
+        }
+        try {
+            checkAccountTier(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "gold club check failed: " + e);
+        }
+        try {
+            logCulturePointsAndSettlement(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "culture points log failed: " + e);
+        }
+        try {
+            logBuildingCosts(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "building cost log failed: " + e);
+        }
+        try {
+            logMarketplace(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "marketplace log failed: " + e);
+        }
+    }
+
+    /**
+     * Reads whether the account has Gold Club active (goldClub is expected to be a plain true/false on
+     * ownPlayer, going by the field's accessor names in the game's compiled code). Logs the raw value
+     * the first time so an unexpected shape is visible without guessing at it.
+     */
+    private void checkAccountTier(OkHttpClient http, String gameworldHost) throws Exception {
+        SharedPreferences prefs = statePrefs();
+        long now = System.currentTimeMillis();
+        if (now - prefs.getLong(KEY_GOLD_CLUB_LOGGED_AT, 0) < TimeUnit.MINUTES.toMillis(30)) {
+            return;
+        }
+        prefs.edit().putLong(KEY_GOLD_CLUB_LOGGED_AT, now).apply();
+        JSONObject resp = runQuery(http, gameworldHost, "goldClub");
+        JSONObject data = resp.optJSONObject("data");
+        if (data == null) {
+            Log.i(TAG, "gold club query failed: " + errorSummary(resp));
+            return;
+        }
+        Object raw = data.getJSONObject("p").opt("goldClub");
+        Log.i(TAG, "gold club raw: " + raw);
+        if (raw instanceof Boolean) {
+            prefs.edit().putString(KEY_GOLD_CLUB, String.valueOf(raw)).apply();
+        } else {
+            Log.w(TAG, "goldClub wasn't a plain true/false, leaving it unknown: " + raw);
+        }
+    }
+
+    /**
+     * Diagnostic only, at most every 30 minutes: logs whatever the game returns for culture points and
+     * the next settlement slot, trying a few field-name guesses from the compiled client's own field
+     * names (culturePoints, nextSlotPrediction, villageSlotCount, ...). Nothing is shown on any screen
+     * yet — this is how the hero and storage fields were learned too, before those screens were built.
+     */
+    private void logCulturePointsAndSettlement(OkHttpClient http, String gameworldHost) {
+        SharedPreferences prefs = statePrefs();
+        long now = System.currentTimeMillis();
+        if (now - prefs.getLong(KEY_CP_LOGGED_AT, 0) < TimeUnit.MINUTES.toMillis(30)) {
+            return;
+        }
+        prefs.edit().putLong(KEY_CP_LOGGED_AT, now).apply();
+        String[] variants = {
+                "culturePoints nextSlotAvailableAt nextSlotPrediction villageSlotCount",
+                "culturePoints",
+                "culturePointsRank nextSlotPrediction",
+                "villages { id name culturePointsDistributionPerDay }",
+        };
+        runDiagnosticVariants("culture points", http, gameworldHost, variants);
+        logSchema(http, gameworldHost, "Player", "fields");
+    }
+
+    /**
+     * Diagnostic only, at most every 30 minutes: logs the game's own upgrade-cost fields for a building,
+     * so a "smart queue" advisor can be built on the game's real costs instead of a guessed formula.
+     * Nothing is shown on any screen yet.
+     */
+    private void logBuildingCosts(OkHttpClient http, String gameworldHost) {
+        SharedPreferences prefs = statePrefs();
+        long now = System.currentTimeMillis();
+        if (now - prefs.getLong(KEY_BUILD_COST_LOGGED_AT, 0) < TimeUnit.MINUTES.toMillis(30)) {
+            return;
+        }
+        prefs.edit().putLong(KEY_BUILD_COST_LOGGED_AT, now).apply();
+        String[] variants = {
+                "villages { id name buildingSlots { id buildingTypeId level buildCostObject upgradeCostObject } }",
+                "villages { id name buildEvents { id buildingTypeId aspiredLevel buildCostObject upgradeCostObject } }",
+                "villages { id name buildEvents { id buildingTypeId aspiredLevel } }",
+        };
+        runDiagnosticVariants("building costs", http, gameworldHost, variants);
+        logSchema(http, gameworldHost, "BuildEvent", "fields");
+    }
+
+    /**
+     * Diagnostic only, at most every 30 minutes: logs the game's marketplace offer shape, so a market
+     * price advisor can be built on real field names. Nothing is shown on any screen yet.
+     */
+    private void logMarketplace(OkHttpClient http, String gameworldHost) {
+        SharedPreferences prefs = statePrefs();
+        long now = System.currentTimeMillis();
+        if (now - prefs.getLong(KEY_MARKET_LOGGED_AT, 0) < TimeUnit.MINUTES.toMillis(30)) {
+            return;
+        }
+        prefs.edit().putLong(KEY_MARKET_LOGGED_AT, now).apply();
+        String[] variants = {
+                "marketplaceOwnOffer { id resourcePricesById }",
+                "marketplaceOffer { id resourcePricesById }",
+        };
+        runDiagnosticVariants("marketplace", http, gameworldHost, variants);
+        logSchema(http, gameworldHost, "MarketplaceOffer", "fields");
+    }
+
+    /**
+     * Tries each selection in turn, logging both the data and, when present, the errors a GraphQL
+     * response can carry alongside it (a query can partially succeed: valid fields resolve while an
+     * invalid one next to them is reported as an error, instead of failing the whole request). Stops at
+     * the first variant that comes back with data and no errors; otherwise tries them all.
+     */
+    private void runDiagnosticVariants(String label, OkHttpClient http, String gameworldHost, String[] variants) {
+        for (String selection : variants) {
+            try {
+                JSONObject resp = runQuery(http, gameworldHost, selection);
+                JSONObject data = resp.optJSONObject("data");
+                JSONArray errors = resp.optJSONArray("errors");
+                if (data != null) {
+                    Log.i(TAG, label + " ok [" + selection + "]: " + cut(data.toString(), 2500));
+                }
+                if (errors != null) {
+                    Log.i(TAG, label + " errors [" + selection + "]: " + cut(errors.toString(), 1500));
+                }
+                if (data == null && errors == null) {
+                    Log.i(TAG, label + " empty response [" + selection + "]");
+                }
+                if (data != null && errors == null) {
+                    return; // clean success, no need to try the other guesses
+                }
+            } catch (Exception e) {
+                Log.i(TAG, label + " request failed [" + selection + "]: " + e);
+            }
         }
     }
 
@@ -976,8 +1128,23 @@ public class NotifierWorker extends Worker {
         }
     }
 
+    /** Computes and stores which villages have nothing in stillActive, for the Alerts screen. */
+    private void saveIdleVillages(JSONArray villages, java.util.Collection<TrackedEvent> active) {
+        Set<String> busyKeys = new HashSet<String>();
+        for (TrackedEvent ev : active) {
+            busyKeys.add(IdleVillages.key(ev.villageName, ev.villageX, ev.villageY));
+        }
+        List<String> idle = IdleVillages.compute(villages, busyKeys);
+        statePrefs().edit().putString(KEY_IDLE_VILLAGES, IdleVillages.toJson(idle)).apply();
+    }
+
     private SharedPreferences statePrefs() {
         return getApplicationContext().getSharedPreferences(STATE_PREFS, Context.MODE_PRIVATE);
+    }
+
+    /** Stores the last poll's villages (id, name, x, y) so screens can key data per village by id. */
+    private void saveVillageList(JSONArray villages) {
+        statePrefs().edit().putString(KEY_VILLAGES, VillageList.toJson(VillageList.compute(villages))).apply();
     }
 
     // ------------------------------------------------------------------

@@ -9,8 +9,7 @@ and dedicated local installable bundle were removed. The working terminal-quad
 high-resolution patch is preserved. The old mode/library identifiers remain only
 for cleanup of stale decoded APK resources.
 
-This was `surface_video_v1` / `libgxr_surface_video.so`, targeting exact
-2.0.20/5001712 and 2.0.22/5002322. It copied all rendered video projections into
+This was `surface_video_v1` / `libgxr_surface_video.so`, targeting exact 2.0.20/5001712. It copied all rendered video projections into
 Android Surface swapchains. Static checks had passed; the user reported low
 resolution. The exact installed APK and runtime cause were not established.
 

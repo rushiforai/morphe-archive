@@ -1,6 +1,6 @@
 # Steam Link 2.0.23 / 5002363 adaptation
 
-Checked 2026-09-15. The new bundle contains exactly the same 6 patches and option defaults as `Galaxy XR recommended set (2.0.22/5002322)`, adapted to the new native addresses and Java code. Every previously supported exact version/build target, patch default and option definition is preserved in all 4 generated catalogs.
+Checked 2026-09-15. The new bundle contains the same 6 patches and option defaults as the previous recommended set, adapted to the new native addresses and Java code. Every previously supported exact version/build target, patch default and option definition is preserved in all 4 generated catalogs.
 
 ## Patch selection
 
@@ -37,11 +37,11 @@ Detailed evidence: [native addresses and call paths](native-targets.md), [Java/c
 - All **7 standalone patches** successfully patched the original signed APK as an input. Output audits checked expected scene bytes, stock DEX preservation or the battery-only modification, unchanged configs outside identity, and stock startup/native permission boundaries.
 - The **6-patch recommended bundle** successfully patched both the original APK and the rebuilt decoded fixture. The packaged local `.mpp` was then used as the class/resource source to patch the original APK successfully again. Outputs are unsigned audit APKs.
 - Forced excluded startup dependencies on 5002363 remained inert: stock DEX/native code and startup behavior markers were preserved.
-- OLED production helpers passed **63 variants, 567 format/dither transitions and 126 checkbox cases per base** on 5001712, 5002322 and 5002363. Checks covered exact diff regions, all format instructions, shader interfaces/NUL boundaries, idempotence and unchanged source hashes.
+- OLED production helpers passed **63 variants, 567 format/dither transitions and 126 checkbox cases per base** on 5001712 and 5002363. Checks covered exact diff regions, all format instructions, shader interfaces/NUL boundaries, idempotence and unchanged source hashes.
 - New native helper audit passed **4 microphone presets/16 transitions**, tongue block/idempotence/invalid-byte checks, **6 representative HMD offsets/36 transitions**, and **24 combined native patch execution orders plus reapplication**. HMD offsets include 0, 1, 60, 100, 1000 and 4000 ms.
 - Malformed HMD mapping regression covers 10 corrupted ELF headers on same-offset and changed-offset reapplication. The reviewer reproduced the original `p_memsz=0` issue, verified its rejection after the fix, and reported no remaining actionable findings.
-- Older regression: **5 available recommendation fixtures**, **7 high-resolution fixtures**, and **6 Visual Delay fixtures** passed, including the new base. Old HMD outputs were independently compared with the preserved size-only helper on 5001712/5002244/5002313/5002318/5002322. Old native microphone options retained their original 4-byte sites.
-- All 4 regenerated JSON catalogs retain **every old exact target, default and option definition**. The new pair exposes 7 individual patches and exactly 1 recommended bundle. The bundle membership test asserts the same 6 direct dependencies as 5002322.
+- Older regression: **5 available recommendation fixtures**, **7 high-resolution fixtures**, and **6 Visual Delay fixtures** passed, including the new base. Old HMD outputs were independently compared with the preserved size-only helper on 5001712/5002244. Old native microphone options retained their original 4-byte sites.
+- All 4 regenerated JSON catalogs retain **every old exact target, default and option definition**. The new pair exposes 7 individual patches and exactly 1 recommended bundle. The bundle membership test asserts the same 6 direct dependencies as the previous base.
 
 Evidence logs and unsigned outputs: `build/audit-5002363/`. Catalog comparison: `catalog-regression.json`; final tests: `compile-final.log`; native options: `native-options-final.log`; OLED matrix: `oled-options.log`; original-APK bundle verification from packaged code: `archive-patching.log`.
 
@@ -66,6 +66,24 @@ When the pinned Gradle plugin resolves:
 
 Cached local route (requires the cached dependency JARs described in the script):
 
+The runner now matches Gradle's **JUnit 4** adapter and JVM 11 bytecode target.
+Its default tool directory is `build/startup-boundary-tools`. Alongside the existing
+Gson, JCommander, Kotlin-test and Morphe Desktop JARs, supply these Maven Central
+artifacts with the filenames shown (the Kotlin adapter must match `kotlin-test.jar`):
+
+| Local filename | Artifact in the verified cache |
+|---|---|
+| `junit4.jar` | `junit:junit:4.13.2` |
+| `hamcrest-core.jar` | `org.hamcrest:hamcrest-core:1.3` |
+| `kotlin-test-junit.jar` | `org.jetbrains.kotlin:kotlin-test-junit:2.3.21` |
+| `junit.jar` | `org.junit.platform:junit-platform-console-standalone:1.12.2` (test launch only) |
+
+The platform console JAR contains Jupiter APIs and must stay off the compiler
+classpath; otherwise it can hide imports unavailable in CI. Test execution uses
+its Vintage engine for JUnit 4. This cached compiler remains a fallback, not proof
+that the authenticated Gradle release build passed. See
+[`CI-JUNIT-FIX-20260915.md`](../steamlink-hitches/CI-JUNIT-FIX-20260915.md).
+
 ```powershell
 & diagnostics/steamlink-5002363/Compile-CachedAudit.ps1 -JavaHome F:/Runtimes/Java21 -OutputDirectory build/audit-5002363/my-check
 $auditCp = Get-Content build/audit-5002363/my-check/runtime-classpath.txt -Raw
@@ -76,4 +94,4 @@ java -cp $auditCp util.DecodedSteamLinkPatchAudit build/decoded-fixture-apks bui
 
 The APK audit accepts a fixture directory. To repeat original-APK checks, copy the verified original APK under the fixture filename `decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk` in an isolated directory; do not rebuild or overwrite the signed source. Audit modes include `public-modern 0..6`, `recommended 4`, and `startup-excluded 1`.
 
-No APK installation, ADB command, device permission grant, headset run, SteamVR mutation or driver deployment was performed. Runtime format acceptance, rendering quality, actual HMD timing, microphone behavior and tongue tracking on 5002363 still require headset validation. Older runtime results are not presented as new-base proof. The unavailable pristine 5001740 source retains its existing analysis-only limitation.
+No APK installation, ADB command, device permission grant, headset run, SteamVR mutation or driver deployment was performed. Runtime format acceptance, rendering quality, actual HMD timing, microphone behavior and tongue tracking on 5002363 still require headset validation. Older runtime results are not presented as new-base proof.

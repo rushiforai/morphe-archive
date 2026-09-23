@@ -100,6 +100,51 @@ foreach ($verb in @('tap', 'swipe', 'keyevent', 'text')) {
         "phone.sh guards display 0 but sends $verb input to another display."
 }
 
+function Invoke-PhoneOpenUrl {
+    param([Parameter(Mandatory)][string]$Url)
+    $escapedUrl = $Url.Replace("'", "'\''")
+    $savedUrlEAP = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $output = @(& $bashHost @bashArguments ("PHONE_SERIAL=TESTPHONE01 HUSHFEED_DEVICE_SERIAL=TESTPHONE01 ADB=/not-used " +
+            "PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '$escapedPhoneScript' open_url '$escapedUrl'") 2>&1)
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $savedUrlEAP
+    }
+    return [pscustomobject]@{ ExitCode = $exitCode; Output = ($output -join "`n") }
+}
+
+# The URL reaches the phone's shell unquoted, so a TikTok prefix alone is not enough.
+foreach ($url in @('https://example.com/', 'https://www.tiktok.com/@a;reboot',
+        'https://www.tiktok.com/$(id)', 'https://www.tiktok.com/@a/video/1 x')) {
+    $refused = Invoke-PhoneOpenUrl $url
+    Assert-True ($refused.ExitCode -eq 2 -and $refused.Output -like '*only accepts https://www.tiktok.com/*') `
+        "phone.sh accepted $url for device navigation."
+}
+# A plain video link has to reach am start as one intact argument, or the refusals above prove
+# nothing. The fake adb reports TikTok in front on display 0 and records what am start was given.
+# No double quotes: Windows PowerShell 5.1 splits a native argument at them.
+$openUrlCommand = (@'
+fixture=$(mktemp -d)
+trap 'rm -rf $fixture' EXIT
+cat > $fixture/adb <<'FAKE'
+#!/bin/sh
+case $* in
+    *dumpsys*) printf '  Display: mDisplayId=0\n  mCurrentFocus=Window{1 u0 com.zhiliaoapp.musically/.MainActivity}\n';;
+    *start*) printf '%s\n' $@ > ${0%/*}/am-start;;
+esac
+FAKE
+chmod +x $fixture/adb
+PHONE_SERIAL=TESTPHONE01 HUSHFEED_DEVICE_SERIAL=TESTPHONE01 ADB=$fixture/adb \
+    PHONE_SHOTS=/tmp/hushfeed-phone-parser-contract '__PHONE_SCRIPT__' open_url 'https://www.tiktok.com/@creator/video/123' 0
+cat $fixture/am-start
+'@).Replace('__PHONE_SCRIPT__', $escapedPhoneScript)
+$openedUrl = @(& $bashHost @bashArguments $openUrlCommand 2> $null)
+Assert-True ($LASTEXITCODE -eq 0 -and ($openedUrl -join "`n") -like
+    "*-d`nhttps://www.tiktok.com/@creator/video/123`n-p`ncom.zhiliaoapp.musically*") `
+    'phone.sh did not pass a plain TikTok video link to am start intact.'
+
 $findAdbCommand = (@'
 fixture=$(mktemp -d)
 trap 'rm -rf "$fixture"' EXIT

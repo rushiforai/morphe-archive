@@ -32,7 +32,7 @@ public class NumberInputPreferenceTest {
     /** Reaches the row's own dialog close, which is protected and one package over. */
     static final class Row extends NumberInputPreference {
         Row(Context context, IntegerSetting setting) {
-            super(context, "Daily time budget", "Summary", setting, "minute", "minutes");
+            super(context, "Daily time budget", "Summary", setting, "%1$s minute", "%1$s minutes");
         }
 
         void save() {
@@ -66,9 +66,9 @@ public class NumberInputPreferenceTest {
     public void englishUsesTheRightFormForZeroOneAndMany() {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
             Context context = controller.get();
-            assertUnits(context, "second", "seconds", "Current", "to", "second", "seconds");
-            assertUnits(context, "day", "days", "Current", "to", "day", "days");
-            assertUnits(context, "view per like", "views per like", "Current", "to",
+            assertUnits(context, "%1$s second", "%1$s seconds", "Current", "to", "second", "seconds");
+            assertUnits(context, "%1$s day", "%1$s days", "Current", "to", "day", "days");
+            assertUnits(context, "%1$s view per like", "%1$s views per like", "Current", "to",
                     "view per like", "views per like");
         }
     }
@@ -97,9 +97,9 @@ public class NumberInputPreferenceTest {
     public void germanTranslatesEachForm() {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
             Context context = controller.get();
-            assertUnits(context, "second", "seconds", "Aktuell", "bis", "Sekunde", "Sekunden");
-            assertUnits(context, "day", "days", "Aktuell", "bis", "Tag", "Tage");
-            assertUnits(context, "view per like", "views per like", "Aktuell", "bis",
+            assertUnits(context, "%1$s second", "%1$s seconds", "Aktuell", "bis", "Sekunde", "Sekunden");
+            assertUnits(context, "%1$s day", "%1$s days", "Aktuell", "bis", "Tag", "Tage");
+            assertUnits(context, "%1$s view per like", "%1$s views per like", "Aktuell", "bis",
                     "Aufruf pro Like", "Aufrufe pro Like");
         }
     }
@@ -109,9 +109,9 @@ public class NumberInputPreferenceTest {
     public void indonesianTranslatesEachForm() {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
             Context context = controller.get();
-            assertUnits(context, "second", "seconds", "Saat ini", "sampai", "detik", "detik");
-            assertUnits(context, "day", "days", "Saat ini", "sampai", "hari", "hari");
-            assertUnits(context, "view per like", "views per like", "Saat ini", "sampai",
+            assertUnits(context, "%1$s second", "%1$s seconds", "Saat ini", "sampai", "detik", "detik");
+            assertUnits(context, "%1$s day", "%1$s days", "Saat ini", "sampai", "hari", "hari");
+            assertUnits(context, "%1$s view per like", "%1$s views per like", "Saat ini", "sampai",
                     "tayangan per like", "tayangan per like");
         }
     }
@@ -126,7 +126,7 @@ public class NumberInputPreferenceTest {
             String plural
     ) {
         String range = "0 " + rangeJoiner + " 10";
-        IntegerSetting setting = new IntegerSetting("unit_test_" + singularKey, 3).withRange(0, 10);
+        IntegerSetting setting = new IntegerSetting("unit_test_" + singularKey.replace("%1$s ", "").replace(' ', '_'), 3).withRange(0, 10);
         NumberInputPreference preference = new NumberInputPreference(
                 context, "Title", "Summary", setting, singularKey, pluralKey);
 
@@ -226,7 +226,7 @@ public class NumberInputPreferenceTest {
             // Until this, the only place the day's progress showed was the one notice when the
             // budget ran out, so a row set to 200 said nothing about the 57 already watched.
             NumberInputPreference row = new NumberInputPreference(
-                    context, "Daily video budget", "Summary", setting, "video", "videos") {
+                    context, "Daily video budget", "Summary", setting, "%1$s video", "%1$s videos") {
                 @Override protected String extraSummaryLine() {
                     return setting.get() <= 0 ? null : "Today: 57 videos";
                 }
@@ -252,7 +252,7 @@ public class NumberInputPreferenceTest {
             Context context = controller.get();
             IntegerSetting setting = new IntegerSetting("unit_test_plain", 3).withRange(0, 10);
             NumberInputPreference row = new NumberInputPreference(
-                    context, "Title", "Summary", setting, "video", "videos");
+                    context, "Title", "Summary", setting, "%1$s video", "%1$s videos");
 
             row.setValue("4");
             assertEquals("Summary\n0 to 10\nCurrent: 4 videos", row.getSummary().toString());
@@ -265,7 +265,7 @@ public class NumberInputPreferenceTest {
             Context context = controller.get();
             IntegerSetting setting = new IntegerSetting("unit_test_zero_off", 3).withRange(0, 10);
             NumberInputPreference preference = new NumberInputPreference(
-                    context, "Title", "Summary", setting, "video", "videos");
+                    context, "Title", "Summary", setting, "%1$s video", "%1$s videos");
 
             preference.setValue("0");
             assertEquals("Summary\n0 to 10\nCurrent: 0 videos", preference.getSummary().toString());

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Morphe Photos – monochrome launcher icon
+  Android 13+ themed/wallpaper-tinted icon.
+  System applies its own tint; shape must be pure black filled paths.
+  Silhouette: 4-petal pinwheel, same geometry as Google Photos icon.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="90dp"
+    android:height="90dp"
+    android:viewportWidth="90"
+    android:viewportHeight="90">
+
+    <!-- Upper-left petal (rotated -45°, pivot at center 45,45) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M45,45
+            C45,45 22,44 22,22
+            C22,0 44,0 45,0
+            C46,0 45,45 45,45 Z" />
+
+    <!-- Upper-right petal -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M45,45
+            C45,45 46,22 68,22
+            C90,22 90,44 90,45
+            C90,46 45,45 45,45 Z" />
+
+    <!-- Lower-right petal -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M45,45
+            C45,45 68,46 68,68
+            C68,90 46,90 45,90
+            C44,90 45,45 45,45 Z" />
+
+    <!-- Lower-left petal -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M45,45
+            C45,45 44,68 22,68
+            C0,68 0,46 0,45
+            C0,44 45,45 45,45 Z" />
+
+</vector>

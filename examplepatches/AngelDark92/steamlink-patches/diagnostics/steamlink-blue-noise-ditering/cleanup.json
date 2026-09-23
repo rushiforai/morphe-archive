@@ -1,0 +1,337 @@
+{
+  "date": "2026-09-22",
+  "scope": "Task-created outputs only; individually inspected file manifest; no recursive delete",
+  "workspaceInventory": [
+    {
+      "Name": ".agents",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".android-sdk",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".git",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".github",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".gradle",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".kotlin",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".venv",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".vscode",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "build",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "diagnostics",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "extensions",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "gradle",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "Install",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "patches",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "Resources",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "SteamLink-GalaxyXR-Python-Patches-Already-Tried-for_Resolution_issue",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "VirtualDesktop",
+      "PSIsContainer": true
+    },
+    {
+      "Name": "XR_RESOLUTION_EXPERIMENT_LOGS",
+      "PSIsContainer": true
+    },
+    {
+      "Name": ".editorconfig",
+      "PSIsContainer": false
+    },
+    {
+      "Name": ".gitattributes",
+      "PSIsContainer": false
+    },
+    {
+      "Name": ".gitignore",
+      "PSIsContainer": false
+    },
+    {
+      "Name": ".releaserc",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "AGENTS.md",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "CHANGELOG.md",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "DEBUGGING.md",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "gradle.properties",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "GradleBuildCommand.txt",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "gradlew",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "gradlew.bat",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "images.jpg",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "LEGACY_VS_MORPHE_PATCHES.md",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "LICENSE",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "NOTICE",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "package-lock.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "package.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "PATCH_CATALOG.md",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "patches-bundle.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "patches-list-all.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "patches-list-experimental.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "patches-list-stable.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "patches-list.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "README.md",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "settings.gradle.kts",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "skills-lock.json",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "TECHNICAL_REFERENCE.md",
+      "PSIsContainer": false
+    },
+    {
+      "Name": "WORKSPACE_CLEANUP.md",
+      "PSIsContainer": false
+    }
+  ],
+  "nestedRepositories": [
+    "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches"
+  ],
+  "verification": "Deletion deferred: automatic approval review rejected both recursive and inspected non-recursive PowerShell cleanup commands with reason blocked by policy. No deletion command ran. All outputs remain.",
+  "retained": [
+    "Exact decoded bases and fixture APKs",
+    "Canonical patches/src/main source/tile/helper",
+    "Compact reports",
+    "Existing tools/SDKs and unrelated build children",
+    "build/tooling/bin/glslang.exe for reproducible syntax checks"
+  ],
+  "plannedTargets": [
+    {
+      "path": "build/blue-noise-glsl",
+      "files": 47,
+      "bytes": 90761616
+    },
+    {
+      "path": "build/blue-noise-kotlin",
+      "files": 160,
+      "bytes": 1252192
+    },
+    {
+      "path": "build/blue-noise-kotlin-final",
+      "files": 163,
+      "bytes": 1298759
+    },
+    {
+      "path": "build/blue-noise-morphe",
+      "files": 1440,
+      "bytes": 2009228464
+    },
+    {
+      "path": "build/blue-noise-morphe-final",
+      "files": 1440,
+      "bytes": 2008433220
+    },
+    {
+      "path": "build/blue-noise-native",
+      "files": 1,
+      "bytes": 413816
+    },
+    {
+      "path": "build/blue-noise-native-tests",
+      "files": 16,
+      "bytes": 8847603
+    },
+    {
+      "path": "build/blue-noise-package",
+      "files": 6,
+      "bytes": 2136931
+    },
+    {
+      "path": "build/blue-noise-release-check",
+      "files": 163,
+      "bytes": 1298794
+    },
+    {
+      "path": "build/blue-noise-delivery-check",
+      "files": 163,
+      "bytes": 1298833
+    },
+    {
+      "path": "build/blue-noise-tools",
+      "files": 2227,
+      "bytes": 66426194
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-10-bit-oled.txt",
+      "files": 1,
+      "bytes": 1247
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-10-bit-stock.txt",
+      "files": 1,
+      "bytes": 1214
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-8-bit-oled.txt",
+      "files": 1,
+      "bytes": 1244
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-8-bit-stock.txt",
+      "files": 1,
+      "bytes": 1211
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-10-bit-oled.txt",
+      "files": 1,
+      "bytes": 1247
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-10-bit-stock.txt",
+      "files": 1,
+      "bytes": 1214
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-8-bit-oled.txt",
+      "files": 1,
+      "bytes": 1244
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-8-bit-stock.txt",
+      "files": 1,
+      "bytes": 1211
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-10-bit-oled.txt",
+      "files": 1,
+      "bytes": 1247
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-10-bit-stock.txt",
+      "files": 1,
+      "bytes": 1214
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-8-bit-oled.txt",
+      "files": 1,
+      "bytes": 1244
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-8-stock.txt",
+      "files": 1,
+      "bytes": 1207
+    }
+  ],
+  "removed": [],
+  "pendingBytes": 4191411166,
+  "pendingFiles": 5838,
+  "bytesReclaimed": 0,
+  "manifest": "build/blue-noise-cleanup-manifest.json",
+  "completionCondition": "User removes the reviewed task-created outputs, or a future authorized tool execution is allowed to perform the inspected deletion. Do not broaden the allowlist.",
+  "protectedVerification": "All 10 retained input/payload/tool file sizes and SHA-256 values unchanged."
+}

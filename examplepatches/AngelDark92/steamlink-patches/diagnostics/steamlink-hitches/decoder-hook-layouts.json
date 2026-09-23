@@ -1,0 +1,1483 @@
+{
+  "5002322": {
+    "version": "2.0.22",
+    "version_code": 5002322,
+    "size": 2283400,
+    "sha256": "e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f",
+    "build_id": "585d88d646a8c6efe94bdd9fc6c9dbbc68fc13ba",
+    "functions": {
+      "Acquire": {
+        "symbol": "_ZN12QSVLCodecNDK24AcquireEncodedDataBufferEjPm",
+        "va": "0xfd110",
+        "raw_offset": "0xfd110",
+        "size": 248,
+        "sha256": "c63b5a0af6f660f061e3e571150456bd0b629c0566c03b7e5ab8db3c8444412a",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbda9f65701a9fd030091f44f02a9",
+        "first16_disasm": "000fd110 stp      x29, x30, [sp, #-0x30]!\n000fd114 stp      x22, x21, [sp, #0x10]\n000fd118 mov      x29, sp\n000fd11c stp      x20, x19, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x222a60",
+            "raw_offset": "0x21ea60",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK24AcquireEncodedDataBufferEjPm",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": []
+      },
+      "Submit": {
+        "symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+        "va": "0xfd208",
+        "raw_offset": "0xfd208",
+        "size": 676,
+        "sha256": "94fbb037f12beeb080e51fafcb6911633223761c8f644ae962c2f8a258d542c7",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ffc301d1fd7b02a9fd830091fa6703a9",
+        "first16_disasm": "000fd208 sub      sp, sp, #0x70\n000fd20c stp      x29, x30, [sp, #0x20]\n000fd210 add      x29, sp, #0x20\n000fd214 stp      x26, x25, [sp, #0x30]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x222a58",
+            "raw_offset": "0x21ea58",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": []
+      },
+      "Flush": {
+        "symbol": "_ZN12QSVLCodecNDK5FlushEv",
+        "va": "0xfd81c",
+        "raw_offset": "0xfd81c",
+        "size": 320,
+        "sha256": "79ea3576b8a290854c0ef2771d9fcbd939982dd10ea1a76a634ff621a96bd646",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ff4301d1fd7b02a9fd830091f51b00f9",
+        "first16_disasm": "000fd81c sub      sp, sp, #0x50\n000fd820 stp      x29, x30, [sp, #0x20]\n000fd824 add      x29, sp, #0x20\n000fd828 str      x21, [sp, #0x30]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x222a78",
+            "raw_offset": "0x21ea78",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK5FlushEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": []
+      },
+      "Stop": {
+        "symbol": "_ZN12QSVLCodecNDK4StopEv",
+        "va": "0xfd95c",
+        "raw_offset": "0xfd95c",
+        "size": 460,
+        "sha256": "d894db7fb51aeaa02347b9c41969915b5cc5c790316ddd180facb96982f413e1",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ff4301d1fd7b02a9fd830091f65703a9",
+        "first16_disasm": "000fd95c sub      sp, sp, #0x50\n000fd960 stp      x29, x30, [sp, #0x20]\n000fd964 add      x29, sp, #0x20\n000fd968 stp      x22, x21, [sp, #0x30]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x222a80",
+            "raw_offset": "0x21ea80",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK4StopEv",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.plt",
+            "va": "0x22d6c8",
+            "raw_offset": "0x2296c8",
+            "type": 1026,
+            "symbol": "_ZN12QSVLCodecNDK4StopEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfdb48",
+            "instruction": "bl",
+            "target": "0x2185b0",
+            "caller_symbol": "_ZN12QSVLCodecNDKD2Ev",
+            "caller_va": "0xfdb28",
+            "caller_size": 212,
+            "caller_raw_offset": "0xfdb28",
+            "caller_sha256": "b96f417cb85be4fffacfb7182a4e0bc614e50f9a7e4c81d5a44776206c081b53"
+          }
+        ]
+      },
+      "Init": {
+        "symbol": "_ZN12QSVLCodecNDK4InitEv",
+        "va": "0xfc928",
+        "raw_offset": "0xfc928",
+        "size": 1020,
+        "sha256": "c01385bc32c2573ee8019127d328d8ab298760033b313e0038c694dcea4c4315",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ffc301d1fd7b04a9fd030191f52b00f9",
+        "first16_disasm": "000fc928 sub      sp, sp, #0x70\n000fc92c stp      x29, x30, [sp, #0x40]\n000fc930 add      x29, sp, #0x40\n000fc934 str      x21, [sp, #0x50]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x222a50",
+            "raw_offset": "0x21ea50",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK4InitEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": []
+      },
+      "FrameSubmitted": {
+        "symbol": "_ZN11SVLDataLink23FrameSubmittedForDecodeEtj",
+        "va": "0x161a94",
+        "raw_offset": "0x161a94",
+        "size": 16,
+        "sha256": "aa12a11a9a4e78a18c84ca1b9239ea10b7365cc52c7e2b733d56d5d54e7279ce",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "281440920808088b029901b9c0035fd6",
+        "first16_disasm": "00161a94 and      x8, x1, #0x3f\n00161a98 add      x8, x0, x8, lsl #2\n00161a9c str      w2, [x8, #0x198]\n00161aa0 ret      ",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x22ef80",
+            "raw_offset": "0x22af80",
+            "type": 1026,
+            "symbol": "_ZN11SVLDataLink23FrameSubmittedForDecodeEtj",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0x166bd8",
+            "instruction": "bl",
+            "target": "0x21b720",
+            "caller_symbol": "_ZN6SVLFEC25InternalAcceptFrameFromRXEjPPht",
+            "caller_va": "0x166994",
+            "caller_size": 652,
+            "caller_raw_offset": "0x166994",
+            "caller_sha256": "7812a94011b56760002eac74dc7dab3e0b4bb71adf15c085cd2e82080010066d"
+          }
+        ]
+      },
+      "Destructor": {
+        "symbol": "_ZN12QSVLCodecNDKD2Ev",
+        "va": "0xfdb28",
+        "raw_offset": "0xfdb28",
+        "size": 212,
+        "sha256": "b96f417cb85be4fffacfb7182a4e0bc614e50f9a7e4c81d5a44776206c081b53",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbea9f44f01a9fd030091680900f0",
+        "first16_disasm": "000fdb28 stp      x29, x30, [sp, #-0x20]!\n000fdb2c stp      x20, x19, [sp, #0x10]\n000fdb30 mov      x29, sp\n000fdb34 adrp     x8, #0x22c000",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x222a40",
+            "raw_offset": "0x21ea40",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDKD2Ev",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.plt",
+            "va": "0x22d6e8",
+            "raw_offset": "0x2296e8",
+            "type": 1026,
+            "symbol": "_ZN12QSVLCodecNDKD2Ev",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfdc3c",
+            "instruction": "bl",
+            "target": "0x2185f0",
+            "caller_symbol": "_ZN12QSVLCodecNDKD0Ev",
+            "caller_va": "0xfdc2c",
+            "caller_size": 36,
+            "caller_raw_offset": "0xfdc2c",
+            "caller_sha256": "d078971178f334896693e1906d6e95cd1e56c73c2573eb83a7e25e6fd2334a44"
+          }
+        ]
+      },
+      "GetMetadata": {
+        "symbol": "_ZN6SVLFEC21GetMetadataForFrameIdEt",
+        "va": "0x166c20",
+        "raw_offset": "0x166c20",
+        "size": 148,
+        "sha256": "212dc656050ddf091585cdb1d4ffafd40ca604f06b75a5c657004143f67c43d7",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbda9f50b00f9fd030091f44f02a9",
+        "first16_disasm": "00166c20 stp      x29, x30, [sp, #-0x30]!\n00166c24 str      x21, [sp, #0x10]\n00166c28 mov      x29, sp\n00166c2c stp      x20, x19, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x22d6a0",
+            "raw_offset": "0x2296a0",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC21GetMetadataForFrameIdEt",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfd74c",
+            "instruction": "bl",
+            "target": "0x218560",
+            "caller_symbol": "_ZN12QSVLCodecNDK22HandleOnImageAvailableEP12AImageReader",
+            "caller_va": "0xfd5a4",
+            "caller_size": 632,
+            "caller_raw_offset": "0xfd5a4",
+            "caller_sha256": "1b33e71c0b790cdb84be3a835009e9ac4d734a7f28870f5dde57ed899fd272ff"
+          },
+          {
+            "va": "0x102548",
+            "instruction": "bl",
+            "target": "0x218560",
+            "caller_symbol": "_ZN15QSVLFrameServer23ServeBestHardwareBufferER18HardwareBufferInfoP7SVLRootji",
+            "caller_va": "0x102498",
+            "caller_size": 616,
+            "caller_raw_offset": "0x102498",
+            "caller_sha256": "301cb3d5a2fc50fed7c4c69cdba5c416af244b95631c7cf5ffccb10cda88e6a6"
+          },
+          {
+            "va": "0x10c244",
+            "instruction": "bl",
+            "target": "0x218560",
+            "caller_symbol": "_ZN14QSVLRendererXR9FlipFrameERK10XRQContextPll",
+            "caller_va": "0x10bf38",
+            "caller_size": 3000,
+            "caller_raw_offset": "0x10bf38",
+            "caller_sha256": "428f96bd3001fb1641246760d5c1cb70147fb2d20f087d616befe0da7e22ad68"
+          }
+        ]
+      },
+      "PeriodicCheckForErrors": {
+        "symbol": "_ZN6SVLFEC22PeriodicCheckForErrorsEv",
+        "va": "0x166ecc",
+        "raw_offset": "0x166ecc",
+        "size": 384,
+        "sha256": "93a1266fa1987f1206cc4e4e415da8681cbf247a45a2f019393af7c39f514aec",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbea9f44f01a9fd03009108407139",
+        "first16_disasm": "00166ecc stp      x29, x30, [sp, #-0x20]!\n00166ed0 stp      x20, x19, [sp, #0x10]\n00166ed4 mov      x29, sp\n00166ed8 ldrb     w8, [x0, #0xc50]",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x22f208",
+            "raw_offset": "0x22b208",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC22PeriodicCheckForErrorsEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0x16704c",
+            "instruction": "b",
+            "target": "0x21bc30",
+            "caller_symbol": "_ZN6SVLFEC16NoPacketReceivedEv",
+            "caller_va": "0x16704c",
+            "caller_size": 4,
+            "caller_raw_offset": "0x16704c",
+            "caller_sha256": "35e6c29ed0104a4ea2d2ab6943551c1f2e824353d70ea12b8432ccd2797a1749"
+          },
+          {
+            "va": "0x16707c",
+            "instruction": "bl",
+            "target": "0x21bc30",
+            "caller_symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+            "caller_va": "0x167050",
+            "caller_size": 660,
+            "caller_raw_offset": "0x167050",
+            "caller_sha256": "e1c49caa38c49b97f2151263b39d9e7777a394bfda36faa1186c1119fae7bc14"
+          }
+        ]
+      },
+      "RXInitialize": {
+        "symbol": "_ZN13SVLFECRXFrame10InitializeEtjP25SVLVideoFrameDescriptor_t",
+        "va": "0x165fd8",
+        "raw_offset": "0x165fd8",
+        "size": 624,
+        "sha256": "ef25c48d78feef1babf1a2daae75b3212058cf3a4a672f5ddb16a94d66037a49",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbca9f85f01a9fd030091f65702a9",
+        "first16_disasm": "00165fd8 stp      x29, x30, [sp, #-0x40]!\n00165fdc stp      x24, x23, [sp, #0x10]\n00165fe0 mov      x29, sp\n00165fe4 stp      x22, x21, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224de0",
+            "raw_offset": "0x220de0",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame10InitializeEtjP25SVLVideoFrameDescriptor_t",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.dyn",
+            "va": "0x224ed8",
+            "raw_offset": "0x220ed8",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame10InitializeEtjP25SVLVideoFrameDescriptor_t",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": []
+      },
+      "AcceptVFD": {
+        "symbol": "_ZN13SVLFECRXFrame9AcceptVFDEP25SVLVideoFrameDescriptor_tj",
+        "va": "0x165a50",
+        "raw_offset": "0x165a50",
+        "size": 344,
+        "sha256": "deff9d3b7a5d43973de2bafc26c11bfcc75a0c8f58759a5fde4c6e123e07e540",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbca9f70b00f9fd030091f65702a9",
+        "first16_disasm": "00165a50 stp      x29, x30, [sp, #-0x40]!\n00165a54 str      x23, [sp, #0x10]\n00165a58 mov      x29, sp\n00165a5c stp      x22, x21, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224de8",
+            "raw_offset": "0x220de8",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame9AcceptVFDEP25SVLVideoFrameDescriptor_tj",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.dyn",
+            "va": "0x224ee0",
+            "raw_offset": "0x220ee0",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame9AcceptVFDEP25SVLVideoFrameDescriptor_tj",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": []
+      },
+      "ExperiencedAnUnrecoverableError": {
+        "symbol": "_ZN6SVLFEC31ExperiencedAnUnrecoverableErrorEv",
+        "va": "0x165fb8",
+        "raw_offset": "0x165fb8",
+        "size": 12,
+        "sha256": "362ac61ddebdc66ed5e436f38174790646800a2120368d7784ec8a36e8b49950",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "2800805208403139c0035fd608008012",
+        "first16_disasm": "00165fb8 mov      w8, #1\n00165fbc strb     w8, [x0, #0xc50]\n00165fc0 ret      \n00165fc4 mov      w8, #-1",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x22d658",
+            "raw_offset": "0x229658",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC31ExperiencedAnUnrecoverableErrorEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfcefc",
+            "instruction": "bl",
+            "target": "0x2184d0",
+            "caller_symbol": "_ZN12QSVLCodecNDK11MediaThreadEv",
+            "caller_va": "0xfcd28",
+            "caller_size": 592,
+            "caller_raw_offset": "0xfcd28",
+            "caller_sha256": "3f5e19903bbdc989f555bd0d5a59cb059cb520b20db7c96af245691627c4072b"
+          },
+          {
+            "va": "0xfd35c",
+            "instruction": "bl",
+            "target": "0x2184d0",
+            "caller_symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+            "caller_va": "0xfd208",
+            "caller_size": 676,
+            "caller_raw_offset": "0xfd208",
+            "caller_sha256": "94fbb037f12beeb080e51fafcb6911633223761c8f644ae962c2f8a258d542c7"
+          },
+          {
+            "va": "0xfd4d0",
+            "instruction": "bl",
+            "target": "0x2184d0",
+            "caller_symbol": "_ZN12QSVLCodecNDK24HandleUnrecoverableErrorEv",
+            "caller_va": "0xfd4ac",
+            "caller_size": 76,
+            "caller_raw_offset": "0xfd4ac",
+            "caller_sha256": "e85d898c1356db63532fa0046288311efd7582406c0ea1199efec0c57867c732"
+          }
+        ]
+      },
+      "FECAcceptVideoPacket": {
+        "symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+        "va": "0x167050",
+        "raw_offset": "0x167050",
+        "size": 660,
+        "sha256": "e1c49caa38c49b97f2151263b39d9e7777a394bfda36faa1186c1119fae7bc14",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbca9f85f01a9fd030091f65702a9",
+        "first16_disasm": "00167050 stp      x29, x30, [sp, #-0x40]!\n00167054 stp      x24, x23, [sp, #0x10]\n00167058 mov      x29, sp\n0016705c stp      x22, x21, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224e78",
+            "raw_offset": "0x220e78",
+            "type": 257,
+            "symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.dyn",
+            "va": "0x224f70",
+            "raw_offset": "0x220f70",
+            "type": 257,
+            "symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": []
+      },
+      "InternalAcceptFrameFromRX": {
+        "symbol": "_ZN6SVLFEC25InternalAcceptFrameFromRXEjPPht",
+        "va": "0x166994",
+        "raw_offset": "0x166994",
+        "size": 652,
+        "sha256": "7812a94011b56760002eac74dc7dab3e0b4bb71adf15c085cd2e82080010066d",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbaa9fc6f01a9fd030091fa6702a9",
+        "first16_disasm": "00166994 stp      x29, x30, [sp, #-0x60]!\n00166998 stp      x28, x27, [sp, #0x10]\n0016699c mov      x29, sp\n001669a0 stp      x26, x25, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x22f1f0",
+            "raw_offset": "0x22b1f0",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC25InternalAcceptFrameFromRXEjPPht",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0x167cfc",
+            "instruction": "bl",
+            "target": "0x21bc00",
+            "caller_symbol": "_ZN18SVLFECRAID6RXFrame15CheckRXCompleteEv",
+            "caller_va": "0x167c90",
+            "caller_size": 172,
+            "caller_raw_offset": "0x167c90",
+            "caller_sha256": "c1d29e7ad70ae50fdc5e3ee0cc8fd53402b14afbe1d4dd1b8551e74edb20609b"
+          }
+        ]
+      }
+    },
+    "codec_vtable": "0x222a30",
+    "vtable_slots": [
+      {
+        "va": "0x222a50",
+        "slot_from_address_point": "0x10",
+        "symbol": "_ZN12QSVLCodecNDK4InitEv",
+        "resolved_va": "0xfc928",
+        "type": 257
+      },
+      {
+        "va": "0x222a60",
+        "slot_from_address_point": "0x20",
+        "symbol": "_ZN12QSVLCodecNDK24AcquireEncodedDataBufferEjPm",
+        "resolved_va": "0xfd110",
+        "type": 257
+      },
+      {
+        "va": "0x222a40",
+        "slot_from_address_point": "0x0",
+        "symbol": "_ZN12QSVLCodecNDKD2Ev",
+        "resolved_va": "0xfdb28",
+        "type": 257
+      },
+      {
+        "va": "0x222a68",
+        "slot_from_address_point": "0x28",
+        "symbol": "_ZN8SVLCodec9SoftResetEv",
+        "resolved_va": "0xfdc50",
+        "type": 257
+      },
+      {
+        "va": "0x222a48",
+        "slot_from_address_point": "0x8",
+        "symbol": "_ZN12QSVLCodecNDKD0Ev",
+        "resolved_va": "0xfdc2c",
+        "type": 257
+      },
+      {
+        "va": "0x222a38",
+        "slot_from_address_point": "-0x8",
+        "symbol": "_ZTI12QSVLCodecNDK",
+        "resolved_va": "0x222a90",
+        "type": 257
+      },
+      {
+        "va": "0x222a80",
+        "slot_from_address_point": "0x40",
+        "symbol": "_ZN12QSVLCodecNDK4StopEv",
+        "resolved_va": "0xfd95c",
+        "type": 257
+      },
+      {
+        "va": "0x222a58",
+        "slot_from_address_point": "0x18",
+        "symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+        "resolved_va": "0xfd208",
+        "type": 257
+      },
+      {
+        "va": "0x222a78",
+        "slot_from_address_point": "0x38",
+        "symbol": "_ZN12QSVLCodecNDK5FlushEv",
+        "resolved_va": "0xfd81c",
+        "type": 257
+      },
+      {
+        "va": "0x222a70",
+        "slot_from_address_point": "0x30",
+        "symbol": "_ZN8SVLCodec9HardResetEv",
+        "resolved_va": "0xfdc54",
+        "type": 257
+      },
+      {
+        "va": "0x222a88",
+        "slot_from_address_point": "0x48",
+        "symbol": "_ZN12QSVLCodecNDK8BIsStuckEv",
+        "resolved_va": "0xfd51c",
+        "type": 257
+      }
+    ],
+    "init_array": [
+      {
+        "slot": "0x22bc78",
+        "target": "0xf1144",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bc80",
+        "target": "0xf217c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bc88",
+        "target": "0xf33cc",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bc90",
+        "target": "0xf8214",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bc98",
+        "target": "0xfbe58",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bca0",
+        "target": "0x10dc94",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bca8",
+        "target": "0x1116c4",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcb0",
+        "target": "0x115d94",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcb8",
+        "target": "0x12209c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcc0",
+        "target": "0x1233cc",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcc8",
+        "target": "0x125c84",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcd0",
+        "target": "0x12b5dc",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcd8",
+        "target": "0x12f5f4",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bce0",
+        "target": "0x143dec",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bce8",
+        "target": "0x144ab8",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcf0",
+        "target": "0x1476e8",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bcf8",
+        "target": "0x158f74",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bd00",
+        "target": "0x15cc08",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bd08",
+        "target": "0x16440c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bd10",
+        "target": "0x16515c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bd18",
+        "target": "0x16d6b0",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bd20",
+        "target": "0x17c580",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bd28",
+        "target": "0x183e20",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22bd30",
+        "target": "0x213074",
+        "symbol": ""
+      }
+    ],
+    "relro": [
+      {
+        "va": "0x222100",
+        "size": "0xef00"
+      }
+    ],
+    "needed_mediandk": {
+      "raw_offset": "0x69656",
+      "dynstr_offset": "0x4119e",
+      "count": 1
+    },
+    "verneed": [
+      "libm.so",
+      "libdl.so",
+      "libc.so"
+    ],
+    "object_offsets": {
+      "source": "hitch_source_investigator disassembly under build/live-hitch-20260915/implementation-ownership",
+      "codec_renderer": 32,
+      "renderer_client": 24,
+      "client_datalink": 320,
+      "datalink_fec": 16,
+      "fec_client": 3120,
+      "client_renderer": 312,
+      "renderer_codec": 16,
+      "fec_rx_ring": 152,
+      "rx_frame_id": 8,
+      "rx_metadata_ready": 12,
+      "rx_buffer": 48,
+      "rx_capacity": 56,
+      "rx_mutex": 16968,
+      "rx_metadata": 17008,
+      "rx_metadata_size": 340,
+      "codec_shared_mutex": 336,
+      "codec_marker_mutex": 128
+    }
+  },
+  "5002363": {
+    "version": "2.0.23",
+    "version_code": 5002363,
+    "size": 2292008,
+    "sha256": "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0",
+    "build_id": "c31bb979123b76736930d3c820d8d0619fb5bed2",
+    "functions": {
+      "Acquire": {
+        "symbol": "_ZN12QSVLCodecNDK24AcquireEncodedDataBufferEjPm",
+        "va": "0xfded8",
+        "raw_offset": "0xfded8",
+        "size": 248,
+        "sha256": "41ab4fe38ebf38dd0594cc2765aa08d9aa6df22b494392a0a23a6cde2d96d53e",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbda9f65701a9fd030091f44f02a9",
+        "first16_disasm": "000fded8 stp      x29, x30, [sp, #-0x30]!\n000fdedc stp      x22, x21, [sp, #0x10]\n000fdee0 mov      x29, sp\n000fdee4 stp      x20, x19, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224ab0",
+            "raw_offset": "0x220ab0",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK24AcquireEncodedDataBufferEjPm",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [],
+        "installed_matches_stock": true
+      },
+      "Submit": {
+        "symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+        "va": "0xfdfd0",
+        "raw_offset": "0xfdfd0",
+        "size": 676,
+        "sha256": "7a6932fa90e39c50a43d0f50fb8a7bc371533c0fe2cd0c5b4e8d2e109b7c7bf6",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ffc301d1fd7b02a9fd830091fa6703a9",
+        "first16_disasm": "000fdfd0 sub      sp, sp, #0x70\n000fdfd4 stp      x29, x30, [sp, #0x20]\n000fdfd8 add      x29, sp, #0x20\n000fdfdc stp      x26, x25, [sp, #0x30]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224aa8",
+            "raw_offset": "0x220aa8",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [],
+        "installed_matches_stock": true
+      },
+      "Flush": {
+        "symbol": "_ZN12QSVLCodecNDK5FlushEv",
+        "va": "0xfe5e4",
+        "raw_offset": "0xfe5e4",
+        "size": 320,
+        "sha256": "3919d2279fe484ef288ed362a8f0178eb9afd316604b5498260ba7563571189f",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ff4301d1fd7b02a9fd830091f51b00f9",
+        "first16_disasm": "000fe5e4 sub      sp, sp, #0x50\n000fe5e8 stp      x29, x30, [sp, #0x20]\n000fe5ec add      x29, sp, #0x20\n000fe5f0 str      x21, [sp, #0x30]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224ac8",
+            "raw_offset": "0x220ac8",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK5FlushEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [],
+        "installed_matches_stock": true
+      },
+      "Stop": {
+        "symbol": "_ZN12QSVLCodecNDK4StopEv",
+        "va": "0xfe724",
+        "raw_offset": "0xfe724",
+        "size": 460,
+        "sha256": "ba8f6a6fdcf2aad1b54d7a3c443e1c2edc7de3dfcc2402ebebb9aa05cc522ebf",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ff4301d1fd7b02a9fd830091f65703a9",
+        "first16_disasm": "000fe724 sub      sp, sp, #0x50\n000fe728 stp      x29, x30, [sp, #0x20]\n000fe72c add      x29, sp, #0x20\n000fe730 stp      x22, x21, [sp, #0x30]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224ad0",
+            "raw_offset": "0x220ad0",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK4StopEv",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.plt",
+            "va": "0x22f7a8",
+            "raw_offset": "0x22b7a8",
+            "type": 1026,
+            "symbol": "_ZN12QSVLCodecNDK4StopEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfe910",
+            "instruction": "bl",
+            "target": "0x21a590",
+            "caller_symbol": "_ZN12QSVLCodecNDKD2Ev",
+            "caller_va": "0xfe8f0",
+            "caller_size": 212,
+            "caller_raw_offset": "0xfe8f0",
+            "caller_sha256": "4edf9696508112ce32199c1441aeb39757395ac5dc40e032163bee0afe504913"
+          }
+        ],
+        "installed_matches_stock": true
+      },
+      "Init": {
+        "symbol": "_ZN12QSVLCodecNDK4InitEv",
+        "va": "0xfd6f0",
+        "raw_offset": "0xfd6f0",
+        "size": 1020,
+        "sha256": "70d1d40c4edcde46f11185103543c06f3d535c661de3558aaa2ad4da98e02d2b",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ffc301d1fd7b04a9fd030191f52b00f9",
+        "first16_disasm": "000fd6f0 sub      sp, sp, #0x70\n000fd6f4 stp      x29, x30, [sp, #0x40]\n000fd6f8 add      x29, sp, #0x40\n000fd6fc str      x21, [sp, #0x50]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224aa0",
+            "raw_offset": "0x220aa0",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDK4InitEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [],
+        "installed_matches_stock": true
+      },
+      "FrameSubmitted": {
+        "symbol": "_ZN11SVLDataLink23FrameSubmittedForDecodeEtj",
+        "va": "0x1628c8",
+        "raw_offset": "0x1628c8",
+        "size": 16,
+        "sha256": "aa12a11a9a4e78a18c84ca1b9239ea10b7365cc52c7e2b733d56d5d54e7279ce",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "281440920808088b029901b9c0035fd6",
+        "first16_disasm": "001628c8 and      x8, x1, #0x3f\n001628cc add      x8, x0, x8, lsl #2\n001628d0 str      w2, [x8, #0x198]\n001628d4 ret      ",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x231068",
+            "raw_offset": "0x22d068",
+            "type": 1026,
+            "symbol": "_ZN11SVLDataLink23FrameSubmittedForDecodeEtj",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0x167ab8",
+            "instruction": "bl",
+            "target": "0x21d710",
+            "caller_symbol": "_ZN6SVLFEC25InternalAcceptFrameFromRXEjPPht",
+            "caller_va": "0x1677c8",
+            "caller_size": 804,
+            "caller_raw_offset": "0x1677c8",
+            "caller_sha256": "3d23c1dd82ba3726321ef3b279be8c4da10772cdb34c4f08ce23ba00ed888d30"
+          }
+        ],
+        "installed_matches_stock": true
+      },
+      "Destructor": {
+        "symbol": "_ZN12QSVLCodecNDKD2Ev",
+        "va": "0xfe8f0",
+        "raw_offset": "0xfe8f0",
+        "size": 212,
+        "sha256": "4edf9696508112ce32199c1441aeb39757395ac5dc40e032163bee0afe504913",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbea9f44f01a9fd03009188090090",
+        "first16_disasm": "000fe8f0 stp      x29, x30, [sp, #-0x20]!\n000fe8f4 stp      x20, x19, [sp, #0x10]\n000fe8f8 mov      x29, sp\n000fe8fc adrp     x8, #0x22e000",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x224a90",
+            "raw_offset": "0x220a90",
+            "type": 257,
+            "symbol": "_ZN12QSVLCodecNDKD2Ev",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.plt",
+            "va": "0x22f7c8",
+            "raw_offset": "0x22b7c8",
+            "type": 1026,
+            "symbol": "_ZN12QSVLCodecNDKD2Ev",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfea04",
+            "instruction": "bl",
+            "target": "0x21a5d0",
+            "caller_symbol": "_ZN12QSVLCodecNDKD0Ev",
+            "caller_va": "0xfe9f4",
+            "caller_size": 36,
+            "caller_raw_offset": "0xfe9f4",
+            "caller_sha256": "8c534738410badeb04a0850834e62797259a39a10ea5b0783d7e71374dcfdecc"
+          }
+        ],
+        "installed_matches_stock": true
+      },
+      "GetMetadata": {
+        "symbol": "_ZN6SVLFEC21GetMetadataForFrameIdEt",
+        "va": "0x167aec",
+        "raw_offset": "0x167aec",
+        "size": 148,
+        "sha256": "f0452a0a36d93dcd19304ad170e5b93c391648afa3bc49c9e7ff1cfe87ddeaa9",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbda9f50b00f9fd030091f44f02a9",
+        "first16_disasm": "00167aec stp      x29, x30, [sp, #-0x30]!\n00167af0 str      x21, [sp, #0x10]\n00167af4 mov      x29, sp\n00167af8 stp      x20, x19, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x22f780",
+            "raw_offset": "0x22b780",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC21GetMetadataForFrameIdEt",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfe514",
+            "instruction": "bl",
+            "target": "0x21a540",
+            "caller_symbol": "_ZN12QSVLCodecNDK22HandleOnImageAvailableEP12AImageReader",
+            "caller_va": "0xfe36c",
+            "caller_size": 632,
+            "caller_raw_offset": "0xfe36c",
+            "caller_sha256": "3cfd18b0f5d6025c673300c7e8df601811656bdb67464f62011c904fc1e6855e"
+          },
+          {
+            "va": "0x103310",
+            "instruction": "bl",
+            "target": "0x21a540",
+            "caller_symbol": "_ZN15QSVLFrameServer23ServeBestHardwareBufferER18HardwareBufferInfoP7SVLRootji",
+            "caller_va": "0x103260",
+            "caller_size": 616,
+            "caller_raw_offset": "0x103260",
+            "caller_sha256": "54a35ebc225bea7a7b640124969ab60857ba1bd3916aa581e7b615d1d5345023"
+          },
+          {
+            "va": "0x10d00c",
+            "instruction": "bl",
+            "target": "0x21a540",
+            "caller_symbol": "_ZN14QSVLRendererXR9FlipFrameERK10XRQContextPll",
+            "caller_va": "0x10cd00",
+            "caller_size": 3000,
+            "caller_raw_offset": "0x10cd00",
+            "caller_sha256": "986357756174710f0087b191157a11ee70104190360c6c17b466b951d8004884"
+          }
+        ],
+        "installed_matches_stock": true
+      },
+      "PeriodicCheckForErrors": {
+        "symbol": "_ZN6SVLFEC22PeriodicCheckForErrorsEv",
+        "va": "0x167d98",
+        "raw_offset": "0x167d98",
+        "size": 384,
+        "sha256": "db74511c2660e9408e71f821b35edd052e067a73115811166c739ab0b00fa4ff",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbea9f44f01a9fd03009108407139",
+        "first16_disasm": "00167d98 stp      x29, x30, [sp, #-0x20]!\n00167d9c stp      x20, x19, [sp, #0x10]\n00167da0 mov      x29, sp\n00167da4 ldrb     w8, [x0, #0xc50]",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x2312f8",
+            "raw_offset": "0x22d2f8",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC22PeriodicCheckForErrorsEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0x167f18",
+            "instruction": "b",
+            "target": "0x21dc30",
+            "caller_symbol": "_ZN6SVLFEC16NoPacketReceivedEv",
+            "caller_va": "0x167f18",
+            "caller_size": 4,
+            "caller_raw_offset": "0x167f18",
+            "caller_sha256": "bec787b756a818822ceceb17c3777109768397bab1d930dab09105fe07eae0f4"
+          },
+          {
+            "va": "0x167f48",
+            "instruction": "bl",
+            "target": "0x21dc30",
+            "caller_symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+            "caller_va": "0x167f1c",
+            "caller_size": 660,
+            "caller_raw_offset": "0x167f1c",
+            "caller_sha256": "22eb5623fd4bc06b3464dcadaf26c160cd4b460c3e0f428ebefeb72052700121"
+          }
+        ],
+        "installed_matches_stock": true
+      },
+      "RXInitialize": {
+        "symbol": "_ZN13SVLFECRXFrame10InitializeEtjP25SVLVideoFrameDescriptor_t",
+        "va": "0x166e0c",
+        "raw_offset": "0x166e0c",
+        "size": 624,
+        "sha256": "201a9571dd85072eb5a9bc5b23d5ef7e86ef30bafeaae4671540057db576f2c1",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbca9f85f01a9fd030091f65702a9",
+        "first16_disasm": "00166e0c stp      x29, x30, [sp, #-0x40]!\n00166e10 stp      x24, x23, [sp, #0x10]\n00166e14 mov      x29, sp\n00166e18 stp      x22, x21, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x226e30",
+            "raw_offset": "0x222e30",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame10InitializeEtjP25SVLVideoFrameDescriptor_t",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.dyn",
+            "va": "0x226f28",
+            "raw_offset": "0x222f28",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame10InitializeEtjP25SVLVideoFrameDescriptor_t",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [],
+        "installed_matches_stock": true
+      },
+      "AcceptVFD": {
+        "symbol": "_ZN13SVLFECRXFrame9AcceptVFDEP25SVLVideoFrameDescriptor_tj",
+        "va": "0x166884",
+        "raw_offset": "0x166884",
+        "size": 344,
+        "sha256": "b26aedfc48684f1320dcc083c84a51efaf5c3b075d53d17b4a5f8dcbacef8d03",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbca9f70b00f9fd030091f65702a9",
+        "first16_disasm": "00166884 stp      x29, x30, [sp, #-0x40]!\n00166888 str      x23, [sp, #0x10]\n0016688c mov      x29, sp\n00166890 stp      x22, x21, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x226e38",
+            "raw_offset": "0x222e38",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame9AcceptVFDEP25SVLVideoFrameDescriptor_tj",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.dyn",
+            "va": "0x226f30",
+            "raw_offset": "0x222f30",
+            "type": 257,
+            "symbol": "_ZN13SVLFECRXFrame9AcceptVFDEP25SVLVideoFrameDescriptor_tj",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [],
+        "installed_matches_stock": true
+      },
+      "ExperiencedAnUnrecoverableError": {
+        "symbol": "_ZN6SVLFEC31ExperiencedAnUnrecoverableErrorEv",
+        "va": "0x166dec",
+        "raw_offset": "0x166dec",
+        "size": 12,
+        "sha256": "362ac61ddebdc66ed5e436f38174790646800a2120368d7784ec8a36e8b49950",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "2800805208403139c0035fd608008012",
+        "first16_disasm": "00166dec mov      w8, #1\n00166df0 strb     w8, [x0, #0xc50]\n00166df4 ret      \n00166df8 mov      w8, #-1",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x22f738",
+            "raw_offset": "0x22b738",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC31ExperiencedAnUnrecoverableErrorEv",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0xfdcc4",
+            "instruction": "bl",
+            "target": "0x21a4b0",
+            "caller_symbol": "_ZN12QSVLCodecNDK11MediaThreadEv",
+            "caller_va": "0xfdaf0",
+            "caller_size": 592,
+            "caller_raw_offset": "0xfdaf0",
+            "caller_sha256": "77d95907322ab68c639c7888b0e489f2f1c44ce86e23b6d9df2843365329760f"
+          },
+          {
+            "va": "0xfe124",
+            "instruction": "bl",
+            "target": "0x21a4b0",
+            "caller_symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+            "caller_va": "0xfdfd0",
+            "caller_size": 676,
+            "caller_raw_offset": "0xfdfd0",
+            "caller_sha256": "7a6932fa90e39c50a43d0f50fb8a7bc371533c0fe2cd0c5b4e8d2e109b7c7bf6"
+          },
+          {
+            "va": "0xfe298",
+            "instruction": "bl",
+            "target": "0x21a4b0",
+            "caller_symbol": "_ZN12QSVLCodecNDK24HandleUnrecoverableErrorEv",
+            "caller_va": "0xfe274",
+            "caller_size": 76,
+            "caller_raw_offset": "0xfe274",
+            "caller_sha256": "f3de1f1583c3b0b59fa7edd1a39eb1fc5416d011fe15b5d3b3da9c43516f05a6"
+          }
+        ],
+        "installed_matches_stock": true
+      },
+      "FECAcceptVideoPacket": {
+        "symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+        "va": "0x167f1c",
+        "raw_offset": "0x167f1c",
+        "size": 660,
+        "sha256": "22eb5623fd4bc06b3464dcadaf26c160cd4b460c3e0f428ebefeb72052700121",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "fd7bbca9f85f01a9fd030091f65702a9",
+        "first16_disasm": "00167f1c stp      x29, x30, [sp, #-0x40]!\n00167f20 stp      x24, x23, [sp, #0x10]\n00167f24 mov      x29, sp\n00167f28 stp      x22, x21, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.dyn",
+            "va": "0x226ec8",
+            "raw_offset": "0x222ec8",
+            "type": 257,
+            "symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+            "addend": "0x0"
+          },
+          {
+            "section": ".rela.dyn",
+            "va": "0x226fc0",
+            "raw_offset": "0x222fc0",
+            "type": 257,
+            "symbol": "_ZN6SVLFEC17AcceptVideoPacketEP7dataset",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [],
+        "installed_matches_stock": true
+      },
+      "InternalAcceptFrameFromRX": {
+        "symbol": "_ZN6SVLFEC25InternalAcceptFrameFromRXEjPPht",
+        "va": "0x1677c8",
+        "raw_offset": "0x1677c8",
+        "size": 804,
+        "sha256": "3d23c1dd82ba3726321ef3b279be8c4da10772cdb34c4f08ce23ba00ed888d30",
+        "binding": "STB_GLOBAL",
+        "visibility": "STV_DEFAULT",
+        "first16": "ffc301d1fd7b01a9fd430091fc6f02a9",
+        "first16_disasm": "001677c8 sub      sp, sp, #0x70\n001677cc stp      x29, x30, [sp, #0x10]\n001677d0 add      x29, sp, #0x10\n001677d4 stp      x28, x27, [sp, #0x20]",
+        "relocations": [
+          {
+            "section": ".rela.plt",
+            "va": "0x2312e0",
+            "raw_offset": "0x22d2e0",
+            "type": 1026,
+            "symbol": "_ZN6SVLFEC25InternalAcceptFrameFromRXEjPPht",
+            "addend": "0x0"
+          }
+        ],
+        "direct_branches": [],
+        "plt_branches": [
+          {
+            "va": "0x168bc8",
+            "instruction": "bl",
+            "target": "0x21dc00",
+            "caller_symbol": "_ZN18SVLFECRAID6RXFrame15CheckRXCompleteEv",
+            "caller_va": "0x168b5c",
+            "caller_size": 172,
+            "caller_raw_offset": "0x168b5c",
+            "caller_sha256": "bcf7f9bf5ef83d67ec1b235ac9a345cc49c20d5a3ebb8aec1761b854d9e5c827"
+          }
+        ],
+        "installed_matches_stock": true
+      }
+    },
+    "codec_vtable": "0x224a80",
+    "vtable_slots": [
+      {
+        "va": "0x224a98",
+        "slot_from_address_point": "0x8",
+        "symbol": "_ZN12QSVLCodecNDKD0Ev",
+        "resolved_va": "0xfe9f4",
+        "type": 257
+      },
+      {
+        "va": "0x224ab0",
+        "slot_from_address_point": "0x20",
+        "symbol": "_ZN12QSVLCodecNDK24AcquireEncodedDataBufferEjPm",
+        "resolved_va": "0xfded8",
+        "type": 257
+      },
+      {
+        "va": "0x224ad0",
+        "slot_from_address_point": "0x40",
+        "symbol": "_ZN12QSVLCodecNDK4StopEv",
+        "resolved_va": "0xfe724",
+        "type": 257
+      },
+      {
+        "va": "0x224a88",
+        "slot_from_address_point": "-0x8",
+        "symbol": "_ZTI12QSVLCodecNDK",
+        "resolved_va": "0x224ae0",
+        "type": 257
+      },
+      {
+        "va": "0x224ab8",
+        "slot_from_address_point": "0x28",
+        "symbol": "_ZN8SVLCodec9SoftResetEv",
+        "resolved_va": "0xfea18",
+        "type": 257
+      },
+      {
+        "va": "0x224aa0",
+        "slot_from_address_point": "0x10",
+        "symbol": "_ZN12QSVLCodecNDK4InitEv",
+        "resolved_va": "0xfd6f0",
+        "type": 257
+      },
+      {
+        "va": "0x224aa8",
+        "slot_from_address_point": "0x18",
+        "symbol": "_ZN12QSVLCodecNDK20SubmitFrameForDecodeEPPhijb",
+        "resolved_va": "0xfdfd0",
+        "type": 257
+      },
+      {
+        "va": "0x224ac0",
+        "slot_from_address_point": "0x30",
+        "symbol": "_ZN8SVLCodec9HardResetEv",
+        "resolved_va": "0xfea1c",
+        "type": 257
+      },
+      {
+        "va": "0x224ad8",
+        "slot_from_address_point": "0x48",
+        "symbol": "_ZN12QSVLCodecNDK8BIsStuckEv",
+        "resolved_va": "0xfe2e4",
+        "type": 257
+      },
+      {
+        "va": "0x224ac8",
+        "slot_from_address_point": "0x38",
+        "symbol": "_ZN12QSVLCodecNDK5FlushEv",
+        "resolved_va": "0xfe5e4",
+        "type": 257
+      },
+      {
+        "va": "0x224a90",
+        "slot_from_address_point": "0x0",
+        "symbol": "_ZN12QSVLCodecNDKD2Ev",
+        "resolved_va": "0xfe8f0",
+        "type": 257
+      }
+    ],
+    "init_array": [
+      {
+        "slot": "0x22dd58",
+        "target": "0xf1e24",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd60",
+        "target": "0xf2e5c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd68",
+        "target": "0xf40ac",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd70",
+        "target": "0xf8fc8",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd78",
+        "target": "0xfcc0c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd80",
+        "target": "0x10ea5c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd88",
+        "target": "0x11248c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd90",
+        "target": "0x116b5c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dd98",
+        "target": "0x122e64",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dda0",
+        "target": "0x124194",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dda8",
+        "target": "0x126a4c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddb0",
+        "target": "0x12c3a4",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddb8",
+        "target": "0x1303bc",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddc0",
+        "target": "0x144bb4",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddc8",
+        "target": "0x145880",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddd0",
+        "target": "0x1484b0",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddd8",
+        "target": "0x159d4c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dde0",
+        "target": "0x15d9e0",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22dde8",
+        "target": "0x165240",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddf0",
+        "target": "0x165f90",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22ddf8",
+        "target": "0x16e57c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22de00",
+        "target": "0x185b7c",
+        "symbol": ""
+      },
+      {
+        "slot": "0x22de08",
+        "target": "0x215044",
+        "symbol": ""
+      }
+    ],
+    "relro": [
+      {
+        "va": "0x224150",
+        "size": "0xeeb0"
+      }
+    ],
+    "needed_mediandk": {
+      "raw_offset": "0x69925",
+      "dynstr_offset": "0x4133d",
+      "count": 1
+    },
+    "verneed": [
+      "libm.so",
+      "libdl.so",
+      "libc.so"
+    ],
+    "object_offsets": {
+      "source": "hitch_source_investigator disassembly under build/live-hitch-20260915/implementation-ownership",
+      "codec_renderer": 40,
+      "renderer_client": 24,
+      "client_datalink": 320,
+      "datalink_fec": 16,
+      "fec_client": 3120,
+      "client_renderer": 312,
+      "renderer_codec": 16,
+      "fec_rx_ring": 152,
+      "rx_frame_id": 8,
+      "rx_metadata_ready": 12,
+      "rx_buffer": 48,
+      "rx_capacity": 56,
+      "rx_mutex": 16968,
+      "rx_metadata": 17008,
+      "rx_metadata_size": 340,
+      "codec_shared_mutex": 344,
+      "codec_marker_mutex": 136
+    }
+  }
+}

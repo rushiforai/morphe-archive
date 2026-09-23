@@ -226,4 +226,17 @@ object Constants {
             )
         )
     )
+
+    val VIDEO_COMPATIBILITY = Compatibility(
+        name = "Video to MP3",
+        packageName = "mp3videoconverter.videotomp3.videotomp3converter",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xCE2492,
+        targets = listOf(
+            AppTarget(
+                version = "2.2.7.1",
+                versionCode = 227100
+            )
+        )
+    )
 }

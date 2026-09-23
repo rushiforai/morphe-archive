@@ -752,9 +752,7 @@ public final class SettingsUi {
     /** Updates a result status only when it changed, avoiding duplicate announcements. */
     public static void setResultCount(TextView view, int count) {
         if (view == null) return;
-        String next = count == 1
-                ? L10n.t(view.getContext(), "1 result")
-                : L10n.f(view.getContext(), "%1$d results", count);
+        String next = L10n.quantity(view.getContext(), count, "1 result", "%1$d results");
         if (!TextUtils.equals(view.getText(), next)) view.setText(next);
     }
 

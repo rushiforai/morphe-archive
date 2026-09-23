@@ -30,6 +30,7 @@ public class HubActivity extends Activity {
     private TextView notificationsView;
     private TextView lastCheckView;
     private TextView watchingView;
+    private TextView goldClubView;
     private long checkRequestedMs = 0;
     /** True when a check couldn't be started because the game has never been opened on this install. */
     private boolean gameNeverOpened = false;
@@ -72,11 +73,14 @@ public class HubActivity extends Activity {
         notificationsView = UiKit.body(this, "");
         lastCheckView = UiKit.body(this, "");
         watchingView = UiKit.body(this, "");
+        goldClubView = UiKit.body(this, "");
         lastCheckView.setPadding(0, UiKit.dp(this, 6), 0, 0);
         watchingView.setPadding(0, UiKit.dp(this, 6), 0, 0);
+        goldClubView.setPadding(0, UiKit.dp(this, 6), 0, 0);
         status.addView(notificationsView);
         status.addView(lastCheckView);
         status.addView(watchingView);
+        status.addView(goldClubView);
         column.addView(status, UiKit.cardParams(this));
         column.addView(UiKit.primaryButton(this, "Open Travian", new View.OnClickListener() {
             @Override
@@ -96,6 +100,12 @@ public class HubActivity extends Activity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(HubActivity.this, QueuesActivity.class));
+            }
+        }), UiKit.cardParams(this));
+        column.addView(UiKit.menuRow(this, "Build order", "Set what each village builds next", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(HubActivity.this, BuildOrderActivity.class));
             }
         }), UiKit.cardParams(this));
         column.addView(UiKit.menuRow(this, "Recent notifications", "What was sent lately", new View.OnClickListener() {
@@ -136,6 +146,9 @@ public class HubActivity extends Activity {
             lastCheckView.setText(checking ? "Last check: checking now…" : status.lastCheckLine(now));
         }
         watchingView.setText(status.watchingLine());
+        SharedPreferences state = getSharedPreferences(NotifierWorker.STATE_PREFS, Context.MODE_PRIVATE);
+        String goldClub = state.getString(NotifierWorker.KEY_GOLD_CLUB, null);
+        goldClubView.setText(AccountTier.goldClubLine(goldClub == null ? null : Boolean.valueOf(goldClub)));
     }
 
     private String notificationsLine() {

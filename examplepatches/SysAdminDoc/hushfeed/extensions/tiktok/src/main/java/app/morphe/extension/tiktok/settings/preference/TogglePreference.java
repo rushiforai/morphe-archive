@@ -50,7 +50,7 @@ public class TogglePreference extends SwitchPreference {
         // nothing today and would find the wrong row the day a translation equals a key.
         super.setSummary(withRestartNote(context, summary, setting));
         setKey(setting.key);
-        setChecked(setting.get());
+        setChecked(setting.savedValue());
     }
 
     /**

@@ -1,0 +1,91 @@
+{
+  "date": "2026-09-22",
+  "cases_passed": 12,
+  "boundary": "Unsigned decoded-fixture APK packaging and actual Morphe finalize. Not pristine-source install or Android/linker/GPU/headset proof. Temporary APK outputs remain because automatic approval review blocked cleanup; cleanup.json records the inspected allowlist.",
+  "cases": [
+    {
+      "case": "2.0.20/5001712, declared 10-bit, OLED=true, selection order=oled-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712.apk; SHA-256=02f87bb8c599de003f49bb95a7b1cdd65e52557c2e76279865ac252e87686e09",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5001712-10-bit-oled\\steamlink-5001712-10-bit-oled-oled-first-unsigned.apk; SHA-256=0b149526b1c9c6175c6bcbe4542e527043e8cdbe0df0169c5b1a14f7b1578b55",
+      "finalized_hashes": "Finalized helper SHA-256=c3970f47d83e877fe709e987abef0a265b233e45d3e58ae89dae5e8bbaf4c211; scene SHA-256=16c910688c278fb5a1e396edbb851307bba66a3b23aad81ac5fa6abb93f5d6d5"
+    },
+    {
+      "case": "2.0.20/5001712, declared 10-bit, OLED=false, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712.apk; SHA-256=02f87bb8c599de003f49bb95a7b1cdd65e52557c2e76279865ac252e87686e09",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5001712-10-bit-stock\\steamlink-5001712-10-bit-stock-blue-first-unsigned.apk; SHA-256=734ce3c68f5a49544a9dd4549d842f7cda2f78ecd80403dd79175ec92f29e775",
+      "finalized_hashes": "Finalized helper SHA-256=6eb1678640382e4872b4aa13df86fa9f4a6c15122a3d78abb5a48572bbbab701; scene SHA-256=2ed63dba8ec7b30bd2b9cc23f4a1aa648f0e2dc0ec003264f53a3418f32943c6"
+    },
+    {
+      "case": "2.0.20/5001712, declared 8-bit, OLED=true, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712.apk; SHA-256=02f87bb8c599de003f49bb95a7b1cdd65e52557c2e76279865ac252e87686e09",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5001712-8-bit-oled\\steamlink-5001712-8-bit-oled-blue-first-unsigned.apk; SHA-256=0d34f8f300733bf385f2d0377fa8634fe56bfbb57332c9dec88d9a65440a4e66",
+      "finalized_hashes": "Finalized helper SHA-256=c3970f47d83e877fe709e987abef0a265b233e45d3e58ae89dae5e8bbaf4c211; scene SHA-256=16c910688c278fb5a1e396edbb851307bba66a3b23aad81ac5fa6abb93f5d6d5"
+    },
+    {
+      "case": "2.0.20/5001712, declared 8-bit, OLED=false, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712.apk; SHA-256=02f87bb8c599de003f49bb95a7b1cdd65e52557c2e76279865ac252e87686e09",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5001712-8-bit-stock\\steamlink-5001712-8-bit-stock-blue-first-unsigned.apk; SHA-256=97922e200da9e2cb378b2645e8b50849e6a38fdb19499bce6e710e03acb86d59",
+      "finalized_hashes": "Finalized helper SHA-256=6eb1678640382e4872b4aa13df86fa9f4a6c15122a3d78abb5a48572bbbab701; scene SHA-256=2ed63dba8ec7b30bd2b9cc23f4a1aa648f0e2dc0ec003264f53a3418f32943c6"
+    },
+    {
+      "case": "2.0.22/5002244, declared 10-bit, OLED=true, selection order=oled-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244.apk; SHA-256=b1be6f92cb8258963ee6790463c6cf77e181729e1c3498021d86e25d2eac6df8",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002244-10-bit-oled\\steamlink-5002244-10-bit-oled-oled-first-unsigned.apk; SHA-256=d9f8ce16cf393ff3c764719f05923f7c40d203c63441b388f3aad64504eae86d",
+      "finalized_hashes": "Finalized helper SHA-256=60479f6167db1aba32fa3464dd23226bb64746caa2d4238381c38b30747da9d6; scene SHA-256=58f50d7279c510662ec00081c9856da7a6f4462c07cc109e9a3cc73ef8902a87"
+    },
+    {
+      "case": "2.0.22/5002244, declared 10-bit, OLED=false, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244.apk; SHA-256=b1be6f92cb8258963ee6790463c6cf77e181729e1c3498021d86e25d2eac6df8",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002244-10-bit-stock\\steamlink-5002244-10-bit-stock-blue-first-unsigned.apk; SHA-256=d21a9e24e50a974314c5dbcb3c015769f5187f67656cf264fc3f1ec8010dc354",
+      "finalized_hashes": "Finalized helper SHA-256=eb84bdacc0f7fb79b2ff92e8af178759b704414fd26a164ae9147b504150194f; scene SHA-256=fb598452b27b6bc7c2b2d3082d233b32ec459c6d9b5d627c70a726c4cf9349bb"
+    },
+    {
+      "case": "2.0.22/5002244, declared 8-bit, OLED=true, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244.apk; SHA-256=b1be6f92cb8258963ee6790463c6cf77e181729e1c3498021d86e25d2eac6df8",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002244-8-bit-oled\\steamlink-5002244-8-bit-oled-blue-first-unsigned.apk; SHA-256=5552cbd3b51484223c474ba6ceb549e7007b7c70a3d8fc6a130862e6d43155c3",
+      "finalized_hashes": "Finalized helper SHA-256=60479f6167db1aba32fa3464dd23226bb64746caa2d4238381c38b30747da9d6; scene SHA-256=58f50d7279c510662ec00081c9856da7a6f4462c07cc109e9a3cc73ef8902a87"
+    },
+    {
+      "case": "2.0.22/5002244, declared 8-bit, OLED=false, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244.apk; SHA-256=b1be6f92cb8258963ee6790463c6cf77e181729e1c3498021d86e25d2eac6df8",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002244-8-bit-stock\\steamlink-5002244-8-bit-stock-blue-first-unsigned.apk; SHA-256=6c5db2be9588f2f889791b324966a6942b4b98d6f121e23d4613858135eda648",
+      "finalized_hashes": "Finalized helper SHA-256=eb84bdacc0f7fb79b2ff92e8af178759b704414fd26a164ae9147b504150194f; scene SHA-256=fb598452b27b6bc7c2b2d3082d233b32ec459c6d9b5d627c70a726c4cf9349bb"
+    },
+    {
+      "case": "2.0.23/5002363, declared 10-bit, OLED=true, selection order=oled-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk; SHA-256=681008c6e00f48eea64dd0a6534e2e73b390c71626025f86e401d9cc59a281bf",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002363-10-bit-oled\\steamlink-5002363-10-bit-oled-oled-first-unsigned.apk; SHA-256=c0bb5d38e2cfea39dff7e4cc23fb12efa084555e6d3fafb001f31da7cfbf2db2",
+      "finalized_hashes": "Finalized helper SHA-256=41c70cfa91efaaabc762060e58ec587ea2b398067c2f12a877e4adb81bfa661b; scene SHA-256=ed4a83a579997f77337962ab481a956f68023d71468321624b93982e802a32bd"
+    },
+    {
+      "case": "2.0.23/5002363, declared 10-bit, OLED=false, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk; SHA-256=681008c6e00f48eea64dd0a6534e2e73b390c71626025f86e401d9cc59a281bf",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002363-10-bit-stock\\steamlink-5002363-10-bit-stock-blue-first-unsigned.apk; SHA-256=a7a1456aa6906ddd588b1d779eae1e826f2d08c6f1e1200ea345f081dffc8b85",
+      "finalized_hashes": "Finalized helper SHA-256=7b4dda5b33c7cf7de8e189f5ba8b5b696611f2854b7d6c3a84defda0aa52a1fb; scene SHA-256=dca1267b314bb2c47e020061b4e2f864aac7c303c21447898b09a442c9e4d938"
+    },
+    {
+      "case": "2.0.23/5002363, declared 8-bit, OLED=true, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk; SHA-256=681008c6e00f48eea64dd0a6534e2e73b390c71626025f86e401d9cc59a281bf",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002363-8-bit-oled\\steamlink-5002363-8-bit-oled-blue-first-unsigned.apk; SHA-256=1c8b889e63aacd9b90908432f4caf2135b20fc1bdfd578b5ecdf584b91175376",
+      "finalized_hashes": "Finalized helper SHA-256=41c70cfa91efaaabc762060e58ec587ea2b398067c2f12a877e4adb81bfa661b; scene SHA-256=ed4a83a579997f77337962ab481a956f68023d71468321624b93982e802a32bd"
+    },
+    {
+      "case": "2.0.23/5002363, declared 8-bit, OLED=false, selection order=blue-first",
+      "fixture": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoded-fixture-apks\\decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk; SHA-256=681008c6e00f48eea64dd0a6534e2e73b390c71626025f86e401d9cc59a281bf",
+      "result": "exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\blue-noise-morphe-final\\5002363-8-bit-stock\\steamlink-5002363-8-bit-stock-blue-first-unsigned.apk; SHA-256=2b970d4ceedd8388086b77be8372938419ba02f7e5773b607740e1d31ce89e93",
+      "finalized_hashes": "Finalized helper SHA-256=7b4dda5b33c7cf7de8e189f5ba8b5b696611f2854b7d6c3a84defda0aa52a1fb; scene SHA-256=dca1267b314bb2c47e020061b4e2f864aac7c303c21447898b09a442c9e4d938"
+    }
+  ]
+}

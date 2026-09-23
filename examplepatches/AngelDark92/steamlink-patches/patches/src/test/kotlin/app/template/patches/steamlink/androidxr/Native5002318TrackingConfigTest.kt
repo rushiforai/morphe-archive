@@ -30,7 +30,7 @@ class NativeXrTrackingConfigTest {
 
     @Test
     fun `native stock controller config carries hand routing absent from legacy baseline`() {
-        // Minimal fixture shared by byte-identical 5002318/5002322 controller configs. Keep markers
+        // Minimal native-XR controller config fixture. Keep markers
         // together: the runtime needs the extension, hand profile/type, and both exported poses.
         val stock =
             """

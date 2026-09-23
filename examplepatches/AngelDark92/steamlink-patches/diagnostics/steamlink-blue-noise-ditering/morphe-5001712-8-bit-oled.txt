@@ -1,0 +1,9 @@
+Fixture: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\decoded-fixture-apks\decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712.apk; SHA-256=02f87bb8c599de003f49bb95a7b1cdd65e52557c2e76279865ac252e87686e09
+Case: 2.0.20/5001712, declared 8-bit, OLED=true, selection order=blue-first
+Evidence boundary: analysis/decoded-fixture APK; actual Morphe DSL finalize and unsigned packaging only. Not pristine APK, Android linking, GPU execution, install, headset or panel proof.
+Morphe PASS: Blue-noise fixture metadata audit
+Morphe PASS: OLED color calibration
+Morphe PASS: Foveal blue-noise dithering (experimental)
+PASS: exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.
+Output: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\blue-noise-morphe\5001712-8-bit-oled\steamlink-5001712-8-bit-oled-blue-first-unsigned.apk; SHA-256=7f70d6167c89df936d7ec6119ee00e29bfb11bbf430bea76a8979e43e1691eb0
+Finalized helper SHA-256=46b7167b910976d2ea8865155056aa4489fafca99af384b9cda49e7fa1b1f440; scene SHA-256=16c910688c278fb5a1e396edbb851307bba66a3b23aad81ac5fa6abb93f5d6d5

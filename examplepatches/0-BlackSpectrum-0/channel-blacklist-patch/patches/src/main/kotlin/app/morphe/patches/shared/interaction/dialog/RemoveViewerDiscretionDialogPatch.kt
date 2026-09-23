@@ -34,6 +34,7 @@ internal fun removeViewerDiscretionDialogPatch(
     block: BytecodePatchBuilder.() -> Unit,
     preferenceScreen: BasePreferenceScreen.Screen
 ) = bytecodePatch(
+    name = "Remove viewer discretion dialog",
     description = "Adds an option to remove the dialog that appears when opening a video that has been age-restricted " +
             "by accepting it automatically. This does not bypass the age restriction.",
 ) {

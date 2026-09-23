@@ -47,6 +47,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.DiagnosticEvent;
 import app.morphe.extension.shared.diagnostics.DiagnosticRedactor;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.HushfeedPause;
 
 /** Bounded structured event storage and latest sanitized crash storage. */
 public final class LogBufferManager {
@@ -177,7 +178,7 @@ public final class LogBufferManager {
         } catch (Exception ex) {
             // The exception's own text stays in the log. It can carry a path or a signed URL,
             // and a reader on a phone cannot act on it from a toast.
-            Utils.showToastLong(say(exportFailedMessage, "The diagnostic report could not be exported."));
+            Utils.showToastLong(say(exportFailedMessage, "The diagnostic report couldn't be saved. Try again."));
             Logger.printException(() -> "Failed to export diagnostics", ex);
         }
     }
@@ -185,7 +186,7 @@ public final class LogBufferManager {
     public static void exportToFile() {
         Context context = Utils.getContext();
         if (context == null) {
-            Utils.showToastLong(say(noContextMessage, "The diagnostic report could not be saved yet. Try again in a moment."));
+            Utils.showToastLong(say(noContextMessage, "The diagnostic report couldn't be saved yet. Try again in a moment."));
             return;
         }
         Context application = context.getApplicationContext();
@@ -205,7 +206,7 @@ public final class LogBufferManager {
                         Utils.showToastLong(String.format(say(savedToMessage, "Full report saved to %1$s"), saved));
                     }
                 } catch (Exception ex) {
-                    Utils.showToastLong(say(exportFailedMessage, "The diagnostic report could not be exported."));
+                    Utils.showToastLong(say(exportFailedMessage, "The diagnostic report couldn't be saved. Try again."));
                     Logger.printException(() -> "Failed to save diagnostics", ex);
                 } finally {
                     FILE_EXPORT_RUNNING.set(false);
@@ -215,7 +216,7 @@ public final class LogBufferManager {
         } catch (RejectedExecutionException error) {
             FILE_EXPORT_RUNNING.set(false);
             Logger.printException(() -> "Could not start diagnostic export", error);
-            Utils.showToastLong(say(couldNotStartMessage, "Could not start the report export. Try again shortly."));
+            Utils.showToastLong(say(couldNotStartMessage, "Couldn't start the report export. Try again shortly."));
         }
     }
 
@@ -342,10 +343,15 @@ public final class LogBufferManager {
         // the reader made in "Included diagnostics" rather than printing regardless. It goes
         // through the redactor for the same reason every other section does: the next name put
         // in it may not be a literal.
+        // Paused, every family below that reads a setting is bound but takes TikTok's own path,
+        // and a reader of the table has to be told so or it reads as a healthy build that does
+        // nothing. A family that reads no setting keeps working and is left unmarked.
+        boolean paused = HushfeedPause.isPaused();
         StringBuilder hooks = new StringBuilder();
         if (includeAll || selected.contains(
                 app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
-            for (String line : app.morphe.extension.shared.diagnostics.HookStatus.report()) {
+            for (String line : app.morphe.extension.shared.diagnostics.HookStatus.report(
+                    paused ? " (paused)" : null)) {
                 if (hooks.length() > 0) hooks.append('\n');
                 hooks.append(DiagnosticRedactor.redact(line));
             }
@@ -356,7 +362,7 @@ public final class LogBufferManager {
         // A table with a miss in it is different. Those events are the oldest in the buffer and
         // are the first evicted, so on a badly broken build the table is exactly what would be
         // dropped, and it is the thing the report exists to carry.
-        boolean worthReporting = !crash.isEmpty() || !npthCrash.isEmpty() || events.length() > 0
+        boolean worthReporting = paused || !crash.isEmpty() || !npthCrash.isEmpty() || events.length() > 0
                 || (hooks.length() > 0
                         && app.morphe.extension.shared.diagnostics.HookStatus.anyMissing());
         if (!worthReporting) return "";
@@ -368,6 +374,11 @@ public final class LogBufferManager {
                 .append("tiktok: ").append(Utils.getContext().getPackageName())
                 .append(' ').append(Utils.getAppVersionName()).append('\n')
                 .append("morphe: ").append(Utils.getPatchesReleaseVersion()).append('\n');
+        if (paused) {
+            report.append("hushfeed: paused (")
+                    .append(HushfeedPause.reason().name().toLowerCase(java.util.Locale.ROOT))
+                    .append("), every hook a setting controls takes TikTok's own path\n");
+        }
 
         if (!crash.isEmpty()) {
             report.append("\n[LATEST JAVA CRASH]\n").append(crash);
@@ -687,7 +698,7 @@ public final class LogBufferManager {
                     "There is no diagnostic data to put back."));
         } else {
             Utils.showToastLong(say(restoreFailedMessage,
-                    "Could not put back the diagnostic data. Try again."));
+                    "Couldn't put back the diagnostic data. Try again."));
         }
         return result;
     }

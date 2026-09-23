@@ -59,9 +59,13 @@ public final class FeedRuleLimits {
     @Nullable
     public static String message(@Nullable Violation violation) {
         if (violation == null) return null;
-        return L10n.t(violation == Violation.UTF8_BYTES
-                ? "That list is too large. Keep it to 256 KB or less."
-                : "That list has too many entries. Keep it to 10,000 or fewer.");
+        // The limits are formatted in from the constants above, so the message and the check
+        // cannot say different numbers.
+        return violation == Violation.UTF8_BYTES
+                ? L10n.f("That list is too large. Keep it to %1$s KB or less.",
+                        java.text.NumberFormat.getInstance().format(MAX_UTF8_BYTES / 1024))
+                : L10n.f("That list has too many entries. Keep it to %1$s or fewer.",
+                        java.text.NumberFormat.getInstance().format(MAX_ENTRIES));
     }
 
     @Nullable

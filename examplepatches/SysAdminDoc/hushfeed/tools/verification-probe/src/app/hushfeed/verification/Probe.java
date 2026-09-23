@@ -278,6 +278,75 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok webviews\n" + out);
                         break;
                     }
+                    case "webview-bridges": {
+                        // BrowserPrivacyGuard keeps the objects so it can restore them on the
+                        // next trusted page. Read only their registered names, then ask the live
+                        // page which names resolve. The probe never calls a bridge or reads page
+                        // content. Interface names are technical APK anchors, not account data.
+                        Class<?> guard = loader.loadClass(
+                                "app.morphe.extension.tiktok.privacy.BrowserPrivacyGuard");
+                        Field statesField = guard.getDeclaredField("STATES");
+                        statesField.setAccessible(true);
+                        Map<?, ?> states = (Map<?, ?>) statesField.get(null);
+                        int scheduled = 0;
+                        for (android.view.View root : windowRoots()) {
+                            java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>();
+                            queue.add(root);
+                            while (!queue.isEmpty()) {
+                                android.view.View view = queue.poll();
+                                if (view instanceof android.webkit.WebView) {
+                                    android.webkit.WebView web = (android.webkit.WebView) view;
+                                    List<String> names = new ArrayList<>();
+                                    Object state = null;
+                                    synchronized (states) {
+                                        Object reference = states.get(web);
+                                        if (reference instanceof java.lang.ref.WeakReference) {
+                                            state = ((java.lang.ref.WeakReference<?>) reference).get();
+                                        }
+                                    }
+                                    if (state != null) {
+                                        Field interfacesField = state.getClass().getDeclaredField("interfaces");
+                                        interfacesField.setAccessible(true);
+                                        synchronized (state) {
+                                            Map<?, ?> interfaces = (Map<?, ?>) interfacesField.get(state);
+                                            for (Object name : interfaces.keySet()) {
+                                                if (name instanceof String) names.add((String) name);
+                                            }
+                                        }
+                                    }
+
+                                    StringBuilder script = new StringBuilder(
+                                            "(function(){var n=[");
+                                    for (int i = 0; i < names.size(); i++) {
+                                        if (i > 0) script.append(',');
+                                        script.append(JSONObject.quote(names.get(i)));
+                                    }
+                                    script.append("];var exposed=[];for(var i=0;i<n.length;i++){"
+                                            + "if(typeof window[n[i]]!=='undefined'){var v=window[n[i]],k=[];"
+                                            + "try{k=Object.getOwnPropertyNames(v).sort();}catch(e){}"
+                                            + "exposed.push([n[i],typeof v,Object.prototype.toString.call(v),k]);}}"
+                                            + "return JSON.stringify(exposed);})()");
+                                    final int index = ++scheduled;
+                                    final int tracked = names.size();
+                                    final String origin = hostAndPath(web.getUrl() == null
+                                            ? null : android.net.Uri.parse(web.getUrl()));
+                                    final String javascript = script.toString();
+                                    web.post(() -> web.evaluateJavascript(javascript, value ->
+                                            Log.i(TAG, "bridge-exposure webview=" + index
+                                                    + " origin=" + origin + " tracked=" + tracked
+                                                    + " exposed=" + value)));
+                                }
+                                if (view instanceof android.view.ViewGroup) {
+                                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                    for (int i = 0; i < group.getChildCount(); i++) {
+                                        queue.add(group.getChildAt(i));
+                                    }
+                                }
+                            }
+                        }
+                        Log.i(TAG, "ok webview-bridges scheduled=" + scheduled);
+                        break;
+                    }
                     case "series-evidence":
                         Log.i(TAG, "ok series-evidence\n" + seriesEvidence());
                         break;
@@ -285,11 +354,25 @@ public final class Probe extends Instrumentation {
                         // One log line per loaded video, so no line nears logcat's size limit.
                         String route = intent.getStringExtra("route");
                         if (route == null || !route.matches("[a-z-]{1,24}")) {
-                            throw new IllegalArgumentException("marker-corpus needs -e route <for-you|profile|following|search>");
+                            throw new IllegalArgumentException("marker-corpus needs a short route name");
                         }
                         List<String> lines = markerCorpus(route);
                         for (String line : lines) Log.i(TAG, "corpus\t" + route + "\t" + line);
                         Log.i(TAG, "ok marker-corpus " + route + " items=" + lines.size());
+                        break;
+                    }
+                    case "marker-token-selftest": {
+                        JSONObject tokens = new JSONObject();
+                        tokens.put("longNumeral", token("1234567"));
+                        tokens.put("leadingPlus", token("+1"));
+                        tokens.put("intOverflow", token(4_294_967_296L));
+                        tokens.put("doubleEpisode", token(1.0d));
+                        tokens.put("blankObject", token(new Object() {
+                            @Override public String toString() {
+                                return "  ";
+                            }
+                        }));
+                        Log.i(TAG, "ok marker-token-selftest " + tokens);
                         break;
                     }
                     case "commerce-evidence":
@@ -427,17 +510,32 @@ public final class Probe extends Instrumentation {
                         if (aweme == null) throw new IllegalStateException("no current video");
                         // The resolver reads AwemeCommentConfig.commentTopBarComponent; the
                         // model's own getCommentTopBarStructList is a different, older list.
-                        Object config = aweme.getClass().getMethod("getCommentConfig").invoke(aweme);
-                        Object components = null;
-                        if (config != null) {
-                            Field field = config.getClass().getField("commentTopBarComponent");
-                            components = field.get(config);
+                        // Each member is looked up on its own, so a build that renames one
+                        // still reports the others rather than nothing at all.
+                        Object config = null, components = null, legacy = null;
+                        String configState;
+                        try {
+                            config = aweme.getClass().getMethod("getCommentConfig").invoke(aweme);
+                            configState = config == null ? "null" : "present";
+                        } catch (NoSuchMethodException missing) {
+                            configState = "no getter";
                         }
-                        Object legacy = aweme.getClass()
-                                .getMethod("getCommentTopBarStructList").invoke(aweme);
-                        StringBuilder out = new StringBuilder("config=")
-                                .append(config == null ? "null" : "present")
-                                .append(" legacyList=").append(legacy == null ? "null" : ((List<?>) legacy).size())
+                        if (config != null) {
+                            try {
+                                components = config.getClass().getField("commentTopBarComponent").get(config);
+                            } catch (NoSuchFieldException missing) {
+                                configState += ", no commentTopBarComponent field";
+                            }
+                        }
+                        String legacyState;
+                        try {
+                            legacy = aweme.getClass().getMethod("getCommentTopBarStructList").invoke(aweme);
+                            legacyState = legacy == null ? "null" : String.valueOf(((List<?>) legacy).size());
+                        } catch (NoSuchMethodException missing) {
+                            legacyState = "no getter";
+                        }
+                        StringBuilder out = new StringBuilder("config=").append(configState)
+                                .append(" legacyList=").append(legacyState)
                                 .append(" components=");
                         if (components == null) {
                             out.append("null");
@@ -458,6 +556,42 @@ public final class Probe extends Instrumentation {
                             }
                         }
                         Log.i(TAG, "ok topbar\n" + out);
+                        break;
+                    }
+                    case "videoinfo": {
+                        // Technical facts about the current video that decide which surfaces
+                        // TikTok offers on it: the caption's language code and whether TikTok
+                        // marks the caption as translatable. No caption text, id or creator.
+                        Class<?> author = loader.loadClass(
+                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
+                        Object aweme = author.getMethod("getAweme").invoke(null);
+                        if (aweme == null) throw new IllegalStateException("no current video");
+                        Object language = aweme.getClass().getMethod("getDescLanguage").invoke(aweme);
+                        Object translatable = aweme.getClass().getMethod("isDescTranslatable").invoke(aweme);
+                        Object desc = aweme.getClass().getMethod("getDesc").invoke(aweme);
+                        Log.i(TAG, "ok videoinfo descLanguage=" + language
+                                + " descTranslatable=" + translatable
+                                + " hasDesc=" + (desc != null && String.valueOf(desc).trim().length() > 0));
+                        break;
+                    }
+                    case "textviews": {
+                        // Every shown TextView on screen, id or not, with its class chain, place,
+                        // size and text length. The caption renderer's text view may carry no id
+                        // on a given build, which the views action (ids only) cannot show. The
+                        // text itself never leaves the phone.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        StringBuilder out = new StringBuilder();
+                        for (android.view.View root : windowRoots()) {
+                            walkTextViews(root, 0, out, activity.getResources());
+                        }
+                        String text = out.toString();
+                        int pieces = 0;
+                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "textviews[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok textviews " + text.length() + " chars in " + pieces + " pieces");
                         break;
                     }
                     case "doubletap": {
@@ -561,6 +695,44 @@ public final class Probe extends Instrumentation {
                             Log.i(TAG, "views[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
                         }
                         Log.i(TAG, "ok views " + text.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
+                    case "tabbadges": {
+                        // TikTok's bottom tab icons draw their unread badges through their own
+                        // setters (setCountDotText, setCountDotVisibility, setTabDotVisibility),
+                        // and the hide switch answers inside those setters. Nothing makes the
+                        // server send the test account an unread item on demand, so this calls
+                        // the setters the way TikTok does, on every tab icon on screen, and reads
+                        // the badge views back half a second later: with the switch off the count
+                        // and the dot are visible (0), with it on they stay GONE (8).
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        List<android.view.View> icons = new ArrayList<>();
+                        collectTabIcons(activity.getWindow().getDecorView(), icons, new java.util.HashMap<>());
+                        if (icons.isEmpty()) throw new IllegalStateException("no tab icon with the badge setters on screen");
+                        android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+                        main.post(() -> {
+                            try {
+                                for (android.view.View icon : icons) {
+                                    Class<?> type = icon.getClass();
+                                    type.getMethod("setCountDotText", String.class).invoke(icon, "7");
+                                    type.getMethod("setCountDotVisibility", int.class).invoke(icon, android.view.View.VISIBLE);
+                                    type.getMethod("setTabDotVisibility", int.class).invoke(icon, android.view.View.VISIBLE);
+                                }
+                            } catch (Throwable error) {
+                                Log.e(TAG, "failed tabbadges", error);
+                                return;
+                            }
+                            main.postDelayed(() -> {
+                                StringBuilder out = new StringBuilder();
+                                for (android.view.View icon : icons) {
+                                    out.append(" [").append(badgeState(icon, "getCountDotView"))
+                                            .append(' ').append(badgeState(icon, "getRedDotVIew")).append(']');
+                                }
+                                Log.i(TAG, "ok tabbadges " + icons.size() + " icons:" + out);
+                            }, 500);
+                        });
                         break;
                     }
                     case "block-flow-test": {
@@ -686,6 +858,84 @@ public final class Probe extends Instrumentation {
                 return resources.getResourceEntryName(id);
             } catch (android.content.res.Resources.NotFoundException missing) {
                 return "0x" + Integer.toHexString(id);
+            }
+        }
+
+        private static void walkTextViews(android.view.View view, int depth, StringBuilder out,
+                android.content.res.Resources resources) {
+            if (view instanceof android.widget.TextView && view.isShown()
+                    && ((android.widget.TextView) view).getText() != null
+                    && ((android.widget.TextView) view).getText().length() > 0) {
+                int[] where = new int[2];
+                view.getLocationOnScreen(where);
+                StringBuilder chain = new StringBuilder();
+                for (Class<?> c = view.getClass(); c != null && !c.getName().startsWith("android."); c = c.getSuperclass()) {
+                    if (chain.length() > 0) chain.append('>');
+                    chain.append(c.getSimpleName());
+                }
+                String id = idName(view, resources);
+                android.view.ViewParent parent = view.getParent();
+                String parentName = parent instanceof android.view.View
+                        ? String.valueOf(idName((android.view.View) parent, resources)) + '/' + parent.getClass().getSimpleName()
+                        : "none";
+                out.append(depth).append(' ').append(chain)
+                        .append(" id=").append(id)
+                        .append(" at=").append(where[0]).append(',').append(where[1])
+                        .append(" size=").append(view.getWidth()).append('x').append(view.getHeight())
+                        .append(" textLength=").append(((android.widget.TextView) view).getText().length())
+                        .append(" textSizePx=").append((int) ((android.widget.TextView) view).getTextSize())
+                        .append(" parent=").append(parentName)
+                        .append('\n');
+            }
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                    walkTextViews(group.getChildAt(i), depth + 1, out, resources);
+                }
+            }
+        }
+
+        /**
+         * Every view in the tree whose class carries both badge setters, which on 46.2.3 and
+         * 47.0.3 is the bottom tab icon and nothing else. The answer is cached per class: the
+         * tree holds thousands of views and a failed getMethod is an exception each.
+         */
+        private static void collectTabIcons(android.view.View view, List<android.view.View> icons,
+                Map<Class<?>, Boolean> known) {
+            Class<?> type = view.getClass();
+            Boolean icon = known.get(type);
+            if (icon == null) {
+                try {
+                    type.getMethod("setCountDotVisibility", int.class);
+                    type.getMethod("setTabDotVisibility", int.class);
+                    icon = true;
+                } catch (NoSuchMethodException missing) {
+                    icon = false;
+                }
+                known.put(type, icon);
+            }
+            if (icon) icons.add(view);
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                    collectTabIcons(group.getChildAt(i), icons, known);
+                }
+            }
+        }
+
+        /** "getter=visibility" for one badge view, with its text when it is a TextView. */
+        private static String badgeState(android.view.View icon, String getter) {
+            try {
+                Object badge = icon.getClass().getMethod(getter).invoke(icon);
+                if (!(badge instanceof android.view.View)) return getter + "=none";
+                android.view.View view = (android.view.View) badge;
+                String state = getter + "=" + view.getVisibility();
+                if (view instanceof android.widget.TextView) {
+                    state += "(" + ((android.widget.TextView) view).getText() + ")";
+                }
+                return state;
+            } catch (Exception error) {
+                return getter + "=" + error.getClass().getSimpleName();
             }
         }
 
@@ -1108,13 +1358,12 @@ public final class Probe extends Instrumentation {
          * current screen, one line each: a key for dropping repeats, the verdicts of the live
          * filters, and the shape of every field they read.
          *
-         * <p>Only shapes leave the phone. Booleans stay; numbers stay below 10,000 and become
-         * plus or minus 10,000 above it, so a zero stays a zero and an id stays non-zero without
-         * being an id; text becomes its trimmed length, or a blank marker; a bare numeral stays
-         * as written up to six digits and becomes its digit count beyond that. The key is the
-         * first 12 hex digits of a SHA-256 of the video id, which the host drops before anything
-         * is committed. Every field is read through Hushfeed's own Reflect, getter first and
-         * field second, which is exactly the read the filters make.
+         * <p>Only shapes leave the phone. Booleans stay. Numbers record whether their int and
+         * long views are zero plus one of four text classes. Text and unknown objects record only
+         * blank, positive integer, non-positive integer or other. Collection and map sizes are
+         * capped. The key is the first 12 hex digits of a SHA-256 of the video id, which the host
+         * drops before anything is committed. Every field is read through Hushfeed's own Reflect,
+         * getter first and field second, which is exactly the read the filters make.
          */
         private List<String> markerCorpus(String route) throws Exception {
             android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
@@ -1255,6 +1504,8 @@ public final class Probe extends Instrumentation {
             shape.put("mPaidContentInfo", struct(read(property, video, "getMPaidContentInfo", "mPaidContentInfo"),
                     property, "getPaidCollectionId", "paidCollectionId", "getCollectionName", "collectionName",
                     "getEpisodeNumber", "episodeNumber", "isPaidCollectionIntro", "isPaidCollectionIntro"));
+            shape.put("playlist_info", struct(read(property, video, "getPlaylist_info", "playlist_info"),
+                    property, "getMixId", "mixId"));
             shape.put("mixInfo", struct(read(property, video, "getMixInfo", "mixInfo"), property,
                     "getMixId", "mixId", "getMixName", "mixName"));
             return shape;
@@ -1279,27 +1530,30 @@ public final class Probe extends Instrumentation {
             if (value instanceof Boolean) {
                 out.put("b", value);
             } else if (value instanceof Number) {
-                long number = ((Number) value).longValue();
-                out.put("n", Math.abs(number) >= 10_000L ? Long.signum(number) * 10_000L : number);
+                Number number = (Number) value;
+                out.put("num", "i" + (number.intValue() == 0 ? "0" : "1")
+                        + "l" + (number.longValue() == 0L ? "0" : "1") + textShape(value));
             } else if (value instanceof CharSequence) {
-                String text = value.toString().trim();
-                if (text.isEmpty()) {
-                    out.put("sblank", value.toString().length());
-                } else if (text.matches("-?[0-9]+")) {
-                    int digits = text.startsWith("-") ? text.length() - 1 : text.length();
-                    if (digits <= 6) out.put("s", text);
-                    else out.put("snum", text.startsWith("-") ? -digits : digits);
-                } else {
-                    out.put("slen", text.length());
-                }
+                out.put("txt", textShape(value));
             } else if (value instanceof Collection) {
-                out.put("c", ((Collection<?>) value).size());
+                out.put("c", Math.min(((Collection<?>) value).size(), 10_000));
             } else if (value instanceof Map) {
-                out.put("m", ((Map<?, ?>) value).size());
+                out.put("m", Math.min(((Map<?, ?>) value).size(), 10_000));
             } else {
-                out.put("o", 1);
+                out.put("obj", textShape(value));
             }
             return out;
+        }
+
+        /** What Reflect.string and SeriesFilter.isEpisode can learn without retaining the text. */
+        private static String textShape(Object value) {
+            String text = value.toString().trim();
+            if (text.isEmpty()) return "b";
+            try {
+                return Long.parseLong(text) > 0L ? "p" : "z";
+            } catch (NumberFormatException notALong) {
+                return "x";
+            }
         }
 
         /** Finds the fixed disclosure label and reports only its native view structure. */

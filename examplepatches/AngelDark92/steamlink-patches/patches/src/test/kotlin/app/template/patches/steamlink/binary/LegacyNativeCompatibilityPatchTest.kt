@@ -1,6 +1,7 @@
 package app.template.patches.steamlink.binary
 
 import app.morphe.patcher.patch.PatchException
+import app.template.patches.steamlink.androidxr.MODERN_TONGUE_LIBRARY_SIZE_5002363
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFailsWith
@@ -42,20 +43,6 @@ class LegacyNativeCompatibilityPatchTest {
             ),
         ),
         VerifiedLayout(
-            "2.0.20",
-            "5001740",
-            2_220_528,
-            0x9987A,
-            0xA19DD,
-            listOf(0xFFCB0 to hex("e0000036"), 0xFFCB8 to hex("a8000034")),
-            0x10D9A0 to hex("14040036"),
-            listOf(
-                0x1163F4 to hex("68000035"),
-                0x1163FC to hex("68050034"),
-                0x1164B0 to hex("a8050034"),
-            ),
-        ),
-        VerifiedLayout(
             "2.0.22",
             "5002244",
             2_251_920,
@@ -68,16 +55,6 @@ class LegacyNativeCompatibilityPatchTest {
                 0x1140B4 to hex("68050034"),
                 0x114168 to hex("a8050034"),
             ),
-        ),
-        VerifiedLayout(
-            "2.0.22",
-            "5002313",
-            2_276_872,
-            0x94B4F,
-            0x9D861,
-            listOf(0xFF010 to hex("20010036"), 0xFF018 to hex("e8000034")),
-            0x10E6C0 to hex("14040036"),
-            emptyList(),
         ),
     )
 
@@ -117,17 +94,11 @@ class LegacyNativeCompatibilityPatchTest {
 
     @Test
     fun `native permission fallback names remain untouched`() {
-        listOf("5002318" to 2_277_488, "5002322" to 2_283_400).forEach { (versionCode, size) ->
-            val input = ByteArray(size).apply {
-                faceOriginal.copyInto(this, 0x94AB5)
-                eyeOriginal.copyInto(this, 0x9D7C7)
-            }
-            assertContentEquals(
-                input,
-                patchNativePermissionNames(input, "2.0.22", versionCode),
-                versionCode,
-            )
+        val input = ByteArray(MODERN_TONGUE_LIBRARY_SIZE_5002363).apply {
+            faceOriginal.copyInto(this, 0x94AB5)
+            eyeOriginal.copyInto(this, 0x9D7C7)
         }
+        assertContentEquals(input, patchNativePermissionNames(input, "2.0.23", "5002363"))
     }
 
     @Test
@@ -147,60 +118,6 @@ class LegacyNativeCompatibilityPatchTest {
                 patchNativePermissionNames(patched, layout.versionName, layout.versionCode),
             )
         }
-    }
-
-    @Test
-    fun `5002313 permission targets tolerate stock eye replacement collision`() {
-        val faceTarget = 0x94B4F
-        val eyeTarget = 0x9D861
-        val stockEyeReplacement = 0x9CCC6
-        val input = ByteArray(2_276_872).apply {
-            faceOriginal.copyInto(this, faceTarget)
-            eyeOriginal.copyInto(this, eyeTarget)
-            eyePatched.copyInto(this, stockEyeReplacement)
-        }
-
-        val patched = patchNativePermissionNames(input, "2.0.22", "5002313")
-
-        assertContentEquals(facePatched, patched.copyOfRange(faceTarget, faceTarget + facePatched.size))
-        assertContentEquals(eyePatched, patched.copyOfRange(eyeTarget, eyeTarget + eyePatched.size))
-        assertContentEquals(
-            eyePatched,
-            patched.copyOfRange(stockEyeReplacement, stockEyeReplacement + eyePatched.size),
-        )
-        assertContentEquals(patched, patchNativePermissionNames(patched, "2.0.22", "5002313"))
-    }
-
-    @Test
-    fun `5002313 mixed permission target state completes remaining edit`() {
-        val faceTarget = 0x94B4F
-        val eyeTarget = 0x9D861
-        val input = ByteArray(2_276_872).apply {
-            facePatched.copyInto(this, faceTarget)
-            eyeOriginal.copyInto(this, eyeTarget)
-            eyePatched.copyInto(this, 0x9CCC6)
-        }
-
-        val patched = patchNativePermissionNames(input, "2.0.22", "5002313")
-
-        assertContentEquals(facePatched, patched.copyOfRange(faceTarget, faceTarget + facePatched.size))
-        assertContentEquals(eyePatched, patched.copyOfRange(eyeTarget, eyeTarget + eyePatched.size))
-    }
-
-    @Test
-    fun `5002313 invalid permission target remains strict and atomic`() {
-        val faceTarget = 0x94B4F
-        val eyeTarget = 0x9D861
-        val input = ByteArray(2_276_872).apply {
-            faceOriginal.copyInto(this, faceTarget)
-            eyeOriginal.copyInto(this, eyeTarget)
-            this[eyeTarget] = 0x55
-        }
-
-        assertFailsWith<PatchException> {
-            patchNativePermissionNames(input, "2.0.22", "5002313")
-        }
-        assertContentEquals(faceOriginal, input.copyOfRange(faceTarget, faceTarget + faceOriginal.size))
     }
 
     @Test

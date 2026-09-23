@@ -14,6 +14,7 @@
 #   scripts/phone.sh swipe 466 1500 466 500       a scroll up
 #   scripts/phone.sh key KEYCODE_BACK
 #   scripts/phone.sh text hello
+#   scripts/phone.sh open_url https://www.tiktok.com/@creator/video/123
 #   scripts/phone.sh top                          the foreground activity
 #   scripts/phone.sh logcat "morphe|hushfeed"     recent payload lines
 #   scripts/phone.sh gfx                          frame stats for the perf device check
@@ -114,6 +115,18 @@ tap() { guard; timeout 30 "$ADB" -s "$S" shell input -d 0 tap "$(px "$1")" "$(px
 swipe() { guard; timeout 30 "$ADB" -s "$S" shell input -d 0 swipe "$(px "$1")" "$(px "$2")" "$(px "$3")" "$(px "$4")" "${5:-300}"; sleep "${6:-2}"; }
 key() { guard; timeout 30 "$ADB" -s "$S" shell input -d 0 keyevent "$1"; sleep "${2:-2}"; }
 text() { guard; timeout 30 "$ADB" -s "$S" shell input -d 0 text "$1"; sleep 1; }
+# adb hands its arguments to the phone's shell as one command line, so the URL is held to path
+# characters: a ; & | $ quote or space would run there as a command instead of opening a page.
+open_url() {
+    local url="${1:?open_url requires a TikTok URL}" pattern='^https://www\.tiktok\.com/[A-Za-z0-9._~/@-]*$'
+    if [[ ! "$url" =~ $pattern ]]; then
+        echo "REFUSED: open_url only accepts https://www.tiktok.com/ URLs made of path characters" >&2
+        return 2
+    fi
+    guard
+    timeout 30 "$ADB" -s "$S" shell am start -W -a android.intent.action.VIEW -d "$url" -p "$PKG" >/dev/null
+    sleep "${2:-3}"
+}
 logcat() { local result pattern; pattern="${1:?logcat requires a filter}"; result=$(timeout 60 "$ADB" -s "$S" logcat -d 2>/dev/null) || return $?; printf '%s\n' "$result" | grep -iE "$pattern" | tail -"${2:-20}"; }
 gfx() { local result; result=$(timeout 60 "$ADB" -s "$S" shell dumpsys gfxinfo $PKG "${1:-}" 2>/dev/null) || return $?; printf '%s\n' "$result" | grep -E "Total frames|Janky|50th|90th|99th|Number Frame|Uptime" | head -12; }
 "$@"

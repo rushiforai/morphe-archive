@@ -46,9 +46,9 @@ public class DownloadPathPreference extends DialogPreference {
         super(context);
         this.kind = kind;
         setTitle(title);
-        setSummary(setting.get());
+        setSummary(setting.savedValue());
         setKey(setting.key);
-        setValue(setting.get());
+        setValue(setting.savedValue());
     }
 
     public String getValue() {

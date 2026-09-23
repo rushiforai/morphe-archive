@@ -1,0 +1,582 @@
+{
+  "experiment": "decoder-staging-v1",
+  "date": "2026-09-15",
+  "status": "static_and_apk_checks_passed",
+  "headset_outcome": "pending; not installed by this work",
+  "artifact": {
+    "path": "patches/build/libs/patches-1.17.0-dev.2-decoder-staging-v1-local.mpp",
+    "bytes": 1619901,
+    "sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+    "version": "1.17.0-dev.2"
+  },
+  "junit": {
+    "tests": 112,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "native_host_tests": {
+    "Cases": [
+      "pool",
+      "bridge-5002322",
+      "bridge-5002363"
+    ],
+    "BridgeScenariosPerBuild": 12,
+    "Sources": [
+      {
+        "Sha256": "c986d464ad54cab904f3359ca8de0093520d51badb4ca9dee616d8cb21f3035f",
+        "Path": "extensions/decoder-input-buffering/src/decoder_buffering.cpp"
+      },
+      {
+        "Sha256": "64d31038173a6e4993b59d850ad4b9003b55c4f4adb55a7ca392c673f0bcd1b9",
+        "Path": "extensions/decoder-input-buffering/src/install_hooks.cpp"
+      },
+      {
+        "Sha256": "c33b523b8d905c2e49da243f769f7fa17becc3f45f2bd789bd0e94bf7c2f11a7",
+        "Path": "extensions/decoder-input-buffering/src/install_hooks.h"
+      },
+      {
+        "Sha256": "7836bb4b3ac48c48638c53e898159b2ed77517dd0939ebb8343cc27fac0c8fc7",
+        "Path": "extensions/decoder-input-buffering/src/staging_pool.h"
+      },
+      {
+        "Sha256": "8a69c0e0eab014e5232e8582bbac4095e6a7413215c158d1865732ea3add654e",
+        "Path": "extensions/decoder-input-buffering/tests/bridge_test.cpp"
+      },
+      {
+        "Sha256": "d39162c29c1e5665e7b3abad64ffa0c822f4cdb02a048af2bf1820cc8b264455",
+        "Path": "extensions/decoder-input-buffering/tests/staging_pool_test.cpp"
+      }
+    ],
+    "Status": "passed",
+    "DeviceTest": false
+  },
+  "native_elf_audit": {
+    "status": "passed",
+    "runtime_test": false,
+    "stock": [
+      {
+        "code": "5002322",
+        "sha256": "e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay"
+      },
+      {
+        "code": "5002363",
+        "sha256": "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay"
+      }
+    ],
+    "helpers": [
+      {
+        "code": "5002322",
+        "sha256": "54b2486151a1ecda67f2bd214f892b9df34798116d125e9e3d3869bcaf64bbdc",
+        "size": 253504,
+        "needed": [
+          "liblog.so",
+          "libdl.so",
+          "libmediandk.so",
+          "libc.so"
+        ],
+        "only_export": "gxr_decoder_buffering_config",
+        "load_alignment": 16384
+      },
+      {
+        "code": "5002363",
+        "sha256": "fc8934f90c96aef04c36117ab3ac9677e7d8f5755701d030e6e9d019ac50cd1b",
+        "size": 253504,
+        "needed": [
+          "liblog.so",
+          "libdl.so",
+          "libmediandk.so",
+          "libc.so"
+        ],
+        "only_export": "gxr_decoder_buffering_config",
+        "load_alignment": 16384
+      }
+    ],
+    "apks": [
+      {
+        "code": "5002322",
+        "sha256": "8696a639cb0bf7c4b4dd9f63676f518b6392e7d8dad14a52af51210bb3c50452",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002322-baseline",
+        "apk_sha256": "9b626b8ec873a78d393327ef85380a0e1406062952725ea736fc69a5fe9411cd"
+      },
+      {
+        "code": "5002322",
+        "sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002322-buffered-bundle-first",
+        "apk_sha256": "cef5ef793eca504ba9a8472c6a976bf0ff36d7c8a8a3b67d0881c9285375fee6"
+      },
+      {
+        "code": "5002322",
+        "sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002322-buffered-decoder-first",
+        "apk_sha256": "fdd800d8755023bbe97754c5b20298767de7606033b46657e54a2700c5645980"
+      },
+      {
+        "code": "5002322",
+        "sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002322-buffered-standalone",
+        "apk_sha256": "b4c71549e8dd7fabd4b5fe3ca89eb6d77259b6b4e44a37f204b639f382dd5a00"
+      },
+      {
+        "code": "5002322",
+        "sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002322-observe-bundle-first",
+        "apk_sha256": "cf0805e758f4791c37c566916ccd8148b9ef52bb91fbf2af410b099cf9962559"
+      },
+      {
+        "code": "5002322",
+        "sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002322-observe-decoder-first",
+        "apk_sha256": "84f1552e85d68f7e38356e28f6bf32a6b9b4df5f52c0baf50986b7880bc5e701"
+      },
+      {
+        "code": "5002322",
+        "sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+        "size": 2283400,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002322-observe-standalone",
+        "apk_sha256": "a9d4b3ab639a94243721d9bae292eb1c29efa5b3e5327a05d181e4e42f8e7e27"
+      },
+      {
+        "code": "5002363",
+        "sha256": "377547082a561b7c1f9eb3cfe9314f94b2e57602f3dea917fa8a27526d626f5b",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002363-baseline",
+        "apk_sha256": "c5834ff651dcf0b3d009a2fa6b28522d1b5b3af10ff25ef032865a7a7d9ee5dd"
+      },
+      {
+        "code": "5002363",
+        "sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002363-buffered-bundle-first",
+        "apk_sha256": "16c043b67ab00eb21a10533c7690a33dfa3fdbffca4ad501d520fdaa0962faf1"
+      },
+      {
+        "code": "5002363",
+        "sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002363-buffered-decoder-first",
+        "apk_sha256": "4312b49e572e13cf1a84a47091a0866251c6269b52b65ede01c2dc12b2429e44"
+      },
+      {
+        "code": "5002363",
+        "sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002363-buffered-standalone",
+        "apk_sha256": "f84fb3b8a0d847286fed3874f72cec5a0e725ec864f4d5512c2225404b43bc2a"
+      },
+      {
+        "code": "5002363",
+        "sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002363-observe-bundle-first",
+        "apk_sha256": "87c047fdb12d94791eadb01e0deb3b6778c832f6879f09e2e19d53b8a1525c66"
+      },
+      {
+        "code": "5002363",
+        "sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002363-observe-decoder-first",
+        "apk_sha256": "d43a4e75fb8a96c270b4940f7bc92da9b61c32f2bcd3cb8f532d1a692cc0a39c"
+      },
+      {
+        "code": "5002363",
+        "sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+        "size": 2292008,
+        "functions": 8,
+        "data_slots": 11,
+        "header_mapping": "GNU bytes in readable PT_LOAD; PT_NOTE optional for Visual Delay",
+        "case": "5002363-observe-standalone",
+        "apk_sha256": "8c7ec87bbd5d98ae821ef0a4f52b6a63bb20c0d14b665dc9c6c30e1faacf18c0"
+      }
+    ]
+  },
+  "apk_cases": [
+    {
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "baseline",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "9b626b8ec873a78d393327ef85380a0e1406062952725ea736fc69a5fe9411cd",
+      "scene_sha256": "8696a639cb0bf7c4b4dd9f63676f518b6392e7d8dad14a52af51210bb3c50452",
+      "unchanged_other_zip_entries": 0,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "bundle-first",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "cef5ef793eca504ba9a8472c6a976bf0ff36d7c8a8a3b67d0881c9285375fee6",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "decoder-first",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "fdd800d8755023bbe97754c5b20298767de7606033b46657e54a2700c5645980",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "standalone",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "b4c71549e8dd7fabd4b5fe3ca89eb6d77259b6b4e44a37f204b639f382dd5a00",
+      "scene_sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+      "unchanged_other_zip_entries": 113,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe",
+      "selection": "bundle-first",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "cf0805e758f4791c37c566916ccd8148b9ef52bb91fbf2af410b099cf9962559",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe",
+      "selection": "decoder-first",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "84f1552e85d68f7e38356e28f6bf32a6b9b4df5f52c0baf50986b7880bc5e701",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe",
+      "selection": "standalone",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "a9d4b3ab639a94243721d9bae292eb1c29efa5b3e5327a05d181e4e42f8e7e27",
+      "scene_sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+      "unchanged_other_zip_entries": 113,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "baseline",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "c5834ff651dcf0b3d009a2fa6b28522d1b5b3af10ff25ef032865a7a7d9ee5dd",
+      "scene_sha256": "377547082a561b7c1f9eb3cfe9314f94b2e57602f3dea917fa8a27526d626f5b",
+      "unchanged_other_zip_entries": 0,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "bundle-first",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "16c043b67ab00eb21a10533c7690a33dfa3fdbffca4ad501d520fdaa0962faf1",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "decoder-first",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "4312b49e572e13cf1a84a47091a0866251c6269b52b65ede01c2dc12b2429e44",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "standalone",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "f84fb3b8a0d847286fed3874f72cec5a0e725ec864f4d5512c2225404b43bc2a",
+      "scene_sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+      "unchanged_other_zip_entries": 113,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe",
+      "selection": "bundle-first",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "87c047fdb12d94791eadb01e0deb3b6778c832f6879f09e2e19d53b8a1525c66",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe",
+      "selection": "decoder-first",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "d43a4e75fb8a96c270b4940f7bc92da9b61c32f2bcd3cb8f532d1a692cc0a39c",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "unchanged_other_zip_entries": 116,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe",
+      "selection": "standalone",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive_sha256": "158a009ab1ca6d01747763a09f9bd61d609216452996d07e7822eb8f193f5320",
+      "output_sha256": "8c7ec87bbd5d98ae821ef0a4f52b6a63bb20c0d14b665dc9c6c30e1faacf18c0",
+      "scene_sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+      "unchanged_other_zip_entries": 113,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "signed_or_installed": false
+    }
+  ],
+  "catalog_regression": [
+    {
+      "catalog": "patches-list.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.17.0-dev.2"
+    },
+    {
+      "catalog": "patches-list-all.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.17.0-dev.2"
+    },
+    {
+      "catalog": "patches-list-stable.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 0,
+      "all_other_json_unchanged": true,
+      "version": "1.17.0-dev.2"
+    },
+    {
+      "catalog": "patches-list-experimental.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.17.0-dev.2"
+    }
+  ],
+  "sources": [
+    {
+      "path": "extensions/decoder-input-buffering/Build-Native.ps1",
+      "sha256": "03ea373ad85ed357a98b2efb6e41f1ec0efa960a736ee8778fb19fb4324da7c8"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/CMakeLists.txt",
+      "sha256": "6f66e891506226c377f0ac8556f771ffe55308ebe2eebdc9b2f02ca549f6acc9"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/exports.map",
+      "sha256": "6a97d4fc5dc801be32bdfdd171f534eabeb68dbd6f61a792a802041501cad5ae"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/Test-Native.ps1",
+      "sha256": "c64e1232e1448fe6dd09d102a3628e6c0257126e0ff6e92359f922fe6102716d"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/src/decoder_buffering.cpp",
+      "sha256": "c986d464ad54cab904f3359ca8de0093520d51badb4ca9dee616d8cb21f3035f"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/src/install_hooks.cpp",
+      "sha256": "64d31038173a6e4993b59d850ad4b9003b55c4f4adb55a7ca392c673f0bcd1b9"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/src/install_hooks.h",
+      "sha256": "c33b523b8d905c2e49da243f769f7fa17becc3f45f2bd789bd0e94bf7c2f11a7"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/src/staging_pool.h",
+      "sha256": "7836bb4b3ac48c48638c53e898159b2ed77517dd0939ebb8343cc27fac0c8fc7"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/tests/bridge_test.cpp",
+      "sha256": "8a69c0e0eab014e5232e8582bbac4095e6a7413215c158d1865732ea3add654e"
+    },
+    {
+      "path": "extensions/decoder-input-buffering/tests/staging_pool_test.cpp",
+      "sha256": "d39162c29c1e5665e7b3abad64ffa0c822f4cdb02a048af2bf1820cc8b264455"
+    },
+    {
+      "path": "patches/src/main/kotlin/app/template/patches/steamlink/binary/DecoderInputBufferingPatch.kt",
+      "sha256": "ddb9632e6a73793867d15dc62409ad2a9da0578123609077741e613b4cce6406"
+    },
+    {
+      "path": "patches/src/main/kotlin/util/DecoderInputBufferingApkAudit.kt",
+      "sha256": "ef08f098cc379fae8b4426d278c96d669f447debeb69dba01306ad9e79af2d87"
+    }
+  ],
+  "development_decisions": [
+    "Worker deferred after proving renderer metadata lifetime constraints; synchronous staging tests early reservation hypothesis.",
+    "Preserved GNU build-ID bytes without requiring PT_NOTE, because existing Visual Delay repurposes that header.",
+    "Hid static C++ runtime exports; protected mode config remains the only helper export.",
+    "Full packet and recovery locking closes cross-transfer timeout/publication and fragment-write race.",
+    "Pool scans happen only on generation changes; ordinary packet checks avoid clocks and formatting."
+  ],
+  "cleanup": {
+    "status": "blocked_by_automatic_approval_review",
+    "reason": "Deletion commands rejected as blocked by policy, including one exact verified temporary APK. No more specific reason was provided.",
+    "temporary_outputs_retained": true,
+    "prepared_script": "diagnostics/steamlink-hitches/Cleanup-DecoderExperiment.ps1",
+    "script_validation": "PowerShell syntax parsed; not executed",
+    "retained_on_purpose": [
+      "final MPP",
+      "native payloads",
+      "source and tests",
+      "validation receipts and logs",
+      "original APKs and decoded bases",
+      "prior live hitch captures"
+    ]
+  }
+}

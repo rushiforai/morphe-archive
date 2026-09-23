@@ -1,0 +1,261 @@
+{
+  "files": [
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/bundle-validation.json",
+      "size": 444,
+      "sha256": "3bce0045c09efad8cefedf7c91898fb6ad665a60a6d9201438958ee76cda4f80"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/cleanup.json",
+      "size": 8105,
+      "sha256": "40d05196605a32cb693d082cd260f30801f7fc42200fe73ef9c08df686ba04eb"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/decoded-validation.txt",
+      "size": 991,
+      "sha256": "094edb4288ead4e85f6cf8e1ab3ea1e2cab3146fbf3f3e9835d0881f11ff39cd"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/implementation_plan.md",
+      "size": 24568,
+      "sha256": "05d17d629cd2af4cefb59339a94e3a77ebe5ac49ab5b98e76faafc6efa943f42"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/kotlin-validation.txt",
+      "size": 1835,
+      "sha256": "722a8a94f5c2bff82cfbf486a97709c352982cc36773d068f7faee85b343c55e"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-10-bit-oled.txt",
+      "size": 1247,
+      "sha256": "ae8776d1ec1e08b58ad6e90a9889cf86cf1df2984469e69319f5303b5ac3b42b"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-10-bit-stock.txt",
+      "size": 1214,
+      "sha256": "d3b5cd6d99618b6130f39a300533d5b609554ca1e14067a1c884a928c9c1409f"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-8-bit-oled.txt",
+      "size": 1244,
+      "sha256": "83b4f18e02235ad8afb6ecdd6ce12085e41281b2dc2da130cb78ce0bf91e317a"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5001712-8-bit-stock.txt",
+      "size": 1211,
+      "sha256": "a2b845c32ff0a1d5d4dd58eeb4130337805875da3b22c4d9a67dd8af66779a26"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-10-bit-oled.txt",
+      "size": 1247,
+      "sha256": "2245471485fab9974596a224d46c48278b98ede82e4c1cffb530114c7b7f570c"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-10-bit-stock.txt",
+      "size": 1214,
+      "sha256": "6597b9835432a6dd62cca64ad8c6c869549c6065f794554362106b19c889a3e9"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-8-bit-oled.txt",
+      "size": 1244,
+      "sha256": "9fabe37072dcd688d8e4cfbda4e59ea712e0e0eed69366831142d21acb975555"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002244-8-bit-stock.txt",
+      "size": 1211,
+      "sha256": "1aa26aeec95fc5549dc9c8e7d56dfc4c85d80973166b83f27df0f14135551b85"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-10-bit-oled.txt",
+      "size": 1247,
+      "sha256": "587e19ab3bbbbbac20ccdd7546f1564997b5d2fc8fb1035e29b9ffbc80692c47"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-10-bit-stock.txt",
+      "size": 1214,
+      "sha256": "df1b21d0abbaf8f725af3dcc71652bc0c85b48e6bb333aec5912f4b3b8d2ee09"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-8-bit-oled.txt",
+      "size": 1244,
+      "sha256": "7ce5acba51eaf9a799f95de4b94870d5e9b7c2ef897b7394d8d1179351c34856"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-5002363-8-stock.txt",
+      "size": 1207,
+      "sha256": "9364487e382a7a76ca93ea5943dacb1f01d2f8c43e2456b72490b7e82938f0ec"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/morphe-validation.json",
+      "size": 12768,
+      "sha256": "261af4ca9db06c1786a23bdf8120c08e6025fd0a4157e1c2fbc9767c8d3d1d28"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/NATIVE-INTEGRATION-EVIDENCE.md",
+      "size": 5238,
+      "sha256": "37bd4e7c3f76e6a1503bfbaeed841a744060bf8f64a61116453ee5a6cb931d15"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/native-layouts.json",
+      "size": 20907,
+      "sha256": "9d8e8e3e699f32b23d7cc015765514bbb735c9acbced7aad453218218dbc9411"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/native-payload-validation.json",
+      "size": 1079,
+      "sha256": "9b0c459e5e01a2b444092a7d94e843e4cbc0ef1f4e9163eafb86d15403dee461"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/native-validation.txt",
+      "size": 515,
+      "sha256": "699ae5c033f3f0461bfce93b2efc984008975a839123df925d093d72634e0b59"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/preserved-inputs.json",
+      "size": 2127,
+      "sha256": "c091aea08de81afd1af83dccf5a63f42134d06ebe1c0ecd62f892251cca9bc3f"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/README.md",
+      "size": 12132,
+      "sha256": "72070dffef8aacc5af439d2ca53b74564bb8728a648012b1fd55b3ea62eaa651"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/shader-syntax-validation.json",
+      "size": 5667,
+      "sha256": "f109f00c627a7a8803600042096371dacd4130b149d6171fb68ce4dc53a46028"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/static_evidence.md",
+      "size": 35979,
+      "sha256": "68cd8ef4987cc57ba79aea050e916d9f088abaddf73b9bb3db1738f63c9b7eab"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/validate_shader_syntax.py",
+      "size": 3947,
+      "sha256": "aa6875bcc23fbccce9d18c5942108c8f44603c3bc35c103c93655e48eb358c4a"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/VALIDATION.md",
+      "size": 5669,
+      "sha256": "fd63cb1f32894595a42f643473870066188204159477a12ea56824434da45ba5"
+    },
+    {
+      "path": "diagnostics/steamlink-blue-noise-ditering/virtualdesktop-verification.md",
+      "size": 13190,
+      "sha256": "075ae6ce9284fb34cb9d17fc2c4a20746dd05219a10e9c3f54aac4e9adf7fd89"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/blue_noise.cpp",
+      "size": 16148,
+      "sha256": "efcb8a3cf62c2fa2da61cddf15ad888271a490a1e2f31cdb487bdae25b3c2531"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/blue_noise_128_r8.bin",
+      "size": 16384,
+      "sha256": "bd714ed8957aa7dd2ba2aada91484e487e17322e68d96ac91be48ba4c59e77f5"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/blue_noise_tile.h",
+      "size": 102809,
+      "sha256": "d2db98d2fddddf556e13e21f71f4c1fa6cb41f2a2b22c1d0023560648b88fa70"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/Build-Native.ps1",
+      "size": 1356,
+      "sha256": "72c18a48cd05b4c383362e98e6107a198c5ba536f1e2bc78af8c69a6c4106049"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/generate_noise.py",
+      "size": 14545,
+      "sha256": "1d8b501fe24c58fe74cf569da42a96ba824737882e18da3ed399806fad516536"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/noise_validation.json",
+      "size": 3191,
+      "sha256": "0e7b21b1c5efd49d21c2595dc340ba674ee3fc87ff26cd3c5ead3c28d13a3e9f"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/sha256.h",
+      "size": 2433,
+      "sha256": "56e74fc58a08df1981d1b133eb00cf6e9fedce63fb4945523857bfc3d448a258"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/shader_rewrite.h",
+      "size": 1924,
+      "sha256": "bfe5eed596c26c9b760423a181bed3b90662e678e78353f84d7c1e84ff02be9e"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/Test-Native.ps1",
+      "size": 1481,
+      "sha256": "20c6f8d1bafb3e407e52704c93dde8cca4024cf562a183c9ace8bb8e6051b2c1"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/fakes/android/log.h",
+      "size": 107,
+      "sha256": "f79a076486f555504c9836b9d08164891456b36ab6c7316c09f4be94cbbbab5a"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/fakes/dlfcn.h",
+      "size": 310,
+      "sha256": "fd153ce4df5bcf45f228ef74ea908f51ac676ff01bc90d01b8ca7fe457b5ef1d"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/fakes/sys/system_properties.h",
+      "size": 97,
+      "sha256": "08b316573e10005eec0bb79bf2eb708d985db8d75f9821974a99e18ae0625c0e"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/native_tests.cpp",
+      "size": 26477,
+      "sha256": "ba0419db72bcd555def0a739e1651d92daa40e5fcdbbc73b1628bd1e1bad5744"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/rewrite_cli.cpp",
+      "size": 729,
+      "sha256": "a22fa8505ed32f2be953bd4d36dad0e087772fa45e4747fc4eb75e7f0d314078"
+    },
+    {
+      "path": "patches/src/main/kotlin/app/template/patches/steamlink/binary/BlueNoiseLayouts.kt",
+      "size": 8092,
+      "sha256": "660dbdaaf4ac152d2292d292044ae7e7e7f1e12f58e6c9438266811bdc13c99c"
+    },
+    {
+      "path": "patches/src/main/kotlin/app/template/patches/steamlink/binary/BlueNoisePatch.kt",
+      "size": 3380,
+      "sha256": "dc432c07265f30bbd4a691c7396c859a726832ec60927764733e986bfd49ceae"
+    },
+    {
+      "path": "patches/src/main/kotlin/app/template/patches/steamlink/binary/BlueNoisePatchHelper.kt",
+      "size": 7161,
+      "sha256": "ff57e172205a878cda3bdc015a7c34f393071b1104c428004eb14729c2a121c8"
+    },
+    {
+      "path": "patches/src/main/kotlin/util/BlueNoiseDecodedAudit.kt",
+      "size": 14108,
+      "sha256": "cdc51930f8d69129be53535072c5450e5dc21f3a1320a21bc91ec6f019cf3649"
+    },
+    {
+      "path": "patches/src/main/kotlin/util/BlueNoiseMorpheAudit.kt",
+      "size": 9912,
+      "sha256": "49726ce5994fc09859b83d8bb7bd01c76b122b609498d670c7ffe149ba2cfaf5"
+    },
+    {
+      "path": "patches/src/main/resources/steamlink/blue-noise/libgxd.so",
+      "size": 413816,
+      "sha256": "f9951b536fa24198799af6778165cbb53951ce0b9d49afa923e4384c9738f602"
+    },
+    {
+      "path": "patches/src/test/kotlin/app/template/patches/steamlink/binary/BlueNoisePatchTest.kt",
+      "size": 3110,
+      "sha256": "152e2a6f9e856bbec60d7432acbe488ee4aa0e2b514bdce970d3c32d9997d58f"
+    }
+  ],
+  "catalog_unchanged_except_oled": {
+    "patches-list.json": "6c15c4834e2b955a33b6efd53b0659d59f9003928605f1e7a676b02b608106cc",
+    "patches-list-all.json": "6c15c4834e2b955a33b6efd53b0659d59f9003928605f1e7a676b02b608106cc",
+    "patches-list-stable.json": "3c46bdf123404743c434cdeee12273b9383b6d06b59f2637ccc4731a50134bae",
+    "patches-list-experimental.json": "6c15c4834e2b955a33b6efd53b0659d59f9003928605f1e7a676b02b608106cc"
+  },
+  "verification": "PASS: all50 files byte-identical; all4 catalogs unchanged except OLED metadata; full blue-noise decoded audit and OLED-off Morphe regression pass"
+}

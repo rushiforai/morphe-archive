@@ -267,6 +267,7 @@ public class GmsCoreSupportPatch {
 
     private static volatile Object sAttachedMapObj;
     private static volatile Object sLocationComponent;
+    private static volatile Object sMapboxMap;
     private static volatile LocationSourceBinder sLocationSource;
     private static volatile android.location.Location sLastLocation;
     private static android.location.LocationListener sContinuousListener;
@@ -353,38 +354,94 @@ public class GmsCoreSupportPatch {
         }
     }
 
+    private static boolean isGoogleMapDelegateBinder(android.os.IBinder b) {
+        if (b == null) return false;
+        try {
+            String desc = b.getInterfaceDescriptor();
+            if (desc != null && (desc.equals("com.google.android.gms.maps.internal.IGoogleMapDelegate")
+                    || desc.endsWith("IGoogleMapDelegate"))) {
+                return true;
+            }
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    private static boolean isValidBinderCandidate(android.os.IBinder b) {
+        if (b == null) return false;
+        try {
+            String desc = b.getInterfaceDescriptor();
+            if (desc != null && (desc.contains("UiSettings") || desc.contains("Projection")
+                    || desc.contains("Panorama") || desc.contains("LocationSource"))) {
+                return false;
+            }
+        } catch (Throwable ignored) {}
+        return true;
+    }
+
     private static android.os.IBinder extractMapBinder(Object mapObj) {
         if (mapObj == null) return null;
         try {
-            for (java.lang.reflect.Field f : mapObj.getClass().getDeclaredFields()) {
-                f.setAccessible(true);
-                Object val = f.get(mapObj);
-                if (val instanceof android.os.IInterface) {
-                    android.os.IBinder b = ((android.os.IInterface) val).asBinder();
-                    if (b != null) return b;
-                } else if (val instanceof android.os.IBinder) {
-                    return (android.os.IBinder) val;
-                } else if (val != null) {
-                    try {
-                        java.lang.reflect.Field mRemote = val.getClass().getDeclaredField("mRemote");
-                        mRemote.setAccessible(true);
-                        Object b = mRemote.get(val);
-                        if (b instanceof android.os.IBinder) {
-                            return (android.os.IBinder) b;
-                        }
-                    } catch (Throwable ignored) {}
+            android.os.IBinder fallback = null;
+            for (Class<?> clazz = mapObj.getClass(); clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+                for (java.lang.reflect.Field f : clazz.getDeclaredFields()) {
+                    f.setAccessible(true);
+                    Object val = f.get(mapObj);
+                    if (val == null) continue;
 
-                    for (java.lang.reflect.Field sf : val.getClass().getDeclaredFields()) {
-                        sf.setAccessible(true);
-                        Object sval = sf.get(val);
-                        if (sval instanceof android.os.IBinder) {
-                            return (android.os.IBinder) sval;
-                        } else if (sval instanceof android.os.IInterface) {
-                            android.os.IBinder b = ((android.os.IInterface) sval).asBinder();
-                            if (b != null) return b;
+                    if (val instanceof android.os.IInterface) {
+                        android.os.IBinder b = ((android.os.IInterface) val).asBinder();
+                        if (isGoogleMapDelegateBinder(b)) {
+                            android.util.Log.d("MorpheLocation", "Found IGoogleMapDelegate directly: " + b);
+                            return b;
+                        }
+                        if (fallback == null && isValidBinderCandidate(b)) fallback = b;
+                    } else if (val instanceof android.os.IBinder) {
+                        android.os.IBinder b = (android.os.IBinder) val;
+                        if (isGoogleMapDelegateBinder(b)) {
+                            android.util.Log.d("MorpheLocation", "Found IGoogleMapDelegate IBinder: " + b);
+                            return b;
+                        }
+                        if (fallback == null && isValidBinderCandidate(b)) fallback = b;
+                    } else {
+                        try {
+                            java.lang.reflect.Field mRemote = val.getClass().getDeclaredField("mRemote");
+                            mRemote.setAccessible(true);
+                            Object remoteObj = mRemote.get(val);
+                            if (remoteObj instanceof android.os.IBinder) {
+                                android.os.IBinder b = (android.os.IBinder) remoteObj;
+                                if (isGoogleMapDelegateBinder(b)) {
+                                    android.util.Log.d("MorpheLocation", "Found IGoogleMapDelegate in mRemote: " + b);
+                                    return b;
+                                }
+                                if (fallback == null && isValidBinderCandidate(b)) fallback = b;
+                            }
+                        } catch (Throwable ignored) {}
+
+                        for (java.lang.reflect.Field sf : val.getClass().getDeclaredFields()) {
+                            sf.setAccessible(true);
+                            Object sval = sf.get(val);
+                            if (sval instanceof android.os.IBinder) {
+                                android.os.IBinder b = (android.os.IBinder) sval;
+                                if (isGoogleMapDelegateBinder(b)) {
+                                    android.util.Log.d("MorpheLocation", "Found IGoogleMapDelegate in subfield: " + b);
+                                    return b;
+                                }
+                                if (fallback == null && isValidBinderCandidate(b)) fallback = b;
+                            } else if (sval instanceof android.os.IInterface) {
+                                android.os.IBinder b = ((android.os.IInterface) sval).asBinder();
+                                if (isGoogleMapDelegateBinder(b)) {
+                                    android.util.Log.d("MorpheLocation", "Found IGoogleMapDelegate in subfield IInterface: " + b);
+                                    return b;
+                                }
+                                if (fallback == null && isValidBinderCandidate(b)) fallback = b;
+                            }
                         }
                     }
                 }
+            }
+            if (fallback != null) {
+                android.util.Log.w("MorpheLocation", "Using fallback binder: " + fallback);
+                return fallback;
             }
         } catch (Throwable t) {
             android.util.Log.e("MorpheLocation", "Error extracting map binder", t);
@@ -595,7 +652,8 @@ public class GmsCoreSupportPatch {
             return obj;
         }
 
-        if (className.contains("MapboxMap")) {
+        if (className.equals("com.mapbox.mapboxsdk.maps.MapboxMap")) {
+            sMapboxMap = obj;
             try {
                 java.lang.reflect.Method m = obj.getClass().getMethod("getLocationComponent");
                 Object lc = m.invoke(obj);
@@ -608,9 +666,14 @@ public class GmsCoreSupportPatch {
                 for (java.lang.reflect.Field f : obj.getClass().getDeclaredFields()) {
                     f.setAccessible(true);
                     Object val = f.get(obj);
-                    if (val != null && val.getClass().getName().contains("MapboxMap")) {
-                        Object lc = findLocationComponent(val, depth + 1, visited);
-                        if (lc != null) return lc;
+                    if (val != null) {
+                        if (val.getClass().getName().equals("com.mapbox.mapboxsdk.maps.MapboxMap")) {
+                            sMapboxMap = val;
+                        }
+                        if (val.getClass().getName().contains("MapboxMap")) {
+                            Object lc = findLocationComponent(val, depth + 1, visited);
+                            if (lc != null) return lc;
+                        }
                     }
                 }
             } catch (Throwable ignored) {}
@@ -644,7 +707,8 @@ public class GmsCoreSupportPatch {
                         try {
                             f.setAccessible(true);
                             Object mapboxMap = f.get(v);
-                            if (mapboxMap != null) {
+                            if (mapboxMap != null && mapboxMap.getClass().getName().equals("com.mapbox.mapboxsdk.maps.MapboxMap")) {
+                                sMapboxMap = mapboxMap;
                                 java.lang.reflect.Method m = mapboxMap.getClass().getMethod("getLocationComponent");
                                 Object lc = m.invoke(mapboxMap);
                                 if (lc != null) return lc;
@@ -945,15 +1009,19 @@ public class GmsCoreSupportPatch {
                         // Animate camera once per FAB click
                         if (cameraAnimated.compareAndSet(false, true)) {
                             // Direct MapboxMap camera animation via reflection for smooth, guaranteed re-centering
-                            Object mapboxMap = null;
-                            if (sLocationComponent != null) {
+                            Object mapboxMap = sMapboxMap;
+                            if (mapboxMap == null && sLocationComponent != null) {
                                 for (Class<?> c = sLocationComponent.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
                                     for (java.lang.reflect.Field f : c.getDeclaredFields()) {
-                                        if (f.getName().equals("mapboxMap") || f.getType().getName().contains("MapboxMap")) {
+                                        if (f.getType().getName().equals("com.mapbox.mapboxsdk.maps.MapboxMap")) {
                                             try {
                                                 f.setAccessible(true);
-                                                mapboxMap = f.get(sLocationComponent);
-                                                if (mapboxMap != null) break;
+                                                Object candidate = f.get(sLocationComponent);
+                                                if (candidate != null && candidate.getClass().getName().equals("com.mapbox.mapboxsdk.maps.MapboxMap")) {
+                                                    mapboxMap = candidate;
+                                                    sMapboxMap = candidate;
+                                                    break;
+                                                }
                                             } catch (Throwable ignored) {}
                                         }
                                     }
@@ -976,11 +1044,12 @@ public class GmsCoreSupportPatch {
                                         }
                                     } catch (Throwable ignored) {}
 
-                                    Class<?> mbLatLngClass = Class.forName("com.mapbox.mapboxsdk.geometry.LatLng");
+                                    ClassLoader mbCl = mapboxMap.getClass().getClassLoader();
+                                    Class<?> mbLatLngClass = Class.forName("com.mapbox.mapboxsdk.geometry.LatLng", true, mbCl);
                                     Object mbLatLng = mbLatLngClass.getConstructor(double.class, double.class)
                                             .newInstance(loc.getLatitude(), loc.getLongitude());
 
-                                    Class<?> mbCamUpdateFactory = Class.forName("com.mapbox.mapboxsdk.camera.CameraUpdateFactory");
+                                    Class<?> mbCamUpdateFactory = Class.forName("com.mapbox.mapboxsdk.camera.CameraUpdateFactory", true, mbCl);
                                     java.lang.reflect.Method mNewLatLngZoom = mbCamUpdateFactory.getMethod("newLatLngZoom", mbLatLngClass, double.class);
                                     Object mbCamUpdate = mNewLatLngZoom.invoke(null, mbLatLng, currentZoom);
 
@@ -989,8 +1058,8 @@ public class GmsCoreSupportPatch {
                                         mCancel.invoke(mapboxMap);
                                     } catch (Throwable ignored) {}
 
-                                    Class<?> mbCamUpdateClass = Class.forName("com.mapbox.mapboxsdk.camera.CameraUpdate");
-                                    Class<?> mbCancelCallbackClass = Class.forName("com.mapbox.mapboxsdk.maps.MapboxMap$CancelableCallback");
+                                    Class<?> mbCamUpdateClass = Class.forName("com.mapbox.mapboxsdk.camera.CameraUpdate", true, mbCl);
+                                    Class<?> mbCancelCallbackClass = Class.forName("com.mapbox.mapboxsdk.maps.MapboxMap$CancelableCallback", true, mbCl);
                                     java.lang.reflect.Method mAnimate = mapboxMap.getClass().getMethod("animateCamera", mbCamUpdateClass, int.class, mbCancelCallbackClass);
                                     mAnimate.invoke(mapboxMap, mbCamUpdate, 500, null);
                                     android.util.Log.d("MorpheLocation", "Direct MapboxMap.animateCamera succeeded");

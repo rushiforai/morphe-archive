@@ -44,15 +44,15 @@ Blocks Firebase Crashlytics and Sessions at the component registration level, di
 ## Patches List
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/alan7383/sofatime-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.5.1](https://github.com/alan7383/sofatime-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 SofaTime&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.2.2 | 1.2.3 | 1.2.4 | 1.2.5 | 1.2.7 | 1.2.8 | 1.2.9 | 1.2.10 | 1.3.0 | 1.3.1 | 1.3.2 | 1.3.3 | 1.3.4 | 1.3.5 | 1.3.6 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1.2.2 | 1.2.3 | 1.2.4 | 1.2.5 | 1.2.7 | 1.2.8 | 1.2.9 | 1.2.10 | 1.3.0 | 1.3.1 | 1.3.2 | 1.3.3 | 1.3.4 | 1.3.5 | 1.3.6 | 1.3.7 | 1.3.8 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

@@ -23,6 +23,7 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val rememberLiveStreamPositionPatch = bytecodePatch(
+    name = "Remember live stream playback position",
     description = "Adds an option to remember the playback position of an ongoing live stream " +
         "and resume from there when reopening that live stream.",
 ) {

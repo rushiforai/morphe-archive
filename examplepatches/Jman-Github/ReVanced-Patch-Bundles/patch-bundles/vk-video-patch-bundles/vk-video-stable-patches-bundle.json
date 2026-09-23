@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-19T15:12:48",
-  "description": "Standalone Morphe patch bundle. This release contains no VK Video APK.",
-  "download_url": "https://github.com/Solvo37/vk-video-morphe-patches/releases/download/patches-v0.1.1/vk-video-morphe-patches-0.1.1.mpp",
+  "created_at": "2026-09-22T16:30:20",
+  "description": "## VK Video 1.163 (51920) \u2014 lower-layer ad removal r3\n\nBuilt after real-account testing showed that 1.163.2 still allowed an install-game ad in VK Clips and a skippable ad during long video playback.\n\nNew lower-layer blockers:\n- Filter Clips SDK ads uses VK's own SDK ad-video predicate in the lower r11.d converter; ad-marked SDK videos return no FeedItem and are already skipped by existing callers.\n- StaticAds and MarketAds intermediates are filtered before final Clips SDK feed items and install CTAs are built.\n- Block deep midroll ads disables the dedicated request_midroll Runnable before it can pause the main video or enter InstreamAdEngine.\n- Midpoint configuration and direct named midroll starts are also blocked as defense in depth.\n\nThe APK remains Android version 1.163 / 51920 and uses the same project signing certificate as 1.163.2, so it can be installed as an update over the previous project build.\n\nAutomated gates passed for Morphe application, ZIP/alignment, package/version, manifest coexistence, DEX application class, ARM64 native signature bypass, and final v3-only signature.\n",
+  "download_url": "https://github.com/Solvo37/vk-video-morphe-patches/releases/download/1.163.3/work.mpp",
   "signature_download_url": "N/A",
-  "version": "patches-v0.1.1"
+  "version": "1.163.3"
 }

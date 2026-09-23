@@ -14,6 +14,7 @@ private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/Bypas
 
 @Suppress("unused")
 val bypassLinkRedirectsPatch = bytecodePatch(
+    name = "Bypass link redirects",
     description = "Adds an option to bypass redirects and open the original link directly.",
 ) {
     dependsOn(

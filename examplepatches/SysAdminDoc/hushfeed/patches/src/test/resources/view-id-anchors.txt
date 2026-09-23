@@ -7,10 +7,11 @@
 # names    the names, in the order the code tries them
 # package  app for com.zhiliaoapp.musically, otherwise the dynamic feature module the id lives in
 # owner    a class of the declared TikTok target whose code loads the id of the first name the
-#          target defines; or layout:<class>, a class whose code loads a layout that sets that id
-#          (the id is set in XML and no class with a real name loads it); or - where neither
-#          exists: only classes R8 renamed load the id or its layout. A dynamic feature module's
-#          classes count: its code ships as lib/<abi>/libdex_<module>.so, which the test reads
+#          target defines; layout:<class>, a class whose code loads a layout that sets that id;
+#          method-string:<text>, one method that loads both the id and a semantic string; or
+#          class-method:<name>, a class that declares a real method name and loads the id. Use -
+#          only where none exists. A dynamic feature module's classes count: its code ships as
+#          lib/<abi>/libdex_<module>.so, which the test reads
 #
 # RuntimeViewIdAnchorsTest holds every line against the code and against the target fixture.
 # TikTok hands the same short names out again on every build, mostly to other views, so every
@@ -63,13 +64,13 @@ inbox/InboxFilter.java|HEADER_ACTIVITY_STATUS_IDS|l7d|app|layout:com.ss.android.
 share/ShareSheetTools.java|CONTACTS_SECTION_IDS|ip5|app|com.ss.android.ugc.aweme.share.core.ui.TuxSharePanelNewBehavior
 share/ShareSheetTools.java|CONTACTS_LIST_IDS|v3j|app|com.ss.android.ugc.aweme.internalshare.impl.refactor.assem.SharePanelContactRootAssem
 share/ShareSheetTools.java|CHANNELS_LIST_IDS|dwr|app|com.ss.android.ugc.aweme.internalshare.impl.fragment.DownloadAndShareFragment
-share/ShareSheetTools.java|ACTIONS_LIST_IDS|a5t|app|-
+share/ShareSheetTools.java|ACTIONS_LIST_IDS|a5t|app|method-string:share_panel_action
 blockauthor/FeedVisibility.java|HOME_TAB_RESOURCE_NAMES|omq|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.bottom.hometab.HomeTabProtocol
 blockauthor/FeedVisibility.java|INBOX_TAB_RESOURCE_NAMES|omr|app|com.ss.android.ugc.aweme.notification.view.NotificationTabProtocol
 blockauthor/FeedVisibility.java|COMMENT_SHEET_RESOURCE_NAMES|pvp|app|layout:com.ss.android.ugc.aweme.commentv2.commentpage.commonvideo.DefaultCommentPageContainerFragment
 blockauthor/FeedVisibility.java|COMMENT_TITLE_RESOURCE_NAMES|wk7|app|com.ss.android.ugc.aweme.commentv2.actionbar.CommentPageActionBarAssem
 blockauthor/FeedVisibility.java|STORY_PAGER_RESOURCE_NAME|vp_story_collection|app|com.by.andInflater.story_layout_immersive_play_area
-comment/CommentTools.java|DISLIKE_BUTTON_IDS|k0k|app|-
-comment/CommentTools.java|DISLIKE_ICON_IDS|mmt|app|-
-captions/CaptionStyle.java|TEXT_ID|dlr|app|-
+comment/CommentTools.java|DISLIKE_BUTTON_IDS|k0k|app|class-method:setHateVisibility
+comment/CommentTools.java|DISLIKE_ICON_IDS|mmt|app|class-method:setHateVisibility
+captions/CaptionStyle.java|TEXT_ID|dlr|app|method-string:caption_balancer
 captions/CaptionStyle.java|BACKGROUND_ID|dlk|app|com.ss.android.ugc.aweme.autocaption.refactor.CLACaptionAssemV2

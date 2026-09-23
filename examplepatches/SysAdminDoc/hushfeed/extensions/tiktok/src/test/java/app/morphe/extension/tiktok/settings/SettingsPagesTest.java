@@ -1830,6 +1830,55 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
     }
 
     /**
+     * The header's Back takes the keyboard down with the search page.
+     *
+     * <p>Popping the page left the keyboard up over the settings home and every page opened
+     * after it, until Back was pressed once more and closed the keyboard instead of navigating
+     * (S22, 2026-09-21: the Diagnostics page opened under it).
+     */
+    @Test public void leavingSearchWithTheHeadersBackTakesTheKeyboardDown() {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            TikTokPreferenceFragment home = attachHome(activity);
+            Preference search = findPreference(home.getPreferenceScreen(), "Search settings");
+            assertTrue(search.getOnPreferenceClickListener().onPreferenceClick(search));
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            TikTokPreferenceFragment page = (TikTokPreferenceFragment) activity.getFragmentManager()
+                    .findFragmentById(android.R.id.content);
+            org.robolectric.shadows.ShadowInputMethodManager keyboard = Shadows.shadowOf(
+                    (android.view.inputmethod.InputMethodManager) activity.getSystemService(
+                            android.content.Context.INPUT_METHOD_SERVICE));
+            assertTrue("the keyboard was not asked for", keyboard.isSoftInputVisible());
+
+            View back = viewWithContentDescription(page.getView(), "Back");
+            assertNotNull("the search page has no Back in its header", back);
+            assertTrue(back.performClick());
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertFalse("Back left the keyboard up over the next page", keyboard.isSoftInputVisible());
+            assertSame("Back did not return to the settings home", home,
+                    activity.getFragmentManager().findFragmentById(android.R.id.content));
+        }
+    }
+
+    private static View viewWithContentDescription(View root, String description) {
+        if (root == null) return null;
+        if (description.contentEquals(root.getContentDescription() == null ? "" : root.getContentDescription())) return root;
+        if (root instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View found = viewWithContentDescription(group.getChildAt(i), description);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    /**
      * A row greyed by its parent says which switch would turn it on, and takes the reason back
      * off when it does.
      *

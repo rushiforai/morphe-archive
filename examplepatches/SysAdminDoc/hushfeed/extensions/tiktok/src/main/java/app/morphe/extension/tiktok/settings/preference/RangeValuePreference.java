@@ -53,7 +53,7 @@ public class RangeValuePreference extends DialogPreference {
         baseSummary = summary;
         this.setting = setting;
         setKey(setting.key);
-        setValue(setting.get());
+        setValue(setting.savedValue());
         describeRange();
     }
 

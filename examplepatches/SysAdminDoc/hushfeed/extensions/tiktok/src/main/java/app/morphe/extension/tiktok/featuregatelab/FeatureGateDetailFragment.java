@@ -217,7 +217,7 @@ public final class FeatureGateDetailFragment extends Fragment {
         effectiveValue = addInfo(currentState, L10n.t(context, "What TikTok gets"), effectiveValueText());
         TextView cacheNote = FeatureGateLabUi.label(
                 context,
-                L10n.t(context, "An override changes the value returned by the getter. It does not rewrite TikTok's cached value or prove the named feature changed.")
+                L10n.t(context, "An override changes the value TikTok reads from this gate. It does not rewrite TikTok's cached value or prove the named feature changed.")
         );
         LinearLayout.LayoutParams cacheNoteParams = FeatureGateLabUi.matchWrap();
         cacheNoteParams.setMargins(0, FeatureGateLabUi.dp(context, 8), 0, 0);
@@ -225,7 +225,7 @@ public final class FeatureGateDetailFragment extends Fragment {
 
         if (isSensitiveKey(entry.key)) {
             View sensitive = SettingsUi.inlineNotice(context,
-                    L10n.t(context, "Account-sensitive name: forcing this key may affect security, login, compliance, region, payment, or account safety behavior."),
+                    L10n.t(context, "This key touches account safety. Forcing it can change login, region, payment or security checks."),
                     SettingsUi.attentionColor());
             LinearLayout.LayoutParams params = FeatureGateLabUi.matchWrap();
             int noticeMargin = FeatureGateLabUi.dp(context, SettingsUi.NOTICE_MARGIN);
@@ -278,7 +278,7 @@ public final class FeatureGateDetailFragment extends Fragment {
             LinearLayout forceRow = FeatureGateLabUi.switchRow(
                     context,
                     L10n.t(context, "Override this configuration"),
-                    L10n.t(context, "Return a copy of this configuration with the fields below changed"),
+                    L10n.t(context, "Return a copy with the fields below changed"),
                     force
             );
             content.addView(forceRow, FeatureGateLabUi.matchWrap());
@@ -330,7 +330,7 @@ public final class FeatureGateDetailFragment extends Fragment {
             LinearLayout valueRow = FeatureGateLabUi.switchRow(
                     context,
                     L10n.t(context, "Forced result"),
-                    L10n.t(context, "Off forces false; on forces true. Reset returns control to TikTok"),
+                    L10n.t(context, "Off forces false, on forces true. Reset hands the choice back to TikTok."),
                     booleanValue
             );
             valueRow.setBackground(SettingsUi.groupedRow(context, false, true));
@@ -467,7 +467,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                     fillingFields = false;
                 }
                 setFieldsDirty(false);
-                Utils.showToastShort(L10n.t(getContext(), "Field edits were discarded."));
+                Utils.showToastShort(L10n.t(getContext(), "Field edits were discarded"));
             });
         }
         watchObjectEditors();
@@ -591,13 +591,13 @@ public final class FeatureGateDetailFragment extends Fragment {
                     updateStatus();
                 },
                 L10n.t(Utils.getContext(), "Overrides enabled. Restart TikTok to apply this."),
-                L10n.t(Utils.getContext(), "Could not change Lab settings."));
+                L10n.t(Utils.getContext(), "Couldn't change the Lab settings. Try again."));
     }
 
     private void leaveDetail() {
         // Not a confirmation dialog: the house rule is one line of feedback and the action goes
         // through. What was typed is not saved, and now that is said rather than silent.
-        if (fieldsDirty) Utils.showToastShort(L10n.t(getContext(), "Field edits were not saved."));
+        if (fieldsDirty) Utils.showToastShort(L10n.t(getContext(), "Field edits were not saved"));
         if (getFragmentManager() != null) getFragmentManager().popBackStack();
     }
 
@@ -638,7 +638,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                     updateStatus();
                 },
                 L10n.t(Utils.getContext(), "Feature gate override saved"),
-                L10n.t(Utils.getContext(), "Could not save this override."));
+                L10n.t(Utils.getContext(), "Couldn't save this override. Try again."));
     }
 
     private void resetRule() {
@@ -659,7 +659,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                     updateStatus();
                 },
                 L10n.t(Utils.getContext(), "Feature gate override reset"),
-                L10n.t(Utils.getContext(), "Could not reset this override."));
+                L10n.t(Utils.getContext(), "Couldn't reset this override. Try again."));
     }
 
     /**
@@ -899,7 +899,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                 entry.manager, entry.key, entry.type);
         status.setText(failure != null
                 ? L10n.t(getContext(),
-                        "TikTok read it, but the override could not be applied. Reset it and save it again.")
+                        "TikTok read it, but the override couldn't be applied. Reset it and save it again.")
                 : L10n.t(getContext(), triggered
                         ? "TikTok read it" : "Not read yet"));
         status.setTextColor(triggered ? SettingsUi.accent() : FeatureGateLabUi.warningColor(getActivity()));
@@ -946,7 +946,7 @@ public final class FeatureGateDetailFragment extends Fragment {
 
         TextView explanation = FeatureGateLabUi.label(
                 root.getContext(),
-                L10n.t(root.getContext(), "Only fields that can be type-checked and applied to a copied configuration object are shown.")
+                L10n.t(root.getContext(), "Only fields the Lab can check and copy safely are shown.")
         );
         LinearLayout.LayoutParams explanationParams = FeatureGateLabUi.matchWrap();
         explanationParams.setMargins(0, FeatureGateLabUi.dp(root.getContext(), 6), 0, 0);
@@ -1106,7 +1106,7 @@ public final class FeatureGateDetailFragment extends Fragment {
         } catch (Throwable failure) {
             Logger.printException(() -> "Could not collect Feature Gate field values", failure);
             Utils.showToastLong(L10n.t(getContext(),
-                    "A field value could not be read. Check the values and try again."));
+                    "A field value couldn't be read. Check the values and try again."));
             return null;
         }
         return result.toString();

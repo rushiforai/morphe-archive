@@ -59,10 +59,4 @@ public class LongSetting extends Setting<Long> {
     public void saveToPreferences() {
         preferences.saveLongString(key, value);
     }
-
-    @NonNull
-    @Override
-    public Long get() {
-        return value;
-    }
 }

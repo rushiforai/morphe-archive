@@ -158,6 +158,16 @@ class TikTokPatchAnchorsMatchFixturesTest {
      */
     @Test
     fun `both comment sheet Tako top bar gates stay unique and guardable on every retained fixture`() {
+        // The extension answers the bridge base's guard by class name, so the name it compares
+        // has to be the one the fingerprint pins; a rename of either alone would apply cleanly
+        // and leave the bar standing.
+        val extension = File("../extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feedfilter/TakoAiFilter.java")
+            .takeIf { it.isFile } ?: File("extensions/tiktok/src/main/java/app/morphe/extension/tiktok/feedfilter/TakoAiFilter.java")
+        assertTrue("could not find TakoAiFilter.java from ${File(".").absolutePath}", extension.isFile)
+        val compared = Regex("COMMENT_TOP_BAR_BRIDGE\\s*=\\s*\"([A-Za-z0-9_]+)\"").find(extension.readText())?.groupValues?.get(1)
+        assertEquals("the class name the extension compares is the bridge the patch pins",
+            TAKO_COMMENT_TOP_BAR_BRIDGE.substringAfterLast('/').removeSuffix(";"), compared)
+
         val apks = fixtures()
         for (apk in apks) {
             val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())

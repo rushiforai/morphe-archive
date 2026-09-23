@@ -6,7 +6,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.youtube.misc.playservice.is_21_18_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.util.insertLiteralOverride
-import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 val fixVerticalScrollPatch = bytecodePatch(
@@ -30,16 +29,11 @@ val fixVerticalScrollPatch = bytecodePatch(
             it.method.apply {
                 val index = it.instructionMatches.last().index
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
-                val nextInst = implementation?.instructions?.getOrNull(index + 1)
-                val alreadyHooked = (nextInst as? OneRegisterInstruction)?.let { inst ->
-                    inst.opcode == Opcode.CONST_4 && inst.registerA == register
-                } == true
-                if (!alreadyHooked) {
-                    addInstruction(
-                        index + 1,
-                        "const/4 v$register, 0x0",
-                    )
-                }
+
+                addInstruction(
+                    index + 1,
+                    "const/4 v$register, 0x0",
+                )
             }
         }
     }

@@ -66,7 +66,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Use the split layout on wider screens. Restart TikTok to apply this. If the old layout is still there, unfold again.", Settings.FOLDABLE_SPLIT_VIEW));
             addPreference(new app.morphe.extension.tiktok.settings.preference.NumberInputPreference(context,
                     "Split comment minimum width", "Window width needed to enable the layout. Restart TikTok to apply this.",
-                    Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "dp", "dp"));
+                    Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "%1$s dp", "%1$s dp"));
         }
         if (SettingsStatus.systemFontEnabled) {
             addPreference(new SectionHeadingPreference(context, "Appearance"));

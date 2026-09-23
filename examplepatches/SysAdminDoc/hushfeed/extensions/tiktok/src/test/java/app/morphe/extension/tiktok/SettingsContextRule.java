@@ -52,6 +52,17 @@ public final class SettingsContextRule extends ExternalResource {
         // restart-gated toggle in one class would pin the row on every page captured after it.
         app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
                 .restartPending.clear();
+        // The debt is measured against the value each setting first ran with, which is just as
+        // process-wide: a test that ran with safe mode on left the next test owing a restart for
+        // a switch it never touched.
+        try {
+            Field running = app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment
+                    .class.getDeclaredField("runningValues");
+            running.setAccessible(true);
+            ((java.util.Map<?, ?>) running.get(null)).clear();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Could not clear the running values", exception);
+        }
     }
 
     @Override

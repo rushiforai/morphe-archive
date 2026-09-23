@@ -98,6 +98,11 @@ public class CreatorListTest {
         }
     }
 
+    /** A handle the way every message carries it: between Unicode's first-strong isolate and its pop. */
+    private static String isolated(String handle) {
+        return "\u2068" + handle + "\u2069";
+    }
+
     private static View byDescription(View view, String description) {
         if (view.getContentDescription() != null
                 && description.contentEquals(view.getContentDescription())) {
@@ -156,14 +161,14 @@ public class CreatorListTest {
                     title.isAccessibilityHeading());
 
             // Remove one, then cancel: the setting is untouched.
-            byDescription(view, "Remove bob").performClick();
+            byDescription(view, "Remove " + isolated("bob")).performClick();
             assertEquals(java.util.List.of("alice"), rows(view));
             preference.onDialogClosed(false);
             assertEquals("alice, bob", Settings.LOCAL_HIDDEN_CREATORS.get());
 
             // Do it again and save: the setting follows the rows.
             view = preference.onCreateDialogView();
-            byDescription(view, "Remove bob").performClick();
+            byDescription(view, "Remove " + isolated("bob")).performClick();
             preference.onDialogClosed(true);
             assertEquals("alice", Settings.LOCAL_HIDDEN_CREATORS.get());
         }
@@ -307,15 +312,15 @@ public class CreatorListTest {
             Settings.LOCAL_HIDDEN_CREATORS.save("alice, bob, bobby");
 
             View view = open(activity).onCreateDialogView();
-            View removeBob = byDescription(view, "Remove bob");
+            View removeBob = byDescription(view, "Remove " + isolated("bob"));
             assertNotNull(removeBob);
             removeBob.requestFocus();
             ShadowToast.reset();
             removeBob.performClick();
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
 
-            assertEquals("Removed bob", ShadowToast.getTextOfLatestToast());
-            View removeBobby = byDescription(view, "Remove bobby");
+            assertEquals("Removed " + isolated("bob"), ShadowToast.getTextOfLatestToast());
+            View removeBobby = byDescription(view, "Remove " + isolated("bobby"));
             assertNotNull(removeBobby);
             assertTrue("focus vanished with the removed row", removeBobby.hasFocus());
             assertEquals("2 results", resultCount(view).getText().toString());

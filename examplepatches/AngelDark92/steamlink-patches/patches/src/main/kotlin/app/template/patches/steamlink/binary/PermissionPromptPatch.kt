@@ -33,20 +33,8 @@ private val PERMISSION_PROMPT_LAYOUTS = listOf(
         "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495", 0x142c0c,
     ),
     PermissionPromptLayout(
-        "2.0.20", 5001740, 2_220_528,
-        "5fbb76c06c9fc0e3e5c5825752aa17e040462c8551b69d3492265f620244f443", 0x142a9c,
-    ),
-    PermissionPromptLayout(
         "2.0.22", 5002244, 2_251_920,
         "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12", 0x1422c4,
-    ),
-    PermissionPromptLayout(
-        "2.0.22", 5002296, 2_265_656,
-        "879694c57f0ca7e74017c174c24da619b1d1e909f4491edd9b2423513f0f87a6", 0x14478c,
-    ),
-    PermissionPromptLayout(
-        "2.0.22", 5002313, 2_276_872,
-        "e4d3575a130dc013e4c8fe4fb965217028229f89b13ba821c01b492e457398bb", 0x1472a8,
     ),
 )
 

@@ -85,6 +85,9 @@ public final class Haiagaru {
             new WeakHashMap<>();
     private static final String PREFS_NAME =
             "io.github.areteruhiro.chmate.haiagaru.ui-config";
+    private static final String LEGACY_TALK_PREFS_NAME = "talk";
+    private static final String LEGACY_TALK_SESSION_REPAIR_KEY =
+            "legacyTalkSessionRepairLastUpdateV2";
     private static final String BUTTON_TAG = "haiagaru.settings.button";
     private static final String DEFAULT_USER_AGENT =
             "Dalvik/2.1.0 (Linux; U; Android 4.0.3; HT-01 Build/XYZ0.123456.789)";
@@ -912,6 +915,55 @@ public final class Haiagaru {
     }
 
     /**
+     * Repairs the write session left by older 191 patches once, without touching
+     * the rest of ChMate's data.  The stock Talk flow stores a replacement
+     * {@code x-write-key} before showing its confirmation dialog.  If that dialog
+     * is cancelled, the matching one-shot extend token is discarded while the
+     * replacement key remains in {@code talk.xml}.  Every later post then reuses
+     * an impossible key/token pair until all app data is cleared.
+     */
+    public static void prepareLegacyTalkPostSession() {
+        Context context = applicationContext;
+        if (context == null) return;
+        SharedPreferences haiagaru = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        long installedAt = 1L;
+        try {
+            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            if (info.lastUpdateTime > 0) installedAt = info.lastUpdateTime;
+        } catch (Throwable ignored) {
+            try {
+                long modified = new File(context.getApplicationInfo().sourceDir).lastModified();
+                if (modified > 0) installedAt = modified;
+            } catch (Throwable ignoredAgain) {
+            }
+        }
+        if (installedAt == haiagaru.getLong(LEGACY_TALK_SESSION_REPAIR_KEY, Long.MIN_VALUE)) return;
+        clearLegacyTalkWriteSession(context);
+        haiagaru.edit()
+                .putLong(LEGACY_TALK_SESSION_REPAIR_KEY, installedAt)
+                .remove("legacyTalkSessionRepairVersionV1")
+                .remove("legacyTalkSessionRepairV1")
+                .commit();
+        Log.i(LOG_TAG, "Repaired legacy Talk write session after APK update");
+    }
+
+    /** Drops only 191's renewable Talk write credentials after confirmation is cancelled. */
+    public static void resetLegacyTalkPostSession() {
+        Context context = applicationContext;
+        if (context == null) return;
+        clearLegacyTalkWriteSession(context);
+        Log.i(LOG_TAG, "Reset legacy Talk write session after cancelled confirmation");
+    }
+
+    private static void clearLegacyTalkWriteSession(Context context) {
+        context.getSharedPreferences(LEGACY_TALK_PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .remove("talk_write_key")
+                .remove("talk_created")
+                .commit();
+    }
+
+    /**
      * ChMate 0.8.10.191 restores its Talk client into a dedicated in-memory DEX.
      * A certificate-derived comparison in that DEX deliberately divides by zero
      * when the APK is re-signed. Keep the generated request/authentication code,
@@ -1002,6 +1054,39 @@ public final class Haiagaru {
             return method.invoke(target, arguments);
         } catch (java.lang.reflect.InvocationTargetException error) {
             return Haiagaru.<RuntimeException, Object>throwUnchecked(error.getCause());
+        } catch (Throwable error) {
+            return Haiagaru.<RuntimeException, Object>throwUnchecked(error);
+        }
+    }
+
+    /**
+     * Invokes 226's generated Talk session/key builder after repairing the same
+     * certificate-derived state used by its private string encoder.  This call
+     * runs before the posting method, so repairing only invokePreIoTalkPoster is
+     * too late: the encoder otherwise deliberately throws a bare NPE.
+     */
+    public static Object invokePreIoTalkAuthenticator(
+            java.lang.reflect.Method method,
+            Object target,
+            Object[] arguments
+    ) {
+        if (method == null) throw new NullPointerException("method");
+        normalizeGeneratedIntegrityState(target, "o.head", "e", "d");
+        try {
+            return method.invoke(target, arguments);
+        } catch (java.lang.reflect.InvocationTargetException error) {
+            Throwable cause = error.getCause();
+            if (!isGeneratedIntegrityFailure(cause)) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(cause);
+            }
+            normalizeGeneratedIntegrityState(target, "o.head", "e", "d");
+            try {
+                return method.invoke(target, arguments);
+            } catch (java.lang.reflect.InvocationTargetException retryError) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(retryError.getCause());
+            } catch (Throwable retryError) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(retryError);
+            }
         } catch (Throwable error) {
             return Haiagaru.<RuntimeException, Object>throwUnchecked(error);
         }

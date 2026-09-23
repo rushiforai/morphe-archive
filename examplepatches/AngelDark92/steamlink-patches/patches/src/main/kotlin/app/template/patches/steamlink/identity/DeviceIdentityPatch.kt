@@ -317,7 +317,7 @@ internal fun patchHmdModelIdentity(
         return entry.replaceRange(quoteStart + 1, stringValue.range.last, model)
     }
 
-    // Native 5002322 and 5002363 select staticProps by the exact product name, without consulting
+    // Native builds select staticProps by the exact product name, without consulting
     // unknown on a miss. Clone that template for missing products; keep existing product
     // fields and every unrelated byte intact. Validate every target before constructing output.
     val template = withModel(json.substring(unknown), "unknown")
@@ -343,7 +343,7 @@ internal fun patchHmdModelIdentity(
 }
 
 // Resolve per execution: patch options are shared objects, so setting the Quest Pro option
-// while declaring a legacy bundle would also change the native 5002318 recommendation.
+// while declaring a legacy bundle would also change the native build recommendation.
 internal fun resolveDeviceIdentityProfile(profile: String, version: String, versionCode: String): String =
     if (profile == "recommended") {
         if (isLegacyRecommendedSteamLinkBuild(version, versionCode)) "meta-quest-pro" else "samsung-galaxy-xr"
@@ -370,7 +370,7 @@ val deviceIdentityPatch = rawResourcePatch(
     description = "Overrides the HMD identity reported to SteamVR. Recommended selects Meta Quest Pro " +
         "for exact legacy bundle targets through 5002244, including 2.0.20/5001712; otherwise Galaxy XR. The Galaxy profile installs its " +
         "complete transport identity while preserving stock controller/hand routing and extensions. " +
-        "Optional on 2.0.22/5002322 and 2.0.23/5002363; explicit Quest Pro and Pico profiles populate exact Galaxy XR product entries.",
+        "Optional on 2.0.23/5002363; explicit Quest Pro and Pico profiles populate exact Galaxy XR product entries.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())

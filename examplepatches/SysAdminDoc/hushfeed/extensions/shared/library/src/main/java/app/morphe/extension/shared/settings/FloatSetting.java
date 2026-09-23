@@ -59,10 +59,4 @@ public class FloatSetting extends Setting<Float> {
     public void saveToPreferences() {
         preferences.saveFloatString(key, value);
     }
-
-    @NonNull
-    @Override
-    public Float get() {
-        return value;
-    }
 }

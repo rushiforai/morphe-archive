@@ -1,5 +1,5 @@
 {
-    "version": "v1.12.19",
+    "version": "v1.12.21",
     "patches": [
         {
             "compatiblePackages": [
@@ -690,6 +690,12 @@
                         {
                             "isExperimental": false,
                             "minSdk": 26,
+                            "version": "19.36.0",
+                            "versionCode": 2718
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
                             "version": "19.35.0",
                             "versionCode": 2717
                         },
@@ -743,6 +749,7 @@
                         }
                     ],
                     "versions": [
+                        "19.36.0",
                         "19.35.0",
                         "19.34.0",
                         "19.33.1",
@@ -854,6 +861,18 @@
                         {
                             "isExperimental": false,
                             "minSdk": 26,
+                            "version": "7.8.1002-rustore",
+                            "versionCode": 61079
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "7.8.1002",
+                            "versionCode": 10061079
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
                             "version": "7.8.0002-rustore",
                             "versionCode": 61076
                         },
@@ -961,6 +980,8 @@
                         }
                     ],
                     "versions": [
+                        "7.8.1002-rustore",
+                        "7.8.1002",
                         "7.8.0002-rustore",
                         "7.8.0002",
                         "7.7.9003-rustore",

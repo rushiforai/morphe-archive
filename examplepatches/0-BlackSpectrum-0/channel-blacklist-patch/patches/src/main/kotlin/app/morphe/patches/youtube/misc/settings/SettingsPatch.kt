@@ -22,7 +22,6 @@ import app.morphe.patches.all.misc.fix.openurllinks.removeLinkVerification
 import app.morphe.patches.all.misc.resources.addAppResources
 import app.morphe.patches.all.misc.resources.addResourcesPatch
 import app.morphe.patches.all.misc.resources.localesYouTube
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.all.misc.resources.setAddResourceLocale
 import app.morphe.patches.shared.BoldIconsFeatureFlagFingerprint
 import app.morphe.patches.shared.GoogleApiActivityOnCreateFingerprint
@@ -82,7 +81,6 @@ private val preferences = mutableSetOf<BasePreference>()
 
 private val settingsResourcePatch = resourcePatch {
     dependsOn(
-        resourceMappingPatch,
         settingsPatch(
             rootPreferences = listOf(
                 // The Cairo layout shows the Morphe name as the category of the entry,
@@ -284,17 +282,12 @@ val settingsPatch = bytecodePatch(
         // This is needed because YT allows forcing light/dark mode
         // which then differs from the system dark mode status.
         SetThemeFingerprint.method.apply {
-            val alreadyHooked = implementation?.instructions?.any { inst ->
-                (inst as? ReferenceInstruction)?.reference?.toString()?.contains("updateLightDarkModeStatus") == true
-            } == true
-            if (!alreadyHooked) {
-                findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT).forEach { index ->
-                    val register = getInstruction<OneRegisterInstruction>(index).registerA
-                    addInstructionsAtControlFlowLabel(
-                        index,
-                        "invoke-static { v$register }, ${YOUTUBE_ACTIVITY_HOOK_CLASS}->updateLightDarkModeStatus(Ljava/lang/Enum;)V",
-                    )
-                }
+            findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT).forEach { index ->
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+                addInstructionsAtControlFlowLabel(
+                    index,
+                    "invoke-static { v$register }, ${YOUTUBE_ACTIVITY_HOOK_CLASS}->updateLightDarkModeStatus(Ljava/lang/Enum;)V",
+                )
             }
         }
 
@@ -320,38 +313,33 @@ val settingsPatch = bytecodePatch(
 
         SettingsPreferenceScreenSyntheticFingerprint.let {
             it.method.apply {
-                val alreadyHooked = implementation?.instructions?.any { inst ->
-                    (inst as? ReferenceInstruction)?.reference?.toString()?.contains("getCustomSettingsName") == true
-                } == true
-                if (!alreadyHooked) {
-                    // Reuse the method's own getPreferenceScreen call.
-                    val getPreferenceScreenIndex = it.instructionMatches[1].index
-                    val fragmentRegister =
-                        getInstruction<FiveRegisterInstruction>(getPreferenceScreenIndex).registerC
-                    val getPreferenceScreenReference =
-                        getInstruction<ReferenceInstruction>(getPreferenceScreenIndex).reference
+                // Reuse the method's own getPreferenceScreen call.
+                val getPreferenceScreenIndex = it.instructionMatches[1].index
+                val fragmentRegister =
+                    getInstruction<FiveRegisterInstruction>(getPreferenceScreenIndex).registerC
+                val getPreferenceScreenReference =
+                    getInstruction<ReferenceInstruction>(getPreferenceScreenIndex).reference
 
-                    // fragmentRegister must survive, because the settings menu filter patch
-                    // adds its own call on it after these instructions.
-                    val insertIndex = it.instructionMatches.last().index
-                    val registerProvider = getFreeRegisterProvider(insertIndex, 3, fragmentRegister)
-                    val screenRegister = registerProvider.getFreeRegister()
-                    val preferenceRegister = registerProvider.getFreeRegister()
-                    val nameRegister = registerProvider.getFreeRegister()
+                // fragmentRegister must survive, because the settings menu filter patch
+                // adds its own call on it after these instructions.
+                val insertIndex = it.instructionMatches.last().index
+                val registerProvider = getFreeRegisterProvider(insertIndex, 3, fragmentRegister)
+                val screenRegister = registerProvider.getFreeRegister()
+                val preferenceRegister = registerProvider.getFreeRegister()
+                val nameRegister = registerProvider.getFreeRegister()
 
-                    addInstructionsAtControlFlowLabel(
-                        insertIndex,
-                        customSettingsNameInstructions(
-                            getPreferenceScreen = """
-                                invoke-virtual { v$fragmentRegister }, $getPreferenceScreenReference
-                                move-result-object v$screenRegister
-                            """,
-                            screenRegister = screenRegister,
-                            preferenceRegister = preferenceRegister,
-                            nameRegister = nameRegister
-                        )
+                addInstructionsAtControlFlowLabel(
+                    insertIndex,
+                    customSettingsNameInstructions(
+                        getPreferenceScreen = """
+                            invoke-virtual { v$fragmentRegister }, $getPreferenceScreenReference
+                            move-result-object v$screenRegister
+                        """,
+                        screenRegister = screenRegister,
+                        preferenceRegister = preferenceRegister,
+                        nameRegister = nameRegister
                     )
-                }
+                )
             }
         }
 
@@ -379,84 +367,72 @@ internal fun modifyActivityForSettingsInjection(
     val activityOnCreateClass = activityOnCreateFingerprint.classDef
     val activityOnCreateMethod = activityOnCreateFingerprint.method
 
-    val alreadyModified = activityOnCreateMethod.implementation?.instructions?.any { inst ->
-        (inst as? ReferenceInstruction)?.reference?.toString()?.contains("initialize") == true
-    } == true
-    if (!alreadyModified) {
-        // Modify Activity and remove all existing layout code.
-        // Must modify an existing activity and cannot add a new activity to the manifest,
-        // as that fails for root installations.
-        activityOnCreateMethod.addInstructions(
-            0,
-            """
-                invoke-super { p0, p1 }, ${activityOnCreateClass.superclass}->onCreate(Landroid/os/Bundle;)V
-                invoke-static { p0 }, $extensionClassType->initialize(Landroid/app/Activity;)V
-                return-void
-            """
-        )
+    // Modify Activity and remove all existing layout code.
+    // Must modify an existing activity and cannot add a new activity to the manifest,
+    // as that fails for root installations.
+    activityOnCreateMethod.addInstructions(
+        0,
+        """
+            invoke-super { p0, p1 }, ${activityOnCreateClass.superclass}->onCreate(Landroid/os/Bundle;)V
+            invoke-static { p0 }, $extensionClassType->initialize(Landroid/app/Activity;)V
+            return-void
+        """
+    )
 
-        // Remove other methods as they will break as the onCreate method is modified above.
-        activityOnCreateClass.apply {
-            methods.removeIf { it != activityOnCreateMethod && !MethodUtil.isConstructor(it) }
-        }
+    // Remove other methods as they will break as the onCreate method is modified above.
+    activityOnCreateClass.apply {
+        methods.removeIf { it != activityOnCreateMethod && !MethodUtil.isConstructor(it) }
     }
 
     // Override base context to allow using Morphe specific settings.
-    val hasAttachBaseContext = activityOnCreateClass.methods.any { it.name == "attachBaseContext" }
-    if (!hasAttachBaseContext) {
-        ImmutableMethod(
-            activityOnCreateClass.type,
-            "attachBaseContext",
-            listOf(ImmutableMethodParameter("Landroid/content/Context;", null, null)),
-            "V",
-            AccessFlags.PROTECTED.value,
-            null,
-            null,
-            MutableMethodImplementation(3)
-        ).toMutable().apply {
-            addInstructions(
-                0,
-                """
-                    invoke-static { p1 }, $BASE_ACTIVITY_HOOK_CLASS->getAttachBaseContext(Landroid/content/Context;)Landroid/content/Context;
-                    move-result-object p1
-                    invoke-super { p0, p1 }, ${activityOnCreateClass.superclass}->attachBaseContext(Landroid/content/Context;)V
-                    return-void
-                """
-            )
-        }.let(activityOnCreateClass.methods::add)
-    }
+    ImmutableMethod(
+        activityOnCreateClass.type,
+        "attachBaseContext",
+        listOf(ImmutableMethodParameter("Landroid/content/Context;", null, null)),
+        "V",
+        AccessFlags.PROTECTED.value,
+        null,
+        null,
+        MutableMethodImplementation(3)
+    ).toMutable().apply {
+        addInstructions(
+            0,
+            """
+                invoke-static { p1 }, $BASE_ACTIVITY_HOOK_CLASS->getAttachBaseContext(Landroid/content/Context;)Landroid/content/Context;
+                move-result-object p1
+                invoke-super { p0, p1 }, ${activityOnCreateClass.superclass}->attachBaseContext(Landroid/content/Context;)V
+                return-void
+            """
+        )
+    }.let(activityOnCreateClass.methods::add)
 
     // Override finish() to intercept back gesture.
-    val backMethodName = if (isYouTubeMusic) "finish" else "onBackPressed"
-    val hasBackMethod = activityOnCreateClass.methods.any { it.name == backMethodName }
-    if (!hasBackMethod) {
-        ImmutableMethod(
-            activityOnCreateClass.type,
-            backMethodName,
-            emptyList(),
-            "V",
-            AccessFlags.PUBLIC.value,
-            null,
-            null,
-            MutableMethodImplementation(3)
-        ).toMutable().apply {
-            // Slightly different hooks are needed, otherwise the back button can behave wrong.
-            val extensionMethodName = if (isYouTubeMusic) "handleFinish" else "handleBackPress"
-            val invokeFinishOpcode = if (isYouTubeMusic) "invoke-super" else "invoke-virtual"
+    ImmutableMethod(
+        activityOnCreateClass.type,
+        if (isYouTubeMusic) "finish" else "onBackPressed",
+        emptyList(),
+        "V",
+        AccessFlags.PUBLIC.value,
+        null,
+        null,
+        MutableMethodImplementation(3)
+    ).toMutable().apply {
+        // Slightly different hooks are needed, otherwise the back button can behave wrong.
+        val extensionMethodName = if (isYouTubeMusic) "handleFinish" else "handleBackPress"
+        val invokeFinishOpcode = if (isYouTubeMusic) "invoke-super" else "invoke-virtual"
 
-            addInstructions(
-                0,
-                """
-                    invoke-static {}, $extensionClassType->$extensionMethodName()Z
-                    move-result v0
-                    if-nez v0, :search_handled
-                    $invokeFinishOpcode { p0 }, Landroid/app/Activity;->finish()V
-                    :search_handled
-                    return-void
-                """
-            )
-        }.let(activityOnCreateClass.methods::add)
-    }
+        addInstructions(
+            0,
+            """
+                invoke-static {}, $extensionClassType->$extensionMethodName()Z
+                move-result v0
+                if-nez v0, :search_handled
+                $invokeFinishOpcode { p0 }, Landroid/app/Activity;->finish()V
+                :search_handled
+                return-void
+            """
+        )
+    }.let(activityOnCreateClass.methods::add)
 }
 
 /**
@@ -471,6 +447,24 @@ fun newIntent(settingsName: String) = IntentPreference.Intent(
 }
 
 object PreferenceScreen : BasePreferenceScreen() {
+    private val shortsPlayerPreferences = mutableSetOf<BasePreference>()
+
+    val SHORTS_PLAYER = PreferenceScreenPreference(
+        key = "morphe_shorts_player_screen",
+        sorting = Sorting.UNSORTED,
+        preferences = shortsPlayerPreferences,
+    )
+
+    private var shortsPlayerScreenAdded = false
+
+    fun addShortsPlayerPreferences(vararg preferences: BasePreference) {
+        shortsPlayerPreferences.addAll(preferences)
+
+        if (!shortsPlayerScreenAdded) {
+            SHORTS.addPreferences(SHORTS_PLAYER)
+            shortsPlayerScreenAdded = true
+        }
+    }
     // Sort screens in the root menu by key, to not scatter related items apart
     // (sorting key is set in morphe_prefs.xml).
     // If no preferences are added to a screen, the screen will not be added to the settings.

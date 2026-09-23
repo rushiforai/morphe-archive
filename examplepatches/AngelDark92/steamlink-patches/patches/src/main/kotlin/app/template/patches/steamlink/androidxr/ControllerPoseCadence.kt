@@ -40,15 +40,6 @@ private data class CadenceLayout(
 
 private val CADENCE_LAYOUTS = listOf(
     CadenceLayout(
-        versionCode = 5001740,
-        fileSize = 2_220_528,
-        blocks = listOf(
-            CadenceBlock(0x000F6378L, 0x000F6368L, 0x000F63C0L, 0x000F63D4L, 0x000F63FCL, 0x000F63E0L, 10, 9),
-            CadenceBlock(0x000F6478L, 0x000F6468L, 0x000F64C0L, 0x000F64D4L, 0x000F64FCL, 0x000F64E0L, 10, 9),
-            CadenceBlock(0x000F6540L, 0x000F6530L, 0x000F6588L, 0x000F6598L, 0x000F65C4L, 0x000F65CCL, 9, 10),
-        ),
-    ),
-    CadenceLayout(
         versionCode = 5001712,
         fileSize = 2_221_072,
         blocks = listOf(
@@ -64,15 +55,6 @@ private val CADENCE_LAYOUTS = listOf(
             CadenceBlock(0x000F3518L, 0x000F3508L, 0x000F3560L, 0x000F3574L, 0x000F359CL, 0x000F3580L, 10, 9),
             CadenceBlock(0x000F361CL, 0x000F360CL, 0x000F3664L, 0x000F3678L, 0x000F36A0L, 0x000F3684L, 10, 9),
             CadenceBlock(0x000F36E4L, 0x000F36D4L, 0x000F372CL, 0x000F373CL, 0x000F3768L, 0x000F3770L, 9, 10),
-        ),
-    ),
-    CadenceLayout(
-        versionCode = 5002313,
-        fileSize = 2_276_872,
-        blocks = listOf(
-            CadenceBlock(0x000F5484L, 0x000F5474L, 0x000F54CCL, 0x000F54E0L, 0x000F5508L, 0x000F54ECL, 10, 9),
-            CadenceBlock(0x000F5588L, 0x000F5578L, 0x000F55D0L, 0x000F55E4L, 0x000F560CL, 0x000F55F0L, 10, 9),
-            CadenceBlock(0x000F5650L, 0x000F5640L, 0x000F5698L, 0x000F56A8L, 0x000F56D4L, 0x000F56DCL, 9, 10),
         ),
     ),
 )

@@ -70,6 +70,15 @@ Verify the package name is correct and the app is installed"</string>
     <string name="morphe_custom_branding_icon_entry_6">Morphe play black</string>
     <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
     <string name="morphe_custom_branding_icon_entry_7">Custom</string>
+    <string name="morphe_custom_branding_icon_user_dialog_message">"This changes the icon shown in your app launcher.
+
+This setting will not change the icon in any of these locations:
+• Device system settings app list
+• Certain push notifications
+• 'Open with' app picker
+• Android Auto icon
+
+To change the icon everywhere, patch again and change the 'App icon' patch option"</string>
     <string name="morphe_custom_branding_notification_icon_title">Notification icon</string>
     <string name="morphe_custom_branding_notification_icon_entry_1">Match app icon</string>
     <string name="morphe_custom_branding_notification_icon_entry_2" translatable="false">Morphe</string>
@@ -250,12 +259,11 @@ If later turned off, it is recommended to clear the app data to prevent UI bugs.
     <string name="morphe_ryd_failure_generic">Dislikes are not available (%s)</string>
     <!-- Video likes have been set to hidden by the video uploader. -->
     <string name="morphe_ryd_video_likes_hidden_by_video_owner">Hidden by owner</string>
+    <string name="morphe_ryd_accessibility_dislike_count">Dislike this video, along with %s other people</string>
+    <string name="morphe_ryd_accessibility_dislike_percentage">Dislike this video, %s of votes are dislikes</string>
     <string name="morphe_ryd_enabled_title">Enable Return YouTube Dislike</string>
     <string name="morphe_ryd_dislike_percentage_title">Show dislikes as percentage</string>
     <string name="morphe_ryd_dislike_percentage_summary">Shows dislikes as a percentage of likes instead of a number</string>
-    <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-    <string name="morphe_ryd_compact_layout_title">Use compact Like button</string>
-    <string name="morphe_ryd_compact_layout_summary">Reduces the width of the Like button to save space</string>
     <string name="morphe_ryd_estimated_like_title">Show estimated likes</string>
     <string name="morphe_ryd_estimated_like_summary">Shows an estimated like count on videos where the creator has disabled likes</string>
     <string name="morphe_ryd_toast_on_connection_error_title">Show connection error alerts</string>

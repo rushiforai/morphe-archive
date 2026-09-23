@@ -67,10 +67,9 @@ public class HookStatusPreference extends Preference {
         List<String> broken = HookStatus.familiesMissingSomething();
         if (broken.isEmpty()) {
             lastOk = Boolean.TRUE;
-            String text = report.size() == 1
-                    ? L10n.t(context, "One area was checked and everything it needs is here.")
-                    : L10n.f(context, "%1$d areas were checked and everything they need is here.",
-                            report.size());
+            String text = L10n.quantity(context, report.size(),
+                    "One area was checked and everything it needs is here.",
+                    "%1$d areas were checked and everything they need is here.");
             return SettingsUi.tonedSummary("✓ ", SettingsUi.okColor(), text);
         }
         lastOk = Boolean.FALSE;

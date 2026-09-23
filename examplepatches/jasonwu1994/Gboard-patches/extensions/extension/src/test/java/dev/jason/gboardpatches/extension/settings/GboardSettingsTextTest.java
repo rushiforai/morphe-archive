@@ -1,14 +1,53 @@
 package dev.jason.gboardpatches.extension.settings;
 
+import android.content.Context;
+
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import dev.jason.gboardpatches.extension.R;
 
+@RunWith(RobolectricTestRunner.class)
 public final class GboardSettingsTextTest {
+    @Test
+    public void nullContextRemainsSafeForStaticFeatureInitialization() {
+        Assert.assertEquals("Patch settings", GboardSettingsText.get(
+                null, R.string.gboard_patches_header_title));
+    }
+
+    @Test
+    public void runtimeTextFollowsPatchLanguagePreference() {
+        Context context = RuntimeEnvironment.getApplication();
+        GboardPatchesSettings.preferences(context).edit()
+                .putString(GboardPatchesSettings.PREF_KEY_SETTINGS_UI_LANGUAGE,
+                        GboardSettingsLocaleManager.LANGUAGE_ENGLISH)
+                .commit();
+
+        Assert.assertEquals("Choose theme source", GboardSettingsText.get(context,
+                R.string.gboard_patches_custom_theme_source_chooser_title));
+        Assert.assertEquals("Create from photo", GboardSettingsText.get(context,
+                R.string.gboard_patches_custom_theme_source_photo));
+        Assert.assertEquals("Import theme (.zip)", GboardSettingsText.get(context,
+                R.string.gboard_patches_custom_theme_source_zip));
+        Assert.assertEquals("Choose a theme to import", GboardSettingsText.get(context,
+                R.string.gboard_patches_custom_theme_choose_import));
+
+        GboardPatchesSettings.preferences(context).edit()
+                .putString(GboardPatchesSettings.PREF_KEY_SETTINGS_UI_LANGUAGE,
+                        GboardSettingsLocaleManager.LANGUAGE_TRADITIONAL_CHINESE)
+                .commit();
+        Assert.assertEquals("選擇主題來源", GboardSettingsText.get(context,
+                R.string.gboard_patches_custom_theme_source_chooser_title));
+        Assert.assertEquals("選擇要匯入的主題", GboardSettingsText.get(context,
+                R.string.gboard_patches_custom_theme_choose_import));
+    }
+
     @Test
     public void authoritativeCopyResolvesBothLocalesWithoutCallerFallback() {
         Assert.assertEquals(

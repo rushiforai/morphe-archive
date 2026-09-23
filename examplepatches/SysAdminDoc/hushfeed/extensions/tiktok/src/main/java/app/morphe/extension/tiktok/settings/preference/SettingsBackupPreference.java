@@ -43,7 +43,7 @@ public final class SettingsBackupPreference extends Preference
     /** The line this row shows while it is the one running, else null. */
     private String busyLine;
 
-    static final String UNDO_SUMMARY = "Recover the settings saved before the last restore or reset.";
+    static final String UNDO_SUMMARY = "Put back the settings saved before the last restore or reset.";
 
     private SettingsBackupPreference(TikTokPreferenceFragment fragment, int action, String title, String summary) {
         super(fragment.getActivity());
@@ -72,11 +72,11 @@ public final class SettingsBackupPreference extends Preference
         int order = screen.getPreferenceCount();
         for (Object[] row : new Object[][]{
                 {EXPORT, "Back up settings",
-                        "Save patch settings and Feature Gate Lab rules to a JSON file."},
+                        "Save Hushfeed settings and Feature Gate Lab rules to a JSON file."},
                 {IMPORT, "Restore settings",
                         "Choose a backup file. Your current settings are kept for Undo."},
                 {RESET, "Reset settings",
-                        "Restore defaults immediately. Your current settings are kept for Undo."},
+                        "Put every setting back to its default straight away. Your current settings are kept for Undo."},
                 {UNDO, "Undo last restore or reset", UNDO_SUMMARY},
         }) {
             SettingsBackupPreference preference = new SettingsBackupPreference(
@@ -135,7 +135,7 @@ public final class SettingsBackupPreference extends Preference
         catch (RuntimeException error) {
             Logger.printException(() -> "Could not open settings file picker", error);
             Utils.showToastLong(L10n.t(
-                    "This phone has no file picker, so there is no way to choose a file here."));
+                    "This phone has no file picker, so there is no way to choose a file here"));
         }
     }
 
@@ -196,10 +196,10 @@ public final class SettingsBackupPreference extends Preference
                 // default, download folders included, without a word.
                 if (keptAsTheyWere == 1) {
                     Utils.showToastLong(L10n.f(
-                            "%1$d setting was not in that file and was left as it is.", keptAsTheyWere));
+                            "%1$d setting was not in that file and was left as it is", keptAsTheyWere));
                 } else if (keptAsTheyWere > 1) {
                     Utils.showToastLong(L10n.f(
-                            "%1$d settings were not in that file and were left as they are.", keptAsTheyWere));
+                            "%1$d settings were not in that file and were left as they are", keptAsTheyWere));
                 }
                 // Each of these is one literal, because the translation gate reads the literal
                 // handed to L10n and a string built from two of them is two entries it cannot find.
@@ -218,8 +218,8 @@ public final class SettingsBackupPreference extends Preference
                                 : action == RESET
                                 ? "Settings are back to their defaults. Restart TikTok to apply all changes."
                                 : labRulesSkipped
-                                ? "The last change is undone. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
-                                : "The last change is undone. Restart TikTok to apply all changes."));
+                                ? "Last change put back. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
+                                : "Last change put back. Restart TikTok to apply all changes."));
             } catch (Exception error) {
                 Logger.printException(() -> "Settings backup operation failed", error);
                 Utils.showToastLong(L10n.t(failureMessage(action, error)));
@@ -238,14 +238,14 @@ public final class SettingsBackupPreference extends Preference
             BUSY.set(false);
             setRowsBusy(0, null);
             Utils.showToastLong(L10n.t(
-                    "Could not start the settings operation. Try again shortly."));
+                    "Couldn't start the settings change. Try again shortly."));
             TikTokPreferenceFragment current = owner.get();
             if (current != null && current.isAdded()) current.refreshBackupSettings();
         }
     }
 
     static String failureMessage(int action, Exception error) {
-        if (action == EXPORT) return "Could not save settings backup.";
+        if (action == EXPORT) return "Couldn't save the settings backup. Try again.";
         if (error instanceof SettingsBackup.RestoreException) {
             SettingsBackup.RestoreException restore = (SettingsBackup.RestoreException) error;
             switch (restore.getFailure()) {
@@ -286,7 +286,7 @@ public final class SettingsBackupPreference extends Preference
                     return "That settings change did not go through. Nothing was altered.";
                 case RECOVERY_REQUIRED:
                     return restore.isRecoveryAvailable()
-                            ? "Restore failed. Some settings may still be changed. Use Undo to recover."
+                            ? "Restore failed. Some settings may still be changed. Use Undo to put them back."
                             : "Restore failed. Some settings may still be changed.";
                 default:
                     break;
@@ -295,7 +295,7 @@ public final class SettingsBackupPreference extends Preference
         if (action == UNDO && hasCause(error, java.io.FileNotFoundException.class)) {
             return "Nothing to undo yet.";
         }
-        return "Could not restore settings.";
+        return "Couldn't restore the settings. Try again.";
     }
 
     /** Whether the throwable, or anything it wraps, is of the given kind. */

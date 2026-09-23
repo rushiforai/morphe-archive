@@ -1,0 +1,171 @@
+0x6000430 'VirtualDesktop.Streamer.OculusStreamer'::'.cctor' RVA 0x2a930 signature=000001
+000c ldstr 0x7000a8df 'OculusStreamer'
+0011 br.s 45
+0013 stsfld 0x4000279 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+0018 newobj 0xa0006ea TypeSpecRow::'.ctor'
+001d dup 
+001e ldstr 0x7000a8fd 'GrimVRClient-Win64-Shipping'
+0023 br.s 52
+0025 pop 
+0026 stsfld 0x400027a 'VirtualDesktop.Streamer.OculusStreamer'::'\x01'
+002b leave.s 66
+002d call 0x6006679 'NLog.LogManager'::'GetLogger'
+0032 br.s 19
+0034 callvirt 0xa0006ec TypeSpecRow::'Add'
+0039 br.s 37
+003b call 0x600d889 '\x9e\x02.\x01'::'\x01'
+0040 rethrow 
+0042 ret 
+
+0x6021387 'VirtualDesktop.Mobile.SharedUserSettings'::'get_Gamma' RVA 0x87c054 signature=20000c
+000c br.s 23
+000e ldfld 0x4014b99 'VirtualDesktop.Mobile.SharedUserSettings'::'_gamma'
+0013 br.s 26
+0015 leave.s 37
+0017 ldarg.0 
+0018 br.s 14
+001a stloc.0 
+001b br.s 21
+001d ldarg.0 
+001e call 0x600d88a '\x9e\x02.\x01'::'\x01'
+0023 rethrow 
+0025 br.s 40
+0027 ret 
+0028 ldloc.0 
+0029 br.s 39
+
+0x6021388 'VirtualDesktop.Mobile.SharedUserSettings'::'set_Gamma' RVA 0x87c090 signature=2001010c
+000c ldc.i4.m1 
+000d brfalse.s 55
+000f br.s 66
+0011 br.s 69
+0013 ldfld 0x4014b99 'VirtualDesktop.Mobile.SharedUserSettings'::'_gamma'
+0018 beq.s 55
+001a br.s 72
+001c br.s 75
+001e stfld 0x4014b99 'VirtualDesktop.Mobile.SharedUserSettings'::'_gamma'
+0023 br.s 78
+0025 br.s 81
+0027 ldstr 0x7000a811 'Gamma'
+002c br.s 84
+002e br.s 91
+0030 ldsfld 0xa000702 'System.EventArgs'::'Empty'
+0035 br.s 94
+0037 ldc.i4.0 
+0038 brtrue.s 46
+003a ldc.i4.0 
+003b brtrue.s 46
+003d ldc.i4.m1 
+003e brfalse.s 12
+0040 leave.s 115
+0042 ldarg.1 
+0043 br.s 17
+0045 ldarg.0 
+0046 br.s 19
+0048 ldarg.0 
+0049 br.s 28
+004b ldarg.1 
+004c br.s 30
+004e ldarg.0 
+004f br.s 37
+0051 ldarg.1 
+0052 br.s 39
+0054 call 0x2b000f13 TypeSpecRow::'OnPropertyChanged'
+0059 br.s 46
+005b ldarg.0 
+005c br.s 48
+005e callvirt 0x60213a5 'VirtualDesktop.Mobile.SharedUserSettings'::'OnGammaChanged'
+0063 br.s 55
+0065 ldarg.0 
+0066 ldarg.1 
+0067 box 0x1000478 'System.Single'
+006c call 0x600d88b '\x9e\x02.\x01'::'\x01'
+0071 rethrow 
+0073 ret 
+
+0x60213b1 'VirtualDesktop.Mobile.SharedUserSettings'::'.ctor' RVA 0x87ce20 signature=200001
+0001 ldarg.0 
+0002 call 0xa003f0f TypeSpecRow::'.ctor'
+0007 ret 
+
+0x6021557 '\x12\x03.\x05'::'\x04' RVA 0x88dcfc signature=0001021011c00072a0
+000c br.s 68
+000e br.s 71
+0010 ldc.i4.0 
+0011 brtrue.s 61
+0013 brtrue.s 32
+0015 ldc.i4.4 
+0016 brfalse.s 12
+0018 ldc.i4.0 
+0019 brtrue.s 63
+001b ldc.i4.0 
+001c br.s 78
+001e leave.s 112
+0020 ldsfld 0x40161f1 '.\x87'::'~\x07\x05'
+0025 br.s 81
+0027 ldfld 0x4009335 'SharpDX.DXGI.AdapterDescription'::'Description'
+002c ldstr 0x70088110 'RX 90'
+0031 ldc.i4.5 
+0032 br.s 84
+0034 ldc.i4.0 
+0035 brtrue.s 58
+0037 ldc.i4.m1 
+0038 ceq 
+003a ldc.i4.0 
+003b ceq 
+003d br.s 91
+003f ldc.i4.4 
+0040 brfalse.s 32
+0042 leave.s 112
+0044 ldarg.0 
+0045 br.s 14
+0047 call 0x6021555 '\x12\x03.\x05'::'\x02'
+004c br.s 16
+004e stloc.0 
+004f br.s 30
+0051 ldarg.0 
+0052 br.s 39
+0054 call 0x6022d6a '.\x87'::'Invoke'
+0059 br.s 52
+005b stloc.0 
+005c br.s 63
+005e ldarg.0 
+005f ldobj 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0064 box 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0069 call 0x600d88a '\x9e\x02.\x01'::'\x01'
+006e rethrow 
+0070 br.s 115
+0072 ret 
+0073 ldloc.0 
+0074 br.s 114
+
+0x60212b1 '\x1c\x02.\x02'::'\x05' RVA 0x8766f0 signature=00010211c0010584
+000c ldc.i4.8 
+000d brfalse.s 37
+000f ldc.i4.5 
+0010 brfalse.s 37
+0012 br.s 42
+0014 ldc.i4 259
+0019 ceq 
+001b ldc.i4.0 
+001c brtrue.s 33
+001e ldc.i4.0 
+001f ceq 
+0021 ldc.i4.3 
+0022 brtrue.s 45
+0024 pop 
+0025 ldc.i4.2 
+0026 brfalse.s 12
+0028 leave.s 61
+002a ldarg.0 
+002b br.s 20
+002d stloc.0 
+002e br.s 37
+0030 ldarg.0 
+0031 box 0x2004161 'Xenko.VR.HmdType'
+0036 call 0x600d88a '\x9e\x02.\x01'::'\x01'
+003b rethrow 
+003d br.s 64
+003f ret 
+0040 ldloc.0 
+0041 br.s 63

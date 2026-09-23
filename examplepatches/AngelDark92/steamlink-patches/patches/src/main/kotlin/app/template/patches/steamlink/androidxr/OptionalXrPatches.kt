@@ -74,9 +74,8 @@ val appearOnTopPatch = bytecodePatch(
     description = "Legacy overlay-permission fallback retained for older Steam Link builds. Adds SYSTEM_ALERT_WINDOW and the compositor signal window.",
     default = false,
 ) {
-    // 5002322 uses the recommended permission-free Android-surface trigger instead. Older
-    // exact builds retain this selectable TYPE_APPLICATION_OVERLAY fallback, but it is no
-    // longer recommended by default.
+    // Older exact builds retain this selectable TYPE_APPLICATION_OVERLAY fallback, but it is
+    // no longer recommended by default.
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST.toTypedArray())
     dependsOn(
         xrPermissionSettingsBootstrapPatch,
@@ -306,7 +305,7 @@ private val androidSurfaceTriggerResourcesPatch = androidSurfaceTriggerResources
 @Suppress("unused")
 val xrGalaxyXrHighResolutionPatch = resourcePatch(
     name = "Galaxy XR high-resolution 3-projection fix",
-    description = "Permission-free resolution fix for exact builds 5001712, 5002244, 5002296, 5002313, 5002318, 5002322, and 5002363. Preserves each build's native projection layout (2 layers on 2.0.20/5001712; 3 layers on supported 2.0.22 and 2.0.23 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction.",
+    description = "Permission-free resolution fix for exact builds 5001712, 5002244, and 5002363. Preserves each build's native projection layout (2 layers on 2.0.20/5001712; 3 layers on supported 2.0.22 and 2.0.23 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())

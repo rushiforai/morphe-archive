@@ -52,7 +52,7 @@ public class CreatorListPreference extends DialogPreference {
         setTitle(title);
         setSummary(summary);
         setKey(setting.key);
-        setValue(setting.get());
+        setValue(setting.savedValue());
     }
 
     public void setValue(String nextValue) {
@@ -271,7 +271,7 @@ public class CreatorListPreference extends DialogPreference {
         SettingsUi.clearFieldError(addEditText);
         addEditText.setText("");
         refreshEntryRows();
-        Utils.showToastShort(L10n.f(getContext(), "Added %1$s", candidate));
+        Utils.showToastShort(L10n.f(getContext(), "Added %1$s", L10n.isolate(candidate)));
     }
 
     private void refreshEntryRows() {
@@ -316,7 +316,7 @@ public class CreatorListPreference extends DialogPreference {
 
         TextView remove = new TextView(context);
         remove.setText(L10n.t(context, "Remove"));
-        remove.setContentDescription(L10n.f(context, "Remove %1$s", entry));
+        remove.setContentDescription(L10n.f(context, "Remove %1$s", L10n.isolate(entry)));
         remove.setGravity(Gravity.CENTER);
         remove.setMinHeight(SettingsUi.dp(context, 48));
         remove.setMinWidth(SettingsUi.dp(context, 72));
@@ -358,7 +358,7 @@ public class CreatorListPreference extends DialogPreference {
             if (next.isAttachedToWindow()) next.post(moveFocus);
             else moveFocus.run();
         }
-        Utils.showToastShort(L10n.f(getContext(), "Removed %1$s", entry));
+        Utils.showToastShort(L10n.f(getContext(), "Removed %1$s", L10n.isolate(entry)));
     }
 
     @Override

@@ -1,0 +1,89 @@
+{
+  "boundary": "Offline GLSL checks. Production source retains Valve's ES300 uniform-location dialect.\n\nBoth stages are promoted to 310 ONLY in diagnostic copies for the strict compiler.\nThis is syntax/interface evidence, never Galaxy XR driver or live-shader proof.",
+  "cases": [
+    {
+      "case": "5001712-production-stock",
+      "exit_code": 2,
+      "output": "build\\blue-noise-glsl\\validation\\5001712-stock.frag\nERROR: build\\blue-noise-glsl\\validation\\5001712-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
+      ]
+    },
+    {
+      "case": "5001712-production-blue",
+      "exit_code": 2,
+      "output": "build\\blue-noise-glsl\\validation\\5001712-blue.frag\nERROR: build\\blue-noise-glsl\\validation\\5001712-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "60e1e3a2664c836d4ab7523146104afa1dee899439d5ce39f70b144b0091e430"
+      ]
+    },
+    {
+      "case": "5001712-diagnostic310-link",
+      "exit_code": 0,
+      "output": "build\\blue-noise-glsl\\validation\\5001712-diagnostic310.vert\nbuild\\blue-noise-glsl\\validation\\5001712-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "8205648ccf99ac312da7f52a6522c18fbc6f496d8432c73083004d1a8a1fabe4"
+      ]
+    },
+    {
+      "case": "5002244-production-stock",
+      "exit_code": 2,
+      "output": "build\\blue-noise-glsl\\validation\\5002244-stock.frag\nERROR: build\\blue-noise-glsl\\validation\\5002244-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
+      ]
+    },
+    {
+      "case": "5002244-production-blue",
+      "exit_code": 2,
+      "output": "build\\blue-noise-glsl\\validation\\5002244-blue.frag\nERROR: build\\blue-noise-glsl\\validation\\5002244-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "60e1e3a2664c836d4ab7523146104afa1dee899439d5ce39f70b144b0091e430"
+      ]
+    },
+    {
+      "case": "5002244-diagnostic310-link",
+      "exit_code": 0,
+      "output": "build\\blue-noise-glsl\\validation\\5002244-diagnostic310.vert\nbuild\\blue-noise-glsl\\validation\\5002244-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "8205648ccf99ac312da7f52a6522c18fbc6f496d8432c73083004d1a8a1fabe4"
+      ]
+    },
+    {
+      "case": "5002363-production-stock",
+      "exit_code": 2,
+      "output": "build\\blue-noise-glsl\\validation\\5002363-stock.frag\nERROR: build\\blue-noise-glsl\\validation\\5002363-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
+      ]
+    },
+    {
+      "case": "5002363-production-blue",
+      "exit_code": 2,
+      "output": "build\\blue-noise-glsl\\validation\\5002363-blue.frag\nERROR: build\\blue-noise-glsl\\validation\\5002363-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "60e1e3a2664c836d4ab7523146104afa1dee899439d5ce39f70b144b0091e430"
+      ]
+    },
+    {
+      "case": "5002363-diagnostic310-link",
+      "exit_code": 0,
+      "output": "build\\blue-noise-glsl\\validation\\5002363-diagnostic310.vert\nbuild\\blue-noise-glsl\\validation\\5002363-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "8205648ccf99ac312da7f52a6522c18fbc6f496d8432c73083004d1a8a1fabe4"
+      ]
+    },
+    {
+      "case": "isolated-core300-quantizer",
+      "exit_code": 0,
+      "output": "build\\blue-noise-glsl\\validation\\isolated-quantizer300.frag\n",
+      "source_sha256": [
+        "4d7a4ee497845fb7ffee81fbe97360d159de936a0cde5c9aa8ca2de1c7a50e3f"
+      ]
+    }
+  ],
+  "glslang_version": "Glslang Version: 11:16.6.0\nESSL Version: OpenGL ES GLSL 3.20 glslang Khronos. 16.6.0\nGLSL Version: 4.60 glslang Khronos. 16.6.0\nSPIR-V Version 0x00010600, Revision 1\nGLSL.std.450 Version 100, Revision 1\nKhronos Tool ID 8\nSPIR-V Generator Version 11\nGL_KHR_vulkan_glsl version 100\nARB_GL_gl_spirv version 100\n"
+}

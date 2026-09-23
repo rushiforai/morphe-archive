@@ -24,6 +24,7 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val mediaNotificationControlsPatch = bytecodePatch(
+    name = "Media notification controls",
     description = "Adds options to disable the seekbar and previous/next buttons in the " +
             "media notification and headphone controls.",
 ) {

@@ -1,0 +1,40 @@
+{
+  "streamer_version": "1.34.22.0",
+  "files": [
+    {
+      "path": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+      "size": 22600728,
+      "sha256": "6bfec9e4e62509f4fdb0ec21c144b4584f9450701dcf5bd756d6fd2aec7cbb51"
+    },
+    {
+      "path": "C:\\Program Files\\Virtual Desktop Streamer\\libVirtualDesktopAMF.dll",
+      "size": 207384,
+      "sha256": "6b9db41dc1d1df78d8dca9e89fa1104fe400a05a2b1885b36fbfae4ae1966396"
+    },
+    {
+      "path": "C:\\Program Files\\Virtual Desktop Streamer\\OpenVRDriver\\bin\\win64\\driver_VirtualDesktop.dll",
+      "size": 676376,
+      "sha256": "ad3c99c7f7346613d4c7106fb94476be5859ca17a637a11cfc156184d466f36f"
+    },
+    {
+      "path": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Fovea.tkb",
+      "size": 2522,
+      "sha256": "9d517d560850a0b00d2a21216a1a8e257d187ce7ee7656228a82423b7765c9ed"
+    },
+    {
+      "path": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Foveation.tkb",
+      "size": 3482,
+      "sha256": "9653c0359271a05dc343914be9c1d564ac4de526e4362555b6cfa3a0e62d440c"
+    },
+    {
+      "path": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Sharpening.tkb",
+      "size": 2927,
+      "sha256": "959a55d742033b40241173c7d86907ea010615513d8f7c723963aff5c51b698c"
+    },
+    {
+      "path": "C:\\Program Files\\Virtual Desktop Streamer\\Effects\\Supersample.tkb",
+      "size": 1495,
+      "sha256": "acb4ced7d259d02045c323365781908ee50c289d4bf07ffc3704fe2f5d0177f0"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val hideEndScreenSuggestedVideoPatch = bytecodePatch(
+    name = "Hide end screen suggested video",
     description = "Adds an option to hide the suggested video at the end of videos.",
 ) {
     dependsOn(sharedExtensionPatch)

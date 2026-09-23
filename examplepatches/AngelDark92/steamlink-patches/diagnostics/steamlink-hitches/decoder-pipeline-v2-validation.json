@@ -1,0 +1,920 @@
+{
+  "date": "2026-09-15",
+  "experiment": "decoder-pipeline-v2",
+  "artifact": {
+    "SignedOrInstalled": false,
+    "Status": "passed",
+    "ApkCases": 26,
+    "Artifact": "patches/build/libs/patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+    "PublicationNote": "Final copy resumed after creating missing patches/build/libs; build script fixed for clean workspaces",
+    "Sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f"
+  },
+  "sources": {
+    "extensions/decoder-input-buffering/src/decoder_buffering.cpp": "c7f6d5fe9d6b3da3fb57a90da6762dfa0042510cd3ae3f9c53f1d65b516c1c3e",
+    "extensions/decoder-input-buffering/src/install_hooks.cpp": "14ea5a68917b92862ac75644f2d752b2cfbfc6ca47b7e99dc4a9f06cbf9d3251",
+    "extensions/decoder-input-buffering/src/install_hooks.h": "80a263f45c535f925a8c9aa9bab29ea7860de209733943fed7ab9cfb25b0c476",
+    "extensions/decoder-input-buffering/src/pipeline_telemetry.cpp": "f1114c96f021305b6973e072fa1fd06b775cc8f63595ce43b95da00a8855d4fe",
+    "extensions/decoder-input-buffering/src/pipeline_telemetry.h": "b097f516d75343a947eb44be5dfc8d998eff55679ba1646d0527fdcbbe9bccb9",
+    "extensions/decoder-input-buffering/src/staging_pool.h": "7836bb4b3ac48c48638c53e898159b2ed77517dd0939ebb8343cc27fac0c8fc7",
+    "extensions/decoder-input-buffering/tests/bridge_test.cpp": "00a69ef9e6f9a0937f270a8e459ee0c72fd65b53d5dec172436ce1214328de08",
+    "extensions/decoder-input-buffering/tests/pipeline_api_fake.h": "2ba31142a38ab8ae74a7b6aceab0ffbe4835532915a4016e94c7bea6488ce5c1",
+    "extensions/decoder-input-buffering/tests/pipeline_test.cpp": "17afe5ea163f555fafa2fb39ad2d5e2554cd65f25bd14fdcdb54c58c839b29d5",
+    "extensions/decoder-input-buffering/tests/staging_pool_test.cpp": "d39162c29c1e5665e7b3abad64ffa0c822f4cdb02a048af2bf1820cc8b264455",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002322.so": "54b2486151a1ecda67f2bd214f892b9df34798116d125e9e3d3869bcaf64bbdc",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002322_telemetry.so": "32f53c049ae984814cc7f6951ebc486a9f081b758d81e5259daaf0ed0923abc7",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002363.so": "fc8934f90c96aef04c36117ab3ac9677e7d8f5755701d030e6e9d019ac50cd1b",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002363_telemetry.so": "e15dee330970891091320286c2d1db80f1e637a05aee4d2d130fd4dadba94448"
+  },
+  "kotlin_tests": {
+    "tests": 113,
+    "failures": 0,
+    "skipped": 0
+  },
+  "native_tests": {
+    "bridge_scenarios_per_base": 12,
+    "telemetry_scenarios": 6,
+    "production_api_wrappers": 7,
+    "pool_tests": "passed"
+  },
+  "apk_cases": [
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "baseline",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "output_sha256": "ca4ccc7fe069bccbc60c6c86490ce776bae0f9bdb5b9d0e0a179438ea75b7776",
+      "scene_sha256": "8696a639cb0bf7c4b4dd9f63676f518b6392e7d8dad14a52af51210bb3c50452",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: baseline"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-buffered-bundle-first\\result-unsigned.apk",
+      "output_sha256": "b9dfed66aa75997aeeefe904cf234aa250d630d622ffc741a02ac17f572a365e",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-buffered-decoder-first\\result-unsigned.apk",
+      "output_sha256": "5226d1870ae5fd368093a4284ed90438f7c13de1de49ee3085cebb4b1625fe1b",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-buffered-standalone\\result-unsigned.apk",
+      "output_sha256": "07aa3eddcfee4cbd8aa0460dcb4b274b92335c972029ca484d79f03dc35df7ca",
+      "scene_sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered-telemetry",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-buffered-telemetry-bundle-first\\result-unsigned.apk",
+      "output_sha256": "cde337eb46d86dd797cabe66675a231e3ae0335233d5bff7cccf6508fffeddbf",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered-telemetry",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-buffered-telemetry-decoder-first\\result-unsigned.apk",
+      "output_sha256": "a3bc32ba276e3bbf2a223e00f715f5ace215ac64d947dabdd43c2df5b397dfea",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "buffered-telemetry",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-buffered-telemetry-standalone\\result-unsigned.apk",
+      "output_sha256": "f0f356e3c80c1e691f7996216ec139be9c1d95dc4e5fc60a95eb9b5ab6418c0d",
+      "scene_sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-observe-bundle-first\\result-unsigned.apk",
+      "output_sha256": "bbe6fcc0551aaf6c21d6b4935866a574c039aeae4bb3d15dc9bff4e8f8a8ed8c",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-observe-decoder-first\\result-unsigned.apk",
+      "output_sha256": "e3aa428e086ec93c0cbacd405e7a9ff8a651f3cceaabc2448c43b2e4109266e2",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-observe-standalone\\result-unsigned.apk",
+      "output_sha256": "95acc5f895a9677db548561798de65ad428771913cfdd66687d350692ff247e7",
+      "scene_sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe-telemetry",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-observe-telemetry-bundle-first\\result-unsigned.apk",
+      "output_sha256": "ba3ab4e8796117ba9f781fa4805c9c4706bda0d7b341991f0d7f956c2d156cc0",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe-telemetry",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-observe-telemetry-decoder-first\\result-unsigned.apk",
+      "output_sha256": "13f0ddcf3938897699fa7a86b1401ad5460f644e7d3ebf4d2f98222cfdec6e15",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "mode": "observe-telemetry",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002322-observe-telemetry-standalone\\result-unsigned.apk",
+      "output_sha256": "35334f6574841ef36a34d94ea5290ed19a29fd7fda1f4beb7162bc2df603f4a7",
+      "scene_sha256": "116b95ac2847564aab2105f06bc4415e89f28e157e7991e3871f5b7e02154034",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "baseline",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "output_sha256": "4595ac1147820c6e51e5801234a86b1cf10c8c9a9090b23ea761522625bc9503",
+      "scene_sha256": "377547082a561b7c1f9eb3cfe9314f94b2e57602f3dea917fa8a27526d626f5b",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: baseline"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-buffered-bundle-first\\result-unsigned.apk",
+      "output_sha256": "27309faed49cc0edd65fb681ce8b37f2387dbb5af33ad2a9d78774510df04885",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-buffered-decoder-first\\result-unsigned.apk",
+      "output_sha256": "71e9cb07154e463dd1c053b8900ac5357a851c310abe36b7c08676bda1faf1d3",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-buffered-standalone\\result-unsigned.apk",
+      "output_sha256": "5854b92af5aad2489e98cf6e8f005a1b2d04330c6e86500b84eca004abdb1dee",
+      "scene_sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered-telemetry",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-buffered-telemetry-bundle-first\\result-unsigned.apk",
+      "output_sha256": "fb21964013c0f007e5a2a0752c02ea741cdc651511deb2df18b171daa19fbe5e",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered-telemetry",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-buffered-telemetry-decoder-first\\result-unsigned.apk",
+      "output_sha256": "b231c339225901d13a354f2e578bd3ae74bd1c155f02d51eb5a3afc2b08b7383",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "buffered-telemetry",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-buffered-telemetry-standalone\\result-unsigned.apk",
+      "output_sha256": "11d0332d530374ea044750d334d2b16ffe5bf0547f96e4d0a76b4105a3fc3c31",
+      "scene_sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-observe-bundle-first\\result-unsigned.apk",
+      "output_sha256": "e42256175888a9fa97934154035bc570b8e190a2b2cb19eb9bd3f4f937e35396",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-observe-decoder-first\\result-unsigned.apk",
+      "output_sha256": "76714499a061801b0c7d5dc2abca16f7036cb7dc386108d6046b69e0192acea1",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-observe-standalone\\result-unsigned.apk",
+      "output_sha256": "c0d34dafb7eeb322354f66590f1610eed3cb7cff4ffca6298e4e220c4728ca01",
+      "scene_sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe-telemetry",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-observe-telemetry-bundle-first\\result-unsigned.apk",
+      "output_sha256": "2f09c79dfeb8eecdbad72a76a00f553e594bc20b9eb8ad425d5ec3bbe819dc46",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: bundle-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe-telemetry",
+      "selection": "decoder-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-observe-telemetry-decoder-first\\result-unsigned.apk",
+      "output_sha256": "07a17b654fbaf47e800c89401df2f9143929d5832cdc4da2872cb41850e318fa",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: decoder-first"
+      ],
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "mode": "observe-telemetry",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+      "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+      "code_and_resources": "packaged MPP first on classpath; no compiled-class/resource directories",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-archive-20260915\\apks\\5002363-observe-telemetry-standalone\\result-unsigned.apk",
+      "output_sha256": "ddd4fd567289df0ab451866d26858633af7fbcd2a6bc871d768d39a29867b6a0",
+      "scene_sha256": "feca35471b55285b7ed66a7019449542ca49e13111d57df0020d53a2a953f3c3",
+      "baseline": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "native_mutation_stage_order": [
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "Decoder archive audit: standalone"
+      ],
+      "signed_or_installed": false
+    }
+  ],
+  "transitions": {
+    "status": "passed",
+    "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\patches\\build\\libs\\patches-1.18.0-dev.1-decoder-pipeline-v2-local.mpp",
+    "archive_sha256": "5a232e650c4485913c16fc56063b10b05e5c0e4554561d32a6d9b05a8ab3859f",
+    "morphe_transition_cases": 10,
+    "runtime_validation": false,
+    "bases": [
+      {
+        "versionName": "2.0.22",
+        "versionCode": "5002322",
+        "combined_apk": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-transitions\\5002322-1-buffered-telemetry\\result-unsigned.apk",
+        "combined_scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+        "native_code_guards_verified": 9,
+        "native_slots_verified": 18,
+        "import_relocations_verified": 7,
+        "stock_fault_slot_verified": true,
+        "data_and_relro_mapping_verified": true,
+        "all_118_entries_restored_on_v1_rollback": true,
+        "transitions": [
+          {
+            "mode": "buffered-telemetry",
+            "changed_entries": [
+              "lib/arm64-v8a/libgxr_dbuf.so"
+            ],
+            "unchanged_entries": 117,
+            "receipt": "5002322-1-buffered-telemetry\\audit.json"
+          },
+          {
+            "mode": "buffered-telemetry",
+            "changed_entries": [],
+            "unchanged_entries": 118,
+            "receipt": "5002322-2-buffered-telemetry\\audit.json"
+          },
+          {
+            "mode": "observe-telemetry",
+            "changed_entries": [
+              "lib/arm64-v8a/libgxr_dbuf.so"
+            ],
+            "unchanged_entries": 117,
+            "receipt": "5002322-3-observe-telemetry\\audit.json"
+          },
+          {
+            "mode": "observe-telemetry",
+            "changed_entries": [],
+            "unchanged_entries": 118,
+            "receipt": "5002322-4-observe-telemetry\\audit.json"
+          },
+          {
+            "mode": "buffered",
+            "changed_entries": [
+              "lib/arm64-v8a/libgxr_dbuf.so"
+            ],
+            "unchanged_entries": 117,
+            "receipt": "5002322-5-buffered\\audit.json"
+          }
+        ]
+      },
+      {
+        "versionName": "2.0.23",
+        "versionCode": "5002363",
+        "combined_apk": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\decoder-buffering\\telemetry-transitions\\5002363-1-buffered-telemetry\\result-unsigned.apk",
+        "combined_scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+        "native_code_guards_verified": 9,
+        "native_slots_verified": 18,
+        "import_relocations_verified": 7,
+        "stock_fault_slot_verified": true,
+        "data_and_relro_mapping_verified": true,
+        "all_118_entries_restored_on_v1_rollback": true,
+        "transitions": [
+          {
+            "mode": "buffered-telemetry",
+            "changed_entries": [
+              "lib/arm64-v8a/libgxr_dbuf.so"
+            ],
+            "unchanged_entries": 117,
+            "receipt": "5002363-1-buffered-telemetry\\audit.json"
+          },
+          {
+            "mode": "buffered-telemetry",
+            "changed_entries": [],
+            "unchanged_entries": 118,
+            "receipt": "5002363-2-buffered-telemetry\\audit.json"
+          },
+          {
+            "mode": "observe-telemetry",
+            "changed_entries": [
+              "lib/arm64-v8a/libgxr_dbuf.so"
+            ],
+            "unchanged_entries": 117,
+            "receipt": "5002363-3-observe-telemetry\\audit.json"
+          },
+          {
+            "mode": "observe-telemetry",
+            "changed_entries": [],
+            "unchanged_entries": 118,
+            "receipt": "5002363-4-observe-telemetry\\audit.json"
+          },
+          {
+            "mode": "buffered",
+            "changed_entries": [
+              "lib/arm64-v8a/libgxr_dbuf.so"
+            ],
+            "unchanged_entries": 117,
+            "receipt": "5002363-5-buffered\\audit.json"
+          }
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "resource": "steamlink/decoder/libgxr_dbuf_5002322.so",
+        "sha256": "54b2486151a1ecda67f2bd214f892b9df34798116d125e9e3d3869bcaf64bbdc",
+        "size": 253504,
+        "exports": [
+          "gxr_decoder_buffering_config"
+        ],
+        "needed": [
+          "liblog.so",
+          "libdl.so",
+          "libmediandk.so",
+          "libc.so"
+        ],
+        "all_loads_16KiB_aligned": true,
+        "config_magic": "GXRDBUFCONFIG01!"
+      },
+      {
+        "resource": "steamlink/decoder/libgxr_dbuf_5002322_telemetry.so",
+        "sha256": "32f53c049ae984814cc7f6951ebc486a9f081b758d81e5259daaf0ed0923abc7",
+        "size": 261000,
+        "exports": [
+          "gxr_decoder_buffering_config"
+        ],
+        "needed": [
+          "liblog.so",
+          "libdl.so",
+          "libandroid.so",
+          "libmediandk.so",
+          "libc.so"
+        ],
+        "all_loads_16KiB_aligned": true,
+        "config_magic": "GXRDBUFCONFIG02!"
+      },
+      {
+        "resource": "steamlink/decoder/libgxr_dbuf_5002363.so",
+        "sha256": "fc8934f90c96aef04c36117ab3ac9677e7d8f5755701d030e6e9d019ac50cd1b",
+        "size": 253504,
+        "exports": [
+          "gxr_decoder_buffering_config"
+        ],
+        "needed": [
+          "liblog.so",
+          "libdl.so",
+          "libmediandk.so",
+          "libc.so"
+        ],
+        "all_loads_16KiB_aligned": true,
+        "config_magic": "GXRDBUFCONFIG01!"
+      },
+      {
+        "resource": "steamlink/decoder/libgxr_dbuf_5002363_telemetry.so",
+        "sha256": "e15dee330970891091320286c2d1db80f1e637a05aee4d2d130fd4dadba94448",
+        "size": 261000,
+        "exports": [
+          "gxr_decoder_buffering_config"
+        ],
+        "needed": [
+          "liblog.so",
+          "libdl.so",
+          "libandroid.so",
+          "libmediandk.so",
+          "libc.so"
+        ],
+        "all_loads_16KiB_aligned": true,
+        "config_magic": "GXRDBUFCONFIG02!"
+      }
+    ]
+  },
+  "runtime_v1": {
+    "apk_sha256": "e888845eba817ddcc98b72ea4c866455a555d1cafb4a1a2b9d42fc60c1de879a",
+    "helper_sha256": "fc8934f90c96aef04c36117ab3ac9677e7d8f5755701d030e6e9d019ac50cd1b",
+    "helper_matches_v1_resource": true,
+    "config_mode": 1,
+    "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+    "scene_needed_at_0x69925": "libgxr_dbuf.so",
+    "helper_bytes": 253504,
+    "scene_bytes": 2292008
+  },
+  "runtime_v2": "User installing; activation/capture pending",
+  "cleanup": "See WORKSPACE_CLEANUP.md and build/decoder-buffering/telemetry-cleanup; source payloads and current captures retained"
+}

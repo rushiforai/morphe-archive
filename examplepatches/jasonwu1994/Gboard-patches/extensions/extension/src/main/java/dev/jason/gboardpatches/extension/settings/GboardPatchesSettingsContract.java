@@ -1,6 +1,7 @@
 package dev.jason.gboardpatches.extension.settings;
 
 import android.content.Context;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +51,10 @@ public final class GboardPatchesSettingsContract {
         }
 
         void submit(Intent intent);
+    }
+
+    public interface CustomViewFactory {
+        View create(FeatureHost host);
     }
 
     public interface Host extends FeatureHost {
@@ -363,7 +368,8 @@ public final class GboardPatchesSettingsContract {
 
     public enum SectionStyle {
         DEFAULT,
-        ADVANCED
+        ADVANCED,
+        FULL_BLEED
     }
 
     public enum StatusTone {
@@ -381,6 +387,26 @@ public final class GboardPatchesSettingsContract {
     public enum PanelStyle {
         CARD,
         FLAT
+    }
+
+    public enum ToolbarIcon {
+        DELETE
+    }
+
+    public static final class ToolbarAction {
+        private final String contentDescription;
+        private final ToolbarIcon icon;
+        private final Runnable action;
+
+        public ToolbarAction(String contentDescription, ToolbarIcon icon, Runnable action) {
+            this.contentDescription = contentDescription;
+            this.icon = icon;
+            this.action = action;
+        }
+
+        public String getContentDescription() { return contentDescription; }
+        public ToolbarIcon getIcon() { return icon; }
+        public Runnable getAction() { return action; }
     }
 
     public static final class RefreshPolicy {
@@ -579,6 +605,8 @@ public final class GboardPatchesSettingsContract {
         private final RefreshPolicy refreshPolicy;
         private final PanelStyle panelStyle;
         private final CommandRow primaryAction;
+        private final List<ToolbarAction> toolbarActions;
+        private final boolean fullBleed;
 
         public Screen(String toolbarTitle, String headerBadge, String headerTitle,
                 String headerSummary, List<Row> rows) {
@@ -631,6 +659,14 @@ public final class GboardPatchesSettingsContract {
         public Screen(String toolbarTitle, String headerBadge, String headerTitle,
                 String headerSummary, List<StatusBlock> statusBlocks, List<Section> sections,
                 RefreshPolicy refreshPolicy, PanelStyle panelStyle, CommandRow primaryAction) {
+            this(toolbarTitle, headerBadge, headerTitle, headerSummary, statusBlocks, sections,
+                    refreshPolicy, panelStyle, primaryAction, Collections.emptyList(), false);
+        }
+
+        public Screen(String toolbarTitle, String headerBadge, String headerTitle,
+                String headerSummary, List<StatusBlock> statusBlocks, List<Section> sections,
+                RefreshPolicy refreshPolicy, PanelStyle panelStyle, CommandRow primaryAction,
+                List<ToolbarAction> toolbarActions, boolean fullBleed) {
             this.toolbarTitle = toolbarTitle;
             this.headerBadge = headerBadge;
             this.headerTitle = headerTitle;
@@ -640,6 +676,10 @@ public final class GboardPatchesSettingsContract {
             this.refreshPolicy = refreshPolicy == null ? RefreshPolicy.none() : refreshPolicy;
             this.panelStyle = panelStyle == null ? PanelStyle.FLAT : panelStyle;
             this.primaryAction = primaryAction;
+            this.toolbarActions = Collections.unmodifiableList(
+                    new ArrayList<>(toolbarActions == null
+                            ? Collections.emptyList() : toolbarActions));
+            this.fullBleed = fullBleed;
         }
 
         public String getToolbarTitle() {
@@ -677,6 +717,10 @@ public final class GboardPatchesSettingsContract {
         public CommandRow getPrimaryAction() {
             return primaryAction;
         }
+
+        public List<ToolbarAction> getToolbarActions() { return toolbarActions; }
+
+        public boolean isFullBleed() { return fullBleed; }
 
         public long getRefreshIntervalMs() {
             return refreshPolicy.getIntervalMs();
@@ -722,6 +766,20 @@ public final class GboardPatchesSettingsContract {
 
         public PreviewSpec getPreviewSpec() {
             return previewSpec;
+        }
+    }
+
+    /** A feature-owned view embedded in the standard Patches screen and navigation stack. */
+    public static final class CustomViewRow extends Row {
+        private final CustomViewFactory viewFactory;
+
+        public CustomViewRow(CustomViewFactory viewFactory) {
+            super("", "", true);
+            this.viewFactory = viewFactory;
+        }
+
+        public CustomViewFactory getViewFactory() {
+            return viewFactory;
         }
     }
 

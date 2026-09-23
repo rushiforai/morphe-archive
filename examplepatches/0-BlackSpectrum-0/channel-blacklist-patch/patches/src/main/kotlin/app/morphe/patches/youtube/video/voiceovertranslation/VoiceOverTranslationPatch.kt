@@ -55,6 +55,7 @@ private val voiceOverTranslationResourcePatch = resourcePatch {
 
 @Suppress("unused")
 val voiceOverTranslationPatch = bytecodePatch(
+    name = "Voice over translation",
     description = "Adds additional voice over languages using text-to-speech synchronized to the video playback.",
 ) {
     dependsOn(

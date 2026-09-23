@@ -1,0 +1,46 @@
+{
+  "status": "deferred",
+  "reason": "Earlier automatic approval review rejected both recursive and individually inspected cleanup with blocked by policy; no alternate deletion route attempted. These are only the newly generated VD validation outputs. Prior blue-noise outputs/evidence untouched.",
+  "planned_targets": [
+    {
+      "path": "build/vd-sdr-kotlin",
+      "files": 171,
+      "bytes": 1382162
+    },
+    {
+      "path": "build/vd-sdr-morphe",
+      "files": 714,
+      "bytes": 1000840565
+    },
+    {
+      "path": "build/vd-sdr-glsl",
+      "files": 31,
+      "bytes": 38654
+    },
+    {
+      "path": "build/vd-sdr-glsl-check",
+      "files": 27,
+      "bytes": 35079
+    },
+    {
+      "path": "build/vd-sdr-package",
+      "files": 6,
+      "bytes": 2436814
+    },
+    {
+      "path": "build/vd-sdr-blue-regression",
+      "files": 120,
+      "bytes": 169120288
+    },
+    {
+      "path": "build/vd-sdr-fovea-helper-test-investigator",
+      "files": 3,
+      "bytes": 58161
+    }
+  ],
+  "total_bytes": 1173911723,
+  "files": 1072,
+  "removed": [],
+  "bytes_reclaimed": 0,
+  "completion_condition": "Remove only listed task-created outputs when permitted, preserving reports, exact inputs, tools, canonical code/resources and all blue-noise files."
+}

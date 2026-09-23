@@ -49,10 +49,10 @@ jobs:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
-      # Always verify compilation when semantic-release did not publish a release.
+      # Always verify JVM tests and Android packaging when no release was published.
       # This covers non-main/dev branches, chore commits, docs commits, etc.
-      - name: Verify project compiles
+      - name: Verify project builds and tests
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
+        run: ./gradlew :patches:test :patches:buildAndroid clean --no-daemon

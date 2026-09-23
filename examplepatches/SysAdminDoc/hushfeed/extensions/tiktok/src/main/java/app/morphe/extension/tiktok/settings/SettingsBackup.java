@@ -130,7 +130,7 @@ public final class SettingsBackup {
         JSONArray keys = new JSONArray();
         for (Setting<?> setting : Setting.allLoadedSettings()) {
             if (!included(setting)) continue;
-            Object value = defaults ? setting.defaultValue : setting.get();
+            Object value = defaults ? setting.defaultValue : setting.savedValue();
             values.put(setting.key, value instanceof Enum<?> ? ((Enum<?>) value).name() : value);
             keys.put(setting.key);
         }
@@ -374,7 +374,9 @@ public final class SettingsBackup {
     static boolean matchesForJournal(Snapshot expected) {
         try {
             for (Map.Entry<Setting<?>, Object> entry : expected.values.entrySet()) {
-                if (!Objects.equals(entry.getKey().get(), entry.getValue())) return false;
+                // The snapshots were written from saved values, so they are compared with saved
+                // values: paused, get() answers TikTok's own path and matches neither.
+                if (!Objects.equals(entry.getKey().savedValue(), entry.getValue())) return false;
             }
             return labSettingsMatch(expected);
         } catch (RuntimeException error) {
@@ -492,7 +494,7 @@ public final class SettingsBackup {
             // A backup is a set of values to apply, not a picture of the whole app. A file
             // written before a setting existed says nothing about that setting, and taking the
             // silence as "put it back to its default" quietly undid whatever the device held.
-            updates.put(setting, setting.get());
+            updates.put(setting, setting.savedValue());
             absent++;
         }
         absent -= migrateDownloadPath(values, updates);

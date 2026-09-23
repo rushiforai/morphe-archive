@@ -24,6 +24,7 @@ import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 import android.provider.DocumentsContract;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.view.Window;
 import android.widget.ListView;
 
@@ -36,6 +37,7 @@ import java.util.Locale;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.HushfeedPause;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
@@ -59,10 +61,13 @@ import app.morphe.extension.tiktok.settings.preference.categories.PrivacyPrefere
 import app.morphe.extension.tiktok.settings.preference.categories.ScreenTimePreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.SharePreferenceCategory;
 import app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPreferenceCategory;
+import app.morphe.extension.tiktok.wellbeing.SessionBudget;
+import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 
 @SuppressWarnings("deprecation")
 public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final String FEATURE_GATE_LAB_KEY = "action_feature_gate_lab";
+    private static final String PAUSE_SUMMARY = "From the next start TikTok runs as if it were not patched, so you can tell whether a problem comes from Hushfeed. Your settings stay as they are.";
     private static final int REQUEST_DOWNLOAD_PATH_FOLDER = 8841;
     private static final String ARG_SECTION = "morphe_settings_section";
     private static final String ARG_SEARCH = "morphe_settings_search";
@@ -199,35 +204,35 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (pref instanceof NumberInputPreference) {
             NumberInputPreference numberInputPreference = (NumberInputPreference) pref;
             if (applySettingToPreference) {
-                numberInputPreference.setValue(setting.get().toString());
+                numberInputPreference.setValue(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, numberInputPreference.getValue());
             }
         } else if (pref instanceof CreatorListPreference) {
             CreatorListPreference creatorListPreference = (CreatorListPreference) pref;
             if (applySettingToPreference) {
-                creatorListPreference.setValue(setting.get().toString());
+                creatorListPreference.setValue(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, creatorListPreference.getValue());
             }
         } else if (pref instanceof RangeValuePreference) {
             RangeValuePreference rangeValuePref = (RangeValuePreference) pref;
             if (applySettingToPreference) {
-                rangeValuePref.setValue(setting.get().toString());
+                rangeValuePref.setValue(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, rangeValuePref.getValue());
             }
         } else if (pref instanceof DownloadPathPreference) {
             DownloadPathPreference downloadPathPref = (DownloadPathPreference) pref;
             if (applySettingToPreference) {
-                downloadPathPref.setValue(setting.get().toString());
+                downloadPathPref.setValue(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, downloadPathPref.getValue());
             }
         } else if (pref instanceof TabSelectionPreference) {
             TabSelectionPreference tabSelectionPref = (TabSelectionPreference) pref;
             if (applySettingToPreference) {
-                tabSelectionPref.setValue(setting.get().toString());
+                tabSelectionPref.setValue(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, tabSelectionPref.getValue());
             }
@@ -246,6 +251,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         if (!applySettingToPreference && setting == Settings.KEEP_CAPTIONS_CLEAR_DISPLAY) {
             CaptionTools.onSettingChanged();
+        }
+        if (!applySettingToPreference && setting == BaseSettings.PAUSED) {
+            refreshStatusCard();
         }
     }
 
@@ -273,8 +281,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     @Override
     protected boolean preferenceShowsSettingValue(@NonNull Preference pref,
                                                   @NonNull Setting<?> setting) {
-        String expected = setting.get() instanceof Enum<?>
-                ? ((Enum<?>) setting.get()).name() : String.valueOf(setting.get());
+        String expected = setting.savedValue() instanceof Enum<?>
+                ? ((Enum<?>) setting.savedValue()).name() : String.valueOf(setting.savedValue());
         if (pref instanceof NumberInputPreference) {
             return expected.equals(((NumberInputPreference) pref).getValue());
         }
@@ -356,30 +364,30 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         app.morphe.extension.shared.settings.preference.LogBufferManager.clearedMessage =
                 L10n.t(context, "Diagnostic data cleared. Tap again to put it back.");
         app.morphe.extension.shared.settings.preference.LogBufferManager.nothingToClearMessage =
-                L10n.t(context, "There is no diagnostic data to clear.");
+                L10n.t(context, "There is no diagnostic data to clear");
         app.morphe.extension.shared.settings.preference.LogBufferManager.restoredMessage =
-                L10n.t(context, "Diagnostic data put back.");
+                L10n.t(context, "Diagnostic data put back");
         app.morphe.extension.shared.settings.preference.LogBufferManager.nothingToRestoreMessage =
-                L10n.t(context, "There is no diagnostic data to put back.");
+                L10n.t(context, "There is no diagnostic data to put back");
         app.morphe.extension.shared.settings.preference.LogBufferManager.restoreFailedMessage =
-                L10n.t(context, "Could not put back the diagnostic data. Try again.");
+                L10n.t(context, "Couldn't put back the diagnostic data. Try again.");
         // The rest of what the shared export path says, on a German phone in German. Every one
         // of these reached the reader in English, branded for the library rather than the
         // bundle, and two of them carried an exception's text.
         app.morphe.extension.shared.settings.preference.LogBufferManager.nothingToExportMessage =
-                L10n.t(context, "No matching diagnostics found.");
+                L10n.t(context, "No matching diagnostics found");
         app.morphe.extension.shared.settings.preference.LogBufferManager.copiedMessage =
-                L10n.t(context, "Diagnostic report copied to the clipboard.");
+                L10n.t(context, "Diagnostic report copied to the clipboard");
         app.morphe.extension.shared.settings.preference.LogBufferManager.exportFailedMessage =
-                L10n.t(context, "The diagnostic report could not be saved. Try again.");
+                L10n.t(context, "The diagnostic report couldn't be saved. Try again.");
         app.morphe.extension.shared.settings.preference.LogBufferManager.noContextMessage =
-                L10n.t(context, "The diagnostic report could not be saved yet. Try again in a moment.");
+                L10n.t(context, "The diagnostic report couldn't be saved yet. Try again in a moment.");
         app.morphe.extension.shared.settings.preference.LogBufferManager.alreadySavingMessage =
-                L10n.t(context, "A diagnostic report is already being saved.");
+                L10n.t(context, "A diagnostic report is already being saved");
         app.morphe.extension.shared.settings.preference.LogBufferManager.savedToMessage =
                 L10n.t(context, "Full report saved to %1$s");
         app.morphe.extension.shared.settings.preference.LogBufferManager.couldNotStartMessage =
-                L10n.t(context, "Could not start the report export. Try again shortly.");
+                L10n.t(context, "Couldn't start the report export. Try again shortly.");
         // Four whole sentences rather than five fragments, so each one is a row a translator
         // can move the numbers around inside. The context is asked for when a line is written
         // rather than captured here: this writer is a static and outlives the screen.
@@ -616,6 +624,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     @Override public void onDestroyView() {
+        // The search page raises the keyboard for its field, and popping the page left it up
+        // over whatever page came next until Back was pressed once more. The system Back closes
+        // it because the field still has focus; taking it down with the view covers the header's
+        // Back and a tapped result alike, since both replace this view.
+        hideKeyboard();
         if (styledAdapter != null) {
             styledAdapter.dispose();
             styledAdapter = null;
@@ -744,7 +757,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             // A setting this build cannot reach is not on the page, so it is not something the
             // reader has turned on.
             if (setting.isAvailable()
-                    && !java.util.Objects.equals(setting.get(), setting.defaultValue)) {
+                    && !java.util.Objects.equals(setting.savedValue(), setting.defaultValue)) {
                 count++;
             }
         }
@@ -832,10 +845,19 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     null,
                     FEATURE_GATE_LAB_KEY,
                     L10n.t(context, "Feature Gate Lab"),
-                    L10n.t(context, "Search and override gate flags"),
+                    L10n.t(context, "Search and override gates"),
                     L10n.t(context, "Settings")
             ));
         }
+        // Pause Hushfeed sits on the master menu too, and it is what a reader asking whether a
+        // problem is Hushfeed's searches for.
+        results.add(new SearchResult(
+                null,
+                BaseSettings.PAUSED.key,
+                L10n.t(context, "Pause Hushfeed"),
+                L10n.t(context, PAUSE_SUMMARY),
+                L10n.t(context, "Settings")
+        ));
         // The About row sits on the master menu beside the Lab, so it is indexed the same way.
         // Its summary carries the bundle version, which is what a reporter searches for.
         results.add(new SearchResult(
@@ -977,9 +999,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private void createMasterMenu(Context context, PreferenceScreen screen) {
         screen.addPreference(SettingsHeaderPreference.master(context, this::closeSettings));
         boolean diagnosticsAvailable = DebugPreferenceCategory.isAvailable();
-        screen.addPreference(new SettingsStatusPreference(
+        SettingsStatusPreference status = new SettingsStatusPreference(
                 context,
-                diagnosticsAvailable ? () -> openSection(Section.DIAGNOSTICS) : null));
+                diagnosticsAvailable ? () -> openSection(Section.DIAGNOSTICS) : null);
+        status.setTurnBackOnAction(this::turnHushfeedBackOn);
+        screen.addPreference(status);
 
         SettingsMenuPreference search = new SettingsMenuPreference(
                 context,
@@ -1076,12 +1100,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (ExtensionPreferenceCategory.isAvailable()) {
             addMenu(screen, Section.BEHAVIOR, SettingsMenuPreference.Icon.BEHAVIOR);
         }
+        screen.addPreference(pauseRow(context));
 
         if (FeatureGateLabRuntime.isInstalled()) {
             SettingsMenuPreference featureGateLab = new SettingsMenuPreference(
                     context,
                     L10n.t(context, "Feature Gate Lab"),
-                    L10n.t(context, "Search and override gate flags"),
+                    L10n.t(context, "Search and override gates"),
                     SettingsMenuPreference.Icon.LAB,
                     0,
                     preference -> {
@@ -1105,6 +1130,61 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         // Section 7b asks that its notice reach the person using the software, and a file in the
         // repository does not reach them.
         screen.addPreference(new LicensesPreference(context));
+    }
+
+    /**
+     * Pause Hushfeed. It takes the screen-time budget off with everything else, so a locked
+     * day refuses it the same way it refuses every budget setting.
+     */
+    private TogglePreference pauseRow(Context context) {
+        TogglePreference pause = new TogglePreference(context, "Pause Hushfeed", PAUSE_SUMMARY,
+                BaseSettings.PAUSED);
+        pause.setOnPreferenceChangeListener((preference, value) -> {
+            if (!Boolean.TRUE.equals(value) || !SessionBudget.lockedToday()) return true;
+            Utils.showToastShort(L10n.f(context,
+                    "Today's budget is locked. This can be changed again at %1$s.",
+                    SessionLockOverlay.resetTimeLabel()));
+            return false;
+        });
+        return pause;
+    }
+
+    /** The paused status card's action: safe mode, the switch and the marker file all go. */
+    private void turnHushfeedBackOn() {
+        Context context = getActivity();
+        if (context == null) return;
+        boolean pausedBefore = BaseSettings.PAUSED.savedValue();
+        boolean safeModeBefore = BaseSettings.SAFE_MODE.savedValue();
+        // What this process runs with goes on record before the save. The store's listener
+        // reaches this page as soon as the save lands and reads the value "before" the change
+        // from the setting, which by then already holds the new one, so it would record the
+        // switch as never having changed and the restart it owes would go unsaid.
+        noteRestartPending(BaseSettings.PAUSED, pausedBefore);
+        noteRestartPending(BaseSettings.SAFE_MODE, safeModeBefore);
+        boolean markerGone = HushfeedPause.turnBackOn(context);
+        Preference row = findPreference(BaseSettings.PAUSED.key);
+        if (row instanceof TogglePreference) ((TogglePreference) row).setChecked(false);
+        noteRestartPending(BaseSettings.PAUSED, pausedBefore);
+        noteRestartPending(BaseSettings.SAFE_MODE, safeModeBefore);
+        if (markerGone && HushfeedPause.reason() == HushfeedPause.Reason.MARKER_FILE) {
+            // The file is no setting, but the start it paused owes a restart all the same.
+            AbstractPreferenceFragment.restartPending.add(HushfeedPause.MARKER_FILE_NAME);
+            refreshRestartPending();
+        }
+        refreshStatusCard();
+        if (markerGone) {
+            SettingsActionBanner.showRestart(context,
+                    L10n.t(context, "Hushfeed turns back on when TikTok restarts."));
+        } else {
+            SettingsActionBanner.showNotice(context, L10n.t(context,
+                    "The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on."));
+        }
+    }
+
+    /** The status card says again whether the next start still runs paused. */
+    private void refreshStatusCard() {
+        Preference status = findPreference(SettingsStatusPreference.KEY);
+        if (status instanceof SettingsStatusPreference) ((SettingsStatusPreference) status).refresh();
     }
 
     /** A group heading on the master menu, which the list adapter treats as a card boundary. */
@@ -1161,7 +1241,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (current == null || !current.isAdded()) return;
         for (java.util.Map.Entry<Setting<?>, Object> entry : previousValues.entrySet()) {
             Setting<?> setting = entry.getKey();
-            if (setting.rebootApp && !java.util.Objects.equals(entry.getValue(), setting.get())) {
+            if (setting.rebootApp && !java.util.Objects.equals(entry.getValue(), setting.savedValue())) {
                 current.noteRestartPending(setting, entry.getValue());
             }
         }
@@ -1192,7 +1272,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private void openSearch() {
         FragmentManager manager = getFragmentManager();
         if (manager == null || getId() == 0) {
-            Utils.showToastShort(L10n.t("Could not open settings search"));
+            Utils.showToastShort(L10n.t("Couldn't open settings search. Reopen settings and try again."));
             return;
         }
 
@@ -1214,7 +1294,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private void openSection(Section section, String targetKey) {
         FragmentManager manager = getFragmentManager();
         if (manager == null || getId() == 0) {
-            Utils.showToastShort(L10n.t("Could not open settings section"));
+            Utils.showToastShort(L10n.t("Couldn't open that settings section. Reopen settings and try again."));
             return;
         }
 
@@ -1238,6 +1318,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (manager != null) {
             manager.popBackStack();
         }
+    }
+
+    private void hideKeyboard() {
+        View view = getView();
+        if (view == null) return;
+        InputMethodManager manager = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (manager != null) manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     private void closeSettings() {
@@ -1302,7 +1389,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         Preference found = pendingKey == null ? null : findPreference(pendingKey);
         if (!(found instanceof DownloadPathPreference)) {
             app.morphe.extension.shared.Utils.showToastLong(
-                    L10n.t("Could not tell which folder to update. Choose it again."));
+                    L10n.t("Couldn't tell which folder to update. Choose it again."));
             return;
         }
         DownloadPathPreference preference = (DownloadPathPreference) found;

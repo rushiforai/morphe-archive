@@ -23,6 +23,12 @@ import app.morphe.extension.tiktok.settings.L10n;
 import java.lang.ref.WeakReference;
 
 public final class TapConfirmation {
+    /**
+     * How long a first tap stays armed. The settings rows say this number, formatted in from
+     * here, so a change to it never leaves five languages describing the old window.
+     */
+    public static final int CONFIRM_WINDOW_SECONDS = 4;
+    private static final long CONFIRM_WINDOW_MS = CONFIRM_WINDOW_SECONDS * 1000L;
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static WeakReference<View> armed = new WeakReference<>(null);
     private static String armedKey;
@@ -60,7 +66,8 @@ public final class TapConfirmation {
         }
         String key = action + ":" + id;
         long now = SystemClock.uptimeMillis();
-        if (id != null && armed.get() == view && key.equals(armedKey) && now - armedAt < 4000) {
+        if (id != null && armed.get() == view && key.equals(armedKey)
+                && now - armedAt < CONFIRM_WINDOW_MS) {
             clear();
             return true;
         }
@@ -73,7 +80,7 @@ public final class TapConfirmation {
         view.setForeground(ring);
         view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
         int token = generation;
-        MAIN.postDelayed(() -> { if (token == generation) clear(); }, 4000);
+        MAIN.postDelayed(() -> { if (token == generation) clear(); }, CONFIRM_WINDOW_MS);
         // Two whole sentences rather than a verb spliced into one. The verb was an English
         // literal, so a German phone read "Noch einmal tippen zum follow".
         // Chosen before the call, because the translation gate reads every literal inside a

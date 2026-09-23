@@ -65,7 +65,8 @@ public final class SeenVideoHistory {
     private static final long MIN_MARK_MS = 1_000L;
     private static final long MAX_MARK_MS = 5_000L;
     private static final int MARK_PERCENT = 10;
-    private static final int MAX_RECORDS = 10_000;
+    /** How many videos the record keeps; the settings row formats this number in. */
+    public static final int MAX_RECORDS = 10_000;
     private static final Object HISTORY_LOCK = new Object();
     private static int generation;
 

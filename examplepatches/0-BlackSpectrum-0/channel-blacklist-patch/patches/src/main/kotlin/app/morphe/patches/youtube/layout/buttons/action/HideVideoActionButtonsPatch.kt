@@ -38,6 +38,7 @@ private const val QUICK_ACTIONS_FILTER =
 
 @Suppress("unused")
 val hideVideoActionButtonsPatch = bytecodePatch(
+    name = "Hide video action buttons",
     description = "Adds options to hide video action buttons in fullscreen and portrait modes."
 ) {
     dependsOn(

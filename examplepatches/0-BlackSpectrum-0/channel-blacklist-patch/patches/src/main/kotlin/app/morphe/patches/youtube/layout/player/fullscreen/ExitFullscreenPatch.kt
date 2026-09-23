@@ -22,6 +22,7 @@ import app.morphe.patches.youtube.video.information.videoInformationPatch
 
 @Suppress("unused")
 internal val exitFullscreenPatch = bytecodePatch(
+    name = "Exit fullscreen mode",
     description = "Adds options to automatically exit fullscreen mode when a video reaches the end."
 ) {
 

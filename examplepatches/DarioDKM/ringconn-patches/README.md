@@ -10,7 +10,8 @@ This repository provides two modular patches that can be toggled independently i
 
 ### 1. RingConn Health Data Provider (`ringconn-provider`)
 * **Local SQLite ContentProvider:** Injects and registers `com.gdjztech.ringconn.provider.HealthDataProvider` with authority `com.gdjztech.ringconn.provider`.
-* Sets `android:debuggable="true"` in `AndroidManifest.xml` so external companion tools such as [Intervals Direct](https://github.com/DarioDKM/IntervalsDirect), Tasker, Termux, and automation scripts can query sleep stages, resting HR, HRV, and temperature offset via ContentResolver without root.
+* **Read-only, permission-gated access:** External companion tools such as [Intervals Direct](https://github.com/DarioDKM/IntervalsDirect), Tasker, Termux, and automation scripts can query sleep stages, resting HR, HRV, and temperature offset via ContentResolver without root.
+* Access requires the custom permission `com.gdjztech.ringconn.permission.ACCESS_HEALTH_DATA` (`protectionLevel="dangerous"`), so the user explicitly grants each app that wants to read health data. The patch does **not** set `android:debuggable`, and the provider exposes no write, no raw-SQL and no schema-enumeration methods. Readable tables are limited to an allowlist (`SleepSyncModel`, `DailyModel`, `TempOffsetModel`, `HistoryHrModel`, `OSADataModel`).
 * Lightweight: no UI elements, zero overhead.
 
 ### 2. Intervals.icu Quick-Sync Tile (`ringconn-dashboard`)
@@ -73,7 +74,7 @@ $$\text{Score} = \text{Duration} (40\,\text{pts}) + \text{Deep Sleep} (25\,\text
 
 ## Building From Source
 
-To build `patches-1.2.10.mpp` locally:
+To build `patches-1.3.2.mpp` locally:
 
 ```bash
 git clone https://github.com/DarioDKM/ringconn-patches.git
@@ -81,7 +82,7 @@ cd ringconn-patches
 ./build.sh
 ```
 
-Output bundle will be located at `dist/patches-1.2.10.mpp` (and `dist/patches.mpp`).
+Output bundle will be located at `dist/patches-1.3.2.mpp` (and `dist/patches.mpp`).
 
 ---
 

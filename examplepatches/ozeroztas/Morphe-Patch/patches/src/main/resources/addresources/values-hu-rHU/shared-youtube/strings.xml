@@ -65,6 +65,15 @@ Ellenőrizze, hogy a csomagnév helyes-e, és az alkalmazás telepítve van-e."<
   <string name="morphe_custom_branding_icon_entry_6">Morphe fekete játék</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Egyéni</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Ez módosítja az alkalmazásindítóban látható ikont.
+
+Ez a beállítás nem módosítja az ikont a következő helyeken:
+• Az eszköz rendszerbeállításaiban található alkalmazáslista
+• Egyes leküldéses értesítések
+• „Megnyitás ezzel” alkalmazásválasztó
+• Android Auto-ikon
+
+Az ikon mindenhol történő megváltoztatásához futtasd újra a javítást, és módosítsd az „Alkalmazásikon” javítási beállítást."</string>
   <string name="morphe_custom_branding_notification_icon_title">Értesítési ikon</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Alkalmazás ikonjának módosítása</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe lejátszás</string>
@@ -226,12 +235,11 @@ Ha később kikapcsolja, akkor ajánlott az alkalmazás adatait törölni, hogy 
   <string name="morphe_ryd_failure_generic">A nem tetszik funkció nem elérhető (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">A tulajdonos elrejtette</string>
+  <string name="morphe_ryd_accessibility_dislike_count">Nem tetszik ez a videó, %s másik emberrel együtt</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">Nem tetszik ez a videó, a szavazatok %s-a nemtetszés</string>
   <string name="morphe_ryd_enabled_title">Return YouTube Dislike engedélyezése</string>
   <string name="morphe_ryd_dislike_percentage_title">Mutassa a nem tetszéseket százalékban</string>
   <string name="morphe_ryd_dislike_percentage_summary">A nem tetszéseket a szám helyett a tetszések százalékaként mutatja</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Kompakt lájkgomb használata</string>
-  <string name="morphe_ryd_compact_layout_summary">Csökkenti a lájkgomb szélességét a hely megtakarítása érdekében</string>
   <string name="morphe_ryd_estimated_like_title">Becsült kedvelések mutatása</string>
   <string name="morphe_ryd_estimated_like_summary">Becsült lájkszám megjelenítése azokon a videókon, ahol a készítő letiltotta a lájkokat</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Hálózati hibaértesítések megjelenítése</string>

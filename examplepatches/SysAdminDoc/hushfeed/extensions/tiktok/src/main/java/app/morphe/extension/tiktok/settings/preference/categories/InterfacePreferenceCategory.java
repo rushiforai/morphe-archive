@@ -10,6 +10,8 @@ import android.preference.PreferenceScreen;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.morphe.extension.tiktok.captions.CaptionStyle;
+import app.morphe.extension.tiktok.interaction.TapConfirmation;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -120,7 +122,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide the save button on the feed",
-                    "Hide the save button through its native visibility hook. Ticking Save in the checklist above hides the same button through the overlay.",
+                    "Hide the save button in the right column. Ticking Save in the list above hides it too.",
                     Settings.HIDE_FEED_SAVE_BUTTON
             ));
         }
@@ -232,7 +234,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide the search bar below videos",
-                    "Remove the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.",
+                    "Hide the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.",
                     Settings.HIDE_BOTTOM_SEARCH_BAR
             ));
             addPreference(new TogglePreference(
@@ -275,7 +277,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide CAPTCHA popups",
-                    "Hide browsing and LIVE puzzle dialogs. Login, account verification and any puzzle raised over a follow, like, comment or repost stay visible.",
+                    "Hide the CAPTCHA dialogs raised while you browse or watch LIVE. Login, account verification and any CAPTCHA raised over a follow, like, comment or repost stay visible.",
                     Settings.HIDE_CAPTCHA_POPUPS
             ));
         }
@@ -302,8 +304,10 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.subtitleToolsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Captions"));
             NumberInputPreference captionSize = new NumberInputPreference(context, "Caption text size",
-                    "Use 0 for TikTok's size, or 12 to 48. Applies to the next caption.", Settings.CAPTION_TEXT_SIZE, "point", "points") {
-                @Override protected int clamp(int value) { return value <= 0 ? 0 : Math.max(12, Math.min(48, value)); }
+                    L10n.f(context, "Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.",
+                            CaptionStyle.MIN_TEXT_SIZE, CaptionStyle.MAX_TEXT_SIZE),
+                    Settings.CAPTION_TEXT_SIZE, "%1$s point", "%1$s points") {
+                @Override protected int clamp(int value) { return CaptionStyle.clampSize(value); }
             };
             captionSize.zeroMeans("TikTok's size");
             addPreference(captionSize);
@@ -341,7 +345,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide controls after each video starts. Tap to restore them.", Settings.AUTOMATIC_CLEAR_DISPLAY));
             NumberInputPreference delay = new NumberInputPreference(context, "Clear display delay",
                     "Wait before hiding the controls.", Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY,
-                    "millisecond", "milliseconds");
+                    "%1$s millisecond", "%1$s milliseconds");
             delay.zeroMeans("No delay");
             addPreference(delay);
         }
@@ -371,22 +375,22 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Press and hold the left or right third of the screen to jump back or forward. "
                             + "The middle third keeps the Long press action.", Settings.EDGE_SEEK));
             addPreference(new NumberInputPreference(context, "Seek by",
-                    "How far each edge press moves the video.", Settings.EDGE_SEEK_SECONDS, "s"));
+                    "How far each edge press moves the video.", Settings.EDGE_SEEK_SECONDS, "%1$s s"));
         }
         // Three more long presses, each its own patch. They sat under Player on the App page,
         // two pages away from the Long press row they belong beside.
         if (SettingsStatus.longPressSpeedLockEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Enable hold-and-slide 2x lock",
-                    "Use TikTok's native hold, slide down, and release gesture to lock 2x speed.",
+                    "Lock 2x speed with hold and slide",
+                    "Use TikTok's own hold, slide down and release gesture to lock 2x speed.",
                     Settings.ENABLE_LONG_PRESS_SPEED_LOCK
             ));
         }
         if (SettingsStatus.disableLongPressQuickShareEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Disable the long press quick share",
+                    "Keep long press from quick sharing",
                     "Stop a long press on Share from opening TikTok's quick share action.",
                     Settings.DISABLE_LONG_PRESS_QUICK_SHARE
             ));
@@ -394,14 +398,20 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.disableLongPressRepostEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Disable the long press repost",
+                    "Keep long press from reposting",
                     "Stop a long press on Like from opening TikTok's repost action.",
                     Settings.DISABLE_LONG_PRESS_REPOST
             ));
         }
         if (SettingsStatus.confirmInteractionsEnabled) {
-            addPreference(new TogglePreference(context, "Confirm before following", "Tap the feed Follow button twice within four seconds.", Settings.CONFIRM_FOLLOW));
-            addPreference(new TogglePreference(context, "Confirm before liking", "Tap the like heart twice within four seconds. Removing a like stays immediate.", Settings.CONFIRM_LIKE));
+            addPreference(new TogglePreference(context, "Confirm before following",
+                    L10n.f(context, "Tap the feed Follow button twice within %1$d seconds.",
+                            TapConfirmation.CONFIRM_WINDOW_SECONDS),
+                    Settings.CONFIRM_FOLLOW));
+            addPreference(new TogglePreference(context, "Confirm before liking",
+                    L10n.f(context, "Tap the like heart twice within %1$d seconds. Removing a like stays immediate.",
+                            TapConfirmation.CONFIRM_WINDOW_SECONDS),
+                    Settings.CONFIRM_LIKE));
         }
     }
 }

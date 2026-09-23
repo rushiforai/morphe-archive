@@ -27,6 +27,7 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val disableShortsResumingOnStartupPatch = bytecodePatch(
+    name = "Disable Shorts resuming on startup",
     description = "Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.",
 ) {
     dependsOn(

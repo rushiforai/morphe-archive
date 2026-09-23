@@ -24,7 +24,7 @@ public final class BlockAuthorMessages {
             return L10n.f(context,
                     "TikTok did not block %1$s. Try again in a moment.", author);
         }
-        return L10n.f(context, "Couldn't confirm the block for %1$s.", author);
+        return L10n.f(context, "Couldn't confirm the block for %1$s. Open their profile to check.", author);
     }
 
     public static String unblockResult(
@@ -39,6 +39,6 @@ public final class BlockAuthorMessages {
             return L10n.f(context,
                     "TikTok did not unblock %1$s. Try again in a moment.", author);
         }
-        return L10n.f(context, "Couldn't confirm the unblock for %1$s.", author);
+        return L10n.f(context, "Couldn't confirm the unblock for %1$s. Open their profile to check.", author);
     }
 }

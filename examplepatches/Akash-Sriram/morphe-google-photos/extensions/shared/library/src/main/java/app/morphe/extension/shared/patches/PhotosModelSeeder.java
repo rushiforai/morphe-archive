@@ -43,7 +43,15 @@ public final class PhotosModelSeeder {
         return cachedExpectedCount;
     }
 
+    public static volatile boolean isModelPatchEnabled = false;
+
+    public static void enableAndEnsureSeeded(Context context) {
+        isModelPatchEnabled = true;
+        ensureSeeded(context);
+    }
+
     public static void ensureSeeded(Context context) {
+        if (!isModelPatchEnabled) return;
         if (context == null) return;
         String pkg = context.getPackageName();
         if (pkg == null || !pkg.contains("photos")) return;

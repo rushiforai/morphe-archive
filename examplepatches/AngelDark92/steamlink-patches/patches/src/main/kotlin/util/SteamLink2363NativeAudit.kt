@@ -43,7 +43,7 @@ object SteamLink2363NativeAudit {
 
         val tongue = patchModernTongueTransport(stock, "2.0.23", "5002363")
         exactDiff(tongue, listOf(0x141c6c until 0x141c6c + 24))
-        check(tongue.copyOfRange(0x141c6c, 0x141c6c + 24).contentEquals(MODERN_TONGUE_REPLACEMENT_5002363))
+        check(tongue.copyOfRange(0x141c6c, 0x141c6c + 24).contentEquals(MODERN_TONGUE_REPLACEMENT))
         check(patchModernTongueTransport(tongue, "2.0.23", "5002363").contentEquals(tongue))
         check(patchModernTongueTransport(stock, "2.0.22", "5002363").contentEquals(stock))
         rejects { patchModernTongueTransport(stock.copyOf().apply { this[0x141c6c] = 0 }, "2.0.23", "5002363") }

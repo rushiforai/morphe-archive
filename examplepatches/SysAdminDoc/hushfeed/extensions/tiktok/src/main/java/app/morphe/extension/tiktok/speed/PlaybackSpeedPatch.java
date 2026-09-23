@@ -20,11 +20,25 @@ public final class PlaybackSpeedPatch {
     private static final String SOURCE_ON_SCREEN_BUTTON = "on_screen_button";
     private static final String SOURCE_SWIPE_LOCK = "swipe_up_lock_persist";
 
+    /**
+     * What the speed menu row accepts. The row's summary and its refusal say these numbers,
+     * formatted in from here, so the words follow the limit.
+     */
+    public static final int MAX_MENU_SPEEDS = 8;
+    public static final float MIN_SPEED = 0.5f;
+    public static final float MAX_SPEED = 3f;
+
     private static volatile float rememberedSpeed = 1.0f;
     private static String currentVideoId = "";
     private static float manualSpeed = Float.NaN;
 
     private PlaybackSpeedPatch() {}
+
+    /** A speed the way the row writes it: 0.5, 1.25, 3. No trailing zero, no locale comma. */
+    public static String speedLabel(float speed) {
+        String text = java.math.BigDecimal.valueOf(speed).stripTrailingZeros().toPlainString();
+        return text;
+    }
 
     public static synchronized void beginVideo(Aweme aweme) {
         String id = aweme == null || aweme.getAid() == null ? "" : aweme.getAid();
@@ -53,14 +67,17 @@ public final class PlaybackSpeedPatch {
     public static List<Float> parseMenuSpeeds(String text) {
         if (text == null || text.trim().isEmpty()) return List.of();
         String[] entries = text.split(",", -1);
-        if (entries.length > 8) throw new IllegalArgumentException("Use at most 8 speeds");
+        if (entries.length > MAX_MENU_SPEEDS) {
+            throw new IllegalArgumentException("Use at most " + MAX_MENU_SPEEDS + " speeds");
+        }
         LinkedHashSet<Float> values = new LinkedHashSet<>();
         for (String entry : entries) {
             float speed;
             try { speed = Float.parseFloat(entry.trim()); }
             catch (NumberFormatException error) { throw new IllegalArgumentException("Invalid speed", error); }
-            if (!isValidSpeed(speed) || speed < 0.5f || speed > 3f) {
-                throw new IllegalArgumentException("Use speeds from 0.5 to 3");
+            if (!isValidSpeed(speed) || speed < MIN_SPEED || speed > MAX_SPEED) {
+                throw new IllegalArgumentException(
+                        "Use speeds from " + speedLabel(MIN_SPEED) + " to " + speedLabel(MAX_SPEED));
             }
             values.add(speed);
         }
@@ -112,7 +129,7 @@ public final class PlaybackSpeedPatch {
                 if (!currentVideoId.isEmpty() && isValidSpeed(manualSpeed)) return manualSpeed;
                 try {
                     float value = Float.parseFloat(Settings.DEFAULT_SPEED.get());
-                    return isValidSpeed(value) && value >= 0.5f && value <= 3f ? value : 1.5f;
+                    return isValidSpeed(value) && value >= MIN_SPEED && value <= MAX_SPEED ? value : 1.5f;
                 } catch (NumberFormatException error) {
                     return 1.5f;
                 }

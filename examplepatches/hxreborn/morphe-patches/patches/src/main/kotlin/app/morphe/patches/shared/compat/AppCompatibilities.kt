@@ -29,6 +29,14 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "2.4.0e", versionCode = 412)),
     )
 
+    val ATLOMAPS = Compatibility(
+        name = "AtloMaps",
+        packageName = "com.atlogis.atlomaps",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x0683DF,
+        targets = listOf(AppTarget(version = "1.0.6", versionCode = 153, minSdk = 29)),
+    )
+
     val ATVTOOLS = Compatibility(
         name = "atvTools",
         packageName = "dev.vodik7.atvtools",
@@ -122,6 +130,7 @@ internal object AppCompatibilities {
             AppTarget(version = "4.0.02.0828.03", versionCode = 50020125, minSdk = 29),
             AppTarget(version = "4.0.02.0831.03", versionCode = 50020126, minSdk = 29),
             AppTarget(version = "4.0.02.0903.02", versionCode = 50020128, minSdk = 29),
+            AppTarget(version = "4.0.03.0918.03", versionCode = 50020129, minSdk = 29),
         ),
     )
 
@@ -194,6 +203,17 @@ internal object AppCompatibilities {
             AppTarget(version = "7.11.5", versionCode = 18317, minSdk = 29),
             AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29),
         ),
+    )
+
+    val PROTON_PASS = Compatibility(
+        name = "Proton Pass",
+        packageName = "proton.android.pass",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x6D4AFF,
+        signatures = setOf(
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
+        ),
+        targets = listOf(AppTarget(version = "1.40.3", versionCode = 14003373, minSdk = 27)),
     )
 
     val QURANIFY = Compatibility(

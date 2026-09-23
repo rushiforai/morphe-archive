@@ -21,7 +21,7 @@ public final class ChoicePreference extends ListPreference {
         setKey(setting.key);
         setEntries(labels);
         setEntryValues(values);
-        setValue(setting.get());
+        setValue(setting.savedValue());
         setSummary("%s");
     }
 

@@ -1,0 +1,298 @@
+{
+  "source": "C:\\Program Files\\Virtual Desktop Streamer\\VirtualDesktop.Streamer.exe",
+  "sha256": "6bfec9e4e62509f4fdb0ec21c144b4584f9450701dcf5bd756d6fd2aec7cbb51",
+  "source_bytes": 22600728,
+  "assembly_version": "1.34.22.0",
+  "codec_constants": {
+    "Automatic": 0,
+    "H264": 1,
+    "HEVC": 2,
+    "VP8": 3,
+    "VP9": 4,
+    "H264Plus": 5,
+    "HEVC10bit": 6,
+    "AV1": 10,
+    "AV110bit": 11
+  },
+  "gamma_attributes": [
+    {
+      "type": "'System.ComponentModel.DefaultValueAttribute'::'.ctor'",
+      "blob": "01000000803f0000"
+    }
+  ],
+  "methods": [
+    {
+      "token": "0x60003c1",
+      "rva": "0x246c4",
+      "label": "'VirtualDesktop.Streamer.StreamerSettings'::'set_PreferredCodec'",
+      "size": 132,
+      "sha256": "639d7d1678103157070bb236b3e1bff7eb47786383843c8ab5914e7a47e5d097"
+    },
+    {
+      "token": "0x60003e2",
+      "rva": "0x25250",
+      "label": "'VirtualDesktop.Streamer.StreamerSettings'::'OnPreferredCodechanged'",
+      "size": 76,
+      "sha256": "1658ff875cd133f22b2e8972cc42a7f3f788ede51cbb919805268e7c1278a1ef"
+    },
+    {
+      "token": "0x6000403",
+      "rva": "0x26b90",
+      "label": "'VirtualDesktop.Streamer.OculusStreamer'::'\\x02'",
+      "size": 2144,
+      "sha256": "8c54890d0c0114c2b594995c9fa18e2491b3626d740f16fe7e0c397005ce8493"
+    },
+    {
+      "token": "0x6000413",
+      "rva": "0x28ab8",
+      "label": "'VirtualDesktop.Streamer.OculusStreamer'::'\\x01'",
+      "size": 2352,
+      "sha256": "839f60930b02b6c96ff296fd6579a0cf47bc99a9faf7fcfec9531c6a286fc6dc"
+    },
+    {
+      "token": "0x6000430",
+      "rva": "0x2a930",
+      "label": "'VirtualDesktop.Streamer.OculusStreamer'::'.cctor'",
+      "size": 84,
+      "sha256": "51c8f80bfffd48074a8cdfa92755b6a5ee9a69420350384f811aa2f0405650ba"
+    },
+    {
+      "token": "0x6000467",
+      "rva": "0x2bc24",
+      "label": "'VirtualDesktop.Streamer.StreamerManager'::'\\x01'",
+      "size": 180,
+      "sha256": "61d67d72a802a3e86f0d3c791bf18a71984b9ab745220e012bc15c43f3580f6a"
+    },
+    {
+      "token": "0x600046a",
+      "rva": "0x2be08",
+      "label": "'VirtualDesktop.Streamer.StreamerManager'::'\\x01'",
+      "size": 412,
+      "sha256": "03eb7267c11d4c572474055618ebe5bd8bb6e6e43214d48bd20844e61301b37f"
+    },
+    {
+      "token": "0x6000476",
+      "rva": "0x2cc58",
+      "label": "'VirtualDesktop.Streamer.StreamerManager'::'\\x05'",
+      "size": 332,
+      "sha256": "6aac83e99476e21aeea351a44871ffaf320b69c7fabe635b5bd98b43830ef3d9"
+    },
+    {
+      "token": "0x6000477",
+      "rva": "0x2cda4",
+      "label": "'VirtualDesktop.Streamer.StreamerManager'::'\\x08'",
+      "size": 268,
+      "sha256": "e06c4ad59bbf5eeb2a1cd68671b03feff45ab04127fbcd757bc758b0d307d1f0"
+    },
+    {
+      "token": "0x60004ac",
+      "rva": "0x2eefc",
+      "label": "'VirtualDesktop.Streamer.DesktopStreamer'::'\\x01'",
+      "size": 2780,
+      "sha256": "a9f6d4a4bb4d237ce420e7f4d652608357e36fbe649291d1cb6d3289ff3e8b4d"
+    },
+    {
+      "token": "0x600057d",
+      "rva": "0x36b6c",
+      "label": "'VirtualDesktop.Streamer.Controls.VideoCodecProvider'::'BeginQuery'",
+      "size": 220,
+      "sha256": "a0911a0554bbe3edc1180bd264032eae46ec8348da718a626f86c5aa7f398198"
+    },
+    {
+      "token": "0x600057e",
+      "rva": "0x36c48",
+      "label": "'VirtualDesktop.Streamer.Controls.VideoCodecProvider'::'.ctor'",
+      "size": 8,
+      "sha256": "6b0c03804eeaadca653746312b61df4aeae3bd8f76468dbc15ef4c43e70434e8"
+    },
+    {
+      "token": "0x60212b0",
+      "rva": "0x8766b8",
+      "label": "'\\x1c\\x02.\\x02'::'\\x04'",
+      "size": 56,
+      "sha256": "9bb732ef7aef8f861ece1a2ed147c3114b01f25fab661d4c59b67e4189efee96"
+    },
+    {
+      "token": "0x60212b1",
+      "rva": "0x8766f0",
+      "label": "'\\x1c\\x02.\\x02'::'\\x05'",
+      "size": 84,
+      "sha256": "6711a234e8c9bb62014183e00dc86ef10e6c37ea2de2bf8378814e4eaec34a3e"
+    },
+    {
+      "token": "0x6021387",
+      "rva": "0x87c054",
+      "label": "'VirtualDesktop.Mobile.SharedUserSettings'::'get_Gamma'",
+      "size": 60,
+      "sha256": "43f32a8439019693bb8a688d971ff2341c42c2b84ec9fde3894400fd12315fa8"
+    },
+    {
+      "token": "0x6021388",
+      "rva": "0x87c090",
+      "label": "'VirtualDesktop.Mobile.SharedUserSettings'::'set_Gamma'",
+      "size": 132,
+      "sha256": "133f032c655374d0e7c98b9d437822348d54fcb59e96ba8e0ecbb9a34610dbb5"
+    },
+    {
+      "token": "0x60213b1",
+      "rva": "0x87ce20",
+      "label": "'VirtualDesktop.Mobile.SharedUserSettings'::'.ctor'",
+      "size": 8,
+      "sha256": "4cdc956ed7c79695a8c12d9e855559ec82aea8fc925b68d6d49b8f1bab0aec5e"
+    },
+    {
+      "token": "0x60213e1",
+      "rva": "0x87ec80",
+      "label": "'\\x18\\x02.\\x03'::'\\x01'",
+      "size": 92,
+      "sha256": "9bcf910593ca7515b8964b66742d08eadfcc29a5349a4fd2f0e98f7f243ae1b2"
+    },
+    {
+      "token": "0x6021527",
+      "rva": "0x88d2f4",
+      "label": "'\\x13\\x02.\\x01'::'\\x01'",
+      "size": 60,
+      "sha256": "f6a99725d7742d8223746e93a68ee6880c6ca99a513e563b3d6b4878f5c6b9a8"
+    },
+    {
+      "token": "0x6021528",
+      "rva": "0x88d330",
+      "label": "'\\x13\\x02.\\x01'::'\\x02'",
+      "size": 104,
+      "sha256": "9462b9c43ac7febac60e75e2220dc03cbd429a4b753d215f246c48e174c7887d"
+    },
+    {
+      "token": "0x602152c",
+      "rva": "0x88d44c",
+      "label": "'\\x13\\x02.\\x01'::'\\x03'",
+      "size": 60,
+      "sha256": "0b46fd0d1152dad760fb3f6357e3f3dd568e32056841e386fda6d6f35051295c"
+    },
+    {
+      "token": "0x602152d",
+      "rva": "0x88d488",
+      "label": "'\\x13\\x02.\\x01'::'\\x03'",
+      "size": 60,
+      "sha256": "aa97c2039a9ba301c67317963de62c69ea665f1b19815f257ca58e95ad46ce4e"
+    },
+    {
+      "token": "0x602152e",
+      "rva": "0x88d4c4",
+      "label": "'\\x13\\x02.\\x01'::'\\x04'",
+      "size": 60,
+      "sha256": "20542d5e3f14d6bb0e4e319140a42802827be3918008a995c08b3ebb99485c6e"
+    },
+    {
+      "token": "0x602152f",
+      "rva": "0x88d500",
+      "label": "'\\x13\\x02.\\x01'::'\\x04'",
+      "size": 60,
+      "sha256": "8c87fa464dc874620fc08c0bef4030c5e5c51d889c1c87d42e2c6d5052175a15"
+    },
+    {
+      "token": "0x6021530",
+      "rva": "0x88d53c",
+      "label": "'\\x13\\x02.\\x01'::'\\x05'",
+      "size": 60,
+      "sha256": "448781a0e076a553257e23512007cd65a309c0aebab5019270d4832fd00fa859"
+    },
+    {
+      "token": "0x6021531",
+      "rva": "0x88d578",
+      "label": "'\\x13\\x02.\\x01'::'\\x05'",
+      "size": 60,
+      "sha256": "58161e8ece66d247bc3ecbd21d738d87b9a7749ae45fcfde619264077a7c1012"
+    },
+    {
+      "token": "0x6021532",
+      "rva": "0x88d5b4",
+      "label": "'\\x13\\x02.\\x01'::'\\x06'",
+      "size": 60,
+      "sha256": "abec71db4c42ba7feb96f4dd3e210d69b525e28d1e5d87b12e046207752d7caf"
+    },
+    {
+      "token": "0x6021554",
+      "rva": "0x88dbd8",
+      "label": "'\\x12\\x03.\\x05'::'\\x01'",
+      "size": 88,
+      "sha256": "4ebac9021a9a6a05d534b0280687d5e54d4c41c195861d53a69a436baa93f722"
+    },
+    {
+      "token": "0x6021555",
+      "rva": "0x88dc30",
+      "label": "'\\x12\\x03.\\x05'::'\\x02'",
+      "size": 116,
+      "sha256": "79cf06421ecabfdf4f2518648d980cc962f49ae0eb87fdd6553112bd0391b315"
+    },
+    {
+      "token": "0x6021557",
+      "rva": "0x88dcfc",
+      "label": "'\\x12\\x03.\\x05'::'\\x04'",
+      "size": 136,
+      "sha256": "a216476eceaa16e9a92642ca666fc63fd9ba5e5b458ae8ca3955efeb27b781a8"
+    },
+    {
+      "token": "0x6021558",
+      "rva": "0x88dd84",
+      "label": "'\\x12\\x03.\\x05'::'\\x01'",
+      "size": 652,
+      "sha256": "c2e2b5f9e9def53099b4960ccb9a719aa0314b6d0d5c2a158119b24643ba3ec0"
+    },
+    {
+      "token": "0x602155b",
+      "rva": "0x88e010",
+      "label": "'\\x89\\x02.\\x02'::'.cctor'",
+      "size": 496,
+      "sha256": "a9d685dbb7bac39bd1c6fd52a6d06bc7d3a97c276bb2278d2ee7af84d12c290b"
+    },
+    {
+      "token": "0x6021561",
+      "rva": "0x88e330",
+      "label": "'\\x89\\x02.\\x02'::'\\x01'",
+      "size": 260,
+      "sha256": "c0bdf83d15630a6436635ec36021882a2302a667a1c6e8f5ce921d9893ff3dd1"
+    },
+    {
+      "token": "0x6021563",
+      "rva": "0x88e48c",
+      "label": "'\\x89\\x02.\\x02'::'\\x01'",
+      "size": 608,
+      "sha256": "31beb2a2cc85204f5312a95fd150aeeb43b60b1f5a3b767063560c311ea1085b"
+    },
+    {
+      "token": "0x602156c",
+      "rva": "0x88ebc0",
+      "label": "'\\x89\\x02.\\x02'::'\\x03'",
+      "size": 80,
+      "sha256": "8557966a05a7ba7fcdb2ff3338c42f0669b6a95b84b377eadf81e20d80d2bf4f"
+    },
+    {
+      "token": "0x60215f0",
+      "rva": "0x8931d8",
+      "label": "'\\x83.\\x01'::'\\x01'",
+      "size": 2148,
+      "sha256": "1953c62415ba7a34003274568085e2f80ea7f115d67dd00034094c2159bb0bb4"
+    },
+    {
+      "token": "0x60215f9",
+      "rva": "0x8941a0",
+      "label": "'\\x83.\\x01'::'\\x03'",
+      "size": 212,
+      "sha256": "2ce964fe44a029fbb92966a496d0b0f153f1e920fc39b81d3947dd83f7be4201"
+    },
+    {
+      "token": "0x60215fc",
+      "rva": "0x8943e0",
+      "label": "'\\x83.\\x01'::'\\x05'",
+      "size": 596,
+      "sha256": "bdbc15e783c08fab7c2521890198645edbf5b4a830c5e6283fc2e330b1e8fcc3"
+    },
+    {
+      "token": "0x60215fd",
+      "rva": "0x894634",
+      "label": "'\\x83.\\x01'::'\\x02'",
+      "size": 936,
+      "sha256": "eec4f0990416341e5332a6795ea4d0f4cd30c6a9ea260e334dbc6904e5add414"
+    }
+  ]
+}

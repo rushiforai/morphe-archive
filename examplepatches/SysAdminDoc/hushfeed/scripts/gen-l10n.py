@@ -25,6 +25,19 @@ translated yet reaches Weblate only once it is in one of them. What holds every 
 a table is SettingsL10nTest.everySettingsStringHasATranslationEntry, which builds the real
 preference rows and demands each rendered string be a key. This script cannot see those rows.
 
+Context. A .tsv table may carry a comment line above a row, "# context: what the row is and
+where it shows", and the reader skips it; a key is a whole sentence or phrase, never a lone
+unit or conjunction, so a translator sees the sentence the words sit in ("%1$s days", not
+"days"; "%1$s, %2$s or %3$s", not "or").
+
+Plurals. A count is written as two English keys, the one form ("1 result") and the other form
+("%1$d results"), and L10n.quantity picks between them by the phone language's CLDR plural rule
+rather than by count == 1. The five shipped languages have at most those two forms. A language
+with more (Polish, Russian, Czech, Arabic) keeps each extra form as a row keyed by the other
+form plus "|" and the CLDR category name: "%1$d results|few" and "%1$d results|many". Such a
+row is a translation of the other form, so it is held to that form's placeholders and it is
+left out of the English base, which lists source strings only.
+
 Run from the repository root: python scripts/gen-l10n.py
 """
 import csv
@@ -65,6 +78,16 @@ PLACEHOLDER = re.compile(r"%(?:\d+\$)?[a-zA-Z]")
 # comment, so an entry that starts with it is refused rather than guessed at.
 COMMENT = "#"
 
+# A plural form English does not have: the other form's key, a bar and the CLDR category. It is
+# a translation of that other form, not a source string of its own.
+PLURAL_VARIANT = re.compile(r"^(?P<base>.+)\|(?P<category>zero|one|two|few|many)$")
+
+
+def plural_base(english):
+    """The other form a |category row belongs to, or the key itself for an ordinary row."""
+    match = PLURAL_VARIANT.match(english)
+    return match.group("base") if match else english
+
 
 def read(path):
     """One table, from either form. A newline is the two characters \\n in both."""
@@ -90,7 +113,7 @@ def add(entries, english, translated, path, number):
     # When every placeholder is numbered (%1$d, %2$s), a translation may use them in any order
     # and the set must match. Unnumbered placeholders (%d, %s) keep their order, because
     # String.format fills them positionally.
-    wanted = PLACEHOLDER.findall(english)
+    wanted = PLACEHOLDER.findall(plural_base(english))
     given = PLACEHOLDER.findall(translated)
     all_numbered = all("$" in p for p in wanted) if wanted else False
     if all_numbered:
@@ -157,7 +180,8 @@ def write_english_base(tables, path):
     """
     keys = set()
     for entries in tables.values():
-        keys.update(entries)
+        # A |category row is a language's extra plural form of a key the base already lists.
+        keys.update(english for english in entries if not PLURAL_VARIANT.match(english))
     with io.open(path, "w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(CSV_HEADER)

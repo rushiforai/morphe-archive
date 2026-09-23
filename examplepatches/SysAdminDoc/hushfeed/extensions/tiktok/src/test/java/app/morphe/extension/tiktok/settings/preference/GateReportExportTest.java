@@ -76,7 +76,7 @@ public class GateReportExportTest {
         try (var saturation = app.morphe.extension.shared.BackgroundPoolSaturation.fill()) {
             GateReportExport.save(context, "{}");
             org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-            assertEquals("Could not start the report export. Try again shortly.",
+            assertEquals("Couldn't start the report export. Try again shortly.",
                     String.valueOf(ShadowToast.getTextOfLatestToast()));
         }
     }
@@ -108,7 +108,7 @@ public class GateReportExportTest {
         };
         ShadowToast.reset();
         assertFalse(GateReportExport.copy(denied, "{}"));
-        assertEquals("Could not copy report. Use Save JSON.",
+        assertEquals("Couldn't copy the report. Use Save JSON instead.",
                 String.valueOf(ShadowToast.getTextOfLatestToast()));
     }
 }

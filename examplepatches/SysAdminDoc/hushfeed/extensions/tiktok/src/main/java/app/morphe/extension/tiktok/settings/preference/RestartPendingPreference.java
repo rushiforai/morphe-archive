@@ -57,9 +57,8 @@ public final class RestartPendingPreference extends Preference {
     /** What the row says: one change, or how many. */
     public static String label(Context context) {
         int count = AbstractPreferenceFragment.restartPending.size();
-        return count == 1
-                ? L10n.t(context, "Restart TikTok to apply this change")
-                : L10n.f(context, "Restart TikTok to apply %1$d changes", count);
+        return L10n.quantity(context, count,
+                "Restart TikTok to apply this change", "Restart TikTok to apply %1$d changes");
     }
 
     @Override

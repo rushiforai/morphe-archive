@@ -65,6 +65,15 @@ Second \"item\" text"</string>
   <string name="morphe_custom_branding_icon_entry_6">Morphe 玩转黑色</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">自定义</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"这会更改应用启动器中显示的图标。
+
+此设置不会更改以下任何位置中的图标：
+• 设备系统设置中的应用列表
+• 某些推送通知
+• “打开方式”应用选择器
+• Android Auto 图标
+
+要更改所有位置的图标，请重新打补丁并更改“应用图标”补丁选项。\"}]}[{"</string>
   <string name="morphe_custom_branding_notification_icon_title">通知图标</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">匹配应用图标</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe 玩乐</string>
@@ -226,12 +235,11 @@ Second \"item\" text"</string>
   <string name="morphe_ryd_failure_generic">点踩数不可用 (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">所有者已隐藏</string>
+  <string name="morphe_ryd_accessibility_dislike_count">不喜欢此视频，以及另外 %s 人</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">不喜欢此视频，投票中有 %s 为不喜欢</string>
   <string name="morphe_ryd_enabled_title">启用 Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">以百分比形式显示点踩数</string>
   <string name="morphe_ryd_dislike_percentage_summary">以点赞数量的百分比形式显示点踩数，而不是数字</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">使用紧凑的喜欢按钮</string>
-  <string name="morphe_ryd_compact_layout_summary">减小喜欢按钮的宽度以节省空间</string>
   <string name="morphe_ryd_estimated_like_title">显示估计的点赞数</string>
   <string name="morphe_ryd_estimated_like_summary">在创作者禁用点赞的视频上显示估计的点赞数量</string>
   <string name="morphe_ryd_toast_on_connection_error_title">显示连接错误提示</string>

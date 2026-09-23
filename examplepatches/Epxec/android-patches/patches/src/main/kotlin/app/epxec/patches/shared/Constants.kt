@@ -150,4 +150,17 @@ object Constants {
         )
     ) 
 
+    val COMPATIBILITY_Mazii = Compatibility(
+        name = "Mazii",
+        packageName = "com.mazii.dictionary",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF1234,
+        targets = listOf(
+            AppTarget(
+                version = "6.8.53",
+                versionCode = 20260904
+            )
+        )
+    ) 
+
 }

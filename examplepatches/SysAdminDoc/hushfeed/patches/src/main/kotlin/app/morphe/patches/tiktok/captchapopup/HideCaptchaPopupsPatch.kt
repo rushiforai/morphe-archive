@@ -107,8 +107,8 @@ private fun BytecodePatchContext.dismissCall(type: String, name: String): String
 @Suppress("unused")
 val hideCaptchaPopupsPatch = bytecodePatch(
     name = "Hide CAPTCHA popups",
-    description = "Adds a default-off setting to hide browsing and LIVE puzzle dialogs. Login and " +
-        "account verification stay visible, and so does any puzzle the server raised over a follow, " +
+    description = "Adds a default-off setting to hide the CAPTCHA dialogs raised while browsing or watching LIVE. Login and " +
+        "account verification stay visible, and so does any CAPTCHA the server raised over a follow, " +
         "like, comment or repost, because hiding one of those makes the action fail with no message. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {

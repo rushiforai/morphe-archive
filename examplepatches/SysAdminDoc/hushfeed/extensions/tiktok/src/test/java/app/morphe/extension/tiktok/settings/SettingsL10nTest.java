@@ -306,7 +306,12 @@ public class SettingsL10nTest {
         // translators keep being asked for text nothing shows any more.
         java.util.Map<String, String> base = readTable(ENGLISH_BASE);
         java.util.Set<String> carried = new java.util.TreeSet<>();
-        for (String language : languages()) carried.addAll(readTable(language).keySet());
+        for (String language : languages()) {
+            for (String key : readTable(language).keySet()) {
+                // A |category row is a translation of a key the base lists, not a source string.
+                if (pluralBase(key).equals(key)) carried.add(key);
+            }
+        }
 
         java.util.Set<String> missing = new java.util.TreeSet<>(carried);
         missing.removeAll(base.keySet());
@@ -324,6 +329,66 @@ public class SettingsL10nTest {
         }
     }
 
+    /**
+     * The Lab's own words stay in the Lab's technical block. A gate is the thing, an override
+     * is what the reader sets, a rule is a saved override. "Flag" and "getter" reached the
+     * settings home row, two warnings and the override note before this held them out.
+     */
+    @Test public void labVocabularyStaysOutOfTheSourceStrings() throws Exception {
+        java.util.regex.Pattern jargon = java.util.regex.Pattern.compile(
+                "(?i)\\bgetters?\\b|\\bgate flags?\\b|\\bflags\\b|\\boverride boundary\\b"
+                        + "|\\bconfiguration object\\b|\\btype-checked\\b");
+        List<String> offenders = new ArrayList<>();
+        for (String key : readTable(ENGLISH_BASE).keySet()) {
+            if (jargon.matcher(key).find()) offenders.add(key);
+        }
+        assertEquals("Lab vocabulary in a translated string:\n" + String.join("\n", offenders),
+                0, offenders.size());
+    }
+
+    /**
+     * A limit the reader is told about is formatted in from the constant that enforces it, so
+     * no key carries the number itself. The example list on the speed row is the one place
+     * numbers are words rather than a limit.
+     */
+    @Test public void noKeyCarriesALimitThatLivesInACodeConstant() throws Exception {
+        java.util.regex.Pattern limit = java.util.regex.Pattern.compile(
+                "\\bfour seconds\\b|\\b4,?096\\b|\\b10,?000\\b|\\b256 KB\\b|\\b64 KB\\b|\\b1-1000\\b"
+                        + "|\\b12 to 48\\b|\\b0\\.5 to 3\\b|\\b8 (?:comma-separated )?speeds\\b");
+        List<String> offenders = new ArrayList<>();
+        for (String key : readTable(ENGLISH_BASE).keySet()) {
+            if (limit.matcher(key).find()) offenders.add(key);
+        }
+        assertEquals("keys that type a limit the code holds in a constant:\n"
+                + String.join("\n", offenders), 0, offenders.size());
+    }
+
+    /**
+     * A failure says what happened and what to do next, as two sentences with their stops, and
+     * says "couldn't" the way the rest of the screens do. Twenty keys opened "Could not", four
+     * of them with no stop at all, and eight stopped at the failure with nothing to do about it.
+     */
+    @Test public void everyFailureMessageSaysWhatHappenedAndWhatToDoNext() throws Exception {
+        // A heading over an error row: its next step is the summary under it, not a sentence of
+        // its own, so it is the one failure allowed to be a single line.
+        Set<String> headings = new LinkedHashSet<>(List.of("Settings couldn't open"));
+        java.util.regex.Pattern failure = java.util.regex.Pattern.compile("(?i)\\bcould ?n['’]?o?t\\b");
+        java.util.regex.Pattern uncontracted = java.util.regex.Pattern.compile("(?i)\\bcould not\\b");
+        java.util.regex.Pattern boundary = java.util.regex.Pattern.compile("[.!?][\"”']?\\s+[A-Za-z0-9\"“%]");
+        List<String> offenders = new ArrayList<>();
+        int checked = 0;
+        for (String key : readTable(ENGLISH_BASE).keySet()) {
+            if (!failure.matcher(key).find() || headings.contains(key)) continue;
+            checked++;
+            if (uncontracted.matcher(key).find()) offenders.add("says could not: " + key);
+            if (!key.endsWith(".")) offenders.add("no full stop: " + key);
+            if (!boundary.matcher(key).find()) offenders.add("no next step or outcome: " + key);
+        }
+        assertTrue("the scan found too few failure messages to mean anything: " + checked, checked > 20);
+        assertEquals("failure messages that stop short:\n" + String.join("\n", offenders),
+                0, offenders.size());
+    }
+
     @Test public void everyTranslationKeepsTheShapeOfItsKey() {
         // Defects the key-set checks cannot see. A placeholder that changed, was dropped or was
         // invented; a sentence that lost or gained its terminator; a quote pair that does not
@@ -336,7 +401,9 @@ public class SettingsL10nTest {
         for (String language : L10nTranslations.LANGUAGES) {
             for (java.util.Map.Entry<String, String> row
                     : L10nTranslations.of(language).entrySet()) {
-                String key = row.getKey();
+                // A |category row is one language's extra plural form of the other form, so
+                // it is held to that form's shape.
+                String key = pluralBase(row.getKey());
                 String value = row.getValue();
 
                 // Both directions and both spellings, so a dropped, changed or added
@@ -483,6 +550,111 @@ public class SettingsL10nTest {
     }
 
     /**
+     * A toast of one sentence takes no full stop; a toast of several ends every sentence with
+     * one. "Diagnostic data put back." next to "Seen video history put back" was the same pair
+     * of toasts punctuated two ways, and nothing held them to one rule.
+     */
+    @Test public void everyToastFollowsThePunctuationRule() throws Exception {
+        java.io.File root = new java.io.File("src/main/java/app/morphe/extension/tiktok");
+        if (!root.isDirectory()) root = new java.io.File(
+                "extensions/tiktok/src/main/java/app/morphe/extension/tiktok");
+        assertTrue(root.isDirectory());
+        java.util.List<String> offenders = new java.util.ArrayList<>();
+        int toasts = 0;
+        java.nio.file.Path base = root.toPath();
+        try (java.util.stream.Stream<java.nio.file.Path> files = java.nio.file.Files.walk(base)) {
+            for (java.nio.file.Path file : files.filter(p -> p.toString().endsWith(".java"))
+                    .collect(java.util.stream.Collectors.toList())) {
+                if (file.getFileName().toString().equals("L10nTranslations.java")) continue;
+                String text = new String(java.nio.file.Files.readAllBytes(file),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                for (String message : toastLiteralsIn(text)) {
+                    toasts++;
+                    String fault = punctuationFault(message);
+                    if (fault != null) offenders.add(base.relativize(file) + ": " + fault + "  \"" + message + "\"");
+                }
+            }
+        }
+        assertTrue("the scan found too few toasts to mean anything: " + toasts, toasts > 40);
+        assertTrue("one sentence takes no full stop, several take one each:\n"
+                + String.join("\n", offenders), offenders.isEmpty());
+    }
+
+    /** The scan sees every shape a toast call takes, and the rule can fail. */
+    @Test public void theToastPunctuationRuleCanActuallyFail() {
+        String source = "class T {\n"
+                + "  void a() { Utils.showToastShort(L10n.t(getContext(), \"Field edits were not saved.\")); }\n"
+                + "  void b() { postToast(refused ? L10n.t(context, \"Refused\")\n"
+                + "      : L10n.t(Utils.getContext(), \"That file is too large.\")); }\n"
+                + "  void c() { Utils.showToastLong(L10n.f(\"Saved %1$s\", name)); }\n"
+                + "  // Utils.showToastShort(L10n.t(context, \"Inside a comment.\"));\n"
+                + "}\n";
+        assertEquals(java.util.Arrays.asList("Field edits were not saved.", "Refused",
+                "That file is too large.", "Saved %1$s"), toastLiteralsIn(source));
+
+        assertNotNull(punctuationFault("Diagnostic data put back."));
+        assertNotNull(punctuationFault("Done!"));
+        assertNotNull(punctuationFault("Copied 3 lines. 12 were skipped"));
+        assertNotNull(punctuationFault("Saved. nothing else changed"));
+        assertNull(punctuationFault("Seen videos put back"));
+        assertNull(punctuationFault("Couldn't undo the clear. Try again."));
+        assertNull(punctuationFault("Enter a whole number, or one like 20K, 1.5M or 2B"));
+    }
+
+    /**
+     * Every literal handed to L10n.t or L10n.f directly inside a toast call.
+     *
+     * <p>The context argument may be a name, a call such as {@code getContext()} or a
+     * qualified call such as {@code Utils.getContext()}: the first version of this scan took
+     * a bare name only, and three Lab toasts written with a call walked past it carrying full
+     * stops. Every literal in the call is taken, not the first, because a toast that chooses
+     * between two messages with a ternary has two.
+     */
+    private static java.util.List<String> toastLiteralsIn(String text) {
+        byte[] kind = classify(text);
+        java.util.List<String> found = new java.util.ArrayList<>();
+        // The settings banners (showNotice, showUndo) and the feed's undo banner are toasts in
+        // every way that matters to a reader, so they answer to the same rule.
+        java.util.regex.Matcher call = java.util.regex.Pattern
+                .compile("(?:\\b\\w*[Tt]oast\\w*|Toast\\s*\\.\\s*makeText|\\bshowNotice|\\bshowUndo(?:Banner)?)\\s*\\(")
+                .matcher(text);
+        while (call.find()) {
+            int open = call.end() - 1;
+            if (kind[call.start()] != CODE) continue;
+            int close = closingBracket(text, kind, open);
+            if (close < 0) continue;
+            // Every L10n call inside the toast's brackets, and every literal inside each of
+            // those calls: t and f carry one, quantity carries the one and the other form.
+            java.util.regex.Matcher lookup = java.util.regex.Pattern
+                    .compile("L10n\\s*\\.\\s*(?:t|f|quantity)\\s*\\(").matcher(text);
+            lookup.region(open, close);
+            while (lookup.find()) {
+                int lookupOpen = lookup.end() - 1;
+                int lookupClose = closingBracket(text, kind, lookupOpen);
+                if (lookupClose < 0 || lookupClose > close) continue;
+                // arguments, not literalsIn: a message written across lines with a plus is one
+                // message, and its halves would each fail the rule on their own.
+                found.addAll(arguments(text, kind, lookupOpen, lookupClose));
+            }
+        }
+        return found;
+    }
+
+    /** Null when the message follows the rule, otherwise what it gets wrong. */
+    static String punctuationFault(String message) {
+        String trimmed = message.trim();
+        if (trimmed.isEmpty()) return null;
+        // A sentence boundary is a terminator followed by a space and the start of the next
+        // sentence, whatever it starts with: a capital, a quote, a placeholder, a number or a
+        // word left in lower case by mistake.
+        boolean several = trimmed.matches("(?s).*[.!?][\"”']?\\s+[A-Za-z0-9\"“%].*");
+        boolean ends = trimmed.matches("(?s).*[.!?][\"”']?$");
+        if (!several && ends) return "one sentence ends with a stop";
+        if (several && !ends) return "several sentences and the last has no stop";
+        return null;
+    }
+
+    /**
      * Anything that puts words on the screen. Any method with "toast" in its name,
      * however it is spelled, plus the platform call those wrap and the undo banner,
      * which is a toast in every way that matters to a reader.
@@ -593,8 +765,10 @@ public class SettingsL10nTest {
             else break;
         }
         String name = text.substring(start, end);
-        return name.equals("L10n.t") || name.equals("L10n.f")
-                || name.endsWith(".L10n.t") || name.endsWith(".L10n.f");
+        for (String lookup : new String[]{"L10n.t", "L10n.f", "L10n.quantity"}) {
+            if (name.equals(lookup) || name.endsWith("." + lookup)) return true;
+        }
+        return false;
     }
 
     private static int lineOf(String text, int index) {
@@ -657,7 +831,7 @@ public class SettingsL10nTest {
         Utils.setContext(RuntimeEnvironment.getApplication());
         assertEquals("Hide the caption", L10n.t("Hide the caption"));
         assertEquals("Not a settings string", L10n.t("Not a settings string"));
-        assertEquals("Current: 3 videos", L10n.f("Current: %1$s %2$s", "3", L10n.t("videos")));
+        assertEquals("Current: 3 videos", L10n.f("Current: %1$s", L10n.quantity(Utils.getContext(), 3, "%1$s video", "%1$s videos", "3")));
     }
 
     @Test
@@ -671,7 +845,7 @@ public class SettingsL10nTest {
             assertEquals("Beschreibung ausblenden", toggle.getTitle().toString());
             assertEquals("Die Beschreibung unter dem Namen des Creators im Feed ausblenden.",
                     toggle.getSummary().toString());
-            assertEquals("Aktuell: 3 Videos", L10n.f(activity, "Current: %1$s %2$s", "3", L10n.t(activity, "videos")));
+            assertEquals("Aktuell: 3 Videos", L10n.f(activity, "Current: %1$s", L10n.quantity(activity, 3, "%1$s video", "%1$s videos", "3")));
         }
     }
 
@@ -687,7 +861,7 @@ public class SettingsL10nTest {
             assertEquals("Sembunyikan deskripsi di bawah nama kreator pada feed.",
                     toggle.getSummary().toString());
             assertEquals("Saat ini: 3 video",
-                    L10n.f(activity, "Current: %1$s %2$s", "3", L10n.t(activity, "videos")));
+                    L10n.f(activity, "Current: %1$s", L10n.quantity(activity, 3, "%1$s video", "%1$s videos", "3")));
         }
     }
 
@@ -709,14 +883,71 @@ public class SettingsL10nTest {
     @Test
     public void everyTableCoversTheSameEnglish() {
         // A language that is missing entries the others have would show a half English screen.
+        // The extra plural rows a language may carry are its own and are left out of the
+        // comparison, but each has to belong to a key the language also carries plainly.
         for (String language : L10nTranslations.LANGUAGES) {
-            assertEquals("keys of " + language, GERMAN.keySet(), L10nTranslations.of(language).keySet());
+            Map<String, String> table = L10nTranslations.of(language);
+            Set<String> plain = new LinkedHashSet<>();
+            for (String key : table.keySet()) {
+                String base = pluralBase(key);
+                if (base.equals(key)) {
+                    plain.add(key);
+                } else {
+                    assertTrue(language + " carries " + key + " without its other form " + base,
+                            table.containsKey(base));
+                }
+            }
+            assertEquals("keys of " + language, sourceKeys(GERMAN), plain);
         }
+    }
+
+    /**
+     * A key is a whole phrase, never a lone unit or conjunction. "days", "dp", "or" and "view
+     * per like" were keys assembled into sentences in code, which fixed the word order and the
+     * agreement to English; each is now a phrase with its number or its list in it.
+     */
+    @Test public void noKeyIsALoneUnitOrConjunction() throws Exception {
+        // Words that stand alone on purpose: a state a screen reader speaks for a row.
+        Set<String> standalone = new LinkedHashSet<>(List.of("collapsed", "expanded"));
+        java.util.regex.Pattern lone = java.util.regex.Pattern.compile(
+                "^(?:[a-z]+|[a-z]+ per [a-z ]+)$");
+        List<String> offenders = new ArrayList<>();
+        for (String key : readTable(ENGLISH_BASE).keySet()) {
+            if (lone.matcher(key).matches() && !standalone.contains(key)) offenders.add(key);
+        }
+        assertEquals("keys that are a lone unit or conjunction:\n" + String.join("\n", offenders),
+                0, offenders.size());
+    }
+
+    /** The gates read a {@code |category} row as its other form, and nothing else as one. */
+    @Test public void aPluralVariantRowBelongsToItsOtherForm() {
+        assertEquals("%1$d results", pluralBase("%1$d results|few"));
+        assertEquals("%1$d results", pluralBase("%1$d results|many"));
+        assertEquals("Filter: %1$s", pluralBase("Filter: %1$s"));
+        // Only a CLDR category counts; a bar inside ordinary text is text.
+        assertEquals("a|b", pluralBase("a|b"));
+        assertEquals("Something|other", pluralBase("Something|other"));
+    }
+
+    /** The other form a {@code |category} row belongs to, or the key itself. */
+    static String pluralBase(String key) {
+        java.util.regex.Matcher variant = java.util.regex.Pattern
+                .compile("^(.+)\\|(?:zero|one|two|few|many)$").matcher(key);
+        return variant.matches() ? variant.group(1) : key;
+    }
+
+    /** A table's keys without the {@code |category} rows: the strings the code says. */
+    private static Set<String> sourceKeys(Map<String, String> table) {
+        Set<String> keys = new LinkedHashSet<>();
+        for (String key : table.keySet()) {
+            if (pluralBase(key).equals(key)) keys.add(key);
+        }
+        return keys;
     }
 
     @Test
     public void everySettingsStringHasATranslationEntry() throws Exception {
-        Set<String> english = new LinkedHashSet<>(GERMAN.keySet());
+        Set<String> english = new LinkedHashSet<>(sourceKeys(GERMAN));
         Set<String> shown = collectEverything();
         List<String> missing = new ArrayList<>();
 
@@ -726,6 +957,7 @@ public class SettingsL10nTest {
         assertTrue("the restart sentence itself is not in the table",
                 english.contains(TogglePreference.RESTART_SENTENCE));
 
+        List<java.util.regex.Pattern> templates = templates(english);
         for (String text : shown) {
             // Whole first. Plenty of summaries were written with the restart sentence in them
             // and are one key including it, so splitting before looking would break those.
@@ -740,16 +972,49 @@ public class SettingsL10nTest {
                 body = body.substring(0,
                         body.length() - TogglePreference.RESTART_SENTENCE.length() - 1);
             }
-            // Text built at runtime from a placeholder, and text spanning lines, are assembled
-            // from parts that are entries of their own. Exempting anything merely carrying a
-            // digit or a slash let 63 of 619 strings through, including every message with a
-            // value in it.
+            // Text spanning lines is assembled from parts that are entries of their own.
+            // Exempting anything merely carrying a digit or a slash let 63 of 619 strings
+            // through, including every message with a value in it. Text a placeholder key
+            // produces (a limit formatted in from a constant) is accepted only when one of
+            // those keys matches it whole, not because it carries a number.
             boolean composed = body.contains("\n") || body.matches("(?s).*%\\d\\$.*");
-            if (!composed && !isValueRatherThanProse(body) && !english.contains(body)) {
+            if (!composed && !isValueRatherThanProse(body) && !english.contains(body)
+                    && !producedByAKey(body, templates)) {
                 missing.add(body);
             }
         }
         assertEquals("settings text without a translation entry: " + missing, 0, missing.size());
+    }
+
+    /** The keys with placeholders, as patterns for the text they can produce. */
+    private static List<java.util.regex.Pattern> templates(Set<String> keys) {
+        List<java.util.regex.Pattern> found = new ArrayList<>();
+        java.util.regex.Pattern placeholder = java.util.regex.Pattern.compile("%\\d\\$([sd])");
+        for (String key : keys) {
+            java.util.regex.Matcher match = placeholder.matcher(key);
+            if (!match.find()) continue;
+            // A key that is nearly all placeholder would accept nearly anything, which would
+            // make this check say nothing.
+            if (key.replaceAll("%\\d\\$[sd]", "").trim().length() < 8) continue;
+            StringBuilder regex = new StringBuilder("(?s)");
+            int last = 0;
+            do {
+                regex.append(java.util.regex.Pattern.quote(key.substring(last, match.start())));
+                // A number the way NumberFormat writes it, or any text at all for %s.
+                regex.append("d".equals(match.group(1)) ? "-?[\\d,.]+" : ".+?");
+                last = match.end();
+            } while (match.find());
+            regex.append(java.util.regex.Pattern.quote(key.substring(last)));
+            found.add(java.util.regex.Pattern.compile(regex.toString()));
+        }
+        return found;
+    }
+
+    private static boolean producedByAKey(String text, List<java.util.regex.Pattern> templates) {
+        for (java.util.regex.Pattern template : templates) {
+            if (template.matcher(text).matches()) return true;
+        }
+        return false;
     }
 
     /**
@@ -777,10 +1042,13 @@ public class SettingsL10nTest {
         Set<String> shown = new LinkedHashSet<>(collectEverything());
         shown.addAll(runtimeStringsInSource());
 
-        List<String> orphaned = new ArrayList<>();
-        for (String english : GERMAN.keySet()) {
-            if (!shown.contains(english)) {
-                orphaned.add(english);
+        Set<String> orphaned = new LinkedHashSet<>();
+        for (String language : L10nTranslations.LANGUAGES) {
+            for (String english : L10nTranslations.of(language).keySet()) {
+                // A |category row lives or dies with the other form it belongs to.
+                if (!shown.contains(pluralBase(english))) {
+                    orphaned.add(english);
+                }
             }
         }
 
@@ -799,7 +1067,7 @@ public class SettingsL10nTest {
                 "extensions/tiktok/src/main/java/app/morphe/extension/tiktok");
         assertTrue("could not find the source tree", root.isDirectory());
 
-        java.util.regex.Pattern call = java.util.regex.Pattern.compile("L10n\\s*\\.\\s*[tf]\\s*\\(");
+        java.util.regex.Pattern call = java.util.regex.Pattern.compile("L10n\\s*\\.\\s*(?:t|f|quantity)\\s*\\(");
         List<String> missing = new ArrayList<>();
         int found = 0;
         try (java.util.stream.Stream<java.nio.file.Path> files =
@@ -931,6 +1199,58 @@ public class SettingsL10nTest {
         assertTrue("no summary quotes another row's title, so this checked nothing", checked > 0);
         assertEquals("summaries that name a switch by words no switch carries:\n"
                 + String.join("\n", wrong), 0, wrong.size());
+    }
+
+    /**
+     * One verb per outcome on the settings rows. Hide is a video or a control kept out of
+     * view, remove is data taken out (ads, tracking parameters, the watermark), skip is the
+     * feed moving past a video (a blocked sound, the budget). "Skipped", "drop" and "take
+     * away" were used for the first of those in seven rows beside 137 that said hide.
+     */
+    @Test public void rowSummariesSayHideForWhatIsKeptOutOfView() throws Exception {
+        List<String[]> rows = settingsRowArguments();
+        List<String> offenders = new ArrayList<>();
+        for (String[] row : rows) {
+            for (String text : row) {
+                if (text != null && STRAY_HIDE_VERB.matcher(text).find()) offenders.add(text);
+            }
+        }
+        assertTrue("the scan found too few settings rows to mean anything: " + rows.size(),
+                rows.size() > 100);
+        assertEquals("rows that say drop, take away or skip where the rest say hide:\n"
+                + String.join("\n", offenders), 0, offenders.size());
+    }
+
+    /**
+     * The verbs the rows used for hiding before they said hide. "Skip" on its own stays: the
+     * sound button skips the video playing and the warnings row skips a dialog, which is what
+     * skip means. It is a video kept out of the feed that must not be "skipped".
+     */
+    private static final java.util.regex.Pattern STRAY_HIDE_VERB = java.util.regex.Pattern.compile(
+            "\\b(?:[Dd]rop(?:s|ped|ping)?|[Tt]ake[sn]? away|skipped"
+                    + "|[Ss]kip (?:feed |recorded )?(?:videos|LIVE|posts))\\b");
+
+    /** The verb rule catches the seven rows it was written for and lets the two real skips by. */
+    @Test public void theHideVerbRuleCanActuallyFail() {
+        for (String old : new String[]{
+                "These accounts are always skipped.",
+                "Matching captions are skipped.",
+                "Drop the notification saying somebody new followed you before it reaches the drawer.",
+                "Take away the streak button in a chat and the reminder message that goes with it.",
+                "Skip feed videos with place badges, even when they aren't paid ads.",
+                "Skip recorded LIVE broadcasts in the feed.",
+                "Skip videos marked as using promotional music.",
+                "Skip videos that use a sound blocked with the player's sound button, or named below.",
+                "Keep a local record of what you have watched and drop those videos from later feed pages."}) {
+            assertTrue(old, STRAY_HIDE_VERB.matcher(old).find());
+        }
+        for (String kept : new String[]{
+                "Block this sound",
+                "Skip content warnings",
+                "Add a separate button that skips videos using the current sound.",
+                "Hide recorded LIVE broadcasts from the feed."}) {
+            assertFalse(kept, STRAY_HIDE_VERB.matcher(kept).find());
+        }
     }
 
     /** Every settings row the category sources build, as {@code [title, summary]}. */
@@ -1506,7 +1826,7 @@ public class SettingsL10nTest {
      */
     private static byte[] withoutL10nCalls(String text, byte[] kind) {
         byte[] outside = kind.clone();
-        java.util.regex.Pattern l10n = java.util.regex.Pattern.compile("L10n\\s*\\.\\s*[tf]\\s*\\(");
+        java.util.regex.Pattern l10n = java.util.regex.Pattern.compile("L10n\\s*\\.\\s*(?:t|f|quantity)\\s*\\(");
         java.util.regex.Matcher match = l10n.matcher(text);
         while (match.find()) {
             if (kind[match.start()] != CODE) continue;

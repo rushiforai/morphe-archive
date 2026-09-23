@@ -4,7 +4,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
@@ -23,12 +22,12 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val hideAutoplayPreviewPatch = bytecodePatch(
+    name = "Hide autoplay preview",
     description = "Adds an option to hide the autoplay preview at the end of videos.",
 ) {
     dependsOn(
         settingsPatch,
         sharedExtensionPatch,
-        resourceMappingPatch
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)

@@ -4,6 +4,8 @@
  */
 package app.morphe.extension.shared.diagnostics;
 
+import androidx.annotation.Nullable;
+
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
@@ -302,21 +304,42 @@ public final class HookStatus {
     }
 
     public static List<String> report() {
+        return report(null);
+    }
+
+    /**
+     * One line per family, with {@code pausedMark} on the end of every line whose family reads
+     * a setting, or with nothing added when the mark is null.
+     */
+    public static List<String> report(@Nullable String pausedMark) {
         synchronized (STATE_LOCK) {
             List<String> lines = new ArrayList<>();
             for (String name : SEEN) {
                 Family entry = FAMILIES.get(name);
                 if (entry == null) continue;
                 LineWriter writer = lineWriter;
-                lines.add((writer == null ? ENGLISH : writer).line(
+                String line = (writer == null ? ENGLISH : writer).line(
                         name,
                         entry.bound.size(),
                         entry.order.size(),
                         entry.truncated || entry.boundTruncated,
-                        entry.order.isEmpty() ? null : entry.order.get(0).detail));
+                        entry.order.isEmpty() ? null : entry.order.get(0).detail);
+                lines.add(pausedMark != null && !RUNS_WHILE_PAUSED.contains(name) ? line + pausedMark : line);
             }
             return lines;
         }
+    }
+
+    /** Families whose hooks read no setting, so a pause changes nothing for them. */
+    private static final Set<String> RUNS_WHILE_PAUSED = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    /**
+     * Says that this family's hooks take no setting into account. A paused export marks every
+     * other family as taking TikTok's own path, and a family that does not has to say so, or the
+     * sticker save button reads as switched off while it is on the screen working.
+     */
+    public static void runsWhilePaused(String family) {
+        if (family != null) RUNS_WHILE_PAUSED.add(family);
     }
 
     /** Takes the state that a diagnostic clear is about to remove. */

@@ -104,10 +104,4 @@ public class IntegerSetting extends Setting<Integer> {
     public void saveToPreferences() {
         preferences.saveIntegerString(key, value);
     }
-
-    @NonNull
-    @Override
-    public Integer get() {
-        return value;
-    }
 }

@@ -14,6 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/OpenLinksExternallyPatch;"
 
 val openLinksExternallyPatch = bytecodePatch(
+    name = "Open links externally",
     description = "Adds an option to always open links in your browser instead of with the in-app browser.",
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)

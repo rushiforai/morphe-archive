@@ -2978,4 +2978,188 @@
         <translation locale="en">The calculator settings screen failed to load. Reopen Gboard settings and try again.</translation>
         <translation locale="zh-Hant">計算機設定畫面載入失敗。請重新開啟 Gboard 設定再試一次。</translation>
     </string>
+    <string name="gboard_patches_custom_theme_title">
+        <translation locale="en">Custom themes</translation>
+        <translation locale="zh-Hant">自訂主題</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_summary">
+        <translation locale="en">Import custom ZIP themes or choose beautiful themes from Rboard.</translation>
+        <translation locale="zh-Hant">匯入自訂 ZIP 主題，或從 Rboard 挑選精美主題。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_activity_title">
+        <translation locale="en">Custom themes</translation>
+        <translation locale="zh-Hant">自訂主題</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_section">
+        <translation locale="en">Feature</translation>
+        <translation locale="zh-Hant">功能</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_enabled_title">
+        <translation locale="en">Enable custom themes</translation>
+        <translation locale="zh-Hant">啟用自訂主題</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_enabled_summary">
+        <translation locale="en">Enable the custom theme gallery and ZIP theme support.</translation>
+        <translation locale="zh-Hant">啟用自訂主題圖庫與 ZIP 主題支援。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_browse_title">
+        <translation locale="en">Browse Rboard themes</translation>
+        <translation locale="zh-Hant">瀏覽 Rboard 主題</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_browse_summary">
+        <translation locale="en">Themes come from Rboard’s official GitHub repository (PackRepoBeta). The Rboard project is archived; thanks to its author for eight years of work.</translation>
+        <translation locale="zh-Hant">主題來自 Rboard 官方 GitHub 倉庫（PackRepoBeta）。Rboard 專案已封存，感謝作者八年的維護。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_clear_cache">
+        <translation locale="en">Clear downloaded packs</translation>
+        <translation locale="zh-Hant">清除已下載的主題包</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_choose_pack">
+        <translation locale="en">Choose theme pack</translation>
+        <translation locale="zh-Hant">選擇主題包</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_delete_downloads">
+        <translation locale="en">Delete downloaded packs</translation>
+        <translation locale="zh-Hant">刪除已下載的主題包</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_select_all">
+        <translation locale="en">Select all</translation>
+        <translation locale="zh-Hant">全選</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_delete">
+        <translation locale="en">Delete</translation>
+        <translation locale="zh-Hant">刪除</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_deleted">
+        <translation locale="en">Deleted %1$d downloaded pack files.</translation>
+        <translation locale="zh-Hant">已刪除 %1$d 個下載的主題包檔案。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_no_downloads">
+        <translation locale="en">No downloaded packs.</translation>
+        <translation locale="zh-Hant">沒有已下載的主題包。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_apply">
+        <translation locale="en">Apply %1$s</translation>
+        <translation locale="zh-Hant">套用 %1$s</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_downloading">
+        <translation locale="en">Downloading %1$s…</translation>
+        <translation locale="zh-Hant">正在下載 %1$s…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_download_progress">
+        <translation locale="en">Downloading %1$s… %2$d%%</translation>
+        <translation locale="zh-Hant">正在下載 %1$s… %2$d%%</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_downloading">
+        <translation locale="en">Downloading theme previews…</translation>
+        <translation locale="zh-Hant">正在下載主題預覽圖…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_download_progress">
+        <translation locale="en">Downloading theme previews… %1$d%%</translation>
+        <translation locale="zh-Hant">正在下載主題預覽圖… %1$d%%</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_preparing">
+        <translation locale="en">Preparing theme previews…</translation>
+        <translation locale="zh-Hant">正在準備主題預覽圖…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_preview_failed">
+        <translation locale="en">Theme previews could not be retrieved. Try again later or apply the latest Patch again.</translation>
+        <translation locale="zh-Hant">無法取得預覽圖，請稍後再試或重新套用最新版 Patch。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_pack_loaded">
+        <translation locale="en">%1$s · %2$d themes · %3$s</translation>
+        <translation locale="zh-Hant">%1$s · %2$d 個主題 · %3$s</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_cache_cleared">
+        <translation locale="en">Cleared %1$d cached files</translation>
+        <translation locale="zh-Hant">已清除 %1$d 個快取檔案</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_catalog_failed">
+        <translation locale="en">The Custom Theme catalog could not be loaded.</translation>
+        <translation locale="zh-Hant">無法載入自訂主題目錄。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_pack_cached">
+        <translation locale="en">%1$s · %2$d themes · downloaded</translation>
+        <translation locale="zh-Hant">%1$s · %2$d 個主題 · 已下載</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_pack_download">
+        <translation locale="en">%1$s · %2$d themes · download on selection</translation>
+        <translation locale="zh-Hant">%1$s · %2$d 個主題 · 點選時下載</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_applying">
+        <translation locale="en">Applying %1$s…</translation>
+        <translation locale="zh-Hant">正在套用 %1$s…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_applied">
+        <translation locale="en">Applied %1$s. Restarting Gboard…</translation>
+        <translation locale="zh-Hant">已套用 %1$s，正在重新啟動 Gboard…</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_failed">
+        <translation locale="en">Could not apply %1$s. Gboard was not restarted.</translation>
+        <translation locale="zh-Hant">無法套用 %1$s，Gboard 未重新啟動。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_failed_toast">
+        <translation locale="en">The theme could not be verified or installed.</translation>
+        <translation locale="zh-Hant">無法驗證或安裝此主題。</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_source_chooser_title">
+        <translation locale="en">Choose theme source</translation>
+        <translation locale="zh-Hant">選擇主題來源</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_source_photo">
+        <translation locale="en">Create from photo</translation>
+        <translation locale="zh-Hant">從相片建立</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_source_zip">
+        <translation locale="en">Import theme (.zip)</translation>
+        <translation locale="zh-Hant">匯入主題（.zip）</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_choose_import">
+        <translation locale="en">Choose a theme to import</translation>
+        <translation locale="zh-Hant">選擇要匯入的主題</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_imported">
+        <translation locale="en">Theme imported</translation>
+        <translation locale="zh-Hant">主題已匯入</translation>
+    </string>
+    <string name="gboard_patches_custom_theme_import_failed">
+        <translation locale="en">Theme import failed</translation>
+        <translation locale="zh-Hant">主題匯入失敗</translation>
+    </string>
+    <string name="gboard_edit_ap_title">
+        <translation locale="en">Toolbar editing buttons</translation>
+        <translation locale="zh-Hant">工具列編輯按鈕</translation>
+    </string>
+    <string name="gboard_edit_ap_section_feature">
+        <translation locale="en">Feature</translation>
+        <translation locale="zh-Hant">功能</translation>
+    </string>
+    <string name="gboard_edit_ap_summary">
+        <translation locale="en">Add Select All, Copy, Cut and Paste to the menu.</translation>
+        <translation locale="zh-Hant">將全選、複製、剪下與貼上加入選單。</translation>
+    </string>
+    <string name="gboard_edit_ap_restart">
+        <translation locale="en">Changes take effect after you force stop and restart Gboard.</translation>
+        <translation locale="zh-Hant">強制停止並重新啟動 Gboard 後生效</translation>
+    </string>
+    <string name="gboard_edit_ap_select_all">
+        <translation locale="en">Select all</translation>
+        <translation locale="zh-Hant">全選</translation>
+    </string>
+    <string name="gboard_edit_ap_copy">
+        <translation locale="en">Copy</translation>
+        <translation locale="zh-Hant">複製</translation>
+    </string>
+    <string name="gboard_edit_ap_cut">
+        <translation locale="en">Cut</translation>
+        <translation locale="zh-Hant">剪下</translation>
+    </string>
+    <string name="gboard_edit_ap_paste">
+        <translation locale="en">Paste</translation>
+        <translation locale="zh-Hant">貼上</translation>
+    </string>
+    <string name="gboard_edit_ap_error">
+        <translation locale="en">Editing buttons settings unavailable. Reopen settings and try again.</translation>
+        <translation locale="zh-Hant">編輯按鈕設定無法載入，請重新開啟設定再試一次。</translation>
+    </string>
 </settings-text>

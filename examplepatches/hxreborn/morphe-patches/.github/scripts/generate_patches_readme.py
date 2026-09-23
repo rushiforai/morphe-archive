@@ -185,11 +185,13 @@ def versions_table(targets):
 ICONS = {
     "all.in.one.calculator": "allinonecalculator.png",
     "psyberia.alpinequest.free": "alpinequest.png",
+    "com.atlogis.atlomaps": "atlomaps.png",
     "com.spocky.projengmenu": "projectivy.png",
     "com.myvitale.forus": "forus.png",
     "com.michaldrabik.showly2": "showly.png",
     "com.zhiliaoapp.musically": "tiktok.png",
     "ch.protonmail.android": "protonmail.png",
+    "proton.android.pass": "protonpass.png",
     "com.audible.application": "audible.png",
     "app.symfonik.music.player": "symfonium.png",
     "ai.perplexity.app.android": "perplexity.png",
@@ -211,6 +213,11 @@ ICONS = {
     "com.handmark.expressweather": "oneweather.png",
     "com.free.vpn.super.hotspot.open": "vpnsuper.png",
     "de.klassikradio.app": "klassikradio.png",
+    "dev.vodik7.atvtools": "atvtools.png",
+    "com.soulbreakers.mymoveset": "mymoveset.png",
+    "com.realme.link": "realmelink.png",
+    "ringtonemaker.musiccutter.customringtones.freeringtonemaker": "ringtonemaker.png",
+    "com.vpn.free.hotspot.secure.vpnify": "vpnify.png",
 }
 
 

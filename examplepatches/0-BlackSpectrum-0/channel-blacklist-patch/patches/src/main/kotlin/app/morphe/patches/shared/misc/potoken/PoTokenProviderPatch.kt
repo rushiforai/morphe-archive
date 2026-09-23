@@ -39,6 +39,7 @@ internal fun poTokenProviderPatch(
     block: BytecodePatchBuilder.() -> Unit,
     executeBlock: BytecodePatchContext.() -> Unit = {},
 ) = bytecodePatch(
+    name = "PoToken provider",
     description = "Adds option to get PoToken using an external PoToken minter app."
 ) {
     // The execute block still has to check the package name, because the CLI does not report one.

@@ -84,8 +84,8 @@ public class EditorAccessibilityTest {
                     "Maximum video length",
                     "Seconds. Zero keeps every length.",
                     Settings.MAX_VIDEO_SECONDS,
-                    "second",
-                    "seconds"
+                    "%1$s second",
+                    "%1$s seconds"
             );
             assertEditor(number.onCreateDialogView(), "Maximum video length", "42",
                     InputType.TYPE_CLASS_NUMBER);

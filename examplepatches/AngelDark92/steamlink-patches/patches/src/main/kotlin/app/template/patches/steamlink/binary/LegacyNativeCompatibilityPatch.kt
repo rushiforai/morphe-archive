@@ -133,25 +133,6 @@ private val NATIVE_LAYOUTS = listOf(
         ),
     ),
     NativeLayoutEdits(
-        versionName = "2.0.20",
-        versionCode = 5001740,
-        fileSize = 2_220_528,
-        stockSha256 = "5fbb76c06c9fc0e3e5c5825752aa17e040462c8551b69d3492265f620244f443",
-        permissionNames = permissionNameEdits(0x9987A, 0xA19DD, locateByPattern = false),
-        hmdInitialization = listOf(
-            NativeEdit(0xFFCB0, byteArrayOf(0xe0.toByte(), 0x00, 0x00, 0x36), NOP),
-            NativeEdit(0xFFCB8, byteArrayOf(0xa8.toByte(), 0x00, 0x00, 0x34), NOP),
-        ),
-        lobbyPermissionState = listOf(
-            NativeEdit(0x10D9A0, byteArrayOf(0x14, 0x04, 0x00, 0x36), NOP),
-        ),
-        streamInitialization = listOf(
-            NativeEdit(0x1163F4, byteArrayOf(0x68, 0x00, 0x00, 0x35), NOP),
-            NativeEdit(0x1163FC, byteArrayOf(0x68, 0x05, 0x00, 0x34), NOP),
-            NativeEdit(0x1164B0, byteArrayOf(0xa8.toByte(), 0x05, 0x00, 0x34), NOP),
-        ),
-    ),
-    NativeLayoutEdits(
         versionName = "2.0.22",
         versionCode = 5002244,
         fileSize = 2_251_920,
@@ -169,23 +150,6 @@ private val NATIVE_LAYOUTS = listOf(
             NativeEdit(0x1140B4, byteArrayOf(0x68, 0x05, 0x00, 0x34), NOP),
             NativeEdit(0x114168, byteArrayOf(0xa8.toByte(), 0x05, 0x00, 0x34), NOP),
         ),
-    ),
-    NativeLayoutEdits(
-        versionName = "2.0.22",
-        versionCode = 5002313,
-        fileSize = 2_276_872,
-        stockSha256 = "e4d3575a130dc013e4c8fe4fb965217028229f89b13ba821c01b492e457398bb",
-        permissionNames = permissionNameEdits(0x94B4F, 0x9D861, locateByPattern = false),
-        hmdInitialization = listOf(
-            NativeEdit(0xFF010, byteArrayOf(0x20, 0x01, 0x00, 0x36), NOP),
-            NativeEdit(0xFF018, byteArrayOf(0xe8.toByte(), 0x00, 0x00, 0x34), NOP),
-        ),
-        lobbyPermissionState = listOf(
-            NativeEdit(0x10E6C0, byteArrayOf(0x14, 0x04, 0x00, 0x36), NOP),
-        ),
-        // Valve rewrote XrSceneStream::Init in 5002313 to enumerate runtime/vendor
-        // permissions. The three 5002244 gates have no safe one-to-one equivalent.
-        streamInitialization = emptyList(),
     ),
 )
 
@@ -316,7 +280,7 @@ val androidXrNativePermissionNamesPatch = rawResourcePatch(
 @Suppress("unused")
 val forceHmdInitializationGatesPatch = rawResourcePatch(
     name = "Force HMD initialization gates",
-    description = "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001712, 5001740, 5002244, and 5002313.",
+    description = "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001712 and 5002244.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -334,7 +298,7 @@ val forceHmdInitializationGatesPatch = rawResourcePatch(
 @Suppress("unused")
 val forceLobbyPermissionStateGatePatch = rawResourcePatch(
     name = "Force lobby permission-state gate",
-    description = "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001712, 5001740, 5002244, and 5002313.",
+    description = "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001712 and 5002244.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -352,7 +316,7 @@ val forceLobbyPermissionStateGatePatch = rawResourcePatch(
 @Suppress("unused")
 val forceStreamXrGatesPatch = rawResourcePatch(
     name = "Force stream XR gates",
-    description = "Bypasses the three verified XR gates in builds 5001712, 5001740, and 5002244. Build 5002313 rewrote XrSceneStream::Init and is intentionally left unchanged.",
+    description = "Bypasses the three verified XR gates in builds 5001712 and 5002244.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())

@@ -488,7 +488,6 @@ public class OverlayControlsTest {
             @Override protected void saveToPreferences() {
                 throw new IllegalStateException("injected commit failure");
             }
-            @Override public String get() { return value; }
         };
 
         assertFalse(BlockAuthorOverlay.saveAction(failing, "after"));

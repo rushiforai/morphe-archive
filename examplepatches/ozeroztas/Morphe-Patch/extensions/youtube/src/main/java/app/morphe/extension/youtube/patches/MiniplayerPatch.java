@@ -272,12 +272,23 @@ public final class MiniplayerPatch {
         }
     }
 
+    public static final class MiniplayerMinimalBar2Availability implements Setting.Availability {
+        @Override
+        public boolean isAvailable() {
+            return Settings.MINIPLAYER_TYPE.get() == MINIMAL_BAR_2;
+        }
+
+        @Override
+        public List<Setting<?>> getParentSettings() {
+            return List.of(Settings.MINIPLAYER_TYPE);
+        }
+    }
+
     public static final class MiniplayerAnyModernAvailability implements Setting.Availability {
         @Override
         public boolean isAvailable() {
             MiniplayerType type = Settings.MINIPLAYER_TYPE.get();
-            return type == MODERN_1 || type == MODERN_2 || type == MODERN_3 || type == MODERN_4
-                    || type == MINIMAL_BAR || type == MINIMAL_BAR_2;
+            return type == MODERN_1 || type == MODERN_2 || type == MODERN_3 || type == MODERN_4;
         }
 
         @Override

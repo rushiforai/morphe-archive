@@ -1,3 +1,15 @@
+## [1.12.21](https://github.com/xob0t/morphe-patches/compare/v1.12.20...v1.12.21) (2026-09-22)
+
+### 🚀 Updated App Support
+
+* publish Wildberries 7.8.1002 seller recommendations fix ([#89](https://github.com/xob0t/morphe-patches/issues/89)) ([fe1073c](https://github.com/xob0t/morphe-patches/commit/fe1073c77228c1b9f6d6669b52029d95870b4d07))
+
+## [1.12.20](https://github.com/xob0t/morphe-patches/compare/v1.12.19...v1.12.20) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **ozon:** support version 19.36.0 ([9f59226](https://github.com/xob0t/morphe-patches/commit/9f592267db3413a52d451f55ce989316d262f731))
+
 ## [1.12.19](https://github.com/xob0t/morphe-patches/compare/v1.12.18...v1.12.19) (2026-09-21)
 
 ### 🐛 Bug Fixes

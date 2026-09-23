@@ -97,9 +97,6 @@ private val changePackageNameBytecodePatch = bytecodePatch {
             index.takeIf { reference?.string == original }
         }
         if (matches.isEmpty()) {
-            if (packageMetadata.versionName == "2.0.20" && packageMetadata.versionCode == "5001740") {
-                throw PatchException("Steam Link 5001740 VR-launch package string was not found")
-            }
             return@execute
         }
         if (matches.size != 1) {

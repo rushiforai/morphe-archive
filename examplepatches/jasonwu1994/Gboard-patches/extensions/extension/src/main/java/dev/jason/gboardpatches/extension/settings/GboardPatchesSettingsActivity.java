@@ -131,9 +131,11 @@ public final class GboardPatchesSettingsActivity extends Activity
     private Palette palette;
     private LinearLayout toolbarView;
     private TextView toolbarTitleView;
+    private LinearLayout toolbarActionsView;
     private View restartButton;
     private ObjectAnimator restartButtonAnimator;
     private TextView headerBadgeView;
+    private View headerCardView;
     private TextView headerTitleView;
     private TextView headerSummaryView;
     private LinearLayout panelContainer;
@@ -1528,7 +1530,8 @@ public final class GboardPatchesSettingsActivity extends Activity
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        contentColumn.addView(buildHeaderCard());
+        headerCardView = buildHeaderCard();
+        contentColumn.addView(headerCardView);
         contentColumn.addView(buildPanelCard());
 
         contentScrollView.addView(contentColumn);
@@ -1576,6 +1579,10 @@ public final class GboardPatchesSettingsActivity extends Activity
 
         toolbarView.addView(backButton);
         toolbarView.addView(toolbarTitleView);
+        toolbarActionsView = new LinearLayout(this);
+        toolbarActionsView.setOrientation(LinearLayout.HORIZONTAL);
+        toolbarActionsView.setGravity(Gravity.CENTER_VERTICAL);
+        toolbarView.addView(toolbarActionsView);
         toolbarView.addView(buildRestartButton());
         return toolbarView;
     }
@@ -2541,6 +2548,19 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private void applyScreen(GboardPatchesSettingsContract.Screen screen) {
         toolbarTitleView.setText(screen.getToolbarTitle());
+        applyToolbarActions(screen.getToolbarActions());
+        boolean fullBleed = screen.isFullBleed();
+        headerCardView.setVisibility(fullBleed ? View.GONE : View.VISIBLE);
+        contentColumn.setPadding(
+                fullBleed ? 0 : dp(16),
+                fullBleed ? 0 : dp(8),
+                fullBleed ? 0 : dp(16),
+                fullBleed ? 0 : dp(16));
+        ViewGroup.LayoutParams rawPanelParams = panelContainer.getLayoutParams();
+        if (rawPanelParams instanceof LinearLayout.LayoutParams panelParams) {
+            panelParams.topMargin = fullBleed ? 0 : dp(12);
+            panelContainer.setLayoutParams(panelParams);
+        }
         headerBadgeView.setText(screen.getHeaderBadge());
         headerTitleView.setText(screen.getHeaderTitle());
         headerSummaryView.setText(screen.getHeaderSummary());
@@ -2568,6 +2588,67 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (requestedScrollY >= 0) {
             scrollContentToPositionAfterLayout(requestedScrollY);
         }
+    }
+
+    private void applyToolbarActions(
+            List<GboardPatchesSettingsContract.ToolbarAction> actions) {
+        if (toolbarActionsView == null) {
+            return;
+        }
+        toolbarActionsView.removeAllViews();
+        if (actions == null) {
+            return;
+        }
+        for (GboardPatchesSettingsContract.ToolbarAction action : actions) {
+            if (action != null) {
+                toolbarActionsView.addView(buildToolbarActionButton(action));
+            }
+        }
+    }
+
+    private View buildToolbarActionButton(GboardPatchesSettingsContract.ToolbarAction action) {
+        View button = new View(this) {
+            private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+            {
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeCap(Paint.Cap.ROUND);
+                paint.setStrokeJoin(Paint.Join.ROUND);
+                paint.setStrokeWidth(getResources().getDisplayMetrics().density * 1.8f);
+            }
+
+            @Override
+            protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+                if (action.getIcon() != GboardPatchesSettingsContract.ToolbarIcon.DELETE) {
+                    return;
+                }
+                float density = getResources().getDisplayMetrics().density;
+                float left = (getWidth() - density * 24f) / 2f;
+                float top = (getHeight() - density * 24f) / 2f;
+                paint.setColor(palette.textPrimary);
+                canvas.drawLine(left + 5f * density, top + 6f * density,
+                        left + 19f * density, top + 6f * density, paint);
+                canvas.drawLine(left + 9f * density, top + 3.5f * density,
+                        left + 15f * density, top + 3.5f * density, paint);
+                canvas.drawRoundRect(left + 7f * density, top + 8f * density,
+                        left + 17f * density, top + 21f * density,
+                        1.5f * density, 1.5f * density, paint);
+                canvas.drawLine(left + 10f * density, top + 11f * density,
+                        left + 10f * density, top + 18f * density, paint);
+                canvas.drawLine(left + 14f * density, top + 11f * density,
+                        left + 14f * density, top + 18f * density, paint);
+            }
+        };
+        button.setContentDescription(action.getContentDescription());
+        button.setLayoutParams(new LinearLayout.LayoutParams(dp(48), dp(48)));
+        button.setBackground(buildRippleDrawable(dp(24)));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            button.setTooltipText(action.getContentDescription());
+        }
+        button.setOnClickListener(view -> runSafely(
+                "handle toolbar action", action.getAction()));
+        return button;
     }
 
     private void applyPanelStyle(GboardPatchesSettingsContract.PanelStyle panelStyle) {
@@ -2696,8 +2777,10 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
         toolbarView = null;
         toolbarTitleView = null;
+        toolbarActionsView = null;
         restartButton = null;
         headerBadgeView = null;
+        headerCardView = null;
         headerTitleView = null;
         headerSummaryView = null;
         panelContainer = null;
@@ -2913,6 +2996,9 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private View createRowView(GboardPatchesSettingsContract.Row row) {
+        if (row instanceof GboardPatchesSettingsContract.CustomViewRow customViewRow) {
+            return customViewRow.getViewFactory().create(this);
+        }
         if (row instanceof GboardPatchesSettingsContract.ToggleRow toggleRow) {
             return createToggleRow(toggleRow);
         }
@@ -3124,8 +3210,17 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private View createSectionView(GboardPatchesSettingsContract.Section section) {
-        LinearLayout container = buildSectionContainer(
-                section.getStyle() == GboardPatchesSettingsContract.SectionStyle.ADVANCED);
+        LinearLayout container;
+        if (section.getStyle() == GboardPatchesSettingsContract.SectionStyle.FULL_BLEED) {
+            container = new LinearLayout(this);
+            container.setOrientation(LinearLayout.VERTICAL);
+            container.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+        } else {
+            container = buildSectionContainer(
+                    section.getStyle() == GboardPatchesSettingsContract.SectionStyle.ADVANCED);
+        }
         if (section.getTitle() != null && !section.getTitle().isEmpty()) {
             container.addView(buildSectionTitle(section.getTitle()));
         }

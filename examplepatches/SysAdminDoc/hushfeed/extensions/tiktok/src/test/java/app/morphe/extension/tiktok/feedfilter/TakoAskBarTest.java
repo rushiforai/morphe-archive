@@ -79,6 +79,9 @@ public class TakoAskBarTest {
      * service (a build whose guard lost its receiver) is left to TikTok rather than hidden.
      */
     @Test public void onlyTheTakoBridgeIsRefusedFromTheSharedBase() {
+        // The stand-in carries the name the extension compares, so a rename of one without
+        // the other fails here rather than leaving the real bridge unrecognised.
+        assertEquals(TakoAiFilter.COMMENT_TOP_BAR_BRIDGE, BgTakoTopBarServiceImpl.class.getSimpleName());
         Settings.HIDE_TAKO_AI.save(true);
         assertTrue(TakoAiFilter.shouldHideBridgedCommentTopBar(new BgTakoTopBarServiceImpl()));
         assertFalse("the ad bridge was refused", TakoAiFilter.shouldHideBridgedCommentTopBar(new BgAdTopBarServiceImpl()));

@@ -59,10 +59,4 @@ public class StringSetting extends Setting<String> {
     public void saveToPreferences() {
         preferences.saveString(key, value);
     }
-
-    @NonNull
-    @Override
-    public String get() {
-        return value;
-    }
 }

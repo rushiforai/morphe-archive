@@ -23,6 +23,7 @@ private const val EXTENSION_CLASS =
 
 @Suppress("unused")
 val openChannelOfLiveAvatarPatch = bytecodePatch(
+    name = "Open channel of live avatar",
     description = "Adds an option to prevent a channel's current live video from opening when tapping its avatar."
 ) {
     compatibleWith(COMPATIBILITY_YOUTUBE)

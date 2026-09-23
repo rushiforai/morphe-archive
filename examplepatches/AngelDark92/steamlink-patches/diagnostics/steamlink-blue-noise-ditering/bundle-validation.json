@@ -1,0 +1,10 @@
+{
+  "archive": "build\\blue-noise-package\\patches\\build\\libs\\patches-1.18.0-dev.11-local-check.mpp",
+  "sha256": "3bf9e22251a5ac154a986fc04ecf48ffa17c9981161226ae3e4d3a3af767a919",
+  "entries": 160,
+  "helper_sha256": "f9951b536fa24198799af6778165cbb53951ce0b9d49afa923e4384c9738f602",
+  "dex": [
+    "classes.dex"
+  ],
+  "boundary": "Cached Kotlin/Morphe tooling plus D8 release/API26; not Gradle release or APK/headset proof"
+}

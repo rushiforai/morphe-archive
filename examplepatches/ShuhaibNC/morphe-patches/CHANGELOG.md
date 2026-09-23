@@ -1,3 +1,32 @@
+## [1.9.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.8.0...v1.9.0) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* removed material uni patch ([945efca](https://github.com/ShuhaibNC/morphe-patches/commit/945efca0a2fad3fce9a0b3716d6ee8c912ca4835))
+
+### ✨ New Features
+
+* universal patches ([46ff5f4](https://github.com/ShuhaibNC/morphe-patches/commit/46ff5f4f65e66d319bfc69ac5ae427beda1d3786))
+* video to mp3 ([c91edc4](https://github.com/ShuhaibNC/morphe-patches/commit/c91edc4f18c1b26ed2a564fe7a1a861d4bc2a83e))
+
+## [1.9.0-dev.3](https://github.com/ShuhaibNC/morphe-patches/compare/v1.9.0-dev.2...v1.9.0-dev.3) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* removed material uni patch ([945efca](https://github.com/ShuhaibNC/morphe-patches/commit/945efca0a2fad3fce9a0b3716d6ee8c912ca4835))
+
+## [1.9.0-dev.2](https://github.com/ShuhaibNC/morphe-patches/compare/v1.9.0-dev.1...v1.9.0-dev.2) (2026-09-22)
+
+### ✨ New Features
+
+* video to mp3 ([c91edc4](https://github.com/ShuhaibNC/morphe-patches/commit/c91edc4f18c1b26ed2a564fe7a1a861d4bc2a83e))
+
+## [1.9.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.8.0...v1.9.0-dev.1) (2026-09-21)
+
+### ✨ New Features
+
+* universal patches ([46ff5f4](https://github.com/ShuhaibNC/morphe-patches/commit/46ff5f4f65e66d319bfc69ac5ae427beda1d3786))
+
 ## [1.8.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.7.0...v1.8.0) (2026-09-20)
 
 ### ✨ New Features

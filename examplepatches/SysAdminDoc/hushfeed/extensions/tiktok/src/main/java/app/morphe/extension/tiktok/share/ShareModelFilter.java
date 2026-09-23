@@ -69,10 +69,16 @@ public final class ShareModelFilter {
 
     /** What [surface] hides: its own list once saved, the video list until then. */
     public static String hiddenItems(ShareSurface surface) {
-        String own = hiddenSetting(surface).get();
-        return own == null || Settings.SHARE_HIDDEN_ITEMS_FOLLOW_VIDEO.equals(own)
-                ? Settings.SHARE_HIDDEN_ITEMS.get()
-                : own;
+        return resolveHidden(hiddenSetting(surface).get(), Settings.SHARE_HIDDEN_ITEMS.get());
+    }
+
+    /** The same, from the saved lists: the settings row shows these even while Hushfeed is paused. */
+    public static String savedHiddenItems(ShareSurface surface) {
+        return resolveHidden(hiddenSetting(surface).savedValue(), Settings.SHARE_HIDDEN_ITEMS.savedValue());
+    }
+
+    private static String resolveHidden(String own, String videoList) {
+        return own == null || Settings.SHARE_HIDDEN_ITEMS_FOLLOW_VIDEO.equals(own) ? videoList : own;
     }
 
     /** What the sheet on screen hides. */

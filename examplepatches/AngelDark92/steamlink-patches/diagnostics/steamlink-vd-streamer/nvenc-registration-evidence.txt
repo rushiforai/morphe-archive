@@ -1,0 +1,362 @@
+0x60215e4 '\x83.\x01'::'.cctor' RVA 0x89296c signature=000001
+000c ldc.i4.8 
+000d localloc 
+000f conv.u 
+0010 br 940
+0015 ldsfld 0x40162ac '.\x05\x02'::'\x9d\x06'
+001a ldc.r8 200.0
+0023 br 817
+0028 stsfld 0x4014f5e '\x83.\x01'::'\x01'
+002d ldc.i4 1808279394
+0032 ldc.i4 20067
+0037 ldc.i4 19620
+003c ldc.i4 170
+0041 ldc.i4 133
+0046 ldc.i4.s 30
+0048 ldc.i4.s 80
+004a ldc.i4 243
+004f ldc.i4.s 33
+0051 ldc.i4 246
+0056 ldc.i4 191
+005b br 827
+0060 stsfld 0x4014f5f '\x83.\x01'::'\x01'
+0065 ldc.i4 2030886024
+006a ldc.i4 17698
+006f ldc.i4 19835
+0074 ldc.i4 148
+0079 ldc.i4.s 37
+007b ldc.i4 189
+0080 ldc.i4 169
+0085 ldc.i4 151
+008a ldc.i4.s 95
+008c ldc.i4.s 118
+008e ldc.i4.3 
+008f dup 
+0090 brfalse 372
+0095 br 837
+009a stsfld 0x4014f60 '\x83.\x01'::'\x02'
+009f ldc.i4 171254409
+00a4 ldc.i4 2727
+00a9 ldc.i4 18265
+00ae ldc.i4 134
+00b3 ldc.i4.s 45
+00b5 dup 
+00b6 brfalse.s 290
+00b8 ldc.i4.s 93
+00ba ldc.i4.s 21
+00bc ldc.i4 205
+00c1 ldc.i4.s 22
+00c3 ldc.i4 210
+00c8 ldc.i4.s 84
+00ca br 847
+00cf stsfld 0x4014f61 '\x83.\x01'::'\x03'
+00d4 ldc.i4 -66417346
+00d9 ldc.i4 17912
+00de ldc.i4 19704
+00e3 ldc.i4 128
+00e8 ldc.i4 199
+00ed ldc.i4.s 41
+00ef ldc.i4 136
+00f4 ldc.i4.s 113
+00f6 ldc.i4.s 89
+00f8 ldc.i4.s 14
+00fa ldc.i4 191
+00ff br 857
+0104 stsfld 0x4014f62 '\x83.\x01'::'\x04'
+0109 ldc.i4 -1868056538
+010e ldc.i4 57094
+0113 ldc.i4 18530
+0118 ldc.i4 185
+011d ldc.i4 210
+0122 ldc.i4 205
+0127 ldc.i4.s 109
+0129 ldc.i4.s 115
+012b ldc.i4 160
+0130 ldc.i4 134
+0135 ldc.i4 129
+013a br 867
+013f stsfld 0x4014f63 '\x83.\x01'::'\x05'
+0144 ldc.i4.0 
+0145 brtrue 101
+014a ldc.i4 -1076430617
+014f ldc.i4 9020
+0154 ldc.i4 17217
+0159 ldc.i4 139
+015e ldc.i4.s 62
+0160 dup 
+0161 brfalse 70
+0166 ldc.i4.s 72
+0168 ldc.i4.s 24
+016a ldc.i4.s 82
+016c ldc.i4.s 56
+016e ldc.i4.3 
+016f ldc.i4 244
+0174 br 877
+0179 stsfld 0x4014f64 '\x83.\x01'::'\x06'
+017e br 806
+0183 ldc.i4.0 
+0184 stind.i4 
+0185 ldloc.0 
+0186 call 0x6021607 '\x83.\x01'::'\x01'
+018b brfalse.s 402
+018d leave 815
+0192 ldc.i4 193
+0197 ldloc.0 
+0198 ldind.i4 
+0199 ble.s 419
+019b ldc.i4.4 
+019c brfalse.s 402
+019e leave 815
+01a3 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+01a8 ldsfld 0x4015013 '\x04\x03.\x03'::'\x01'
+01ad stfld 0x4015014 '\x04\x03.\x03'::'\x02'
+01b2 ldc.i4.0 
+01b3 brtrue.s 411
+01b5 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+01ba call 0x6021608 '\x83.\x01'::'\x01'
+01bf brfalse.s 454
+01c1 leave 815
+01c6 ldloca.s local(0x0002)
+01c8 call 0x6021725 '\x03\x02.\x0e'::'\x01'
+01cd stloc.1 
+01ce ldloc.1 
+01cf newobj 0x600a6c0 'SharpDX.Direct3D11.Device'::'.ctor'
+01d4 stloc.3 
+01d5 ldloca.s local(0x0004)
+01d7 ldc.i4.0 
+01d8 ldloc.3 
+01d9 callvirt 0x60095d2 'SharpDX.CppObject'::'get_NativePointer'
+01de call 0x602169c '\x94\x02.\x03'::'.ctor'
+01e3 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+01e8 ldfld 0x4015033 '\x04\x03.\x03'::'\x01'
+01ed ldloca.s local(0x0004)
+01ef ldloca.s local(0x0005)
+01f1 callvirt 0x602167d '\x9a\x02.\x04'::'Invoke'
+01f6 call 0x60215da '\x8d.\x02'::'\x01'
+01fb ldloca.s local(0x0006)
+01fd ldc.i4.s 30
+01ff call 0x6021609 '\x0f.\x03'::'.ctor'
+0204 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+0209 ldfld 0x401501d '\x04\x03.\x03'::'\x01'
+020e ldloc.s local(0x0005)
+0210 ldsfld 0x4014f5f '\x83.\x01'::'\x01'
+0215 ldloca.s local(0x0006)
+0217 ldloc.0 
+0218 ldc.i4.4 
+0219 add 
+021a callvirt 0x6021639 '\x81.\x02'::'Invoke'
+021f pop 
+0220 ldloc.0 
+0221 ldc.i4.4 
+0222 add 
+0223 ldind.i4 
+0224 ldc.i4.0 
+0225 cgt 
+0227 stsfld 0x4014f78 '\x83.\x01'::'\x04'
+022c ldloca.s local(0x0006)
+022e ldc.i4.s 39
+0230 call 0x6021609 '\x0f.\x03'::'.ctor'
+0235 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+023a ldfld 0x401501d '\x04\x03.\x03'::'\x01'
+023f ldloc.s local(0x0005)
+0241 ldsfld 0x4014f61 '\x83.\x01'::'\x03'
+0246 ldloca.s local(0x0006)
+0248 ldloc.0 
+0249 ldc.i4.4 
+024a add 
+024b callvirt 0x6021639 '\x81.\x02'::'Invoke'
+0250 pop 
+0251 ldloc.0 
+0252 ldc.i4.4 
+0253 add 
+0254 ldind.i4 
+0255 ldc.i4.0 
+0256 cgt 
+0258 stsfld 0x4014f79 '\x83.\x01'::'\x05'
+025d ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+0262 ldfld 0x401501d '\x04\x03.\x03'::'\x01'
+0267 ldloc.s local(0x0005)
+0269 ldsfld 0x4014f60 '\x83.\x01'::'\x02'
+026e ldloca.s local(0x0006)
+0270 ldloc.0 
+0271 ldc.i4.4 
+0272 add 
+0273 callvirt 0x6021639 '\x81.\x02'::'Invoke'
+0278 pop 
+0279 ldloc.0 
+027a ldc.i4.4 
+027b add 
+027c ldind.i4 
+027d ldc.i4.0 
+027e cgt 
+0280 stsfld 0x4014f7a '\x83.\x01'::'\x06'
+0285 ldc.i4.1 
+0286 brfalse 469
+028b ldloca.s local(0x0006)
+028d ldc.i4.s 33
+028f call 0x6021609 '\x0f.\x03'::'.ctor'
+0294 ldc.i4.0 
+0295 brtrue.s 770
+0297 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+029c ldfld 0x401501d '\x04\x03.\x03'::'\x01'
+02a1 ldloc.s local(0x0005)
+02a3 ldsfld 0x4014f5f '\x83.\x01'::'\x01'
+02a8 ldloca.s local(0x0006)
+02aa ldloc.0 
+02ab ldc.i4.4 
+02ac add 
+02ad callvirt 0x6021639 '\x81.\x02'::'Invoke'
+02b2 pop 
+02b3 ldloc.0 
+02b4 ldc.i4.4 
+02b5 add 
+02b6 ldind.i4 
+02b7 ldc.i4.0 
+02b8 cgt 
+02ba stsfld 0x4014f7b '\x83.\x01'::'\x07'
+02bf ldloca.s local(0x0006)
+02c1 ldc.i4.s 33
+02c3 call 0x6021609 '\x0f.\x03'::'.ctor'
+02c8 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+02cd ldfld 0x401501d '\x04\x03.\x03'::'\x01'
+02d2 ldloc.s local(0x0005)
+02d4 ldsfld 0x4014f60 '\x83.\x01'::'\x02'
+02d9 ldloca.s local(0x0006)
+02db ldloc.0 
+02dc ldc.i4.4 
+02dd add 
+02de callvirt 0x6021639 '\x81.\x02'::'Invoke'
+02e3 pop 
+02e4 ldloc.0 
+02e5 ldc.i4.4 
+02e6 add 
+02e7 ldind.i4 
+02e8 ldc.i4.0 
+02e9 cgt 
+02eb stsfld 0x4014f7c '\x83.\x01'::'\x08'
+02f0 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+02f5 ldfld 0x4015031 '\x04\x03.\x03'::'\x01'
+02fa ldloc.s local(0x0005)
+02fc callvirt 0x602168d '\x1e\x02.\x03'::'Invoke'
+0301 pop 
+0302 leave.s 787
+0304 ldloc.3 
+0305 brfalse.s 786
+0307 ldsfld 0x401603c '.\x08'::'~\x11'
+030c ldloc.3 
+030d call 0x6022d1c '.\x08'::'Invoke'
+0312 endfinally 
+0313 leave.s 804
+0315 ldloc.1 
+0316 brfalse.s 803
+0318 ldsfld 0x401603c '.\x08'::'~\x11'
+031d ldloc.1 
+031e call 0x6022d1c '.\x08'::'Invoke'
+0323 endfinally 
+0324 leave.s 815
+0326 ldloc.0 
+0327 br 387
+032c pop 
+032d leave.s 815
+032f leave.s 939
+0331 call 0x6022dc1 '.\x05\x02'::'Invoke'
+0336 br 40
+033b newobj 0xa00099a 'System.Guid'::'.ctor'
+0340 br 96
+0345 newobj 0xa00099a 'System.Guid'::'.ctor'
+034a br 154
+034f newobj 0xa00099a 'System.Guid'::'.ctor'
+0354 br 207
+0359 newobj 0xa000a24 'System.Guid'::'.ctor'
+035e br 260
+0363 newobj 0xa000a24 'System.Guid'::'.ctor'
+0368 br 319
+036d newobj 0xa000a24 'System.Guid'::'.ctor'
+0372 br 377
+0377 ldloc.0 
+0378 ldind.i4 
+0379 box 0x100046a 'System.Int32'
+037e ldloc.1 
+037f ldloc.2 
+0380 box 0x2001ca8 'SharpDX.DXGI.AdapterDescription'
+0385 ldloc.3 
+0386 ldloc.s local(0x0004)
+0388 box 0x2003e97 '\x94\x02.\x03'
+038d ldloc.s local(0x0005)
+038f box 0x100046b 'System.IntPtr'
+0394 ldloc.s local(0x0006)
+0396 box 0x2003e45 '\x0f.\x03'
+039b ldloc.0 
+039c ldc.i4.4 
+039d add 
+039e ldind.i4 
+039f box 0x100046a 'System.Int32'
+03a4 call 0x600d891 '\x9e\x02.\x01'::'\x01'
+03a9 rethrow 
+03ab ret 
+03ac stloc.0 
+03ad br 21
+
+0x60216a2 '\x06\x03.\x03'::'.ctor' RVA 0x895bc4 signature=2007011811c000f8d008080811c000f89011c000f88c
+000c ldarg.0 
+000d ldsfld 0x401512e '\x06\x03.\x03'::'\x01'
+0012 stfld 0x401512f '\x06\x03.\x03'::'\x02'
+0017 ldarg.0 
+0018 ldarg.2 
+0019 stfld 0x4015130 '\x06\x03.\x03'::'\x01'
+001e ldarg.0 
+001f ldarg.3 
+0020 stfld 0x4015131 '\x06\x03.\x03'::'\x03'
+0025 ldarg.0 
+0026 ldarg.s argument(0x0004)
+0028 stfld 0x4015132 '\x06\x03.\x03'::'\x04'
+002d ldarg.0 
+002e ldarg.s argument(0x0005)
+0030 stfld 0x4015133 '\x06\x03.\x03'::'\x05'
+0035 ldarg.0 
+0036 ldc.i4.0 
+0037 stfld 0x4015134 '\x06\x03.\x03'::'\x06'
+003c ldarg.0 
+003d ldarg.1 
+003e stfld 0x4015135 '\x06\x03.\x03'::'\x01'
+0043 ldarg.0 
+0044 ldsfld 0xa0006df 'System.IntPtr'::'Zero'
+0049 stfld 0x4015136 '\x06\x03.\x03'::'\x02'
+004e ldarg.0 
+004f ldarg.s argument(0x0006)
+0051 stfld 0x4015137 '\x06\x03.\x03'::'\x01'
+0056 ldarg.0 
+0057 ldarg.s argument(0x0007)
+0059 stfld 0x4015138 '\x06\x03.\x03'::'\x01'
+005e ldarg.0 
+005f ldsfld 0xa0006df 'System.IntPtr'::'Zero'
+0064 stfld 0x4015139 '\x06\x03.\x03'::'\x03'
+0069 ldarg.0 
+006a ldc.i4.0 
+006b stfld 0x401513a '\x06\x03.\x03'::'\x07'
+0070 ldarg.0 
+0071 ldc.i4.0 
+0072 stfld 0x401513b '\x06\x03.\x03'::'\x08'
+0077 leave.s 185
+0079 ldarg.0 
+007a ldobj 0x2003eac '\x06\x03.\x03'
+007f box 0x2003eac '\x06\x03.\x03'
+0084 ldarg.1 
+0085 box 0x100046b 'System.IntPtr'
+008a ldarg.2 
+008b box 0x2003e34 '\x9c\x02.\x03'
+0090 ldarg.3 
+0091 box 0x100046a 'System.Int32'
+0096 ldarg.s argument(0x0004)
+0098 box 0x100046a 'System.Int32'
+009d ldarg.s argument(0x0005)
+009f box 0x100046a 'System.Int32'
+00a4 ldarg.s argument(0x0006)
+00a6 box 0x2003e24 '\x08.\x04'
+00ab ldarg.s argument(0x0007)
+00ad box 0x2003e23 '\x84.\x07'
+00b2 call 0x600d891 '\x9e\x02.\x01'::'\x01'
+00b7 rethrow 
+00b9 ret 
+
+RegisterResource ctor0x060216a2 verified IL references: method0x060215fc, IL00f7, call.

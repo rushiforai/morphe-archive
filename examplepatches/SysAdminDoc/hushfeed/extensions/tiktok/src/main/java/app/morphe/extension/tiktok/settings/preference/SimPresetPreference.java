@@ -64,9 +64,9 @@ public class SimPresetPreference extends Preference {
 
     public void refreshSummary() {
         refreshSummary(
-                Settings.SIM_SPOOF_ISO.get(),
-                Settings.SIMSPOOF_MCCMNC.get(),
-                Settings.SIMSPOOF_OP_NAME.get()
+                Settings.SIM_SPOOF_ISO.savedValue(),
+                Settings.SIMSPOOF_MCCMNC.savedValue(),
+                Settings.SIMSPOOF_OP_NAME.savedValue()
         );
     }
 
@@ -249,9 +249,9 @@ public class SimPresetPreference extends Preference {
         Logger.printDebug(() -> "SIM preset selected: " + preset.country + " / "
                 + preset.operatorName + " / " + preset.mccMnc + " / " + preset.iso);
 
-        if (Settings.SIM_SPOOF.get()) {
+        if (Settings.SIM_SPOOF.savedValue()) {
             app.morphe.extension.shared.Utils.showToastLong(
-                    app.morphe.extension.tiktok.settings.L10n.t("Restart TikTok to apply this."));
+                    app.morphe.extension.tiktok.settings.L10n.t("Restart TikTok to apply this"));
         }
 
         return true;
@@ -286,8 +286,8 @@ public class SimPresetPreference extends Preference {
      * way to tell was to close the dialog and read the row summary.
      */
     private void markSelected(PresetAdapter adapter) {
-        SimPreset selected = SimPresets.findSelected(Settings.SIM_SPOOF_ISO.get(),
-                Settings.SIMSPOOF_MCCMNC.get(), Settings.SIMSPOOF_OP_NAME.get());
+        SimPreset selected = SimPresets.findSelected(Settings.SIM_SPOOF_ISO.savedValue(),
+                Settings.SIMSPOOF_MCCMNC.savedValue(), Settings.SIMSPOOF_OP_NAME.savedValue());
         adapter.selected = selected;
         adapter.notifyDataSetChanged();
         if (presetList == null) return;

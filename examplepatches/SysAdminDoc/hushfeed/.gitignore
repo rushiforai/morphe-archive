@@ -39,6 +39,11 @@ google-services.json
 # NPM modules
 node_modules/
 
+# Python bytecode caches. Importing scripts/gen-l10n.py from another script writes one, and an
+# untracked directory appearing mid-run is enough to fail the in-place pre-push gate.
+__pycache__/
+*.pyc
+
 # Local CodeGraph index
 .codegraph/
 

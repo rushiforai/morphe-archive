@@ -65,6 +65,15 @@ Second \"item\" text"</string>
   <string name="morphe_custom_branding_icon_entry_6">Morphe Play Black</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">مُخصّص</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"يُغيّر هذا الإعداد الأيقونة المعروضة في الشاشة الرئيسية.
+
+لن يقوم هذا الإعداد بتغيير الأيقونة في أي من الأماكن التالية:
+• قائمة تطبيقات إعدادات نظام الجهاز
+• بعض الإشعارات الفورية
+• أداة اختيار التطبيقات 'فتح باستخدام'
+• أيقونة Android Auto
+
+لتغيير الأيقونة في كل الأماكن، قم بالتعديل مرة أخرى وغيّر خيارات تعديل 'أيقونة التطبيق'"</string>
   <string name="morphe_custom_branding_notification_icon_title">رمز الإشعار</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">مطابقة أيقونة التطبيق</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe Play</string>
@@ -226,12 +235,11 @@ Second \"item\" text"</string>
   <string name="morphe_ryd_failure_generic">لم يعجبني غير متاح (%s)</string>
   <!-- Video likes have been set to hidden by the video uploader. -->
   <string name="morphe_ryd_video_likes_hidden_by_video_owner">مخفي بواسطة المالك</string>
+  <string name="morphe_ryd_accessibility_dislike_count">ضع علامة لم يعجبني على هذا الفيديو، إلى جانب %s من الأشخاص الآخرين</string>
+  <string name="morphe_ryd_accessibility_dislike_percentage">ضع علامة لم يعجني على هذا الفيديو، نسبة الأصوات غير المعجبة هي %s</string>
   <string name="morphe_ryd_enabled_title">تمكين استعادة عدد مرات لم يعجبني</string>
   <string name="morphe_ryd_dislike_percentage_title">عرض لم يعجبني كــ نسبة مئوية</string>
   <string name="morphe_ryd_dislike_percentage_summary">يعرض إحصائية لم يعجبني كنسبة مئوية من الإعجابات بدلًا من رقم</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">استخدام زر الإعجاب المصغّر</string>
-  <string name="morphe_ryd_compact_layout_summary">يقلل من عرض زر الإعجاب لتوفير المساحة</string>
   <string name="morphe_ryd_estimated_like_title">عرض الإعجابات المقدرة</string>
   <string name="morphe_ryd_estimated_like_summary">يعرض عددًا تقديريًا للإعجابات في الفيديوهات التي قام المنشئ بتعطيل الإعجابات فيها</string>
   <string name="morphe_ryd_toast_on_connection_error_title">عرض تنبيهات خطأ الاتصال</string>

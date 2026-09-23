@@ -2,8 +2,6 @@ package app.template.patches.steamlink
 
 import app.morphe.patcher.patch.rawResourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5001712
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002318
-import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002322
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_5002363
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
@@ -63,23 +61,6 @@ val galaxyXrRecommended5001712Patch = rawResourcePatch(
 }
 
 @Suppress("unused")
-val galaxyXrRecommended5002322Patch = rawResourcePatch(
-    name = "Galaxy XR recommended set (2.0.22/5002322)",
-    description = "Applies the 6-patch Galaxy XR set for exact Steam Link 2.0.22 build 5002322. Preserves stock startup and permission requests except battery settings; includes the Final balanced tested OLED profile.",
-    default = true,
-) {
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002322.toTypedArray())
-    dependsOn(
-        xrGalaxyXrHighResolutionPatch,
-        gxrModernTongueBridgePatch,
-        microphoneInputPresetPatch,
-        unrestrictedBatteryUsagePatch,
-        hmdOnlyPatch,
-        oledCalibrationPatch,
-    )
-}
-
-@Suppress("unused")
 val galaxyXrRecommended5002363Patch = rawResourcePatch(
     name = "Galaxy XR recommended set (2.0.23/5002363)",
     description = "Applies the 6-patch Galaxy XR set for exact Steam Link 2.0.23 build 5002363. Preserves stock startup and permission requests except battery settings; includes the Final balanced OLED profile. Decoded-base validation; headset validation pending.",
@@ -97,29 +78,9 @@ val galaxyXrRecommended5002363Patch = rawResourcePatch(
 }
 
 @Suppress("unused")
-val galaxyXrRecommended5002318Patch = rawResourcePatch(
-    name = "Galaxy XR recommended set (2.0.22/5002318)",
-    description = "Applies the 9-patch Galaxy XR set for exact Steam Link 2.0.22 build 5002318, including separately listed startup permissions and splash/XR launch mode.",
-    default = true,
-) {
-    compatibleWith(*COMPATIBILITIES_STEAM_LINK_5002318.toTypedArray())
-    dependsOn(
-        xrGalaxyXrHighResolutionPatch,
-        gxrFacebridgePatch,
-        microphoneInputPresetPatch,
-        unrestrictedBatteryUsagePatch,
-        hmdOnlyPatch,
-        oledCalibrationPatch,
-        deviceIdentityPatch,
-        xrStartupPermissionsPatch,
-        xrLauncherBootstrapPatch,
-    )
-}
-
-@Suppress("unused")
 val galaxyXrLegacyFoundationPatch = rawResourcePatch(
     name = "Galaxy XR legacy foundation (through 2.0.22/5002244)",
-    description = "Selects the 17-patch Galaxy XR legacy set, including Meta Quest Pro identity, native gates, face bridge, OLED calibration, microphone, battery, Visual Delay, explicit startup permissions and splash, and XR foundation. High-resolution output is guarded to verified layouts; unavailable on 5001740.",
+    description = "Selects the 17-patch Galaxy XR legacy set, including Meta Quest Pro identity, native gates, face bridge, OLED calibration, microphone, battery, Visual Delay, explicit startup permissions and splash, and XR foundation. High-resolution output is guarded to verified layouts.",
     default = true,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED.toTypedArray())

@@ -28,6 +28,7 @@ private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/Disab
 
 @Suppress("unused")
 val disableHapticFeedbackPatch = bytecodePatch(
+    name = "Disable haptic feedback",
     description = "Adds an option to disable haptic feedback in the player for various actions.",
 ) {
     dependsOn(settingsPatch)

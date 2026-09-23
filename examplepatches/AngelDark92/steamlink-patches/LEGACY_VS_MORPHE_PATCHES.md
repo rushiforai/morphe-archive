@@ -27,14 +27,16 @@ continues to resolve to Galaxy XR. Other supported targets outside the exact leg
 set likewise retain Galaxy XR as their automatic choice. Neither native bundle enables legacy
 conversion mutations, and 5002322 still excludes Device identity.
 
-The standalone Video dither patch remains removed. OLED calibration now offers `dithering`
-values `off` (default), `low`, and `standard`, plus `neutral` calibration (`1.00` gamma and
-`1.00` saturation) and optional `rgba16f-experimental` output. The defaults remain
-`final-balanced`, `srgb8-highp`, and `off`. FP16 uses the same 6 exact guarded OLED
-layouts; runtime support remains unverified and it can fail stream setup. Follow the
-[controlled comparison](PATCH_CATALOG.md#controlled-oled-comparison) to compare sRGB8, RGB10,
-and supported FP16 with dithering off, then low/standard, using the same scene and brightness
-and a pristine original APK for every variant. The historical unregistered helper remains
+A separate default-off **Foveal blue-noise dithering (experimental)** patch was added on 2026-09-22. It does not replace the historical/VD-like controls below. The [decoded VD comparison](diagnostics/steamlink-blue-noise-ditering/virtualdesktop-verification.md) corrects the earlier fovea-isolation and VD-equivalence claims.
+
+The standalone Video dither patch remains removed. OLED calibration retains the 2 mutually
+exclusive keys `foveaVdLike10Bit` and `foveaVdLike8Bit`. Their current implementation uses the
+same highp SDR foveal processing for either declared input depth: retain Valve decoder color
+correction, bypass added gamma/saturation and arithmetic noise, and output 8-bit sRGB.
+The base calibration and default `final-balanced` profile with both toggles off stay unchanged.
+See the [current HEVC 10-bit audit](diagnostics/steamlink-vd-hevc10/README.md); historical
+`uvmask` weighting and depth-dependent dithering below do not describe the current controls.
+The historical unregistered helper remains
 `patches/src/main/kotlin/app/template/patches/steamlink/binary/VideoDither.kt`.
 
 Bundle membership does not broaden native guards: high-resolution adaptation is unavailable on

@@ -31,9 +31,10 @@ internal data class InvokeSite(
     val ranged: Boolean,
 )
 
-/** The invoke opcodes a site may use, by whether the callee is static. */
+/** The invoke opcodes a site may use, by whether the callee is static or an interface method. */
 private val VIRTUAL_OPCODES = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
 private val STATIC_OPCODES = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+private val INTERFACE_OPCODES = setOf(Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE)
 
 /**
  * Every call to one of [targets] outside the extension, in both invoke forms.
@@ -46,12 +47,18 @@ private val STATIC_OPCODES = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RA
  *
  * @param targets full method descriptors, `Lpkg/Type;->name(params)ret`.
  * @param static whether the targets are static, which changes the opcodes that can reach them.
+ * @param throughInterface whether the targets are interface methods, reached by invoke-interface.
  */
 internal fun BytecodePatchContext.invokeSitesOf(
     targets: Set<String>,
     static: Boolean = false,
+    throughInterface: Boolean = false,
 ): List<InvokeSite> {
-    val opcodes = if (static) STATIC_OPCODES else VIRTUAL_OPCODES
+    val opcodes = when {
+        throughInterface -> INTERFACE_OPCODES
+        static -> STATIC_OPCODES
+        else -> VIRTUAL_OPCODES
+    }
     val sites = mutableListOf<InvokeSite>()
     classDefForEach { owner ->
         if (owner.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
@@ -93,6 +100,27 @@ internal fun InvokeSite.staticCall(replacement: String): String =
     } else {
         "invoke-static { ${registers.joinToString(", ") { "v$it" }} }, $replacement"
     }
+
+/** This site's own interface call again, in the form it had, for a site kept behind a prefix. */
+internal fun InvokeSite.interfaceCall(): String =
+    if (ranged) {
+        "invoke-interface/range { v${registers.first()} .. v${registers.last()} }, $target"
+    } else {
+        "invoke-interface { ${registers.joinToString(", ") { "v$it" }} }, $target"
+    }
+
+/**
+ * Puts a static call taking only the receiver in front of each interface site, and keeps the
+ * site's own call right after it. The static takes the site's place rather than being inserted
+ * before it, so a branch that jumped to the call now lands on the static and runs both.
+ */
+internal fun BytecodePatchContext.prefixSites(sites: List<InvokeSite>, prefix: String) {
+    sites.sortedWith(compareBy({ it.owner.type }, { it.method.toString() }, { -it.index })).forEach { site ->
+        val method = mutableClassDefBy(site.owner).findMutableMethodOf(site.method)
+        method.replaceInstruction(site.index, site.copy(registers = listOf(site.registers.first())).staticCall(prefix))
+        method.addInstruction(site.index + 1, site.interfaceCall())
+    }
+}
 
 /**
  * Replaces each site with a static call, looked up by the site's target in [replacements].

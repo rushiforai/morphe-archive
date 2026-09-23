@@ -31,8 +31,6 @@ private data class NativeMicrophoneLayout(
 )
 
 private val NATIVE_MICROPHONE_LAYOUTS = mapOf(
-    "5002318" to NativeMicrophoneLayout(2_277_488, 0xF3240),
-    "5002322" to NativeMicrophoneLayout(2_283_400, 0xF37E0),
     // SHA-256: 628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0.
     // Symbol-derived QSVLClientAudioNdk::Init -> AAudioStreamBuilder_setInputPreset.
     "5002363" to NativeMicrophoneLayout(2_292_008, 0xF44C0),

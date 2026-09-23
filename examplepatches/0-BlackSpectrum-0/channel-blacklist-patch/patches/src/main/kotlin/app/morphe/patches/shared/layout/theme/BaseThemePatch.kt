@@ -384,6 +384,7 @@ internal fun baseThemePatch(
     block: BytecodePatchBuilder.() -> Unit,
     executeBlock: BytecodePatchContext.() -> Unit = {}
 ) = bytecodePatch(
+    name = "Theme",
     description = "Adds options for theming, and settings to change the app foreground and background colors.",
 ) {
     darkThemeColorOption()

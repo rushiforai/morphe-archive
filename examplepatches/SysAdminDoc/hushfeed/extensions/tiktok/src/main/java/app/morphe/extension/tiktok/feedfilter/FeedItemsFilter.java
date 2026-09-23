@@ -65,6 +65,8 @@ public final class FeedItemsFilter {
     private static final List<IFilter> LATE_FOLLOW_FILTERS = List.of(ADS_FILTER, LOCATION_FILTER);
     /** The card shapes TikTok uses for a bought search result. */
     private static final String[] SEARCH_AD_FIELDS = {"multiAdCard", "aiAdCard", "brandZoneCard"};
+    /** The feed type TikTok 47.0.3 gives a single TikTok Shop product card in search results. */
+    static final int SHOP_PRODUCT_FEED_TYPE = 96;
 
     private static final int CACHE_SOURCE_COLD_CACHE = 0;
     private static final int CACHE_SOURCE_FEED_UNCONSUMED = 1;
@@ -391,7 +393,8 @@ public final class FeedItemsFilter {
     /**
      * The Top and Videos grids on the search page. Their cards are not Awemes, so the app's
      * own verdict on each one is the reliable test, with the wrapped video checked as well
-     * for anything the card itself does not admit to.
+     * for anything the card itself does not admit to. TikTok Shop cards go too when Hide
+     * TikTok Shop in search is on.
      *
      * Called on the parsed response before anything reads its items.
      */
@@ -404,19 +407,41 @@ public final class FeedItemsFilter {
         List items = (List) raw;
         if (items.isEmpty()) return;
         FeedFilterCounters.sawList(SEARCH_SOURCE, items.size());
-        if (!ADS_FILTER.getEnabled()) return;
+        // Always, like the list count: which shapes a page carried is what a report of a card
+        // that got through needs, whether or not any switch is on.
+        for (Object card : items) FeedFilterCounters.sawKind(SEARCH_SOURCE, searchCardKind(card));
+        boolean ads = ADS_FILTER.getEnabled();
+        boolean shop = Settings.HIDE_SEARCH_SHOP.get();
+        if (!ads && !shop) return;
 
         ArrayList kept = new ArrayList(items.size());
+        int adsRemoved = 0;
+        int shopRemoved = 0;
         for (Object card : items) {
-            if (!isSearchAd(card)) kept.add(card);
+            if (ads && isSearchAd(card)) {
+                adsRemoved++;
+            } else if (shop && isSearchShopProduct(card)) {
+                shopRemoved++;
+            } else {
+                kept.add(card);
+            }
         }
         if (kept.size() == items.size()) return;
         if (kept.isEmpty()) {
-            // Every card on the page looked like an advert. A whole page of them is far
-            // less likely than one of the card shapes being wrong, and an empty grid gives
-            // the user nothing to go on, so the page is left alone.
-            Logger.printException(() -> "Every search result looked like an advert, so none were removed");
-            return;
+            // Every card on the page matched. A whole page of them is far less likely than one
+            // of the card shapes being wrong, and an empty grid gives the user nothing to go on.
+            // When the adverts alone would have left cards, it is the Shop shapes that emptied
+            // the page, so only the adverts go, as they did before the Shop switch existed;
+            // otherwise the page is left alone.
+            if (adsRemoved == 0 || adsRemoved == items.size()) {
+                Logger.printException(() -> "Every search result looked like an advert or a Shop card, so none were removed");
+                return;
+            }
+            for (Object card : items) {
+                if (!isSearchAd(card)) kept.add(card);
+            }
+            shopRemoved = 0;
+            Logger.printException(() -> "Every search result looked like an advert or a Shop card, so only the adverts were removed");
         }
 
         Field field = Reflect.field(searchResult.getClass(), "mItems");
@@ -431,7 +456,8 @@ public final class FeedItemsFilter {
         // Counted only once the page has actually been rewritten. The all-ads refusal above and
         // a failed write both leave the grid alone, and a counter that said otherwise would
         // point an ad report at a route that removed nothing.
-        FeedFilterCounters.removed(SEARCH_SOURCE, items.size() - kept.size(), "searchAd");
+        FeedFilterCounters.removed(SEARCH_SOURCE, adsRemoved, "searchAd");
+        FeedFilterCounters.removed(SEARCH_SOURCE, shopRemoved, "searchShop");
 
         // printInfo is not gated on the debug switch, unlike printDebug, so every search page
         // used to append to the bounded diagnostic buffer and push out the events around a crash.
@@ -441,6 +467,45 @@ public final class FeedItemsFilter {
             Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(SearchMixFeedList): size "
                 + before + " -> " + after + " (removed=" + (before - after) + ")");
         }
+    }
+
+    /**
+     * A TikTok Shop card in search results (issue #21): the Products block TikTok draws from a
+     * Shop dynamic patch, a single product card, or a product or shop card that is not a video.
+     * A video that carries commerce data of its own stays; that is the feed filter's business.
+     */
+    static boolean isSearchShopProduct(Object card) {
+        if (card == null) return false;
+        Object patch = Reflect.readField(card, "dynamicPatch");
+        if (patch != null && Boolean.TRUE.equals(Reflect.readField(patch, "isEcom"))) return true;
+        Object type = Reflect.readField(card, "feedType");
+        if (type instanceof Integer && (Integer) type == SHOP_PRODUCT_FEED_TYPE) return true;
+        if (Reflect.readField(card, "aweme") != null) return false;
+        return Reflect.readField(card, "productStruct") != null || Reflect.readField(card, "shopCard") != null;
+    }
+
+    /**
+     * What a search card is made of, by shape alone, for the export: its feed type and which of
+     * the video, Shop and advert shapes it carries. Never anything the card says.
+     */
+    static String searchCardKind(Object card) {
+        if (card == null) return "none";
+        Object type = Reflect.readField(card, "feedType");
+        StringBuilder kind = new StringBuilder("type ").append(type instanceof Integer ? type : "?");
+        if (Reflect.readField(card, "aweme") != null) kind.append(" video");
+        if (Reflect.readField(card, "productStruct") != null) kind.append(" product");
+        if (Reflect.readField(card, "shopCard") != null) kind.append(" shop card");
+        Object patch = Reflect.readField(card, "dynamicPatch");
+        if (patch != null) {
+            kind.append(Boolean.TRUE.equals(Reflect.readField(patch, "isEcom")) ? " Shop patch" : " patch");
+        }
+        for (String name : SEARCH_AD_FIELDS) {
+            if (Reflect.readField(card, name) != null) {
+                kind.append(" advert");
+                break;
+            }
+        }
+        return kind.toString();
     }
 
     /** True when the card is an advert, by its own admission or by the video it wraps. */

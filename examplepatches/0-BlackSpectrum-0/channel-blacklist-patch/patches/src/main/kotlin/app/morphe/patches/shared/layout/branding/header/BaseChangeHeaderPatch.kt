@@ -33,6 +33,7 @@ internal fun baseChangeHeaderPatch(
     block: ResourcePatchBuilder.() -> Unit,
     executeBlock: ResourcePatchContext.(customHeaderResourceFileNames: Array<String>) -> Unit = {}
 ): ResourcePatch = resourcePatch(
+    name = "Change header",
     description = "Adds an option to change the header logo in the top left corner of the app."
 ) {
     val customHeaderResourceFileNames = variants.map { variant ->

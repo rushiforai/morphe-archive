@@ -65,8 +65,12 @@ public final class ShareSheetTools {
     private static final String[] CHANNELS_LIST_IDS = {"dwr"};
     private static final String[] ACTIONS_LIST_IDS = {"a5t"};
 
-    /** How long a first tap stays armed before a second tap is needed again. */
-    private static final long ARM_WINDOW_MS = 4000;
+    /**
+     * How long a first tap stays armed before a second tap is needed again. The settings row
+     * formats this number in, so the row and the window cannot drift apart.
+     */
+    public static final int ARM_WINDOW_SECONDS = 4;
+    private static final long ARM_WINDOW_MS = ARM_WINDOW_SECONDS * 1000L;
 
     interface ConfirmationSettingReader {
         boolean enabled();

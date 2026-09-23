@@ -1468,11 +1468,16 @@ public final class GboardAddSymbolsRuntime {
             return null;
         }
         Object callbackCase = handles.emoticonItemClickConsumerCaseField.get(consumer);
-        if (!(callbackCase instanceof Integer) || ((Integer) callbackCase).intValue() != 9) {
+        if (!isCustomEmoticonHistoryConsumerCase(callbackCase)) {
             return null;
         }
         Object keyboard = handles.emoticonItemClickConsumerReceiverField.get(consumer);
         return isCustomEmoticonRenderMode(keyboard) ? keyboard : null;
+    }
+
+    static boolean isCustomEmoticonHistoryConsumerCase(Object callbackCase) {
+        // Gboard 18.0.3 iyd.accept() routes EmoticonKeyboardM2 through synthetic case 5.
+        return callbackCase instanceof Integer && ((Integer) callbackCase).intValue() == 5;
     }
 
     private static void applyCustomEmoticonHeaderItemContent(

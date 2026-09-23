@@ -50,9 +50,20 @@ public final class CaptionStyle {
     private static final String BACKGROUND_ID = "dlk";
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
+    /**
+     * The sizes a caption may be asked for, in points. The settings row says these numbers,
+     * formatted in from here, and clamps a typed value the same way {@link #size()} does.
+     */
+    public static final int MIN_TEXT_SIZE = 12;
+    public static final int MAX_TEXT_SIZE = 48;
+
+    /** Zero is TikTok's own size; anything else lands between the two bounds. */
+    public static int clampSize(int value) {
+        return value <= 0 ? 0 : Math.max(MIN_TEXT_SIZE, Math.min(MAX_TEXT_SIZE, value));
+    }
+
     static int size() {
-        int value = Settings.CAPTION_TEXT_SIZE.get();
-        return value <= 0 ? 0 : Math.max(12, Math.min(48, value));
+        return clampSize(Settings.CAPTION_TEXT_SIZE.get());
     }
 
     public static Layout layout(Layout original) {

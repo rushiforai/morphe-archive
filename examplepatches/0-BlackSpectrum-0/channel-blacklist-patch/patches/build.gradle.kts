@@ -2,12 +2,12 @@ group = "app.morphe"
 
 patches {
     about {
-        name = "Spectre Patches"
-        description = "Custom patches by Spectre for Morphe"
-        source = "https://github.com/0-BlackSpectrum-0/channel-blacklist-patch.git"
-        author = "Spectre"
+        name = "Morphe Patches"
+        description = "Patches for Morphe"
+        source = "git@github.com:MorpheApp/morphe-patches.git"
+        author = "MorpheApp"
         contact = "na"
-        website = "https://github.com/0-BlackSpectrum-0/channel-blacklist-patch"
+        website = "https://morphe.software"
         license = "GNU General Public License v3.0, with additional GPL section 7 requirements"
     }
 }

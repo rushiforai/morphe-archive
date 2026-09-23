@@ -8,8 +8,7 @@ import app.morphe.patcher.patch.Patch
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_BUILD_ID
 import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_MANIFEST
-import app.template.patches.steamlink.androidxr.MODERN_TONGUE_REPLACEMENT_5002322
-import app.template.patches.steamlink.androidxr.MODERN_TONGUE_VADDR_5002322
+import app.template.patches.steamlink.androidxr.MODERN_TONGUE_REPLACEMENT
 import app.template.patches.steamlink.androidxr.MODERN_TONGUE_VADDR_5002363
 import app.template.patches.steamlink.androidxr.gxrModernTongueBridgePatch
 import app.template.patches.steamlink.androidxr.patchModernTongueTransport
@@ -47,8 +46,6 @@ import app.template.patches.steamlink.binary.patchNativeMicrophonePreset
 import app.template.patches.steamlink.binary.patchVisualDelay
 import app.template.patches.steamlink.galaxyXrLegacyFoundationPatch
 import app.template.patches.steamlink.galaxyXrRecommended5001712Patch
-import app.template.patches.steamlink.galaxyXrRecommended5002318Patch
-import app.template.patches.steamlink.galaxyXrRecommended5002322Patch
 import app.template.patches.steamlink.galaxyXrRecommended5002363Patch
 import app.template.patches.steamlink.identity.changePackageNamePatch
 import app.template.patches.steamlink.identity.deviceIdentityPatch
@@ -73,10 +70,6 @@ private val permissionReplacement = "20008052c0035fd6".hexBytes()
 private val highResolutionFixtures = listOf(
     HighResolutionFixture("2.0.20", "5001712", 0x142c0c, true),
     HighResolutionFixture("2.0.22", "5002244", 0x1422c4, true),
-    HighResolutionFixture("2.0.22", "5002296", 0x14478c, true),
-    HighResolutionFixture("2.0.22", "5002313", 0x1472a8, true),
-    HighResolutionFixture("2.0.22", "5002318", 0x147418, false),
-    HighResolutionFixture("2.0.22", "5002322", 0x148aac, false),
     HighResolutionFixture("2.0.23", "5002363", 0x149874, false),
 )
 
@@ -85,7 +78,7 @@ private data class RecommendedBundleFixture(
     val patch: Patch<*>,
 )
 
-private val visualDelayFixtures = highResolutionFixtures.filter { it.versionCode != "5002296" }
+private val visualDelayFixtures = highResolutionFixtures
 
 private val recommendedBundleFixtures = listOf(
     RecommendedBundleFixture(
@@ -95,14 +88,6 @@ private val recommendedBundleFixtures = listOf(
     RecommendedBundleFixture(
         highResolutionFixtures.single { it.versionCode == "5002244" },
         galaxyXrLegacyFoundationPatch,
-    ),
-    RecommendedBundleFixture(
-        highResolutionFixtures.single { it.versionCode == "5002318" },
-        galaxyXrRecommended5002318Patch,
-    ),
-    RecommendedBundleFixture(
-        highResolutionFixtures.single { it.versionCode == "5002322" },
-        galaxyXrRecommended5002322Patch,
     ),
     RecommendedBundleFixture(
         highResolutionFixtures.single { it.versionCode == "5002363" },
@@ -142,9 +127,9 @@ private val publicPatchesFor5001712: List<Patch<*>> = listOf(
  * Offline integration audit for apktool-rebuilt decoded Steam Link bases.
  *
  * This deliberately does not sign, install, deploy, or contact a device. It executes every
- * compatible public patch independently on 2.0.20/5001712, produces 6 unsigned high-resolution
- * APKs, checks Visual Delay on 5 native layouts, and applies the 4 recommendation bundles to the
- * 4 decoded bases that are available. It does not turn decoded-fixture success into runtime proof.
+ * compatible public patch independently on 2.0.20/5001712, produces 3 unsigned high-resolution
+ * APKs, checks Visual Delay on the 3 exact bases, and applies the 3 recommendation bundles to
+ * the decoded bases that are available. It does not turn decoded-fixture success into runtime proof.
  */
 object DecodedSteamLinkPatchAudit {
     @JvmStatic
@@ -243,7 +228,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
         }
 
         "startup-excluded" -> {
-            val fixture = highResolutionFixtures.single { it.versionCode == if (index == 0) "5002322" else "5002363" }
+            val fixture = highResolutionFixtures.single { it.versionCode == "5002363" }
             val input = fixtureFile(fixtureDirectory, fixture)
             val caseDirectory = File(outputDirectory, "startup-excluded-${fixture.versionCode}")
             val output = File(caseDirectory, "steamlink-${fixture.versionCode}-excluded-startup-unsigned.apk")
@@ -573,11 +558,11 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
         manifest.requireEncodedString("android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS")
         if (isModernTongueBridgeSteamLinkBuild(fixture.versionName, fixture.versionCode)) {
             check(apk.getEntry("lib/arm64-v8a/libgxr_face_bridge.so") == null) {
-                "5002322: modern tongue recommendation installed the legacy full face bridge"
+                "5002363: modern tongue recommendation installed the legacy full face bridge"
             }
             scene.requireBytesAt(
-                vaddrToFileOffset(scene, if (fixture.versionCode == "5002363") MODERN_TONGUE_VADDR_5002363 else MODERN_TONGUE_VADDR_5002322, MODERN_TONGUE_REPLACEMENT_5002322.size),
-                MODERN_TONGUE_REPLACEMENT_5002322,
+                vaddrToFileOffset(scene, MODERN_TONGUE_VADDR_5002363, MODERN_TONGUE_REPLACEMENT.size),
+                MODERN_TONGUE_REPLACEMENT,
             )
         } else {
             apk.requireElf("lib/arm64-v8a/libgxr_face_bridge.so")
@@ -597,17 +582,16 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
         check(scene.containsSubsequence("e20740f910e090d27072a0f24200108b".hexBytes())) {
             "${fixture.versionCode}: 60 ms Visual Delay trampoline not found"
         }
-        if (fixture.versionCode == "5002322") scene.requireBytesAt(0xF37E0, "c1008052".hexBytes())
         if (fixture.versionCode == "5002363") scene.requireBytesAt(0xF44C0, "c1008052".hexBytes())
         if (isModernTongueBridgeSteamLinkBuild(fixture.versionName, fixture.versionCode)) {
             manifest.requireEncodedString("com.valvesoftware.steamlink.SteamLink")
             manifest.requireEncodedString("android.intent.category.LAUNCHER")
             manifest.requireEncodedString("com.oculus.intent.category.2D")
             check(!manifest.containsEncodedString("GalaxyXRPermissionActivity")) {
-                "5002322: recommended bundle installed a replacement launcher activity"
+                "5002363: recommended bundle installed a replacement launcher activity"
             }
             check(!manifest.containsEncodedString("android.window.PROPERTY_XR_ACTIVITY_START_MODE")) {
-                "5002322: recommended bundle changed the stock XR activity start mode"
+                "5002363: recommended bundle changed the stock XR activity start mode"
             }
             ZipFile(inputApk).use { original -> verifyNativeStartupBoundary(original, apk) }
         } else {
@@ -615,7 +599,7 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
             manifest.requireEncodedString("XR_ACTIVITY_START_MODE_FULL_SPACE_UNMANAGED")
             apk.requireStartupFlags(splash = true, permissions = true)
         }
-        if (fixture.versionCode !in setOf("5002318", "5002322", "5002363")) {
+        if (fixture.versionCode != "5002363") {
             apk.requireEntryBytes("lib/arm64-v8a/libgxr_xr_bridge.so")
             apk.requireEntryBytes("assets/config/ui_config.json")
             val hmdConfig = apk.requireEntryBytes("assets/config/hmd_config.json")
@@ -640,13 +624,9 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
             }
             gateOffsets.forEach { scene.requireBytesAt(it, "1f2003d5".hexBytes()) }
         } else {
-            // Automatic legacy identity must not change either native recommendation.
+            // Automatic legacy identity must not change the native recommendation.
             val original = ZipFile(inputApk).use { it.requireEntryBytes("assets/config/hmd_config.json") }
-            val expected = if (fixture.versionCode == "5002318") {
-                patchNativeGalaxyIdentity(original.decodeToString()).encodeToByteArray()
-            } else {
-                original // 5002322 has no Device identity dependency at all.
-            }
+            val expected = original
             check(apk.requireEntryBytes("assets/config/hmd_config.json").contentEquals(expected)) {
                 "${fixture.versionCode}: native HMD identity changed from its existing recommendation"
             }
@@ -759,7 +739,7 @@ private fun verifyNativeStartupBoundary(original: ZipFile, patched: ZipFile) {
     val descriptor = "Lcom/valvesoftware/steamlink/SteamLink;"
     val before = original.requireDexClass(descriptor).methods.associateBy { it.auditSignature() }
     val after = patched.requireDexClass(descriptor).methods.associateBy { it.auditSignature() }
-    check(before.keys == after.keys) { "5002322: stock SteamLink method set changed" }
+    check(before.keys == after.keys) { "stock SteamLink method set changed" }
     val batteryDescriptor = "Lcom/valvesoftware/steamlink/GxrBatterySettings;"
     before.forEach { (signature, source) ->
         val output = after.getValue(signature)
@@ -767,22 +747,22 @@ private fun verifyNativeStartupBoundary(original: ZipFile, patched: ZipFile) {
         val batteryCalls = calls.filter { it.definingClass == batteryDescriptor }
         val isCreate = signature == "onCreate(Landroid/os/Bundle;)V"
         check(batteryCalls.size == if (isCreate) 1 else 0) {
-            "5002322: unexpected battery hook count in SteamLink.$signature"
+            "unexpected battery hook count in SteamLink.$signature"
         }
         if (isCreate) check(batteryCalls.single().name == "request")
         check(calls.filterNot { it.definingClass == batteryDescriptor } == source.calledMethods()) {
-            "5002322: non-battery method calls changed in SteamLink.$signature"
+            "non-battery method calls changed in SteamLink.$signature"
         }
         check(output.implementation?.instructions?.toList().orEmpty().count() ==
             source.implementation?.instructions?.toList().orEmpty().count() + if (isCreate) 1 else 0) {
-            "5002322: unexpected instruction count change in SteamLink.$signature"
+            "unexpected instruction count change in SteamLink.$signature"
         }
         val nonBatteryInstructions = output.implementation?.instructions?.toList().orEmpty().filterNot {
             ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass == batteryDescriptor
         }
         check(nonBatteryInstructions.map { it.opcode } ==
             source.implementation?.instructions?.toList().orEmpty().map { it.opcode }) {
-            "5002322: stock opcode sequence changed in SteamLink.$signature"
+            "stock opcode sequence changed in SteamLink.$signature"
         }
     }
 }

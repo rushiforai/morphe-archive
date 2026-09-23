@@ -141,25 +141,21 @@ class AndroidSurfaceTriggerResourceTest {
             ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY,
             androidSurfaceTriggerResourceLibraryForBuild("2.0.20", "5001712"),
         )
-        listOf("5002244", "5002296", "5002313", "5002318", "5002322").forEach {
-            assertEquals(
-                ANDROID_SURFACE_TRIGGER_LIBRARY,
-                androidSurfaceTriggerResourceLibraryForBuild("2.0.22", it),
-                it,
-            )
-        }
+        assertEquals(
+            ANDROID_SURFACE_TRIGGER_LIBRARY,
+            androidSurfaceTriggerResourceLibraryForBuild("2.0.22", "5002244"),
+        )
         assertEquals(
             ANDROID_SURFACE_TRIGGER_LIBRARY,
             androidSurfaceTriggerResourceLibraryForBuild("2.0.22", "5001712"),
         )
         assertTrue(isHighResolutionSteamLinkBuild("2.0.23", "5002363"))
         assertFalse(isHighResolutionSteamLinkBuild("2.0.22", "5002363"))
-        assertFalse(isHighResolutionSteamLinkBuild("2.0.23", "5002322"))
         val modernResource = androidSurfaceTriggerResourceLibraryForBuild("2.0.23", "5002363")
         assertEquals(ANDROID_SURFACE_TRIGGER_LIBRARY, modernResource)
         assertContentEquals(
-            projectionModeResource(androidSurfaceTriggerResourceLibraryForBuild("2.0.22", "5002322")),
             projectionModeResource(modernResource),
+            projectionModeResource(ANDROID_SURFACE_TRIGGER_LIBRARY),
         )
     }
 

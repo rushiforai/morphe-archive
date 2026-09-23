@@ -271,44 +271,6 @@ class VisualDelayPatchTest {
                     Triple(0x101620, 48, false),
                 ),
             ),
-            TestLayout(
-                5001740,
-                2_220_528,
-                0x101378,
-                listOf(
-                    Triple(0x1013A4, 28, true),
-                    Triple(0x1013C0, 36, false),
-                    Triple(0x1014A0, 40, false),
-                    Triple(0x1014A4, 44, false),
-                    Triple(0x1014B0, 48, false),
-                ),
-            ),
-            TestLayout(
-                5002318,
-                2_277_488,
-                0x100B0C,
-                listOf(
-                    Triple(0x100D80, 28, false),
-                    Triple(0x100D84, 32, false),
-                    Triple(0x100D88, 36, false),
-                    Triple(0x100D94, 40, false),
-                    Triple(0x100D98, 44, false),
-                    Triple(0x100DA4, 48, false),
-                ),
-            ),
-            TestLayout(
-                5002322,
-                2_283_400,
-                0x101154,
-                listOf(
-                    Triple(0x1013C8, 28, false),
-                    Triple(0x1013CC, 32, false),
-                    Triple(0x1013D0, 36, false),
-                    Triple(0x1013DC, 40, false),
-                    Triple(0x1013E0, 44, false),
-                    Triple(0x1013EC, 48, false),
-                ),
-            ),
         )
     }
 

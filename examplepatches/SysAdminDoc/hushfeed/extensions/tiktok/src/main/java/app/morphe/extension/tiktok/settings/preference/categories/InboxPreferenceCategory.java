@@ -43,62 +43,62 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(
                     context,
                     "Hide new followers",
-                    "Hide the New followers row.",
+                    "The New followers row leaves the top of the Inbox. The accounts still follow you.",
                     Settings.HIDE_INBOX_NEW_FOLLOWERS
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide activity",
-                    "Hide the Activity row of likes and comments on your posts.",
+                    "The Activity row of likes and comments on your posts leaves the Inbox. Notifications about them still arrive.",
                     Settings.HIDE_INBOX_ACTIVITY
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide archive",
-                    "Hide the Archive row.",
+                    "The Archive row leaves the Inbox. Archived chats are kept.",
                     Settings.HIDE_INBOX_ARCHIVE
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide the Tako chat",
-                    "Hide the Tako assistant conversation in Inbox.",
+                    "The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.",
                     Settings.HIDE_INBOX_TAKO
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide TikTok Shop",
-                    "Hide TikTok Shop updates and coupon messages.",
+                    "Shop order updates and coupon messages no longer take up rows in the Inbox. Your orders are unchanged.",
                     Settings.HIDE_INBOX_SHOP
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide message requests",
-                    "Hide the Message requests row.",
+                    "The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.",
                     Settings.HIDE_INBOX_MESSAGE_REQUESTS
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide conversations",
                     "Hide every direct message conversation. Leaves the Inbox empty apart from "
-                            + "whatever else is still switched on.",
+                            + "whatever else is still turned on.",
                     Settings.HIDE_INBOX_CONVERSATIONS
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide the add people icon",
-                    "Hide the add people icon in the Inbox header.",
+                    "The add people icon leaves the Inbox header. Only the shortcut goes, so friend suggestions elsewhere are unchanged.",
                     Settings.HIDE_INBOX_ADD_PEOPLE
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide the Inbox search button",
-                    "Remove the magnifying glass at the top of Inbox. It doesn't hide search on the feed or in comments.",
+                    "Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.",
                     Settings.HIDE_INBOX_SEARCH
             ));
             addPreference(new TogglePreference(
                     context,
                     "Hide activity status",
-                    "Hide the activity status control in the Inbox header.",
+                    "The activity status control leaves the Inbox header. Whether others see you as active is unchanged.",
                     Settings.HIDE_INBOX_ACTIVITY_STATUS
             ));
             addPreference(new InputTextPreference(
@@ -113,7 +113,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
         addPreference(new TogglePreference(
                 context,
                 "Hide stories tray",
-                "Hide the row of story avatars across the top of the Inbox.",
+                "The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.",
                 Settings.HIDE_INBOX_STORIES
         ));
         }
@@ -121,7 +121,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
         addPreference(new TogglePreference(
                 context,
                 "Hide suggested accounts",
-                "Hide suggested account rows.",
+                "The accounts TikTok suggests you follow no longer take up rows in the Inbox.",
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS
         ));
         }
@@ -132,7 +132,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(
                     context,
                     "Hide new follower notifications",
-                    "Drop the notification saying somebody new followed you before it reaches "
+                    "Hide the notification saying somebody new followed you before it reaches "
                             + "the drawer. Every other notification is left alone, and the "
                             + "follower still appears in the Inbox.",
                     Settings.HIDE_FOLLOWER_NOTIFICATIONS
@@ -140,7 +140,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             addPreference(new TogglePreference(
                     context,
                     "Hide message streaks",
-                    "Take away the streak button in a chat and the reminder message that goes "
+                    "Hide the streak button in a chat and the reminder message that goes "
                             + "with it.",
                     Settings.HIDE_MESSAGE_STREAKS
             ));

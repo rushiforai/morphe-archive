@@ -33,7 +33,7 @@ public class NumberInputPreference extends EditTextPreference {
 
     public NumberInputPreference(Context context, String title, String summary,
                                  IntegerSetting setting) {
-        this(context, title, summary, setting, "video", "videos");
+        this(context, title, summary, setting, "%1$s video", "%1$s videos");
     }
 
     /**
@@ -46,7 +46,12 @@ public class NumberInputPreference extends EditTextPreference {
         this(context, title, summary, setting, unit, unit);
     }
 
-    /** Uses the singular label only for one; zero and every other value use the plural. */
+    /**
+     * The two unit forms are whole phrases with the number in them ("%1$s day", "%1$s days"),
+     * so a translator sees the sentence rather than a bare noun, and the language's plural rule
+     * picks the form. A bare unit ("day") was a key of its own, which fixed the word order and
+     * the agreement to English.
+     */
     public NumberInputPreference(Context context, String title, String summary,
                                  IntegerSetting setting, String singularUnit, String pluralUnit) {
         super(context);
@@ -61,7 +66,7 @@ public class NumberInputPreference extends EditTextPreference {
         this.maxValue = setting.maximum();
         setTitle(title);
         setKey(setting.key);
-        setValue(String.valueOf(clamp(setting.get())));
+        setValue(String.valueOf(clamp(setting.savedValue())));
         getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
         getEditText().setHint(L10n.t(context, "Enter a number"));
     }
@@ -93,17 +98,17 @@ public class NumberInputPreference extends EditTextPreference {
         String text = String.valueOf(clampedValue);
         setText(text);
         boolean labeled = zeroLabel != null && clampedValue == 0;
-        String shown = labeled ? L10n.t(getContext(), zeroLabel) : displayValue(clampedValue);
-        String unit = labeled ? "" : L10n.t(getContext(), unitForValue(clampedValue));
+        // Either the zero label, or the number inside its unit phrase ("5 seconds").
+        String shown = labeled
+                ? L10n.t(getContext(), zeroLabel)
+                : withUnit(clampedValue, displayValue(clampedValue));
         // The range is read off the setting, so every one of these rows states it without each
         // of them growing a sentence of its own. Twelve of the fourteen said nothing about it
         // and pulled an out of range number to the nearest end without a word.
         String extra = extraSummaryLine();
         setSummary(L10n.t(getContext(), baseSummary)
                 + "\n" + L10n.f(getContext(), "%1$s to %2$s", minValue, maxValue)
-                + "\n" + (unit.isEmpty()
-                        ? L10n.f(getContext(), "Current: %1$s", shown)
-                        : L10n.f(getContext(), "Current: %1$s %2$s", shown, unit))
+                + "\n" + L10n.f(getContext(), "Current: %1$s", shown)
                 + (extra == null ? "" : "\n" + extra));
     }
 
@@ -126,8 +131,14 @@ public class NumberInputPreference extends EditTextPreference {
         return String.valueOf(value);
     }
 
-    private String unitForValue(int value) {
-        return value == 1 ? singularUnit : pluralUnit;
+    /**
+     * The number inside its unit phrase, in the reader's language, the form chosen by that
+     * language's plural rule for the value.
+     */
+    private String withUnit(int value, String shown) {
+        // A row with no unit (an hour of the day) shows the value on its own.
+        if (singularUnit.isEmpty() && pluralUnit.isEmpty()) return shown;
+        return L10n.quantity(getContext(), value, singularUnit, pluralUnit, shown);
     }
 
     @Override
@@ -294,7 +305,7 @@ public class NumberInputPreference extends EditTextPreference {
             // An empty or unreadable box is not a request for the smallest value. For
             // several of these settings the smallest value means off, so falling to it
             // would quietly turn a feature off because somebody cleared the field.
-            return clamp(setting.get());
+            return clamp(setting.savedValue());
         }
     }
 

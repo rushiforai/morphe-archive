@@ -258,6 +258,21 @@ public class AutoAdvanceTest {
         assertFalse(AutoAdvance.available(false));
         assertTrue(AutoAdvance.available(true));
     }
+
+    /** The panel's Auto scroll action can be hidden on its own; the feed gate is not touched. */
+    @Test public void theHideSwitchTakesOnlyThePanelAction() {
+        Settings.AUTO_ADVANCE.save(true);
+        assertTrue(AutoAdvance.panelAvailable(false));
+        Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.save(true);
+        assertFalse("the panel action stayed with the hide switch on", AutoAdvance.panelAvailable(true));
+        assertTrue("the feed gate went with the panel action", AutoAdvance.available(false));
+
+        // Off, the hide switch changes nothing: the action follows the feed gate as before.
+        Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.save(false);
+        Settings.AUTO_ADVANCE.save(false);
+        assertFalse(AutoAdvance.panelAvailable(false));
+        assertTrue(AutoAdvance.panelAvailable(true));
+    }
     @Test public void aCollectedFeedViewEndsTheControlsWork() {
         FeedView view = new FeedView();
         var control = new AutoAdvance.Control(view.indicator);

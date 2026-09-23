@@ -86,12 +86,6 @@ public class EnumSetting<T extends Enum<?>> extends Setting<T> {
         preferences.saveEnumAsString(key, value);
     }
 
-    @NonNull
-    @Override
-    public T get() {
-        return value;
-    }
-
     /**
      * Availability based on if this setting is currently set to any of the provided types.
      */

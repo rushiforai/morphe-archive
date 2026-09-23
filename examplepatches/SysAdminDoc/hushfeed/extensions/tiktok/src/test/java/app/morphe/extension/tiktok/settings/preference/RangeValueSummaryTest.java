@@ -25,7 +25,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 /**
- * The range line under a Min/Max row follows the stored value.
+ * The range line under a range row (Views range and its siblings) follows the stored value.
  *
  * <p>A restore, a reset and an undo all set the value through {@code setValue} and never open the
  * dialog, so a row that only rebuilt its summary on dialog close kept showing the range it had

@@ -1,10 +1,10 @@
 # Direct decoder-to-Android-Surface investigation
 
-Checked 2026-09-08. This is a read-only native feasibility audit for exact Steam Link **2.0.22 / 5002322**, not an implemented patch. No APK was patched or installed, and no device or SteamVR command was run.
+Checked 2026-09-08. This is a read-only native feasibility audit for an exact Steam Link build, not an implemented patch. No APK was patched or installed, and no device or SteamVR command was run.
 
 ## Exact input and repeatable checks
 
-Input: `decoded-apk-android-steamlinkvr-release-base-2.0.22-5002322/lib/arm64-v8a/libvrlink_scene.so`.
+Input: `lib/arm64-v8a/libvrlink_scene.so` from the exact decoded base.
 
 - Size: 2,283,400 bytes.
 - SHA-256: `e61baf34dfc4749d92561bab5fee47891d271607a0ce44824ff61c3e6a450c3f`.

@@ -103,13 +103,9 @@ public final class BudgetCue {
         }
 
         if (showVideos) {
-            return videosLeft == 1
-                    ? L10n.t("1 video left")
-                    : L10n.f("%1$s videos left", videosLeft);
+            return L10n.quantity(Utils.getContext(), videosLeft, "1 video left", "%1$s videos left");
         }
-        return minutesLeft == 1
-                ? L10n.t("1 min left")
-                : L10n.f("%1$s min left", minutesLeft);
+        return L10n.quantity(Utils.getContext(), minutesLeft, "1 min left", "%1$s min left");
     }
 
     /**

@@ -37,10 +37,6 @@ public class SettingPersistenceTest {
         @Override protected void saveToPreferences() {
             throw new IllegalStateException("injected commit failure");
         }
-
-        @Override public String get() {
-            return value;
-        }
     }
 
     @Before public void setUp() {
@@ -77,7 +73,6 @@ public class SettingPersistenceTest {
                     throw new IllegalStateException("injected first commit failure");
                 }
             }
-            @Override public String get() { return value; }
         };
 
         java.util.concurrent.ExecutorService pool =

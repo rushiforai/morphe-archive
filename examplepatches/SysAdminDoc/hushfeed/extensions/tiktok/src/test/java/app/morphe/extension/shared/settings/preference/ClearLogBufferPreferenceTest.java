@@ -41,11 +41,11 @@ public class ClearLogBufferPreferenceTest {
         BaseSettings.DEBUG_LOG_FILTERS.save("all");
         emptyEverythingAndDropUndo();
         LogBufferManager.clearedMessage = "Diagnostic data cleared. Tap again to put it back.";
-        LogBufferManager.nothingToClearMessage = "There is no diagnostic data to clear.";
-        LogBufferManager.restoredMessage = "Diagnostic data put back.";
-        LogBufferManager.nothingToRestoreMessage = "There is no diagnostic data to put back.";
+        LogBufferManager.nothingToClearMessage = "There is no diagnostic data to clear";
+        LogBufferManager.restoredMessage = "Diagnostic data put back";
+        LogBufferManager.nothingToRestoreMessage = "There is no diagnostic data to put back";
         LogBufferManager.restoreFailedMessage =
-                "Could not put back the diagnostic data. Try again.";
+                "Couldn't put back the diagnostic data. Try again.";
         ShadowToast.reset();
     }
 
@@ -100,7 +100,7 @@ public class ClearLogBufferPreferenceTest {
         // repeat guard working when the same hook runs again.
         HookStatus.missingViewId("comments", "missing_button");
         assertEquals(1, HookStatus.missing("comments").size());
-        assertEquals("Diagnostic data put back.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Diagnostic data put back", ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void clearingNothingDoesNotPromiseAnUndoThatDoesNotExist() {
@@ -111,7 +111,7 @@ public class ClearLogBufferPreferenceTest {
 
         assertFalse(LogBufferManager.canUndoClear());
         assertEquals("Clear summary", preference.getSummary());
-        assertEquals("There is no diagnostic data to clear.",
+        assertEquals("There is no diagnostic data to clear",
                 ShadowToast.getTextOfLatestToast());
     }
 

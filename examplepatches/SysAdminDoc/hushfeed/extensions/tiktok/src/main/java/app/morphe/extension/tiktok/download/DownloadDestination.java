@@ -53,14 +53,22 @@ public final class DownloadDestination {
         }
     }
 
+    /** The folders each kind may go under, as Android names them. */
+    private static final String[] VIDEO_ROOTS = {"DCIM", "Movies", "Download", "Documents"};
+    private static final String[] PHOTO_ROOTS = {"DCIM", "Pictures", "Download", "Documents"};
+    private static final String[] STICKER_ROOTS = {"DCIM", "Download", "Documents"};
+
     public static String allowedRoots(Kind kind) {
         switch (kind) {
+            // One key per list shape, so the language writes the whole list: the names are
+            // what Android calls those folders and stay as they are, and the word between the
+            // last two used to be a key on its own, which fixed the shape to English.
             case VIDEO:
-                return list("DCIM", "Movies", "Download", "Documents");
+                return L10n.f("%1$s, %2$s, %3$s or %4$s", (Object[]) VIDEO_ROOTS);
             case PHOTO:
-                return list("DCIM", "Pictures", "Download", "Documents");
+                return L10n.f("%1$s, %2$s, %3$s or %4$s", (Object[]) PHOTO_ROOTS);
             case STICKER:
-                return list("DCIM", "Download", "Documents");
+                return L10n.f("%1$s, %2$s or %3$s", (Object[]) STICKER_ROOTS);
             default:
                 throw new IllegalArgumentException("Unknown destination kind");
         }
@@ -147,24 +155,6 @@ public final class DownloadDestination {
         String normalized = normalize(path);
         int slash = normalized.indexOf('/');
         return canonicalRoot(slash < 0 ? normalized : normalized.substring(0, slash));
-    }
-
-    /**
-     * The folder names joined the way the reader's language joins a list. The names
-     * themselves are what Android calls those folders, so they stay as they are; the word
-     * between the last two is the part that was English inside a translated sentence.
-     */
-    private static String list(String... names) {
-        StringBuilder out = new StringBuilder();
-        for (int index = 0; index < names.length; index++) {
-            if (index == names.length - 1 && index > 0) {
-                out.append(' ').append(L10n.t("or")).append(' ');
-            } else if (index > 0) {
-                out.append(", ");
-            }
-            out.append(names[index]);
-        }
-        return out.toString();
     }
 
     private static String kindLabel(Kind kind) {

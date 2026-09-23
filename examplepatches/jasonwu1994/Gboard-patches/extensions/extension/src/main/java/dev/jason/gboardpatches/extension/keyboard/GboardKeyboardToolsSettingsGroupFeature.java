@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import dev.jason.gboardpatches.extension.R;
+import dev.jason.gboardpatches.extension.editingaccesspoints.GboardEditingAccessPointsSettingsFeature;
 import dev.jason.gboardpatches.extension.calculator.GboardCalculatorSettingsFeature;
 import dev.jason.gboardpatches.extension.cursortrackpad.GboardCursorTrackpadSettingsFeature;
 import dev.jason.gboardpatches.extension.longpressquickactions.GboardLongPressQuickActionsSettingsFeature;
@@ -39,6 +40,7 @@ public final class GboardKeyboardToolsSettingsGroupFeature
                         new GboardTopRowSwipeSettingsFeature(context),
                         new GboardManualIncognitoSettingsFeature(context),
                         new GboardLongPressQuickActionsSettingsFeature(context),
+                        new GboardEditingAccessPointsSettingsFeature(context),
                         new GboardCursorTrackpadSettingsFeature(context),
                         new GboardOcrSettingsFeature(context),
                         new GboardQuickInsertSettingsFeature(context),

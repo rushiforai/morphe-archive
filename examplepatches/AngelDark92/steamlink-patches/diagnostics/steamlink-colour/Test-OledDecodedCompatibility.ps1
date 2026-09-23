@@ -25,7 +25,7 @@ $helpers = $helpers -replace '(?m)^import app\.template\.patches\.shared\.Consta
 [IO.File]::WriteAllText((Join-Path $output 'PatchException.kt'), 'package app.morphe.patcher.patch; class PatchException(message: String) : RuntimeException(message)')
 $classpath = ((Get-ChildItem -LiteralPath $compilerLib -Filter '*.jar').FullName -join ';')
 $jar = Join-Path $output 'audit.jar'
-& $java -cp "$compilerLib/*" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -classpath $classpath -d $jar (Join-Path $output 'OledHelpers.kt') (Join-Path $output 'PatchException.kt') (Join-Path $repo 'patches/src/main/kotlin/util/OledDecodedCompatibilityAudit.kt')
+& $java -cp "$compilerLib/*" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -classpath $classpath -d $jar (Join-Path $output 'OledHelpers.kt') (Join-Path $output 'PatchException.kt') (Join-Path $repo 'patches/src/main/kotlin/app/template/patches/steamlink/binary/VdSdrFoveaPatchHelper.kt') (Join-Path $repo 'patches/src/main/kotlin/util/OledDecodedCompatibilityAudit.kt')
 if ($LASTEXITCODE -ne 0) { throw 'OLED helper compilation failed.' }
 & $java -Xmx1g -cp "$compilerLib/*;$jar" util.OledDecodedCompatibilityAudit $repo | Tee-Object -FilePath (Join-Path $output 'result.txt')
 if ($LASTEXITCODE -ne 0) { throw 'Decoded compatibility audit failed.' }

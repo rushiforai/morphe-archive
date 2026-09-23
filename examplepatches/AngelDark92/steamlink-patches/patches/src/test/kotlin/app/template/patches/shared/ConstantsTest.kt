@@ -10,15 +10,13 @@ class ConstantsTest {
     fun `compatibilities enumerate exact adapted versions and builds`() {
         assertEquals(
             listOf(
-                "2.0.20" to 5001740,
                 "2.0.20" to 5001712,
                 "2.0.22" to 5002244,
-                "2.0.22" to 5002313,
             ),
             Constants.COMPATIBILITIES_STEAM_LINK_LEGACY.targets(),
         )
-        assertTrue(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002318"))
-        assertTrue(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002322"))
+        assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002318"))
+        assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002322"))
         assertTrue(Constants.isNativeXrSteamLinkBuild("2.0.23", "5002363"))
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002363"))
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.23", "5002322"))
@@ -26,72 +24,70 @@ class ConstantsTest {
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002296"))
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.22", "5002313"))
         assertFalse(Constants.isNativeXrSteamLinkBuild("2.0.20", "5002318"))
-        listOf(5002244, 5002296, 5002313, 5002318, 5002322).forEach { versionCode ->
-            assertTrue(Constants.isHighResolutionSteamLinkBuild("2.0.22", versionCode.toString()))
-        }
         assertTrue(Constants.isHighResolutionSteamLinkBuild("2.0.20", "5001712"))
+        assertTrue(Constants.isHighResolutionSteamLinkBuild("2.0.22", "5002244"))
         assertTrue(Constants.isHighResolutionSteamLinkBuild("2.0.23", "5002363"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.22", "5002363"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.23", "5002364"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.20", "5001740"))
+        listOf(5002296, 5002313, 5002318, 5002322).forEach { versionCode ->
+            assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.22", versionCode.toString()), "$versionCode")
+        }
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.22", "5001712"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.20", "5002296"))
-        listOf(5001740, 5001712, 5002244, 5002296, 5002313).forEach { versionCode ->
-            val versionName = if (versionCode == 5001740 || versionCode == 5001712) "2.0.20" else "2.0.22"
-            assertTrue(Constants.isLegacyXrFoundationSteamLinkBuild(versionName, versionCode.toString()))
+        assertTrue(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.20", "5001712"))
+        assertTrue(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.22", "5002244"))
+        assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.20", "5001740"))
+        listOf(5002296, 5002313, 5002318, 5002322).forEach { versionCode ->
+            assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.22", versionCode.toString()), "$versionCode")
         }
-        assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.22", "5002318"))
-        assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.22", "5002322"))
         assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.23", "5002363"))
+        assertTrue(Constants.isEarlierStartupSteamLinkBuild("2.0.20", "5001712"))
+        assertTrue(Constants.isEarlierStartupSteamLinkBuild("2.0.22", "5002244"))
         assertFalse(Constants.isEarlierStartupSteamLinkBuild("2.0.23", "5002363"))
+        assertFalse(Constants.isEarlierStartupSteamLinkBuild("2.0.22", "5002322"))
         assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.22", "5001712"))
         assertEquals(
-            listOf(5001740, 5001712, 5002244, 5002313, 5002318, 5002322, 5002363),
+            listOf(5001712, 5002244, 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK.versionCodes(),
         )
         assertEquals(
-            listOf(5001740, 5001712, 5002244, 5002313, 5002318, 5002322, 5002363),
+            listOf(5001712, 5002244, 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.versionCodes(),
-        )
-        assertEquals(
-            listOf(5002322),
-            Constants.COMPATIBILITIES_STEAM_LINK_5002322.versionCodes(),
         )
         assertEquals(
             listOf("2.0.23" to 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK_5002363.targets(),
         )
         assertEquals(
-            listOf(5001740, 5001712, 5002244, 5002313, 5002318),
+            listOf(5001712, 5002244),
             Constants.COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE.versionCodes(),
         )
         assertEquals(
-            listOf("2.0.22" to 5002322, "2.0.23" to 5002363),
+            listOf("2.0.23" to 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE.targets(),
         )
-        assertTrue(Constants.isFullFacebridgeSteamLinkBuild("2.0.22", "5002318"))
+        assertTrue(Constants.isFullFacebridgeSteamLinkBuild("2.0.20", "5001712"))
+        assertTrue(Constants.isFullFacebridgeSteamLinkBuild("2.0.22", "5002244"))
+        assertFalse(Constants.isFullFacebridgeSteamLinkBuild("2.0.22", "5002318"))
         assertFalse(Constants.isFullFacebridgeSteamLinkBuild("2.0.22", "5002322"))
         assertFalse(Constants.isFullFacebridgeSteamLinkBuild("2.0.23", "5002363"))
-        assertTrue(Constants.isModernTongueBridgeSteamLinkBuild("2.0.22", "5002322"))
+        assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.22", "5002322"))
         assertTrue(Constants.isModernTongueBridgeSteamLinkBuild("2.0.23", "5002363"))
         assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.22", "5002363"))
         assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.23", "5002322"))
         assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.23", "5002364"))
         assertFalse(Constants.isModernTongueBridgeSteamLinkBuild("2.0.22", "5002318"))
         assertEquals(
-            listOf(5002318),
-            Constants.COMPATIBILITIES_STEAM_LINK_5002318.versionCodes(),
-        )
-        assertEquals(
             listOf(5001712),
             Constants.COMPATIBILITIES_STEAM_LINK_5001712.versionCodes(),
         )
         assertEquals(
-            listOf(5001740, 5002244),
+            listOf(5002244),
             Constants.COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED.versionCodes(),
         )
         assertEquals(
-            listOf(5001712, 5002244, 5002296, 5002313, 5002318, 5002322, 5002363),
+            listOf(5001712, 5002244, 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.versionCodes(),
         )
     }

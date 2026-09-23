@@ -64,6 +64,7 @@ private const val EXTENSION_BUTTON =
 
 @Suppress("unused")
 val reloadVideoButtonPatch = bytecodePatch(
+    name = "Reload video",
     description = "Adds an option to display reload video button in the video player.",
 ) {
     dependsOn(

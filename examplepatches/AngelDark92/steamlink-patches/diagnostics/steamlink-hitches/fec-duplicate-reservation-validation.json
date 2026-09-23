@@ -1,0 +1,601 @@
+{
+  "date": "2026-09-15",
+  "experiment": "fec-duplicate-reservation-v1",
+  "artifact": {
+    "Status": "passed",
+    "Artifact": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\patches\\build\\libs\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+    "Sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+    "AuditDirectory": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915",
+    "ApkCases": 16,
+    "Inputs": "2 verified original APKs; no reconstructed fallback",
+    "Validation": "Cached compile/JUnit; MPP-first Morphe APK audits; 4 catalogs",
+    "SignedOrInstalled": false
+  },
+  "tests": {
+    "tests": 125,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "sources": {
+    "patches/src/main/kotlin/app/template/patches/steamlink/binary/FecDuplicateReservationGuardPatch.kt": "e20099b47181cac4d5c233d5157639e84153425c748917f086f854c4a05e5c38",
+    "patches/src/main/kotlin/util/FecDuplicateReservationApkAudit.kt": "b8527982418abe4cde22a6fcbe4d991356073c6fcbe8964b5d95fff2f7c8fb02",
+    "patches/src/main/kotlin/app/template/patches/steamlink/binary/DecoderInputBufferingPatch.kt": "1765c22b9a00bed6b56d494c42d59fff0478e04463dd68a28607b6462ef9f9eb",
+    "patches/src/main/kotlin/app/template/patches/steamlink/RecommendedPatchBundles.kt": "e83dfbd58b903db751a2bae513ae18a76327156dd14140665671b229a13fe3e0",
+    "diagnostics/steamlink-hitches/Build-FecDuplicateExperiment.ps1": "6e0221ec2935c73982a87ff164d1c93496638bd9db050859b0990782419195e7",
+    "diagnostics/steamlink-hitches/Cleanup-FecDuplicateExperiment.ps1": "4e8ce5d6d0771f52f91dff016fdd28045ad747088040cb67322fed7252acb4dd",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002322.so": "54b2486151a1ecda67f2bd214f892b9df34798116d125e9e3d3869bcaf64bbdc",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002322_telemetry.so": "202a84fd1211f3e2816ba1e0c01de27be9e11f0be7ac323b172ad7e6bc87852b",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002363.so": "fc8934f90c96aef04c36117ab3ac9677e7d8f5755701d030e6e9d019ac50cd1b",
+    "patches/src/main/resources/steamlink/decoder/libgxr_dbuf_5002363_telemetry.so": "027a00121ad19b2a48eaa9331dac15864c74e07f3e2099bea6936e1f0a8691d7"
+  },
+  "cases": [
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "baseline",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "output_sha256": "f28c91f81f6a9ab4c3c0ca74f72a8265de37f94188ed70c1959e3805ae60661b",
+      "scene_sha256": "8696a639cb0bf7c4b4dd9f63676f518b6392e7d8dad14a52af51210bb3c50452",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: baseline"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "baseline-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-baseline-observe\\result-unsigned.apk",
+      "output_sha256": "5798db90e333d442660317f0576cda31e0fefdd7fc18d65071d98f061fe5e04e",
+      "scene_sha256": "1f0e87370bb72c7ac71c5364706b5ec04cdf793c96d31c18639ee15bf2dd6543",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: baseline-observe"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-bundle-first\\result-unsigned.apk",
+      "output_sha256": "ea6feb802493e8babe19d1d4df88d3546fd133d778e241127cfc2c624bbe061f",
+      "scene_sha256": "03e114a290666d6a270193440b99ff8a06b4beca5b973904297e7cc0d89fbd96",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "reference_sha256": "f28c91f81f6a9ab4c3c0ca74f72a8265de37f94188ed70c1959e3805ae60661b",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167094",
+        "0x167095",
+        "0x167096",
+        "0x167097"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: bundle-first"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "guard-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-guard-first\\result-unsigned.apk",
+      "output_sha256": "52b1746c5ccadae30e173fa79091be3c474671485f1299f4080b7afbca5e52c2",
+      "scene_sha256": "03e114a290666d6a270193440b99ff8a06b4beca5b973904297e7cc0d89fbd96",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-baseline\\result-unsigned.apk",
+      "reference_sha256": "f28c91f81f6a9ab4c3c0ca74f72a8265de37f94188ed70c1959e3805ae60661b",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167094",
+        "0x167095",
+        "0x167096",
+        "0x167097"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: guard-first"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "guard-first-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-guard-first-observe\\result-unsigned.apk",
+      "output_sha256": "070ec47cfe952e7bf181bb63ffc00813aa3d69e22872e5729327d77478f80175",
+      "scene_sha256": "841e4bebc111fc37267a7875230d2954159a1f671bf8e847dbdd59f42faaf4a9",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "5798db90e333d442660317f0576cda31e0fefdd7fc18d65071d98f061fe5e04e",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167094",
+        "0x167095",
+        "0x167096",
+        "0x167097"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)",
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: guard-first-observe"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "observe-guard-last",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-observe-guard-last\\result-unsigned.apk",
+      "output_sha256": "ac3a31eab06ab47c0d236f645755f204ccdc4a0544a4e1c79633f978647157e5",
+      "scene_sha256": "841e4bebc111fc37267a7875230d2954159a1f671bf8e847dbdd59f42faaf4a9",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "5798db90e333d442660317f0576cda31e0fefdd7fc18d65071d98f061fe5e04e",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167094",
+        "0x167095",
+        "0x167096",
+        "0x167097"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.22/5002322)",
+        "Decoder input buffering (experimental)",
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: observe-guard-last"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "reapply",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-observe-guard-last\\result-unsigned.apk",
+      "input_sha256": "ac3a31eab06ab47c0d236f645755f204ccdc4a0544a4e1c79633f978647157e5",
+      "signature_check_skipped_reason": "Unsigned previous audit result",
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-reapply\\result-unsigned.apk",
+      "output_sha256": "ac3a31eab06ab47c0d236f645755f204ccdc4a0544a4e1c79633f978647157e5",
+      "scene_sha256": "841e4bebc111fc37267a7875230d2954159a1f671bf8e847dbdd59f42faaf4a9",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-observe-guard-last\\result-unsigned.apk",
+      "reference_sha256": "ac3a31eab06ab47c0d236f645755f204ccdc4a0544a4e1c79633f978647157e5",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [],
+      "reapplication_all_content_identical": true,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: reapply"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.22",
+      "version_code": "5002322",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "input_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002322-standalone\\result-unsigned.apk",
+      "output_sha256": "a7cf285269c31527f7ae80e5e09509241c4283d20ca00d6f09e22d2f94695bac",
+      "scene_sha256": "40866b66674ec154007c7989832649b7184b5948e9c9893abc7a9922c9d9398c",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.22-5002322.apk",
+      "reference_sha256": "c80cae013125c37ae781a0065b258ba5c83f7d908f26a52609139f3e846829bf",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167094",
+        "0x167095",
+        "0x167096",
+        "0x167097"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: standalone"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "baseline",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "output_sha256": "45d921cbd3f062bd0eba4d0bf6a843e70b8a2981a19f195d2a975c96781335de",
+      "scene_sha256": "377547082a561b7c1f9eb3cfe9314f94b2e57602f3dea917fa8a27526d626f5b",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: baseline"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "baseline-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-baseline-observe\\result-unsigned.apk",
+      "output_sha256": "6035fab75a83e99a0864b8dd81bcfd8ce0998754d2e6144739713bb8913d4b94",
+      "scene_sha256": "f75d2dcccf80d0e7c9024a420d646b3519923b909fb796ff0d19c9b501ee1cc6",
+      "unchanged_other_zip_entries": 0,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: baseline-observe"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "bundle-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-bundle-first\\result-unsigned.apk",
+      "output_sha256": "5e043bcb3f58919ee73bf4b5f4b43012ba67ad8b59b9df8c0415df231065e65f",
+      "scene_sha256": "95bbc16138af5a785aaf39106b83a47503dc45f0a0f2f2a17e161e7e104ce71b",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "reference_sha256": "45d921cbd3f062bd0eba4d0bf6a843e70b8a2981a19f195d2a975c96781335de",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167f60",
+        "0x167f61",
+        "0x167f62",
+        "0x167f63"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: bundle-first"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "guard-first",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-guard-first\\result-unsigned.apk",
+      "output_sha256": "3a808b2e7307d7641be5ea2716cbfc6916c44718a346908da3e56193e813f54a",
+      "scene_sha256": "95bbc16138af5a785aaf39106b83a47503dc45f0a0f2f2a17e161e7e104ce71b",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-baseline\\result-unsigned.apk",
+      "reference_sha256": "45d921cbd3f062bd0eba4d0bf6a843e70b8a2981a19f195d2a975c96781335de",
+      "unchanged_other_zip_entries": 116,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167f60",
+        "0x167f61",
+        "0x167f62",
+        "0x167f63"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: guard-first"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "guard-first-observe",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-guard-first-observe\\result-unsigned.apk",
+      "output_sha256": "cc18fbb0af4a2a22894a364d654f7ab98a357f94c8192851b7785e6da318ea37",
+      "scene_sha256": "d1829f54202f200da43ad230cbfb72127521b60f9829321cccb5b2fb55496873",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "6035fab75a83e99a0864b8dd81bcfd8ce0998754d2e6144739713bb8913d4b94",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167f60",
+        "0x167f61",
+        "0x167f62",
+        "0x167f63"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)",
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: guard-first-observe"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "observe-guard-last",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-observe-guard-last\\result-unsigned.apk",
+      "output_sha256": "5a97f25d503d9fac017f4a053b999f0f62656061afe8309625b9ec38dd4349d8",
+      "scene_sha256": "d1829f54202f200da43ad230cbfb72127521b60f9829321cccb5b2fb55496873",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-baseline-observe\\result-unsigned.apk",
+      "reference_sha256": "6035fab75a83e99a0864b8dd81bcfd8ce0998754d2e6144739713bb8913d4b94",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167f60",
+        "0x167f61",
+        "0x167f62",
+        "0x167f63"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "Galaxy XR recommended set (2.0.23/5002363)",
+        "Decoder input buffering (experimental)",
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: observe-guard-last"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "reapply",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-observe-guard-last\\result-unsigned.apk",
+      "input_sha256": "5a97f25d503d9fac017f4a053b999f0f62656061afe8309625b9ec38dd4349d8",
+      "signature_check_skipped_reason": "Unsigned previous audit result",
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-reapply\\result-unsigned.apk",
+      "output_sha256": "5a97f25d503d9fac017f4a053b999f0f62656061afe8309625b9ec38dd4349d8",
+      "scene_sha256": "d1829f54202f200da43ad230cbfb72127521b60f9829321cccb5b2fb55496873",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-observe-guard-last\\result-unsigned.apk",
+      "reference_sha256": "5a97f25d503d9fac017f4a053b999f0f62656061afe8309625b9ec38dd4349d8",
+      "unchanged_other_zip_entries": 117,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [],
+      "reapplication_all_content_identical": true,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: reapply"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    },
+    {
+      "status": "passed",
+      "version": "2.0.23",
+      "version_code": "5002363",
+      "selection": "standalone",
+      "input": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "input_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "input_signature_verified": true,
+      "archive": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\patches-1.18.0-dev.4-fec-duplicate-reservation-local.mpp",
+      "archive_sha256": "f3e249d76693f7d386087877de5f64ac97e2272361b267e587734b38f2855ee4",
+      "code_and_resources": "Packaged MPP first on classpath; patch code source verified",
+      "output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\fec-duplicate-reservation\\validation-20260915\\apks\\5002363-standalone\\result-unsigned.apk",
+      "output_sha256": "f5d8eb85ee97a12b658ecc14aa20d60890345489c4f5635bb085d8bfc700a32d",
+      "scene_sha256": "c57466e8573135d1a50057140c0f6fdb5a9ec639372a74a06f33decd02ae8271",
+      "reference": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\Best Apks\\android-steamlinkvr-release-2.0.23-5002363.apk",
+      "reference_sha256": "36b21974db9f5cd9f54cdf850565b80d31c76a2dd7608406fe160e3005d976d6",
+      "unchanged_other_zip_entries": 113,
+      "signature_entries_excluded": true,
+      "guard_changed_offsets": [
+        "0x167f60",
+        "0x167f61",
+        "0x167f62",
+        "0x167f63"
+      ],
+      "reapplication_all_content_identical": false,
+      "native_mutation_stage_order": [
+        "FEC duplicate reservation guard (experimental)"
+      ],
+      "patch_results": [
+        "FEC guard archive audit: standalone"
+      ],
+      "stock_udp_receive_buffer_preserved": true,
+      "independent_guard_expected_bytes": "1f2003d5",
+      "signed_or_installed": false
+    }
+  ],
+  "catalog_regression": [
+    {
+      "catalog": "patches-list.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.4"
+    },
+    {
+      "catalog": "patches-list-all.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.4"
+    },
+    {
+      "catalog": "patches-list-stable.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 0,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.4"
+    },
+    {
+      "catalog": "patches-list-experimental.json",
+      "prior_experiment_entries": 0,
+      "new_experiment_entries": 1,
+      "all_other_json_unchanged": true,
+      "version": "1.18.0-dev.4"
+    }
+  ],
+  "runtime": "Not installed or headset-tested by this build"
+}

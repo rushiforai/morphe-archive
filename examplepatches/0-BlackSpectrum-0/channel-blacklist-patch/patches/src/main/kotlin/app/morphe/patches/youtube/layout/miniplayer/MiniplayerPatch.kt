@@ -66,6 +66,7 @@ internal const val MINIMAL_BOUNDS_INTERFACE =
 
 @Suppress("unused")
 val miniplayerPatch = bytecodePatch(
+    name = "Miniplayer",
     description = "Adds options to change the in-app minimized player. " +
             "Patching 21.28.206 and lower has more miniplayer types to choose from."
 ) {
@@ -101,6 +102,7 @@ val miniplayerPatch = bytecodePatch(
         }
 
         preferences += SwitchPreference("morphe_miniplayer_disable_resuming", summary = true)
+        preferences += SwitchPreference("morphe_miniplayer_hide_title")
         preferences += SwitchPreference("morphe_miniplayer_disable_rounded_corners")
         preferences += SwitchPreference("morphe_miniplayer_disable_drag_and_drop", summary = true)
         preferences += SwitchPreference("morphe_miniplayer_disable_horizontal_drag", summary = true)
@@ -412,7 +414,7 @@ val miniplayerPatch = bytecodePatch(
         } else {
             MiniplayerAnimatedExpandFingerprint.let {
                 it.method.apply {
-                    val insertIndex = it.instructionMatches[1].index
+                    val insertIndex = it.instructionMatches.first().index
                     val labelIndex = it.instructionMatches.last().index
                     val free = findFreeRegister(insertIndex)
 

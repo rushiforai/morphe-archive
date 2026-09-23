@@ -52,7 +52,7 @@ public class InputTextPreference extends EditTextPreference {
         // Already translated by withRestartNote, so not looked up a second time.
         baseSummary = TogglePreference.withRestartNote(context, summary, setting);
         setKey(setting.key);
-        setText(setting.get());
+        setText(setting.savedValue());
         rebuildSummary();
     }
 

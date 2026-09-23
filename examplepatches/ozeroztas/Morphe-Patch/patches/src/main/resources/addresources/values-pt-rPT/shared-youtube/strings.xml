@@ -65,6 +65,15 @@ Verifique se o nome do pacote está correto e o aplicativo está instalado"</str
   <string name="morphe_custom_branding_icon_entry_6">Morphe play preto</string>
   <!-- Translations of this should be identical to morphe_custom_branding_name_entry_5 -->
   <string name="morphe_custom_branding_icon_entry_7">Personalizado</string>
+  <string name="morphe_custom_branding_icon_user_dialog_message">"Isso altera o ícone exibido no seu iniciador de aplicativos.
+
+Esta configuração não alterará o ícone em nenhum destes locais:
+• Lista de aplicativos nas configurações do sistema do dispositivo
+• Certas notificações push
+• Seletor de aplicativos 'Abrir com'
+• Ícone do Android Auto
+
+Para alterar o ícone em todos os lugares, aplique o patch novamente e altere a opção de patch 'Ícone do aplicativo'"</string>
   <string name="morphe_custom_branding_notification_icon_title">Ícone de notificação</string>
   <string name="morphe_custom_branding_notification_icon_entry_1">Combinar ícone do aplicativo</string>
   <string name="morphe_custom_branding_notification_icon_entry_3">Morphe play</string>
@@ -229,9 +238,6 @@ Se desativado posteriormente, recomenda-se limpar os dados do aplicativo para ev
   <string name="morphe_ryd_enabled_title">Ativar Return YouTube Dislike</string>
   <string name="morphe_ryd_dislike_percentage_title">Mostrar dislikes como porcentagem</string>
   <string name="morphe_ryd_dislike_percentage_summary">Mostra dislikes como uma porcentagem de likes, em vez de um número</string>
-  <!-- Translations should match the language used in 'morphe_sb_enable_compact_skip_button'. -->
-  <string name="morphe_ryd_compact_layout_title">Usar botão \"Curtir\" compacto</string>
-  <string name="morphe_ryd_compact_layout_summary">Reduz a largura do botão \"Curtir\" para economizar espaço</string>
   <string name="morphe_ryd_estimated_like_title">Mostrar estimativa de \"gostos\"</string>
   <string name="morphe_ryd_estimated_like_summary">Mostra uma contagem estimada de likes em vídeos onde o criador desativou os likes</string>
   <string name="morphe_ryd_toast_on_connection_error_title">Mostrar alertas de erro de conexão</string>

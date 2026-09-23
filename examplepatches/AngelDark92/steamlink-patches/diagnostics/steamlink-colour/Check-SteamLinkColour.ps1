@@ -74,10 +74,22 @@ function Measure-Colour([string[]]$HostLines, [string[]]$AndroidLines) {
             $xrState = 'HIGH-PRECISION STORAGE OBSERVED - does not prove preserved 10-bit values'
         } else { $xrState = 'UNKNOWN FORMAT - needs graphics-API interpretation' }
     }
+    # Goal-specific SDR10-to-sRGB8 endpoint: the baseline recipe (neutral / srgb8-highp /
+    # dither off) submits 8-bit sRGB projections on purpose, so a 35907 endpoint is the
+    # EXPECTED output for that goal, not an overall failure. This line never proves panel depth.
+    $goalState = 'UNKNOWN - no projection telemetry to evaluate the sRGB8 baseline endpoint'
+    if ($uniqueFormats.Count -gt 0) {
+        if (@($uniqueFormats | Where-Object { $_ -ne 35907 }).Count -eq 0) {
+            $goalState = 'EXPECTED_OUTPUT - all sampled projections use GL_SRGB8_ALPHA8 (35907); 8-bit sRGB is the designed baseline endpoint, not a failure'
+        } else {
+            $goalState = 'NOT_BASELINE_ENDPOINT - sampled formats ' + ($uniqueFormats -join ', ') + '; the sRGB8 baseline recipe submits 35907. Not an overall failure; check the selected APK options and patch state'
+        }
+    }
     [pscustomobject]@{
         Host = $hostState
         Decoder = 'UNKNOWN - stock logs do not establish actual decoded sample precision'
         OpenXR = $xrState
+        Sdr10ToSrgb8 = $goalState
         Screen = 'UNVERIFIED - compositor/panel precision is not measured by this tool'
         HostModes = $uniqueModes
         ProjectionFormats = $uniqueFormats
@@ -121,6 +133,7 @@ if ($Mode -eq 'SelfTest') {
     function Assert($condition, $name) { if (-not $condition) { throw "FAILED: $name" } }
     $empty = Measure-Colour @() @()
     Assert ($empty.Host -like 'UNKNOWN*' -and $empty.OpenXR -like 'UNKNOWN*') 'missing evidence'
+    Assert ($empty.Sdr10ToSrgb8 -like 'UNKNOWN*') 'missing evidence cannot claim the baseline endpoint'
     $ten = Measure-Colour @('Using 10bit mode: 1') @('codec capability Main10 P010')
     Assert ($ten.Host -like '10-BIT*' -and $ten.Decoder -like 'UNKNOWN*') 'capability is not decoder proof'
     $mixed = Measure-Colour @('Using 10bit mode: 1', 'Using 10bit mode: 0') @()
@@ -129,12 +142,15 @@ if ($Mode -eq 'SelfTest') {
     $frame = '{"schema":2,"source":"openxr","event":"surface_trigger_frame","sourceViewCount":4,"projections":[{"views":[{"format":35907},{"format":35907}]},{"views":[{"format":35907},{"format":35907}]}]}'
     $eight = Measure-Colour @() @($prefix + $frame)
     Assert ($eight.OpenXR -like '8-BIT*' -and $eight.SampledFrames -eq 1) 'projection sRGB8'
+    Assert ($eight.Sdr10ToSrgb8 -like 'EXPECTED_OUTPUT*') 'sRGB8 endpoint is expected output for the baseline goal'
     $high = Measure-Colour @() @($prefix + $frame.Replace('35907', '32857'))
     Assert ($high.OpenXR -like 'HIGH-PRECISION*' -and $high.Screen -like 'UNVERIFIED*') 'RGB10 is not panel proof'
+    Assert ($high.Sdr10ToSrgb8 -like 'NOT_BASELINE_ENDPOINT*') 'high-precision storage is not the sRGB8 baseline endpoint'
     $quad = Measure-Colour @() @($prefix + '{"schema":2,"source":"openxr","event":"surface_trigger_create_result","format":35907}')
     Assert ($quad.OpenXR -like 'UNKNOWN*') 'ignore terminal quad'
     $unknown = Measure-Colour @() @($prefix + $frame.Replace('35907', '0'))
     Assert ($unknown.OpenXR -like 'UNKNOWN FORMAT*') 'unknown format'
+    Assert ($unknown.Sdr10ToSrgb8 -like 'NOT_BASELINE_ENDPOINT*') 'unknown format is not the sRGB8 endpoint'
     $malformed = Measure-Colour @() @($prefix + '{"schema":broken')
     Assert ($malformed.OpenXR -like 'UNKNOWN*') 'malformed JSON'
     $incomplete = Measure-Colour @() @($prefix + $frame.Replace('"sourceViewCount":4', '"sourceViewCount":6'))
@@ -170,7 +186,7 @@ if ($Mode -eq 'SelfTest') {
     Assert ($allocation.AllocatedSwapchainFormats -contains 35907 -and $allocation.SampledFrames -eq 0 -and $allocation.OpenXR -like 'UNKNOWN*') 'allocation is not submitted projection'
     $failedAllocation = Measure-Colour @() @($prefix + '{"schema":2,"source":"openxr","event":"create_swapchain","result":-1,"format":35907,"androidSurfaceSwapchain":false}')
     Assert ($failedAllocation.AllocatedSwapchainFormats.Count -eq 0) 'failed allocation excluded'
-    Write-Host 'PASS: 17 offline checks, including active-writer reads. No ADB or SteamVR access.'
+    Write-Host 'PASS: 21 offline checks, including active-writer reads and the Sdr10ToSrgb8 endpoint. No ADB or SteamVR access.'
     return
 }
 
@@ -275,6 +291,7 @@ $report = @(
     ('PC / encoder: ' + $analysis.Host),
     ('Headset decoder: ' + $analysis.Decoder),
     ('OpenXR image: ' + $analysis.OpenXR),
+    ('SDR10 to sRGB8 endpoint: ' + $analysis.Sdr10ToSrgb8),
     ('Physical screen: ' + $analysis.Screen),
     '',
     ('Host mode values: ' + ($analysis.HostModes -join ', ')),

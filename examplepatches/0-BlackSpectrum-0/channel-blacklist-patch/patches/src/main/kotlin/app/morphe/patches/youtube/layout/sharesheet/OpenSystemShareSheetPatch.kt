@@ -28,6 +28,7 @@ private const val EXTENSION_FILTER =
 @Suppress("unused")
 internal fun openSystemShareSheetPatch(
 ) = bytecodePatch(
+    name = "Open system share sheet",
     description = "Adds an option to always open the system share sheet instead of the in-app share sheet."
 ) {
 

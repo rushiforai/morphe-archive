@@ -124,7 +124,7 @@ public class SettingsSearchQueryTest {
         index.setAccessible(true);
         index.set(search, build.invoke(search, search.getActivity(), true));
 
-        java.util.List<String> titles = search(search, "override gate flags");
+        java.util.List<String> titles = search(search, "override gates");
         assertTrue("the installed Lab was absent from settings search: " + titles,
                 titles.contains("Feature Gate Lab"));
         Preference result = null;

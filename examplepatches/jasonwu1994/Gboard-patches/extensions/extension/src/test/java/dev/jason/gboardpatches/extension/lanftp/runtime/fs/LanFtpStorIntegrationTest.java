@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,10 +33,11 @@ public final class LanFtpStorIntegrationTest {
     @Test
     public void storRejectsRestartOffsetsWithoutOpeningADataTransfer() throws Exception {
         int controlPort = freePort();
-        int passivePort = freePort();
+        int passivePort = freePassivePortRangeStart(controlPort);
+        int passivePortEnd = passivePort + 9;
         LanFtpEngine engine = new LanFtpEngine(
                 new LanFtpServerConfig(
-                        controlPort, passivePort, passivePort, 4, 300,
+                        controlPort, passivePort, passivePortEnd, 4, 300,
                         false, "gboard", "abcdef", "content://tree"),
                 "127.0.0.1",
                 new LanFtpFileSystemFactory(
@@ -57,13 +61,14 @@ public final class LanFtpStorIntegrationTest {
     @Test
     public void unexpectedWorkerThrowableReleasesStagingWriterForRetry() throws Exception {
         int controlPort = freePort();
-        int passivePort = freePort();
+        int passivePort = freePassivePortRangeStart(controlPort);
+        int passivePortEnd = passivePort + 9;
         InMemoryLanFtpDocumentStore raw = new InMemoryLanFtpDocumentStore();
         LanFtpStagingDocumentStore store = new LanFtpStagingDocumentStore(raw);
         LanFtpServerConfig config = new LanFtpServerConfig(
                 controlPort,
                 passivePort,
-                passivePort,
+                passivePortEnd,
                 4,
                 300,
                 false,
@@ -95,7 +100,8 @@ public final class LanFtpStorIntegrationTest {
     @Test
     public void storPromotesBefore226RejectsUploadResumeAndDiscardsAborts() throws Exception {
         int controlPort = freePort();
-        int passivePort = freePort();
+        int passivePort = freePassivePortRangeStart(controlPort);
+        int passivePortEnd = passivePort + 9;
         InMemoryLanFtpDocumentStore raw = new InMemoryLanFtpDocumentStore();
         LanFtpStagingDocumentStore store = new LanFtpStagingDocumentStore(raw);
         AtomicInteger currentTransfers = new AtomicInteger();
@@ -109,7 +115,7 @@ public final class LanFtpStorIntegrationTest {
         LanFtpServerConfig config = new LanFtpServerConfig(
                 controlPort,
                 passivePort,
-                passivePort,
+                passivePortEnd,
                 4,
                 300,
                 false,
@@ -256,6 +262,40 @@ public final class LanFtpStorIntegrationTest {
     private static int freePort() throws IOException {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
+        }
+    }
+
+    private static int freePassivePortRangeStart(int excludedControlPort) throws IOException {
+        IOException lastFailure = null;
+        for (int attempt = 0; attempt < 100; attempt++) {
+            int candidate = freePort();
+            if (candidate > 65526 || (excludedControlPort >= candidate
+                    && excludedControlPort <= candidate + 9)) {
+                continue;
+            }
+            List<ServerSocket> reservations = new ArrayList<>(10);
+            try {
+                for (int port = candidate; port <= candidate + 9; port++) {
+                    ServerSocket socket = new ServerSocket();
+                    socket.setReuseAddress(false);
+                    socket.bind(new InetSocketAddress("127.0.0.1", port));
+                    reservations.add(socket);
+                }
+                return candidate;
+            } catch (IOException failure) {
+                lastFailure = failure;
+            } finally {
+                closeReservations(reservations);
+            }
+        }
+        throw new IOException("Unable to reserve a passive FTP port range", lastFailure);
+    }
+
+    private static void closeReservations(List<ServerSocket> reservations) {
+        for (ServerSocket socket : reservations) {
+            try {
+                socket.close();
+            } catch (IOException ignored) { }
         }
     }
 

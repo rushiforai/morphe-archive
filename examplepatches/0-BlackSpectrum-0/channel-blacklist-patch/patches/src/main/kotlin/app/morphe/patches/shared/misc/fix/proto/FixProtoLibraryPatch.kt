@@ -36,50 +36,43 @@ internal val fixProtoLibraryPatch = bytecodePatch(
     execute {
         EmptyRegistryFingerprint.let {
             it.method.apply {
-                if (it.classDef.methods.none { m -> m.name == "getEmptyRegistry" }) {
-                    it.classDef.methods.add(
-                        ImmutableMethod(
-                            definingClass,
-                            "getEmptyRegistry",
-                            emptyList(),
-                            "Lcom/google/protobuf/ExtensionRegistryLite;",
-                            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
-                            annotations,
-                            null,
-                            MutableMethodImplementation(2),
-                        ).toMutable().apply {
-                            addInstructions(
-                                0,
-                                """
-                                    new-instance v0, Lcom/google/protobuf/ExtensionRegistryLite;
-                                    invoke-direct {v0}, Lcom/google/protobuf/ExtensionRegistryLite;-><init>()V
-                                    return-object v0
-                                """
-                            )
-                        }
-                    )
-                }
+                it.classDef.methods.add(
+                    ImmutableMethod(
+                        definingClass,
+                        "getEmptyRegistry",
+                        emptyList(),
+                        "Lcom/google/protobuf/ExtensionRegistryLite;",
+                        AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                        annotations,
+                        null,
+                        MutableMethodImplementation(2),
+                    ).toMutable().apply {
+                        addInstructions(
+                            0,
+                            """
+                                new-instance v0, Lcom/google/protobuf/ExtensionRegistryLite;
+                                invoke-direct {v0}, Lcom/google/protobuf/ExtensionRegistryLite;-><init>()V
+                                return-object v0
+                            """
+                        )
+                    }
+                )
             }
         }
 
         MessageLiteWriteToFingerprint.let {
             it.method.apply {
-                val alreadyCloned = it.classDef.methods.any { m ->
-                    m.name == it.method.name && m.parameterTypes.contains("Lcom/google/protobuf/CodedOutputStream;")
-                }
-                if (!alreadyCloned) {
-                    it.classDef.methods.add(
-                        cloneMutable(
-                            parameters = listOf(
-                                ImmutableMethodParameter(
-                                    "Lcom/google/protobuf/CodedOutputStream;",
-                                    null,
-                                    null
-                                )
+                it.classDef.methods.add(
+                    cloneMutable(
+                        parameters = listOf(
+                            ImmutableMethodParameter(
+                                "Lcom/google/protobuf/CodedOutputStream;",
+                                null,
+                                null
                             )
                         )
                     )
-                }
+                )
             }
         }
 

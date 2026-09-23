@@ -20,7 +20,6 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
-import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.shared.FormatStreamModelToStringFingerprint
 import app.morphe.patches.shared.misc.settings.preference.BasePreferenceScreen
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
@@ -58,12 +57,11 @@ internal fun forceOriginalAudioPatch(
     subclassExtensionClassDescriptor: String,
     preferenceScreen: BasePreferenceScreen.Screen
 ) = bytecodePatch(
+    name = "Force original audio",
     description = "Adds an option to always use the original audio track.",
 ) {
 
     block()
-
-    dependsOn(resourceMappingPatch)
 
     execute {
         preferenceScreen.addPreferences(

@@ -12,37 +12,25 @@ object Constants {
     private data class SteamLinkBuild(val version: String, val versionCode: Int)
 
     private val LEGACY_STEAM_LINK_BUILDS = listOf(
-        SteamLinkBuild("2.0.20", 5001740),
         SteamLinkBuild("2.0.20", 5001712),
         SteamLinkBuild("2.0.22", 5002244),
-        SteamLinkBuild("2.0.22", 5002313),
     )
     private val NATIVE_XR_STEAM_LINK_BUILDS = listOf(
-        SteamLinkBuild("2.0.22", 5002318),
-        SteamLinkBuild("2.0.22", 5002322),
         SteamLinkBuild("2.0.23", 5002363),
     )
-    private val FULL_FACEBRIDGE_STEAM_LINK_BUILDS =
-        LEGACY_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002318)
+    private val FULL_FACEBRIDGE_STEAM_LINK_BUILDS = LEGACY_STEAM_LINK_BUILDS
     private val MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS = listOf(
-        SteamLinkBuild("2.0.22", 5002322),
         SteamLinkBuild("2.0.23", 5002363),
     )
     private val HIGH_RESOLUTION_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),
         SteamLinkBuild("2.0.22", 5002244),
-        SteamLinkBuild("2.0.22", 5002296),
-        SteamLinkBuild("2.0.22", 5002313),
-        SteamLinkBuild("2.0.22", 5002318),
-        SteamLinkBuild("2.0.22", 5002322),
         SteamLinkBuild("2.0.23", 5002363),
     )
     private val LEGACY_RECOMMENDED_STEAM_LINK_BUILDS = listOf(
-        SteamLinkBuild("2.0.20", 5001740),
         SteamLinkBuild("2.0.22", 5002244),
     )
-    private val LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS =
-        LEGACY_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002296)
+    private val LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS = LEGACY_STEAM_LINK_BUILDS
 
     // The 5001712 bundle is separate from the shared legacy bundle, but both use the
     // legacy recommendation defaults. Match exact pairs, not a numeric build cutoff.
@@ -52,15 +40,14 @@ object Constants {
                 it.version == version && it.versionCode.toString() == versionCode
             }
 
-    // Exact known startup adaptations, including the high-resolution-only 5002296 base.
+    // Exact known startup adaptations for the legacy bases.
     fun isEarlierStartupSteamLinkBuild(version: String, versionCode: String): Boolean =
-        (LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002318)).any {
+        LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS.any {
             it.version == version && it.versionCode.toString() == versionCode
         }
 
     val COMPATIBILITIES_STEAM_LINK_EARLIER_STARTUP =
-        (LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS + SteamLinkBuild("2.0.22", 5002318))
-            .map(::steamLinkBuildCompatibility)
+        LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS.map(::steamLinkBuildCompatibility)
 
     fun isNativeXrSteamLinkBuild(version: String, versionCode: String): Boolean =
         NATIVE_XR_STEAM_LINK_BUILDS.any {
@@ -90,10 +77,7 @@ object Constants {
     private fun steamLinkBuildCompatibility(
         build: SteamLinkBuild,
         name: String = "Steam Link",
-        description: String = if (build.versionCode == 5001740) {
-            "Static-analysis adaptation for Steam Link ${build.version} build ${build.versionCode}; " +
-                "pristine-APK patching and runtime validation remain pending."
-        } else if (build == SteamLinkBuild("2.0.23", 5002363)) {
+        description: String = if (build == SteamLinkBuild("2.0.23", 5002363)) {
             "Native and APK adaptation for exact Steam Link 2.0.23 build 5002363; headset validation pending."
         } else {
             "Verified Steam Link ${build.version} build ${build.versionCode}."
@@ -150,26 +134,12 @@ object Constants {
     val COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE =
         COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST
 
-    val COMPATIBILITIES_STEAM_LINK_5002322 =
-        COMPATIBILITIES_STEAM_LINK_NATIVE_XR.filter { compatibility ->
-            compatibility.targets.any { target ->
-                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002322) == true
-            }
-        }
-
     val COMPATIBILITIES_STEAM_LINK_MODERN_TONGUE_BRIDGE =
         MODERN_TONGUE_BRIDGE_STEAM_LINK_BUILDS.map(::steamLinkBuildCompatibility)
 
     val COMPATIBILITIES_STEAM_LINK_5002363 =
         NATIVE_XR_STEAM_LINK_BUILDS.filter { it == SteamLinkBuild("2.0.23", 5002363) }
             .map(::steamLinkBuildCompatibility)
-
-    val COMPATIBILITIES_STEAM_LINK_5002318 =
-        COMPATIBILITIES_STEAM_LINK_NATIVE_XR.filter { compatibility ->
-            compatibility.targets.any { target ->
-                target.version == "2.0.22" && target.versionCodes?.values?.contains(5002318) == true
-            }
-        }
 
     val COMPATIBILITIES_STEAM_LINK_5001712 =
         COMPATIBILITIES_STEAM_LINK_LEGACY.filter { compatibility ->
@@ -189,8 +159,6 @@ object Constants {
                     5001712 -> "Exact Steam Link 2.0.20/5001712 high-resolution target with its isolated " +
                         "2-projection to 3-layer payload. The topology correction has prior user-reported " +
                         "startup and delayed-frame runtime evidence; this rebuilt binary remains uninstalled."
-                    5002322 -> "Headset-validated Galaxy XR high-resolution patch target for exact Steam Link " +
-                        "${build.version} build ${build.versionCode}."
                     else -> "Static decoded-base adaptation of the Galaxy XR high-resolution patch for exact " +
                         "Steam Link ${build.version} build ${build.versionCode}; headset validation pending."
                 },

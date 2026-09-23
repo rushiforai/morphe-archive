@@ -13,6 +13,7 @@ import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInsta
 
 @Suppress("unused")
 val changeInstallerSource = resourcePatch(
+    name = "Change installer source",
     description = "Spoofs the installer source so the app appears to be installed from an app store.",
     default = false
 ) {

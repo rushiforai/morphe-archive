@@ -50,7 +50,7 @@ public class TabSelectionPreference extends Preference {
         // stored, at the moment the row is built, made building the page a change to the
         // reader's settings. Nothing needs it written: every reader of this setting parses it,
         // and the tidied form is saved the moment the reader actually chooses something.
-        this.value = serializeEnabledKeys(parseEnabledKeys(setting.get()));
+        this.value = serializeEnabledKeys(parseEnabledKeys(setting.savedValue()));
         this.valueSet = true;
         refreshSummary();
     }
@@ -251,14 +251,14 @@ public class TabSelectionPreference extends Preference {
     private List<OptionRow> getObservedOptions() {
         LinkedHashSet<OptionRow> rows = new LinkedHashSet<>();
         if (bottomTabs) {
-            Set<String> observed = BottomNavigationTabOptions.parseObservedKeys(Settings.BOTTOM_NAVIGATION_OBSERVED_TABS.get());
+            Set<String> observed = BottomNavigationTabOptions.parseObservedKeys(Settings.BOTTOM_NAVIGATION_OBSERVED_TABS.savedValue());
             observed.add(BottomNavigationTabOptions.HOME);
             observed.add(BottomNavigationTabOptions.PROFILE);
             for (BottomNavigationTabOptions.Option option : BottomNavigationTabOptions.optionsForKeys(observed)) {
                 rows.add(new OptionRow(option.key, option.label));
             }
         } else {
-            Set<String> observed = NavigationTabOptions.parseObservedKeys(Settings.FEED_NAVIGATION_OBSERVED_TABS.get());
+            Set<String> observed = NavigationTabOptions.parseObservedKeys(Settings.FEED_NAVIGATION_OBSERVED_TABS.savedValue());
             observed.add(NavigationTabOptions.HOT);
             for (NavigationTabOptions.Option option : NavigationTabOptions.optionsForKeys(observed)) {
                 rows.add(new OptionRow(option.key, option.label));

@@ -37,9 +37,6 @@ public final class BotGuardManager {
     private static final String YOUTUBE_URL = "https://www.youtube.com/";
     private static final String YOUTUBE_TV_URL = "https://www.youtube.com/tv";
     private static final String USER_AGENT = "Mozilla/5.0 (SMART-TV; Linux; Tizen 8.0) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/7.0 Chrome/108.0.5359.1 TV Safari/537.36";
-    // YouTube's public web client API key for BotGuard integrity token requests.
-    // Concatenated to prevent automated GitHub Secret Scanning false-positive alerts.
-    private static final String YOUTUBE_WEB_API_KEY = "AIza" + "SyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw";
     /**
      * TCP connection and HTTP read timeout.
      */
@@ -268,7 +265,7 @@ public final class BotGuardManager {
             connection.setRequestProperty("User-Agent", USER_AGENT);
             connection.setRequestProperty("Accept", "application/json");
             connection.setRequestProperty("Content-Type", "application/json+protobuf");
-            connection.setRequestProperty("x-goog-api-key", YOUTUBE_WEB_API_KEY);
+            connection.setRequestProperty("x-goog-api-key", "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw");
             connection.setRequestProperty("x-user-agent", "grpc-web-javascript/0.1");
             connection.setConnectTimeout(HTTP_TIMEOUT_MILLISECONDS);
             connection.setReadTimeout(HTTP_TIMEOUT_MILLISECONDS);

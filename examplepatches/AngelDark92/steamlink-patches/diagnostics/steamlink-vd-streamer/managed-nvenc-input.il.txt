@@ -1,0 +1,696 @@
+0x60215f9 '\x83.\x01'::'\x03' RVA 0x8941a0 signature=200001
+000c ldloca.s local(0x0000)
+000e ldc.i4.0 
+000f br.s 110
+0011 ldfld 0x4014f69 '\x83.\x01'::'\x01'
+0016 br.s 116
+0018 br.s 126
+001a br 136
+001f ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+0024 ldfld 0x4015033 '\x04\x03.\x03'::'\x01'
+0029 ldloca.s local(0x0000)
+002b br.s 146
+002d ldflda 0x4014f6c '\x83.\x01'::'\x01'
+0032 br.s 149
+0034 br.s 156
+0036 br.s 162
+0038 ldc.i4.s 15
+003a bne.un.s 102
+003c ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+0041 br.s 168
+0043 call 0x60215da '\x8d.\x02'::'\x01'
+0048 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+004d ldfld 0x4015033 '\x04\x03.\x03'::'\x01'
+0052 ldloca.s local(0x0000)
+0054 ldarg.0 
+0055 ldflda 0x4014f6c '\x83.\x01'::'\x01'
+005a callvirt 0x602167d '\x9a\x02.\x04'::'Invoke'
+005f call 0x60215da '\x8d.\x02'::'\x01'
+0064 leave.s 195
+0066 ldloc.1 
+0067 call 0x60215da '\x8d.\x02'::'\x01'
+006c leave.s 195
+006e ldarg.0 
+006f br 17
+0074 call 0x600d706 'SharpDX.Toolkit.Graphics.GraphicsDevice'::'op_Implicit'
+0079 br 24
+007e callvirt 0x60095d2 'SharpDX.CppObject'::'get_NativePointer'
+0083 br 26
+0088 call 0x602169c '\x94\x02.\x03'::'.ctor'
+008d br 31
+0092 ldarg.0 
+0093 br.s 45
+0095 callvirt 0x602167d '\x9a\x02.\x04'::'Invoke'
+009a br.s 52
+009c stloc.1 
+009d br 54
+00a2 ldloc.1 
+00a3 br 56
+00a8 call 0x6021608 '\x83.\x01'::'\x01'
+00ad br.s 67
+00af ldloc.0 
+00b0 box 0x2003e97 '\x94\x02.\x03'
+00b5 ldloc.1 
+00b6 box 0x2003e38 '\x04\x02.\x08'
+00bb ldarg.0 
+00bc call 0x600d88c '\x9e\x02.\x01'::'\x01'
+00c1 rethrow 
+00c3 ret 
+
+0x60215fc '\x83.\x01'::'\x05' RVA 0x8943e0 signature=200001
+000c br 383
+0011 br 389
+0016 br 399
+001b ldloca.s local(0x0002)
+001d initobj 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+0023 ldloca.s local(0x0002)
+0025 ldc.i4.1 
+0026 stfld 0x4008274 'SharpDX.Direct3D11.Texture2DDescription'::'ArraySize'
+002b ldloca.s local(0x0002)
+002d ldc.i4.s 32
+002f stfld 0x4008278 'SharpDX.Direct3D11.Texture2DDescription'::'BindFlags'
+0034 ldloca.s local(0x0002)
+0036 ldc.i4.0 
+0037 stfld 0x4008279 'SharpDX.Direct3D11.Texture2DDescription'::'CpuAccessFlags'
+003c ldloca.s local(0x0002)
+003e ldc.i4.s 87
+0040 stfld 0x4008275 'SharpDX.Direct3D11.Texture2DDescription'::'Format'
+0045 ldloca.s local(0x0002)
+0047 br 405
+004c ldfld 0x4005f2b 'SharpDX.Size2'::'Height'
+0051 stfld 0x4008272 'SharpDX.Direct3D11.Texture2DDescription'::'Height'
+0056 ldloca.s local(0x0002)
+0058 ldc.i4.1 
+0059 stfld 0x4008273 'SharpDX.Direct3D11.Texture2DDescription'::'MipLevels'
+005e ldloca.s local(0x0002)
+0060 ldc.i4.0 
+0061 stfld 0x400827a 'SharpDX.Direct3D11.Texture2DDescription'::'OptionFlags'
+0066 ldloca.s local(0x0002)
+0068 ldc.i4.1 
+0069 ldc.i4.0 
+006a br 411
+006f stfld 0x4008276 'SharpDX.Direct3D11.Texture2DDescription'::'SampleDescription'
+0074 ldloca.s local(0x0002)
+0076 ldc.i4.0 
+0077 stfld 0x4008277 'SharpDX.Direct3D11.Texture2DDescription'::'Usage'
+007c ldloca.s local(0x0002)
+007e br 421
+0083 ldfld 0x4005f2a 'SharpDX.Size2'::'Width'
+0088 stfld 0x4008271 'SharpDX.Direct3D11.Texture2DDescription'::'Width'
+008d br 427
+0092 br 433
+0097 ldloca.s local(0x0003)
+0099 initobj 0x2001b32 'SharpDX.Direct3D11.VideoProcessorOutputViewDescription'
+009f ldloca.s local(0x0003)
+00a1 ldc.i4.1 
+00a2 stfld 0x400831d 'SharpDX.Direct3D11.VideoProcessorOutputViewDescription'::'Dimension'
+00a7 ldc.i4.0 
+00a8 br 439
+00ad br 370
+00b2 ldarg.0 
+00b3 ldarg.0 
+00b4 ldfld 0x4014f6c '\x83.\x01'::'\x01'
+00b9 call 0x6021605 '\x83.\x01'::'\x01'
+00be stloc.s local(0x0005)
+00c0 ldarg.0 
+00c1 ldfld 0x4014f69 '\x83.\x01'::'\x01'
+00c6 call 0x600d706 'SharpDX.Toolkit.Graphics.GraphicsDevice'::'op_Implicit'
+00cb ldloc.1 
+00cc newobj 0x600a9d2 'SharpDX.Direct3D11.Texture2D'::'.ctor'
+00d1 stloc.s local(0x0006)
+00d3 ldloca.s local(0x0007)
+00d5 ldloc.s local(0x0006)
+00d7 callvirt 0x60095d2 'SharpDX.CppObject'::'get_NativePointer'
+00dc ldc.i4.0 
+00dd ldloc.0 
+00de ldfld 0x4005f2a 'SharpDX.Size2'::'Width'
+00e3 ldloc.0 
+00e4 ldfld 0x4005f2b 'SharpDX.Size2'::'Height'
+00e9 ldloc.0 
+00ea ldfld 0x4005f2a 'SharpDX.Size2'::'Width'
+00ef ldc.i4.4 
+00f0 mul 
+00f1 ldc.i4 16777216
+00f6 ldc.i4.0 
+00f7 call 0x60216a2 '\x06\x03.\x03'::'.ctor'
+00fc ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+0101 ldfld 0x4015034 '\x04\x03.\x03'::'\x01'
+0106 ldarg.0 
+0107 ldfld 0x4014f6c '\x83.\x01'::'\x01'
+010c ldloca.s local(0x0007)
+010e callvirt 0x6021681 '\x18\x02.\x06'::'Invoke'
+0113 call 0x60215da '\x8d.\x02'::'\x01'
+0118 ldloc.s local(0x0006)
+011a ldloc.s local(0x0007)
+011c ldfld 0x4015136 '\x06\x03.\x03'::'\x02'
+0121 ldloc.s local(0x0005)
+0123 newobj 0x60215dc '\x12\x03.\x06'::'.ctor'
+0128 stloc.s local(0x0008)
+012a ldloca.s local(0x0009)
+012c ldloc.s local(0x0008)
+012e callvirt 0x60215e1 '\x12\x03.\x06'::'\x03'
+0133 call 0x6021694 '\x90.\x03'::'.ctor'
+0138 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+013d ldfld 0x401502d '\x04\x03.\x03'::'\x01'
+0142 ldarg.0 
+0143 ldfld 0x4014f6c '\x83.\x01'::'\x01'
+0148 ldloca.s local(0x0009)
+014a callvirt 0x602166d '\x96.\x04'::'Invoke'
+014f call 0x60215da '\x8d.\x02'::'\x01'
+0154 ldarg.0 
+0155 ldfld 0x4014f66 '\x83.\x01'::'\x01'
+015a ldloc.s local(0x0004)
+015c ldloc.s local(0x0008)
+015e stelem.ref 
+015f ldarg.0 
+0160 ldfld 0x4014f67 '\x83.\x01'::'\x01'
+0165 ldloc.s local(0x0008)
+0167 callvirt 0xa003f6a TypeSpecRow::'Enqueue'
+016c ldloc.s local(0x0004)
+016e ldc.i4.1 
+016f add 
+0170 stloc.s local(0x0004)
+0172 ldloc.s local(0x0004)
+0174 ldc.i4.4 
+0175 blt 178
+017a leave 567
+017f ldarg.0 
+0180 br 17
+0185 call 0x602151d '\x13\x02.\x01'::'\x01'
+018a br 22
+018f stloc.0 
+0190 br 27
+0195 ldloc.0 
+0196 br 76
+019b newobj 0x600b436 'SharpDX.DXGI.SampleDescription'::'.ctor'
+01a0 br 111
+01a5 ldloc.0 
+01a6 br 131
+01ab ldloc.2 
+01ac br 146
+01b1 stloc.1 
+01b2 br 151
+01b7 stloc.s local(0x0004)
+01b9 br 173
+01be ldc.i4.s 11
+01c0 newarr 0x1000020 'System.Object'
+01c5 stloc.s local(0x000A)
+01c7 ldloc.s local(0x000A)
+01c9 ldc.i4.0 
+01ca ldloc.0 
+01cb box 0x2001682 'SharpDX.Size2'
+01d0 stelem.ref 
+01d1 ldloc.s local(0x000A)
+01d3 ldc.i4.1 
+01d4 ldloc.1 
+01d5 box 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+01da stelem.ref 
+01db ldloc.s local(0x000A)
+01dd ldc.i4.2 
+01de ldloc.2 
+01df box 0x2001b12 'SharpDX.Direct3D11.Texture2DDescription'
+01e4 stelem.ref 
+01e5 ldloc.s local(0x000A)
+01e7 ldc.i4.3 
+01e8 ldloc.3 
+01e9 box 0x2001b32 'SharpDX.Direct3D11.VideoProcessorOutputViewDescription'
+01ee stelem.ref 
+01ef ldloc.s local(0x000A)
+01f1 ldc.i4.4 
+01f2 ldloc.s local(0x0004)
+01f4 box 0x100046a 'System.Int32'
+01f9 stelem.ref 
+01fa ldloc.s local(0x000A)
+01fc ldc.i4.5 
+01fd ldloc.s local(0x0005)
+01ff box 0x100046b 'System.IntPtr'
+0204 stelem.ref 
+0205 ldloc.s local(0x000A)
+0207 ldc.i4.6 
+0208 ldloc.s local(0x0006)
+020a stelem.ref 
+020b ldloc.s local(0x000A)
+020d ldc.i4.7 
+020e ldloc.s local(0x0007)
+0210 box 0x2003eac '\x06\x03.\x03'
+0215 stelem.ref 
+0216 ldloc.s local(0x000A)
+0218 ldc.i4.8 
+0219 ldloc.s local(0x0008)
+021b stelem.ref 
+021c ldloc.s local(0x000A)
+021e ldc.i4.s 9
+0220 ldloc.s local(0x0009)
+0222 box 0x2003e81 '\x90.\x03'
+0227 stelem.ref 
+0228 ldloc.s local(0x000A)
+022a ldc.i4.s 10
+022c ldarg.0 
+022d stelem.ref 
+022e ldloc.s local(0x000A)
+0230 call 0x600d894 '\x9e\x02.\x01'::'\x01'
+0235 rethrow 
+0237 ret 
+
+0x60215fd '\x83.\x01'::'\x02' RVA 0x894634 signature=20010111c000f730
+000c ldc.i4.s 29
+000e localloc 
+0010 conv.u 
+0011 br 902
+0016 br 597
+001b br 603
+0020 brfalse.s 46
+0022 ldc.i4.s 16
+0024 br 613
+0029 br 198
+002e br 619
+0033 br 625
+0038 brfalse.s 70
+003a ldc.i4.s 32
+003c br 635
+0041 br 198
+0046 ldc.i4 256
+004b conv.u 
+004c localloc 
+004e br 641
+0053 ldloca.s local(0x0007)
+0055 initobj 0x2003eaf '\x86\x02.\x04'
+005b ldloca.s local(0x0007)
+005d br 648
+0062 newobj 0xa00090b 'System.IntPtr'::'.ctor'
+0067 stfld 0x4015145 '\x86\x02.\x04'::'\x01'
+006c ldloca.s local(0x0007)
+006e ldc.i4 256
+0073 stfld 0x4015142 '\x86\x02.\x04'::'\x03'
+0078 ldsflda 0x4014f65 '\x83.\x01'::'\x01'
+007d ldfld 0x401502c '\x04\x03.\x03'::'\x01'
+0082 ldarg.0 
+0083 ldfld 0x4014f6c '\x83.\x01'::'\x01'
+0088 ldloca.s local(0x0007)
+008a callvirt 0x6021669 '\x03\x02.\x08'::'Invoke'
+008f pop 
+0090 ldc.i4.1 
+0091 ldloc.s local(0x0006)
+0093 ldind.u1 
+0094 ldc.i4.2 
+0095 shr 
+0096 ldc.i4.1 
+0097 and 
+0098 add 
+0099 stloc.s local(0x0008)
+009b ldloc.s local(0x0006)
+009d ldloc.s local(0x0008)
+009f dup 
+00a0 ldc.i4.1 
+00a1 add 
+00a2 stloc.s local(0x0008)
+00a4 add 
+00a5 ldind.u1 
+00a6 ldc.i4 128
+00ab and 
+00ac brtrue.s 155
+00ae ldloc.s local(0x0006)
+00b0 ldloc.s local(0x0008)
+00b2 add 
+00b3 ldind.u1 
+00b4 ldc.i4.s 16
+00b6 and 
+00b7 ldc.i4.0 
+00b8 cgt.un 
+00ba brtrue.s 192
+00bc ldc.i4.s 64
+00be br.s 197
+00c0 ldc.i4 128
+00c5 stloc.1 
+00c6 ldarg.0 
+00c7 call 0x602151d '\x13\x02.\x01'::'\x01'
+00cc dup 
+00cd ldfld 0x4005f2a 'SharpDX.Size2'::'Width'
+00d2 ldloc.1 
+00d3 add 
+00d4 ldc.i4.1 
+00d5 sub 
+00d6 ldloc.1 
+00d7 div 
+00d8 stloc.2 
+00d9 ldfld 0x4005f2b 'SharpDX.Size2'::'Height'
+00de ldloc.1 
+00df add 
+00e0 ldc.i4.1 
+00e1 sub 
+00e2 ldloc.1 
+00e3 div 
+00e4 stloc.3 
+00e5 ldloc.0 
+00e6 ldloc.2 
+00e7 ldloc.3 
+00e8 mul 
+00e9 stind.i4 
+00ea ldsfld 0x401629c '.\x99'::'\x8e\x06'
+00ef ldloc.0 
+00f0 ldind.i4 
+00f1 call 0x6022da0 '.\x99'::'Invoke'
+00f6 stloc.s local(0x0004)
+00f8 ldloca.s local(0x0004)
+00fa call 0xa00073a 'System.IntPtr'::'ToPointer'
+00ff stloc.s local(0x0005)
+0101 ldloc.0 
+0102 ldc.i4.4 
+0103 add 
+0104 ldsfld 0x401638a '.\x81\x03'::'\x1b\x0e'
+0109 ldloc.2 
+010a ldloc.2 
+010b mul 
+010c ldloc.3 
+010d ldloc.3 
+010e mul 
+010f add 
+0110 conv.r8 
+0111 call 0x6022eb7 '.\x81\x03'::'Invoke'
+0116 conv.r4 
+0117 ldc.r4 2.0
+011c div 
+011d stind.r4 
+011e ldloc.0 
+011f ldc.i4.8 
+0120 add 
+0121 ldc.i4.0 
+0122 stind.i4 
+0123 br 536
+0128 ldloc.0 
+0129 ldc.i4.s 12
+012b add 
+012c ldc.i4.0 
+012d stind.i4 
+012e br 515
+0133 ldsfld 0x401638a '.\x81\x03'::'\x1b\x0e'
+0138 ldloc.0 
+0139 ldc.i4.s 12
+013b add 
+013c ldind.i4 
+013d conv.r4 
+013e ldc.r4 0.5
+0143 add 
+0144 ldloc.2 
+0145 conv.r4 
+0146 ldc.r4 2.0
+014b div 
+014c sub 
+014d ldloc.0 
+014e ldc.i4.s 16
+0150 add 
+0151 ldloc.0 
+0152 ldc.i4.8 
+0153 add 
+0154 ldind.i4 
+0155 conv.r4 
+0156 ldc.r4 0.5
+015b add 
+015c ldloc.3 
+015d conv.r4 
+015e ldc.r4 2.0
+0163 div 
+0164 sub 
+0165 stind.r4 
+0166 dup 
+0167 mul 
+0168 ldloc.0 
+0169 ldc.i4.s 16
+016b add 
+016c ldind.r4 
+016d ldloc.0 
+016e ldc.i4.s 16
+0170 add 
+0171 ldind.r4 
+0172 mul 
+0173 add 
+0174 conv.r8 
+0175 call 0x6022eb7 '.\x81\x03'::'Invoke'
+017a ldloc.0 
+017b ldc.i4.4 
+017c add 
+017d ldind.r4 
+017e conv.r8 
+017f div 
+0180 conv.r4 
+0181 stloc.s local(0x0009)
+0183 ldloc.s local(0x0009)
+0185 ldc.r4 0.699999988079071
+018a bgt.un.s 408
+018c ldloc.0 
+018d ldc.i4.s 20
+018f add 
+0190 ldc.r4 -6.0
+0195 stind.r4 
+0196 br.s 449
+0198 ldloc.0 
+0199 ldc.i4.s 24
+019b add 
+019c ldloc.s local(0x0009)
+019e ldc.r4 0.699999988079071
+01a3 sub 
+01a4 ldc.r4 0.30000001192092896
+01a9 div 
+01aa stind.r4 
+01ab ldloc.0 
+01ac ldc.i4.s 20
+01ae add 
+01af ldc.r4 -6.0
+01b4 ldloc.0 
+01b5 ldc.i4.s 24
+01b7 add 
+01b8 ldind.r4 
+01b9 ldc.r4 12.0
+01be mul 
+01bf add 
+01c0 stind.r4 
+01c1 ldloc.0 
+01c2 ldc.i4.s 28
+01c4 add 
+01c5 ldsfld 0x4016472 '.\x9c\x04'::'\x95\x10'
+01ca ldloc.0 
+01cb ldc.i4.s 20
+01cd add 
+01ce ldind.r4 
+01cf conv.r8 
+01d0 ldc.i4.1 
+01d1 call 0x6022fb3 '.\x9c\x04'::'Invoke'
+01d6 conv.i4 
+01d7 ldc.i4.s -31
+01d9 ldc.i4.s 31
+01db call 0x600b707 'SharpDX.Mathematics.MathUtil'::'Clamp'
+01e0 conv.i1 
+01e1 stind.i1 
+01e2 ldloc.s local(0x0005)
+01e4 ldloc.0 
+01e5 ldc.i4.8 
+01e6 add 
+01e7 ldind.i4 
+01e8 ldloc.2 
+01e9 mul 
+01ea ldloc.0 
+01eb ldc.i4.s 12
+01ed add 
+01ee ldind.i4 
+01ef add 
+01f0 add 
+01f1 ldloc.0 
+01f2 ldc.i4.s 28
+01f4 add 
+01f5 ldind.i1 
+01f6 stind.i1 
+01f7 ldloc.0 
+01f8 ldc.i4.s 12
+01fa add 
+01fb ldloc.0 
+01fc ldc.i4.s 12
+01fe add 
+01ff ldind.i4 
+0200 ldc.i4.1 
+0201 add 
+0202 stind.i4 
+0203 ldloc.0 
+0204 ldc.i4.s 12
+0206 add 
+0207 ldind.i4 
+0208 ldloc.2 
+0209 blt 307
+020e ldloc.0 
+020f ldc.i4.8 
+0210 add 
+0211 ldloc.0 
+0212 ldc.i4.8 
+0213 add 
+0214 ldind.i4 
+0215 ldc.i4.1 
+0216 add 
+0217 stind.i4 
+0218 ldloc.0 
+0219 ldc.i4.8 
+021a add 
+021b ldind.i4 
+021c ldloc.3 
+021d blt 296
+0222 ldarg.0 
+0223 ldloc.1 
+0224 stfld 0x4014f73 '\x83.\x01'::'\x02'
+0229 ldarg.0 
+022a ldloc.s local(0x0004)
+022c stfld 0x4014f74 '\x83.\x01'::'\x02'
+0231 ldarg.0 
+0232 ldloc.0 
+0233 ldind.i4 
+0234 stfld 0x4014f75 '\x83.\x01'::'\x03'
+0239 ldarg.0 
+023a ldloc.2 
+023b ldloc.3 
+023c newobj 0x60096a5 'SharpDX.Size2'::'.ctor'
+0241 stfld 0x4014f76 '\x83.\x01'::'\x01'
+0246 ldarg.0 
+0247 ldloc.0 
+0248 ldc.i4.4 
+0249 add 
+024a ldind.r4 
+024b stfld 0x4014f77 '\x83.\x01'::'\x01'
+0250 leave 901
+0255 ldarg.1 
+0256 br 27
+025b call 0x60213e1 '\x18\x02.\x03'::'\x01'
+0260 br 32
+0265 stloc.1 
+0266 br 41
+026b ldarg.1 
+026c br 51
+0271 call 0x60213e2 '\x18\x02.\x03'::'\x02'
+0276 br 56
+027b stloc.1 
+027c br 65
+0281 stloc.s local(0x0006)
+0283 br 83
+0288 ldloc.s local(0x0006)
+028a br 98
+028f ldc.i4.s 19
+0291 newarr 0x1000020 'System.Object'
+0296 stloc.s local(0x000A)
+0298 ldloc.s local(0x000A)
+029a ldc.i4.0 
+029b ldloc.1 
+029c box 0x100046a 'System.Int32'
+02a1 stelem.ref 
+02a2 ldloc.s local(0x000A)
+02a4 ldc.i4.1 
+02a5 ldloc.2 
+02a6 box 0x100046a 'System.Int32'
+02ab stelem.ref 
+02ac ldloc.s local(0x000A)
+02ae ldc.i4.2 
+02af ldloc.3 
+02b0 box 0x100046a 'System.Int32'
+02b5 stelem.ref 
+02b6 ldloc.s local(0x000A)
+02b8 ldc.i4.3 
+02b9 ldloc.0 
+02ba ldind.i4 
+02bb box 0x100046a 'System.Int32'
+02c0 stelem.ref 
+02c1 ldloc.s local(0x000A)
+02c3 ldc.i4.4 
+02c4 ldloc.s local(0x0004)
+02c6 box 0x100046b 'System.IntPtr'
+02cb stelem.ref 
+02cc ldloc.s local(0x000A)
+02ce ldc.i4.5 
+02cf ldloc.s local(0x0005)
+02d1 box 0x100046b 'System.IntPtr'
+02d6 stelem.ref 
+02d7 ldloc.s local(0x000A)
+02d9 ldc.i4.6 
+02da ldloc.0 
+02db ldc.i4.4 
+02dc add 
+02dd ldind.r4 
+02de box 0x1000478 'System.Single'
+02e3 stelem.ref 
+02e4 ldloc.s local(0x000A)
+02e6 ldc.i4.7 
+02e7 ldloc.s local(0x0006)
+02e9 box 0x100046b 'System.IntPtr'
+02ee stelem.ref 
+02ef ldloc.s local(0x000A)
+02f1 ldc.i4.8 
+02f2 ldloc.s local(0x0007)
+02f4 box 0x2003eaf '\x86\x02.\x04'
+02f9 stelem.ref 
+02fa ldloc.s local(0x000A)
+02fc ldc.i4.s 9
+02fe ldloc.s local(0x0008)
+0300 box 0x100046a 'System.Int32'
+0305 stelem.ref 
+0306 ldloc.s local(0x000A)
+0308 ldc.i4.s 10
+030a ldloc.0 
+030b ldc.i4.8 
+030c add 
+030d ldind.i4 
+030e box 0x100046a 'System.Int32'
+0313 stelem.ref 
+0314 ldloc.s local(0x000A)
+0316 ldc.i4.s 11
+0318 ldloc.0 
+0319 ldc.i4.s 12
+031b add 
+031c ldind.i4 
+031d box 0x100046a 'System.Int32'
+0322 stelem.ref 
+0323 ldloc.s local(0x000A)
+0325 ldc.i4.s 12
+0327 ldloc.0 
+0328 ldc.i4.s 16
+032a add 
+032b ldind.r4 
+032c box 0x1000478 'System.Single'
+0331 stelem.ref 
+0332 ldloc.s local(0x000A)
+0334 ldc.i4.s 13
+0336 ldloc.s local(0x0009)
+0338 box 0x1000478 'System.Single'
+033d stelem.ref 
+033e ldloc.s local(0x000A)
+0340 ldc.i4.s 14
+0342 ldloc.0 
+0343 ldc.i4.s 20
+0345 add 
+0346 ldind.r4 
+0347 box 0x1000478 'System.Single'
+034c stelem.ref 
+034d ldloc.s local(0x000A)
+034f ldc.i4.s 15
+0351 ldloc.0 
+0352 ldc.i4.s 28
+0354 add 
+0355 ldind.i1 
+0356 box 0x10004c4 'System.SByte'
+035b stelem.ref 
+035c ldloc.s local(0x000A)
+035e ldc.i4.s 16
+0360 ldloc.0 
+0361 ldc.i4.s 24
+0363 add 
+0364 ldind.r4 
+0365 box 0x1000478 'System.Single'
+036a stelem.ref 
+036b ldloc.s local(0x000A)
+036d ldc.i4.s 17
+036f ldarg.0 
+0370 stelem.ref 
+0371 ldloc.s local(0x000A)
+0373 ldc.i4.s 18
+0375 ldarg.1 
+0376 box 0x2003dcc 'VirtualDesktop.Net.VideoCodec'
+037b stelem.ref 
+037c ldloc.s local(0x000A)
+037e call 0x600d894 '\x9e\x02.\x01'::'\x01'
+0383 rethrow 
+0385 ret 
+0386 stloc.0 
+0387 br 22

@@ -12,7 +12,6 @@ class DeviceIdentityPatchTest {
         assertEquals("recommended", deviceIdentityPatch.options["profile"].default)
         listOf(
             "2.0.20" to "5001712",
-            "2.0.20" to "5001740",
             "2.0.22" to "5002244",
         ).forEach { (version, code) ->
             assertEquals("meta-quest-pro", resolveDeviceIdentityProfile("recommended", version, code))
@@ -35,7 +34,7 @@ class DeviceIdentityPatchTest {
     @Test
     fun `explicit identity choices override automatic defaults without mutation`() {
         listOf("samsung-galaxy-xr", "meta-quest-pro", "pico-4-pro", "stock-no-change").forEach { profile ->
-            listOf("2.0.20" to "5001712", "2.0.22" to "5002244", "2.0.22" to "5002318")
+            listOf("2.0.20" to "5001712", "2.0.22" to "5002244", "2.0.23" to "5002363")
                 .forEach { (version, code) ->
                     assertEquals(profile, resolveDeviceIdentityProfile(profile, version, code))
                 }

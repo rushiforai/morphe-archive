@@ -36,7 +36,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import java.lang.ref.WeakReference
@@ -51,10 +50,18 @@ private const val REGISTER_FILTER_COUNT = 1
 private const val REGISTER_FILTER_ARRAY = 2
 
 private lateinit var helperMethodRef : WeakReference<MutableMethod>
-private val lithoFilters = mutableSetOf<String>()
+private var addLithoFilterCount = 0
 
 fun addLithoFilter(classDescriptor: String) {
-    lithoFilters.add(classDescriptor)
+    helperMethodRef.get()!!.addInstructions(
+        0,
+        """
+            new-instance v$REGISTER_FILTER_CLASS, $classDescriptor
+            invoke-direct { v$REGISTER_FILTER_CLASS }, $classDescriptor-><init>()V
+            const/16 v$REGISTER_FILTER_COUNT, ${addLithoFilterCount++}
+            aput-object v$REGISTER_FILTER_CLASS, v$REGISTER_FILTER_ARRAY, v$REGISTER_FILTER_COUNT
+        """
+    )
 }
 
 /**
@@ -126,53 +133,41 @@ internal fun sharedLithoFilterPatch(
                 val helperClass = definingClass
                 val helperName = "patch_getFilterArray"
                 val helperReturnType = EXTENSION_FILTER
-
-                val existingMethod = it.classDef.methods.firstOrNull { m -> m.name == helperName }
-                val helperMethod = if (existingMethod != null) {
-                    existingMethod
-                } else {
-                    val newMethod = ImmutableMethod(
-                        helperClass,
-                        helperName,
-                        listOf(),
-                        helperReturnType,
-                        AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
-                        null,
-                        null,
-                        MutableMethodImplementation(3),
-                    ).toMutable()
-                    it.classDef.methods.add(newMethod)
-
-                    val insertIndex = it.instructionMatches.first().index
-                    val insertRegister =
-                        getInstruction<OneRegisterInstruction>(insertIndex).registerA
-
-                    addInstructions(
-                        insertIndex,
-                        """
-                            invoke-static {}, $EXTENSION_CLASS->$helperName()$EXTENSION_FILTER
-                            move-result-object v$insertRegister
-                        """
-                    )
-                    newMethod
-                }
+                val helperMethod = ImmutableMethod(
+                    helperClass,
+                    helperName,
+                    listOf(),
+                    helperReturnType,
+                    AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+                    null,
+                    null,
+                    MutableMethodImplementation(3),
+                ).toMutable()
+                it.classDef.methods.add(helperMethod)
                 helperMethodRef = WeakReference(helperMethod)
+
+                val insertIndex = it.instructionMatches.first().index
+                val insertRegister =
+                    getInstruction<OneRegisterInstruction>(insertIndex).registerA
+
+                addInstructions(
+                    insertIndex,
+                    """
+                        invoke-static {}, $EXTENSION_CLASS->$helperName()$EXTENSION_FILTER
+                        move-result-object v$insertRegister
+                    """
+                )
             }
         }
 
         // region Pass the buffer into extension.
 
         if (hookNonNativeBuffer()) {
-            val alreadyHooked = ProtobufBufferReferenceFingerprint.method.implementation?.instructions?.any { inst ->
-                (inst as? ReferenceInstruction)?.reference?.toString()?.contains("setProtoBuffer") == true
-            } == true
-            if (!alreadyHooked) {
-                // Non-native buffer.
-                ProtobufBufferReferenceFingerprint.method.addInstruction(
-                    0,
-                    "invoke-static { p2 }, $EXTENSION_CLASS->setProtoBuffer(Ljava/nio/ByteBuffer;)V",
-                )
-            }
+            // Non-native buffer.
+            ProtobufBufferReferenceFingerprint.method.addInstruction(
+                0,
+                "invoke-static { p2 }, $EXTENSION_CLASS->setProtoBuffer(Ljava/nio/ByteBuffer;)V",
+            )
         }
 
         val protoBufferEncodeMethod = ProtobufBufferEncodeFingerprint.method
@@ -228,12 +223,6 @@ internal fun sharedLithoFilterPatch(
             )
         ).let {
             it.method.apply {
-                val isAlreadyPatched = implementation?.instructions?.any { inst ->
-                    val ref = (inst as? ReferenceInstruction)?.reference?.toString() ?: ""
-                    ref.contains("LithoFilterPatch") || ref.contains("isFiltered")
-                } == true
-                if (isAlreadyPatched) return@let
-
                 val insertIndex = it.instructionMatches[2].index
                 val buttonViewModelIndex = it.instructionMatches[1].index
                 val nullCheckIndex = it.instructionMatches.first().index
@@ -326,20 +315,15 @@ internal fun sharedLithoFilterPatch(
 
         // region Change Litho thread executor to 1 thread to fix layout issue in unpatched YouTube.
 
-        val executorAlreadyHooked = LithoThreadExecutorFingerprint.method.implementation?.instructions?.any { inst ->
-            (inst as? ReferenceInstruction)?.reference?.toString()?.contains("getExecutorCorePoolSize") == true
-        } == true
-        if (!executorAlreadyHooked) {
-            LithoThreadExecutorFingerprint.method.addInstructions(
-                0,
-                """
-                    invoke-static { p1 }, $EXTENSION_CLASS->getExecutorCorePoolSize(I)I
-                    move-result p1
-                    invoke-static { p2 }, $EXTENSION_CLASS->getExecutorMaxThreads(I)I
-                    move-result p2
-                """
-            )
-        }
+        LithoThreadExecutorFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static { p1 }, $EXTENSION_CLASS->getExecutorCorePoolSize(I)I
+                move-result p1
+                invoke-static { p2 }, $EXTENSION_CLASS->getExecutorMaxThreads(I)I
+                move-result p2
+            """
+        )
 
         // endregion
 
@@ -363,30 +347,18 @@ internal fun sharedLithoFilterPatch(
 
     finalize {
         helperMethodRef.get()!!.apply {
-            val existingFilters = implementation?.instructions
-                ?.filter { it.opcode == Opcode.NEW_INSTANCE }
-                ?.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
-                ?: emptyList()
+            addInstruction(
+                implementation!!.instructions.size,
+                "return-object v$REGISTER_FILTER_ARRAY"
+            )
 
-            lithoFilters.addAll(existingFilters)
-
-            val filtersList = lithoFilters.toList()
-            val instructions = buildString {
-                appendLine("const/16 v$REGISTER_FILTER_COUNT, ${filtersList.size}")
-                appendLine("new-array v$REGISTER_FILTER_ARRAY, v$REGISTER_FILTER_COUNT, $EXTENSION_FILTER")
-                filtersList.forEachIndexed { index, filterDescriptor ->
-                    appendLine("""
-                        new-instance v$REGISTER_FILTER_CLASS, $filterDescriptor
-                        invoke-direct { v$REGISTER_FILTER_CLASS }, $filterDescriptor-><init>()V
-                        const/16 v$REGISTER_FILTER_COUNT, $index
-                        aput-object v$REGISTER_FILTER_CLASS, v$REGISTER_FILTER_ARRAY, v$REGISTER_FILTER_COUNT
-                    """.trimIndent())
-                }
-                appendLine("return-object v$REGISTER_FILTER_ARRAY")
-            }
-
-            implementation!!.instructions.clear()
-            addInstructions(0, instructions)
+            addInstructions(
+                0,
+                """
+                    const/16 v$REGISTER_FILTER_COUNT, $addLithoFilterCount
+                    new-array v$REGISTER_FILTER_ARRAY, v$REGISTER_FILTER_COUNT, $EXTENSION_FILTER
+                """
+            )
         }
     }
 }

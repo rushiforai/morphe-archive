@@ -51,6 +51,16 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/shared/spoof/SpoofVideoStreamsPatch;"
 
+context(patchContext: BytecodePatchContext)
+internal fun addMediaSessionOverride(extension: String) {
+    MediaSessionFeatureFlagFingerprint.matchAll().forEach {
+        it.method.insertLiteralOverride(
+            it.instructionMatches.first().index,
+            extension
+        )
+    }
+}
+
 private val spoofVideoStreamsResourcePatch = resourcePatch {
     execute {
         // region copy the ejs wrapper.
@@ -83,6 +93,7 @@ internal fun spoofVideoStreamsPatch(
     block: BytecodePatchBuilder.() -> Unit,
     executeBlock: BytecodePatchContext.() -> Unit = {},
 ) = bytecodePatch(
+    name = "Spoof video streams",
     description = "Adds options to spoof the client video streams to fix playback."
 ) {
     block()
@@ -97,7 +108,6 @@ internal fun spoofVideoStreamsPatch(
         mainActivityOnCreateFingerprint.method.addInstructions(
             0,
             """
-                invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->setMainActivity(Landroid/app/Activity;)V       
                 invoke-static { }, $extensionClass->setClientOrderToUse()V   
             """
         )
@@ -437,12 +447,7 @@ internal fun spoofVideoStreamsPatch(
         }
 
         if (fixMediaSessionFeatureFlag()) {
-            MediaSessionFeatureFlagFingerprint.let {
-                it.method.insertLiteralOverride(
-                    it.instructionMatches.first().index,
-                    "$EXTENSION_CLASS->useMediaSessionFeatureFlag(Z)Z"
-                )
-            }
+            addMediaSessionOverride("$EXTENSION_CLASS->useMediaSessionFeatureFlag(Z)Z")
         }
 
         if (fixReelItemWatchResponseFeatureFlag()) {

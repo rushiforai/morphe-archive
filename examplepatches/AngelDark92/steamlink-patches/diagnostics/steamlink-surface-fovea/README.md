@@ -3,8 +3,8 @@
 On 2026-09-07 the user reported: "It's not working." The experiment was retired
 at their request. No new trace was supplied; the precise failure is unknown.
 
-This tested actual 8-bit foveal pixels through an Android Surface on exact
-Steam Link 2.0.22/5002322. It retained 3 projections and replaced the fovea image
+This tested actual 8-bit foveal pixels through an Android Surface on an exact
+Steam Link build. It retained 3 projections and replaced the fovea image
 source instead of adding the working fix's 2×2 quad. It involved GPU copies and
 was not the earlier static-black underside experiment.
 

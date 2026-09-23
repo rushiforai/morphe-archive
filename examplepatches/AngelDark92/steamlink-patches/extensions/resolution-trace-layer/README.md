@@ -1,6 +1,6 @@
 # Resolution helper CPU update (2026-09-03)
 
-The Surface-backed underside experiment for 2.0.22/5002322 is **retired** after the
+The Surface-backed underside experiment is **retired** after the
 user reported "doesn't work" on 2026-09-03. Its option, code, build target and
 bundled helper are removed. No new capture was reviewed; no cause or GPU result is
 claimed. The existing terminal quad remains the recommended path, and both packaged
@@ -19,8 +19,7 @@ implementation and do not need membership changes. Repatch the APK using the upd
 
 ## Behavior and scope
 
-- `libgxr_ast.so`: helper v1.4 for exact Steam Link 2.0.22 builds 5002244, 5002296,
-  5002313, 5002318 and 5002322 (3 native projections plus 1 quad).
+- `libgxr_ast.so`: helper v1.4 for exact Steam Link 2.0.22/5002244 (3 native projections plus 1 quad).
 - `libgxr_ast_5001712.so`: helper v1.2 for exact Steam Link 2.0.20/5001712
   (2 native projections plus 1 quad), installed under the same `libgxr_ast.so` name.
 - Other builds retain their existing guards. This update does not add compatibility.

@@ -46,6 +46,16 @@ public final class AutoAdvance {
     public static boolean available(boolean nativeValue) { return Settings.AUTO_ADVANCE.get() || nativeValue; }
 
     /**
+     * The panel's own Auto scroll action, which hangs off a second flag. Hidden, it is absent
+     * whatever the flag or the feed gate says; advance on end runs from the component's own
+     * start, not from that entry, so the switch takes nothing else with it.
+     */
+    public static boolean panelAvailable(boolean nativeValue) {
+        if (Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.get()) return false;
+        return available(nativeValue);
+    }
+
+    /**
      * Answers the load strategy the host records beside its auto scroll component. TikTok
      * registers that component lazily, so nothing builds it until somebody opens the video panel
      * and asks for Auto scroll by hand. On a cold start with this setting already on, none of the
@@ -110,10 +120,8 @@ public final class AutoAdvance {
         if (!completedId.equals(current)) return;
         if (!control.recordCompletion(completedId)) return;
         if (control.limitReached() && control.claimLimitNotice()) {
-            String message = control.completedCount == 1
-                    ? L10n.t("Auto-advance stopped after one video")
-                    : L10n.f("Auto-advance stopped after %1$d videos",
-                            control.completedCount);
+            String message = L10n.quantity(Utils.getContext(), control.completedCount,
+                    "Auto-advance stopped after one video", "Auto-advance stopped after %1$d videos");
             BlockAuthorOverlay.showActionBanner(message,
                     L10n.t("Keep going"), () -> {
                         control.completedCount = 0;

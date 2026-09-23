@@ -146,7 +146,8 @@ public final class AdsFilter extends Filter {
 
         productCard = new StringFilterGroup(
                 Settings.HIDE_SHOPPING_LINKS,
-                "expandable_metadata.e"
+                "expandable_metadata.e",
+                "inline_expander"
         );
 
         productCardBuffer = new ByteArrayFilterGroup(

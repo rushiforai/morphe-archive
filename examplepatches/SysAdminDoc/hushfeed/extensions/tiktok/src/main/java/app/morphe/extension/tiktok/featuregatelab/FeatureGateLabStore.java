@@ -35,7 +35,7 @@ public final class FeatureGateLabStore {
     public static final String MANAGER_SETTINGS_MANAGER = "settings_manager";
     public static final String MANAGER_VE_CONFIG = "ve_config";
 
-    private static final String PREFS_NAME = "morphe_feature_gate_lab";
+    public static final String PREFS_NAME = "morphe_feature_gate_lab";
     private static final String MASTER_KEY = "master_enabled";
     private static final String WARNING_ACK_KEY = "warning_acknowledged";
     private static final String RULE_IDS_KEY = "rule_ids";
@@ -450,10 +450,10 @@ public final class FeatureGateLabStore {
                             ValidationCode.VALUE_MUST_BE_FINITE, normalized);
                 }
                 case "STRING":
-                    return value.length() <= 4096 ? null : ValidationFailure.of(
+                    return value.length() <= MAX_STRING_CHARS ? null : ValidationFailure.of(
                             ValidationCode.STRING_TOO_LONG, normalized);
                 case "OBJECT": {
-                    if (value.length() > 64 * 1024) {
+                    if (value.length() > MAX_STRUCTURED_CHARS) {
                         return ValidationFailure.of(
                                 ValidationCode.STRUCTURED_VALUE_TOO_LARGE, normalized);
                     }
@@ -488,6 +488,13 @@ public final class FeatureGateLabStore {
      */
     private static final SettingsJson.Limits STRUCTURED_VALUE_LIMITS =
             new SettingsJson.Limits(32, 16384, 64 * 1024, 4096, 64 * 1024);
+
+    /**
+     * How long a string value and a structured value may be, in characters. The two refusals
+     * the Lab shows format these in, so a change here changes the words.
+     */
+    public static final int MAX_STRING_CHARS = 4096;
+    public static final int MAX_STRUCTURED_CHARS = 64 * 1024;
 
     public static boolean supportsOverride(String manager, String type) {
         if (MANAGER_SETTINGS_MANAGER.equals(manager)) {

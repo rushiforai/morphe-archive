@@ -23,7 +23,7 @@ import org.robolectric.annotation.Config;
 /**
  * A Lab switch row is one stop for the screen reader and one target for a finger.
  *
- * <p>TalkBack used to read "Enable overrides", then the summary, then "Enable overrides"
+ * <p>TalkBack used to read "Apply overrides", then the summary, then "Apply overrides"
  * again for the switch, and only the switch itself answered a tap.
  */
 @RunWith(RobolectricTestRunner.class)
@@ -36,12 +36,12 @@ public class FeatureGateLabSwitchRowTest {
         AtomicInteger flips = new AtomicInteger();
         control.setOnCheckedChangeListener((button, checked) -> flips.incrementAndGet());
 
-        LinearLayout row = FeatureGateLabUi.switchRow(context, "Enable overrides",
+        LinearLayout row = FeatureGateLabUi.switchRow(context, "Apply overrides",
                 "Replace values when TikTok asks for them", control);
 
         assertTrue(row.isClickable());
         assertTrue(row.isFocusable());
-        assertEquals("Enable overrides. Replace values when TikTok asks for them",
+        assertEquals("Apply overrides. Replace values when TikTok asks for them",
                 row.getContentDescription().toString());
         assertFalse("the switch itself must not be a second target", control.isClickable());
         assertEquals(View.IMPORTANT_FOR_ACCESSIBILITY_NO, control.getImportantForAccessibility());

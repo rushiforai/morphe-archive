@@ -222,7 +222,7 @@ public final class AdvancedFeedRules {
         } catch (BudgetSpent spent) {
             if (RUNAWAY.putIfAbsent(pattern, Boolean.TRUE) == null) {
                 Utils.showToastLong(L10n.f(
-                        "A creator pattern is taking too long and was switched off: %1$s",
+                        "A creator pattern is taking too long and was turned off: %1$s",
                         pattern.pattern()));
             }
             return false;
@@ -289,7 +289,7 @@ public final class AdvancedFeedRules {
             try {
                 Pattern.compile(source, Pattern.CASE_INSENSITIVE);
             } catch (PatternSyntaxException invalid) {
-                return L10n.f("Hushfeed cannot read the creator pattern %1$s", entry);
+                return L10n.f("Hushfeed cannot read the creator pattern %1$s", L10n.isolate(entry));
             }
         }
         return null;
@@ -403,7 +403,7 @@ public final class AdvancedFeedRules {
             pattern = Pattern.compile(source, Pattern.CASE_INSENSITIVE);
         } catch (PatternSyntaxException invalid) {
             COMPILED.put(entry, INVALID);
-            Utils.showToastLong(L10n.f("Hushfeed cannot read the creator pattern %1$s", entry));
+            Utils.showToastLong(L10n.f("Hushfeed cannot read the creator pattern %1$s", L10n.isolate(entry)));
             return null;
         }
         COMPILED.put(entry, pattern);

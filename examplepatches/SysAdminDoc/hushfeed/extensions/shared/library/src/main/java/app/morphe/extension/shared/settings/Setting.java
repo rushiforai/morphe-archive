@@ -53,7 +53,7 @@ public abstract class Setting<T> {
         return new Availability() {
             @Override
             public boolean isAvailable() {
-                return parent.get();
+                return parent.savedValue();
             }
 
             @Override
@@ -70,7 +70,7 @@ public abstract class Setting<T> {
         return new Availability() {
             @Override
             public boolean isAvailable() {
-                return !parent.get();
+                return !parent.savedValue();
             }
 
             @Override
@@ -88,7 +88,7 @@ public abstract class Setting<T> {
             @Override
             public boolean isAvailable() {
                 for (BooleanSetting parent : parents) {
-                    if (!parent.get()) return false;
+                    if (!parent.savedValue()) return false;
                 }
                 return true;
             }
@@ -108,7 +108,7 @@ public abstract class Setting<T> {
             @Override
             public boolean isAvailable() {
                 for (BooleanSetting parent : parents) {
-                    if (parent.get()) return true;
+                    if (parent.savedValue()) return true;
                 }
                 return false;
             }
@@ -132,9 +132,15 @@ public abstract class Setting<T> {
     private static final Map<String, Setting<?>> PATH_TO_SETTINGS = new HashMap<>();
 
     /**
+     * The preferences file every setting is saved to. A constant, so code that runs before
+     * Hushfeed has a context can name the file without loading this class.
+     */
+    public static final String PREFERENCES_NAME = "morphe_prefs";
+
+    /**
      * Preference all instances are saved to.
      */
-    public static final SharedPrefCategory preferences = new SharedPrefCategory("morphe_prefs");
+    public static final SharedPrefCategory preferences = new SharedPrefCategory(PREFERENCES_NAME);
 
     @Nullable
     public static Setting<?> getSettingFromPath(String str) {
@@ -196,6 +202,37 @@ public abstract class Setting<T> {
      * The value of the setting.
      */
     protected volatile T value;
+
+    /**
+     * Pause Hushfeed, decided once when the process starts (see {@link HushfeedPause}). While it
+     * is on, every setting that changes TikTok answers the value that leaves TikTok as it ships.
+     */
+    private static volatile boolean pausedForProcess;
+
+    /** Hushfeed's own state rather than a change to TikTok: it keeps its value while paused. */
+    private volatile boolean keptWhenPaused;
+
+    /** Whether this process runs with Hushfeed paused. */
+    public static boolean isPaused() {
+        return pausedForProcess;
+    }
+
+    static void setPausedForProcess(boolean paused) {
+        pausedForProcess = paused;
+    }
+
+    /**
+     * Marks settings that hold Hushfeed's own state (a remembered position, an observed list, a
+     * counter, a diagnostics option) so they keep answering their value while Hushfeed is paused.
+     * Every other setting answers {@link #pausedValue()} then.
+     */
+    public static void keepWhenPaused(Setting<?>... settings) {
+        for (Setting<?> setting : settings) setting.keptWhenPaused = true;
+    }
+
+    public boolean isKeptWhenPaused() {
+        return keptWhenPaused;
+    }
 
     public Setting(String key, T defaultValue) {
         this(key, defaultValue, false, true, null, null);
@@ -269,7 +306,7 @@ public abstract class Setting<T> {
             return; // Nothing to do.
         }
 
-        Object newValue = setting.get();
+        Object newValue = setting.savedValue();
         final Object migratedValue;
         if (setting instanceof BooleanSetting) {
             migratedValue = oldPrefs.getBoolean(settingKey, (Boolean) newValue);
@@ -407,8 +444,32 @@ public abstract class Setting<T> {
         preferences.removeKey(key);
     }
 
+    /**
+     * What the setting says now, which is what every hook reads. While Hushfeed is paused, a
+     * setting that changes TikTok answers {@link #pausedValue()}; the saved value is untouched.
+     */
     @NonNull
-    public abstract T get();
+    public final T get() {
+        return pausedForProcess && !keptWhenPaused ? pausedValue() : value;
+    }
+
+    /**
+     * The value this setting holds, paused or not. The settings screen, backups and undo read
+     * this: they show and keep what the user chose, not what a paused TikTok is answered.
+     */
+    @NonNull
+    public final T savedValue() {
+        return value;
+    }
+
+    /**
+     * The answer while paused. For a value setting the default is the unpatched behaviour: an
+     * empty list, a zero limit, "auto", "default". A switch answers false instead.
+     */
+    @NonNull
+    protected T pausedValue() {
+        return defaultValue;
+    }
 
     /**
      * Identical to calling {@link #save(Object)} using {@link #defaultValue}.
@@ -439,7 +500,7 @@ public abstract class Setting<T> {
             // A backup file is not a dialog and was never asked to stay in range. Into a copy
             // rather than back into the caller's map, which need not accept being written to.
             bounded.put(setting, setting.coerce(next));
-            previous.put(setting, setting.get());
+            previous.put(setting, setting.savedValue());
         }
         if (!writeBatch(bounded)) {
             boolean restored = writeBatch(previous);
@@ -489,7 +550,7 @@ public abstract class Setting<T> {
     @NonNull
     @Override
     public String toString() {
-        return key + "=" + get();
+        return key + "=" + savedValue();
     }
 
     // region Import / export

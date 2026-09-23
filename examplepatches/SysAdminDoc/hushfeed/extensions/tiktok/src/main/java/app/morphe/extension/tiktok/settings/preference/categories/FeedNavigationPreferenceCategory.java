@@ -66,6 +66,12 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
         ));
         addPreference(new TogglePreference(
                 context,
+                "Hide the unread badges on the bottom tabs",
+                "Hide the red counts and dots on the Inbox and Profile tabs. The inbox itself still shows what came in.",
+                Settings.HIDE_TAB_BADGES
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Hide the Tako bubble",
                 "Hide the Tako AI bubble above the profile button, the Ask bar under videos, "
                         + "the Ask Tako button on the search page and the Tako bar above comments.",

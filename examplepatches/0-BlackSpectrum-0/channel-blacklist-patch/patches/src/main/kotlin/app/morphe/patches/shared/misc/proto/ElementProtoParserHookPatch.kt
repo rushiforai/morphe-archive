@@ -13,7 +13,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.util.cloneMutable
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import java.lang.ref.WeakReference
 
 private lateinit var elementProtoParserMethodRef: WeakReference<MutableMethod>
@@ -39,12 +38,6 @@ internal fun createElementProtoParserHookPatch(
     execute {
         NewElementProtoParserFingerprint.let {
             it.method.apply {
-                val existingHelper = it.classDef.methods.firstOrNull { m -> m.name == "patch_parseNewElement" }
-                if (existingHelper != null) {
-                    elementProtoParserMethodRef = WeakReference(this)
-                    return@let
-                }
-
                 // Not enough registers in the method. Clone the method and use the original
                 // method as an intermediate to call extension code.
                 val helperMethod = cloneMutable(name = "patch_parseNewElement")
@@ -71,18 +64,10 @@ internal fun createElementProtoParserHookPatch(
 
 fun hookElement(
     methodDescriptor: String
-) {
-    val method = elementProtoParserMethodRef.get()!!
-    val alreadyHooked = method.implementation?.instructions?.any { inst ->
-        (inst as? ReferenceInstruction)?.reference?.toString()?.contains(methodDescriptor) == true
-    } == true
-    if (alreadyHooked) return
-
-    method.addInstructions(
-        2,
-        """
-            invoke-static { p0 }, $methodDescriptor([B)[B
-            move-result-object p0
-        """
-    )
-}
+) = elementProtoParserMethodRef.get()!!.addInstructions(
+    2,
+    """
+        invoke-static { p0 }, $methodDescriptor([B)[B
+        move-result-object p0
+    """
+)
