@@ -9,6 +9,7 @@ package app.morphe.patches.youtube.misc.potoken
 
 import app.morphe.patches.shared.misc.potoken.poTokenProviderPatch
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
+import app.morphe.patches.youtube.misc.gms.gmsCoreSupportPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 
@@ -19,6 +20,9 @@ val poTokenProviderPatch = poTokenProviderPatch(
     block = {
         compatibleWith(COMPATIBILITY_YOUTUBE)
 
-        dependsOn(sharedExtensionPatch)
+        dependsOn(
+            sharedExtensionPatch,
+            gmsCoreSupportPatch,
+        )
     }
 )

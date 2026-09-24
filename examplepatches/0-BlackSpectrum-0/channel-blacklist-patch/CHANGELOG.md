@@ -1,3 +1,75 @@
+## [2.1.3](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/compare/v2.1.2...v2.1.3) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* isolate package selection and target correct package for settings intent ([cc38b3e](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/commit/cc38b3ea4f78003d9b11a30d8b27892aafe4ec4e))
+
+## [2.1.2](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/compare/v2.1.1...v2.1.2) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* restore change-header resources for YouTube header patch ([c46b145](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/commit/c46b145ad5e80e83d4003bf7992f30c9b79a2304))
+
+## [2.1.1](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/compare/v2.1.0...v2.1.1) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* restore navigationbuttons resource and rebrand to Spectre Patches ([6567e62](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/commit/6567e629a255d6035793d464a9aa686d2aa40eaa))
+
+## [2.1.0](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/compare/v2.0.0...v2.1.0) (2026-09-23)
+
+### ✨ New Features
+
+* trim bundle to YouTube only and integrate Channel Blacklist ([e8a0372](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/commit/e8a03720d211090b5979693a7201bc181a3410a9))
+
+## [1.45.0-dev.4](https://github.com/MorpheApp/morphe-patches/compare/v1.45.0-dev.3...v1.45.0-dev.4) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **YouTube  - Voice over translation:** Add missing accessibility labels and Voice over translation button state ([#3203](https://github.com/MorpheApp/morphe-patches/issues/3203)) ([d99679b](https://github.com/MorpheApp/morphe-patches/commit/d99679b50dc6f19a2feffaa7f5a8940a9d83da94))
+* **YouTube - Custom branding:** Do not ask which app to use for app shortcut actions ([#3204](https://github.com/MorpheApp/morphe-patches/issues/3204)) ([0a2f0e0](https://github.com/MorpheApp/morphe-patches/commit/0a2f0e0f487512d6fd5f0c97ca83ad061859988c))
+* **YouTube - Return YouTube Dislike:** Do not show dislikes on the share and comment buttons of community posts ([31b657c](https://github.com/MorpheApp/morphe-patches/commit/31b657c5482def040a368b1d4661db704249db50))
+* **YouTube Music - Return YouTube Dislike:** Dislike count is black when the device uses the light theme ([7e7e15d](https://github.com/MorpheApp/morphe-patches/commit/7e7e15d8e0796a96d615e26ea66ac771fa068321))
+
+### ✨ New Features
+
+* **YouTube Music - Third-party lyrics:** Add new provider ([#3174](https://github.com/MorpheApp/morphe-patches/issues/3174)) ([1bc710e](https://github.com/MorpheApp/morphe-patches/commit/1bc710e371eb89e663acaadb415c497b7829fe1e))
+
+## [1.45.0-dev.3](https://github.com/MorpheApp/morphe-patches/compare/v1.45.0-dev.2...v1.45.0-dev.3) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* Reduce heap use from ConversionContext dumps and JS player cache ([#3120](https://github.com/MorpheApp/morphe-patches/issues/3120)) ([317fd56](https://github.com/MorpheApp/morphe-patches/commit/317fd56c1ecba41a7b928011a39e6a943ca9b07f))
+* **YouTube - Hide layout components:** Restore preview comment simplebox matcher ([#3130](https://github.com/MorpheApp/morphe-patches/issues/3130)) ([6e55325](https://github.com/MorpheApp/morphe-patches/commit/6e55325ddbbff9323206bda909b4a50b6d2ab178))
+
+## [1.45.0-dev.2](https://github.com/MorpheApp/morphe-patches/compare/v1.45.0-dev.1...v1.45.0-dev.2) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **GmsCore support:** Omit empty intent data ([#3170](https://github.com/MorpheApp/morphe-patches/issues/3170)) ([f03894a](https://github.com/MorpheApp/morphe-patches/commit/f03894a8663fdb19a3ff48765d0cb928bcbc36a3))
+* **YouTube - Playback speed:** Prevent speed leak into Shorts ([#3169](https://github.com/MorpheApp/morphe-patches/issues/3169)) ([ff35586](https://github.com/MorpheApp/morphe-patches/commit/ff35586e14b339e24a06d32cb77b57234c942fe2))
+* **YouTube - Player controls:** Decouple legacy buttons from settings UI ([#3171](https://github.com/MorpheApp/morphe-patches/issues/3171)) ([dfeeb64](https://github.com/MorpheApp/morphe-patches/commit/dfeeb64c54bd2aa49fdbc3653f5ba2f81558d558))
+* **YouTube Music - Download in app:** Expose offline audio session ([#3167](https://github.com/MorpheApp/morphe-patches/issues/3167)) ([b4fb0e9](https://github.com/MorpheApp/morphe-patches/commit/b4fb0e9d00a2e876b30ce64da66ee459ad974abc))
+* **YouTube Music - Hide flyout menu components:** Hide nested download items ([#3165](https://github.com/MorpheApp/morphe-patches/issues/3165)) ([fd2b325](https://github.com/MorpheApp/morphe-patches/commit/fd2b325a655819233d6bdb0ded83ba08b0cb5295))
+* **YouTube Music - Return YouTube Dislike:** Fix dislike counter color ([#3161](https://github.com/MorpheApp/morphe-patches/issues/3161)) ([1404b8b](https://github.com/MorpheApp/morphe-patches/commit/1404b8bc7a09216b468e112c40b3298bf9cb2136))
+* **YouTube:** Do not include hide layout settings indirectly ([d3b678a](https://github.com/MorpheApp/morphe-patches/commit/d3b678a8aff9d10a4f748d81d390c95de00d37f9))
+
+## [1.45.0-dev.1](https://github.com/MorpheApp/morphe-patches/compare/v1.44.0...v1.45.0-dev.1) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* **YouTube - Comments filter:** Restored chat button page indicator ([5644496](https://github.com/MorpheApp/morphe-patches/commit/5644496b457b29cad2799c3c2cbc19cb422f0cab))
+* **YouTube - Legacy player controls:** Preserve end screen on 21.36+ ([#3121](https://github.com/MorpheApp/morphe-patches/issues/3121)) ([b895285](https://github.com/MorpheApp/morphe-patches/commit/b895285b2aa0e4cab6bb23226e129c62d517c670))
+* **YouTube - Return YouTube Dislike:** Show dislikes on tablet layout ([#3153](https://github.com/MorpheApp/morphe-patches/issues/3153)) ([7835519](https://github.com/MorpheApp/morphe-patches/commit/7835519c42a656c2d30122dcd97fb27dd12b0b87))
+* **YouTube - SponsorBlock:** Preserve exact video end for segment markers ([#3157](https://github.com/MorpheApp/morphe-patches/issues/3157)) ([a860f5b](https://github.com/MorpheApp/morphe-patches/commit/a860f5bdbce792254617fb31d424c02521c62c6f))
+* **YouTube Music - Third-party lyrics:** Do not cover comments panel ([#3155](https://github.com/MorpheApp/morphe-patches/issues/3155)) ([50e4e65](https://github.com/MorpheApp/morphe-patches/commit/50e4e65ef15e28586ec55fae51da0bb03ae392d9))
+* **YouTube Music - Third-party lyrics:** Reload lyrics when video changes ([#3148](https://github.com/MorpheApp/morphe-patches/issues/3148)) ([2920175](https://github.com/MorpheApp/morphe-patches/commit/29201754faeec713fa2fc43725527062160f8c0c))
+
+### ✨ New Features
+
+* **YouTube Music - Third-party lyrics:** Add translation language ([#3128](https://github.com/MorpheApp/morphe-patches/issues/3128)) ([7349cb6](https://github.com/MorpheApp/morphe-patches/commit/7349cb691635e2a506163aa9fd5813f0b73c4e3f))
+* **YouTube Music - Third-party lyrics:** Keep screen on while viewing lyrics ([#3127](https://github.com/MorpheApp/morphe-patches/issues/3127)) ([cb4df9a](https://github.com/MorpheApp/morphe-patches/commit/cb4df9acf11249de66477ce9764ff29fbe41f9ca))
+
 ## [1.44.0](https://github.com/MorpheApp/morphe-patches/compare/v1.43.0...v1.44.0) (2026-09-21)
 
 ### 🐛 Bug Fixes

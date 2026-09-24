@@ -1,0 +1,40 @@
+name: Build Telegram 12.10.3 patches
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Build MPP
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean buildAndroid --no-daemon --stacktrace
+
+      - name: List artifacts
+        run: ls -lah patches/build/libs/
+
+      - name: Upload MPP
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-12.10.3-mpp
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error

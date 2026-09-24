@@ -1,3 +1,17 @@
+## [1.10.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.9.0...v1.10.0) (2026-09-23)
+
+### ✨ New Features
+
+* gocut ([f95ae66](https://github.com/ShuhaibNC/morphe-patches/commit/f95ae667e680bb62ab86a499a3c63b0bb2fcc6fc))
+* ovicut ([fc5c58f](https://github.com/ShuhaibNC/morphe-patches/commit/fc5c58f262ef1dd6fd4cb0b019f5641b659b7ada))
+
+## [1.10.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.9.0...v1.10.0-dev.1) (2026-09-23)
+
+### ✨ New Features
+
+* gocut ([f95ae66](https://github.com/ShuhaibNC/morphe-patches/commit/f95ae667e680bb62ab86a499a3c63b0bb2fcc6fc))
+* ovicut ([fc5c58f](https://github.com/ShuhaibNC/morphe-patches/commit/fc5c58f262ef1dd6fd4cb0b019f5641b659b7ada))
+
 ## [1.9.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.8.0...v1.9.0) (2026-09-22)
 
 ### 🐛 Bug Fixes

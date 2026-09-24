@@ -844,15 +844,17 @@ public class OverlayControlsTest {
         assertEquals("the banner lands on the input row", 80 + SettingsUi.dp(activity, 16),
                 params.bottomMargin);
 
-        // A sheet with nothing to clear along the bottom gets the banner at its top instead
-        // of 96dp up from wherever its bottom happens to be.
+        // A sheet with nothing to clear along the bottom keeps the banner near the bottom, the
+        // fallback offset up. Its top was the old answer, and on a full-screen sheet window the
+        // top is the dark video above the visible panel, where the S22 showed the save banner
+        // reading as nothing at all.
         FrameLayout bare = new FrameLayout(activity);
         layoutAt(bare, 480, 960);
         BlockAuthorOverlay.showUndoBanner(bare, "Blocked someone", () -> { });
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
         params = (FrameLayout.LayoutParams) bare.getChildAt(bare.getChildCount() - 1).getLayoutParams();
-        assertEquals(Gravity.TOP | Gravity.CENTER_HORIZONTAL, params.gravity);
-        assertEquals(SettingsUi.dp(activity, 16), params.topMargin);
+        assertEquals(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, params.gravity);
+        assertEquals(SettingsUi.dp(activity, 96), params.bottomMargin);
     }
 
     private static void layoutAt(View view, int width, int height) {

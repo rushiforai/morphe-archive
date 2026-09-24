@@ -232,6 +232,67 @@ public class SessionLockOverlayTest {
         }
     }
 
+    /**
+     * TikTok's clear display sets its tab bar GONE (the S22, 2026-09-23). The hold read that as
+     * "not the feed", took its panel down and gave the sound back, so with a spent budget the feed
+     * went on playing in clear display, TikTok's own or the automatic one. The panel stays up and
+     * keeps the sound now, and it still stops where the bar was: that strip is TikTok's own clear
+     * display bar, whose X brings the tabs back. Covering it, as the first version of this fix
+     * did, left the reader no way to the messages and profiles the panel says still work.
+     */
+    @Test public void clearDisplayKeepsTheHoldUpAndTikToksClearBarReachable() {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("cleared-video");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            FrameLayout bar = new FrameLayout(activity);
+            root.addView(bar, new FrameLayout.LayoutParams(-1, 80, Gravity.BOTTOM));
+            View home = new View(activity);
+            home.setSelected(true);
+            bar.addView(home, new FrameLayout.LayoutParams(96, -1, Gravity.LEFT));
+            seedHomeTab(home);
+            layoutHoldRoot(root, false);
+
+            // Cleared when the hold goes up: the panel brings TikTok's controls back, since the
+            // tabs its text points to are gone in clear display.
+            org.robolectric.util.ReflectionHelpers.setStaticField(
+                    app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch.class, "clearNow", true);
+            SessionLockOverlay.sync();
+            View panel = root.getChildAt(root.getChildCount() - 1);
+            assertEquals(View.VISIBLE, panel.getVisibility());
+            assertFalse("the hold went up and left the controls cleared",
+                    app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch.isClearDisplayNow());
+            assertEquals("the fixture's hold does not stop above the bar",
+                    80, ((FrameLayout.LayoutParams) panel.getLayoutParams()).bottomMargin);
+
+            // Clear display: the bar goes, the page stays.
+            bar.setVisibility(View.GONE);
+            SessionLockOverlay.sync();
+            assertEquals("the hold came down in clear display", View.VISIBLE, panel.getVisibility());
+            assertTrue("the hold gave the sound back in clear display", quietened());
+            assertEquals("the panel covered TikTok's clear display bar and its way out",
+                    80, ((FrameLayout.LayoutParams) panel.getLayoutParams()).bottomMargin);
+
+            // The controls back: the row is reachable again.
+            bar.setVisibility(View.VISIBLE);
+            layoutHoldRoot(root, false);
+            SessionLockOverlay.sync();
+            assertEquals(80, ((FrameLayout.LayoutParams) panel.getLayoutParams()).bottomMargin);
+        } finally {
+            org.robolectric.util.ReflectionHelpers.callStaticMethod(
+                    app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch.class, "resetForTests");
+            seedHomeTab(null);
+            Utils.setActivity(null);
+            SessionBudget.releaseLock();
+            SessionLockOverlay.sync();
+        }
+    }
+
     private static void layoutHoldRoot(View root, boolean withSystemInset) {
         root.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY));

@@ -10,17 +10,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
-/**
- * Disables root / jailbreak / emulator / frida detection:
- *  - Rttx.r() orchestrator (com.android.sec.utils)
- *  - BinaryProtections checks (com.example.ooredoo_selfcare_algeria)
- *  - safe_device RootedCheck / ExternalStorageCheck / EmulatorCheck
- *  - rjsniffer Emulate.isEmulator / isEmulator2
- *  - RootCheckerPlus root checker
- *
- * Every dedicated boolean check method is rewritten to `return false`,
- * so no channel ever reports a "detected" state.
- */
+/** Disables device integrity checks. */
 @Suppress("unused")
 val disableRootDetectionPatch = bytecodePatch(
     name = "Disable root & emulator detection",

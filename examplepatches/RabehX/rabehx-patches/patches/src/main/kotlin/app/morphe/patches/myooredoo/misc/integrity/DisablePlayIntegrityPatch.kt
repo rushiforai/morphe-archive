@@ -10,13 +10,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
-/**
- * Disables the Play Integrity request in Play.apic
- * (com.android.sec.utils.Play), which is called over the
- * MethodChannel ("apic"). The app receives the value "DISABLED" instantly
- * instead of performing an attestation request — Google Play Integrity
- * tokens cannot be forged and would always fail on modified builds anyway.
- */
+/** Disables integrity checks. */
 @Suppress("unused")
 val disablePlayIntegrityPatch = bytecodePatch(
     name = "Disable Play Integrity",

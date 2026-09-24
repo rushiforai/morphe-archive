@@ -66,6 +66,8 @@ A web address someone left in a comment can be tapped instead of copied out by h
 AI-generated posts	Publicações geradas por IA
 About	Sobre
 A forced value applies to this copy of TikTok whichever account is signed in. It cannot get past a check the server makes.	Um valor forçado vale para esta cópia do TikTok, seja qual for a conta conectada. Ele não passa por cima de uma verificação feita pelo servidor.
+No app on this phone opens that file	Nenhum app neste celular abre esse arquivo
+Open	Abrir
 This key touches account safety. Forcing it can change login, region, payment or security checks.	Esta chave mexe com a proteção da conta. Forçá-la pode mudar as verificações de login, região, pagamento ou segurança.
 Activity	Atividade
 Activity center (PIA)	Centro de atividade (PIA)
@@ -287,7 +289,7 @@ Empty	Vazio
 Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Esvaziar o menu que abre ao manter pressionado o ícone do TikTok na tela inicial. Ao desativar, o TikTok é solicitado a criá-los novamente. Tocar no ícone continua abrindo o app, e um atalho fixado por você permanece onde foi colocado.
 Enable	Ligar
 Log diagnostics	Registrar diagnósticos
-Lock 2x speed with hold and slide	Travar em 2x segurando e deslizando
+Lock the hold speed with a pull down	Travar a velocidade de segurar puxando para baixo
 Apply overrides	Aplicar as substituições
 Enabled	Ligados
 Enter a JSON object or array.	Digite um objeto ou uma matriz JSON.
@@ -565,7 +567,7 @@ Move left	Mover para a esquerda
 Move right	Mover para a direita
 Move up	Mover para cima
 Music disc	Disco de música
-Mutes the video behind the comment sheet while you read. Sound comes back when the sheet closes.	Silencia o vídeo atrás dos comentários enquanto você lê. O som volta quando os comentários fecham.
+Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.	Pausa o vídeo atrás dos comentários enquanto você lê. Ele continua do mesmo ponto quando os comentários fecham.
 Nearby	Por perto
 Never from these countries	Nunca destes países
 No	Não
@@ -774,6 +776,7 @@ Saved, override off	Salvo, substituição desligada
 Saved. Restart TikTok to apply this.	Salvo. Reinicie o TikTok para aplicar.
 Saving	Salvando
 Saving %1$s original photos	Salvando %1$s fotos originais
+Saving one original photo	Salvando uma foto original
 Saving settings backup	Salvando o backup das configurações
 Saving sticker	Salvando o sticker
 Saving the selected video quality	Salvando a qualidade de vídeo escolhida
@@ -990,7 +993,7 @@ This video has no original sound to save	Este vídeo não tem som original para 
 This video has no sound of its own	Este vídeo não tem som próprio
 Thumbs down blocks the commenter	O joinha para baixo bloqueia quem comentou
 TikTok default	Padrão do TikTok
-TikTok default (2x hold, quick share)	Padrão do TikTok (segurar para 2x, compartilhamento rápido)
+TikTok default (hold to speed up, quick share)	Padrão do TikTok (segurar para acelerar, compartilhamento rápido)
 TikTok did not block %1$s. Try again in a moment.	O TikTok não bloqueou %1$s. Tente de novo daqui a pouco.
 TikTok did not unblock %1$s. Try again in a moment.	O TikTok não desbloqueou %1$s. Tente de novo daqui a pouco.
 TikTok didn't accept the feedback. Try again later.	O TikTok não aceitou o feedback. Tente mais tarde.
@@ -1045,7 +1048,7 @@ Until you choose here, this sheet follows your choices under Hide share actions.
 Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	Até %1$d velocidades de %2$s a %3$s, separadas por vírgula. Por exemplo: 0.5, 1, 1.5, 2, 2.5, 3. Deixe vazio para a lista do TikTok. Reinicie o TikTok para aplicar.
 Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.	Use 0 para o tamanho do TikTok, ou de %1$d a %2$d. Vale para a próxima legenda.
 Use Save JSON for this large report	Use Salvar JSON para este relatório grande
-Use TikTok's own hold, slide down and release gesture to lock 2x speed.	Usar o gesto do próprio TikTok de segurar, deslizar para baixo e soltar para travar a velocidade 2x.
+Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.	Usar o gesto do próprio TikTok de segurar, puxar para baixo e soltar para continuar na velocidade de segurar, que é 2x a menos que você escolha outra em Reprodução.
 Use a default playback speed	Usar uma velocidade de reprodução padrão
 Use non-personalized search	Usar a busca sem personalização
 Use system font	Usar a fonte do sistema
@@ -1183,4 +1186,10 @@ Hide the Products block and product cards in search results.	Esconder o bloco de
 Hide TikTok's Auto scroll button	Esconder o botão Auto scroll do TikTok
 Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.	Remove a ação Auto scroll do TikTok do painel do vídeo. Os vídeos continuam avançando automaticamente.
 Hide the unread badges on the bottom tabs	Esconder os selos de não lidos nas abas inferiores
-Hide the red counts and dots on the Inbox and Profile tabs. The inbox itself still shows what came in.	Esconde os contadores e pontos vermelhos das abas Caixa de entrada e Perfil. A caixa de entrada continua mostrando o que chegou.
+Hide the red counts and dots on every bottom tab, Inbox and Profile included. The inbox itself still shows what came in.	Esconde os contadores e pontos vermelhos de todas as abas inferiores, incluindo Caixa de entrada e Perfil. A caixa de entrada continua mostrando o que chegou.
+Speed while you hold the video	Velocidade enquanto você segura o vídeo
+Hide mini dramas	Esconder minidramas
+Hide TikTok's short drama episodes and the cards that promote them.	Esconder os episódios de dramas curtos do TikTok e os cartões que os promovem.
+Mini dramas	Minidramas
+Swipe left	Deslizar para a esquerda
+TikTok default (open the creator's profile)	Padrão do TikTok (abrir o perfil do criador)

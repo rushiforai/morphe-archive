@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cap_ai_title" formatted="false">"AI 字幕翻譯"</string>
+    <string name="cap_enable_ai" formatted="false">"啟用 AI 字幕翻譯"</string>
+    <string name="cap_api_config" formatted="false">"API 設定"</string>
+    <string name="cap_api_address" formatted="false">"API 位址"</string>
+    <string name="cap_api_key" formatted="false">"API Key"</string>
+    <string name="cap_model" formatted="false">"模型"</string>
+    <string name="cap_test_api" formatted="false">"測試 API"</string>
+    <string name="cap_translation" formatted="false">"翻譯"</string>
+    <string name="cap_translation_requirements" formatted="false">"翻譯要求"</string>
+    <string name="cap_style" formatted="false">"字幕樣式"</string>
+    <string name="cap_size" formatted="false">"字幕大小"</string>
+    <string name="cap_opacity" formatted="false">"背景不透明度"</string>
+    <string name="cap_reset_position" formatted="false">"重設字幕位置"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"快取與診斷"</string>
+    <string name="cap_clear_cache" formatted="false">"清除字幕快取"</string>
+    <string name="cap_delete_key" formatted="false">"刪除 API Key"</string>
+    <string name="cap_text_debug" formatted="false">"字幕文字偵錯"</string>
+    <string name="cap_diagnostics" formatted="false">"字幕診斷"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"清除診斷記錄"</string>
+    <string name="cap_preview" formatted="false">"字幕預覽"</string>
+    <string name="cap_landscape" formatted="false">"橫向"</string>
+    <string name="cap_portrait" formatted="false">"直向"</string>
+    <string name="cap_to_landscape" formatted="false">"切換為橫向"</string>
+    <string name="cap_to_portrait" formatted="false">"切換為直向"</string>
+    <string name="cap_refresh" formatted="false">"重新整理"</string>
+    <string name="cap_copy" formatted="false">"複製"</string>
+    <string name="cap_expand" formatted="false">"展開"</string>
+    <string name="cap_collapse" formatted="false">"收合"</string>
+    <string name="cap_cancel" formatted="false">"取消"</string>
+    <string name="cap_delete" formatted="false">"刪除"</string>
+    <string name="cap_saved" formatted="false">"已自動儲存"</string>
+    <string name="cap_autosave" formatted="false">"變更後自動儲存"</string>
+    <string name="cap_enter_key" formatted="false">"請輸入 API Key"</string>
+    <string name="cap_key_saved" formatted="false">"已加密儲存；輸入可取代"</string>
+    <string name="cap_model_hint" formatted="false">"選擇模型或輸入模型 ID"</string>
+    <string name="cap_preview_hint" formatted="false">"點按畫面切換方向，樣式即時預覽"</string>
+    <string name="cap_size_hint" formatted="false">"相對字級 12–22，隨畫面比例縮放"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% 為透明，100% 為不透明；放開儲存"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"展開查看並複製診斷記錄"</string>
+    <string name="cap_use_youtube" formatted="false">"使用 YouTube"</string>
+    <string name="cap_use_ai" formatted="false">"使用 AI"</string>
+    <string name="cap_on" formatted="false">"開啟"</string>
+    <string name="cap_off" formatted="false">"關閉"</string>
+    <string name="cap_configure_api" formatted="false">"請先設定 API，再啟用 AI 翻譯"</string>
+    <string name="cap_switch_failed" formatted="false">"切換失敗，已恢復原來模式"</string>
+    <string name="cap_choose_translation" formatted="false">"請在字幕選單選擇自動翻譯語言"</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"關閉時使用 YouTube 原生字幕"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"原字幕可直接顯示；AI 翻譯需要 API 金鑰"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"已啟用；選擇自動翻譯語言即可使用 AI 字幕"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"在診斷中包含原文與譯文，僅建議排查時啟用"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"不記錄字幕原文或譯文"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"排查時記錄字幕文字，預設關閉"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"使用已儲存的設定測試連線"</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"只有自動翻譯使用 API；原字幕不翻譯"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"重設垂直位置，保留大小與背景設定"</string>
+    <string name="cap_message_10d1b374429d" formatted="false">"編輯時可見，關閉頁面後清空並加密儲存"</string>
+    <string name="cap_message_7da9039cc193" formatted="false">"API 金鑰必須為單行"</string>
+    <string name="cap_message_bafa7b1ca6cb" formatted="false">"API 位址必須以 https:// 或 http:// 開頭"</string>
+    <string name="cap_message_bbbcd9c8bf80" formatted="false">"無法自動儲存"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"無法儲存模型"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"未知設定"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"；保留上次有效值"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"字幕位置已重設"</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"字幕快取已清除"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"刪除 API 金鑰？"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"僅移除此裝置上加密儲存的 API 金鑰，其他設定不變。"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"API 金鑰已刪除"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"診斷已清除"</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"診斷已複製"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"測試中…"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API 可用："</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"API 測試失敗："</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"正在更新模型清單…"</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"正在載入模型清單…"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"無法載入模型，請手動輸入："</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"模型清單已更新"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"尚無翻譯請求。請設定 API，在播放器選擇自動翻譯語言，再重新整理診斷。"</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"引擎："</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"模式："</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"自動翻譯"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"原字幕（不使用翻譯 API）"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"字幕文字偵錯："</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"最近階段："</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"時間參照與失敗（含時間戳記）："</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"最近事件："</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"無法讀取診斷："</string>
+    <string name="cap_message_c34848823d86" formatted="false">"（約 "</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" 秒前）"</string>
+    <string name="cap_mode_pending" formatted="false">"已儲存模式，將在目前影片字幕就緒後生效。"</string>
+    <string name="cap_mode_off_pending" formatted="false">"AI 已關閉，原生字幕將在軌道就緒後恢復。"</string>
+    <string name="cap_flyout_title" formatted="false">"一般影片彈出選單中的 AI 字幕開關"</string>
+    <string name="cap_flyout_summary" formatted="false">"在播放器彈出選單中顯示快捷開關；隱藏不會關閉 AI 字幕，下次開啟選單時生效"</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Shorts 彈出選單中的 AI 字幕開關"</string>
+    <string name="cap_profiles_title" formatted="false">"API 設定方案"</string>
+    <string name="cap_profile_default" formatted="false">"原有設定"</string>
+    <string name="cap_profile_name" formatted="false">"方案名稱"</string>
+    <string name="cap_profile_rename" formatted="false">"重新命名"</string>
+    <string name="cap_profile_add" formatted="false">"新增方案"</string>
+    <string name="cap_profiles_summary" formatted="false">"管理目前方案"</string>
+    <string name="cap_profile_name_error" formatted="false">"請輸入 1–60 個字元的方案名稱"</string>
+    <string name="cap_profile_limit" formatted="false">"最多可儲存 30 套設定方案"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"請先修正目前未完成的輸入，再切換方案"</string>
+    <string name="cap_profile_add_failed" formatted="false">"無法新增方案，請檢查輸入及 30 套方案上限。"</string>
+    <string name="cap_profile_manage" formatted="false">"管理目前方案"</string>
+    <string name="cap_profile_close" formatted="false">"關閉"</string>
+    <string name="cap_profile_save" formatted="false">"儲存"</string>
+    <string name="cap_profile_current" formatted="false">"目前方案"</string>
+    <string name="cap_profile_delete" formatted="false">"刪除方案"</string>
+    <string name="cap_profile_clear_key" formatted="false">"清除此方案的 API Key"</string>
+    <string name="cap_profile_keep_one" formatted="false">"至少保留一套方案；若不再使用，可清除其 API Key。"</string>
+    <string name="cap_profile_new_summary" formatted="false">"新方案附有預設翻譯要求，不複製金鑰和模型。建立後請在設定頁面填妥相關欄位。"</string>
+    <string name="cap_profile_delete_summary" formatted="false">"從本機刪除此方案的網址、模型、翻譯要求與加密金鑰，保留其他方案及字幕設定。若刪除目前方案，將啟用剩餘的第一套方案。此操作無法復原。"</string>
+    <string name="cap_profile_clear_key_summary" formatted="false">"僅清除此方案已儲存及尚未儲存的金鑰輸入，保留網址、模型與翻譯要求；其他方案不受影響。此操作不會向供應商註銷金鑰。"</string>
+    <string name="cap_prompt_summary" formatted="false">"僅用於目前方案。清空後恢復預設要求；預設文字隨介面語言切換，自訂內容保持不變。"</string>
+    <string name="cap_default_prompt" formatted="false">"忠實、自然、簡潔地翻譯為目標語言，符合母語表達習慣；保留人名、專有名詞、數字、語氣與必要標點；不添加原文沒有的解釋。"</string>
+    <string name="cap_profile_more" formatted="false">"方案操作"</string>
+    <string name="cap_profile_collapse" formatted="false">"收起操作"</string>
+    <string name="cap_profile_finish_name" formatted="false">"請先儲存或取消名稱修改。"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"刪除此方案及其儲存在本機的金鑰？其他方案不受影響，此操作無法復原。"</string>
+    <string name="cap_profile_delete_switch" formatted="false">"刪除後將啟用："</string>
+    <string name="cap_profile_keep" formatted="false">"保留方案"</string>
+    <string name="cap_profile_confirm_delete" formatted="false">"確認刪除"</string>
+    <string name="cap_source_retry" formatted="false">"字幕連線中斷，正在自動重試…"</string>
+    <string name="cap_source_unavailable" formatted="false">"暫時無法取得原字幕，請重新選擇字幕軌道。"</string>
+    <string name="cap_caption_overflow" formatted="false">"字幕過長，原文暫不可用"</string>
+    <string name="cap_quality_outcome" formatted="false">"本機驗證：接受 / 拒絕（其中品質問題）"</string>
+</resources>

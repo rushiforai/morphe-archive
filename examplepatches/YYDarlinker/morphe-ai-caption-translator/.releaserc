@@ -1,0 +1,130 @@
+{
+  "branches": [
+    "main",
+    {
+      "name": "dev",
+      "prerelease": true
+    }
+  ],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "releaseRules": [
+          {
+            "type": "fix",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
+            "release": "minor"
+          },
+          {
+            "type": "bump",
+            "release": "patch"
+          },
+          {
+            "type": "perf",
+            "release": "patch"
+          },
+          {
+            "type": "build",
+            "scope": "Needs bump",
+            "release": "patch"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            {
+              "type": "fix",
+              "section": "\ud83d\udc1b Bug Fixes",
+              "hidden": false
+            },
+            {
+              "type": "feat",
+              "section": "\u2728 New Features",
+              "hidden": false
+            },
+            {
+              "type": "bump",
+              "section": "\ud83d\ude80 Updated App Support",
+              "hidden": false
+            },
+            {
+              "type": "perf",
+              "section": "\ud83d\udd27 Improvements",
+              "hidden": false
+            },
+            {
+              "type": "build",
+              "hidden": true
+            }
+          ]
+        }
+      }
+    ],
+    [
+      "@MorpheApp/changelog",
+      {
+        "releaseJson": {
+          "path": "patches-bundle.json",
+          "downloadUrlTemplate": "https://github.com/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp",
+          "signatureUrlTemplate": ""
+        }
+      }
+    ],
+    "gradle-semantic-release-plugin",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "python3 .github/scripts/normalize_release_metadata.py \"${nextRelease.version}\" && ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid :patches:generatePatchesList --no-daemon && python3 .github/scripts/validate_morphe_metadata.py \"${nextRelease.version}\" && python3 .github/scripts/verify_bundle.py \"${nextRelease.version}\""
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "gradle.properties",
+          "patches-bundle.json",
+          "patches-list.json",
+          "README.md"
+        ],
+        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+          }
+        ],
+        "successComment": false,
+        "failComment": false,
+        "failTitle": false,
+        "releasedLabels": false
+      }
+    ],
+    [
+      "@cleyrop-org/semantic-release-backmerge",
+      {
+        "backmergeBranches": [
+          {
+            "from": "main",
+            "to": "dev"
+          }
+        ],
+        "clearWorkspace": true
+      }
+    ]
+  ],
+  "repositoryUrl": "https://github.com/YYDarlinker/morphe-ai-caption-translator.git"
+}

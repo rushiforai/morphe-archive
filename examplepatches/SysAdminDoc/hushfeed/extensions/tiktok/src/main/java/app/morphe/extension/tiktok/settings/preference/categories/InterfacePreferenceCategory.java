@@ -51,6 +51,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.screenCaptureEnabled
                 || SettingsStatus.automaticClearDisplayEnabled
                 || SettingsStatus.doubleTapEnabled
+                || SettingsStatus.swipeLeftEnabled
                 || SettingsStatus.longPressEnabled
                 || SettingsStatus.longPressSpeedLockEnabled
                 || SettingsStatus.disableLongPressQuickShareEnabled
@@ -353,6 +354,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
 
     private void addGestures(Context context) {
         boolean any = SettingsStatus.doubleTapEnabled || SettingsStatus.longPressEnabled
+                || SettingsStatus.swipeLeftEnabled
                 || SettingsStatus.longPressSpeedLockEnabled
                 || SettingsStatus.disableLongPressQuickShareEnabled
                 || SettingsStatus.disableLongPressRepostEnabled
@@ -364,9 +366,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     new String[]{"TikTok default", "Do nothing", "Open comments"},
                     new String[]{"default", "nothing", "comments"}));
         }
+        if (SettingsStatus.swipeLeftEnabled) {
+            addPreference(new ChoicePreference(context, "Swipe left", Settings.SWIPE_LEFT_ACTION,
+                    new String[]{"TikTok default (open the creator's profile)", "Do nothing", "Open comments"},
+                    new String[]{"default", "nothing", "comments"}));
+        }
         if (SettingsStatus.longPressEnabled) {
             addPreference(new ChoicePreference(context, "Long press", Settings.LONG_PRESS_ACTION,
-                    new String[]{"TikTok default (2x hold, quick share)", "Do nothing",
+                    new String[]{"TikTok default (hold to speed up, quick share)", "Do nothing",
                             "Open comments", "Save the original sound", "Copy the video link",
                             "Copy the sound link"},
                     new String[]{"default", "nothing", "comments", "original_sound", "copy_link",
@@ -382,8 +389,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         if (SettingsStatus.longPressSpeedLockEnabled) {
             addPreference(new TogglePreference(
                     context,
-                    "Lock 2x speed with hold and slide",
-                    "Use TikTok's own hold, slide down and release gesture to lock 2x speed.",
+                    "Lock the hold speed with a pull down",
+                    "Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, "
+                            + "2x unless Playback sets another.",
                     Settings.ENABLE_LONG_PRESS_SPEED_LOCK
             ));
         }

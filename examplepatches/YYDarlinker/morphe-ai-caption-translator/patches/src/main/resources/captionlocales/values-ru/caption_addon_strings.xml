@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cap_ai_title" formatted="false">"Перевод субтитров с ИИ"</string>
+    <string name="cap_enable_ai" formatted="false">"Включить перевод с ИИ"</string>
+    <string name="cap_api_config" formatted="false">"Настройки API"</string>
+    <string name="cap_api_address" formatted="false">"Адрес API"</string>
+    <string name="cap_api_key" formatted="false">"Ключ API"</string>
+    <string name="cap_model" formatted="false">"Модель"</string>
+    <string name="cap_test_api" formatted="false">"Проверить API"</string>
+    <string name="cap_translation" formatted="false">"Перевод"</string>
+    <string name="cap_translation_requirements" formatted="false">"Инструкции для перевода"</string>
+    <string name="cap_style" formatted="false">"Стиль субтитров"</string>
+    <string name="cap_size" formatted="false">"Размер субтитров"</string>
+    <string name="cap_opacity" formatted="false">"Непрозрачность фона"</string>
+    <string name="cap_reset_position" formatted="false">"Сбросить положение"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"Кэш и диагностика"</string>
+    <string name="cap_clear_cache" formatted="false">"Очистить кэш субтитров"</string>
+    <string name="cap_delete_key" formatted="false">"Удалить ключ API"</string>
+    <string name="cap_text_debug" formatted="false">"Отладка текста субтитров"</string>
+    <string name="cap_diagnostics" formatted="false">"Диагностика субтитров"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"Очистить диагностику"</string>
+    <string name="cap_preview" formatted="false">"Предпросмотр субтитров"</string>
+    <string name="cap_landscape" formatted="false">"Альбомная"</string>
+    <string name="cap_portrait" formatted="false">"Портретная"</string>
+    <string name="cap_to_landscape" formatted="false">"Альбомная ориентация"</string>
+    <string name="cap_to_portrait" formatted="false">"Портретная ориентация"</string>
+    <string name="cap_refresh" formatted="false">"Обновить"</string>
+    <string name="cap_copy" formatted="false">"Копировать"</string>
+    <string name="cap_expand" formatted="false">"Развернуть"</string>
+    <string name="cap_collapse" formatted="false">"Свернуть"</string>
+    <string name="cap_cancel" formatted="false">"Отмена"</string>
+    <string name="cap_delete" formatted="false">"Удалить"</string>
+    <string name="cap_saved" formatted="false">"Сохранено автоматически"</string>
+    <string name="cap_autosave" formatted="false">"Изменения сохраняются автоматически"</string>
+    <string name="cap_enter_key" formatted="false">"Введите ключ API"</string>
+    <string name="cap_key_saved" formatted="false">"Сохранён в зашифрованном виде; введите новый для замены"</string>
+    <string name="cap_model_hint" formatted="false">"Выберите модель или введите её ID"</string>
+    <string name="cap_preview_hint" formatted="false">"Нажмите на изображение для смены ориентации; стиль обновляется сразу"</string>
+    <string name="cap_size_hint" formatted="false">"Относительный размер 12–22, зависит от размера видео"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% — прозрачный, 100% — непрозрачный; сохранение при отпускании"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"Разверните для просмотра и копирования диагностики"</string>
+    <string name="cap_use_youtube" formatted="false">"Использовать YouTube"</string>
+    <string name="cap_use_ai" formatted="false">"Использовать ИИ"</string>
+    <string name="cap_on" formatted="false">"Вкл."</string>
+    <string name="cap_off" formatted="false">"Выкл."</string>
+    <string name="cap_configure_api" formatted="false">"Настройте API перед включением перевода с ИИ"</string>
+    <string name="cap_switch_failed" formatted="false">"Не удалось переключить; восстановлен прежний режим"</string>
+    <string name="cap_choose_translation" formatted="false">"Выберите язык автоперевода в меню субтитров"</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"Если выключено, YouTube показывает собственные субтитры"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Оригинальные субтитры работают напрямую; для перевода с ИИ нужен ключ API"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"Включено; выберите язык автоперевода для субтитров с ИИ"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"Записывать оригинал и перевод только для диагностики неполадок"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"Не записывать оригинальный и переведённый текст"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"Записывать текст для диагностики; по умолчанию выключено"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"Проверить соединение с сохранёнными настройками"</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"API используется только для автоперевода; оригинальные субтитры не переводятся"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"Сбросить положение по вертикали, сохранив размер и фон"</string>
+    <string name="cap_message_10d1b374429d" formatted="false">"Виден при редактировании, очищается при закрытии и хранится зашифрованным"</string>
+    <string name="cap_message_7da9039cc193" formatted="false">"Ключ API должен занимать одну строку"</string>
+    <string name="cap_message_bafa7b1ca6cb" formatted="false">"Адрес API должен начинаться с https:// или http://"</string>
+    <string name="cap_message_bbbcd9c8bf80" formatted="false">"Не удалось сохранить автоматически"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"Не удалось сохранить модель"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"Неизвестная настройка"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; сохранено последнее допустимое значение"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"Положение субтитров сброшено"</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"Кэш субтитров очищен"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"Удалить ключ API?"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"Удалить только зашифрованный ключ API с этого устройства. Другие настройки не изменятся."</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"Ключ API удалён"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"Диагностика очищена"</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"Диагностика скопирована"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"Проверка…"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API доступен: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"Ошибка проверки API: "</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"Обновление списка моделей…"</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"Загрузка списка моделей…"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"Не удалось загрузить модели; введите ID вручную: "</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"Список моделей обновлён"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"Запросов перевода пока нет. Настройте API, выберите язык автоперевода и обновите диагностику."</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"Движок: "</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"Режим: "</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"Автоперевод"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"Оригинальные субтитры (без API перевода)"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"Отладка текста: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"Последний этап: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"Временные ориентиры и ошибки (с отметками времени): "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"Последние события: "</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"Не удалось прочитать диагностику: "</string>
+    <string name="cap_message_c34848823d86" formatted="false">" (около "</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" секунд назад)"</string>
+    <string name="cap_mode_pending" formatted="false">"Режим сохранён. Он применится, когда субтитры этого видео будут готовы."</string>
+    <string name="cap_mode_off_pending" formatted="false">"ИИ выключен. Субтитры YouTube возобновятся, когда исходная дорожка будет готова."</string>
+    <string name="cap_flyout_title" formatted="false">"Переключатель ИИ-субтитров в меню обычных видео"</string>
+    <string name="cap_flyout_summary" formatted="false">"Показывать переключатель в меню плеера. Скрытие не отключает ИИ-субтитры; изменение действует при повторном открытии меню."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Переключатель ИИ-субтитров в меню Shorts"</string>
+    <string name="cap_profiles_title" formatted="false">"Профили API"</string>
+    <string name="cap_profile_default" formatted="false">"Исходная конфигурация"</string>
+    <string name="cap_profile_name" formatted="false">"Название профиля"</string>
+    <string name="cap_profile_rename" formatted="false">"Переименовать"</string>
+    <string name="cap_profile_add" formatted="false">"Добавить профиль"</string>
+    <string name="cap_profiles_summary" formatted="false">"Управление текущим профилем"</string>
+    <string name="cap_profile_name_error" formatted="false">"Введите название длиной 1–60 символов"</string>
+    <string name="cap_profile_limit" formatted="false">"Можно сохранить до 30 профилей"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"Исправьте незавершённые поля перед сменой профиля"</string>
+    <string name="cap_profile_add_failed" formatted="false">"Не удалось добавить профиль. Проверьте поля и ограничение в 30 профилей."</string>
+    <string name="cap_profile_manage" formatted="false">"Управление текущим профилем"</string>
+    <string name="cap_profile_close" formatted="false">"Закрыть"</string>
+    <string name="cap_profile_save" formatted="false">"Сохранить"</string>
+    <string name="cap_profile_current" formatted="false">"Текущий профиль"</string>
+    <string name="cap_profile_delete" formatted="false">"Удалить профиль"</string>
+    <string name="cap_profile_clear_key" formatted="false">"Очистить API-ключ этого профиля"</string>
+    <string name="cap_profile_keep_one" formatted="false">"Должен остаться хотя бы один профиль. Можно очистить его API-ключ."</string>
+    <string name="cap_profile_new_summary" formatted="false">"Новый профиль содержит стандартные требования к переводу, но не ключ и модель. Заполните поля на странице настроек."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"Удаляет с устройства адрес, модель, требования к переводу и зашифрованный ключ этого профиля. Другие профили и настройки субтитров сохраняются. При удалении активного профиля включается первый оставшийся. Отменить действие нельзя."</string>
+    <string name="cap_profile_clear_key_summary" formatted="false">"Очищает только сохранённый ключ и несохранённый ввод ключа этого профиля. Адрес, модель и требования сохраняются. Другие профили не затрагиваются. Ключ у провайдера не отзывается."</string>
+    <string name="cap_prompt_summary" formatted="false">"Сохраняется для этого профиля. Очистите для стандартных требований на языке интерфейса. Ваш текст остаётся без изменений."</string>
+    <string name="cap_default_prompt" formatted="false">"Переводи точно, естественно и кратко на целевой язык, используя свойственные ему выражения. Сохраняй имена, термины, числа, тон и необходимые знаки препинания. Не добавляй пояснений, которых нет в оригинале."</string>
+    <string name="cap_profile_more" formatted="false">"Действия с профилем"</string>
+    <string name="cap_profile_collapse" formatted="false">"Свернуть действия"</string>
+    <string name="cap_profile_finish_name" formatted="false">"Сначала сохраните или отмените изменение названия."</string>
+    <string name="cap_profile_delete_inline" formatted="false">"Удалить этот профиль и его сохранённый ключ с устройства? Другие профили сохранятся. Действие нельзя отменить."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"После удаления включить:"</string>
+    <string name="cap_profile_keep" formatted="false">"Сохранить профиль"</string>
+    <string name="cap_profile_confirm_delete" formatted="false">"Подтвердить удаление"</string>
+    <string name="cap_source_retry" formatted="false">"Соединение с субтитрами прервано. Повторная попытка…"</string>
+    <string name="cap_source_unavailable" formatted="false">"Исходные субтитры недоступны. Выберите дорожку ещё раз."</string>
+    <string name="cap_caption_overflow" formatted="false">"Субтитр слишком длинный — оригинал недоступен"</string>
+    <string name="cap_quality_outcome" formatted="false">"Локальная проверка: принято / отклонено (качество)"</string>
+</resources>

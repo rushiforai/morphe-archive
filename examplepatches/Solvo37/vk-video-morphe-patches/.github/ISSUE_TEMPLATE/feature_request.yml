@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest a new narrowly scoped patch or project improvement
+title: "[Feature] "
+labels: []
+body:
+  - type: textarea
+    id: request
+    attributes:
+      label: What should be changed?
+      description: Describe the user-visible behavior you want to add/remove/change.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Known classes / strings / methods
+      description: Optional reverse-engineering notes that may help locate the feature.

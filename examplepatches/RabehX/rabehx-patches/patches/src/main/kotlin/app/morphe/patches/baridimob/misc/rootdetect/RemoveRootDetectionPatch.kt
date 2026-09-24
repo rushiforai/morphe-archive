@@ -10,14 +10,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.baridimob.shared.BaridimobConstants
 
-/**
- * Disables the rooted-device check so the app runs on rooted devices.
- * Three seams:
- *  1. RootCheckerFactory.getRootChecker → returns NoCheckRootChecker
- *     (the SDK's built-in no-op checker).
- *  2. CommandSuRootChecker.checkDeviceRooted → false.
- *  3. RootCheckerImpl.checkDeviceRooted → false.
- */
+/** Disables root detection. */
 @Suppress("unused")
 val removeRootDetectionPatch = bytecodePatch(
     name = "Disable root detection",

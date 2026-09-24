@@ -1,0 +1,2198 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patcher
+ */
+
+package app.morphe.patcher.resource.coder
+
+import app.morphe.patcher.resource.CpuArchitecture
+import app.morphe.patcher.resource.PathMap
+import app.morphe.patcher.resource.ResourceMode
+import com.android.tools.build.apkzlib.zip.ZFile
+import com.reandroid.apk.ApkModule
+import com.reandroid.archive.FileInputSource
+import com.reandroid.archive.io.ArchiveFileEntrySource
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.FileTime
+import java.util.concurrent.TimeUnit
+import java.util.zip.ZipFile
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
+import app.morphe.patcher.patch.PatchException
+
+internal class ArsclibResourceCoderTest {
+
+    /** Mirrors the coder's canonical snapshot key. */
+    private val File.snapshotKey get() = absoluteFile.invariantSeparatorsPath
+
+    private lateinit var workingDir: File
+    private lateinit var coder: ArsclibResourceCoder
+
+    @BeforeEach
+    fun setUp(@TempDir tempDir: File) {
+        workingDir = tempDir.resolve("working").also { it.mkdirs() }
+        // apkFile is unused by most methods under test; just needs to be a valid (empty) zip for the constructor.
+        val dummyApk = tempDir.resolve("dummy.apk")
+        ZFile.openReadWrite(dummyApk).use { }
+        coder = ArsclibResourceCoder(workingDir, dummyApk)
+    }
+
+    // ==================== Reflection helpers ====================
+
+    /**
+     * Set up a fake package directory structure under workingDir with a res folder.
+     */
+    private fun setupPackageDir(packageName: String = "com.test.app"): File {
+        val pkgDir = workingDir.resolve("resources").resolve("0").also { it.mkdirs() }
+        pkgDir.resolve("res").mkdirs()
+        coder.packageDirectories[packageName] = pkgDir
+        return pkgDir
+    }
+
+    // ==================== stashPatchedConfigurations tests ====================
+
+    /**
+     * @param configurations The names of the resource configuration directories to create.
+     */
+    private fun setupConfigurations(vararg configurations: String): File {
+        val pkgDir = setupPackageDir()
+        pkgDir.resolve("res/values").mkdirs()
+        pkgDir.resolve("res/values/public.xml").writeText("<resources />")
+
+        configurations.forEach { name ->
+            pkgDir.resolve("res/$name").mkdirs()
+            pkgDir.resolve("res/$name/colors.xml").writeText("<resources />")
+        }
+
+        return pkgDir
+    }
+
+    @Test
+    fun `stashPatchedConfigurations holds back configurations of patches`() {
+        val pkgDir = setupConfigurations("values-mcc1100", "values-mnc1700")
+
+        val held = coder.stashPatchedConfigurations()
+
+        assertEquals(2, held.size)
+        assertFalse(pkgDir.resolve("res/values-mcc1100").exists())
+        assertFalse(pkgDir.resolve("res/values-mnc1700").exists())
+    }
+
+    @Test
+    fun `stashPatchedConfigurations leaves configurations of the app in place`() {
+        val pkgDir = setupConfigurations("values-de", "values-mcc262", "values-night")
+
+        val held = coder.stashPatchedConfigurations()
+
+        assertTrue(held.isEmpty())
+        assertTrue(pkgDir.resolve("res/values-de/colors.xml").isFile)
+        assertTrue(pkgDir.resolve("res/values-mcc262/colors.xml").isFile)
+        assertTrue(pkgDir.resolve("res/values-night/colors.xml").isFile)
+    }
+
+    @Test
+    fun `held configuration keeps its qualifiers and is restored where it was`() {
+        val pkgDir = setupConfigurations("values-mcc1100")
+
+        val held = coder.stashPatchedConfigurations().single()
+
+        // The qualifiers are read off the directory name, so it must survive the move
+        assertEquals("values-mcc1100", held.valuesFiles.single().parentFile.name)
+        assertEquals(pkgDir.resolve("res/values/public.xml"), held.publicXml)
+
+        held.restore()
+
+        assertTrue(pkgDir.resolve("res/values-mcc1100/colors.xml").isFile)
+    }
+
+    // ==================== buildFileSnapshot tests ====================
+
+    @Test
+    fun `buildFileSnapshot captures all files in working directory`() {
+        val pkgDir = setupPackageDir()
+        val fileA = pkgDir.resolve("a.txt").also { it.writeText("hello") }
+        val subDir = pkgDir.resolve("sub").also { it.mkdirs() }
+        val fileB = subDir.resolve("b.txt").also { it.writeText("world") }
+
+        val snapshot = coder.buildFileSnapshot()
+
+        assertEquals(2, snapshot.size, "Snapshot should contain exactly 2 files")
+        assertTrue(snapshot.containsKey(fileA.snapshotKey), "Snapshot should contain a.txt")
+        assertTrue(snapshot.containsKey(fileB.snapshotKey), "Snapshot should contain sub/b.txt")
+    }
+
+    @Test
+    fun `buildFileSnapshot records correct modification time and size`() {
+        val pkgDir = setupPackageDir()
+        val file = pkgDir.resolve("test.txt").also { it.writeText("content") }
+
+        val snapshot = coder.buildFileSnapshot()
+        val entry = snapshot[file.snapshotKey]!!
+
+        assertEquals(Files.getLastModifiedTime(file.toPath()), entry.lastModified)
+        assertEquals(file.length(), entry.size)
+    }
+
+    @Test
+    fun `buildFileSnapshot returns empty map for empty directory`() {
+        val snapshot = coder.buildFileSnapshot()
+
+        assertTrue(snapshot.isEmpty(), "Snapshot should be empty for an empty working directory")
+    }
+
+    @Test
+    fun `buildFileSnapshot ignores directories`() {
+        workingDir.resolve("subdir").mkdirs()
+
+        val snapshot = coder.buildFileSnapshot()
+
+        assertTrue(snapshot.isEmpty(), "Snapshot should not contain directories")
+    }
+
+    // ==================== detectFileChanges tests ====================
+
+    @Test
+    fun `detectFileChanges identifies newly added files`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+
+        // Snapshot is empty (no files existed at decode time).
+        coder.fileSnapshotCache = mutableMapOf()
+
+        // Create a new file after "decoding".
+        val newFile = resDir.resolve("drawable").also { it.mkdirs() }.resolve("icon.xml")
+        newFile.writeText("<vector/>")
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.contains(newFile), "New file should be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "No files should be in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges identifies modified files by timestamp change`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val file = resDir.resolve("values").also { it.mkdirs() }.resolve("strings.xml")
+        file.writeText("<resources/>")
+
+        // Snapshot the file with its current metadata.
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        // Simulate a modification by changing the last modified time.
+        Thread.sleep(50) // Ensure timestamp changes.
+        file.setLastModified(System.currentTimeMillis() + 10_000)
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.contains(file), "Modified file should be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "No files should be in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges identifies modified files by size change`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val file = resDir.resolve("values").also { it.mkdirs() }.resolve("strings.xml")
+        file.writeText("short")
+
+        // Build a snapshot with the original size.
+        val originalLastModified = file.lastModified()
+        coder.fileSnapshotCache = coder.buildFileSnapshot()
+
+        // Change the content (and thus the size) but preserve the timestamp.
+        file.writeText("this is a much longer string to change the file size")
+        file.setLastModified(originalLastModified)
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.contains(file), "Modified file should be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "No files should be in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges ignores unchanged files`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val file = resDir.resolve("values").also { it.mkdirs() }.resolve("strings.xml")
+        file.writeText("<resources/>")
+
+        // Snapshot includes the file.
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        // Don't change anything.
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "No files should be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "No files should be in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges identifies replacement when filesystem exposes changed metadata`() {
+        val pkgDir = setupPackageDir()
+        val file = pkgDir.resolve("res/values/strings.xml").apply {
+            parentFile.mkdirs()
+            writeText("before")
+        }
+        val originalAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+        coder.fileSnapshotCache = coder.buildFileSnapshot()
+
+        Thread.sleep(10)
+        val replacement = file.resolveSibling("replacement.xml").apply { writeText("after!") }
+        Files.setLastModifiedTime(replacement.toPath(), originalAttributes.lastModifiedTime())
+        Files.move(replacement.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        val replacementAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes::class.java)
+        assumeTrue(
+            replacementAttributes.creationTime() != originalAttributes.creationTime() ||
+                    replacementAttributes.fileKey() != originalAttributes.fileKey(),
+            "Filesystem does not expose distinguishable metadata for this replacement",
+        )
+
+        coder.detectFileChanges()
+
+        assertTrue(
+            coder.modifiedResResources.contains(file),
+            "A replacement file must not be hidden by identical size and timestamp metadata",
+        )
+    }
+
+    @Test
+    fun `detectFileChanges identifies high-resolution timestamp changes`() {
+        val file = coder.otherResourcesRootDirectory.resolve("assets/data.bin").apply {
+            parentFile.mkdirs()
+            writeBytes(byteArrayOf(1, 2, 3, 4))
+        }
+        val originalLastModified = FileTime.fromMillis(System.currentTimeMillis() - 1_000)
+        Files.setLastModifiedTime(file.toPath(), originalLastModified)
+        coder.fileSnapshotCache = coder.buildFileSnapshot()
+
+        file.writeBytes(byteArrayOf(4, 3, 2, 1))
+        val subMillisecondChange = FileTime.from(
+            originalLastModified.to(TimeUnit.NANOSECONDS) + 100_000,
+            TimeUnit.NANOSECONDS,
+        )
+        Files.setLastModifiedTime(
+            file.toPath(),
+            subMillisecondChange,
+        )
+        val storedLastModified = Files.getLastModifiedTime(file.toPath())
+        assumeTrue(storedLastModified != originalLastModified, "Filesystem does not retain sub-millisecond timestamps")
+        assumeTrue(storedLastModified.toMillis() == originalLastModified.toMillis())
+
+        coder.detectFileChanges()
+
+        assertTrue(
+            coder.modifiedBinaryResources.contains(file),
+            "Same-size changes must be detected from the filesystem timestamp",
+        )
+    }
+
+    // ==================== resource APK input reuse tests ====================
+
+    @Test
+    fun `changedArchiveEntries maps decoded aliases back to original APK paths`() {
+        val packageDir = setupPackageDir()
+        val modifiedResource = packageDir.resolve("res/layout/readable.xml").apply {
+            parentFile.mkdirs()
+            writeText("<LinearLayout/>")
+        }
+        val modifiedBinary = coder.otherResourcesRootDirectory.resolve("assets/readable.bin").apply {
+            parentFile.mkdirs()
+            writeBytes(byteArrayOf(1, 2, 3))
+        }
+        coder.pathMap = PathMap(
+            """[
+                {"name":"res/a.xml","alias":"res/layout/readable.xml"},
+                {"name":"assets/b.bin","alias":"assets/readable.bin"}
+            ]""".trimIndent(),
+        )
+        coder.modifiedResResources += modifiedResource
+        coder.modifiedBinaryResources += modifiedBinary
+
+        val changedEntries = coder.changedArchiveEntries(packageRenamed = false)
+
+        assertEquals(
+            setOf("AndroidManifest.xml", "resources.arsc", "res/a.xml", "assets/b.bin"),
+            changedEntries,
+        )
+    }
+
+    @Test
+    fun `changedArchiveEntries rebuilds only resources reported as modified`() {
+        val packageDir = setupPackageDir()
+        val unchanged = packageDir.resolve("res/layout/unchanged.xml").apply {
+            parentFile.mkdirs()
+            writeText("<LinearLayout/>")
+        }
+        val changed = packageDir.resolve("res/drawable/changed.png").apply {
+            parentFile.mkdirs()
+            writeBytes(byteArrayOf(1, 2, 3))
+        }
+        coder.modifiedResResources += changed
+
+        val changedEntries = coder.changedArchiveEntries(packageRenamed = false)
+
+        assertFalse(unchanged.relativeTo(packageDir).invariantSeparatorsPath in changedEntries)
+        assertTrue("res/drawable/changed.png" in changedEntries)
+    }
+
+    @Test
+    fun `changedArchiveEntries rebuilds all compiled resources after package rename`() {
+        val packageDir = setupPackageDir()
+        packageDir.resolve("res/layout/unchanged.xml").apply {
+            parentFile.mkdirs()
+            writeText("<LinearLayout/>")
+        }
+        packageDir.resolve("res/drawable/unchanged.png").apply {
+            parentFile.mkdirs()
+            writeBytes(byteArrayOf(1, 2, 3))
+        }
+
+        val changedEntries = coder.changedArchiveEntries(packageRenamed = true)
+
+        assertTrue("res/layout/unchanged.xml" in changedEntries)
+        assertTrue("res/drawable/unchanged.png" in changedEntries)
+    }
+
+    @Test
+    fun `reuseUnchangedArchiveEntries preserves changed and new encoder inputs`(@TempDir tempDir: File) {
+        val originalApk = tempDir.resolve("original.apk")
+        ZFile.openReadWrite(originalApk).use { zip ->
+            zip.add("unchanged.bin", ByteArrayInputStream("original unchanged".toByteArray()))
+            zip.add("changed.bin", ByteArrayInputStream("original changed".toByteArray()))
+            zip.add("deleted.bin", ByteArrayInputStream("deleted".toByteArray()))
+        }
+
+        val encodedModule = ApkModule()
+        val unchangedFile = tempDir.resolve("unchanged.bin").apply { writeText("filesystem unchanged") }
+        val changedFile = tempDir.resolve("changed.bin").apply { writeText("patched changed") }
+        val newFile = tempDir.resolve("new.bin").apply { writeText("new") }
+        encodedModule.add(FileInputSource(unchangedFile, "unchanged.bin"))
+        encodedModule.add(FileInputSource(changedFile, "changed.bin"))
+        encodedModule.add(FileInputSource(newFile, "new.bin"))
+
+        val testCoder = ArsclibResourceCoder(tempDir.resolve("working").apply { mkdirs() }, originalApk)
+        ApkModule.loadApkFile(originalApk).use { originalModule ->
+            encodedModule.use { module ->
+                val reused = testCoder.reuseUnchangedArchiveEntries(
+                    originalModule,
+                    module,
+                    setOf("changed.bin"),
+                )
+
+                assertEquals(1, reused)
+                assertIs<ArchiveFileEntrySource>(module.zipEntryMap.getInputSource("unchanged.bin"))
+                assertIs<FileInputSource>(module.zipEntryMap.getInputSource("changed.bin"))
+                assertIs<FileInputSource>(module.zipEntryMap.getInputSource("new.bin"))
+                assertFalse(module.zipEntryMap.contains("deleted.bin"))
+
+                val outputApk = tempDir.resolve("output.apk")
+                module.writeApk(outputApk)
+                ZipFile(outputApk).use { zip ->
+                    assertEquals(
+                        "original unchanged",
+                        zip.getInputStream(zip.getEntry("unchanged.bin")).bufferedReader().readText(),
+                    )
+                    assertEquals(
+                        "patched changed",
+                        zip.getInputStream(zip.getEntry("changed.bin")).bufferedReader().readText(),
+                    )
+                    assertEquals("new", zip.getInputStream(zip.getEntry("new.bin")).bufferedReader().readText())
+                    assertEquals(null, zip.getEntry("deleted.bin"))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `reuseUnchangedArchiveEntries retains omitted root entries and dex but not deleted files`(
+        @TempDir tempDir: File,
+    ) {
+        val originalApk = tempDir.resolve("original.apk")
+        val entries = listOf(
+            "lib/arm64-v8a/keep.so", "lib/arm64-v8a/deleted.so", "lib/x86/stripped.so",
+            "assets/keep.txt", "assets/deleted.txt", "classes.dex", "res/raw/deleted.txt",
+        )
+        ZFile.openReadWrite(originalApk).use { zip ->
+            entries.forEach { zip.add(it, ByteArrayInputStream(it.toByteArray())) }
+        }
+        val testCoder = ArsclibResourceCoder(
+            tempDir.resolve("working").apply { mkdirs() }, originalApk, setOf(CpuArchitecture.ARM64_V8A),
+        )
+        val asset = testCoder.otherResourcesRootDirectory.resolve("assets/keep.txt").apply {
+            parentFile.mkdirs()
+            writeText("assets/keep.txt")
+        }
+        testCoder.fileSnapshotCache = testCoder.buildFileSnapshot()
+        asset.delete()
+        testCoder.deletedFiles += listOf("lib/arm64-v8a/deleted.so", "assets/deleted.txt")
+        testCoder.stripNativeLibraries()
+
+        ApkModule.loadApkFile(originalApk).use { original ->
+            ApkModule().use { encoded ->
+                // Unstaged lib, staged-and-unchanged asset, and the input DEX (never staged; the
+                // bytecode side replaces it in applyTo when it produced a patched set).
+                assertEquals(
+                    3,
+                    testCoder.reuseUnchangedArchiveEntries(original, encoded, testCoder.changedArchiveEntries(false)),
+                )
+                val output = tempDir.resolve("output.apk")
+                encoded.writeApk(output)
+                ZipFile(output).use { zip ->
+                    assertEquals(
+                        setOf("lib/arm64-v8a/keep.so", "assets/keep.txt", "classes.dex"),
+                        zip.entries().asSequence().map { it.name }.toSet(),
+                    )
+                    assertEquals(
+                        "assets/keep.txt",
+                        zip.getInputStream(zip.getEntry("assets/keep.txt")).bufferedReader().readText(),
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `detectFileChanges excludes public xml from tracking`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val publicXml = resDir.resolve("values").also { it.mkdirs() }.resolve("public.xml")
+        publicXml.writeText("<resources/>")
+
+        // Empty snapshot — file would normally be "added".
+        coder.fileSnapshotCache = mutableMapOf()
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "public.xml should be excluded from modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "public.xml should be excluded from modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges excludes ids xml from tracking`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val idsXml = resDir.resolve("values").also { it.mkdirs() }.resolve("ids.xml")
+        idsXml.writeText("<resources/>")
+
+        coder.fileSnapshotCache = mutableMapOf()
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "ids.xml should be excluded from modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "ids.xml should be excluded from modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges handles mix of added, modified, and unchanged files`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val valuesDir = resDir.resolve("values").also { it.mkdirs() }
+        val drawableDir = resDir.resolve("drawable").also { it.mkdirs() }
+
+        // Unchanged file.
+        val unchangedFile = valuesDir.resolve("colors.xml")
+        unchangedFile.writeText("<resources/>")
+
+        // File that will be modified.
+        val modifiedFile = valuesDir.resolve("strings.xml")
+        modifiedFile.writeText("<resources/>")
+
+        // Build snapshot with these two files.
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        // Modify one file.
+        Thread.sleep(50)
+        modifiedFile.writeText("<resources><string name=\"app\">Modified</string></resources>")
+        modifiedFile.setLastModified(System.currentTimeMillis() + 10_000)
+
+        // Add a new file.
+        val addedFile = drawableDir.resolve("new_icon.xml")
+        addedFile.writeText("<vector/>")
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.contains(addedFile), "New file should be in modifiedResResources")
+        assertTrue(coder.modifiedResResources.contains(modifiedFile), "Modified file should be in modifiedResResources")
+        assertEquals(2, coder.modifiedResResources.size, "Both files should be in modifiedResResources")
+        assertEquals(0, coder.modifiedBinaryResources.size, "There should be no file in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges clears previous results before scanning`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val valuesDir = resDir.resolve("values").also { it.mkdirs() }
+
+        // Pre-populate addedResources and modifiedResources with stale data.
+        val staleFile = valuesDir.resolve("stale.xml").also { it.writeText("stale") }
+        coder.modifiedResResources.add(staleFile)
+        coder.modifiedBinaryResources.add(staleFile)
+
+        // Empty snapshot, no files on disk in res (delete the stale file).
+        staleFile.delete()
+        coder.fileSnapshotCache = mutableMapOf()
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "modifiedResResources should be cleared")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "modifiedBinaryResources should be cleared")
+    }
+
+    @Test
+    fun `detectFileChanges scans multiple package directories`() {
+        val pkgDir1 = workingDir.resolve("resources").resolve("0").also { it.mkdirs() }
+        pkgDir1.resolve("res").mkdirs()
+        coder.packageDirectories["com.test.app"] = pkgDir1
+
+        val pkgDir2 = workingDir.resolve("resources").resolve("1").also { it.mkdirs() }
+        pkgDir2.resolve("res").mkdirs()
+        coder.packageDirectories["com.test.lib"] = pkgDir2
+
+        coder.fileSnapshotCache = mutableMapOf()
+
+        // Add a file in each package.
+        val file1 = pkgDir1.resolve("res/drawable").also { it.mkdirs() }.resolve("a.xml")
+        file1.writeText("<vector/>")
+        val file2 = pkgDir2.resolve("res/drawable").also { it.mkdirs() }.resolve("b.xml")
+        file2.writeText("<vector/>")
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.contains(file1), "File from first package should be detected")
+        assertTrue(coder.modifiedResResources.contains(file2), "File from second package should be detected")
+        assertEquals(2, coder.modifiedResResources.size, "Both new files should be detected")
+        assertEquals(0, coder.modifiedBinaryResources.size, "No files should be in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges only scans res subdirectory of package directories`() {
+        val pkgDir = setupPackageDir()
+
+        // Create a file outside of the res folder (e.g. package.json level).
+        val nonResFile = pkgDir.resolve("some_other_file.txt")
+        nonResFile.writeText("not a resource")
+
+        coder.fileSnapshotCache = mutableMapOf()
+
+        coder.detectFileChanges()
+
+        assertTrue(
+            !coder.modifiedResResources.contains(nonResFile),
+            "Files outside the res directory should not be detected"
+        )
+
+        assertTrue(
+            !coder.modifiedBinaryResources.contains(nonResFile),
+            "Files outside the res directory should not be detected"
+        )
+    }
+
+    @Test
+    fun `detect modification of binary file change`() {
+        val pkgDir = setupPackageLibDir()
+        val libDir = pkgDir.resolve("lib/arm64-v8a")
+
+        val data = byteArrayOf(0x00, 0x00, 0x00, 0x00, 0x00)
+        val file = libDir.resolve("libtest.so").also { it.writeBytes(data) }
+
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        data[2] = 0xFF.toByte()
+        file.writeBytes(data)
+        // Ensure the timestamp changes — same-size writes may not update lastModified on fast filesystems.
+        file.setLastModified(System.currentTimeMillis() + 10_000)
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "Binary file should not be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.contains(file), "Binary file should be in modifiedBinaryResources")
+    }
+
+    private fun setupPackageLibDir(packageName: String = "com.test.app"): File {
+        val pkgDir = workingDir.resolve("root").also { it.mkdirs() }
+        pkgDir.resolve("lib/arm64-v8a").mkdirs()
+        coder.packageDirectories[packageName] = pkgDir
+        return pkgDir
+    }
+
+    // ==================== otherResourcesRootDirectory scanning tests ====================
+
+    @Test
+    fun `detectFileChanges identifies newly added files in otherResourcesRootDirectory`() {
+        // No package directories — simulates FULL mode where files are added to root/.
+        coder.fileSnapshotCache = mutableMapOf()
+
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val newFile = rootDir.resolve("assets").also { it.mkdirs() }.resolve("config.json")
+        newFile.writeText("{}")
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "Binary file should not be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.contains(newFile), "New file in root/ should be in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges identifies modified files in otherResourcesRootDirectory`() {
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val file = rootDir.resolve("lib").also { it.mkdirs() }.resolve("libfoo.so")
+        file.writeBytes(byteArrayOf(0x01, 0x02, 0x03))
+
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        // Modify the file.
+        file.writeBytes(byteArrayOf(0x01, 0x02, 0x03, 0x04))
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "Binary file should not be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.contains(file), "New file in root/ should be in modifiedBinaryResources")
+    }
+
+    @Test
+    fun `detectFileChanges ignores unchanged files in otherResourcesRootDirectory`() {
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val file = rootDir.resolve("assets").also { it.mkdirs() }.resolve("data.bin")
+        file.writeBytes(byteArrayOf(0xCA.toByte(), 0xFE.toByte()))
+
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        // Don't change anything.
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "Binary file should not be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.isEmpty(), "Binary file should not be in modifiedBinaryResources")
+    }
+
+    // ==================== RAW_ONLY mode tests (no packageDirectories) ====================
+
+    @Test
+    fun `detectFileChanges detects added files in RAW_ONLY mode with no package directories`() {
+        // In RAW_ONLY mode, decodeRaw() does not populate packageDirectories.
+        // detectFileChanges must still find new files under root/.
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+
+        // Snapshot is empty — no files existed after raw decoding.
+        coder.fileSnapshotCache = mutableMapOf()
+
+        // A patch adds a new file.
+        val newFile = rootDir.resolve("raw").also { it.mkdirs() }
+            .resolve("patch_data.bin")
+        newFile.writeBytes(byteArrayOf(0xDE.toByte(), 0xAD.toByte()))
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "Binary file should not be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.contains(newFile), "Added file should be detected even with empty packageDirectories")
+    }
+
+    @Test
+    fun `detectFileChanges detects modified files in RAW_ONLY mode with no package directories`() {
+        // In RAW_ONLY mode, decodeRaw() does not populate packageDirectories.
+        // detectFileChanges must still find modified files under root/.
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val file = rootDir.resolve("raw").also { it.mkdirs() }.resolve("config.xml")
+        file.writeText("<config/>")
+
+        // Snapshot captured after decodeRaw().
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        // A patch modifies the file.
+        Thread.sleep(50)
+        file.writeText("<config><entry>patched</entry></config>")
+        file.setLastModified(System.currentTimeMillis() + 10_000)
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedBinaryResources.contains(file), "Modified file should be detected even with empty packageDirectories")
+    }
+
+    @Test
+    fun `detectFileChanges detects mix of added and modified files in RAW_ONLY mode`() {
+        // Simulate RAW_ONLY: no package directories, files live under root/.
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val existingFile = rootDir.resolve("raw").also { it.mkdirs() }
+            .resolve("icon.png")
+        existingFile.writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47))
+
+        val snapshot = coder.buildFileSnapshot()
+        coder.fileSnapshotCache = snapshot
+
+        // Modify existing file.
+        existingFile.writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A))
+
+        // Add a new file.
+        val newFile = rootDir.resolve("assets").also { it.mkdirs() }.resolve("new_asset.txt")
+        newFile.writeText("new content")
+
+        coder.detectFileChanges()
+
+        assertTrue(coder.modifiedResResources.isEmpty(), "Binary file should not be in modifiedResResources")
+        assertTrue(coder.modifiedBinaryResources.contains(newFile), "New file under root/ should be in modifiedBinaryResources")
+        assertTrue(coder.modifiedBinaryResources.contains(existingFile), "Modified file under root/ should be in modifiedBinaryResources")
+    }
+
+    // ==================== Path separator tests ====================
+
+    /**
+     * Verify that excludedPaths matching uses invariantSeparatorsPath (forward slashes)
+     * so that it works on both Unix and Windows. On Windows, File.relativeTo() would
+     * produce backslash-separated paths like "res\values\public.xml", which would fail
+     * to match the forward-slash entries in excludedPaths without normalization.
+     */
+    @Test
+    fun `detectFileChanges excludes paths using forward slash comparison regardless of platform separator`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val valuesDir = resDir.resolve("values").also { it.mkdirs() }
+
+        // Create all excluded files
+        val publicXml = valuesDir.resolve("public.xml").also { it.writeText("<resources/>") }
+        val idsXml = valuesDir.resolve("ids.xml").also { it.writeText("<resources/>") }
+        val manifestXml = pkgDir.resolve("AndroidManifest.xml").also { it.writeText("<manifest/>") }
+
+        // Also create a non-excluded file
+        val stringsXml = valuesDir.resolve("strings.xml").also { it.writeText("<resources/>") }
+
+        coder.fileSnapshotCache = mutableMapOf()
+        coder.detectFileChanges()
+
+        // Verify excluded files are NOT detected
+        assertFalse(
+            coder.modifiedResResources.contains(publicXml),
+            "public.xml should be excluded via invariantSeparatorsPath matching"
+        )
+        assertFalse(
+            coder.modifiedResResources.contains(idsXml),
+            "ids.xml should be excluded via invariantSeparatorsPath matching"
+        )
+
+        // Verify that the relativeTo().invariantSeparatorsPath output matches
+        // the format in excludedPaths (forward slashes)
+        val relativePublicPath = publicXml.relativeTo(pkgDir).invariantSeparatorsPath
+        assertEquals("res/values/public.xml", relativePublicPath,
+            "Relative path should use forward slashes regardless of platform")
+
+        val relativeIdsPath = idsXml.relativeTo(pkgDir).invariantSeparatorsPath
+        assertEquals("res/values/ids.xml", relativeIdsPath,
+            "Relative path should use forward slashes regardless of platform")
+
+        // Non-excluded files should still be detected
+        assertTrue(
+            coder.modifiedResResources.contains(stringsXml),
+            "strings.xml should NOT be excluded"
+        )
+    }
+
+    /**
+     * Verify that the path stripping logic in getOtherResourceFiles (RAW_ONLY mode)
+     * correctly strips the working directory prefix from file paths using
+     * invariantSeparatorsPath (forward slashes). On Windows, absolutePath would
+     * contain backslashes, causing the .replace() call to fail without normalization.
+     */
+    @Test
+    fun `path stripping uses invariantSeparatorsPath for consistent results across platforms`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val drawableDir = resDir.resolve("drawable").also { it.mkdirs() }
+        val newFile = drawableDir.resolve("icon.xml").also { it.writeText("<vector/>") }
+
+        // Simulate what getOtherResourceFiles does for modifiedResResources:
+        // val workingDirPath = workingDir.absoluteFile.invariantSeparatorsPath
+        // val path = it.absoluteFile.invariantSeparatorsPath.replace(workingDirPath, "")
+        // val subPath = path.substringAfter("/resources/").substringAfter("/")
+        val workingDirPath = workingDir.absoluteFile.invariantSeparatorsPath
+        val filePath = newFile.absoluteFile.invariantSeparatorsPath
+        val strippedPath = filePath.replace(workingDirPath, "")
+        val subPath = strippedPath.substringAfter("/resources/").substringAfter("/")
+
+        assertEquals("res/drawable/icon.xml", subPath,
+            "Path stripping should produce a clean forward-slash relative path")
+
+        // Verify that without invariantSeparatorsPath, the paths would still be
+        // consistent on this platform (they are, but on Windows they wouldn't be).
+        assertTrue(filePath.startsWith(workingDirPath),
+            "File path should start with working directory path when using invariantSeparatorsPath")
+    }
+
+    /**
+     * Verify that the path stripping logic for modifiedBinaryResources in
+     * getOtherResourceFiles correctly strips the "/root/" prefix.
+     */
+    @Test
+    fun `binary resource path stripping removes root prefix using forward slashes`() {
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val libDir = rootDir.resolve("lib/arm64-v8a").also { it.mkdirs() }
+        val soFile = libDir.resolve("libtest.so").also { it.writeBytes(byteArrayOf(0x00)) }
+
+        // Simulate the path stripping from getOtherResourceFiles for modifiedBinaryResources:
+        // val workingDirPath = workingDir.absoluteFile.invariantSeparatorsPath
+        // val path = it.absoluteFile.invariantSeparatorsPath.replace(workingDirPath, "")
+        // otherFiles[it] = otherResourcesDir.resolve(path.replace("/root/", ""))
+        val workingDirPath = workingDir.absoluteFile.invariantSeparatorsPath
+        val filePath = soFile.absoluteFile.invariantSeparatorsPath
+        val strippedPath = filePath.replace(workingDirPath, "")
+        val finalPath = strippedPath.replace("/root/", "")
+
+        assertEquals("lib/arm64-v8a/libtest.so", finalPath,
+            "Binary path stripping should remove working dir and /root/ prefix using forward slashes")
+    }
+
+    /**
+     * Verify that the path stripping logic for modifiedResResources handles
+     * deeply nested directory structures correctly.
+     */
+    @Test
+    fun `path stripping handles deeply nested resource directories`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val deepDir = resDir.resolve("values-en-rUS").also { it.mkdirs() }
+        val file = deepDir.resolve("strings.xml").also { it.writeText("<resources/>") }
+
+        val workingDirPath = workingDir.absoluteFile.invariantSeparatorsPath
+        val filePath = file.absoluteFile.invariantSeparatorsPath
+        val strippedPath = filePath.replace(workingDirPath, "")
+        val subPath = strippedPath.substringAfter("/resources/").substringAfter("/")
+
+        assertEquals("res/values-en-rUS/strings.xml", subPath,
+            "Path stripping should handle qualifier directories correctly")
+    }
+
+    /**
+     * Verify that the path stripping logic for binary resources handles
+     * deeply nested paths under root/ correctly.
+     */
+    @Test
+    fun `binary path stripping handles nested asset directories`() {
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val assetDir = rootDir.resolve("assets/data/config").also { it.mkdirs() }
+        val file = assetDir.resolve("settings.json").also { it.writeText("{}") }
+
+        val workingDirPath = workingDir.absoluteFile.invariantSeparatorsPath
+        val filePath = file.absoluteFile.invariantSeparatorsPath
+        val strippedPath = filePath.replace(workingDirPath, "")
+        val finalPath = strippedPath.replace("/root/", "")
+
+        assertEquals("assets/data/config/settings.json", finalPath,
+            "Binary path stripping should preserve nested directory structure under root/")
+    }
+
+    // ==================== getFile PathMap aliasing tests ====================
+
+    @Test
+    fun `getFile resolves aliased res path when path map has mapping`() {
+        val pkgDir = setupPackageDir()
+
+        // On disk the file lives at the alias path
+        val aliasDir = pkgDir.resolve("res/drawable-mdpi").also { it.mkdirs() }
+        val aliasFile = aliasDir.resolve("drawable_0x7f080695.png").also { it.writeText("PNG") }
+
+        coder.pathMap = PathMap("""[
+            {"name": "res/-5N.png", "alias": "res/drawable-mdpi/drawable_0x7f080695.png"}
+        ]""")
+
+        // A caller asks for the original APK name
+        val result = coder.getFile("res/-5N.png", packageName = "com.test.app")
+
+        assertEquals(aliasFile.absolutePath, result.absolutePath,
+            "getFile should resolve the original name to the on-disk alias via the path map")
+    }
+
+    @Test
+    fun `getFile resolves unmapped res path directly`() {
+        val pkgDir = setupPackageDir()
+
+        val valuesDir = pkgDir.resolve("res/values").also { it.mkdirs() }
+        val stringsFile = valuesDir.resolve("strings.xml").also { it.writeText("<resources/>") }
+
+        coder.pathMap = PathMap("""[
+            {"name": "res/-5N.png", "alias": "res/drawable-mdpi/drawable_0x7f080695.png"}
+        ]""")
+
+        // "res/values/strings.xml" has no path map entry — should resolve as-is
+        val result = coder.getFile("res/values/strings.xml", packageName = "com.test.app")
+
+        assertEquals(stringsFile.absolutePath, result.absolutePath,
+            "getFile should resolve unmapped paths directly without aliasing")
+    }
+
+    @Test
+    fun `getFile resolves aliased path already using alias name`() {
+        val pkgDir = setupPackageDir()
+
+        val aliasDir = pkgDir.resolve("res/drawable-mdpi").also { it.mkdirs() }
+        val aliasFile = aliasDir.resolve("drawable_0x7f080695.png").also { it.writeText("PNG") }
+
+        coder.pathMap = PathMap("""[
+            {"name": "res/-5N.png", "alias": "res/drawable-mdpi/drawable_0x7f080695.png"}
+        ]""")
+
+        // A caller directly asks for the alias path — getAlias returns null so it resolves as-is
+        val result = coder.getFile("res/drawable-mdpi/drawable_0x7f080695.png", packageName = "com.test.app")
+
+        assertEquals(aliasFile.absolutePath, result.absolutePath,
+            "getFile should still work when called with the alias path directly")
+    }
+
+    @Test
+    fun `getFile resolves AndroidManifest without aliasing`() {
+        val manifest = workingDir.resolve("AndroidManifest.xml").also { it.writeText("<manifest/>") }
+
+        coder.pathMap = PathMap("""[
+            {"name": "res/-5N.png", "alias": "res/drawable-mdpi/drawable_0x7f080695.png"}
+        ]""")
+
+        val result = coder.getFile("AndroidManifest.xml", packageName = "com.test.app")
+
+        assertEquals(manifest.absolutePath, result.absolutePath,
+            "AndroidManifest.xml should resolve to the working directory")
+    }
+
+    @Test
+    fun `getFile resolves aliased root file via path map`() {
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val aliasDir = rootDir.resolve("assets/data").also { it.mkdirs() }
+        val aliasFile = aliasDir.resolve("config_aliased.bin").also { it.writeBytes(byteArrayOf(0x01)) }
+
+        coder.pathMap = PathMap("""[
+            {"name": "assets/config.bin", "alias": "assets/data/config_aliased.bin"}
+        ]""")
+
+        val result = coder.getFile("assets/config.bin", packageName = "com.test.app")
+
+        assertEquals(aliasFile.absolutePath, result.absolutePath,
+            "getFile should resolve root files via path map alias")
+    }
+
+    @Test
+    fun `getFile with empty path map resolves paths directly`() {
+        val pkgDir = setupPackageDir()
+        val drawableDir = pkgDir.resolve("res/drawable").also { it.mkdirs() }
+        val file = drawableDir.resolve("icon.png").also { it.writeText("PNG") }
+
+        coder.pathMap = PathMap.EMPTY
+
+        val result = coder.getFile("res/drawable/icon.png", packageName = "com.test.app")
+
+        assertEquals(file.absolutePath, result.absolutePath,
+            "getFile with empty path map should resolve paths directly")
+    }
+
+    // ==================== getOtherResourceFiles unaliasing tests ====================
+
+    @Test
+    fun `getOtherResourceFiles unaliases modified res resource paths in RAW_ONLY mode`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val drawableDir = resDir.resolve("drawable-mdpi").also { it.mkdirs() }
+        val aliasFile = drawableDir.resolve("drawable_0x7f080695.png").also { it.writeText("PNG") }
+
+        coder.fileSnapshotCache = mutableMapOf()
+        coder.pathMap = PathMap("""[
+            {"name": "res/-5N.png", "alias": "res/drawable-mdpi/drawable_0x7f080695.png"}
+        ]""")
+
+        val outputDir = workingDir.resolveSibling("output").also { it.mkdirs() }
+        val result = coder.getOtherResourceFiles(outputDir, ResourceMode.RAW_ONLY)!!
+
+        // The file should be moved to the output dir under the original APK name
+        val expectedFile = result.resolve("res/-5N.png")
+        assertTrue(expectedFile.exists(),
+            "Modified res file should be moved to the original APK name path, not the alias. " +
+            "Contents of output: ${result.walkTopDown().filter { it.isFile }.map { it.relativeTo(result).path }.toList()}")
+    }
+
+    @Test
+    fun `getOtherResourceFiles unaliases modified binary resource paths in RAW_ONLY mode`() {
+        setupPackageDir() // Need at least one package dir for the method to work
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val aliasDir = rootDir.resolve("assets/data").also { it.mkdirs() }
+        aliasDir.resolve("config_aliased.bin").also { it.writeBytes(byteArrayOf(0x01)) }
+
+        coder.fileSnapshotCache = mutableMapOf()
+        coder.pathMap = PathMap("""[
+            {"name": "assets/config.bin", "alias": "assets/data/config_aliased.bin"}
+        ]""")
+
+        val outputDir = workingDir.resolveSibling("output").also { it.mkdirs() }
+        val result = coder.getOtherResourceFiles(outputDir, ResourceMode.RAW_ONLY)!!
+
+        val expectedFile = result.resolve("assets/config.bin")
+        assertTrue(expectedFile.exists(),
+            "Modified binary file should be moved to the original APK name path, not the alias. " +
+            "Contents of output: ${result.walkTopDown().filter { it.isFile }.map { it.relativeTo(result).path }.toList()}")
+    }
+
+    @Test
+    fun `getOtherResourceFiles preserves unmapped paths in RAW_ONLY mode`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val valuesDir = resDir.resolve("values").also { it.mkdirs() }
+        valuesDir.resolve("strings.xml").also { it.writeText("<resources/>") }
+
+        coder.fileSnapshotCache = mutableMapOf()
+        coder.pathMap = PathMap("""[
+            {"name": "res/-5N.png", "alias": "res/drawable-mdpi/drawable_0x7f080695.png"}
+        ]""")
+
+        val outputDir = workingDir.resolveSibling("output").also { it.mkdirs() }
+        val result = coder.getOtherResourceFiles(outputDir, ResourceMode.RAW_ONLY)!!
+
+        // strings.xml has no path map entry — should keep its path as-is
+        val expectedFile = result.resolve("res/values/strings.xml")
+        assertTrue(expectedFile.exists(),
+            "Unmapped file should keep its original path. " +
+            "Contents of output: ${result.walkTopDown().filter { it.isFile }.map { it.relativeTo(result).path }.toList()}")
+    }
+
+    @Test
+    fun `getOtherResourceFiles handles mix of mapped and unmapped paths in RAW_ONLY mode`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+
+        // Mapped file (alias on disk)
+        val drawableDir = resDir.resolve("drawable-mdpi").also { it.mkdirs() }
+        drawableDir.resolve("drawable_0x7f080695.png").also { it.writeText("PNG") }
+
+        // Unmapped file (same name on disk and in APK)
+        val valuesDir = resDir.resolve("values").also { it.mkdirs() }
+        valuesDir.resolve("strings.xml").also { it.writeText("<resources/>") }
+
+        // Unmapped binary file
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val libDir = rootDir.resolve("lib/arm64-v8a").also { it.mkdirs() }
+        libDir.resolve("libfoo.so").also { it.writeBytes(byteArrayOf(0x7F, 0x45, 0x4C, 0x46)) }
+
+        coder.fileSnapshotCache = mutableMapOf()
+        coder.pathMap = PathMap("""[
+            {"name": "res/-5N.png", "alias": "res/drawable-mdpi/drawable_0x7f080695.png"}
+        ]""")
+
+        val outputDir = workingDir.resolveSibling("output").also { it.mkdirs() }
+        val result = coder.getOtherResourceFiles(outputDir, ResourceMode.RAW_ONLY)!!
+
+        val outputFiles = result.walkTopDown().filter { it.isFile }
+            .map { it.relativeTo(result).invariantSeparatorsPath }.toSet()
+
+        assertTrue("res/-5N.png" in outputFiles,
+            "Mapped res file should be unaliased to original APK name. Output: $outputFiles")
+        assertTrue("res/values/strings.xml" in outputFiles,
+            "Unmapped res file should keep its path. Output: $outputFiles")
+        assertTrue("lib/arm64-v8a/libfoo.so" in outputFiles,
+            "Unmapped binary file should keep its path. Output: $outputFiles")
+    }
+
+    @Test
+    fun `getOtherResourceFiles with empty path map preserves all paths in RAW_ONLY mode`() {
+        val pkgDir = setupPackageDir()
+        val resDir = pkgDir.resolve("res")
+        val drawableDir = resDir.resolve("drawable").also { it.mkdirs() }
+        drawableDir.resolve("icon.png").also { it.writeText("PNG") }
+
+        coder.fileSnapshotCache = mutableMapOf()
+        coder.pathMap = PathMap.EMPTY
+
+        val outputDir = workingDir.resolveSibling("output").also { it.mkdirs() }
+        val result = coder.getOtherResourceFiles(outputDir, ResourceMode.RAW_ONLY)!!
+
+        val expectedFile = result.resolve("res/drawable/icon.png")
+        assertTrue(expectedFile.exists(),
+            "With empty path map, files should keep their on-disk paths")
+    }
+
+    // ==================== Native library removal tests ====================
+
+    /**
+     * Helper to create a coder with specific keepArchitectures.
+     */
+    private fun createCoderWithKeepArchitectures(
+        tempDir: File,
+        keepArchitectures: Set<CpuArchitecture>
+    ): ArsclibResourceCoder {
+        // A valid (empty) zip so getDeletedFiles(NONE) can open it without lib entries.
+        val dummyApk = tempDir.resolve("dummy2.apk")
+        ZFile.openReadWrite(dummyApk).use { }
+        return ArsclibResourceCoder(workingDir, dummyApk, keepArchitectures)
+    }
+
+    // ==================== listApkEntries ====================
+
+    @Test
+    fun `listApkEntries lists entries without staging them`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(
+            tempDir,
+            mapOf("lib/arm64-v8a/a.so" to "a", "lib/x86/b.so" to "b", "assets/c.bin" to "c")
+        )
+        val listCoder = ArsclibResourceCoder(workingDir, apk)
+
+        val libs = listCoder.listApkEntries("lib/")
+
+        assertEquals(setOf("lib/arm64-v8a/a.so", "lib/x86/b.so"), libs.toSet())
+        assertFalse(
+            workingDir.resolve("root/lib").exists(),
+            "Listing must not stage anything to the working directory"
+        )
+    }
+
+    @Test
+    fun `listApkEntries with no prefix lists every entry`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/a" to "a", "top.txt" to "t"))
+        val listCoder = ArsclibResourceCoder(workingDir, apk)
+
+        assertEquals(setOf("assets/a", "top.txt"), listCoder.listApkEntries().toSet())
+    }
+
+    @Test
+    fun `listApkEntries returns names get accepts`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/data.bin" to "payload"))
+        val listCoder = ArsclibResourceCoder(workingDir, apk)
+
+        val name = listCoder.listApkEntries("assets/").single()
+        val file = listCoder.getFile(name)
+
+        assertEquals("payload", file.readText())
+    }
+
+    // ==================== which root entries are staged ====================
+
+    @Test
+    fun `native libraries are not staged`() {
+        assertFalse(coder.stagesRootEntry("lib/arm64-v8a/libfoo.so"))
+        assertFalse(coder.stagesRootEntry("lib/x86/libbar.so"))
+    }
+
+    @Test
+    fun `every other root entry is staged`() {
+        // A patch that discovers files by walking the working directory can only see what is
+        // staged, so everything a patch might enumerate has to be there.
+        listOf(
+            "assets/data.bin",
+            "META-INF/services/foo",
+            "com/example/Thing.properties",
+            "org/example/other.properties",
+            "play-services-tasks.properties",
+            "DebugProbesKt.bin",
+            "res/drawable/unreferenced.png",
+        ).forEach { assertTrue(coder.stagesRootEntry(it), "$it should be staged") }
+    }
+
+    @Test
+    fun `only the native library directory is matched`() {
+        // Names that merely start with the same letters, or nest the directory deeper, are not
+        // native library entries.
+        listOf("library/thing.txt", "libs/thing.txt", "foo/lib/thing.so", "Lib/thing.so", "lib")
+            .forEach { assertTrue(coder.stagesRootEntry(it), "$it should be staged") }
+    }
+
+    // ==================== root entries left in the input apk ====================
+
+    /**
+     * Build an apk holding root entries, so the paths that no longer stage anything to disk
+     * can be exercised against a real archive rather than against files a test pre-created.
+     */
+    private fun createApkWithRootEntries(tempDir: File, entries: Map<String, String>): File {
+        val apk = tempDir.resolve("withroot.apk")
+        ZFile.openReadWrite(apk).use { zFile ->
+            entries.forEach { (name, content) ->
+                zFile.add(name, ByteArrayInputStream(content.toByteArray()))
+            }
+        }
+        return apk
+    }
+
+    @Test
+    fun `getFile extracts a root entry that was never staged`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/data.bin" to "payload"))
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+
+        val file = rootCoder.getFile("assets/data.bin")
+
+        assertTrue(file.exists(), "Root entry should be extracted on demand")
+        assertEquals("payload", file.readText())
+    }
+
+    @Test
+    fun `getFile extracts an aliased root entry by its archive name`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/o.bin" to "aliased"))
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+        rootCoder.pathMap = PathMap("""[{"name":"assets/o.bin","alias":"assets/original.bin"}]""")
+
+        // Patches address files by the readable name, which the archive does not use.
+        val file = rootCoder.getFile("assets/original.bin")
+
+        assertTrue(file.exists(), "Aliased root entry should resolve to its archive name")
+        assertEquals("aliased", file.readText())
+    }
+
+    @Test
+    fun `getFile extracts every entry of a requested root directory`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(
+            tempDir,
+            mapOf("assets/dir/a.bin" to "a", "assets/dir/b.bin" to "b", "assets/other.bin" to "c")
+        )
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+
+        val dir = rootCoder.getFile("assets/dir")
+
+        assertTrue(dir.isDirectory, "A requested directory should be materialised")
+        assertEquals(setOf("a.bin", "b.bin"), dir.listFiles()!!.map { it.name }.toSet())
+    }
+
+    @Test
+    fun `getFile gives a patch somewhere to create a new root file`(@TempDir tempDir: File) {
+        // A patch adding e.g. a branding file writes to a path the input apk never had, and
+        // staging used to be what created the directory for it.
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/data.bin" to "payload"))
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+
+        val file = rootCoder.getFile("BRANDING.TXT")
+        file.writeText("added by a patch")
+
+        assertEquals("added by a patch", file.readText())
+    }
+
+    @Test
+    fun `getFile creates nested parents for a new root file`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/data.bin" to "payload"))
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+
+        val file = rootCoder.getFile("assets/new/nested.txt")
+        file.writeText("nested")
+
+        assertEquals("nested", file.readText())
+    }
+
+    @Test
+    fun `detectFileChanges reports a deleted root file with a relative working directory`(
+        @TempDir tempDir: File
+    ) {
+        // PatcherConfig.temporaryFilesPath defaults to a relative path, so the coder's working
+        // directory is commonly relative while the snapshot keys are absolute.
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/data.bin" to "payload"))
+        val relativeDir = File("build/tmp/relative-working-dir-${System.nanoTime()}")
+        try {
+            val relativeCoder = ArsclibResourceCoder(relativeDir, apk)
+            val file = relativeCoder.getFile("assets/data.bin")
+            assertTrue(file.exists(), "precondition: the entry is extracted")
+            file.delete()
+
+            relativeCoder.detectFileChanges()
+
+            assertTrue(
+                "assets/data.bin" in relativeCoder.getDeletedFiles(ResourceMode.FULL),
+                "A deleted root file must be reported for removal from the rebuilt apk"
+            )
+        } finally {
+            relativeDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `an archive entry cannot escape the working directory`(@TempDir tempDir: File) {
+        // A crafted APK can carry entry names with parent-directory segments; extracting one
+        // must never write outside the working directory.
+        val apk = tempDir.resolve("evil.apk")
+        ZFile.openReadWrite(apk).use { zFile ->
+            zFile.add("lib/../../escaped.txt", ByteArrayInputStream("evil".toByteArray()))
+            zFile.add("assets/ok.txt", ByteArrayInputStream("fine".toByteArray()))
+        }
+        val evilCoder = ArsclibResourceCoder(workingDir, apk)
+
+        evilCoder.getFile("lib/../../escaped.txt")
+        evilCoder.getFile("assets/ok.txt")
+
+        assertFalse(
+            workingDir.parentFile.resolve("escaped.txt").exists(),
+            "The crafted entry must not be written outside the working directory"
+        )
+        assertTrue(evilCoder.getFile("assets/ok.txt").exists(), "Well-formed entries still extract")
+    }
+
+    @Test
+    fun `getFile leaves a path that the apk does not hold`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/data.bin" to "payload"))
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+
+        assertFalse(rootCoder.getFile("assets/missing.bin").exists())
+    }
+
+    @Test
+    fun `detectFileChanges sees a same-length rewrite of an extracted root file`(
+        @TempDir tempDir: File
+    ) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/data.bin" to "aaaa"))
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+        val file = rootCoder.getFile("assets/data.bin")
+
+        // Same length and, on a coarse filesystem clock, the same timestamp.
+        file.writeText("bbbb")
+        file.setLastModified(file.lastModified())
+        rootCoder.detectFileChanges()
+
+        assertTrue(
+            file in rootCoder.modifiedBinaryResources,
+            "A same-length rewrite must still count as modified"
+        )
+    }
+
+    @Test
+    fun `stripNativeLibraries marks libs for deletion without anything staged`(
+        @TempDir tempDir: File
+    ) {
+        val apk = createApkWithLibs(tempDir, listOf("arm64-v8a", "x86"))
+        val archCoder = ArsclibResourceCoder(workingDir, apk, setOf(CpuArchitecture.ARM64_V8A))
+
+        archCoder.stripNativeLibraries()
+        val deleted = archCoder.getDeletedFiles(ResourceMode.FULL)
+
+        assertTrue(deleted.all { it.startsWith("lib/x86/") }, "Only the dropped arch: $deleted")
+        assertEquals(2, deleted.size, "Both x86 entries should be marked")
+    }
+
+    @Test
+    fun `getUncompressedFiles survives close`(@TempDir tempDir: File) {
+        val apk = createApkWithRootEntries(tempDir, mapOf("assets/a" to "a"))
+        val rootCoder = ArsclibResourceCoder(workingDir, apk)
+        workingDir.resolve("uncompressed-files.json").writeText("""{"paths":["lib/x86/libfoo.so"]}""")
+
+        val uncompressed = rootCoder.getUncompressedFiles(ResourceMode.FULL)
+        // applyTo commonly reads this after the patcher has been closed.
+        rootCoder.close()
+
+        assertTrue("lib/x86/libfoo.so" in uncompressed, "Result must not alias cleared state")
+    }
+
+    /**
+     * Helper to create a real APK on disk containing native lib entries for each architecture.
+     * Used to exercise the ResourceMode.NONE strip path, which reads lib paths directly from the APK.
+     */
+    private fun createApkWithLibs(
+        tempDir: File,
+        architectures: List<String>,
+        filesPerArch: Int = 2
+    ): File {
+        val apk = tempDir.resolve("withlibs.apk")
+        ZFile.openReadWrite(apk).use { zFile ->
+            architectures.forEach { arch ->
+                (1..filesPerArch).forEach { i ->
+                    zFile.add(
+                        "lib/$arch/lib$arch$i.so",
+                        ByteArrayInputStream(byteArrayOf(0x7F, 0x45, 0x4C, 0x46, i.toByte()))
+                    )
+                }
+            }
+        }
+        return apk
+    }
+
+    /**
+     * Helper to set up native library directories under root/lib/.
+     * Creates .so files in each specified architecture directory.
+     */
+    private fun setupNativeLibDirs(
+        architectures: List<String>,
+        filesPerArch: Int = 2
+    ): Map<String, List<File>> {
+        val rootLibDir = workingDir.resolve("root/lib").also { it.mkdirs() }
+        val result = mutableMapOf<String, List<File>>()
+
+        architectures.forEach { arch ->
+            val archDir = rootLibDir.resolve(arch).also { it.mkdirs() }
+            val files = (1..filesPerArch).map { i ->
+                archDir.resolve("lib$arch$i.so").also {
+                    it.writeBytes(byteArrayOf(0x7F, 0x45, 0x4C, 0x46, i.toByte()))
+                }
+            }
+            result[arch] = files
+        }
+
+        return result
+    }
+
+    @Test
+    fun `stripNativeLibraries removes architectures not in keepArchitectures`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A)
+        )
+
+        // Set up libs for arm64-v8a, x86, and x86_64.
+        setupNativeLibDirs(listOf("arm64-v8a", "x86", "x86_64"))
+
+        // Simulate the decode snapshot — all files exist.
+        archCoder.packageDirectories.putAll(coder.packageDirectories)
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        // Call stripNativeLibraries.
+        archCoder.stripNativeLibraries()
+
+        // arm64-v8a should be kept.
+        val rootLibDir = workingDir.resolve("root/lib")
+        assertTrue(rootLibDir.resolve("arm64-v8a").exists(),
+            "arm64-v8a directory should be kept")
+        assertTrue(rootLibDir.resolve("arm64-v8a").listFiles()!!.isNotEmpty(),
+            "arm64-v8a should still contain files")
+
+        // x86 and x86_64 should be removed.
+        assertFalse(rootLibDir.resolve("x86").exists(),
+            "x86 directory should be removed")
+        assertFalse(rootLibDir.resolve("x86_64").exists(),
+            "x86_64 directory should be removed")
+    }
+
+    @Test
+    fun `stripNativeLibraries keeps multiple architectures`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A, CpuArchitecture.ARMEABI_V7A)
+        )
+
+        setupNativeLibDirs(listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64"))
+
+        archCoder.packageDirectories.putAll(coder.packageDirectories)
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        archCoder.stripNativeLibraries()
+
+        val rootLibDir = workingDir.resolve("root/lib")
+        assertTrue(rootLibDir.resolve("arm64-v8a").exists(),
+            "arm64-v8a should be kept")
+        assertTrue(rootLibDir.resolve("armeabi-v7a").exists(),
+            "armeabi-v7a should be kept")
+        assertFalse(rootLibDir.resolve("x86").exists(),
+            "x86 should be removed")
+        assertFalse(rootLibDir.resolve("x86_64").exists(),
+            "x86_64 should be removed")
+    }
+
+    @Test
+    fun `stripNativeLibraries is no-op when keepArchitectures is empty`() {
+        // Default coder has empty keepArchitectures.
+        setupNativeLibDirs(listOf("arm64-v8a", "x86", "x86_64"))
+
+        coder.stripNativeLibraries()
+
+        val rootLibDir = workingDir.resolve("root/lib")
+        assertTrue(rootLibDir.resolve("arm64-v8a").exists(),
+            "arm64-v8a should remain when keepArchitectures is empty")
+        assertTrue(rootLibDir.resolve("x86").exists(),
+            "x86 should remain when keepArchitectures is empty")
+        assertTrue(rootLibDir.resolve("x86_64").exists(),
+            "x86_64 should remain when keepArchitectures is empty")
+    }
+
+    @Test
+    fun `stripNativeLibraries handles missing lib directory gracefully`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A)
+        )
+
+        // Don't create any lib directory.
+        archCoder.stripNativeLibraries()
+
+        // Should not throw.
+        assertFalse(workingDir.resolve("root/lib").exists(),
+            "No lib directory should exist")
+    }
+
+    @Test
+    fun `stripNativeLibraries removes all architectures when none match keepArchitectures`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.MIPS)
+        )
+
+        setupNativeLibDirs(listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64"))
+
+        archCoder.stripNativeLibraries()
+
+        val rootLibDir = workingDir.resolve("root/lib")
+        assertFalse(rootLibDir.resolve("arm64-v8a").exists(), "arm64-v8a should be removed")
+        assertFalse(rootLibDir.resolve("armeabi-v7a").exists(), "armeabi-v7a should be removed")
+        assertFalse(rootLibDir.resolve("x86").exists(), "x86 should be removed")
+        assertFalse(rootLibDir.resolve("x86_64").exists(), "x86_64 should be removed")
+    }
+
+    @Test
+    fun `stripNativeLibraries keeps all architectures when all match`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A, CpuArchitecture.X86)
+        )
+
+        setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+
+        archCoder.stripNativeLibraries()
+
+        val rootLibDir = workingDir.resolve("root/lib")
+        assertTrue(rootLibDir.resolve("arm64-v8a").exists(), "arm64-v8a should be kept")
+        assertTrue(rootLibDir.resolve("x86").exists(), "x86 should be kept")
+    }
+
+    @Test
+    fun `stripNativeLibraries ignores non-architecture directories under lib`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A)
+        )
+
+        setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+
+        // Create a non-architecture directory under lib.
+        val nonArchDir = workingDir.resolve("root/lib/some-other-dir").also { it.mkdirs() }
+        nonArchDir.resolve("somefile.txt").writeText("not a native lib")
+
+        archCoder.stripNativeLibraries()
+
+        val rootLibDir = workingDir.resolve("root/lib")
+        assertTrue(rootLibDir.resolve("arm64-v8a").exists(), "arm64-v8a should be kept")
+        assertFalse(rootLibDir.resolve("x86").exists(), "x86 should be removed")
+        // Non-architecture directories are not recognized as a CpuArchitecture,
+        // so valueOfOrNull returns null and null !in keepArchitectures == true,
+        // meaning they get removed.
+        assertFalse(rootLibDir.resolve("some-other-dir").exists(),
+            "Unrecognized directories under lib/ should be removed")
+    }
+
+    @Test
+    fun `stripped native libraries do not appear in detectFileChanges`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A)
+        )
+
+        val libFiles = setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+
+        // Simulate decode: capture snapshot of all files.
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        // Strip non-kept architectures.
+        archCoder.stripNativeLibraries()
+
+        // Detect changes after stripping.
+        archCoder.detectFileChanges()
+
+        // The stripped x86 files should not appear in modifiedBinaryResources.
+        libFiles["x86"]!!.forEach { file ->
+            assertFalse(archCoder.modifiedBinaryResources.contains(file),
+                "Stripped x86 file should not appear in modifiedBinaryResources")
+        }
+
+        // arm64-v8a files should also not appear (they are unchanged).
+        libFiles["arm64-v8a"]!!.forEach { file ->
+            assertFalse(archCoder.modifiedBinaryResources.contains(file),
+                "Unchanged arm64-v8a file should not appear in modifiedBinaryResources")
+        }
+
+        assertTrue(archCoder.modifiedResResources.isEmpty(),
+            "No res resources should be modified")
+    }
+
+    @Test
+    fun `modified native library in kept architecture is detected after strip`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A)
+        )
+
+        val libFiles = setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+
+        // Capture snapshot.
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        // Strip.
+        archCoder.stripNativeLibraries()
+
+        // Modify a file in the kept architecture.
+        val keptFile = libFiles["arm64-v8a"]!![0]
+        keptFile.writeBytes(byteArrayOf(0x00, 0x01, 0x02, 0x03, 0x04, 0x05))
+        keptFile.setLastModified(System.currentTimeMillis() + 10_000)
+
+        archCoder.detectFileChanges()
+
+        assertTrue(archCoder.modifiedBinaryResources.contains(keptFile),
+            "Modified file in kept architecture should be detected")
+    }
+
+    @Test
+    fun `new native library added to kept architecture after strip is detected`(@TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir, setOf(CpuArchitecture.ARM64_V8A)
+        )
+
+        setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+
+        // Capture snapshot.
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        // Strip.
+        archCoder.stripNativeLibraries()
+
+        // Add a new file in the kept architecture.
+        val newFile = workingDir.resolve("root/lib/arm64-v8a/libnew.so")
+        newFile.writeBytes(byteArrayOf(0xDE.toByte(), 0xAD.toByte()))
+
+        archCoder.detectFileChanges()
+
+        assertTrue(archCoder.modifiedBinaryResources.contains(newFile),
+            "New file in kept architecture should be detected")
+    }
+
+    // ==================== getDeletedFiles regression tests ====================
+    /**
+     * These tests cover the regression introduced in cli v1.6.4-dev.1,
+     * when we switched to using patcher implementation of strip libs, where ArsclibResourceCoder.getDeletedFiles()
+     * was a 'No-op' (emptySet()). As a result, files removed from the working directory by
+     * stripNativeLibraries() (or by patches via deleteFile()) were never reported back to PatcherResult.applyto(),
+     * so the entries survived never get removed in the rebuilt APK that applyTo() assembled.
+     *
+     * The fix populates a deletedFiles set inside detectFileChanges() by walking the snapshot cache and
+     * recording any file that existed at decode time but no longer exists on disk under
+     * otherResourcesRootDirectory. getDeletedFiles() returns that set.
+     */
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles is empty before detectFileChanges runs`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir, setOf(CpuArchitecture.ARM64_V8A))
+
+        setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+        archCoder.stripNativeLibraries()
+
+        // Intentionally do NOT call detectFileChanges() here.
+
+        assertTrue(
+            archCoder.getDeletedFiles(mode).isEmpty(),
+            "getDeletedFiles should be empty until detectFileChanges populates it"
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles reports stripped lib files after detectFileChanges`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir, setOf(CpuArchitecture.ARM64_V8A))
+
+        val libFiles = setupNativeLibDirs(listOf("arm64-v8a", "x86","x86_64"))
+
+        // Snapshot before strip. This shows all the lib files.
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        archCoder.stripNativeLibraries()
+        archCoder.detectFileChanges()
+
+        val deleted = archCoder.getDeletedFiles(mode)
+
+        // arm64-v8a SHOULD NOT be reported as deleted here.
+        libFiles["arm64-v8a"]!!.forEach { file ->
+            val rel = file.relativeTo(workingDir.resolve("root")).invariantSeparatorsPath
+            assertFalse(
+                deleted.contains(rel),
+                "Kept architecture file $rel should not be in getDeletedFiles"
+            )
+        }
+
+
+        // x86 and x86_64 files SHOULD be reported as deleted here.
+        libFiles["x86"]!!.forEach { file ->
+            val rel = file.relativeTo(workingDir.resolve("root")).invariantSeparatorsPath
+            assertTrue(
+                deleted.contains(rel),
+                "Stripped x86 file $rel should be in getDeletedFiles"
+            )
+        }
+
+        libFiles["x86_64"]!!.forEach { file ->
+            val rel = file.relativeTo(workingDir.resolve("root")).invariantSeparatorsPath
+            assertTrue(
+                deleted.contains(rel),
+                "Stripped x86_64 file $rel should be in getDeletedFiles"
+            )
+        }
+
+        assertEquals(
+            4,
+            deleted.size,
+            "getDeletedFiles should contain exactly the 4 stripped lib files"
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles reports paths in apk-relative posix format`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir, setOf(CpuArchitecture.ARM64_V8A))
+
+        setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+        archCoder.stripNativeLibraries()
+        archCoder.detectFileChanges()
+
+        val deleted = archCoder.getDeletedFiles(mode)
+
+        // PatcherResult.applyTo() expects in-zip APK paths:
+        // posix-style, no leading slash, starting with "lib/<arch>/...".
+        // Verify the path shape regardless of host OS path separator.
+
+        // ApkToolResourceCoder.getDeletedFiles() emits paths in this same format because both coders need to agree.
+        deleted.forEach { path ->
+            assertTrue(
+                path.startsWith("lib/x86/"),
+                "Stripped path '$path' should be a lib/x86/ entry"
+            )
+            assertFalse(
+                path.contains("\\"),
+                "Stripped path '$path' should use posix separators"
+            )
+            assertFalse(
+                path.startsWith("/"),
+                "Stripped path '$path' should not have a leading slash"
+            )
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles is empty when keepArchitectures is empty`(mode: ResourceMode) {
+        // Default coder has no keepArchitectures, so stripNativeLibraries() is a no-op.
+        setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+
+        coder.fileSnapshotCache = coder.buildFileSnapshot()
+        coder.stripNativeLibraries()
+        coder.detectFileChanges()
+
+        assertTrue(
+            coder.getDeletedFiles(mode).isEmpty(),
+            "getDeletedFiles should be empty when nothing was stripped"
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles is empty when no files were deleted`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(
+            tempDir,
+            setOf(CpuArchitecture.ARM64_V8A, CpuArchitecture.X86, CpuArchitecture.X86_64)
+        )
+
+        // All architectures present in keepArchitectures — strip should be a no-op.
+        setupNativeLibDirs(listOf("arm64-v8a", "x86", "x86_64"))
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+        archCoder.stripNativeLibraries()
+        archCoder.detectFileChanges()
+
+        assertTrue(
+            archCoder.getDeletedFiles(mode).isEmpty(),
+            "getDeletedFiles should be empty when no files were stripped"
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles is cleared between detectFileChanges calls`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir, setOf(CpuArchitecture.ARM64_V8A))
+
+        setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+        archCoder.stripNativeLibraries()
+        archCoder.detectFileChanges()
+
+        assertTrue(
+            archCoder.getDeletedFiles(mode).isNotEmpty(),
+            "Sanity check: first detectFileChanges should populate deletedFiles"
+        )
+
+        // Restore the deleted files to disk so the second snapshot scan finds them.
+        // (Snapshot still references their original File handles.)
+        workingDir.resolve("root/lib/x86").mkdirs()
+        workingDir.resolve("root/lib/x86/libx861.so").writeBytes(
+            byteArrayOf(0x7F, 0x45, 0x4C, 0x46, 0x01)
+        )
+        workingDir.resolve("root/lib/x86/libx862.so").writeBytes(
+            byteArrayOf(0x7F, 0x45, 0x4C, 0x46, 0x02)
+        )
+
+        // Second pass: nothing is missing now, deletedFiles should be reset.
+        archCoder.detectFileChanges()
+
+        assertTrue(
+            archCoder.getDeletedFiles(mode).isEmpty(),
+            "deletedFiles should be cleared at the start of each detectFileChanges call"
+        )
+    }
+
+    // ==================== Files deleted by patches (deleteFile) tests ====================
+    /**
+     * Patches can delete files via ResourceCoder.deleteFile(path).
+     * Those deletions need to make it into the output APK the same way strip-libs deletions do,
+     * i.e via getDeletedFiles() being populated by detectFileChanges()
+     * noticing the file is no longer present from the snapshot.
+     */
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles reports root-level files removed by patches`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir, emptySet())
+
+        // Simulate decode: a few files exist under root/ at decode time.
+        val rootDir = workingDir.resolve("root").also { it.mkdirs() }
+        val keepFile = rootDir.resolve("assets").also { it.mkdirs() }.resolve("keep.json")
+        keepFile.writeText("{\"keep\": true}")
+        val removeFile = rootDir.resolve("assets").resolve("remove.json")
+        removeFile.writeText("{\"removed\": true}")
+
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        // Simulate a patch deleting one file directly (via Files.delete, since the
+        // resource coder's deleteFile() targets package-resources, not root files).
+        removeFile.delete()
+
+        archCoder.detectFileChanges()
+
+        val deleted = archCoder.getDeletedFiles(mode)
+        assertTrue(
+            deleted.contains("assets/remove.json"),
+            "Deleted file should be reported in getDeletedFiles, got: $deleted"
+        )
+        assertFalse(
+            deleted.contains("assets/keep.json"),
+            "Kept file should NOT be reported in getDeletedFiles"
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles only reports files under root directory`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir, emptySet())
+
+        // Set up two files: one under root/ and one under resources/<pkg>/.
+        // Only the root/ deletion should be reported via getDeletedFiles.
+        // resources/ deletions are handled by the resource APK rebuild path.
+        val rootFile = workingDir.resolve("root/assets").also { it.mkdirs() }.resolve("file.json")
+        rootFile.writeText("{}")
+
+        val pkgDir = workingDir.resolve("resources/0").also { it.mkdirs() }
+        pkgDir.resolve("res").mkdirs()
+        archCoder.packageDirectories["com.test.app"] = pkgDir
+        val resFile = pkgDir.resolve("res/values").also { it.mkdirs() }.resolve("strings.xml")
+        resFile.writeText("<resources/>")
+
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        // Delete both.
+        rootFile.delete()
+        resFile.delete()
+
+        archCoder.detectFileChanges()
+
+        val deleted = archCoder.getDeletedFiles(mode)
+        assertTrue(
+            deleted.contains("assets/file.json"),
+            "Root file deletion should be reported, got: $deleted"
+        )
+        assertEquals(
+            1, deleted.size,
+            "Only root/ deletions should be in getDeletedFiles, got: $deleted"
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles handles strip and patch deletions in the same pass`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir, setOf(CpuArchitecture.ARM64_V8A))
+
+        // Native libs for two arches (one kept, one stripped).
+        val libFiles = setupNativeLibDirs(listOf("arm64-v8a", "x86"))
+
+        // A separate root-level file that a patch will delete.
+        val rootDir = workingDir.resolve("root")
+        val patchDeletedFile = rootDir.resolve("assets").also { it.mkdirs() }.resolve("config.json")
+        patchDeletedFile.writeText("{}")
+
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+
+        // Strip libs (removes x86) AND simulate a patch deletion.
+        archCoder.stripNativeLibraries()
+        patchDeletedFile.delete()
+
+        archCoder.detectFileChanges()
+
+        val deleted = archCoder.getDeletedFiles(mode)
+
+        // Both the stripped lib files and the patch-deleted file should be reported.
+        libFiles["x86"]!!.forEach { file ->
+            val rel = file.relativeTo(rootDir).invariantSeparatorsPath
+            assertTrue(
+                deleted.contains(rel),
+                "Stripped lib $rel should be in deletedFiles"
+            )
+        }
+        assertTrue(
+            deleted.contains("assets/config.json"),
+            "Patch-deleted file should be in deletedFiles, got: $deleted"
+        )
+        // 2 stripped x86 files + 1 patch deletion.
+        assertEquals(
+            3, deleted.size,
+            "Expected 3 total deletions, got: $deleted"
+        )
+    }
+
+    /**
+     * Regression test for the bug where PatcherResult.applyTo silently skipped all
+     * native-lib deletions when invoked after the enclosing Patcher.use block exited.
+     * Root cause: getDeletedFiles() used to return the internal mutable deletedFiles field by reference.
+     * close() clears that field. Callers holding the returned Set (via PatcherResult.PatchedResources.deleteResources)
+     * saw an empty set after close(), so applyTo had nothing to delete.
+     * Fix: getDeletedFiles() now returns a defensive copy via .toSet().
+     */
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getDeletedFiles returns independent snapshot that survives close`(mode: ResourceMode, @TempDir tempDir: File) {
+        val archCoder = createCoderWithKeepArchitectures(tempDir,
+            setOf(CpuArchitecture.ARM64_V8A))
+
+        setupNativeLibDirs(listOf("arm64-v8a", "x86", "x86_64"))
+        archCoder.fileSnapshotCache = archCoder.buildFileSnapshot()
+        archCoder.stripNativeLibraries()
+        archCoder.detectFileChanges()
+
+        // Capture the returned set BEFORE close, mimicking what PatcherResult.PatchedResources.deleteResources does in real usage.
+        val snapshot = archCoder.getDeletedFiles(mode)
+        val sizeBeforeClose = snapshot.size
+        assertTrue(sizeBeforeClose > 0, "Sanity check: strip should have produced deletions")
+
+        // close() clears the internal deletedFiles backing field.
+        archCoder.close()
+
+        // The previously-returned set must retain its contents. If getDeletedFiles() had returned the raw reference,
+        // close() would have cleared it and size would be 0.
+        assertEquals(
+            sizeBeforeClose,
+            snapshot.size,
+            "getDeletedFiles must return an independent snapshot. close() cleared the shared reference and caused the silent strip-libs failure."
+        )
+    }
+
+    // ==================== getDeletedFiles ResourceMode.NONE strip-from-apk tests ====================
+    /**
+     * When no resource patches are provided the coder runs with ResourceMode.NONE, so stripNativeLibraries()
+     * never runs against the working directory. getDeletedFiles(NONE) instead reads native lib entries
+     * directly from the original APK and reports the ones whose architecture isn't kept.
+     */
+
+    @Test
+    fun `getDeletedFiles strips libs from apk in NONE mode when no resource patches present`(@TempDir tempDir: File) {
+        val apk = createApkWithLibs(tempDir, listOf("arm64-v8a", "x86", "x86_64"))
+        val archCoder = ArsclibResourceCoder(workingDir, apk, setOf(CpuArchitecture.ARM64_V8A))
+
+        // No working-directory lib dirs and no detectFileChanges(): mimics the no-resource-patches path.
+        val deleted = archCoder.getDeletedFiles(ResourceMode.NONE)
+
+        assertTrue(deleted.contains("lib/x86/libx861.so"), "x86 libs should be stripped, got: $deleted")
+        assertTrue(deleted.contains("lib/x86_64/libx86_641.so"), "x86_64 libs should be stripped, got: $deleted")
+        assertFalse(deleted.any { it.startsWith("lib/arm64-v8a/") }, "kept arm64-v8a libs must not be stripped")
+        assertEquals(4, deleted.size, "2 x86 + 2 x86_64 entries should be stripped, got: $deleted")
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ResourceMode::class, names = ["FULL", "RAW_ONLY"])
+    fun `getDeletedFiles does not read apk libs outside NONE mode`(mode: ResourceMode, @TempDir tempDir: File) {
+        val apk = createApkWithLibs(tempDir, listOf("arm64-v8a", "x86"))
+        val archCoder = ArsclibResourceCoder(workingDir, apk, setOf(CpuArchitecture.ARM64_V8A))
+
+        // No on-disk strip happened, so non-NONE modes report only the (empty) deletedFiles set.
+        assertTrue(
+            archCoder.getDeletedFiles(mode).isEmpty(),
+            "apk should only be read during getDeletedFiles() in NONE mode, not $mode"
+        )
+    }
+
+    @Test
+    fun `getDeletedFiles is empty in NONE mode when keepArchitectures is empty`(@TempDir tempDir: File) {
+        val apk = createApkWithLibs(tempDir, listOf("arm64-v8a", "x86"))
+        val archCoder = ArsclibResourceCoder(workingDir, apk, emptySet())
+
+        assertTrue(
+            archCoder.getDeletedFiles(ResourceMode.NONE).isEmpty(),
+            "Nothing should be stripped when no architectures are requested to be kept"
+        )
+    }
+
+    // ==================== getUncompressedFiles tests ====================
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class)
+    fun `getUncompressedFiles is empty when json missing in every mode`(mode: ResourceMode) {
+        assertTrue(
+            coder.getUncompressedFiles(mode).isEmpty(),
+            "Missing uncompressed-files.json should yield an empty set in $mode"
+        )
+    }
+
+    @ParameterizedTest
+    @EnumSource(ResourceMode::class, names = ["FULL", "RAW_ONLY"])
+    fun `getUncompressedFiles parses paths and extensions in every mode`(mode: ResourceMode) {
+        workingDir.resolve("uncompressed-files.json").writeText(
+            """{"extensions":[".png"],"paths":["lib/x86/libfoo.so"]}"""
+        )
+
+        val uncompressed = coder.getUncompressedFiles(mode)
+
+        assertTrue("lib/x86/libfoo.so" in uncompressed, "explicit path should be uncompressed in $mode")
+        assertTrue("res/drawable/icon.png" in uncompressed, "extension match should be uncompressed in $mode")
+        assertFalse("classes.dex" in uncompressed, "non-listed file should be compressed in $mode")
+    }
+
+
+    // ==================== deleteFile tests ====================
+
+    private fun coderWithApk(tempDir: File, vararg entries: String): ArsclibResourceCoder {
+        val apk = tempDir.resolve("input.apk")
+        ZFile.openReadWrite(apk).use { zip ->
+            entries.forEach { zip.add(it, ByteArrayInputStream("data of $it".toByteArray())) }
+        }
+        return ArsclibResourceCoder(tempDir.resolve("working").apply { mkdirs() }, apk)
+    }
+
+    @Test
+    fun `deleteFile excludes an unstaged archive entry from the rebuilt APK`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "lib/x86/libfoo.so", "lib/arm64-v8a/libfoo.so")
+
+        testCoder.deleteFile("lib/x86/libfoo.so")
+
+        assertTrue("lib/x86/libfoo.so" in testCoder.getDeletedFiles(ResourceMode.FULL))
+        assertFalse("lib/arm64-v8a/libfoo.so" in testCoder.getDeletedFiles(ResourceMode.FULL))
+        assertTrue("lib/x86/libfoo.so" in testCoder.changedArchiveEntries(packageRenamed = false))
+        assertTrue("lib/x86/libfoo.so" in testCoder.getDeletedFiles(ResourceMode.NONE))
+    }
+
+    @Test
+    fun `deleteFile removes an extracted copy and still excludes the entry`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "lib/x86/libfoo.so")
+        val extracted = testCoder.getFile("lib/x86/libfoo.so", null, copy = true)
+        assertTrue(extracted.isFile)
+
+        testCoder.deleteFile("lib/x86/libfoo.so")
+
+        assertFalse(extracted.exists())
+        assertTrue("lib/x86/libfoo.so" in testCoder.getDeletedFiles(ResourceMode.FULL))
+    }
+
+    @Test
+    fun `deleteFile is not fooled by the reuse pass`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "lib/x86/libfoo.so", "lib/arm64-v8a/libfoo.so")
+        testCoder.deleteFile("lib/x86/libfoo.so")
+
+        ApkModule.loadApkFile(tempDir.resolve("input.apk")).use { originalModule ->
+            ApkModule().use { encoded ->
+                testCoder.reuseUnchangedArchiveEntries(
+                    originalModule,
+                    encoded,
+                    testCoder.changedArchiveEntries(packageRenamed = false),
+                )
+                assertFalse(encoded.zipEntryMap.contains("lib/x86/libfoo.so"))
+                assertTrue(encoded.zipEntryMap.contains("lib/arm64-v8a/libfoo.so"))
+            }
+        }
+    }
+
+    @Test
+    fun `deleteFile of a name that exists nowhere is a no-op`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "assets/keep.bin")
+
+        assertDoesNotThrow { testCoder.deleteFile("assets/missing.bin") }
+
+        assertTrue(testCoder.getDeletedFiles(ResourceMode.FULL).isEmpty())
+    }
+
+    @Test
+    fun `deleteFile still removes decoded resources from the package directory`() {
+        val pkgDir = setupPackageDir()
+        val file = pkgDir.resolve("res/values/strings.xml").apply { parentFile.mkdirs(); writeText("<resources/>") }
+
+        coder.deleteFile("res/values/strings.xml", "com.test.app")
+
+        assertFalse(file.exists())
+    }
+
+    @Test
+    fun `deleteFile refuses the manifest`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "AndroidManifest.xml")
+
+        assertThrows<PatchException> { testCoder.deleteFile("AndroidManifest.xml") }
+    }
+
+    @Test
+    fun `deleteFile of a directory entry deletes everything below it without throwing`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "lib/", "lib/x86/", "lib/x86/liba.so", "lib/x86/libb.so", "lib/arm64-v8a/liba.so")
+        // A staged, non-empty directory used to make deleteIfExists throw DirectoryNotEmptyException.
+        val extracted = testCoder.getFile("lib/x86/liba.so", null, copy = true)
+        assertTrue(extracted.isFile)
+
+        assertDoesNotThrow { testCoder.deleteFile("lib/x86/") }
+
+        assertFalse(extracted.parentFile.exists())
+        val deleted = testCoder.getDeletedFiles(ResourceMode.FULL)
+        assertTrue(setOf("lib/x86/", "lib/x86/liba.so", "lib/x86/libb.so").all { it in deleted })
+        assertFalse("lib/arm64-v8a/liba.so" in deleted)
+        assertFalse("lib/" in deleted)
+    }
+
+    @Test
+    fun `deleteFile refuses names escaping the working directory`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "assets/keep.bin")
+        val outside = tempDir.resolve("outside.txt").apply { writeText("keep me") }
+
+        assertThrows<PatchException> { testCoder.deleteFile("../../outside.txt") }
+        assertThrows<PatchException> { testCoder.deleteFile(outside.absolutePath) }
+
+        assertTrue(outside.exists())
+        assertTrue(testCoder.getDeletedFiles(ResourceMode.FULL).isEmpty())
+    }
+
+    @Test
+    fun `deleteFile refuses the resource table`(@TempDir tempDir: File) {
+        val testCoder = coderWithApk(tempDir, "resources.arsc")
+
+        assertThrows<PatchException> { testCoder.deleteFile("resources.arsc") }
+    }
+
+    @Test
+    fun `reuse carries the input dex files into the compiled resource APK`(@TempDir tempDir: File) {
+        val originalApk = tempDir.resolve("original.apk")
+        ZFile.openReadWrite(originalApk).use { zip ->
+            zip.add("classes.dex", ByteArrayInputStream("dex".toByteArray()))
+            zip.add("classes2.dex", ByteArrayInputStream("dex 2".toByteArray()))
+            zip.add("lib/x86/libfoo.so", ByteArrayInputStream("so".toByteArray()))
+        }
+        val testCoder = ArsclibResourceCoder(tempDir.resolve("working").apply { mkdirs() }, originalApk)
+        assertFalse(testCoder.stagesRootEntry("classes.dex"))
+        assertFalse(testCoder.stagesRootEntry("classes2.dex"))
+        assertTrue(testCoder.stagesRootEntry("assets/classes.dex.txt"))
+
+        ApkModule.loadApkFile(originalApk).use { originalModule ->
+            ApkModule().use { encoded ->
+                // Nothing staged, nothing in the snapshot: exactly the state after a resource-only decode.
+                val reused = testCoder.reuseUnchangedArchiveEntries(originalModule, encoded, emptySet())
+                assertEquals(3, reused)
+                assertTrue(encoded.zipEntryMap.contains("classes.dex"))
+                assertTrue(encoded.zipEntryMap.contains("classes2.dex"))
+            }
+        }
+    }
+}

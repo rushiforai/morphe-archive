@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">הגדרות Morphe אופסו לברירת מחדל</string>
   <string name="morphe_settings_import_success">%d הגדרות יובאו</string>
   <string name="morphe_settings_import_failure_parse">ייבוא נכשל: %s</string>
+  <string name="morphe_settings_navigate_up">ניווט למעלה</string>
   <string name="morphe_settings_search_hint">חפש בהגדרות</string>
   <string name="morphe_settings_search_no_results_title">לא נמצאו תוצאות עבור \'%s\'</string>
   <string name="morphe_settings_search_no_results_summary">נסה מילת מפתח אחרת</string>
   <string name="morphe_settings_search_recent_searches">חיפושים אחרונים</string>
   <string name="morphe_settings_search_remove_message">להסיר מהיסטוריית חיפוש?</string>
+  <string name="morphe_settings_search_remove">להסיר מהיסטוריית חיפוש</string>
   <string name="morphe_settings_search_clear_history">נקה היסטוריית חיפושים</string>
   <string name="morphe_settings_search_clear_history_message">האם אתה בטוח שברצונך למחוק את כל היסטוריית החיפושים?</string>
   <string name="morphe_settings_search_tips_title">טיפים לחיפוש</string>
@@ -72,8 +74,8 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_success">הגדרות יובאו בהצלחה</string>
   <string name="morphe_settings_export_file_failed">נכשל לייצא הגדרות</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">אתה משתמש בגרסה האחרונה של Morphe Patches &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">אתה משתמש בגרסת Morphe Patches &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;עדכון זמין: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;כדי לעדכן את התיקונים שלך, השתמש ב-Morphe כדי לתקן מחדש את האפליקציה הזו</string>
+  <string name="morphe_settings_about_links_body_version_current">אתה משתמש בגרסה האחרונה של Spectre Patches &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">אתה משתמש בגרסת Spectre Patches &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;עדכון זמין: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;כדי לעדכן את התיקונים שלך, השתמש ב-Spectre כדי לתקן מחדש את האפליקציה הזו</string>
   <string name="morphe_settings_about_links_dev_header">הערה</string>
   <string name="morphe_settings_about_links_dev_body">גרסה זו היא קדם-הפצה וייתכן שתיתקל בבעיות בלתי צפויות</string>
   <string name="morphe_settings_about_links_header">קישורים רשמיים</string>

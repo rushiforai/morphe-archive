@@ -28,23 +28,35 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | **Usability** | **Show seekbar** | `bytecodePatch` | Restores video seekbar and scrubbing controls where hidden or disabled. |
 | **Usability** | **Always show publish date** | `bytecodePatch` | Forces video publish and upload timestamps to remain permanently visible on feed cards. |
 | **Usability** | **Copy comments without username** | `bytecodePatch` | Sanitizes comment copy actions to exclude the prepended author username. |
+| **Usability** | **Disable Comment Suggested Emojis** | `bytecodePatch` | Removes the horizontal bar of suggested quick emojis displayed above the comment input box. |
 | **Usability** | **Playback Speed Persistence** | `bytecodePatch` | Persists user-selected video speed across feed scrolling and restarts. |
 | **Usability** | **[Video Quality Governor](#2-video-quality-governor)** | `bytecodePatch` | Decoupled resolution ceilings for playback (e.g. 480p) and downloads (e.g. 1080p). |
 | **Usability** | **Skip First-Launch Onboarding** | `bytecodePatch` | Bypasses interest pickers, swipe-up tutorial, language prompts, and consent sheets directly to FYP. |
 | **Usability** | **[Custom Offline Videos Limit](#4-custom-offline-videos-limit)** | `bytecodePatch` | Customizes maximum offline videos download caching limit (~X mins, Y GB/MB). |
 | **Usability** | **Auto-translate comments** | `bytecodePatch` | Automatically dispatches batch translations via TikTok's native engine. |
+| **Usability** | **Hide Top-Left LIVE Button** | `bytecodePatch` | Removes the top-left LIVE broadcast button and tab entry point from the top navigation bar. |
+| **Usability** | **Hide STEM and Community Tabs** | `bytecodePatch` | Removes STEM and Comunidad (Explore / Topics) tabs from the top navigation feed strip. |
+| **Usability** | **Hide Profile Photo Follow Button** | `bytecodePatch` | Hides the plus (+) follow badge on creator profile avatars in the feed and disables its touch interaction. |
+| **Usability** | **Disable Profile Photo LIVE Status** | `bytecodePatch` | Removes pulsing LIVE ring/badge from creator avatars in feed and forces clicks directly to user profile. |
+| **Usability** | **Disable Story Feed Indicators** | `bytecodePatch` | Removes the top-center story drop-down indicator pill (e.g. '1 Story') and creator profile photo story rings from feed videos, ensuring avatar photos remain clean. |
+| **Usability** | **Force auto-scroll** | `bytecodePatch` | Forces the activation of the native video auto-scroll experiment flag for accounts and regions that lack it due to A/B testing. |
+| **Usability** | **Hide Feed Search Bar** | `bytecodePatch` | Removes the search suggestion pill and trending bar ('Search · <keyword>') from the bottom of feed videos. |
+| **Usability** | **Hide Popular Lives In Search** | `bytecodePatch` | Removes the popular LIVE broadcasts section ('LIVE populares') and live stream recommendations from the search intermediate page. |
+| **Usability** | **Hide Suggested Searches** | `bytecodePatch` | Removes the suggested searches section ('Podría interesarte' / Guess Search) from the search intermediate page. |
+| **Usability** | **Auto-pause first video** | `bytecodePatch` | Automatically pauses the initial video on startup (frame 0) with center play icon; resumes instantly upon screen tap or feed scroll. |
 | **Privacy** | **Fix Google login** | `bytecodePatch` | Restores Google account sign-in via Web OAuth fallback when GMS rejects modified APK signature. |
 | **Privacy** | **Bypass Mandatory Login** | `bytecodePatch` | Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions. |
 | **Privacy** | **Clean Share URL** | `bytecodePatch` | Strips tracking query parameters, user tokens, and campaign IDs from shared links. |
-| **Privacy** | **Device Privacy Guard** | `bytecodePatch` | Blocks background clipboard inspection, isolates package queries, silences HAR hardware sensors, and clears `FLAG_SECURE`. |
+| **Privacy** | **Device Privacy Guard** | `bytecodePatch` | Intercepts runtime permission prompts (contacts, location), suppresses in-app permission nag dialogs and background sync tasks, zeroes Advertising ID, blocks clipboard inspection, isolates package queries, silences HAR motion sensors, and clears `FLAG_SECURE`. |
 | **Privacy** | **In-App Browser Privacy Guard** | `bytecodePatch` | Redirects external links to default system browser, neutralizes WebView JS tracking injection and AJAX hookers. |
 | **Privacy** | **Client-Side AI & Behavioral Profiling Governor** | `bytecodePatch` | Neutralizes Pitaya on-device ML, Tako AI chatbot entries, and AI search clutter. |
 | **Privacy** | **[SIM Region Selector](#1-sim-region-selector)** | `bytecodePatch` | Spoofs SIM and network country ISO codes to bypass regional restrictions. |
 | **Privacy** | **Feed Ad Blocker** | `bytecodePatch` | Filters sponsored cards, brand promotions, and commercial audio. |
 | **Privacy** | **Hide TikTok Shop & Mall** | `bytecodePatch` | Removes product anchors, showcase badges, and bottom/top Shop navigation tabs. |
 | **Privacy** | **Feed Live Stream Blocker** | `bytecodePatch` | Removes live broadcast cards and live recommendations from FYP and Following. |
-| **Privacy** | **Feed Bloat & Distraction Blocker** | `bytecodePatch` | Removes friend suggestions, mini-games, CapCut prompts, memories, surveys, mini-dramas, Lemon8 promo, and floating rewards pendants. |
+| **Privacy** | **Feed Bloat & Distraction Blocker** | `bytecodePatch` | Removes friend suggestions, suggested account carousels, mini-games, CapCut prompts, memories, surveys, mini-dramas, Lemon8 promo, and floating rewards pendants across For You, Following, and Friends feeds. |
 | **Privacy** | **Unified Telemetry & Tracker Silencer** | `bytecodePatch` | Neutralizes ByteDance AppLog, APM/Npth/Heimdallr crash telemetry, and AppsFlyer. |
+| **Privacy** | **Disable Search History Recording** | `bytecodePatch` | Prevents search queries and keywords from being recorded in local history, databases, and analytics stores. |
 | **Privacy** | **Update Prompt Suppressor** | `bytecodePatch` | Neutralizes background update polling tasks and version enforcement dialogs. |
 | **Performance** | **[Display Refresh Rate Governor](#3-display-refresh-rate-governor)** | `bytecodePatch` | Locks window to peak hardware refresh rate (120Hz/90Hz) and neutralizes playback downclocking. |
 | **Performance** | **Instant Launch & Splash Blocker** | `bytecodePatch` | Eliminates cold start delays, splash ad tasks, and TopView preload waits (<0.4s). |
@@ -56,7 +68,7 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | **Slimmer** | **Core Asset De-bloat** | `rawResourcePatch` | Strips Microblink OCR models, C2PA AI libs, ByteDance TTWebView engine, non-Latin fonts, Python VM (~77 MB saved). |
 | **Slimmer** | **Studio & Creation De-bloat** | `rawResourcePatch` | Strips AR camera engine (`libeffect_plugin.so`) and video editor SDK (`libttvesdk_plugin.so`) (~101 MB saved). |
 | **Slimmer** | **Language Pack Purger** | `rawResourcePatch` | Strips unselected language string bundles from `assets/strings#lang_*`. |
-| **Universal Slimmers** | `resourcePatch` + `rawResourcePatch` | Optimization | `Locale Resource Slimmer`, `DPI Resource Slimmer`, `PNG Asset Optimizer`, and `APK Junk Cleaner`. |
+| **Universal Patches Suite** | Multiple | Optimization & Privacy | Compatible with universal slimmers and privacy patches (Telemetry Neutralizer, Native Binary Trimmer, WebP/PNG Optimizers, DPI/Locale Slimmers). See [Universal Patch Reference](../universal-patches.md). |
 
 ---
 
@@ -204,8 +216,21 @@ The **`Custom Offline Videos Limit`** patch customizes the maximum video caching
 ### 3. Device Privacy Guard (`devicePrivacyGuardPatch`)
 > [!NOTE]
 > **Bytecode-Only Privacy Architecture (`ResourceMode.RAW`)**:
-> Unlike apps with standard resource structures, TikTok's entire patch suite strictly avoids resource decoding (`resourcePatch`). Re-encoding TikTok's obfuscated resource tree via `arsclib` drops launcher icon drawables (`res/a/aq2.xml`, `res/a/aq3.xml`). Privacy is enforced at the Dalvik bytecode execution layer (intercepting BPEA clipboard, silencing motion sensors, trapping package queries, and neutralizing analytics trackers via `Unified Telemetry & Tracker Silencer`), while dangerous permissions remain governed by Android's runtime permission model.
+> Unlike apps with standard resource structures, TikTok's entire patch suite strictly avoids resource decoding (`resourcePatch`). Re-encoding TikTok's obfuscated resource tree via `arsclib` drops launcher icon drawables (`res/a/aq2.xml`, `res/a/aq3.xml`). Privacy is enforced at the Dalvik bytecode execution layer via runtime permission interception, in-app nag suppression, sensor silencing, and telemetry neutralization while keeping APK resources intact.
 
+- **Runtime Permission Interception & Denial Caching**:
+  - Intercepts ByteDance Helios static dispatcher (`LX/02z2;->LLJ`) for `Activity.requestPermissions`.
+  - Intercepts PowerPermissions headless engine (`FakeFragment;->jT`) to immediately dispatch permanent denials (`PackageManager.PERMISSION_DENIED`) for invasive permissions (`READ_CONTACTS`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`, `ACCESS_LOCAL_NETWORK`).
+  - Records permanent user denials into Keva stores (`FriendsSharePreferences -> read_contact_denied = true`, `permission_store -> <perm> = true`) so the app treats permissions as permanently denied and suppresses repeated prompts.
+  - Hooks permission cache check (`LX/04DS;->LIZ`) to report blocked permissions as permanently denied.
+- **In-App Permission Dialog & Location Popup Suppression**:
+  - Suppresses relation/contacts synchronization auth dialogs (`RelationAuthDialogControl.LJIIIIZZ` -> `false`, `RelationAuthDialogControl.LJI` -> `false`).
+  - Suppresses location popups and scenes (`LX/0BK7` popup checks and `LocationServiceImpl.LJIIZILJ`, `LJIJ`).
+- **Background Sync Lego Task Neutralization**:
+  - Stubs background contacts sync tasks (`ContactsUploadRequest.run`, `PermissionRequestAndUploadLegoTask.run`, `IMContactInitTask.run`, `MafFollowBackBootRequest.run`).
+  - Stubs background location init tasks (`InitLocationTask.run`, `InitLocationTaskHolder$Background.run`, `InitLocationTaskHolder$Main.run`).
+- **Google Advertising ID (GAID) Zeroing**:
+  - Hooks GAID providers (`LX/02z2;->LLLLIIL` -> `null`, `LLLLIIIILLL` -> `"00000000-0000-0000-0000-000000000000"`).
 - **Universal Package Query Isolation**: Intercepts `PackageManager` query trampolines (`LX/00m8.U3`, `LX/00m8.R3`) and throws a controlled `NameNotFoundException` when external installed apps are queried, isolating app visibility without requiring resource decoding.
 - **Contacts Isolation**: Neutralizes BPEA contacts reader `LX/0OFU.LIZ()` to return empty list and `LX/0OFw.LIZ()` to return a null cursor safely.
 - **HAR Motion Sensor Silencing**: Injects `return -1` into `HarSensorManager` init and stubs `onSensorChanged` to stop physical movement fingerprinting.
@@ -216,3 +241,78 @@ The **`Custom Offline Videos Limit`** patch customizes the maximum video caching
 - **Rewards Pendants Suppression**: Injects `return-void` into `SpecActWidget.bind(ViewGroup)` to prevent floating Rewards widgets (countdown coins, soccer ball stickers) from attaching to feed views.
 - **Sticker & Card Stripping**: Nullifies `Aweme.getActivityPendant()`, `getCommerceStickerInfo()`, `getFloatingCardInfo()`, and `getBannerTip()`.
 - **Feed Stream Purge**: Filters suggested accounts, mini-games, CapCut creation prompts, memories recaps, mini-dramas, and surveys before UI adapter binding.
+- **Friends Feed Rec User Cards & Bloat Neutralization**: Injects `p1 = false, p2 = false` into `FriendsV3RecUserConfig.<init>(ZZ)V` to prevent `FriendsV3FeedListViewModel` from instantiating suggested friend cards (`FriendsV3RecUserItem`) or bottom recommendation lists (`FriendsV3BottomRecListItem`). Intercepts `FriendsV3FeedResponse.<init>` to filter in-feed bloat and nullify suggested friends (`newlyShownMafIds = null`), and hooks `FriendsFeedResponse.<init>` (V2) to prune inserted card results (`cardInsertResults = null`, `insertedResults = null`). Injects immediate `View.GONE` and dimensions contraction (`0x0`) into `FriendsV3HorizontalRecUserCardCell.onItemViewCreated` and `FriendsV3BottomRecUserListCell.onItemViewCreated` as a fallback UI defense.
+
+### 5. Hide Top-Left LIVE Button (`hideTopLiveEntrancePatch`)
+- Removes the top-left LIVE broadcast button and tab entry point from the top navigation toolbar.
+- Hooks `LiveIconGenerator.enabled()Z` -> returns `false`.
+- Hooks `LiveIconGenerator.LIZLLL()Z` -> returns `false`.
+- Hooks `LiveIconGenerator.b2(Context)View` -> returns `null` to prevent view inflation and attachment.
+- Hooks `LiveTabProtocol.enable()Z` -> returns `false` to suppress top live tab variants.
+
+### 6. Hide STEM & Community Tabs (`hideStemAndCommunityTabsPatch`)
+- Removes the STEM and Comunidad (Explore / Topics) tabs from the top navigation feed strip, leaving only the primary Following and For You feeds.
+- Hooks `StemTabProtocol.enable()Z` -> returns `false`.
+- Hooks `ExploreXTabProtocol.enable()Z` -> returns `false`.
+- Hooks `BaseTopicTabProtocol.enable()Z` -> returns `false` (disabling all inherited topic tabs such as Fashion, Food, Gaming, and Sports).
+- Hooks `BaseTopicFCPTabProtocol.enable()Z` -> returns `false`.
+- Hooks `BasePersonalizedTabProtocol.enable()Z` -> returns `false`.
+
+### 7. Hide Profile Photo Follow Button (`hideAvatarFollowButtonPatch`)
+- Hides the red plus (`+`) follow badge on creator profile avatars in the feed and eliminates accidental follow touches.
+- Hooks `FeedAvatarDefaultAssem.cs(ViewGroup, int, Object)` -> permanently sets visibility to `View.GONE` (`0x8`) and disables clickability.
+- Injects immediate `View.GONE` (`0x8`) and `setClickable(false)` into `FeedAvatarDefaultAssem.onViewCreated` right after `LLLIILIL` (`follow_view_container`) is assigned, preventing view flash on cell recycling.
+
+### 8. Disable Profile Photo LIVE Status (`disableAvatarLiveStatusPatch`)
+- Removes the pulsing LIVE ring animation and LIVE badge from creator avatars in the feed and ensures avatar taps route strictly to the creator's user profile instead of launching the live stream broadcast.
+- Dynamically locates and hooks the author live validator (`LX/09A7;->LIZIZ(Aweme, User)Z`) -> returns `false`.
+- Hooks `FeedAvatarAssemWrap.Yr()Z` -> returns `false`, preventing the attachment and lifecycle execution of `FeedAvatarLiveAssem`.
+- Hooks `FeedAvatarLiveAssem.ur()Z` -> returns `false`.
+- Stubs `FeedAvatarLiveAssem.Ar(ZZ)V` and `FeedAvatarLiveAssem.onBind(Object)V` with `return-void` to eliminate live streaming UI bindings and animations.
+- Preserves `FeedAvatarDefaultAssem`'s default avatar click handler (`LX/0BIx`), routing taps directly to `//user/profile`.
+
+### 9. Disable Comment Suggested Emojis (`disableCommentSuggestedEmojisPatch`)
+- Removes the horizontal bar of suggested quick emojis displayed above the comment input box in active keyboard mode and passive comment views.
+- **Active Keyboard Trigger Neutralization**: Hooks `ExposedEmojiPanelTrigger.wr(CommentContextSource, ...)Z` -> returns `false`, preventing the trigger manager from mounting `HorizontalEmojiMiniPanelAssemForKeyboard` into the active comment keyboard view hierarchy.
+- **Passive Feed Input Trigger Neutralization**: Hooks `CommentPanelFakeInput.Gt()Z` -> returns `false`, preventing `HorizontalEmojiMiniPanelAssem` from attaching to the passive/feed comment bar prior to keyboard expansion.
+- **ViewModel Model Flag Enforcement**: Hooks `CommentKeyboardModel.getForceDisableExposedEmoji()Z` -> returns `true`, enforcing TikTok's native internal model flag across comment view models and cells.
+- **Internal Experiment Flag Enforcement**: Hooks `PersonalizedEmojiExperiment.LIZ()Z` -> returns `true` (`hideExposeEmoji`), suppressing emoji resource preloading, layout spacing allocation, and telemetry events.
+
+### 10. Disable Story Feed Indicators (`disableStoryFeedIndicatorsPatch`)
+- Removes the top-center story drop-down indicator pill (e.g. "1 Story ▼") and creator profile photo story rings from feed videos, ensuring avatar photos remain permanently clean.
+- **User Story Status Neutralization**: Hooks `User.getStoryStatus()I` -> returns `0`, preventing feed wrappers from detecting active author stories.
+- **Feed Avatar Story Ring & Click Neutralization**: Stubs `FeedAvatarSocialPublishAssem.onViewCreated(View)V`, `FeedAvatarSocialPublishAssem.onBind(Object)V`, and `FeedAvatarSocialPublishAssem.tr(VideoItemParams)V` with `return-void` to prevent inflating/animating the cyan story ring and remove the `CLICK_TAG_FEED_AVATAR_SOCIAL` click interceptor, keeping the avatar clean and routing taps strictly to the creator profile.
+- **Social Publish Distributor**: Hooks `SocPubDistributeServiceImpl.LJII(User)Z` -> returns `false`.
+- **Feed Story Tag Trigger & Predicate Neutralization**: Dynamically locates and hooks the story tag visibility evaluator (`LX/0AZy;->LIZ(Context, Aweme, String)Z`) -> returns `false`, and forces `FeedStoryTagTrigger.Kr()Z` and `FeedStoryTagTriggerV2.Kr()Z` to return `false`.
+- **Story Tag Assem & Canvas Neutralization**: Stubs `FeedStoryTagAssem.Sr(VideoItemParams)V`, `FeedStoryTagAssem.onBind(Object)V`, `FeedStoryTagAssemV2.Sr(VideoItemParams)V`, `FeedStoryTagAssemV2.onBind(Object)V`, and `StoryTag.onDraw(Canvas)V` with `return-void`.
+
+### 11. Hide Feed Search Bar (`hideFeedSearchBarPatch`)
+- Removes the search suggestion pill and trending bar (e.g. "Search · <keyword> >") displayed directly above the bottom navigation bar on feed videos, eliminating search clutter and distraction.
+- **Trigger Component Suppression**: Hooks `Kr(VideoItemParams)Z` -> returns `false` across `FeedSearchBottomBarAssemTrigger`, `FeedSearchBottomBarAssemTriggerV2`, `TrendingBottomBarAssemTrigger`, `AdFeedSearchBottomBarAssemTrigger`, and `FeedEcSearchBottomBarAssemTrigger`, preventing the bottom bar from ever mounting into the feed cell.
+- **Assem Lifecycle Neutralization**: Stubs `onViewCreated(View)V` and `onBind(Object)V` across `FeedSearchBottomBarAssem`, `FeedSearchBottomBarAssemV2`, `TrendingBottomBarAssem`, `AdFeedSearchBottomBarAssem`, and `FeedEcSearchBottomBarAssem` with `return-void`. Also stubs `FeedSearchBottomBarAssem.Sr()V` to prevent layout inflation and view binding.
+- **Aweme Model Overrides**: Forces `Aweme.isDisableSearchTrendingBar()Z` to return `true`, `Aweme.hasTrendingBar()Z` and `Aweme.hasTrendingBarFYP()Z` to return `false`, and nulls out `getTrendingBar()`, `getTrendingBarFYP()`, and `getHotSearchInfo()`.
+
+### 12. Force auto-scroll (`forceAutoScrollPatch`)
+- Forces the activation of TikTok's native video auto-scroll experiment flag for accounts and regions where it is withheld by server-side A/B testing experiments.
+- **Feed Auto-Scroll A/B Experiment Flag**: Hooks the core experiment evaluator referencing `"fyp_auto_scroll"` -> returns `true`.
+- **FypAutoScrollServiceImpl Capability Bridge**: Forces `FypAutoScrollServiceImpl.LJIILJJIL()` -> returns `true`, granting the feed panel full auto-scroll capabilities.
+- **Tablet and Search Auto-Scroll**: Forces tablet/foldable (`"tablet_fyp_auto_scroll"`) and search feed (`"search_auto_scroll"`) experiment flags to return `true`.
+- **FeedBottomBarFacade Capability Hook**: Forces `FeedBottomBarFacadeImpl.LJIJJLI()` referencing `"panel_auto_scroll"` to return `true`.
+- **Long-Press Menu Item Constructor**: Overrides `createAutoScrollItem` in `LX/0oWb;->LJII`, neutralizing the `"panel_auto_scroll"` guard and the `isLogin()` requirement so that the Auto-scroll toggle option is permanently available and visible in the video long-press / share menu.
+
+### 13. Disable Search History Recording (`disableSearchHistoryRecordingPatch`)
+- Prevents search queries, keywords, and search interactions from being written to persistent local history or device storage.
+- **Search History Manager Hook**: Stubs `LX/0D7Z;->LIZ(SearchHistory, String)V` with `return-void` to neutralize search history record persistence.
+- **Manual Search PV Tracking Hook**: Stubs `ManualSearchPvStore.LJIIJ(String, String)V` with `return-void` to prevent manual search pageview and query history accumulation.
+- **Top History Recommendation Suppression**: Hooks `SuggestWordResponse.getTopHistoryWords()` -> returns `null` to neutralize server-pushed search history suggestions.
+
+### 14. Hide Suggested Searches (`hideSuggestedSearchesPatch`)
+- Removes the 'Podría interesarte' (You may like / Guess Search) suggested keyword recommendation card from the search intermediate discovery screen.
+- **Search Intermediate Raw Payload & Model Filtering**: Intercepts `RecomDataWrapper.<init>(String, SuggestWordResponse)` to filter out `"guess_search"` card items from the raw JSON payload and parsed response model before Lynx rendering.
+- **Cached Guess Search Preload Neutralization**: Hooks `LX/0HMZ;->LIZ()Lorg/json/JSONObject;` and `LX/0HMZ;->LIZIZ()Ljava/lang/String;` to return `null`, eliminating cached suggestion preloading on startup.
+- **Native Guess Search Fallback Override**: Forces `DynamicSingleIntermediateFragmentNew.yU()Z` -> returns `false` to disable native guess search fallback rendering.
+
+### 15. Hide Popular Lives In Search (`hideSearchPopularLivesPatch`)
+- Removes the 'LIVE populares' (Popular LIVEs) recommendation card and stream broadcasts from the search intermediate discovery screen.
+- **Search Intermediate Raw Payload & Model Filtering**: Intercepts `RecomDataWrapper.<init>(String, SuggestWordResponse)` to filter out `"live_popular"` card items from the raw JSON payload and parsed response model before Lynx rendering.
+

@@ -18,10 +18,7 @@ import org.w3c.dom.Node
 private const val META_DATA = "meta-data"
 private const val PROVIDER = "provider"
 
-/**
- * MobileBankApp manually initializes Fabric from onCreate(), so manifest
- * cleanup alone is not sufficient to stop Crashlytics/Answers startup.
- */
+/** Disables analytics initialization. */
 @Suppress("unused")
 private val removeCrashlyticsBytecodePatch = bytecodePatch {
     compatibleWith(BaridimobConstants.COMPATIBILITY_BARIDIMOB)
@@ -40,12 +37,7 @@ private val removeCrashlyticsBytecodePatch = bytecodePatch {
     }
 }
 
-/**
- * Disables analytics and crash reporting while keeping push notifications.
- * Removes from the manifest: the Crashlytics/Fabric init provider, the
- * Fabric API key meta-data, and the Firebase component registrars for
- * Crashlytics / Sessions / Analytics.
- */
+/** Disables analytics and crash reporting. */
 @Suppress("unused")
 val removeCrashlyticsPatch = resourcePatch(
     name = "Disable analytics and crash reporting",

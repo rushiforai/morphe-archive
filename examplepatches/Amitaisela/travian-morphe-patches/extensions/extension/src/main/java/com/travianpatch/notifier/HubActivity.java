@@ -108,6 +108,12 @@ public class HubActivity extends Activity {
                 startActivity(new Intent(HubActivity.this, BuildOrderActivity.class));
             }
         }), UiKit.cardParams(this));
+        column.addView(UiKit.menuRow(this, "Automation settings", "Buffer, delay and quiet hours", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(HubActivity.this, AutomationSettingsActivity.class));
+            }
+        }), UiKit.cardParams(this));
         column.addView(UiKit.menuRow(this, "Recent notifications", "What was sent lately", new View.OnClickListener() {
             @Override
             public void onClick(View v) {

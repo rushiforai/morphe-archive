@@ -72,6 +72,8 @@ Activity,Aktivitas
 Activity center (PIA),Pusat aktivitas (PIA)
 Add,Tambah
 "Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.","Blokir kreator dengan satu ketukan. Setelah TikTok mengonfirmasi, lanjut ke video berikutnya. Tombol Buka blokir kecil muncul di kiri atas selama dua detik. Kamu juga bisa membuka blokir nanti di Privasi > Akun yang diblokir di TikTok."
+No app on this phone opens that file,Tidak ada aplikasi di ponsel ini yang bisa membuka file itu
+Open,Buka
 Unblock,Buka blokir
 Add a button beside the block control to send feedback about the current video.,Tambahkan tombol di samping kontrol blokir untuk mengirim masukan tentang video ini.
 Add a creator,Tambah kreator
@@ -288,7 +290,7 @@ Empty,Kosong
 "Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.","Kosongkan menu yang terbuka saat ikon TikTok di layar beranda ditekan dan ditahan. Menonaktifkannya akan meminta TikTok membuatnya kembali. Mengetuk ikon tetap membuka aplikasi, dan pintasan yang kamu sematkan sendiri tetap berada di tempatnya."
 Enable,Hidupkan
 Log diagnostics,Catat diagnostik
-Lock 2x speed with hold and slide,Kunci kecepatan 2x dengan tahan lalu geser
+Lock the hold speed with a pull down,Kunci kecepatan tahan dengan tarik ke bawah
 Apply overrides,Terapkan penggantian
 Enabled,Aktif
 Enter a JSON object or array.,Masukkan objek atau larik JSON.
@@ -566,7 +568,7 @@ Move left,Pindahkan ke kiri
 Move right,Pindahkan ke kanan
 Move up,Pindahkan ke atas
 Music disc,Piringan musik
-Mutes the video behind the comment sheet while you read. Sound comes back when the sheet closes.,Membisukan video di balik komentar saat kamu membaca. Suara kembali saat komentar ditutup.
+Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.,Menjeda video di balik komentar saat kamu membaca. Video lanjut dari titik yang sama saat komentar ditutup.
 Nearby,Terdekat
 Never from these countries,Tidak pernah dari negara ini
 No,Tidak
@@ -775,6 +777,7 @@ Saved one original photo,Satu foto asli disimpan
 Saved. Restart TikTok to apply this.,Tersimpan. Mulai ulang TikTok agar berlaku.
 Saving,Menyimpan
 Saving %1$s original photos,Menyimpan %1$s foto asli
+Saving one original photo,Menyimpan satu foto asli
 Saving settings backup,Menyimpan cadangan pengaturan
 Saving sticker,Menyimpan stiker
 Saving the selected video quality,Menyimpan kualitas video pilihan
@@ -991,7 +994,7 @@ This video has no original sound to save,Video ini tidak punya suara asli untuk 
 This video has no sound of its own,Video ini tidak punya suara sendiri
 Thumbs down blocks the commenter,Jempol ke bawah memblokir pengomentar
 TikTok default,Bawaan TikTok
-"TikTok default (2x hold, quick share)","Bawaan TikTok (tahan 2x, bagikan cepat)"
+"TikTok default (hold to speed up, quick share)","Bawaan TikTok (tahan untuk mempercepat, bagikan cepat)"
 TikTok did not block %1$s. Try again in a moment.,TikTok tidak memblokir %1$s. Coba lagi sebentar lagi.
 TikTok did not unblock %1$s. Try again in a moment.,TikTok tidak membuka blokir %1$s. Coba lagi sebentar lagi.
 TikTok didn't accept the feedback. Try again later.,TikTok tidak menerima masukannya. Coba lagi nanti.
@@ -1046,7 +1049,7 @@ Undoing the last change,Membatalkan perubahan terakhir
 "Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.","Sampai %1$d kecepatan dari %2$s hingga %3$s, dipisah koma. Contoh: 0.5, 1, 1.5, 2, 2.5, 3. Kosongkan untuk daftar TikTok. Mulai ulang TikTok agar berlaku."
 "Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.","Gunakan 0 untuk ukuran TikTok, atau %1$d sampai %2$d. Berlaku untuk teks berikutnya."
 Use Save JSON for this large report,Pakai Simpan JSON untuk laporan sebesar ini
-"Use TikTok's own hold, slide down and release gesture to lock 2x speed.","Pakai gestur bawaan TikTok, tahan lalu geser ke bawah dan lepas, untuk mengunci kecepatan 2x."
+"Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.","Pakai gestur bawaan TikTok, tahan lalu tarik ke bawah dan lepas, untuk tetap di kecepatan tahan, yaitu 2x kecuali kamu memilih yang lain di Pemutaran."
 Use a default playback speed,Pakai kecepatan pemutaran bawaan
 Use non-personalized search,Pakai pencarian nonpersonal
 Use system font,Gunakan font sistem
@@ -1184,4 +1187,10 @@ Hide the Products block and product cards in search results.,Sembunyikan blok Pr
 Hide TikTok's Auto scroll button,Sembunyikan tombol Auto scroll TikTok
 Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.,Menghapus aksi Auto scroll milik TikTok dari panel video. Video tetap dilanjutkan secara otomatis.
 Hide the unread badges on the bottom tabs,Sembunyikan lencana belum dibaca di tab bawah
-Hide the red counts and dots on the Inbox and Profile tabs. The inbox itself still shows what came in.,Menyembunyikan angka dan titik merah di tab Kotak Masuk dan Profil. Kotak masuk sendiri tetap menampilkan yang masuk.
+"Hide the red counts and dots on every bottom tab, Inbox and Profile included. The inbox itself still shows what came in.","Menyembunyikan angka dan titik merah di semua tab bawah, termasuk Kotak Masuk dan Profil. Kotak masuk sendiri tetap menampilkan yang masuk."
+Speed while you hold the video,Kecepatan saat video ditahan
+Hide mini dramas,Sembunyikan drama mini
+Hide TikTok's short drama episodes and the cards that promote them.,Sembunyikan episode drama pendek TikTok dan kartu yang mempromosikannya.
+Mini dramas,Drama mini
+Swipe left,Geser ke kiri
+TikTok default (open the creator's profile),Bawaan TikTok (buka profil kreator)

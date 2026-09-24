@@ -365,6 +365,63 @@ exit /b 19
     Assert-True ([System.IO.Path]::GetFullPath($resolvedJava).Equals(
         [System.IO.Path]::GetFullPath($pathJava), [System.StringComparison]::OrdinalIgnoreCase)) `
         'A valid explicit JDK directory did not resolve its bin/java executable.'
+
+    # A release bundle older than the sources it is built from. On 2026-09-23 a test run after a
+    # patch change left it behind the new hook and the phone got the old one; patch-for-device
+    # now stops on it. Build output beside a module's sources must not count.
+    $staleRoot = Join-Path $caseRoot 'stale-bundle'
+    $patchSource = Join-Path $staleRoot 'patches/src/main/kotlin/Hook.kt'
+    $extensionSource = Join-Path $staleRoot 'extensions/app/library/src/main/java/Hook.java'
+    $buildOutput = Join-Path $staleRoot 'extensions/app/build/intermediates/Hook.class'
+    $gradleFile = Join-Path $staleRoot 'extensions/app/build.gradle.kts'
+    $staleBundle = Join-Path $staleRoot 'patches/build/release/patches-1.0.0.mpp'
+    $staleFiles = @($patchSource, $extensionSource, $buildOutput, $gradleFile, $staleBundle)
+    foreach ($file in $staleFiles) {
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $file) | Out-Null
+        [System.IO.File]::WriteAllText($file, 'x', [System.Text.Encoding]::ASCII)
+    }
+    $then = [DateTime]::UtcNow.AddHours(-1)
+    foreach ($file in $staleFiles) { [System.IO.File]::SetLastWriteTimeUtc($file, $then) }
+    [System.IO.File]::SetLastWriteTimeUtc($staleBundle, $then.AddMinutes(5))
+    Assert-True (@(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle).Count -eq 0) `
+        'A bundle built after every source was called stale.'
+    [System.IO.File]::SetLastWriteTimeUtc($buildOutput, $then.AddMinutes(9))
+    Assert-True (@(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle).Count -eq 0) `
+        'Build output written after the bundle was counted as a source.'
+    [System.IO.File]::SetLastWriteTimeUtc($extensionSource, $then.AddMinutes(8))
+    $newer = @(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle)
+    Assert-True ($newer.Count -eq 1 -and $newer[0].FullName -eq (Get-Item -LiteralPath $extensionSource).FullName) `
+        "A submodule's source written after the bundle was missed: $(@($newer | ForEach-Object FullName) -join ', ')"
+    [System.IO.File]::SetLastWriteTimeUtc($patchSource, $then.AddMinutes(6))
+    [System.IO.File]::SetLastWriteTimeUtc($gradleFile, $then.AddMinutes(7))
+    $newer = @(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle)
+    Assert-True ($newer.Count -eq 3 -and
+        $newer[0].FullName -eq (Get-Item -LiteralPath $extensionSource).FullName -and
+        $newer[1].FullName -eq (Get-Item -LiteralPath $gradleFile).FullName -and
+        $newer[2].FullName -eq (Get-Item -LiteralPath $patchSource).FullName) `
+        "Newer sources are not all listed, newest first: $(@($newer | ForEach-Object FullName) -join ', ')"
+    # The R8 rules every extension's build reads, and a compile-only stub in a patches
+    # submodule (its constants can be inlined into patch code), count too.
+    $rules = Join-Path $staleRoot 'extensions/proguard-rules.pro'
+    $stub = Join-Path $staleRoot 'patches/stub/src/main/java/android/os/Build.java'
+    foreach ($file in @($rules, $stub)) {
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $file) | Out-Null
+        [System.IO.File]::WriteAllText($file, 'x', [System.Text.Encoding]::ASCII)
+        [System.IO.File]::SetLastWriteTimeUtc($file, $then)
+    }
+    Assert-True (@(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle).Count -eq 3) `
+        'An R8 rules file or a stub written before the bundle was counted.'
+    [System.IO.File]::SetLastWriteTimeUtc($rules, $then.AddMinutes(10))
+    [System.IO.File]::SetLastWriteTimeUtc($stub, $then.AddMinutes(11))
+    $newer = @(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle)
+    Assert-True ($newer.Count -eq 5 -and
+        $newer[0].FullName -eq (Get-Item -LiteralPath $stub).FullName -and
+        $newer[1].FullName -eq (Get-Item -LiteralPath $rules).FullName) `
+        "The R8 rules or a patches submodule's stub was missed: $(@($newer | ForEach-Object FullName) -join ', ')"
+    $deviceScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'patch-for-device.ps1') -Raw
+    Assert-True ($deviceScript -match 'Get-SourcesNewerThanBundle' -and
+        $deviceScript -match '\[switch\]\$AllowStaleBundle') `
+        'patch-for-device.ps1 patches with a bundle without asking whether its sources are newer.'
 } finally {
     if ($caseRoot.StartsWith($requiredPrefix, [System.StringComparison]::OrdinalIgnoreCase) -and
         (Test-Path -LiteralPath $caseRoot)) {
@@ -942,17 +999,21 @@ try {
     # the 0.39.0 index). The copied index is written up to the catalog it sits beside, its
     # version strings and its patch count, so every case below still moves exactly one fact
     # and is judged on the strict path.
+    # A release hold is the same lag with the version standing still: patches join the catalog
+    # while the index keeps the published count (2026-09-23, 93 against 0.58.0's 91), so the count
+    # is synced even when the version already matches.
     function Sync-FixtureIndex {
         $fixtureVersion = ((Get-Content -LiteralPath (Join-Path $factsRoot 'gradle.properties')) `
             -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
-        $index = Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw | ConvertFrom-Json
-        $indexVersion = "$($index.version)"
-        if ($indexVersion -eq $fixtureVersion) { return }
+        $indexPath = Join-Path $factsRoot 'patches-bundle.json'
+        $indexText = Get-Content -LiteralPath $indexPath -Raw
+        $indexVersion = "$(($indexText | ConvertFrom-Json).version)"
         $count = @((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-list.json') -Raw | ConvertFrom-Json).patches).Count
-        Set-FactsFile 'patches-bundle.json' {
-            param($text)
-            ($text -replace [regex]::Escape($indexVersion), $fixtureVersion) -replace '\b\d+ patches\b', "$count patches"
-        }
+        $synced = $indexText
+        if ($indexVersion -ne $fixtureVersion) { $synced = $synced -replace [regex]::Escape($indexVersion), $fixtureVersion }
+        $synced = $synced -replace '\b\d+ patches\b', "$count patches"
+        if ($synced -ceq $indexText) { return }
+        Set-FactsFile 'patches-bundle.json' { param($text) $synced }
     }
 
     # The bug form names the published version, which the synced index above now names too.

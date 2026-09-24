@@ -59,8 +59,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         }
         if (SettingsStatus.commentToolsEnabled) {
             addPreference(new TogglePreference(context, "Silence the feed while comments are open",
-                    "Mutes the video behind the comment sheet while you read. "
-                            + "Sound comes back when the sheet closes.",
+                    "Pauses the video behind the comment sheet while you read. "
+                            + "It plays on from the same spot when the sheet closes.",
                     Settings.PAUSE_ON_COMMENTS));
         }
 
@@ -96,6 +96,9 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 catch (IllegalArgumentException error) { return false; }
             });
             addPreference(speeds);
+            addPreference(new ChoicePreference(context, "Speed while you hold the video", Settings.HOLD_SPEED,
+                    new String[]{"1.25x", "1.5x", "1.75x", "2x", "2.5x", "3x"},
+                    new String[]{"1.25", "1.5", "1.75", "2", "2.5", "3"}));
         }
         if (SettingsStatus.playbackQualityEnabled || SettingsStatus.videoFitEnabled) {
             addPreference(new SectionHeadingPreference(context, "Quality"));

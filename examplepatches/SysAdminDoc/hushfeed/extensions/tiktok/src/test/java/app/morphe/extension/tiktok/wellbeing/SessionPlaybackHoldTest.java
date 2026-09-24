@@ -64,7 +64,7 @@ public class SessionPlaybackHoldTest {
 
         public boolean isPlaying() { return playing; }
         public boolean isPaused() { return paused; }
-        public void LIZ() {
+        public void pause() {
             assertEquals("pause left the native player thread", Looper.getMainLooper(),
                     Looper.myLooper());
             pauses++;
@@ -73,7 +73,7 @@ public class SessionPlaybackHoldTest {
             if (deferNativeCommands) nativeCommands.add(pause);
             else new Handler(Looper.getMainLooper()).post(pause);
         }
-        public void LJIILL() {
+        public void resume() {
             assertEquals("resume left the native player thread", Looper.getMainLooper(),
                     Looper.myLooper());
             resumes++;
@@ -90,7 +90,7 @@ public class SessionPlaybackHoldTest {
     public static final class NativeController {
         Clip current = new Clip("first");
         NativeManager manager = new NativeManager();
-        public Clip LIZIZ() { return current; }
+        public Clip currentClip() { return current; }
         public NativeManager getPlayerManager() { return manager; }
         void reportProgress() {
             BlockAuthorPatch.setPlayingAweme(this, current.getAid());
@@ -101,8 +101,23 @@ public class SessionPlaybackHoldTest {
         }
     }
 
+    /**
+     * The patch writes TikTok's own current-video getter, pause and resume into the hold's three
+     * bridges; unpatched, the bridges reach these fakes through this seam instead.
+     */
+    static void installNativeControls() {
+        SessionPlaybackHold.nativeForTests = new SessionPlaybackHold.NativeControls() {
+            @Override public Object currentAweme(Object controller) {
+                return ((NativeController) controller).currentClip();
+            }
+            @Override public void pause(Object manager) { ((NativeManager) manager).pause(); }
+            @Override public void resume(Object manager) { ((NativeManager) manager).resume(); }
+        };
+    }
+
     @Before public void setUp() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        installNativeControls();
         SessionBudget.awaitWritesForTests();
         resetSettings();
         SessionBudget.setClockForTests(now::get);
@@ -125,6 +140,7 @@ public class SessionPlaybackHoldTest {
         ReflectionHelpers.callStaticMethod(CurrentVideoAuthor.class, "resetForTests");
         ReflectionHelpers.setStaticField(FeedVisibility.class, "homeTabReference",
                 new WeakReference<View>(null));
+        SessionPlaybackHold.nativeForTests = null;
     }
 
     private static void resetSettings() {

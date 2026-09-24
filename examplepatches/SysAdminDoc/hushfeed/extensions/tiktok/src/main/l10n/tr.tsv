@@ -66,6 +66,8 @@ A web address someone left in a comment can be tapped instead of copied out by h
 AI-generated posts	Yapay zeka ile üretilmiş gönderiler
 About	Hakkında
 A forced value applies to this copy of TikTok whichever account is signed in. It cannot get past a check the server makes.	Zorlanan bir değer, hangi hesap oturum açmış olursa olsun bu TikTok kopyası için geçerlidir. Sunucunun yaptığı bir denetimi aşamaz.
+No app on this phone opens that file	Bu telefonda o dosyayı açan bir uygulama yok
+Open	Aç
 This key touches account safety. Forcing it can change login, region, payment or security checks.	Bu anahtar hesap güvenliğine dokunur. Zorlamak giriş, bölge, ödeme veya güvenlik denetimlerini değiştirebilir.
 Activity	Etkinlik
 Activity center (PIA)	Etkinlik merkezi (PIA)
@@ -299,7 +301,7 @@ Empty	Boş
 Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.	Ana ekranda TikTok simgesine basılı tuttuğunda açılan menüyü boşalt. Bunu kapatırsan TikTok'tan kısayolları yeniden oluşturması istenir. Simgeye dokunmak yine uygulamayı açar ve kendi sabitlediğin bir kısayol koyduğun yerde kalır.
 Enable	Etkinleştir
 Log diagnostics	Tanılamayı günlüğe kaydet
-Lock 2x speed with hold and slide	Basılı tutup kaydırarak 2x hızı kilitle
+Lock the hold speed with a pull down	Basılı tutma hızını aşağı çekerek kilitle
 Apply overrides	Geçersiz kılmaları uygula
 Enabled	Etkin
 Enter a JSON object or array.	Bir JSON nesnesi veya dizisi gir.
@@ -593,7 +595,7 @@ Move right	Sağa taşı
 Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this.	Geçerli video bitince sonraki videoya geç. Duraklatmalar, açık iletişim kutuları ve ekran süresi bekletmeleri bunu durdurur. Bunu değiştirdikten sonra TikTok'u yeniden başlat.
 Move up	Yukarı taşı
 Music disc	Müzik diski
-Mutes the video behind the comment sheet while you read. Sound comes back when the sheet closes.	Sen okurken yorum panelinin arkasındaki videoyu sessize alır. Panel kapanınca ses geri gelir.
+Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.	Sen okurken yorum panelinin arkasındaki videoyu duraklatır. Panel kapanınca video kaldığı yerden devam eder.
 Nearby	Yakındakiler
 Never from these countries	Bu ülkelerden asla
 No	Hayır
@@ -808,6 +810,7 @@ Saved, override off	Kaydedildi, geçersiz kılma kapalı
 Saved. Restart TikTok to apply this.	Kaydedildi. Bunu uygulamak için TikTok'u yeniden başlat.
 Saving	Kaydediliyor
 Saving %1$s original photos	%1$s orijinal fotoğraf kaydediliyor
+Saving one original photo	Bir orijinal fotoğraf kaydediliyor
 Saving settings backup	Ayar yedeği kaydediliyor
 Saving sticker	Çıkartma kaydediliyor
 Saving the selected video quality	Seçilen video kalitesi kaydediliyor
@@ -1026,7 +1029,7 @@ This video has no original sound to save	Bu videonun kaydedilecek orijinal sesi 
 This video has no sound of its own	Bu videonun kendine ait bir sesi yok
 Thumbs down blocks the commenter	Aşağı başparmak yorumu yazanı engeller
 TikTok default	TikTok varsayılanı
-TikTok default (2x hold, quick share)	TikTok varsayılanı (basılı tutunca 2x, hızlı paylaşım)
+TikTok default (hold to speed up, quick share)	TikTok varsayılanı (hızlandırmak için basılı tut, hızlı paylaşım)
 TikTok did not block %1$s. Try again in a moment.	TikTok %1$s hesabını engellemedi. Birazdan yeniden dene.
 TikTok did not unblock %1$s. Try again in a moment.	TikTok %1$s hesabının engelini kaldırmadı. Birazdan yeniden dene.
 TikTok didn't accept the feedback. Try again later.	TikTok geri bildirimi kabul etmedi. Daha sonra yeniden dene.
@@ -1081,7 +1084,7 @@ Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 
 Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.	TikTok'un boyutu için 0, ya da %1$d ile %2$d arasında bir değer kullan. Bir sonraki altyazıya uygulanır.
 Use Calm feed	Sakin akışı kullan
 Use Save JSON for this large report	Bu büyük rapor için JSON'u kaydet seçeneğini kullan
-Use TikTok's own hold, slide down and release gesture to lock 2x speed.	2x hızı kilitlemek için TikTok'un kendi basılı tut, aşağı kaydır ve bırak hareketini kullan.
+Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.	Basılı tutma hızında kalmak için TikTok'un kendi basılı tut, aşağı çek ve bırak hareketini kullan. Oynatma altında başka bir hız seçilmedikçe 2x'tir.
 Use a default playback speed	Varsayılan bir oynatma hızı kullan
 Use non-personalized search	Kişiselleştirilmemiş aramayı kullan
 Use system font	Sistem yazı tipini kullan
@@ -1183,4 +1186,10 @@ Hide the Products block and product cards in search results.	Arama sonuçlarınd
 Hide TikTok's Auto scroll button	TikTok'un Otomatik kaydırma düğmesini gizle
 Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.	TikTok'un kendi Otomatik kaydırma eylemini video panelinden kaldırır. Videolar otomatik geçmeye devam eder.
 Hide the unread badges on the bottom tabs	Alt sekmelerdeki okunmamış rozetlerini gizle
-Hide the red counts and dots on the Inbox and Profile tabs. The inbox itself still shows what came in.	Gelen Kutusu ve Profil sekmelerindeki kırmızı sayaçları ve noktaları gizler. Gelen kutusunun kendisi gelenleri göstermeye devam eder.
+Hide the red counts and dots on every bottom tab, Inbox and Profile included. The inbox itself still shows what came in.	Gelen Kutusu ve Profil dahil tüm alt sekmelerdeki kırmızı sayaçları ve noktaları gizler. Gelen kutusunun kendisi gelenleri göstermeye devam eder.
+Speed while you hold the video	Videoyu basılı tutarken hız
+Hide mini dramas	Mini dizileri gizle
+Hide TikTok's short drama episodes and the cards that promote them.	TikTok'un kısa dizi bölümlerini ve onları tanıtan kartları gizle.
+Mini dramas	Mini diziler
+Swipe left	Sola kaydır
+TikTok default (open the creator's profile)	TikTok varsayılanı (içerik üreticisinin profilini aç)

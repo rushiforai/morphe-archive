@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">A Morphe beállítások visszaállnak az alapértelmezettre</string>
   <string name="morphe_settings_import_success">%d beállítás importálva</string>
   <string name="morphe_settings_import_failure_parse">Sikertelen importálás: %s</string>
+  <string name="morphe_settings_navigate_up">Feljebb navigálás</string>
   <string name="morphe_settings_search_hint">Beállítások keresése</string>
   <string name="morphe_settings_search_no_results_title">Nincs találat erre: „%s”</string>
   <string name="morphe_settings_search_no_results_summary">Próbáljon ki egy másik kulcsszót</string>
   <string name="morphe_settings_search_recent_searches">Legutóbbi keresések</string>
   <string name="morphe_settings_search_remove_message">Eltávolítja a keresési előzményekből?</string>
+  <string name="morphe_settings_search_remove">Eltávolítja a keresési előzményekből</string>
   <string name="morphe_settings_search_clear_history">Keresési előzmények törlése</string>
   <string name="morphe_settings_search_clear_history_message">Biztosan törölni szeretné az összes keresési előzményt?</string>
   <string name="morphe_settings_search_tips_title">Keresési tippek</string>
@@ -72,8 +74,8 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_success">A beállítások sikeresen exportálva</string>
   <string name="morphe_settings_export_file_failed">Hiba történt a beállítások exportálásakor</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">A Morphe Patches legutóbbi &lt;i&gt;%s&lt;/i&gt; verzióját itt használja</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Itt használja a Morphe Patches &lt;i&gt;%1$s&lt;/i&gt; verzióját&lt;br&gt;&lt;br&gt;&lt;b&gt;Frissítés elérhető: &lt;i&gt;%2$s&lt;i&gt;&lt;b&gt;&lt;br&gt;&lt;br&gt;Az appfrissítéshez használja a Morphe-t</string>
+  <string name="morphe_settings_about_links_body_version_current">A Spectre Patches legutóbbi &lt;i&gt;%s&lt;/i&gt; verzióját itt használja</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Itt használja a Spectre Patches &lt;i&gt;%1$s&lt;/i&gt; verzióját&lt;br&gt;&lt;br&gt;&lt;b&gt;Frissítés elérhető: &lt;i&gt;%2$s&lt;i&gt;&lt;b&gt;&lt;br&gt;&lt;br&gt;Az appfrissítéshez használja a Spectre-t</string>
   <string name="morphe_settings_about_links_dev_header">Megjegyzés</string>
   <string name="morphe_settings_about_links_dev_body">Ez a verzió egy előzetes kiadás, és nem kívánt hibákat tapasztalhat</string>
   <string name="morphe_settings_about_links_header">Hivatalos linkek</string>

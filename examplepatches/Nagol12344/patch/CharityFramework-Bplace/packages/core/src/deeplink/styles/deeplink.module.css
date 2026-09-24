@@ -1,0 +1,78 @@
+@font-face {
+	font-family: 'Sevenish';
+	src: url('https://raw.githubusercontent.com/SauceDLX/Sevenish/refs/heads/main/Sevenish.ttf') format('truetype');
+}
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap');
+
+body {
+	margin: 0;
+	padding: 0;
+}
+
+.root {
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: #242933;
+	color: #fff;
+}
+
+.logo {
+	width: 512px;
+	image-rendering: pixelated;
+}
+
+.pixel {
+	font-family: Sevenish, 'Fira Code', monospace;
+	transform: perspective(1px);
+}
+
+.mono {
+	font-family: 'Fira Code', monospace;
+}
+
+.textCenter {
+	text-align: center;
+}
+
+.button {
+	font-size: 16px;
+	line-height: 20px;
+	cursor: pointer;
+	min-width: 96px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.button:hover {
+	text-decoration: underline;
+}
+
+.buttonStyleGreen {
+	background-color: #65a30d;
+	color: #bef264;
+	border: 3px solid #3f6212;
+}
+
+.buttonStyleGreen:hover {
+	border: 3px solid #a3e635;
+}
+
+.buttonStyleRed {
+	background-color: #ef4444;
+	color: #fca5a5;
+	border: 3px solid #991b1b;
+}
+
+.buttonStyleRed:hover {
+	border: 3px solid #f87171;
+}
+
+.gray {
+	color: #94a3b8;
+}

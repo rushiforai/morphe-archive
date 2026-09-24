@@ -27,6 +27,18 @@ final class VideoDownloads {
     private static final Set<String> ACTIVE = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     private VideoDownloads() {}
 
+    /**
+     * The rendition a download takes: the chosen quality, or on Automatic the highest when
+     * captions need a file of our own; null leaves the save to TikTok. Read from every rendition
+     * TikTok received ({@link QualitySelector#rawGears}).
+     */
+    static Object selectedGear(Object video, String quality, boolean withCaptions) {
+        Object rates = QualitySelector.rawGears(video);
+        if (!(rates instanceof List<?>)) return null;
+        if (!"auto".equals(quality)) return QualitySelector.chooseForFile(video, (List<?>) rates, quality);
+        return withCaptions ? QualitySelector.chooseForFile(video, (List<?>) rates, "highest") : null;
+    }
+
     static boolean start(Object aweme, Context context) {
         if (context == null) return false;
         if (android.os.Build.VERSION.SDK_INT < 29
@@ -43,11 +55,7 @@ final class VideoDownloads {
         // to fetch a different file: on Automatic the source stays the one TikTok would have
         // used and only the sound is left out of it.
         if (captions.isEmpty() && automatic && !muted) return false;
-        Object rates = Reflect.readField(video, "bitRate");
-        Object selected = !automatic && rates instanceof List<?>
-                ? QualitySelector.choose((List<?>) rates, quality)
-                : (captions.isEmpty() || !(rates instanceof List<?>) ? null
-                        : QualitySelector.choose((List<?>) rates, "highest"));
+        Object selected = selectedGear(video, quality, !captions.isEmpty());
         if (selected == null && captions.isEmpty() && !muted) return false;
         List<String> selectedUrls = urls(Reflect.property(selected, "getPlayAddr", "playAddr"));
         if (selected == null) {
@@ -120,15 +128,17 @@ final class VideoDownloads {
                     result = temp(app, temporary);
                     TrackMuxer.videoOnly(picture, result);
                 }
-                String savedName = MediaFileWriter.publish(app, result, name, "video/mp4", path, true);
+                MediaFileWriter.Saved published = MediaFileWriter.publishForResult(app, result, name, "video/mp4", path, true);
+                String savedName = published.name;
                 // The sound is already on disk: the separate stream when the video has one,
                 // otherwise the video itself, which still carries it because the copy that
                 // dropped it went to a different file. Fetching it again would download twice.
+                // Its word keeps to a toast, so the video's banner below isn't taken down.
                 if (audioNameSnapshot != null) {
-                    AudioDownloads.write(app, audioNameSnapshot, sound == null ? picture : sound);
+                    AudioDownloads.write(app, audioNameSnapshot, sound == null ? picture : sound, false);
                 }
                 int saved = SubtitleDownloads.save(app, captionSnapshot, savedName, path);
-                Utils.showToastLong(subtitleResult(captionSnapshot.size(), saved, path));
+                SaveNotice.saved(subtitleResult(captionSnapshot.size(), saved, path), published);
             } catch (IOException | RuntimeException exception) {
                 Logger.printException(() -> "Selected-quality download failed", exception);
                 Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));

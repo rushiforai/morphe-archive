@@ -12,6 +12,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -23,6 +25,7 @@ import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
+import app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold;
 
 import java.lang.ref.WeakReference;
 
@@ -33,10 +36,11 @@ import java.lang.ref.WeakReference;
  * nobody can see plays over reading. And coming back to the app starts the feed again by
  * itself, which is the one moment a reader has clearly not asked for anything.
  *
- * <p>There is no pause hook in this extension. Both of these ask for the audio focus instead,
- * the way the session hold does: it is how one app tells another to stop, and a player that
- * ignores it is no worse off than before. The hold owns the focus while it is up, and it covers
- * the feed and swallows the touches, so neither of these does anything during one.
+ * <p>Both ask for the audio focus, which is how one app tells another to stop. TikTok 47.0.3's
+ * player plays on through that, so both also pause the video on screen with TikTok's own pause,
+ * the one the session hold uses ({@link SessionPlaybackHold#pauseForSwitch}), and hand back only
+ * the video they paused. The hold owns the focus while it is up, and it covers the feed and
+ * swallows the touches, so neither of these does anything during one.
  */
 public final class PausePlayback {
     /** Written from the audio focus callback, which is not guaranteed to be the main thread. */
@@ -52,6 +56,21 @@ public final class PausePlayback {
     };
 
     private static WeakReference<View> sheetReference = new WeakReference<>(null);
+    /**
+     * 47.0.3's comment sheet, drawn into the activity: the activity it is in, the decor view whose
+     * layout passes are watched for it, and whether it is holding the feed.
+     */
+    private static WeakReference<Activity> panelActivityReference = new WeakReference<>(null);
+    private static WeakReference<View> panelWatchedReference = new WeakReference<>(null);
+    private static boolean panelHeld;
+    private static int panelChecksLeft;
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final long PANEL_CHECK_MILLIS = 250;
+    /** A bound sheet gets a second and a half to slide up before only layout passes watch it. */
+    private static final int PANEL_CHECKS_AFTER_A_BIND = 6;
+    private static final Runnable PANEL_CHECK = PausePlayback::checkPanel;
+    private static final android.view.ViewTreeObserver.OnGlobalLayoutListener PANEL_LAYOUT =
+            PausePlayback::syncPanel;
     private static WeakReference<View> catcherReference = new WeakReference<>(null);
     /** Watches the feed go away under the catcher, so the catcher goes with it. */
     private static android.view.ViewTreeObserver.OnGlobalLayoutListener feedWatcher;
@@ -90,7 +109,11 @@ public final class PausePlayback {
             // again, and the feed would stay quiet for the life of the process.
             if (cell.getWindowToken() == null) return;
             View sheet = sheetWindowOf(cell);
-            if (sheet == null || sheet == sheetReference.get()) return;
+            if (sheet == null) {
+                holdForPanel(cell);
+                return;
+            }
+            if (sheet == sheetReference.get()) return;
             sheetReference = new WeakReference<>(sheet);
             quieten();
             sheet.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
@@ -123,9 +146,10 @@ public final class PausePlayback {
      * <p>A sheet drawn into the activity shares the activity's root, and nothing in the
      * hierarchy says when it closes. Walking up to a fixed container and watching that would be
      * watching a view that never detaches: the sound would be handed back never, rather than
-     * when the reader closed the comments. So on a build shaped that way this answers null and
-     * the switch does nothing at all, which is the failure worth having. It is also why the
-     * walk does not stop at android.R.id.content, which is not the top of the window.
+     * when the reader closed the comments. So on a build shaped that way this answers null, and
+     * the switch goes by the sheet FeedVisibility knows by its id ({@link #holdForPanel}), or
+     * does nothing at all when that id is missing, which is the failure worth having. It is also
+     * why the walk does not stop at android.R.id.content, which is not the top of the window.
      */
     static View sheetWindowOf(View cell) {
         View root = cell.getRootView();
@@ -137,6 +161,73 @@ public final class PausePlayback {
         Activity activity = activityOf(cell);
         if (activity == null || activity.getWindow() == null) return null;
         return root == activity.getWindow().getDecorView() ? null : root;
+    }
+
+    /**
+     * The comments as TikTok 47.0.3 draws them: into the activity, so the walk up finds the
+     * activity's own root and {@link #sheetWindowOf} answers null. That sheet stays inflated and
+     * slides below the screen when it closes, so nothing detaches either. FeedVisibility already
+     * tells it covering the feed from parked below it, which is what the feed's own controls go
+     * by, so the feed is held while it covers the feed and handed back once it has gone.
+     *
+     * <p>A bind only says which activity the sheet is in. The cells can bind while the sheet is
+     * still sliding up, and TikTok can fill the parked sheet ahead of time, so an opening that
+     * binds nothing new has to be seen as well: the activity's layout passes are watched from
+     * the first bind on, the way the feed's controls watch them.
+     */
+    private static void holdForPanel(View cell) {
+        Activity activity = activityOf(cell);
+        if (activity == null || activity.getWindow() == null) return;
+        View decor = activity.getWindow().getDecorView();
+        if (cell.getRootView() != decor) return;
+        panelActivityReference = new WeakReference<>(activity);
+        View watched = panelWatchedReference.get();
+        if (watched != decor) {
+            if (watched != null) watched.getViewTreeObserver().removeOnGlobalLayoutListener(PANEL_LAYOUT);
+            decor.getViewTreeObserver().addOnGlobalLayoutListener(PANEL_LAYOUT);
+            panelWatchedReference = new WeakReference<>(decor);
+        }
+        if (!panelHeld) panelChecksLeft = PANEL_CHECKS_AFTER_A_BIND;
+        syncPanel();
+        checkPanelSoon();
+    }
+
+    /** Holds the feed while the sheet covers it, and hands it back once it has gone. */
+    private static void syncPanel() {
+        Activity activity = panelActivityReference.get();
+        boolean wanted = Settings.PAUSE_ON_COMMENTS.get();
+        boolean open = activity != null && wanted && panelOpen(activity);
+        if (open && !panelHeld && !SessionBudget.isLocked()) {
+            panelHeld = true;
+            quieten();
+            checkPanelSoon();
+        } else if (!open && panelHeld) {
+            panelHeld = false;
+            // The switch turned off while the sheet is still up: the feature stops managing, and
+            // that must not start the sound behind the open comments. The video stays as it is,
+            // one tap from the reader; only the sheet going away hands it back playing.
+            if (!wanted) handBack(false);
+            else unquieten();
+        }
+    }
+
+    private static boolean panelOpen(Activity activity) {
+        return !activity.isFinishing() && !activity.isDestroyed()
+                && FeedVisibility.isCommentSheetVisible(activity);
+    }
+
+    /**
+     * A sheet that only slides makes no layout pass, so while it holds the feed, and for a
+     * moment after a bind, it is also checked a few times a second.
+     */
+    private static void checkPanel() {
+        syncPanel();
+        if (panelHeld || --panelChecksLeft > 0) MAIN.postDelayed(PANEL_CHECK, PANEL_CHECK_MILLIS);
+    }
+
+    private static void checkPanelSoon() {
+        MAIN.removeCallbacks(PANEL_CHECK);
+        MAIN.postDelayed(PANEL_CHECK, PANEL_CHECK_MILLIS);
     }
 
     /** The activity a view is in, or null when its context is not one. */
@@ -221,6 +312,8 @@ public final class PausePlayback {
                     && Settings.PAUSE_ON_COMMENTS.get() && !SessionBudget.isLocked()) {
                 quieten();
             }
+            // The same for a sheet drawn into the activity, let go as the app went away.
+            if (activity != null && panelActivityReference.get() == activity) syncPanel();
             if (!wasAway) return;
             wasAway = false;
             if (!Settings.NO_RESUME_ON_FOREGROUND.get()) return;
@@ -337,7 +430,9 @@ public final class PausePlayback {
      */
     private static void letGo() {
         removeCatcher();
-        unquieten();
+        MAIN.removeCallbacks(PANEL_CHECK);
+        panelHeld = false;
+        handBack(false);
     }
 
     private static void removeCatcher() {
@@ -356,6 +451,7 @@ public final class PausePlayback {
 
     @SuppressWarnings("deprecation")
     private static void quieten() {
+        SessionPlaybackHold.pauseForSwitch();
         if (quietened) return;
         AudioManager audio = audioManager();
         if (audio == null) return;
@@ -370,8 +466,22 @@ public final class PausePlayback {
         }
     }
 
-    @SuppressWarnings("deprecation")
+    /**
+     * Hands the feed back once nothing holds it. The open sheet and the catcher each hold it: a
+     * reader who comes back to the comments they left open gets the catcher with the sheet, and
+     * closing either must leave the video stopped until the other has gone too.
+     */
     private static void unquieten() {
+        View sheet = sheetReference.get();
+        if (catcherReference.get() != null || (sheet != null && sheet.getWindowToken() != null)
+                || panelHeld) return;
+        handBack(true);
+    }
+
+    /** With {@code resume} false the video is left as TikTok has it, which going away wants. */
+    @SuppressWarnings("deprecation")
+    private static void handBack(boolean resume) {
+        SessionPlaybackHold.releaseForSwitch(resume);
         if (!quietened) return;
         quietened = false;
         AudioManager audio = audioManager();
@@ -401,10 +511,19 @@ public final class PausePlayback {
 
     static void resetForTests() {
         removeCatcher();
+        // The hold's state is static and shared with every other suite in this sandbox.
+        SessionPlaybackHold.releaseForSwitch(false);
         quietened = false;
         installed = false;
         wasAway = false;
         sheetReference = new WeakReference<>(null);
+        MAIN.removeCallbacks(PANEL_CHECK);
+        View watched = panelWatchedReference.get();
+        if (watched != null) watched.getViewTreeObserver().removeOnGlobalLayoutListener(PANEL_LAYOUT);
+        panelWatchedReference = new WeakReference<>(null);
+        panelActivityReference = new WeakReference<>(null);
+        panelHeld = false;
+        panelChecksLeft = 0;
     }
 
     static void setWasAwayForTests(boolean away) {

@@ -1,0 +1,15 @@
+# Local reverse engineering workspace: decompiled APK, jadx/apktool, reference repos.
+.work/
+
+# Potentially copyrighted APK
+*.apk
+
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+.idea/
+*.iml
+
+# Contains the GitHub token
+gradle.properties.local

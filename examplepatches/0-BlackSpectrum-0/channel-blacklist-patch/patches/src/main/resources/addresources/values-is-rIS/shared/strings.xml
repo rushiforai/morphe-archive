@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe stillingar endurstillaðar að sjálfgefnu gildi</string>
   <string name="morphe_settings_import_success">Innfluttar %d stillingar</string>
   <string name="morphe_settings_import_failure_parse">Innflutning mistókst: %s</string>
+  <string name="morphe_settings_navigate_up">Farðu upp</string>
   <string name="morphe_settings_search_hint">Leita í stillingum</string>
   <string name="morphe_settings_search_no_results_title">Engin niðurstöður fundust fyrir \'%s\'</string>
   <string name="morphe_settings_search_no_results_summary">Reyndu annan leitarorð</string>
   <string name="morphe_settings_search_recent_searches">Nýlegar leitar</string>
   <string name="morphe_settings_search_remove_message">Fjarlægja úr leitarsögu?</string>
+  <string name="morphe_settings_search_remove">Fjarlægja úr leitarferli</string>
   <string name="morphe_settings_search_clear_history">Hreinsa leitarsögu</string>
   <string name="morphe_settings_search_clear_history_message">Ertu viss um að þú viljir hreinsa allan leitarsöguna?</string>
   <string name="morphe_settings_search_tips_title">Leitarábendingar</string>
@@ -72,8 +74,8 @@ Til að þýða ný lönd eða bæta núverandi þýðingar skaltu heimsækja mo
   <string name="morphe_settings_export_file_success">Stillingar útfærðar með góðum árangri</string>
   <string name="morphe_settings_export_file_failed">Útflutning mistókst</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Þú notar nýjustu Morphe Patches útgáfuna &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Þú notar Morphe Patches útgáfu &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Uppfærsla í boði: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Til að uppfæra þína tákna skaltu nota Morphe til að endurtáka þetta app</string>
+  <string name="morphe_settings_about_links_body_version_current">Þú notar nýjustu Spectre Patches útgáfuna &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Þú notar Spectre Patches útgáfu &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Uppfærsla í boði: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Til að uppfæra þína tákna skaltu nota Spectre til að endurtáka þetta app</string>
   <string name="morphe_settings_about_links_dev_header">Athugaðu</string>
   <string name="morphe_settings_about_links_dev_body">Þessi útgáfa er forútgáfa og þú gætir upplifað óvænt vandamál</string>
   <string name="morphe_settings_about_links_header">Opinberar tenglar</string>

@@ -118,6 +118,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SAVE_STORY = new BooleanSetting("save_story", FALSE);
     public static final StringSetting DOUBLE_TAP_ACTION = new StringSetting("double_tap_action", "default");
     public static final StringSetting LONG_PRESS_ACTION = new StringSetting("long_press_action", "default");
+    /** What a left swipe on a feed video does: TikTok's creator profile, nothing, or the comments. */
+    public static final StringSetting SWIPE_LEFT_ACTION = new StringSetting("swipe_left_action", "default");
     public static final BooleanSetting EDGE_SEEK = new BooleanSetting("edge_seek", FALSE);
     public static final BooleanSetting FIT_VIDEO_TO_SCREEN =
             new BooleanSetting("fit_video_to_screen", FALSE);
@@ -284,6 +286,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DEFAULT_SPEED_ENABLED = new BooleanSetting("default_speed_enabled", FALSE);
     public static final StringSetting DEFAULT_SPEED = new StringSetting("default_speed", "1.5");
     public static final StringSetting CUSTOM_SPEEDS = new StringSetting("custom_speeds", "", true);
+    /** The speed the hold gesture plays at and its pull-down lock keeps; TikTok's own is 2x (upstream #52). */
+    public static final StringSetting HOLD_SPEED = new StringSetting("hold_speed", "2");
     public static final BooleanSetting AUTO_ADVANCE = new BooleanSetting("auto_advance", FALSE, true);
     public static final IntegerSetting AUTO_ADVANCE_LIMIT = new IntegerSetting(
             "auto_advance_limit", 0, false, Setting.parent(AUTO_ADVANCE)).withRange(0, 1000);
@@ -429,6 +433,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_AI_GENERATED = new BooleanSetting("hide_ai_generated", FALSE, true);
     public static final BooleanSetting HIDE_VERIFIED = new BooleanSetting("hide_verified", FALSE, true);
     public static final BooleanSetting HIDE_SERIES = new BooleanSetting("hide_series", FALSE, true);
+    /** TikTok's short dramas and the cards that promote them (upstream #155). */
+    public static final BooleanSetting HIDE_MINI_DRAMAS = new BooleanSetting("hide_mini_dramas", FALSE, true);
     public static final BooleanSetting HIDE_SEEN_VIDEOS = new BooleanSetting("hide_seen_videos", FALSE, true);
     public static final IntegerSetting SEEN_VIDEO_RETENTION_DAYS =
             new IntegerSetting("seen_video_retention_days", 30).withRange(0, 3650);

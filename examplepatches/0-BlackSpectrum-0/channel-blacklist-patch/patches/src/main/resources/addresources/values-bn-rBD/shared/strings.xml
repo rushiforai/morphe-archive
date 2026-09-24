@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe সেটিং ডিফল্ট সেট করা হয়েছে</string>
   <string name="morphe_settings_import_success">%d সেটিং আমদানি হয়েছে</string>
   <string name="morphe_settings_import_failure_parse">আমদানি করা যায়নি: %s</string>
+  <string name="morphe_settings_navigate_up">উপরে নেভিগেট করুন</string>
   <string name="morphe_settings_search_hint">অনুসন্ধান সেটিংস</string>
   <string name="morphe_settings_search_no_results_title">\'%s\'-এর জন্য কোন ফলাফল পাওয়া যায়নি</string>
   <string name="morphe_settings_search_no_results_summary">অন্য কোনো কীওয়ার্ড চেষ্টা করুন</string>
   <string name="morphe_settings_search_recent_searches">সাম্প্রতিক অনুসন্ধানগুলি</string>
   <string name="morphe_settings_search_remove_message">অনুসন্ধান ইতিহাস থেকে সরাবেন?</string>
+  <string name="morphe_settings_search_remove">অনুসন্ধান ইতিহাস থেকে সরাবেন</string>
   <string name="morphe_settings_search_clear_history">অনুসন্ধানের ইতিহাস মুছুন</string>
   <string name="morphe_settings_search_clear_history_message">আপনি কি আপনার সমস্ত অনুসন্ধানের ইতিহাস মুছে ফেলতে চান?</string>
   <string name="morphe_settings_search_tips_title">অনুসন্ধানের টিপস</string>
@@ -73,7 +75,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_failed">সেটিং এক্সপোর্ট করা যায়নি</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">আপনি Morphe প্যাচ সংস্করণ &lt;i&gt;%s&lt;/i&gt; ব্যবহার করছেন</string>
-  <string name="morphe_settings_about_links_body_version_outdated">আপনি Morphe প্যাচ সংস্করণ &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;আপডেট উপলব্ধ: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;আপনার প্যাচগুলি আপডেট করতে, Morphe ব্যবহার করে এই অ্যাপ্লিকেশনটিকে পুনরায় প্যাচ করুন</string>
+  <string name="morphe_settings_about_links_body_version_outdated">আপনি Spectre প্যাচ সংস্করণ &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;আপডেট উপলব্ধ: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;আপনার প্যাচগুলি আপডেট করতে, Spectre ব্যবহার করে এই অ্যাপ্লিকেশনটিকে পুনরায় প্যাচ করুন</string>
   <string name="morphe_settings_about_links_dev_header">দ্রষ্টব্য</string>
   <string name="morphe_settings_about_links_dev_body">এই সংস্করণ একটি প্রাক-প্রকাশনা এবং এতে আপনি অনাকাঙ্খিত সমস্যার সম্মুখিন হতে পারেন</string>
   <string name="morphe_settings_about_links_header">অফিশ্যাল লিংকসমূহ</string>

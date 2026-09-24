@@ -72,10 +72,31 @@ public final class CommentTools {
 
     /**
      * The brand animation TikTok plays over the comment sheet when a comment matches an
-     * advertiser's trigger. Called from the trigger itself, so returning true skips it.
+     * advertiser's trigger. TikTok's server sends it as a surprise with the published comment or
+     * the comment page, and every way the sheet shows it reads that surprise out of the struct
+     * whose constructor calls this. Null leaves them nothing to play: each one checks the
+     * surprise for null before it touches it.
+     *
+     * <p>The same struct carries TikTok's own first-comment celebration, which is no advert and
+     * stays. See {@link #isTriggeredSurprise}.
      */
-    public static boolean shouldHideCommentEgg() {
-        return Settings.HIDE_COMMENT_EGGS.get();
+    public static Object commentSurprise(Object surprise) {
+        if (surprise == null) return null;
+        HookStatus.bound("comment popup ads", "CommentSurpriseStruct constructor");
+        return Settings.HIDE_COMMENT_EGGS.get() && isTriggeredSurprise(surprise) ? null : surprise;
+    }
+
+    /** TikTok's own first-comment celebration: the publish path reports it as first_comment_surprise_trigger. */
+    static final int FIRST_COMMENT_SURPRISE = 1;
+
+    /**
+     * A surprise that words in a comment set off. The server names the keyword that matched, and
+     * a first-comment celebration is a surprise of its own type that no word sets off.
+     */
+    static boolean isTriggeredSurprise(Object surprise) {
+        Object type = Reflect.property(surprise, "getSurpriseType", "surpriseType");
+        if (type instanceof Number && ((Number) type).intValue() == FIRST_COMMENT_SURPRISE) return false;
+        return Reflect.string(surprise, "getKeyword", "keyword") != null;
     }
 
     private static final String APP_PACKAGE = "com.zhiliaoapp.musically";

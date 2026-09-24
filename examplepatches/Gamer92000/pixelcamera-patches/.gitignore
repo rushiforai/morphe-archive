@@ -1,0 +1,28 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# Never commit Google's APK or anything derived from it.
+work/
+*.apk
+*.apkm
+*.apks
+*.xapk
+*.dex
+findings.json
+
+# Signing material
+*.jks
+*.keystore
+
+# IDE
+*.iml
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log

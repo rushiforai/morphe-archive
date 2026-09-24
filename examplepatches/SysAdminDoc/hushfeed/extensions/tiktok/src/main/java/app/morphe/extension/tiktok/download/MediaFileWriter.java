@@ -24,7 +24,23 @@ import java.io.OutputStream;
 final class MediaFileWriter {
     private MediaFileWriter() {}
 
+    /** What a publish left in the gallery: the name MediaStore kept, and its row when there is one. */
+    static final class Saved {
+        final String name;
+        /** Null below API 29, where the file goes straight to disk and only the scanner sees it. */
+        final Uri uri;
+
+        Saved(String name, Uri uri) {
+            this.name = name;
+            this.uri = uri;
+        }
+    }
+
     static String publish(Context context, File source, String name, String mime, String path, boolean video) throws IOException {
+        return publishForResult(context, source, name, mime, path, video).name;
+    }
+
+    static Saved publishForResult(Context context, File source, String name, String mime, String path, boolean video) throws IOException {
         MediaBudget.check(null);
         File destinationDirectory = path == null
                 ? Environment.getExternalStorageDirectory()
@@ -81,7 +97,7 @@ final class MediaFileWriter {
                     // completed row remains safe if this final cleanup write is interrupted.
                     Logger.printException(() -> "Could not clear media publication journal", journalError);
                 }
-                return savedName;
+                return new Saved(savedName, uri);
             } catch (IOException | RuntimeException exception) {
                 boolean deleted = false;
                 try {
@@ -109,7 +125,7 @@ final class MediaFileWriter {
                 throw exception;
             }
             MediaScannerConnection.scanFile(context, new String[]{target.getAbsolutePath()}, new String[]{mime}, null);
-            return target.getName();
+            return new Saved(target.getName(), null);
         }
     }
 

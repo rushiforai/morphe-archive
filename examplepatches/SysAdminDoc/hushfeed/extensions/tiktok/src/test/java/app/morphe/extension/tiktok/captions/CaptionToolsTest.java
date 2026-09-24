@@ -87,6 +87,94 @@ public class CaptionToolsTest {
         assertEquals(Color.BLUE, ((ColorDrawable) background.getBackground()).getColor());
         assertSame(original, CaptionStyle.layout(original));
     }
+    /**
+     * A bigger size kept TikTok's measured width and split words: "conditio" over "ns." at 28 on
+     * the S22. The layout grows with the text now, up to four fifths of the screen, and a line too
+     * long for that wraps at a space.
+     */
+    @Test public void aBiggerCaptionWrapsBetweenWordsNotInsideThem() {
+        TextPaint paint = new TextPaint();
+        paint.setTextSize(16);
+        String word = "conditions";
+        Layout original = new StaticLayout(word, paint, (int) Math.ceil(Layout.getDesiredWidth(word, paint)),
+                Layout.Alignment.ALIGN_CENTER, 1, 0, true);
+        Settings.CAPTION_TEXT_SIZE.save(28);
+        Layout styled = CaptionStyle.layout(original);
+        assertEquals("the word was split across lines", 1, styled.getLineCount());
+        int cap = tiktokCap();
+        assertTrue("wider than the strip may be: " + styled.getWidth(), styled.getWidth() <= cap);
+
+        // TikTok lays a long caption out within its strip, so the column it hands over is never
+        // wider than the strip may be; half the cap is a column like that.
+        String sentence = "the weather conditions stay unsettled through the weekend across the whole region";
+        Layout line = new StaticLayout(sentence, paint, cap / 2, Layout.Alignment.ALIGN_CENTER, 1, 0, true);
+        assertTrue("the fixture's column holds the sentence on one line", line.getLineCount() > 1);
+        Layout wrapped = CaptionStyle.layout(line);
+        assertTrue("the sentence stopped wrapping at the new size", wrapped.getLineCount() > 1);
+        assertTrue(wrapped.getWidth() <= cap);
+        for (int i = 0; i < wrapped.getLineCount() - 1; i++) {
+            int end = wrapped.getLineEnd(i);
+            assertEquals("line " + i + " broke inside a word", ' ', sentence.charAt(end - 1));
+        }
+        Settings.CAPTION_TEXT_SIZE.save(0);
+        assertSame(original, CaptionStyle.layout(original));
+    }
+
+    /**
+     * TikTok's own limit on a caption is the screen less 100 dp (margins, the rail of buttons);
+     * four fifths of the screen, the first cap, went past it on the S22 (864 px against about
+     * 818), onto the rail (refutation review of ecf26b6c).
+     */
+    @Test public void aBiggerCaptionStaysWithinTikToksOwnWidth() {
+        assertEquals("grows with the text", 200, CaptionStyle.width(100, 40, 80, 700));
+        assertEquals("up to TikTok's limit", 700, CaptionStyle.width(600, 40, 80, 700));
+        assertEquals("never narrower than TikTok's own", 800, CaptionStyle.width(800, 40, 80, 700));
+        assertEquals("a smaller size keeps TikTok's width", 600, CaptionStyle.width(600, 40, 30, 700));
+
+        TextPaint paint = new TextPaint();
+        paint.setTextSize(16);
+        String sentence = "the weather conditions stay unsettled";
+        int cap = tiktokCap();
+        Layout original = new StaticLayout(sentence, paint, cap - 20, Layout.Alignment.ALIGN_NORMAL, 1, 0, true);
+        Settings.CAPTION_TEXT_SIZE.save(28);
+        try {
+            Layout styled = CaptionStyle.layout(original);
+            assertTrue("past TikTok's limit: " + styled.getWidth() + " > " + cap, styled.getWidth() <= cap);
+            assertTrue("the grown text did not wrap", styled.getLineCount() > 1);
+        } finally {
+            Settings.CAPTION_TEXT_SIZE.save(0);
+        }
+    }
+
+    /**
+     * TikTok sizes the caption view to its layout and builds that layout as wide as its longest
+     * line, so the strip behind it fits the text. A layout left wider than its text left an empty
+     * band beside it, bigger or smaller than TikTok's size (refutation review of ecf26b6c).
+     */
+    @Test public void aRestyledCaptionIsAsWideAsItsLongestLine() {
+        TextPaint paint = new TextPaint();
+        paint.setTextSize(16);
+        String cue = "A replay.";
+        Layout original = new StaticLayout(cue, paint, tiktokCap(), Layout.Alignment.ALIGN_NORMAL, 1, 0, true);
+        try {
+            for (int size : new int[] {28, 12}) {
+                Settings.CAPTION_TEXT_SIZE.save(size);
+                Layout styled = CaptionStyle.layout(original);
+                assertEquals("size " + size + " kept an empty edge beside the text",
+                        CaptionStyle.longestLine(styled), styled.getWidth());
+                assertEquals("size " + size + " changed the line breaks", 1, styled.getLineCount());
+            }
+        } finally {
+            Settings.CAPTION_TEXT_SIZE.save(0);
+        }
+    }
+
+    private static int tiktokCap() {
+        android.util.DisplayMetrics metrics = Utils.getContext().getResources().getDisplayMetrics();
+        return metrics.widthPixels - Math.round(android.util.TypedValue.applyDimension(
+                android.util.TypedValue.COMPLEX_UNIT_DIP, 100, metrics));
+    }
+
     @Test public void aBuildWithoutTheCaptionIdsSaysSoOnTheHookStatusRow() {
         HookStatus.clear();
         // What a reshuffled resource table looks like from here: the names resolve to nothing.
@@ -295,6 +383,80 @@ public class CaptionToolsTest {
             CaptionTools.onCaption(source, "one", "EXPANDED", "Stale cue");
             CaptionTools.onClear(new Video("one"), true);
             assertEquals(View.GONE, caption.getVisibility());
+        }
+    }
+
+    /**
+     * The line is for clear display, and on 47.0.3 clear display sets TikTok's tab bar GONE. The
+     * feed check read that as "not the feed", so the line hid itself as soon as it was wanted: on
+     * the S22 on 2026-09-23 it had been laid out with a cue, and stayed GONE through every later
+     * cue while the controls were cleared. The other tests here have no tab bar at all, which
+     * the feed check answers with "assume the feed".
+     */
+    @Test public void theKeptCaptionStaysWhileClearDisplayHasTheTabBarAway() {
+        try (var owner = Robolectric.buildActivity(CaptionActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            FrameLayout content = new FrameLayout(activity);
+            FrameLayout source = new FrameLayout(activity);
+            content.addView(source);
+            FrameLayout bar = new FrameLayout(activity);
+            View home = new View(activity);
+            home.setId(0x7f0a4b89);
+            home.setSelected(true);
+            bar.addView(home, new FrameLayout.LayoutParams(216, 138));
+            content.addView(bar, new FrameLayout.LayoutParams(-1, 138, android.view.Gravity.BOTTOM));
+            activity.setContentView(content);
+            owner.windowFocusChanged(true);
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.resolveForTests(
+                    activity.getPackageName(), "omq", home.getId());
+            try {
+                Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.save(true);
+                CaptionTools.onVideoChanged("cleared-video");
+                CaptionTools.onCaption(source, "cleared-video", "EXPANDED", "Spoken while cleared");
+                CaptionTools.onClear(new Video("cleared-video"), true);
+                // TikTok puts its tab bar away as clear display starts.
+                bar.setVisibility(View.GONE);
+                View decor = activity.getWindow().getDecorView();
+                decor.getViewTreeObserver().dispatchOnPreDraw();
+                TextView caption = find(decor, "Spoken while cleared");
+                assertNotNull(caption);
+                assertEquals("the kept caption hid itself in clear display",
+                        View.VISIBLE, caption.getVisibility());
+                CaptionTools.onCaption(source, null, "EXPANDED", "The next cue");
+                assertEquals("The next cue", caption.getText().toString());
+                assertEquals(View.VISIBLE, caption.getVisibility());
+
+                // The line sits on the window's own view, above the daily hold's panel, so it
+                // goes while a hold runs and comes back after.
+                Class<?> budget = app.morphe.extension.tiktok.wellbeing.SessionBudget.class;
+                org.robolectric.util.ReflectionHelpers.callStaticMethod(budget, "awaitWritesForTests");
+                try {
+                    Settings.SESSION_BUDGET_VIDEOS.save(1);
+                    Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+                    app.morphe.extension.tiktok.wellbeing.SessionBudget.noteVideo("caption-held");
+                    assertTrue(app.morphe.extension.tiktok.wellbeing.SessionBudget.claimNotice());
+                    decor.getViewTreeObserver().dispatchOnPreDraw();
+                    assertEquals("the kept caption drew over the daily hold", View.GONE, caption.getVisibility());
+                } finally {
+                    org.robolectric.util.ReflectionHelpers.callStaticMethod(budget, "awaitWritesForTests");
+                    Settings.SESSION_BUDGET_STATE.save("");
+                    Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
+                    Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
+                    org.robolectric.util.ReflectionHelpers.callStaticMethod(budget, "resetForTests");
+                }
+                decor.getViewTreeObserver().dispatchOnPreDraw();
+                assertEquals("the kept caption didn't come back after the hold", View.VISIBLE, caption.getVisibility());
+
+                // Another tab is not the feed, cleared or not.
+                home.setSelected(false);
+                decor.getViewTreeObserver().dispatchOnPreDraw();
+                assertEquals("the caption followed the reader off the feed",
+                        View.GONE, caption.getVisibility());
+            } finally {
+                app.morphe.extension.tiktok.blockauthor.FeedVisibility.resolveForTests(
+                        activity.getPackageName(), "omq", 0);
+            }
         }
     }
 

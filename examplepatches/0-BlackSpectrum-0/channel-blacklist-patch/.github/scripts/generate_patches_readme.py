@@ -219,4 +219,4 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+print(f"[OK] Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")

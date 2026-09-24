@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Przywrócono domyślne ustawienia Morphe</string>
   <string name="morphe_settings_import_success">Zaimportowano %d ustawień</string>
   <string name="morphe_settings_import_failure_parse">Importowanie nie powiodło się: %s</string>
+  <string name="morphe_settings_navigate_up">Przejdź w górę</string>
   <string name="morphe_settings_search_hint">Szukaj w ustawieniach</string>
   <string name="morphe_settings_search_no_results_title">Brak wyników dla \"%s\"</string>
   <string name="morphe_settings_search_no_results_summary">Spróbuj innego słowa</string>
   <string name="morphe_settings_search_recent_searches">Ostatnie wyszukiwania</string>
   <string name="morphe_settings_search_remove_message">Usunąć z historii wyszukiwania?</string>
+  <string name="morphe_settings_search_remove">Usunąć z historii wyszukiwania</string>
   <string name="morphe_settings_search_clear_history">Wyczyść historię wyszukiwania</string>
   <string name="morphe_settings_search_clear_history_message">Czy na pewno chcesz wyczyścić całą historię wyszukiwania?</string>
   <string name="morphe_settings_search_tips_title">Wskazówki dotyczące wyszukiwania</string>
@@ -73,7 +75,7 @@ Aby przetłumaczyć aplikację na nowe języki lub poprawić istniejące tłumac
   <string name="morphe_settings_export_file_failed">Nie udało się wyeksportować ustawień</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">Używasz najnowszej wersji modyfikacji Morphe &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Używasz modyfikacji Morphe w wersji &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Dostępna aktualizacja: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Aby zaktualizować modyfikacje, zmodyfikuj tę aplikację ponownie za pomocą Morphe</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Używasz modyfikacji Spectre w wersji &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Dostępna aktualizacja: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Aby zaktualizować modyfikacje, zmodyfikuj tę aplikację ponownie za pomocą Spectre</string>
   <string name="morphe_settings_about_links_dev_header">Uwaga</string>
   <string name="morphe_settings_about_links_dev_body">To jest wersja przedpremierowa, w której mogą wystąpić nieoczekiwane błędy</string>
   <string name="morphe_settings_about_links_header">Oficjalne linki</string>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe-asetukset nollattiin</string>
   <string name="morphe_settings_import_success">%d asetusta tuotiin</string>
   <string name="morphe_settings_import_failure_parse">Tuonti epäonnistui: %s</string>
+  <string name="morphe_settings_navigate_up">Siirry ylös</string>
   <string name="morphe_settings_search_hint">Hae asetuksista</string>
   <string name="morphe_settings_search_no_results_title">Tuloksia ei löytynyt haulle \"%s\"</string>
   <string name="morphe_settings_search_no_results_summary">Kokeile toista hakusanaa</string>
   <string name="morphe_settings_search_recent_searches">Viimeisimmät haut</string>
   <string name="morphe_settings_search_remove_message">Poistetaanko hakuhistoriasta?</string>
+  <string name="morphe_settings_search_remove">Poistetaanko hakuhistoriasta</string>
   <string name="morphe_settings_search_clear_history">Tyhjennä hakuhistoria</string>
   <string name="morphe_settings_search_clear_history_message">Haluatko varmasti tyhjentää kaiken hakuhistorian?</string>
   <string name="morphe_settings_search_tips_title">Hakuvinkit</string>
@@ -72,8 +74,8 @@ Kääntääksesi uusia kieliä tai parantaaksesi olemassa olevia käännöksiä,
   <string name="morphe_settings_export_file_success">Asetukset on viety onnistuneesti</string>
   <string name="morphe_settings_export_file_failed">Asetusten vienti epäonnistui</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Käytät uusinta Morphe Patchesin versiota &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Käytät Morphe Patchesin versiota &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Päivitys saatavilla: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Päivittääksesi muokkaukset, käytä Morphea muokataksesi tämän sovelluksen uudelleen</string>
+  <string name="morphe_settings_about_links_body_version_current">Käytät uusinta Spectre Patchesin versiota &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Käytät Spectre Patchesin versiota &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Päivitys saatavilla: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Päivittääksesi muokkaukset, käytä Spectrea muokataksesi tämän sovelluksen uudelleen</string>
   <string name="morphe_settings_about_links_dev_header">Huomautus</string>
   <string name="morphe_settings_about_links_dev_body">Tämä versio on ennakkojulkaisuversio, joten voit kokea odottamattomia ongelmia</string>
   <string name="morphe_settings_about_links_header">Viralliset linkit</string>

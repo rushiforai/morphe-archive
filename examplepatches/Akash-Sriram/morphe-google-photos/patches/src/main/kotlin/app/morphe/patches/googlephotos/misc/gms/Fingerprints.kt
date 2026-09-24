@@ -142,4 +142,26 @@ internal object CurrentLocationMixinOnViewCreatedFingerprint : Fingerprint(
     },
 )
 
+/**
+ * Matches the Google Photos IP protection compliance handler method which checks
+ * `should_enforce_ip_protection` and launches UncertifiedDeviceActivity.
+ */
+internal object GmsDeviceComplianceCheckFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf(
+        "should_enforce_ip_protection",
+        "Failed to get IP protection enforcement result",
+    ),
+)
+
+/**
+ * Matches `UncertifiedDeviceActivity.onCreate(Bundle)` in GMS compliance UI.
+ */
+internal object UncertifiedDeviceActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/gms/gmscompliance/ui/UncertifiedDeviceActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
 

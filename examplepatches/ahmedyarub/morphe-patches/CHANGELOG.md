@@ -1,3 +1,17 @@
+## [1.7.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.6.1...v1.7.0) (2026-09-23)
+
+### ✨ New Features
+
+* **Instagram:** Support 448.0.0.52.84 and fix the story tray hook ([4d60654](https://github.com/ahmedyarub/morphe-patches/commit/4d606544b466c260d3dd1749dac80e6e1bb2f784))
+* **Instagram:** Support 448.0.0.52.84 and fix the story tray hook ([d7125ae](https://github.com/ahmedyarub/morphe-patches/commit/d7125aea42ab7cd3c9ced7faa7bb9743483d4c63))
+
+## [1.7.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.6.1...v1.7.0-dev.1) (2026-09-23)
+
+### ✨ New Features
+
+* **Instagram:** Support 448.0.0.52.84 and fix the story tray hook ([4d60654](https://github.com/ahmedyarub/morphe-patches/commit/4d606544b466c260d3dd1749dac80e6e1bb2f784))
+* **Instagram:** Support 448.0.0.52.84 and fix the story tray hook ([d7125ae](https://github.com/ahmedyarub/morphe-patches/commit/d7125aea42ab7cd3c9ced7faa7bb9743483d4c63))
+
 ## [1.6.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.6.0...v1.6.1) (2026-09-21)
 
 ### 🐛 Bug Fixes

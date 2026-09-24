@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -73,7 +73,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_failed">صادرکردن تنظیمات ناموفق بود</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">شما از جدیدترین نسخهٔ Patches برای Morphe استفاده می‌کنید &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">شما از نسخهٔ Patches برای Morphe &lt;i&gt;%1$s&lt;/i&gt; استفاده می‌کنید&lt;br&gt;&lt;br&gt;&lt;b&gt;به‌روزرسانی موجود است: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;برای به‌روزرسانی پچ‌های خود، از Morphe برای پچ‌کردن دوبارهٔ این برنامه استفاده کنید</string>
+  <string name="morphe_settings_about_links_body_version_outdated">شما از نسخهٔ Patches برای Spectre &lt;i&gt;%1$s&lt;/i&gt; استفاده می‌کنید&lt;br&gt;&lt;br&gt;&lt;b&gt;به‌روزرسانی موجود است: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;برای به‌روزرسانی پچ‌های خود، از Spectre برای پچ‌کردن دوبارهٔ این برنامه استفاده کنید</string>
   <string name="morphe_settings_about_links_dev_header">یادداشت</string>
   <string name="morphe_settings_about_links_dev_body">این نسخه پیش‌انتشار است و ممکن است با مشکلات غیرمنتظره‌ای روبه‌رو شوید</string>
   <string name="morphe_settings_about_links_header">پیوندهای رسمی</string>

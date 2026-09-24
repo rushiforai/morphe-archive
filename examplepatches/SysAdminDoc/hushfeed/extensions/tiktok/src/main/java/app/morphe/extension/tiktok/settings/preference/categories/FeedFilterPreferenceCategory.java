@@ -119,6 +119,12 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         ));
         addPreference(new TogglePreference(
                 context,
+                "Hide mini dramas",
+                "Hide TikTok's short drama episodes and the cards that promote them.",
+                Settings.HIDE_MINI_DRAMAS
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Hide playlist videos",
                 "Hide videos posted as part of a playlist.",
                 Settings.HIDE_PLAYLIST_VIDEOS

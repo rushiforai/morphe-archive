@@ -1,0 +1,5 @@
+# ONLY used for publishing, this project uses bun, not pnpm
+packages:
+  - packages/*
+
+registry: https://registry.npmjs.org/

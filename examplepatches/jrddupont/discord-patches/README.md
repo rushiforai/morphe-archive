@@ -9,15 +9,12 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/jrddupont/discord-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.5.0](https://github.com/jrddupont/discord-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 Discord&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 344.13 - Stable | 343.12 - Stable | 342.16 - Stable | 341.13 - Stable |
-| :---: | :---: | :---: | :---: |
+**🎯 Supported versions:** any Stable (self-locating patches — verified on 341.13 / 342.16 / 343.12 / 344.13 / 346.13)
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

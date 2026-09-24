@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cap_ai_title" formatted="false">"Traducción de subtítulos con IA"</string>
+    <string name="cap_enable_ai" formatted="false">"Activar traducción con IA"</string>
+    <string name="cap_api_config" formatted="false">"Configuración de API"</string>
+    <string name="cap_api_address" formatted="false">"Dirección de API"</string>
+    <string name="cap_api_key" formatted="false">"Clave de API"</string>
+    <string name="cap_model" formatted="false">"Modelo"</string>
+    <string name="cap_test_api" formatted="false">"Probar API"</string>
+    <string name="cap_translation" formatted="false">"Traducción"</string>
+    <string name="cap_translation_requirements" formatted="false">"Instrucciones de traducción"</string>
+    <string name="cap_style" formatted="false">"Estilo de subtítulos"</string>
+    <string name="cap_size" formatted="false">"Tamaño de subtítulos"</string>
+    <string name="cap_opacity" formatted="false">"Opacidad del fondo"</string>
+    <string name="cap_reset_position" formatted="false">"Restablecer posición"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"Caché y diagnóstico"</string>
+    <string name="cap_clear_cache" formatted="false">"Borrar caché de subtítulos"</string>
+    <string name="cap_delete_key" formatted="false">"Eliminar clave de API"</string>
+    <string name="cap_text_debug" formatted="false">"Depurar texto de subtítulos"</string>
+    <string name="cap_diagnostics" formatted="false">"Diagnóstico de subtítulos"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"Borrar diagnóstico"</string>
+    <string name="cap_preview" formatted="false">"Vista previa"</string>
+    <string name="cap_landscape" formatted="false">"Horizontal"</string>
+    <string name="cap_portrait" formatted="false">"Vertical"</string>
+    <string name="cap_to_landscape" formatted="false">"Cambiar a horizontal"</string>
+    <string name="cap_to_portrait" formatted="false">"Cambiar a vertical"</string>
+    <string name="cap_refresh" formatted="false">"Actualizar"</string>
+    <string name="cap_copy" formatted="false">"Copiar"</string>
+    <string name="cap_expand" formatted="false">"Expandir"</string>
+    <string name="cap_collapse" formatted="false">"Contraer"</string>
+    <string name="cap_cancel" formatted="false">"Cancelar"</string>
+    <string name="cap_delete" formatted="false">"Eliminar"</string>
+    <string name="cap_saved" formatted="false">"Guardado automáticamente"</string>
+    <string name="cap_autosave" formatted="false">"Los cambios se guardan automáticamente"</string>
+    <string name="cap_enter_key" formatted="false">"Introduce la clave de API"</string>
+    <string name="cap_key_saved" formatted="false">"Guardada cifrada; escribe para sustituirla"</string>
+    <string name="cap_model_hint" formatted="false">"Selecciona un modelo o introduce su ID"</string>
+    <string name="cap_preview_hint" formatted="false">"Toca la imagen para cambiar la orientación; vista previa en directo"</string>
+    <string name="cap_size_hint" formatted="false">"Tamaño relativo 12–22; se adapta al vídeo"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% transparente, 100% opaco; se guarda al soltar"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"Expande para consultar y copiar el diagnóstico"</string>
+    <string name="cap_use_youtube" formatted="false">"Usar YouTube"</string>
+    <string name="cap_use_ai" formatted="false">"Usar IA"</string>
+    <string name="cap_on" formatted="false">"Activado"</string>
+    <string name="cap_off" formatted="false">"Desactivado"</string>
+    <string name="cap_configure_api" formatted="false">"Configura la API antes de activar la traducción con IA"</string>
+    <string name="cap_switch_failed" formatted="false">"No se pudo cambiar; se ha restaurado el modo anterior"</string>
+    <string name="cap_choose_translation" formatted="false">"Elige un idioma de traducción automática en el menú de subtítulos"</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"Si se desactiva, YouTube muestra sus propios subtítulos"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Los subtítulos originales funcionan sin API; la traducción con IA requiere una clave"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"Activado; elige un idioma de traducción automática para usar IA"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"Incluir texto original y traducido en el diagnóstico; solo para resolver problemas"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"No registrar texto original ni traducido"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"Registrar texto para resolver problemas; desactivado por defecto"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"Probar la conexión con la configuración guardada"</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"Solo la traducción automática usa la API; los subtítulos originales no se traducen"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"Restablecer posición vertical; conservar tamaño y fondo"</string>
+    <string name="cap_message_10d1b374429d" formatted="false">"Visible al editar; se borra al cerrar y se guarda cifrada"</string>
+    <string name="cap_message_7da9039cc193" formatted="false">"La clave de API debe ocupar una sola línea"</string>
+    <string name="cap_message_bafa7b1ca6cb" formatted="false">"La dirección de API debe empezar por https:// o http://"</string>
+    <string name="cap_message_bbbcd9c8bf80" formatted="false">"No se pudo guardar automáticamente"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"No se pudo guardar el modelo"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"Ajuste desconocido"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; se conserva el último valor válido"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"Posición restablecida"</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"Caché de subtítulos borrada"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"¿Eliminar clave de API?"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"Solo se elimina la clave cifrada de este dispositivo. Los demás ajustes no cambian."</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"Clave de API eliminada"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"Diagnóstico borrado"</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"Diagnóstico copiado"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"Probando…"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API disponible: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"Error al probar API: "</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"Actualizando modelos…"</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"Cargando modelos…"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"No se pudieron cargar modelos; introduce uno manualmente: "</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"Lista de modelos actualizada"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"Aún no hay solicitudes. Configura la API, elige un idioma de traducción automática y actualiza el diagnóstico."</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"Motor: "</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"Modo: "</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"Traducción automática"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"Subtítulos originales (sin API de traducción)"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"Depuración de texto: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"Última fase: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"Referencias de tiempo y errores (con fecha): "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"Eventos recientes: "</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"No se pudo leer el diagnóstico: "</string>
+    <string name="cap_message_c34848823d86" formatted="false">" (hace unos "</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" segundos)"</string>
+    <string name="cap_mode_pending" formatted="false">"Modo guardado. Se aplicará cuando estén listos los subtítulos de este vídeo."</string>
+    <string name="cap_mode_off_pending" formatted="false">"IA desactivada. Los subtítulos de YouTube se reanudarán cuando la pista esté lista."</string>
+    <string name="cap_flyout_title" formatted="false">"Interruptor de subtítulos IA en vídeos normales"</string>
+    <string name="cap_flyout_summary" formatted="false">"Muestra el acceso rápido en el menú del reproductor. Ocultarlo no desactiva los subtítulos IA; se aplica al reabrir el menú."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Interruptor de subtítulos IA en el menú de Shorts"</string>
+    <string name="cap_profiles_title" formatted="false">"Perfiles de API"</string>
+    <string name="cap_profile_default" formatted="false">"Configuración original"</string>
+    <string name="cap_profile_name" formatted="false">"Nombre del perfil"</string>
+    <string name="cap_profile_rename" formatted="false">"Renombrar"</string>
+    <string name="cap_profile_add" formatted="false">"Añadir perfil"</string>
+    <string name="cap_profiles_summary" formatted="false">"Gestionar perfil actual"</string>
+    <string name="cap_profile_name_error" formatted="false">"Introduzca un nombre de 1 a 60 caracteres"</string>
+    <string name="cap_profile_limit" formatted="false">"Se pueden guardar hasta 30 perfiles"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"Corrija los campos incompletos antes de cambiar de perfil"</string>
+    <string name="cap_profile_add_failed" formatted="false">"No se pudo añadir el perfil. Revise los campos y el límite de 30 perfiles."</string>
+    <string name="cap_profile_manage" formatted="false">"Gestionar perfil actual"</string>
+    <string name="cap_profile_close" formatted="false">"Cerrar"</string>
+    <string name="cap_profile_save" formatted="false">"Guardar"</string>
+    <string name="cap_profile_current" formatted="false">"Perfil actual"</string>
+    <string name="cap_profile_delete" formatted="false">"Eliminar perfil"</string>
+    <string name="cap_profile_clear_key" formatted="false">"Borrar la clave API de este perfil"</string>
+    <string name="cap_profile_keep_one" formatted="false">"Conserve al menos un perfil. Puede borrar su clave API."</string>
+    <string name="cap_profile_new_summary" formatted="false">"Los perfiles nuevos incluyen instrucciones predeterminadas, sin clave ni modelo. Complete los campos en ajustes."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"Elimina de este dispositivo la dirección, el modelo, las instrucciones y la clave cifrada de este perfil. Conserva los demás perfiles y los ajustes de subtítulos. Si está activo, se activa el primer perfil restante. No se puede deshacer."</string>
+    <string name="cap_profile_clear_key_summary" formatted="false">"Borra solo la clave guardada y la entrada de clave sin guardar de este perfil. Conserva la dirección, el modelo y las instrucciones. No afecta a otros perfiles ni revoca la clave en el proveedor."</string>
+    <string name="cap_prompt_summary" formatted="false">"Se guarda en este perfil. Vacíe para restaurar los valores predeterminados, que siguen el idioma de la interfaz. Sus cambios se conservan."</string>
+    <string name="cap_default_prompt" formatted="false">"Traduce de forma fiel, natural y concisa al idioma de destino, con expresiones propias de hablantes nativos. Conserva nombres, términos, números, tono y puntuación necesaria. No añadas explicaciones ausentes del original."</string>
+    <string name="cap_profile_more" formatted="false">"Acciones del perfil"</string>
+    <string name="cap_profile_collapse" formatted="false">"Contraer acciones"</string>
+    <string name="cap_profile_finish_name" formatted="false">"Guarde o cancele el cambio de nombre primero."</string>
+    <string name="cap_profile_delete_inline" formatted="false">"¿Eliminar este perfil y su clave guardada del dispositivo? Se conservan los demás perfiles. No se puede deshacer."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"Tras eliminar, activar:"</string>
+    <string name="cap_profile_keep" formatted="false">"Conservar perfil"</string>
+    <string name="cap_profile_confirm_delete" formatted="false">"Confirmar eliminación"</string>
+    <string name="cap_source_retry" formatted="false">"Conexión de subtítulos interrumpida. Reintentando…"</string>
+    <string name="cap_source_unavailable" formatted="false">"Subtítulos de origen no disponibles. Vuelve a seleccionar la pista."</string>
+    <string name="cap_caption_overflow" formatted="false">"Subtítulo demasiado largo; original no disponible"</string>
+    <string name="cap_quality_outcome" formatted="false">"Validación local: aceptados / rechazados (calidad)"</string>
+</resources>

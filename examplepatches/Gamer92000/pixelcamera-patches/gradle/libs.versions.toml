@@ -1,0 +1,16 @@
+[versions]
+# Pinned to the current stable Morphe Patcher. 1.8.0-dev.* is a prerelease and
+# deprecates parts of the fingerprint API used here - do not bump blindly.
+morphe-patcher = "1.7.0"
+# Tracking https://github.com/google/smali/issues/100.
+smali = "d92701d947"
+agp = "9.1.0"
+annotation = "1.10.0"
+gson = "2.14.0"
+
+[libraries]
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+[plugins]
+android-library = { id = "com.android.library" }

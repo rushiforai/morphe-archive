@@ -50,7 +50,7 @@ val feedFilterPatch = bytecodePatch(
     name = "Feed filter",
     description = "Hides feed ads, including videos with creator commission disclosures, TikTok " +
         "Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI " +
-        "labeled videos, location-tagged videos, verified accounts, series, playlists, " +
+        "labeled videos, location-tagged videos, verified accounts, series, mini dramas, playlists, " +
         "the playlist bar, the floating event badge and inserted cards. Videos can also be " +
         "filtered by your own caption words, creator handles or patterns, sound names, length, " +
         "the country they were posted from and their view, like, comment, favorite and share " +

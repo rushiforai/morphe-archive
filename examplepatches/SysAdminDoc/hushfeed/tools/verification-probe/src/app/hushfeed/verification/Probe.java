@@ -569,9 +569,71 @@ public final class Probe extends Instrumentation {
                         Object language = aweme.getClass().getMethod("getDescLanguage").invoke(aweme);
                         Object translatable = aweme.getClass().getMethod("isDescTranslatable").invoke(aweme);
                         Object desc = aweme.getClass().getMethod("getDesc").invoke(aweme);
+                        // A photo post the way Hushfeed's photo filter tells one, and the video's
+                        // length (TikTok draws a seek bar on long ones).
+                        Object images = aweme.getClass().getMethod("getImageInfos").invoke(aweme);
+                        boolean photo = (images instanceof java.util.Collection && !((java.util.Collection<?>) images).isEmpty())
+                                || aweme.getClass().getMethod("getPhotoModeImageInfo").invoke(aweme) != null
+                                || aweme.getClass().getMethod("getPhotoModeTextInfo").invoke(aweme) != null;
+                        Object video = aweme.getClass().getMethod("getVideo").invoke(aweme);
+                        Object duration = video == null ? null : video.getClass().getMethod("getDuration").invoke(video);
+                        // The facts the feed filters decide by, read the way TikTok's model
+                        // offers them, as yes or no: a verified author, an AI label, a LIVE
+                        // item, a sound named "original sound". No names and no ids.
+                        Object creator = optional(aweme, "getAuthor");
+                        Object verificationType = optional(creator, "getVerificationType");
+                        boolean verified = (verificationType instanceof Number && ((Number) verificationType).intValue() != 0)
+                                || !blank(optional(creator, "getCustomVerify"))
+                                || !blank(optional(creator, "getEnterpriseVerifyReason"));
+                        Object aigc = optional(aweme, "getAigcInfo");
+                        Object aigcLabel = optional(aigc, "getAIGCLabelType");
+                        Object moderation = optional(aweme, "getModerationAigcInfo");
+                        Object moderationLabel = optional(moderation, "getModerationAigcLabelType");
+                        Object moderationStatus = optional(moderation, "getModerationUserLabelStatus");
+                        boolean aiLabel = (aigcLabel instanceof Number && ((Number) aigcLabel).intValue() != 0)
+                                || (moderationLabel instanceof Number && ((Number) moderationLabel).longValue() != 0)
+                                || (moderationStatus instanceof Number && ((Number) moderationStatus).longValue() != 0);
+                        // TikTok 47.0.3 reports a profile view only for an account of 5,000
+                        // followers or fewer: a bucket, not the count.
+                        Object followerCount = optional(creator, "getFollowerCount");
+                        String followers = !(followerCount instanceof Number) ? "unknown"
+                                : ((Number) followerCount).intValue() <= 0 ? "zero"
+                                : ((Number) followerCount).intValue() <= 5000 ? "5000orFewer" : "over5000";
+                        // The feed leaves the author's follower count at zero (only the profile
+                        // fills it), so the video's likes stand in for a small creator: a bucket.
+                        Object digg = optional(optional(aweme, "getStatistics"), "getDiggCount");
+                        String likes = !(digg instanceof Number) ? "unknown"
+                                : ((Number) digg).longValue() <= 100 ? "100orFewer"
+                                : ((Number) digg).longValue() <= 1000 ? "1000orFewer" : "over1000";
+                        Object awemeType = optional(aweme, "getAwemeType");
+                        Object liveId = optional(aweme, "getLiveId");
+                        Object music = optional(aweme, "getMusic");
+                        Object soundName = optional(music, "getMusicName");
+                        if (blank(soundName)) soundName = optional(music, "getTitle");
+                        boolean originalSound = !blank(soundName)
+                                && String.valueOf(soundName).toLowerCase(java.util.Locale.ROOT).contains("original sound");
                         Log.i(TAG, "ok videoinfo descLanguage=" + language
                                 + " descTranslatable=" + translatable
-                                + " hasDesc=" + (desc != null && String.valueOf(desc).trim().length() > 0));
+                                + " hasDesc=" + (desc != null && String.valueOf(desc).trim().length() > 0)
+                                + " photo=" + photo + " durationMs=" + duration
+                                + " verified=" + verified + " aiLabel=" + aiLabel + " authorFollowers=" + followers
+                                + " likes=" + likes
+                                // Whether TikTok serves it as separate video and audio (DASH),
+                                // the case a chosen-quality download muxes itself.
+                                + " dash=" + optional(video, "hasDashBitrate")
+                                + " gears=" + gearList(loader, video)
+                                // The frame TikTok's own download addresses say they are (clean,
+                                // then watermarked), which a chosen size can defer to.
+                                + " own=" + frame(optional(video, "getDownloadNoWatermarkAddr"))
+                                + "/" + frame(optional(video, "getDownloadAddr"))
+                                + " captions=" + captionList(loader, video)
+                                // The test account's own state on this video: liked, following.
+                                + " liked=" + optional(aweme, "isLike")
+                                + " following=" + (optional(creator, "getFollowStatus") instanceof Number
+                                        ? ((Number) optional(creator, "getFollowStatus")).intValue() != 0 : "unknown")
+                                + " awemeType=" + awemeType
+                                + " live=" + (liveId instanceof Number && ((Number) liveId).longValue() > 0)
+                                + " originalSound=" + originalSound);
                         break;
                     }
                     case "textviews": {
@@ -592,6 +654,225 @@ public final class Probe extends Instrumentation {
                             Log.i(TAG, "textviews[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
                         }
                         Log.i(TAG, "ok textviews " + text.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
+                    case "layouts": {
+                        // Every shown, on-screen view that draws a Layout of its own rather than
+                        // being a TextView (TikTok's X.09F7 draws captions and descriptions this
+                        // way), with its class, place, size, text size in px and the layout's
+                        // lines and width. How the caption size was shown to stay off the other
+                        // text; the text itself never leaves the phone.
+                        StringBuilder out = new StringBuilder();
+                        java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>(windowRoots());
+                        while (!queue.isEmpty()) {
+                            android.view.View view = queue.removeFirst();
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                            }
+                            if (view instanceof android.widget.TextView || !view.isShown()
+                                    || !view.getGlobalVisibleRect(new android.graphics.Rect())) continue;
+                            android.text.Layout layout = layoutOf(view);
+                            if (layout == null) continue;
+                            int[] at = new int[2];
+                            view.getLocationOnScreen(at);
+                            out.append('\n').append(view.getClass().getName()).append(" at=").append(at[0]).append(',').append(at[1])
+                                    .append(" size=").append(view.getWidth()).append('x').append(view.getHeight())
+                                    .append(" textPx=").append(Math.round(layout.getPaint().getTextSize()))
+                                    .append(' ').append(layoutReport(layout));
+                        }
+                        // In pieces like the other reports: one line truncates near 4 KB and a
+                        // busy screen's report is longer, which silently lost its tail.
+                        String report = out.toString();
+                        int pieces = 0;
+                        for (int at = 0; at < report.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "layouts[" + pieces + "] "
+                                    + report.substring(at, Math.min(report.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok layouts " + report.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
+                    case "opendetail": {
+                        // Asks TikTok's detail route (snssdk1233://aweme/detail/<id>) for the video on
+                        // screen, to check the detail page's pager away from the profile it would
+                        // come from. On 47.0.3 the route, like a www.tiktok.com video link, played
+                        // the video in the home feed rather than opening the detail page. The id
+                        // stays in the phone.
+                        Class<?> author = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor");
+                        Object aweme = author.getMethod("getAweme").invoke(null);
+                        Object aid = optional(aweme, "getAid");
+                        if (blank(aid)) throw new IllegalStateException("no current video");
+                        android.content.Intent open = new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("snssdk1233://aweme/detail/" + aid));
+                        open.setPackage(context.getPackageName());
+                        open.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                        context.startActivity(open);
+                        Log.i(TAG, "ok opendetail");
+                        break;
+                    }
+                    case "profileviewgates": {
+                        // What TikTok 47.0.3 checks before it reports a profile view
+                        // (ProfilePlatformViewModel.a73 before ProfileViewerApiService.reportView),
+                        // read in this process: the feature gate X.0mpc.LIZ(), the under-16 flag,
+                        // the viewer's "profile_view_history" privacy value (1 reports), the
+                        // cooldown flag X.0mD8 and the follower cap it replaces. Names are this
+                        // build's; each read says what it found or why it could not.
+                        StringBuilder out = new StringBuilder();
+                        String[][] reads = {
+                                {"featureGate", "X.0mpc", "LIZ"},
+                        };
+                        for (String[] read : reads) {
+                            try {
+                                out.append(' ').append(read[0]).append('=')
+                                        .append(loader.loadClass(read[1]).getMethod(read[2]).invoke(null));
+                            } catch (Throwable failure) {
+                                out.append(' ').append(read[0]).append("=?(").append(failure.getClass().getSimpleName()).append(')');
+                            }
+                        }
+                        try {
+                            Object feature = loader.loadClass("X.07So").getMethod("LIZIZ").invoke(null);
+                            out.append(" under16=").append(feature.getClass().getMethod("LIZIZ").invoke(feature));
+                        } catch (Throwable failure) {
+                            out.append(" under16=?(").append(failure.getClass().getSimpleName()).append(')');
+                        }
+                        try {
+                            Class<?> managerType = loader.loadClass("com.ss.android.ugc.aweme.framework.services.ServiceManager");
+                            Object manager = managerType.getMethod("get").invoke(null);
+                            Class<?> privacyType = loader.loadClass("com.ss.android.ugc.aweme.compliance.api.services.privacy.IPrivacyService");
+                            Object privacy = managerType.getMethod("getService", Class.class).invoke(manager, privacyType);
+                            Object settings = privacyType.getMethod("LJIIJ").invoke(privacy);
+                            out.append(" privacySettings=").append(settings == null ? "null" : "present");
+                            if (settings != null) {
+                                for (String key : new String[]{"profile_view_history", "viewer_history", "post_view_history"}) {
+                                    out.append(' ').append(key).append('=')
+                                            .append(settings.getClass().getMethod("LIZ", String.class).invoke(settings, key));
+                                }
+                            }
+                        } catch (Throwable failure) {
+                            out.append(" privacy=?(").append(failure.getClass().getSimpleName()).append(": ").append(failure.getMessage()).append(')');
+                        }
+                        try {
+                            Object lazy = loader.loadClass("X.0mD8").getField("LIZ").get(null);
+                            out.append(" cooldownFlag=").append(lazy.getClass().getMethod("getValue").invoke(lazy));
+                        } catch (Throwable failure) {
+                            out.append(" cooldownFlag=?(").append(failure.getClass().getSimpleName()).append(')');
+                        }
+                        try {
+                            Object lazy = loader.loadClass("X.0mD7").getField("LIZIZ").get(null);
+                            Object config = lazy.getClass().getMethod("getValue").invoke(lazy);
+                            Object cap = config == null ? null : config.getClass().getField("enabledMaxFollowers").get(config);
+                            Object me = loader.loadClass("X.02y0").getMethod("LIZ").invoke(null);
+                            Object followers = me == null ? null : me.getClass().getField("historyMaxFollowerCount").get(me);
+                            out.append(" followerCap=").append(cap == null ? "5000 (default)" : cap).append(" myHistoryMaxFollowers=").append(followers);
+                        } catch (Throwable failure) {
+                            out.append(" followerCap=?(").append(failure.getClass().getSimpleName()).append(')');
+                        }
+                        Log.i(TAG, "ok profileviewgates" + out);
+                        break;
+                    }
+                    case "finddesc": {
+                        // Shown views whose content description is exactly -e desc, with class and
+                        // bounds; -e click true also performs a click on the first, the listener a
+                        // tap would run. For pressing one of Hushfeed's own overlay buttons (they
+                        // carry no ids) and never the one beside it.
+                        String desc = required(intent, "desc");
+                        boolean click = "true".equals(intent.getStringExtra("click"));
+                        // -e match prefix: descriptions that start with the text, for a control
+                        // whose description carries a count after its name; -e match contains: a
+                        // description with the text anywhere, for one whose count comes first.
+                        boolean prefix = "prefix".equals(intent.getStringExtra("match"));
+                        boolean contains = "contains".equals(intent.getStringExtra("match"));
+                        StringBuilder out = new StringBuilder();
+                        android.view.View first = null;
+                        java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>(windowRoots());
+                        while (!queue.isEmpty()) {
+                            android.view.View view = queue.removeFirst();
+                            // A view with no description is never a match (it read as "null", which
+                            // a contains match found), and neither is one entirely off the screen:
+                            // the feed keeps the cells either side of the current one laid out, and
+                            // the first match was the previous post's button.
+                            CharSequence raw = view.getContentDescription();
+                            String described = raw == null ? null : raw.toString();
+                            if (described != null && view.isShown()
+                                    && view.getGlobalVisibleRect(new android.graphics.Rect())
+                                    && (contains ? described.contains(desc)
+                                    : prefix ? described.startsWith(desc) : desc.equals(described))) {
+                                int[] at = new int[2];
+                                view.getLocationOnScreen(at);
+                                out.append("\n  ").append(view.getClass().getName()).append(" at=").append(at[0]).append(',').append(at[1])
+                                        .append(" size=").append(view.getWidth()).append('x').append(view.getHeight());
+                                if (first == null) first = view;
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                            }
+                        }
+                        String clicked = "";
+                        if (click && first != null) clicked = " clicked=" + first.performClick();
+                        Log.i(TAG, "ok finddesc " + (first == null ? "none" : "found") + clicked + out);
+                        break;
+                    }
+                    case "findtext": {
+                        // A shown TextView whose text is exactly -e text (a UI label such as a share
+                        // sheet action's), with its bounds; -e click true performs a click on its
+                        // nearest clickable ancestor, the cell a tap would hit. Only bounds are
+                        // printed.
+                        String wanted = required(intent, "text");
+                        boolean click = "true".equals(intent.getStringExtra("click"));
+                        android.view.View found = null;
+                        java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>(windowRoots());
+                        while (!queue.isEmpty() && found == null) {
+                            android.view.View view = queue.removeFirst();
+                            if (view instanceof android.widget.TextView && view.isShown()
+                                    && wanted.contentEquals(String.valueOf(((android.widget.TextView) view).getText()))) {
+                                found = view;
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                            }
+                        }
+                        if (found == null) {
+                            Log.i(TAG, "ok findtext none");
+                            break;
+                        }
+                        int[] at = new int[2];
+                        found.getLocationOnScreen(at);
+                        String clicked = "";
+                        if (click) {
+                            android.view.View target = found;
+                            while (target != null && !target.isClickable()) {
+                                target = target.getParent() instanceof android.view.View ? (android.view.View) target.getParent() : null;
+                            }
+                            clicked = target == null ? " clicked=no clickable ancestor" : " clicked=" + target.performClick();
+                        }
+                        Log.i(TAG, "ok findtext found at=" + at[0] + "," + at[1] + " size=" + found.getWidth() + "x" + found.getHeight() + clicked);
+                        break;
+                    }
+                    case "textwords": {
+                        // How many shown TextViews carrying one id contain a phrase, compared the
+                        // way the keyword lists compare (lower-cased, anywhere in the text):
+                        // -e id f4t -e word the counts 47.0.3's comment bodies holding "the".
+                        // Counts only; the text never leaves the phone.
+                        String idName = required(intent, "id");
+                        String word = required(intent, "word").toLowerCase(java.util.Locale.ROOT);
+                        int[] counts = new int[2];
+                        java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>(windowRoots());
+                        while (!queue.isEmpty()) {
+                            android.view.View view = queue.removeFirst();
+                            if (view instanceof android.widget.TextView && view.isShown()
+                                    && safeResourceName(view).endsWith("/" + idName)) {
+                                counts[0]++;
+                                CharSequence text = ((android.widget.TextView) view).getText();
+                                if (text != null && text.toString().toLowerCase(java.util.Locale.ROOT).contains(word)) counts[1]++;
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                            }
+                        }
+                        Log.i(TAG, "ok textwords id=" + idName + " shown=" + counts[0] + " containing=" + counts[1]);
                         break;
                     }
                     case "doubletap": {
@@ -695,6 +976,622 @@ public final class Probe extends Instrumentation {
                             Log.i(TAG, "views[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
                         }
                         Log.i(TAG, "ok views " + text.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
+                    case "strings": {
+                        // TikTok's own UI strings by resource id, resolved the way TikTok resolves
+                        // them. Most of 47.0.3's strings are not in the APK's resource table (its
+                        // string type holds 964 entries); TikTok serves them at run time, so the
+                        // phone is the only place to read what a given id says. UI text only.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        StringBuilder out = new StringBuilder();
+                        for (String id : required(intent, "ids").split(",")) {
+                            int value = Integer.decode(id.trim());
+                            String text;
+                            try {
+                                text = activity.getString(value);
+                            } catch (RuntimeException missing) {
+                                text = "<" + missing.getClass().getSimpleName() + ">";
+                            }
+                            out.append('\n').append(id.trim()).append('=').append(text);
+                        }
+                        Log.i(TAG, "ok strings" + out);
+                        break;
+                    }
+                    case "backgrounds": {
+                        // Every shown view under a screen point, outermost first, with its id name
+                        // and what its background paints: -e x 540 -e y 1600. A theme patch that
+                        // changes nothing on a surface needs to know which view draws that surface
+                        // and from what, and a screenshot only gives the colour.
+                        int x = Integer.parseInt(required(intent, "x"));
+                        int y = Integer.parseInt(required(intent, "y"));
+                        StringBuilder out = new StringBuilder();
+                        for (android.view.View root : windowRoots()) {
+                            describeBackgroundsAt(root, x, y, 0, out, root.getResources());
+                        }
+                        String text = out.toString();
+                        int pieces = 0;
+                        for (int at = 0; at < text.length(); at += 3000, pieces++) {
+                            Log.i(TAG, "backgrounds[" + pieces + "] " + text.substring(at, Math.min(text.length(), at + 3000)));
+                        }
+                        Log.i(TAG, "ok backgrounds " + text.length() + " chars in " + pieces + " pieces");
+                        break;
+                    }
+                    case "hasids": {
+                        // Whether views with the named ids are in the current windows and shown:
+                        // -e names f7u,fo,d4. Each name is looked up in TikTok's own package and
+                        // in the search module's (visual search lives there), and each id found
+                        // is reported as views/shown. One walk for all of them, so a scan over
+                        // hundreds of videos costs one round trip a video.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        android.content.res.Resources resources = activity.getResources();
+                        String app = activity.getPackageName();
+                        java.util.LinkedHashMap<Integer, String> wanted = new java.util.LinkedHashMap<>();
+                        List<String> unknown = new ArrayList<>();
+                        for (String name : required(intent, "names").split(",")) {
+                            boolean known = false;
+                            for (String pkg : new String[]{app, app + ".df_search_biz"}) {
+                                int id = resources.getIdentifier(name.trim(), "id", pkg);
+                                if (id != 0) wanted.put(id, name.trim() + (pkg.equals(app) ? "" : "@search"));
+                                known |= id != 0;
+                            }
+                            // A name this build lacks must not read the same as one that is not on screen.
+                            if (!known) unknown.add(name.trim());
+                        }
+                        java.util.Map<Integer, int[]> counts = new java.util.HashMap<>();
+                        java.util.ArrayDeque<android.view.View> pending = new java.util.ArrayDeque<>(windowRoots());
+                        while (!pending.isEmpty()) {
+                            android.view.View view = pending.removeFirst();
+                            if (wanted.containsKey(view.getId())) {
+                                int[] count = counts.computeIfAbsent(view.getId(), key -> new int[2]);
+                                count[0]++;
+                                if (view.isShown() && view.getWidth() > 0 && view.getHeight() > 0) count[1]++;
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) pending.add(group.getChildAt(i));
+                            }
+                        }
+                        StringBuilder out = new StringBuilder();
+                        for (java.util.Map.Entry<Integer, String> entry : wanted.entrySet()) {
+                            int[] count = counts.getOrDefault(entry.getKey(), new int[2]);
+                            out.append(' ').append(entry.getValue()).append('=').append(count[0]).append('/').append(count[1]);
+                        }
+                        for (String name : unknown) out.append(' ').append(name).append("=missing");
+                        Log.i(TAG, "ok hasids" + out);
+                        break;
+                    }
+                    case "surprisestruct": {
+                        // Builds TikTok's CommentSurpriseStruct around a CommentSurprise, the way
+                        // TikTok wraps a surprise its server sent with a comment, and says what the
+                        // struct kept. Every popup ad path reads the surprise from here. The surprise
+                        // carries -e keyword (default "probe") and -e type (default 3): with Hide
+                        // comment popup ads on, one a keyword set off is dropped, and type 1, TikTok's
+                        // own first-comment celebration, is kept. Building one marks the popup ads
+                        // hook as reached in Hook status, so read a diagnostic export before this.
+                        Class<?> surpriseType = loader.loadClass("com.ss.android.ugc.aweme.comment.model.CommentSurprise");
+                        Class<?> commentType = loader.loadClass("com.ss.android.ugc.aweme.comment.model.Comment");
+                        Class<?> structType = loader.loadClass("com.ss.android.ugc.aweme.comment.model.CommentSurpriseStruct");
+                        Object surprise = surpriseType.getConstructor().newInstance();
+                        String keyword = intent.getStringExtra("keyword");
+                        String kind = intent.getStringExtra("type");
+                        Field keywordField = surpriseType.getDeclaredField("keyword");
+                        keywordField.setAccessible(true);
+                        keywordField.set(surprise, keyword == null ? "probe" : keyword);
+                        Field typeField = surpriseType.getDeclaredField("surpriseType");
+                        typeField.setAccessible(true);
+                        typeField.set(surprise, Integer.valueOf(kind == null ? "3" : kind));
+                        Object struct = structType.getConstructor(commentType, surpriseType, boolean.class)
+                                .newInstance(null, surprise, false);
+                        Object kept = structType.getField("commentSurprise").get(struct);
+                        Log.i(TAG, "ok surprisestruct kept=" + (kept == surprise) + " dropped=" + (kept == null));
+                        break;
+                    }
+                    case "pagerwatch": {
+                        // Watches TikTok's main pager (the one a left swipe slides to the creator's
+                        // profile: its class chain alone declares setPagingMainValve). Adds a page
+                        // change listener through the pager's own add method, never the setter that
+                        // would replace TikTok's, and logs each scroll state change and page
+                        // selection with the stack that caused it, so the path that moves the pager
+                        // can be read off a real swipe.
+                        android.view.View pager = null;
+                        java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>(windowRoots());
+                        while (!queue.isEmpty() && pager == null) {
+                            android.view.View view = queue.removeFirst();
+                            for (Class<?> c = view.getClass(); c != null && pager == null; c = c.getSuperclass()) {
+                                for (Method m : c.getDeclaredMethods()) {
+                                    if (m.getName().equals("setPagingMainValve")) { pager = view; break; }
+                                }
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                            }
+                        }
+                        if (pager == null) throw new IllegalStateException("no main pager on screen");
+                        // The listener type is setOnPageChangeListener's parameter; the list the pager
+                        // tells every added listener from is its one CopyOnWriteArrayList field. Adding
+                        // to that list leaves TikTok's own listeners where they are.
+                        Class<?> listenerType = null;
+                        Field listeners = null;
+                        for (Class<?> c = pager.getClass(); c != null; c = c.getSuperclass()) {
+                            for (Method m : c.getDeclaredMethods()) {
+                                if (listenerType == null && m.getName().equals("setOnPageChangeListener")
+                                        && m.getParameterTypes().length == 1) {
+                                    listenerType = m.getParameterTypes()[0];
+                                }
+                            }
+                            for (Field f : c.getDeclaredFields()) {
+                                if (listeners == null && f.getType() == java.util.concurrent.CopyOnWriteArrayList.class) {
+                                    listeners = f;
+                                }
+                            }
+                        }
+                        if (listenerType == null || listeners == null) {
+                            throw new IllegalStateException("no listener type or list: " + listenerType + ", " + listeners);
+                        }
+                        final android.view.View watched = pager;
+                        Object proxy = java.lang.reflect.Proxy.newProxyInstance(listenerType.getClassLoader(),
+                                new Class<?>[]{listenerType}, (self, method, args) -> {
+                                    if (method.getDeclaringClass() == Object.class) {
+                                        return method.getName().equals("equals") ? self == args[0]
+                                                : method.getName().equals("hashCode") ? System.identityHashCode(self)
+                                                : "pagerwatch";
+                                    }
+                                    if (args != null && args.length == 1 && args[0] instanceof Integer) {
+                                        StringBuilder stack = new StringBuilder();
+                                        StackTraceElement[] frames = Thread.currentThread().getStackTrace();
+                                        for (int i = 3; i < Math.min(frames.length, 40); i++) {
+                                            stack.append("\n    ").append(frames[i].getClassName()).append('.')
+                                                    .append(frames[i].getMethodName());
+                                        }
+                                        Log.i(TAG, "pagerwatch " + method.getName() + "(" + args[0] + ") on "
+                                                + watched.getClass().getName() + stack);
+                                    }
+                                    return null;
+                                });
+                        listeners.setAccessible(true);
+                        @SuppressWarnings("unchecked")
+                        java.util.concurrent.CopyOnWriteArrayList<Object> list =
+                                (java.util.concurrent.CopyOnWriteArrayList<Object>) listeners.get(pager);
+                        if (list == null) {
+                            list = new java.util.concurrent.CopyOnWriteArrayList<>();
+                            listeners.set(pager, list);
+                        }
+                        list.add(proxy);
+                        Log.i(TAG, "ok pagerwatch on " + pager.getClass().getName() + " via " + listeners.getName()
+                                + " (" + list.size() + " listeners) for " + listenerType.getName());
+                        break;
+                    }
+                    case "pagertouch": {
+                        // Every touch TikTok's main pager dispatches, and every intercept check it
+                        // makes past touch slop, as its own listeners see them: adds a logging
+                        // listener to the list its getOnInterceptTouchEventListeners returns (the
+                        // pager calls that list's dispatchTouchEvent on each event and G2 on each
+                        // intercept check). One line an event: method, action, x, y.
+                        android.view.View pager = null;
+                        java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>(windowRoots());
+                        while (!queue.isEmpty() && pager == null) {
+                            android.view.View view = queue.removeFirst();
+                            for (Class<?> c = view.getClass(); c != null && pager == null; c = c.getSuperclass()) {
+                                for (Method m : c.getDeclaredMethods()) {
+                                    if (m.getName().equals("getOnInterceptTouchEventListeners")) { pager = view; break; }
+                                }
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                            }
+                        }
+                        if (pager == null) throw new IllegalStateException("no main pager on screen");
+                        Method getter = null;
+                        for (Class<?> c = pager.getClass(); c != null && getter == null; c = c.getSuperclass()) {
+                            for (Method m : c.getDeclaredMethods()) {
+                                if (m.getName().equals("getOnInterceptTouchEventListeners")) getter = m;
+                            }
+                        }
+                        getter.setAccessible(true);
+                        @SuppressWarnings("unchecked")
+                        java.util.List<Object> touchListeners = (java.util.List<Object>) getter.invoke(pager);
+                        Class<?> touchType = null;
+                        for (Object existing : touchListeners) {
+                            for (Class<?> i : existing.getClass().getInterfaces()) {
+                                for (Method m : i.getDeclaredMethods()) {
+                                    if (m.getName().equals("dispatchTouchEvent")) touchType = i;
+                                }
+                            }
+                        }
+                        if (touchType == null) throw new IllegalStateException("no listener interface among " + touchListeners.size());
+                        Object touchProxy = java.lang.reflect.Proxy.newProxyInstance(touchType.getClassLoader(),
+                                new Class<?>[]{touchType}, (self, method, args) -> {
+                                    if (method.getDeclaringClass() == Object.class) {
+                                        return method.getName().equals("equals") ? self == args[0]
+                                                : method.getName().equals("hashCode") ? System.identityHashCode(self)
+                                                : "pagertouch";
+                                    }
+                                    if (args != null && args.length > 0 && args[0] instanceof android.view.MotionEvent) {
+                                        android.view.MotionEvent e = (android.view.MotionEvent) args[0];
+                                        Log.i(TAG, "pagertouch " + method.getName() + " action=" + e.getActionMasked()
+                                                + " x=" + (int) e.getX() + " y=" + (int) e.getY());
+                                    }
+                                    return method.getReturnType() == boolean.class ? Boolean.FALSE : null;
+                                });
+                        touchListeners.add(touchProxy);
+                        Log.i(TAG, "ok pagertouch on " + pager.getClass().getName() + " for " + touchType.getName()
+                                + " (" + touchListeners.size() + " listeners)");
+                        break;
+                    }
+                    case "pagerstate": {
+                        // TikTok's main pager: its current item, its adapter's page count, and each
+                        // page laid out in it (left edge, width, class) with whether it holds the
+                        // vertical feed pager, so which index is the feed can be read, not assumed.
+                        // The shown one: a video opened from a profile, search or a link sits in a
+                        // second pager of the same base on the detail page, over the home one.
+                        android.view.View pager = null;
+                        java.util.ArrayDeque<android.view.View> queue = new java.util.ArrayDeque<>(windowRoots());
+                        while (!queue.isEmpty() && pager == null) {
+                            android.view.View view = queue.removeFirst();
+                            for (Class<?> c = view.getClass(); c != null && pager == null && view.isShown(); c = c.getSuperclass()) {
+                                for (Method m : c.getDeclaredMethods()) {
+                                    if (m.getName().equals("setPagingMainValve")) { pager = view; break; }
+                                }
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) queue.add(group.getChildAt(i));
+                            }
+                        }
+                        if (pager == null) throw new IllegalStateException("no main pager on screen");
+                        Object current = pager.getClass().getMethod("getCurrentItem").invoke(pager);
+                        Object adapter = pager.getClass().getMethod("getAdapter").invoke(pager);
+                        Object count = adapter == null ? null : adapter.getClass().getMethod("getCount").invoke(adapter);
+                        StringBuilder out = new StringBuilder(" current=").append(current)
+                                .append(" count=").append(count)
+                                .append(" adapter=").append(adapter == null ? null : adapter.getClass().getName())
+                                .append(" width=").append(pager.getWidth()).append(" scrollX=").append(pager.getScrollX());
+                        // Every boolean the pager's own classes declare (its paging valve and the
+                        // flags its page-enabled check reads among them), class by class.
+                        for (Class<?> c = pager.getClass(); c != null && c != android.view.ViewGroup.class; c = c.getSuperclass()) {
+                            StringBuilder flags = new StringBuilder();
+                            for (Field field : c.getDeclaredFields()) {
+                                if (field.getType() != boolean.class || java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                                field.setAccessible(true);
+                                flags.append(' ').append(field.getName()).append('=').append(field.getBoolean(pager));
+                            }
+                            if (flags.length() > 0) out.append("\n  flags ").append(c.getName()).append(':').append(flags);
+                        }
+                        android.view.ViewGroup group = (android.view.ViewGroup) pager;
+                        for (int i = 0; i < group.getChildCount(); i++) {
+                            android.view.View child = group.getChildAt(i);
+                            boolean feed = false;
+                            java.util.ArrayDeque<android.view.View> inside = new java.util.ArrayDeque<>();
+                            inside.add(child);
+                            while (!inside.isEmpty() && !feed) {
+                                android.view.View v = inside.removeFirst();
+                                feed = v.getClass().getName().endsWith("VerticalViewPager");
+                                if (v instanceof android.view.ViewGroup) {
+                                    android.view.ViewGroup g = (android.view.ViewGroup) v;
+                                    for (int j = 0; j < g.getChildCount(); j++) inside.add(g.getChildAt(j));
+                                }
+                            }
+                            out.append("\n  child ").append(i).append(' ').append(child.getClass().getName())
+                                    .append(" left=").append(child.getLeft()).append(" width=").append(child.getWidth())
+                                    .append(feed ? " holds the vertical feed" : "");
+                        }
+                        Log.i(TAG, "ok pagerstate" + out);
+                        break;
+                    }
+                    case "captionstate": {
+                        // The caption strip (dlk) and its text (dlr) in one read. A caption line is
+                        // on screen only while it is spoken, and separate reads kept landing after
+                        // it had gone. For each shown view with either id: place, size and
+                        // background, and for the text its size in pixels and its line count.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        android.content.res.Resources resources = activity.getResources();
+                        int strip = resources.getIdentifier("dlk", "id", activity.getPackageName());
+                        int text = resources.getIdentifier("dlr", "id", activity.getPackageName());
+                        StringBuilder out = new StringBuilder();
+                        java.util.ArrayDeque<android.view.View> pending = new java.util.ArrayDeque<>(windowRoots());
+                        while (!pending.isEmpty()) {
+                            android.view.View view = pending.removeFirst();
+                            int id = view.getId();
+                            if (id != 0 && (id == strip || id == text) && view.isShown()) {
+                                int[] where = new int[2];
+                                view.getLocationOnScreen(where);
+                                out.append(' ').append(id == strip ? "strip" : "text")
+                                        .append("[at=").append(where[0]).append(',').append(where[1])
+                                        .append(" size=").append(view.getWidth()).append('x').append(view.getHeight())
+                                        .append(" bg=").append(describeDrawable(view.getBackground(), 0));
+                                if (view instanceof android.widget.TextView) {
+                                    android.widget.TextView label = (android.widget.TextView) view;
+                                    out.append(" textPx=").append(label.getTextSize())
+                                            .append(" lines=").append(label.getLineCount());
+                                }
+                                if (id == strip && view instanceof android.view.ViewGroup) {
+                                    // On 47.0.3 the text view stays gone and a sibling draws the
+                                    // caption's layout, so the children say what is really shown.
+                                    android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                    for (int i = 0; i < group.getChildCount(); i++) {
+                                        android.view.View child = group.getChildAt(i);
+                                        out.append(" child=").append(child.getClass().getName())
+                                                .append('/').append(idName(child, resources))
+                                                .append("/vis").append(child.getVisibility())
+                                                .append('/').append(child.getWidth()).append('x').append(child.getHeight());
+                                        android.text.Layout drawn = layoutOf(child);
+                                        if (drawn != null) out.append("/layout:").append(layoutReport(drawn));
+                                    }
+                                }
+                                out.append(']');
+                            }
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) pending.add(group.getChildAt(i));
+                            }
+                        }
+                        // Hushfeed's own caption line for clear display, which TikTok's strip gives
+                        // way to: shown or not, its size and how long its text is, never the text.
+                        // Then what the line waits on: cleared, a cue (its length), the cue's video
+                        // being the current one, and TikTok's caption view still in the window.
+                        try {
+                            Class<?> tools = loader.loadClass("app.morphe.extension.tiktok.captions.CaptionTools");
+                            Object line = staticField(tools, "overlay") instanceof java.lang.ref.Reference
+                                    ? ((java.lang.ref.Reference<?>) staticField(tools, "overlay")).get() : null;
+                            if (line instanceof android.widget.TextView) {
+                                android.widget.TextView label = (android.widget.TextView) line;
+                                out.append(" overlay[shown=").append(label.isShown())
+                                        .append(" vis=").append(label.getVisibility())
+                                        .append(" size=").append(label.getWidth()).append('x').append(label.getHeight())
+                                        .append(" chars=").append(label.getText().length()).append(']');
+                            } else {
+                                out.append(" overlay=none");
+                            }
+                            Object source = ((java.lang.ref.Reference<?>) staticField(tools, "captionSource")).get();
+                            out.append(" waits[clear=").append(staticField(tools, "clear"))
+                                    .append(" cue=").append(String.valueOf(staticField(tools, "cue")).length())
+                                    .append(" sameVideo=").append(java.util.Objects.equals(staticField(tools, "cueId"), staticField(tools, "currentId")))
+                                    .append(" source=").append(source == null ? "none"
+                                            : ((android.view.View) source).isAttachedToWindow() ? "attached" : "detached")
+                                    .append(" focus=").append(activity.hasWindowFocus()).append(']');
+                        } catch (ReflectiveOperationException missing) {
+                            out.append(" overlay=unreadable");
+                        }
+                        // An id this build lacks must not read the same as no caption on screen.
+                        if (strip == 0) out.append(" dlk=missing");
+                        if (text == 0) out.append(" dlr=missing");
+                        Log.i(TAG, "ok captionstate" + (out.length() == 0 ? " none" : out.toString()));
+                        break;
+                    }
+                    case "captionwatch": {
+                        // The caption views sampled every 100 ms on the phone for -e for ms (15000
+                        // by default) and reported once, so a short cue isn't lost between two adb
+                        // round trips. Counts: cleared (the controls hidden), strip (TikTok's own
+                        // caption drawn), line (Hushfeed's kept caption shown with text) and cue
+                        // (Hushfeed holds a cue for the video on screen). clearedCue is the control:
+                        // a line never seen while cleared means nothing without a cue to show.
+                        android.app.Activity activity = (android.app.Activity) loader.loadClass(UTILS)
+                                .getMethod("getActivity").invoke(null);
+                        if (activity == null) throw new IllegalStateException("no current activity");
+                        String forText = intent.getStringExtra("for");
+                        long span = forText == null ? 15000L : Long.parseLong(forText);
+                        Class<?> tools = loader.loadClass("app.morphe.extension.tiktok.captions.CaptionTools");
+                        Method clearNow = loader.loadClass("app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch")
+                                .getMethod("isClearDisplayNow");
+                        android.content.res.Resources resources = activity.getResources();
+                        int strip = resources.getIdentifier("dlk", "id", activity.getPackageName());
+                        int drawn = resources.getIdentifier("dls", "id", activity.getPackageName());
+                        int[] counts = new int[9];
+                        android.os.Handler main = new android.os.Handler(android.os.Looper.getMainLooper());
+                        long start = android.os.SystemClock.uptimeMillis();
+                        main.post(new Runnable() {
+                            @Override public void run() {
+                                try {
+                                    boolean cleared = Boolean.TRUE.equals(clearNow.invoke(null));
+                                    boolean stripDrawn = captionDrawn(strip, drawn);
+                                    Object held = staticField(tools, "overlay");
+                                    Object line = held instanceof java.lang.ref.Reference
+                                            ? ((java.lang.ref.Reference<?>) held).get() : null;
+                                    boolean lineShown = line instanceof android.widget.TextView
+                                            && ((android.view.View) line).isShown() && ((android.view.View) line).getHeight() > 0
+                                            && ((android.widget.TextView) line).getText().length() > 0;
+                                    boolean cue = String.valueOf(staticField(tools, "cue")).length() > 0
+                                            && java.util.Objects.equals(staticField(tools, "cueId"), staticField(tools, "currentId"));
+                                    counts[0]++;
+                                    if (cleared) counts[1]++;
+                                    if (stripDrawn) counts[2]++;
+                                    if (lineShown) counts[3]++;
+                                    if (cue) counts[4]++;
+                                    if (cleared && stripDrawn) counts[5]++;
+                                    if (cleared && lineShown) counts[6]++;
+                                    if (cleared && cue) counts[7]++;
+                                    if (!cleared && lineShown) counts[8]++;
+                                } catch (Exception error) {
+                                    Log.e(TAG, "failed captionwatch", error);
+                                    return;
+                                }
+                                if (android.os.SystemClock.uptimeMillis() - start < span) {
+                                    main.postDelayed(this, 100);
+                                    return;
+                                }
+                                Log.i(TAG, "ok captionwatch samples=" + counts[0] + " cleared=" + counts[1]
+                                        + " strip=" + counts[2] + " line=" + counts[3] + " cue=" + counts[4]
+                                        + " clearedStrip=" + counts[5] + " clearedLine=" + counts[6]
+                                        + " clearedCue=" + counts[7] + " lineWithControls=" + counts[8]
+                                        + (strip == 0 || drawn == 0 ? " dlk/dls=missing" : ""));
+                            }
+                        });
+                        break;
+                    }
+                    case "fields": {
+                        // Static fields of one of Hushfeed's own classes, by name, for checking
+                        // what a hook recorded: -e class app.morphe.extension.tiktok.speed.
+                        // PlaybackSpeedPatch -e names manualSpeed,currentVideoId. Hushfeed's
+                        // classes only, and a field named like an id is shown as a short hash, so
+                        // two reads can be compared without a video id reaching the log.
+                        String className = required(intent, "class");
+                        if (!className.startsWith("app.morphe.extension.")) {
+                            throw new IllegalArgumentException("Hushfeed classes only: " + className);
+                        }
+                        Class<?> owner = loader.loadClass(className);
+                        StringBuilder out = new StringBuilder();
+                        for (String name : required(intent, "names").split(",")) {
+                            Field field = owner.getDeclaredField(name.trim());
+                            field.setAccessible(true);
+                            String shown = String.valueOf(field.get(null));
+                            if (name.trim().endsWith("Id") && !shown.isEmpty()) shown = "<id " + (shown.hashCode() & 0xffff) + ">";
+                            out.append(' ').append(name.trim()).append('=').append(shown);
+                        }
+                        Log.i(TAG, "ok fields" + out);
+                        break;
+                    }
+                    case "call": {
+                        // A public static method of one of Hushfeed's own classes that takes no
+                        // arguments, and what it returned when that is a number or a yes/no:
+                        // -e class app.morphe.extension.tiktok.seen.SeenVideoHistory -e method
+                        // size. For reading a count a check needs and for undoing what a check
+                        // left behind (that class's clear).
+                        String className = required(intent, "class");
+                        if (!className.startsWith("app.morphe.extension.")) {
+                            throw new IllegalArgumentException("Hushfeed classes only: " + className);
+                        }
+                        Method target = loader.loadClass(className).getMethod(required(intent, "method"));
+                        if (!java.lang.reflect.Modifier.isStatic(target.getModifiers())) {
+                            throw new IllegalArgumentException("static methods only: " + target);
+                        }
+                        Object result = target.invoke(null);
+                        // A number or a yes/no is shown; anything else only by its type, since an
+                        // object's own text can carry ids, names or a caption (an Aweme's does).
+                        String shown = target.getReturnType() == void.class ? "void"
+                                : result == null ? "null"
+                                : result instanceof Number || result instanceof Boolean ? String.valueOf(result)
+                                : "<" + result.getClass().getName() + ", value not shown>";
+                        Log.i(TAG, "ok call " + target.getName() + " -> " + shown);
+                        break;
+                    }
+                    case "fieldswatch": {
+                        // The same static fields sampled every 40 ms for a few seconds, logging
+                        // each change with its time, so a value a hook writes and another wipes
+                        // within a second shows up. Hushfeed classes only, like "fields".
+                        String className = required(intent, "class");
+                        if (!className.startsWith("app.morphe.extension.")) {
+                            throw new IllegalArgumentException("Hushfeed classes only: " + className);
+                        }
+                        Class<?> owner = loader.loadClass(className);
+                        String[] names = required(intent, "names").split(",");
+                        String forText = intent.getStringExtra("for");
+                        long span = forText == null ? 4000L : Long.parseLong(forText);
+                        new Thread(() -> {
+                            try {
+                                long start = android.os.SystemClock.uptimeMillis();
+                                String last = null;
+                                StringBuilder out = new StringBuilder();
+                                while (android.os.SystemClock.uptimeMillis() - start < span) {
+                                    StringBuilder now = new StringBuilder();
+                                    for (String name : names) {
+                                        Field field = owner.getDeclaredField(name.trim());
+                                        field.setAccessible(true);
+                                        Object value = field.get(null);
+                                        String shown = String.valueOf(value);
+                                        if (name.trim().endsWith("Id") && !shown.isEmpty()) shown = "<id " + (shown.hashCode() & 0xffff) + ">";
+                                        now.append(' ').append(name.trim()).append('=').append(shown);
+                                    }
+                                    try {
+                                        Object onScreen = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                                                .getMethod("getAweme").invoke(null);
+                                        Object aid = onScreen == null ? null : onScreen.getClass().getMethod("getAid").invoke(onScreen);
+                                        now.append(" onScreen=").append(aid == null ? "none" : "<id " + (String.valueOf(aid).hashCode() & 0xffff) + ">");
+                                    } catch (ReflectiveOperationException unreadable) {
+                                        now.append(" onScreen=?");
+                                    }
+                                    String state = now.toString();
+                                    if (!state.equals(last)) {
+                                        out.append("\n+").append(android.os.SystemClock.uptimeMillis() - start).append("ms").append(state);
+                                        last = state;
+                                    }
+                                    android.os.SystemClock.sleep(40);
+                                }
+                                Log.i(TAG, "ok fieldswatch" + out);
+                            } catch (ReflectiveOperationException error) {
+                                Log.e(TAG, "failed fieldswatch", error);
+                            }
+                        }, "hushfeed-probe-fieldswatch").start();
+                        break;
+                    }
+                    case "playerspeed": {
+                        // The feed player's own speed and how far its position moves over a gap,
+                        // read through the player TikTok's static getter hands out. The holder
+                        // class and getter are renamed on every build, so they come in as extras
+                        // (47.0.3: -e holder X.037m -e getter LJLJJLL); getSpeed and
+                        // getCurrentPosition keep their names. Nothing about the video leaves.
+                        Method getter = loader.loadClass(required(intent, "holder"))
+                                .getDeclaredMethod(required(intent, "getter"));
+                        getter.setAccessible(true);
+                        Object player = getter.invoke(null);
+                        if (player == null) throw new IllegalStateException("no player");
+                        Method speed = player.getClass().getMethod("getSpeed");
+                        Method position = player.getClass().getMethod("getCurrentPosition");
+                        String gapText = intent.getStringExtra("gap");
+                        long gap = gapText == null ? 1000L : Long.parseLong(gapText);
+                        long startedAt = android.os.SystemClock.uptimeMillis();
+                        long startPosition = (Long) position.invoke(player);
+                        float startSpeed = (Float) speed.invoke(player);
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            try {
+                                long elapsed = android.os.SystemClock.uptimeMillis() - startedAt;
+                                long moved = (Long) position.invoke(player) - startPosition;
+                                Log.i(TAG, "ok playerspeed speed=" + startSpeed + " then " + speed.invoke(player)
+                                        + " moved=" + moved + "ms in " + elapsed + "ms rate="
+                                        + String.format(Locale.ROOT, "%.2f", moved / (double) elapsed)
+                                        + " from=" + startPosition + "ms");
+                            } catch (ReflectiveOperationException error) {
+                                Log.e(TAG, "failed playerspeed", error);
+                            }
+                        }, gap);
+                        break;
+                    }
+                    case "holdslide": {
+                        // A press held still long enough for TikTok's hold gesture, then a slide
+                        // and a release. Injected through the input system like a finger (an app
+                        // may inject into its own windows), from a thread of its own because
+                        // each injection waits for the main thread to take it. Separate "input
+                        // motionevent" calls from adb arrive a process launch apart, and the
+                        // feed took that slow drag as a scroll.
+                        float x = Float.parseFloat(required(intent, "x"));
+                        float y = Float.parseFloat(required(intent, "y"));
+                        float dy = Float.parseFloat(required(intent, "dy"));
+                        String holdText = intent.getStringExtra("hold");
+                        long hold = holdText == null ? 1500L : Long.parseLong(holdText);
+                        String slideText = intent.getStringExtra("slide");
+                        long slide = slideText == null ? 600L : Long.parseLong(slideText);
+                        new Thread(() -> {
+                            try {
+                                Instrumentation input = new Instrumentation();
+                                long down = android.os.SystemClock.uptimeMillis();
+                                input.sendPointerSync(android.view.MotionEvent.obtain(
+                                        down, down, android.view.MotionEvent.ACTION_DOWN, x, y, 0));
+                                android.os.SystemClock.sleep(hold);
+                                int steps = 24;
+                                for (int step = 1; step <= steps; step++) {
+                                    input.sendPointerSync(android.view.MotionEvent.obtain(down,
+                                            android.os.SystemClock.uptimeMillis(),
+                                            android.view.MotionEvent.ACTION_MOVE, x, y + dy * step / steps, 0));
+                                    android.os.SystemClock.sleep(slide / steps);
+                                }
+                                android.os.SystemClock.sleep(300);
+                                input.sendPointerSync(android.view.MotionEvent.obtain(down,
+                                        android.os.SystemClock.uptimeMillis(),
+                                        android.view.MotionEvent.ACTION_UP, x, y + dy, 0));
+                                Log.i(TAG, "ok holdslide at " + x + "," + y + " by " + dy + " after "
+                                        + hold + "ms, sliding " + slide + "ms");
+                            } catch (RuntimeException error) {
+                                Log.e(TAG, "failed holdslide", error);
+                            }
+                        }, "hushfeed-probe-holdslide").start();
                         break;
                     }
                     case "tabbadges": {
@@ -829,6 +1726,15 @@ public final class Probe extends Instrumentation {
         }
 
         /** One press and release at a point, delivered the way the window would get it. */
+        private static void dispatch(android.view.View decor, long down, long when, int action, float x, float y) {
+            android.view.MotionEvent event = android.view.MotionEvent.obtain(down, when, action, x, y, 0);
+            try {
+                decor.dispatchTouchEvent(event);
+            } finally {
+                event.recycle();
+            }
+        }
+
         private static void tap(android.view.View decor, float x, float y) {
             long down = android.os.SystemClock.uptimeMillis();
             android.view.MotionEvent press = android.view.MotionEvent.obtain(
@@ -848,6 +1754,69 @@ public final class Probe extends Instrumentation {
             String value = intent.getStringExtra(name);
             if (value == null) throw new IllegalArgumentException("-e " + name + " is required");
             return value;
+        }
+
+        /** One line for each shown view under x,y, from this view down: its class, id, bounds and background. */
+        private static void describeBackgroundsAt(android.view.View view, int x, int y, int depth,
+                StringBuilder out, android.content.res.Resources resources) {
+            if (!view.isShown()) return;
+            int[] where = new int[2];
+            view.getLocationOnScreen(where);
+            if (x < where[0] || y < where[1] || x >= where[0] + view.getWidth() || y >= where[1] + view.getHeight()) return;
+            android.graphics.drawable.Drawable background = view.getBackground();
+            out.append(depth).append(' ').append(view.getClass().getName())
+                    .append(" id=").append(idName(view, resources))
+                    .append(" at=").append(where[0]).append(',').append(where[1])
+                    .append(" size=").append(view.getWidth()).append('x').append(view.getHeight())
+                    .append(" bg=").append(describeDrawable(background, 0));
+            if (view.getBackgroundTintList() != null) {
+                out.append(" tint=").append(Integer.toHexString(view.getBackgroundTintList().getDefaultColor()));
+            }
+            out.append('\n');
+            if (view instanceof android.view.ViewGroup) {
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    describeBackgroundsAt(group.getChildAt(i), x, y, depth + 1, out, resources);
+                }
+            }
+        }
+
+        /** A drawable's class and whatever colour it will say, layers and states included. */
+        private static String describeDrawable(android.graphics.drawable.Drawable drawable, int depth) {
+            if (drawable == null) return "none";
+            StringBuilder out = new StringBuilder(drawable.getClass().getSimpleName());
+            if (drawable instanceof android.graphics.drawable.ColorDrawable) {
+                out.append('#').append(Integer.toHexString(((android.graphics.drawable.ColorDrawable) drawable).getColor()));
+            } else if (drawable instanceof android.graphics.drawable.GradientDrawable) {
+                android.content.res.ColorStateList colors = ((android.graphics.drawable.GradientDrawable) drawable).getColor();
+                out.append('#').append(colors == null ? "none" : Integer.toHexString(colors.getDefaultColor()));
+            } else if (drawable instanceof android.graphics.drawable.LayerDrawable && depth < 3) {
+                android.graphics.drawable.LayerDrawable layers = (android.graphics.drawable.LayerDrawable) drawable;
+                out.append('[');
+                for (int i = 0; i < layers.getNumberOfLayers(); i++) {
+                    out.append(i == 0 ? "" : ", ").append(describeDrawable(layers.getDrawable(i), depth + 1));
+                }
+                out.append(']');
+            } else if (drawable instanceof android.graphics.drawable.DrawableContainer && depth < 3) {
+                out.append('{').append(describeDrawable(drawable.getCurrent(), depth + 1)).append('}');
+            } else {
+                // Material and TikTok's own shape drawables keep the fill behind a getter.
+                for (String getter : new String[]{"getFillColor", "getColor", "getBackgroundColor"}) {
+                    try {
+                        Object value = drawable.getClass().getMethod(getter).invoke(drawable);
+                        if (value instanceof android.content.res.ColorStateList) {
+                            value = ((android.content.res.ColorStateList) value).getDefaultColor();
+                        }
+                        if (value instanceof Integer) {
+                            out.append(' ').append(getter).append("=#").append(Integer.toHexString((Integer) value));
+                            break;
+                        }
+                    } catch (ReflectiveOperationException | RuntimeException ignored) {
+                        // Not this getter.
+                    }
+                }
+            }
+            return out.toString();
         }
 
         /** The resource entry name of a view's id, the raw number for an id without one. */
@@ -1408,12 +2377,18 @@ public final class Probe extends Instrumentation {
             } catch (Throwable unavailable) {
                 Log.w(TAG, "marker-corpus: recent binds unavailable, adapters only", unavailable);
             }
-            String[] filterNames = {"AiGeneratedFilter", "PaidPartnershipFilter", "SeriesFilter", "PlaylistFilter"};
-            String[] markerNames = {"ai", "paid", "series", "playlist"};
+            String[] filterNames = {"AiGeneratedFilter", "PaidPartnershipFilter", "SeriesFilter", "PlaylistFilter",
+                    "DramaFilter"};
+            String[] markerNames = {"ai", "paid", "series", "playlist", "drama"};
             Object[] filters = new Object[filterNames.length];
             for (int i = 0; i < filterNames.length; i++) {
-                filters[i] = loader.loadClass("app.morphe.extension.tiktok.feedfilter.ContentMarkerFilters$"
-                        + filterNames[i]).getConstructor().newInstance();
+                try {
+                    filters[i] = loader.loadClass("app.morphe.extension.tiktok.feedfilter.ContentMarkerFilters$"
+                            + filterNames[i]).getConstructor().newInstance();
+                } catch (ClassNotFoundException olderBuild) {
+                    // A Hushfeed build from before this filter: its verdict is left out, not guessed.
+                    Log.w(TAG, "marker-corpus: this build has no " + filterNames[i]);
+                }
             }
             Method property = loader.loadClass("app.morphe.extension.tiktok.blockauthor.Reflect")
                     .getMethod("property", Object.class, String.class, String.class);
@@ -1422,6 +2397,7 @@ public final class Probe extends Instrumentation {
             for (Object video : videos) {
                 JSONArray markers = new JSONArray();
                 for (int i = 0; i < filters.length; i++) {
+                    if (filters[i] == null) continue;
                     Object matched = filters[i].getClass().getMethod("getFiltered", model).invoke(filters[i], video);
                     if (Boolean.TRUE.equals(matched)) markers.put(markerNames[i]);
                 }
@@ -1501,9 +2477,25 @@ public final class Probe extends Instrumentation {
                     "getEcSearchBoBcLabelText", "ecSearchBoBcLabelText", "isCommerce", "isCommerce"));
             shape.put("commercialVideoInfo", token(read(property, video, "getCommercialVideoInfo", "commercialVideoInfo")));
             shape.put("isPaidContent", token(read(property, video, "isPaidContent", "isPaidContent")));
-            shape.put("mPaidContentInfo", struct(read(property, video, "getMPaidContentInfo", "mPaidContentInfo"),
+            Object paidInfo = read(property, video, "getMPaidContentInfo", "mPaidContentInfo");
+            Object paidShape = struct(paidInfo,
                     property, "getPaidCollectionId", "paidCollectionId", "getCollectionName", "collectionName",
-                    "getEpisodeNumber", "episodeNumber", "isPaidCollectionIntro", "isPaidCollectionIntro"));
+                    "getEpisodeNumber", "episodeNumber", "isPaidCollectionIntro", "isPaidCollectionIntro",
+                    "isLimitedFreeShortDrama", "isLimitedFreeShortDrama", "getMiniDramaInfo", "miniDramaInfo");
+            // The Series category is compared with one value (MINI_DRAMA, 1), so it is kept exactly.
+            if (paidShape instanceof JSONObject) {
+                ((JSONObject) paidShape).put("category", exact(read(property, paidInfo, "getCategory", "category")));
+            }
+            shape.put("mPaidContentInfo", paidShape);
+            // The inserted card's type is compared with one value too (92 is a drama card).
+            Object insert = read(property, video, "getCardInsertInfo", "cardInsertInfo");
+            shape.put("cardInsertInfo", insert == null ? JSONObject.NULL
+                    : new JSONObject().put("cardType", exact(read(property, insert, "getCardType", "cardType"))));
+            // The drama card hangs off PaidContentInfo. It is recorded as a field of its own so a
+            // shape stays one struct deep.
+            shape.put("miniDramaCardInfo", struct(paidInfo == null ? null
+                    : read(property, paidInfo, "getMiniDramaCardInfo", "miniDramaCardInfo"),
+                    property, "getCardType", "cardType", "getDramas", "dramas"));
             shape.put("playlist_info", struct(read(property, video, "getPlaylist_info", "playlist_info"),
                     property, "getMixId", "mixId"));
             shape.put("mixInfo", struct(read(property, video, "getMixInfo", "mixInfo"), property,
@@ -1521,6 +2513,20 @@ public final class Probe extends Instrumentation {
             JSONObject out = new JSONObject();
             for (int i = 0; i < pairs.length; i += 2) out.put(pairs[i + 1], token(read(property, value, pairs[i], pairs[i + 1])));
             return out;
+        }
+
+        /**
+         * A small whole number kept as it is, for the enum-like values a filter compares with one
+         * value. Anything else falls back to the ordinary token.
+         */
+        private static Object exact(Object value) throws Exception {
+            if (value instanceof Number) {
+                Number number = (Number) value;
+                if (Math.abs(number.longValue()) <= 10_000L && number.doubleValue() == number.longValue()) {
+                    return new JSONObject().put("n", number.longValue());
+                }
+            }
+            return token(value);
         }
 
         /** One value as a typed token that keeps what the filters test and drops what identifies. */
@@ -1605,6 +2611,142 @@ public final class Probe extends Instrumentation {
                 }
             }
             return out;
+        }
+
+        /**
+         * The video's renditions as a chosen-quality download sees them: each entry of the backing
+         * bitRate field through Hushfeed's own QualitySelector.describe (gear name and height).
+         */
+        private static String gearList(ClassLoader loader, Object video) {
+            if (video == null) return "none";
+            try {
+                // The way a download reads them: getRawBitRate, else the field under either name.
+                Object rates = optional(video, "getRawBitRate");
+                for (String name : new String[]{"bitRateList", "bitRate"}) {
+                    if (rates != null) break;
+                    for (Class<?> c = video.getClass(); c != null && rates == null; c = c.getSuperclass()) {
+                        try {
+                            java.lang.reflect.Field field = c.getDeclaredField(name);
+                            field.setAccessible(true);
+                            rates = field.get(video);
+                        } catch (NoSuchFieldException next) { }
+                    }
+                }
+                if (!(rates instanceof java.util.List)) return "none";
+                Method describe = loader.loadClass("app.morphe.extension.tiktok.download.QualitySelector")
+                        .getMethod("describe", Object.class);
+                StringBuilder out = new StringBuilder("[");
+                for (Object gear : (java.util.List<?>) rates) {
+                    if (out.length() > 1) out.append(", ");
+                    // With TikTok's codec code (is_bytevc1) and its format string.
+                    out.append(describe.invoke(null, gear)).append(" codec ").append(optional(gear, "isBytevc1"))
+                            .append(' ').append(optional(gear, "getFormat"));
+                }
+                return out.append(']').toString().replace(' ', '_');
+            } catch (ReflectiveOperationException | RuntimeException failure) {
+                return "?(" + failure.getClass().getSimpleName() + ")";
+            }
+        }
+
+        /**
+         * The video's caption entries (language/format, from captionModel.captionList) and how many
+         * subtitle tracks Hushfeed's own SubtitleDownloads.tracks makes of them for "all".
+         */
+        private static String captionList(ClassLoader loader, Object video) {
+            try {
+                Object model = optional(video, "getCaptionModel");
+                if (model == null) return "none";
+                java.lang.reflect.Field field = model.getClass().getDeclaredField("captionList");
+                field.setAccessible(true);
+                Object list = field.get(model);
+                if (!(list instanceof java.util.List)) return "empty";
+                StringBuilder out = new StringBuilder("[");
+                for (Object caption : (java.util.List<?>) list) {
+                    if (out.length() > 1) out.append(',');
+                    out.append(optional(caption, "getLanguageCode")).append('/').append(optional(caption, "getFormat"));
+                }
+                Method tracks = loader.loadClass("app.morphe.extension.tiktok.download.SubtitleDownloads")
+                        .getDeclaredMethod("tracks", Object.class, String.class, java.util.Locale.class);
+                tracks.setAccessible(true);
+                Object found = tracks.invoke(null, video, "all", java.util.Locale.getDefault());
+                return out.append("]tracks").append(found instanceof java.util.List ? ((java.util.List<?>) found).size() : -1).toString();
+            } catch (ReflectiveOperationException | RuntimeException failure) {
+                return "?(" + failure.getClass().getSimpleName() + ")";
+            }
+        }
+
+        /** A no-argument getter's value, or null when the target or the getter is missing. */
+        private static Object optional(Object target, String getter) {
+            if (target == null) return null;
+            try {
+                return target.getClass().getMethod(getter).invoke(target);
+            } catch (ReflectiveOperationException | RuntimeException missing) {
+                return null;
+            }
+        }
+
+        private static boolean blank(Object value) {
+            return value == null || String.valueOf(value).trim().isEmpty();
+        }
+
+        /** TikTok's caption strip shown, with the view that draws its cue visible at a height. */
+        private static boolean captionDrawn(int strip, int drawn) throws Exception {
+            if (strip == 0 || drawn == 0) return false;
+            java.util.ArrayDeque<android.view.View> pending = new java.util.ArrayDeque<>(windowRoots());
+            while (!pending.isEmpty()) {
+                android.view.View view = pending.removeFirst();
+                if (!(view instanceof android.view.ViewGroup)) continue;
+                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                boolean isStrip = view.getId() == strip && view.isShown();
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    android.view.View child = group.getChildAt(i);
+                    if (isStrip && child.getId() == drawn && child.getVisibility() == android.view.View.VISIBLE
+                            && child.getHeight() > 0) return true;
+                    pending.add(child);
+                }
+            }
+            return false;
+        }
+
+        /** A view's own text Layout, when it keeps one in a field (TikTok's caption view does). */
+        private static android.text.Layout layoutOf(android.view.View view) {
+            for (Class<?> type = view.getClass(); type != null && type != android.view.View.class; type = type.getSuperclass()) {
+                for (Field field : type.getDeclaredFields()) {
+                    if (!android.text.Layout.class.isAssignableFrom(field.getType())) continue;
+                    try {
+                        field.setAccessible(true);
+                        Object value = field.get(view);
+                        if (value instanceof android.text.Layout) return (android.text.Layout) value;
+                    } catch (ReflectiveOperationException | RuntimeException unreadable) {
+                        // The next field, or none.
+                    }
+                }
+            }
+            return null;
+        }
+
+        /** An address's frame as WxH from its getWidth and getHeight, or none. */
+        private static String frame(Object address) {
+            if (address == null) return "none";
+            return optional(address, "getWidth") + "x" + optional(address, "getHeight");
+        }
+
+        /** Its lines, width and how many lines end inside a word, never the text itself. */
+        private static String layoutReport(android.text.Layout layout) {
+            CharSequence text = layout.getText();
+            int inWords = 0;
+            for (int i = 0; i < layout.getLineCount() - 1; i++) {
+                int end = layout.getLineEnd(i);
+                if (end > 0 && end < text.length() && Character.isLetterOrDigit(text.charAt(end - 1))
+                        && Character.isLetterOrDigit(text.charAt(end))) inWords++;
+            }
+            return "lines" + layout.getLineCount() + "/w" + layout.getWidth() + "/inWords" + inWords;
+        }
+
+        private static Object staticField(Class<?> owner, String name) throws ReflectiveOperationException {
+            Field field = owner.getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(null);
         }
 
         private static String safeResourceName(android.view.View view) {
@@ -1897,13 +3039,30 @@ public final class Probe extends Instrumentation {
                             .append(" globalVisibleRect=").append(onScreen).append(' ').append(rect.toShortString())
                             .append(" locationOnScreen=").append(where[0]).append(',').append(where[1]);
                     android.view.ViewParent parent = tab.getParent();
+                    int depth = 0;
                     while (parent instanceof android.view.View) {
                         android.view.View view = (android.view.View) parent;
+                        depth++;
                         if (view.getScrollX() != 0 || view.getTranslationX() != 0f) {
                             out.append("\n  ancestor ").append(view.getClass().getName())
                                     .append(" scrollX=").append(view.getScrollX())
                                     .append(" translationX=").append(view.getTranslationX())
                                     .append(" left=").append(view.getLeft());
+                        }
+                        // What hides the tab when isShown says no: an ancestor that is not
+                        // VISIBLE, or one faded out, with its depth above the tab and its id.
+                        if (view.getVisibility() != android.view.View.VISIBLE || view.getAlpha() < 1f) {
+                            out.append("\n  hidden ancestor ").append(depth).append(' ')
+                                    .append(view.getClass().getName()).append('/')
+                                    .append(idName(view, activity.getResources()))
+                                    .append(" vis=").append(view.getVisibility())
+                                    .append(" alpha=").append(view.getAlpha())
+                                    .append(" translationY=").append(view.getTranslationY())
+                                    .append(" size=").append(view.getWidth()).append('x').append(view.getHeight())
+                                    .append(view.getId() == android.R.id.content ? " (content)" : "");
+                        }
+                        if (view.getId() == android.R.id.content) {
+                            out.append("\n  content at depth ").append(depth);
                         }
                         parent = view.getParent();
                     }

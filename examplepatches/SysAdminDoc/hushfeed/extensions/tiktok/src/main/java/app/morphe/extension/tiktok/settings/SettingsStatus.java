@@ -31,6 +31,8 @@ public class SettingsStatus {
     public static void enableAdvancedDownloads() { advancedDownloadsEnabled = true; }
     public static boolean doubleTapEnabled;
     public static void enableDoubleTap() { doubleTapEnabled = true; }
+    public static boolean swipeLeftEnabled;
+    public static void enableSwipeLeft() { swipeLeftEnabled = true; }
     public static boolean longPressEnabled;
     public static void enableLongPress() { longPressEnabled = true; }
     public static boolean confirmInteractionsEnabled;

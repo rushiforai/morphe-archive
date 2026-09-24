@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -65,8 +65,8 @@ Da ku zimanên nû wergerînin an wergerandinên hebin baş bikin, malpera morph
   <string name="morphe_settings_export_file_success">Nastînên sazkirinê ji rêzika hevokî ve birayê.</string>
   <string name="morphe_settings_export_file_failed">Ji rêzika hevokî sazkirinên nezanin.</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Hûn îro versîyona herî dawî ya Morphe Patches &lt;i&gt;%s&lt;/i&gt; bikar tînin</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Hûn versîyona Morphe Patches &lt;i&gt;%1$s&lt;/i&gt; bikar tînin &lt;br&gt;&lt;br&gt;&lt;b&gt;Nûvekirin heye: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Da ku patches xwe nûve bikin, sêwirana Morphe bi karanîn pêxin.</string>
+  <string name="morphe_settings_about_links_body_version_current">Hûn îro versîyona herî dawî ya Spectre Patches &lt;i&gt;%s&lt;/i&gt; bikar tînin</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Hûn versîyona Spectre Patches &lt;i&gt;%1$s&lt;/i&gt; bikar tînin &lt;br&gt;&lt;br&gt;&lt;b&gt;Nûvekirin heye: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Da ku patches xwe nûve bikin, sêwirana Spectre bi karanîn pêxin.</string>
   <string name="morphe_settings_about_links_dev_header">Nuşte</string>
   <string name="morphe_settings_about_links_dev_body">Ev veguhestine pêşxistine ye, tu pêşbirkaya nedilê bikin</string>
   <string name="morphe_settings_about_links_header">Girêdanên fermî</string>

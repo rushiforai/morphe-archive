@@ -1,0 +1,64 @@
+{
+	"name": "@shuni64/charity-framework-bplace",
+	"version": "0.1.9",
+	"description": "A plugin loader for bplace.art.",
+	"author": "Mikarific, xyzeva",
+	"license": "MIT",
+	"engines": {
+		"node": ">=18"
+	},
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "cross-env NODE_ENV=development rollup -wc",
+		"clean": "del-cli dist",
+		"format": "prettier --write .",
+		"lint": "prettier --check . && eslint",
+		"ci": "run-s lint",
+		"build:js": "cross-env NODE_ENV=production rollup -c",
+		"build:mobile": "cross-env NODE_ENV=production BUILD_MOBILE=1 rollup -c",
+		"build": "run-s ci clean build:js"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.28.3",
+		"@babel/plugin-transform-react-jsx": "^7.27.1",
+		"@babel/plugin-transform-runtime": "^7.28.3",
+		"@babel/preset-env": "^7.28.3",
+		"@babel/preset-typescript": "^7.27.1",
+		"@rollup/plugin-alias": "^5.1.1",
+		"@rollup/plugin-babel": "^6.0.4",
+		"@rollup/plugin-commonjs": "^28.0.6",
+		"@rollup/plugin-json": "^6.1.0",
+		"@rollup/plugin-node-resolve": "^16.0.1",
+		"@rollup/plugin-replace": "^6.0.2",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@types/eslint": "^9.6.1",
+		"@typescript-eslint/eslint-plugin": "^8.42.0",
+		"@typescript-eslint/parser": "^8.42.0",
+		"babel-preset-solid": "^1.9.9",
+		"cross-env": "^10.0.0",
+		"del-cli": "^6.0.0",
+		"eslint": "^9.34.0",
+		"eslint-config-prettier": "^10.1.8",
+		"lint-staged": "^16.1.6",
+		"npm-run-all": "^4.1.5",
+		"postcss": "^8.5.6",
+		"prettier": "^3.6.2",
+		"read-package-up": "^11.0.0",
+		"rollup": "^4.50.0",
+		"rollup-plugin-postcss": "^4.0.2",
+		"rollup-plugin-userscript": "^1.0.0",
+		"typescript": "^5.9.2",
+		"typescript-eslint": "^8.42.0"
+	},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"eslint --fix",
+			"prettier --write"
+		],
+		"*.css": [
+			"prettier --write"
+		]
+	}
+}

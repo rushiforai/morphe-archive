@@ -1,0 +1,12 @@
+INSTRUMENTATION_RESULT: _data=/storage/emulated/0/Download/MiXShareProbe-Stable-20260918-204412/probe-alpha.txt
+INSTRUMENTATION_RESULT: name=probe-alpha.txt
+INSTRUMENTATION_RESULT: path=/storage/emulated/0/Download/MiXShareProbe-Stable-20260918-204412/probe-alpha.txt
+INSTRUMENTATION_RESULT: size=101
+INSTRUMENTATION_RESULT: status=PASS: Same-UID _data and path alias preserved; both payload reads match
+INSTRUMENTATION_CODE: -1
+INSTRUMENTATION_RESULT: _data=/storage/emulated/0/Download/MiXShareProbe-Stable-20260918-204412/probe-beta.txt
+INSTRUMENTATION_RESULT: name=probe-beta.txt
+INSTRUMENTATION_RESULT: path=/storage/emulated/0/Download/MiXShareProbe-Stable-20260918-204412/probe-beta.txt
+INSTRUMENTATION_RESULT: size=119
+INSTRUMENTATION_RESULT: status=PASS: Same-UID _data and path alias preserved; both payload reads match
+INSTRUMENTATION_CODE: -1

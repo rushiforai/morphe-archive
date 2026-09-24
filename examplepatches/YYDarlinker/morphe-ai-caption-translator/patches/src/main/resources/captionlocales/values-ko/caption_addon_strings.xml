@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cap_ai_title" formatted="false">"AI 자막 번역"</string>
+    <string name="cap_enable_ai" formatted="false">"AI 자막 번역 사용"</string>
+    <string name="cap_api_config" formatted="false">"API 설정"</string>
+    <string name="cap_api_address" formatted="false">"API 주소"</string>
+    <string name="cap_api_key" formatted="false">"API 키"</string>
+    <string name="cap_model" formatted="false">"모델"</string>
+    <string name="cap_test_api" formatted="false">"API 테스트"</string>
+    <string name="cap_translation" formatted="false">"번역"</string>
+    <string name="cap_translation_requirements" formatted="false">"번역 지침"</string>
+    <string name="cap_style" formatted="false">"자막 스타일"</string>
+    <string name="cap_size" formatted="false">"자막 크기"</string>
+    <string name="cap_opacity" formatted="false">"배경 불투명도"</string>
+    <string name="cap_reset_position" formatted="false">"자막 위치 초기화"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"캐시 및 진단"</string>
+    <string name="cap_clear_cache" formatted="false">"자막 캐시 지우기"</string>
+    <string name="cap_delete_key" formatted="false">"API 키 삭제"</string>
+    <string name="cap_text_debug" formatted="false">"자막 텍스트 디버깅"</string>
+    <string name="cap_diagnostics" formatted="false">"자막 진단"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"진단 기록 지우기"</string>
+    <string name="cap_preview" formatted="false">"자막 미리보기"</string>
+    <string name="cap_landscape" formatted="false">"가로"</string>
+    <string name="cap_portrait" formatted="false">"세로"</string>
+    <string name="cap_to_landscape" formatted="false">"가로로 전환"</string>
+    <string name="cap_to_portrait" formatted="false">"세로로 전환"</string>
+    <string name="cap_refresh" formatted="false">"새로고침"</string>
+    <string name="cap_copy" formatted="false">"복사"</string>
+    <string name="cap_expand" formatted="false">"펼치기"</string>
+    <string name="cap_collapse" formatted="false">"접기"</string>
+    <string name="cap_cancel" formatted="false">"취소"</string>
+    <string name="cap_delete" formatted="false">"삭제"</string>
+    <string name="cap_saved" formatted="false">"자동 저장됨"</string>
+    <string name="cap_autosave" formatted="false">"변경 사항이 자동 저장됩니다"</string>
+    <string name="cap_enter_key" formatted="false">"API 키 입력"</string>
+    <string name="cap_key_saved" formatted="false">"암호화되어 저장됨. 입력하면 교체됩니다"</string>
+    <string name="cap_model_hint" formatted="false">"모델을 선택하거나 ID 입력"</string>
+    <string name="cap_preview_hint" formatted="false">"화면을 눌러 방향 전환, 스타일은 실시간 반영"</string>
+    <string name="cap_size_hint" formatted="false">"상대 크기 12–22, 영상 크기에 맞게 조정"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% 투명, 100% 불투명. 놓으면 저장"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"펼쳐서 진단 기록 확인 및 복사"</string>
+    <string name="cap_use_youtube" formatted="false">"YouTube 사용"</string>
+    <string name="cap_use_ai" formatted="false">"AI 사용"</string>
+    <string name="cap_on" formatted="false">"켜짐"</string>
+    <string name="cap_off" formatted="false">"꺼짐"</string>
+    <string name="cap_configure_api" formatted="false">"AI 번역을 켜기 전에 API를 설정하세요"</string>
+    <string name="cap_switch_failed" formatted="false">"전환에 실패하여 이전 모드로 복원했습니다"</string>
+    <string name="cap_choose_translation" formatted="false">"자막 메뉴에서 자동 번역 언어를 선택하세요"</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"끄면 YouTube가 자체 자막을 표시합니다"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"원본 자막은 바로 사용하며 AI 번역에는 API 키가 필요합니다"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"켜짐. 자동 번역 언어를 선택하면 AI 자막을 사용합니다"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"진단에 원문과 번역문을 포함합니다. 문제 해결 시에만 켜세요"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"자막 원문과 번역문을 기록하지 않습니다"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"문제 해결을 위해 자막 텍스트를 기록합니다. 기본값은 꺼짐입니다"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"저장된 설정으로 연결을 테스트합니다"</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"자동 번역만 API를 사용하며 원본 자막은 번역하지 않습니다"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"세로 위치를 초기화하고 크기와 배경 설정은 유지합니다"</string>
+    <string name="cap_message_10d1b374429d" formatted="false">"편집 중 표시되며 페이지를 닫으면 지워집니다. 암호화되어 저장됩니다"</string>
+    <string name="cap_message_7da9039cc193" formatted="false">"API 키는 한 줄이어야 합니다"</string>
+    <string name="cap_message_bafa7b1ca6cb" formatted="false">"API 주소는 https:// 또는 http://로 시작해야 합니다"</string>
+    <string name="cap_message_bbbcd9c8bf80" formatted="false">"자동 저장에 실패했습니다"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"모델을 저장하지 못했습니다"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"알 수 없는 설정"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">". 마지막 유효한 값을 유지합니다"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"자막 위치를 초기화했습니다"</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"자막 캐시를 지웠습니다"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"API 키를 삭제할까요?"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"이 기기에 암호화되어 저장된 API 키만 삭제합니다. 다른 설정은 유지됩니다."</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"API 키를 삭제했습니다"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"진단을 지웠습니다"</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"진단을 복사했습니다"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"테스트 중…"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API 사용 가능: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"API 테스트 실패: "</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"모델 목록 새로고침 중…"</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"모델 목록 로드 중…"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"모델을 불러올 수 없습니다. ID를 직접 입력하세요: "</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"모델 목록을 새로고쳤습니다"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"아직 번역 요청이 없습니다. API를 설정하고 자동 번역 언어를 선택한 뒤 진단을 새로고치세요."</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"엔진: "</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"모드: "</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"자동 번역"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"원본 자막 (번역 API 미사용)"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"텍스트 디버깅: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"최근 단계: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"시간 참조 및 오류 (시간 포함): "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"최근 이벤트: "</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"진단을 읽지 못했습니다: "</string>
+    <string name="cap_message_c34848823d86" formatted="false">" (약 "</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">"초 전)"</string>
+    <string name="cap_mode_pending" formatted="false">"모드가 저장되었습니다. 이 동영상의 자막이 준비되면 적용됩니다."</string>
+    <string name="cap_mode_off_pending" formatted="false">"AI가 꺼졌습니다. 기본 자막 트랙이 준비되면 YouTube 자막이 다시 표시됩니다."</string>
+    <string name="cap_flyout_title" formatted="false">"일반 동영상 메뉴의 AI 자막 스위치"</string>
+    <string name="cap_flyout_summary" formatted="false">"플레이어 메뉴에 바로가기를 표시합니다. 숨겨도 AI 자막은 꺼지지 않으며 메뉴를 다시 열면 적용됩니다."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Shorts 메뉴의 AI 자막 스위치"</string>
+    <string name="cap_profiles_title" formatted="false">"API 프로필"</string>
+    <string name="cap_profile_default" formatted="false">"기존 설정"</string>
+    <string name="cap_profile_name" formatted="false">"프로필 이름"</string>
+    <string name="cap_profile_rename" formatted="false">"이름 변경"</string>
+    <string name="cap_profile_add" formatted="false">"프로필 추가"</string>
+    <string name="cap_profiles_summary" formatted="false">"현재 프로필 관리"</string>
+    <string name="cap_profile_name_error" formatted="false">"1~60자의 이름을 입력하세요"</string>
+    <string name="cap_profile_limit" formatted="false">"최대 30개의 프로필을 저장할 수 있습니다"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"전환하기 전에 완료되지 않은 입력을 수정하세요"</string>
+    <string name="cap_profile_add_failed" formatted="false">"프로필을 추가할 수 없습니다. 입력 내용과 30개 한도를 확인하세요."</string>
+    <string name="cap_profile_manage" formatted="false">"현재 프로필 관리"</string>
+    <string name="cap_profile_close" formatted="false">"닫기"</string>
+    <string name="cap_profile_save" formatted="false">"저장"</string>
+    <string name="cap_profile_current" formatted="false">"현재 프로필"</string>
+    <string name="cap_profile_delete" formatted="false">"프로필 삭제"</string>
+    <string name="cap_profile_clear_key" formatted="false">"이 프로필의 API 키 지우기"</string>
+    <string name="cap_profile_keep_one" formatted="false">"프로필을 하나 이상 유지하세요. API 키만 지울 수 있습니다."</string>
+    <string name="cap_profile_new_summary" formatted="false">"새 프로필에는 기본 번역 지침이 포함되며 키와 모델은 복사하지 않습니다. 만든 후 설정 화면에서 입력하세요."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"이 프로필의 주소, 모델, 번역 지침, 암호화된 키를 기기에서 삭제합니다. 다른 프로필과 자막 설정은 유지됩니다. 활성 프로필이면 남은 첫 프로필을 활성화합니다. 되돌릴 수 없습니다."</string>
+    <string name="cap_profile_clear_key_summary" formatted="false">"이 프로필의 저장된 키와 저장하지 않은 키 입력만 지웁니다. 주소, 모델, 번역 지침과 다른 프로필은 유지됩니다. 제공업체에서 키를 폐기하는 것은 아닙니다."</string>
+    <string name="cap_prompt_summary" formatted="false">"현재 프로필에 저장합니다. 비우면 기본 지침으로 돌아갑니다. 기본 문구는 화면 언어를 따르며 직접 입력한 내용은 유지됩니다."</string>
+    <string name="cap_default_prompt" formatted="false">"대상 언어의 자연스러운 표현으로 충실하고 간결하게 번역하세요. 이름, 전문 용어, 숫자, 어조와 필요한 문장 부호를 유지하고 원문에 없는 설명을 추가하지 마세요."</string>
+    <string name="cap_profile_more" formatted="false">"프로필 작업"</string>
+    <string name="cap_profile_collapse" formatted="false">"작업 접기"</string>
+    <string name="cap_profile_finish_name" formatted="false">"먼저 이름 변경을 저장하거나 취소하세요."</string>
+    <string name="cap_profile_delete_inline" formatted="false">"이 프로필과 기기에 저장된 키를 삭제할까요? 다른 프로필은 유지됩니다. 되돌릴 수 없습니다."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"삭제 후 활성화:"</string>
+    <string name="cap_profile_keep" formatted="false">"프로필 유지"</string>
+    <string name="cap_profile_confirm_delete" formatted="false">"삭제 확인"</string>
+    <string name="cap_source_retry" formatted="false">"자막 연결이 끊겼습니다. 다시 시도 중…"</string>
+    <string name="cap_source_unavailable" formatted="false">"원본 자막을 불러올 수 없습니다. 자막 트랙을 다시 선택하세요."</string>
+    <string name="cap_caption_overflow" formatted="false">"자막이 너무 깁니다. 원문을 표시할 수 없습니다"</string>
+    <string name="cap_quality_outcome" formatted="false">"로컬 검증: 수락 / 거부 (품질)"</string>
+</resources>

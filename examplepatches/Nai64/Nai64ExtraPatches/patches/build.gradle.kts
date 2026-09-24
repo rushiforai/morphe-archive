@@ -1,0 +1,38 @@
+group = "io.github.nai64"
+
+patches {
+    about {
+        name = "Nai's Extra Patches"
+        description = "Extra universal patches for the Morphe framework (companion to Nai's Patches)"
+        source = "https://github.com/Nai64/Nai64ExtraPatches"
+        author = "Nai64"
+        contact = ""
+        website = ""
+        license = "GPLv3"
+    }
+}
+
+val patchListGeneratorClasspath: Configuration by configurations.creating
+
+dependencies {
+    compileOnly(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
+}
+
+tasks {
+    // Ensure the Android DEX is built when building the MPP.
+    // Without buildAndroid, the MPP only contains JVM .class files,
+    // which the Morphe Android app cannot load (Android uses DEX format).
+    build { dependsOn("buildAndroid") }
+
+    register<JavaExec>("generatePatchesList") {
+        description = "Build patch with patch list"
+        dependsOn(build)
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
+    }
+
+    publish {
+        dependsOn("generatePatchesList")
+    }
+}

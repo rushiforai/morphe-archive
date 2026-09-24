@@ -138,8 +138,8 @@ public final class OriginalSoundDownloads {
                 String extension = RemoteMedia.fetch(sources, fetched, RemoteMedia.Kind.AUDIO);
                 String name = fileName(aweme, extension);
                 String path = AudioDownloads.audioPath(DownloadsPatch.getVideoDownloadPath());
-                MediaFileWriter.publish(app, fetched, name, mimeFor(extension), path, true);
-                Utils.showToastShort(L10n.f("Sound saved to %1$s", path));
+                MediaFileWriter.Saved saved = MediaFileWriter.publishForResult(app, fetched, name, mimeFor(extension), path, true);
+                SaveNotice.saved(L10n.f("Sound saved to %1$s", path), saved);
             } catch (IOException | RuntimeException exception) {
                 Logger.printException(() -> "Original sound download failed", exception);
                 Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));

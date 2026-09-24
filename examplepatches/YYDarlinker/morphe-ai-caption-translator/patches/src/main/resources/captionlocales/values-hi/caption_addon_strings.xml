@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cap_ai_title" formatted="false">"AI उपशीर्षक अनुवाद"</string>
+    <string name="cap_enable_ai" formatted="false">"AI उपशीर्षक अनुवाद चालू करें"</string>
+    <string name="cap_api_config" formatted="false">"API सेटिंग"</string>
+    <string name="cap_api_address" formatted="false">"API पता"</string>
+    <string name="cap_api_key" formatted="false">"API कुंजी"</string>
+    <string name="cap_model" formatted="false">"मॉडल"</string>
+    <string name="cap_test_api" formatted="false">"API जाँचें"</string>
+    <string name="cap_translation" formatted="false">"अनुवाद"</string>
+    <string name="cap_translation_requirements" formatted="false">"अनुवाद निर्देश"</string>
+    <string name="cap_style" formatted="false">"उपशीर्षक शैली"</string>
+    <string name="cap_size" formatted="false">"उपशीर्षक आकार"</string>
+    <string name="cap_opacity" formatted="false">"पृष्ठभूमि की अपारदर्शिता"</string>
+    <string name="cap_reset_position" formatted="false">"स्थिति रीसेट करें"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"कैश और निदान"</string>
+    <string name="cap_clear_cache" formatted="false">"उपशीर्षक कैश साफ़ करें"</string>
+    <string name="cap_delete_key" formatted="false">"API कुंजी मिटाएँ"</string>
+    <string name="cap_text_debug" formatted="false">"उपशीर्षक पाठ डीबगिंग"</string>
+    <string name="cap_diagnostics" formatted="false">"उपशीर्षक निदान"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"निदान साफ़ करें"</string>
+    <string name="cap_preview" formatted="false">"उपशीर्षक पूर्वावलोकन"</string>
+    <string name="cap_landscape" formatted="false">"लैंडस्केप"</string>
+    <string name="cap_portrait" formatted="false">"पोर्ट्रेट"</string>
+    <string name="cap_to_landscape" formatted="false">"लैंडस्केप में बदलें"</string>
+    <string name="cap_to_portrait" formatted="false">"पोर्ट्रेट में बदलें"</string>
+    <string name="cap_refresh" formatted="false">"रीफ़्रेश"</string>
+    <string name="cap_copy" formatted="false">"कॉपी"</string>
+    <string name="cap_expand" formatted="false">"विस्तार करें"</string>
+    <string name="cap_collapse" formatted="false">"समेटें"</string>
+    <string name="cap_cancel" formatted="false">"रद्द करें"</string>
+    <string name="cap_delete" formatted="false">"मिटाएँ"</string>
+    <string name="cap_saved" formatted="false">"अपने आप सहेजा गया"</string>
+    <string name="cap_autosave" formatted="false">"बदलाव अपने आप सहेजे जाते हैं"</string>
+    <string name="cap_enter_key" formatted="false">"API कुंजी दर्ज करें"</string>
+    <string name="cap_key_saved" formatted="false">"एन्क्रिप्ट करके सहेजी गई; बदलने के लिए दर्ज करें"</string>
+    <string name="cap_model_hint" formatted="false">"मॉडल चुनें या उसका ID दर्ज करें"</string>
+    <string name="cap_preview_hint" formatted="false">"दिशा बदलने के लिए चित्र पर टैप करें; शैली तुरंत दिखती है"</string>
+    <string name="cap_size_hint" formatted="false">"सापेक्ष आकार 12–22, वीडियो के साथ बदलता है"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% पारदर्शी, 100% अपारदर्शी; छोड़ने पर सहेजें"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"निदान रिकॉर्ड देखने और कॉपी करने के लिए विस्तार करें"</string>
+    <string name="cap_use_youtube" formatted="false">"YouTube इस्तेमाल करें"</string>
+    <string name="cap_use_ai" formatted="false">"AI इस्तेमाल करें"</string>
+    <string name="cap_on" formatted="false">"चालू"</string>
+    <string name="cap_off" formatted="false">"बंद"</string>
+    <string name="cap_configure_api" formatted="false">"AI अनुवाद चालू करने से पहले API सेट करें"</string>
+    <string name="cap_switch_failed" formatted="false">"बदल नहीं सके; पिछला मोड बहाल किया गया"</string>
+    <string name="cap_choose_translation" formatted="false">"उपशीर्षक मेन्यू में अपने आप अनुवाद की भाषा चुनें"</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"बंद होने पर YouTube अपने उपशीर्षक दिखाता है"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"मूल उपशीर्षक सीधे चलते हैं; AI अनुवाद के लिए API कुंजी चाहिए"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"चालू है; AI उपशीर्षक के लिए अपने आप अनुवाद की भाषा चुनें"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"निदान में मूल और अनूदित पाठ जोड़ें; केवल समस्या की जाँच के लिए चालू करें"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"मूल या अनूदित उपशीर्षक पाठ रिकॉर्ड न करें"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"जाँच के लिए पाठ रिकॉर्ड करें; डिफ़ॉल्ट रूप से बंद"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"सहेजी गई सेटिंग से कनेक्शन जाँचें"</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"केवल अपने आप अनुवाद में API उपयोग होता है; मूल उपशीर्षक नहीं बदलते"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"ऊर्ध्वाधर स्थिति रीसेट करें, आकार और पृष्ठभूमि बनाए रखें"</string>
+    <string name="cap_message_10d1b374429d" formatted="false">"संपादन के दौरान दिखती है; बंद करने पर साफ़ होती है और एन्क्रिप्ट करके सहेजी जाती है"</string>
+    <string name="cap_message_7da9039cc193" formatted="false">"API कुंजी एक ही पंक्ति में होनी चाहिए"</string>
+    <string name="cap_message_bafa7b1ca6cb" formatted="false">"API पता https:// या http:// से शुरू होना चाहिए"</string>
+    <string name="cap_message_bbbcd9c8bf80" formatted="false">"अपने आप सहेज नहीं सके"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"मॉडल सहेज नहीं सके"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"अज्ञात सेटिंग"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; पिछला मान्य मान बनाए रखा गया"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"उपशीर्षक स्थिति रीसेट हुई"</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"उपशीर्षक कैश साफ़ हुआ"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"API कुंजी मिटाएँ?"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"केवल इस डिवाइस की एन्क्रिप्ट की गई API कुंजी हटेगी। अन्य सेटिंग नहीं बदलेंगी।"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"API कुंजी मिटाई गई"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"निदान साफ़ हुआ"</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"निदान कॉपी हुआ"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"जाँच जारी है…"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API उपलब्ध: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"API जाँच विफल: "</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"मॉडल सूची रीफ़्रेश हो रही है…"</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"मॉडल सूची लोड हो रही है…"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"मॉडल लोड नहीं हुए; ID खुद दर्ज करें: "</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"मॉडल सूची अपडेट हुई"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"अभी अनुवाद अनुरोध नहीं है। API सेट करें, अपने आप अनुवाद की भाषा चुनें और निदान रीफ़्रेश करें।"</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"इंजन: "</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"मोड: "</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"अपने आप अनुवाद"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"मूल उपशीर्षक (अनुवाद API के बिना)"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"पाठ डीबगिंग: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"नवीनतम चरण: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"समय संदर्भ और त्रुटियाँ (समय सहित): "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"हाल की घटनाएँ: "</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"निदान पढ़ नहीं सके: "</string>
+    <string name="cap_message_c34848823d86" formatted="false">" (लगभग "</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" सेकंड पहले)"</string>
+    <string name="cap_mode_pending" formatted="false">"मोड सहेजा गया। इस वीडियो के उपशीर्षक तैयार होने पर यह लागू होगा।"</string>
+    <string name="cap_mode_off_pending" formatted="false">"AI बंद है। मूल ट्रैक तैयार होने पर YouTube के उपशीर्षक फिर से दिखेंगे।"</string>
+    <string name="cap_flyout_title" formatted="false">"सामान्य वीडियो मेन्यू में AI उपशीर्षक स्विच"</string>
+    <string name="cap_flyout_summary" formatted="false">"प्लेयर मेन्यू में शॉर्टकट दिखाएँ। छिपाने से AI उपशीर्षक बंद नहीं होते; मेन्यू दोबारा खोलने पर लागू होगा।"</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Shorts मेन्यू में AI उपशीर्षक स्विच"</string>
+    <string name="cap_profiles_title" formatted="false">"API प्रोफ़ाइल"</string>
+    <string name="cap_profile_default" formatted="false">"मूल कॉन्फ़िगरेशन"</string>
+    <string name="cap_profile_name" formatted="false">"प्रोफ़ाइल नाम"</string>
+    <string name="cap_profile_rename" formatted="false">"नाम बदलें"</string>
+    <string name="cap_profile_add" formatted="false">"प्रोफ़ाइल जोड़ें"</string>
+    <string name="cap_profiles_summary" formatted="false">"वर्तमान प्रोफ़ाइल प्रबंधित करें"</string>
+    <string name="cap_profile_name_error" formatted="false">"1–60 अक्षरों का नाम दर्ज करें"</string>
+    <string name="cap_profile_limit" formatted="false">"अधिकतम 30 प्रोफ़ाइल सहेजी जा सकती हैं"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"प्रोफ़ाइल बदलने से पहले अधूरे फ़ील्ड सुधारें"</string>
+    <string name="cap_profile_add_failed" formatted="false">"प्रोफ़ाइल नहीं जुड़ सकी। फ़ील्ड और 30 प्रोफ़ाइल की सीमा जाँचें।"</string>
+    <string name="cap_profile_manage" formatted="false">"वर्तमान प्रोफ़ाइल प्रबंधित करें"</string>
+    <string name="cap_profile_close" formatted="false">"बंद करें"</string>
+    <string name="cap_profile_save" formatted="false">"सहेजें"</string>
+    <string name="cap_profile_current" formatted="false">"वर्तमान प्रोफ़ाइल"</string>
+    <string name="cap_profile_delete" formatted="false">"प्रोफ़ाइल मिटाएँ"</string>
+    <string name="cap_profile_clear_key" formatted="false">"इस प्रोफ़ाइल की API कुंजी साफ़ करें"</string>
+    <string name="cap_profile_keep_one" formatted="false">"कम से कम एक प्रोफ़ाइल रखें। उसकी API कुंजी साफ़ कर सकते हैं।"</string>
+    <string name="cap_profile_new_summary" formatted="false">"नई प्रोफ़ाइल में डिफ़ॉल्ट अनुवाद निर्देश होते हैं, पर कुंजी और मॉडल नहीं। बनाने के बाद सेटिंग में फ़ील्ड भरें।"</string>
+    <string name="cap_profile_delete_summary" formatted="false">"इस प्रोफ़ाइल का पता, मॉडल, अनुवाद निर्देश और एन्क्रिप्टेड कुंजी इस डिवाइस से मिटाता है। अन्य प्रोफ़ाइल और उपशीर्षक सेटिंग रहती हैं। सक्रिय प्रोफ़ाइल हटने पर पहली बची प्रोफ़ाइल सक्रिय होगी। यह वापस नहीं हो सकता।"</string>
+    <string name="cap_profile_clear_key_summary" formatted="false">"केवल इस प्रोफ़ाइल की सहेजी कुंजी और बिना सहेजी कुंजी प्रविष्टि साफ़ करता है। पता, मॉडल, निर्देश और अन्य प्रोफ़ाइल बने रहते हैं। प्रदाता की ओर से कुंजी रद्द नहीं होती।"</string>
+    <string name="cap_prompt_summary" formatted="false">"इस प्रोफ़ाइल में सहेजा जाता है। खाली करने पर इंटरफ़ेस की भाषा में डिफ़ॉल्ट निर्देश लौटेंगे। आपके बदलाव सुरक्षित रहेंगे।"</string>
+    <string name="cap_default_prompt" formatted="false">"लक्षित भाषा में स्वाभाविक अभिव्यक्ति के साथ निष्ठापूर्वक और संक्षेप में अनुवाद करें। नाम, शब्दावली, संख्याएँ, लहजा और आवश्यक विराम चिह्न सुरक्षित रखें। मूल में न दी गई व्याख्याएँ न जोड़ें।"</string>
+    <string name="cap_profile_more" formatted="false">"प्रोफ़ाइल विकल्प"</string>
+    <string name="cap_profile_collapse" formatted="false">"विकल्प समेटें"</string>
+    <string name="cap_profile_finish_name" formatted="false">"पहले नाम का बदलाव सहेजें या रद्द करें।"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"इस प्रोफ़ाइल और डिवाइस पर सहेजी कुंजी को मिटाएँ? अन्य प्रोफ़ाइल सुरक्षित रहेंगी। यह वापस नहीं हो सकता।"</string>
+    <string name="cap_profile_delete_switch" formatted="false">"मिटाने के बाद सक्रिय करें:"</string>
+    <string name="cap_profile_keep" formatted="false">"प्रोफ़ाइल रखें"</string>
+    <string name="cap_profile_confirm_delete" formatted="false">"मिटाने की पुष्टि करें"</string>
+    <string name="cap_source_retry" formatted="false">"उपशीर्षक कनेक्शन टूट गया। फिर कोशिश की जा रही है…"</string>
+    <string name="cap_source_unavailable" formatted="false">"मूल उपशीर्षक उपलब्ध नहीं हैं। उपशीर्षक ट्रैक फिर चुनें।"</string>
+    <string name="cap_caption_overflow" formatted="false">"उपशीर्षक बहुत लंबा है — मूल पाठ उपलब्ध नहीं"</string>
+    <string name="cap_quality_outcome" formatted="false">"स्थानीय जाँच: स्वीकार / अस्वीकार (गुणवत्ता)"</string>
+</resources>

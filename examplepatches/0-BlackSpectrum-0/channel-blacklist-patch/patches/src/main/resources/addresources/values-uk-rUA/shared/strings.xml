@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Налаштування Morphe скинуто до типових</string>
   <string name="morphe_settings_import_success">Імпортовано %d налаштувань</string>
   <string name="morphe_settings_import_failure_parse">Не вдалося імпортувати: %s</string>
+  <string name="morphe_settings_navigate_up">Перейти вгору</string>
   <string name="morphe_settings_search_hint">Пошук налаштувань</string>
   <string name="morphe_settings_search_no_results_title">За запитом \'%s\' нічого не знайдено</string>
   <string name="morphe_settings_search_no_results_summary">Спробуйте інше ключове слово</string>
   <string name="morphe_settings_search_recent_searches">Нещодавні пошуки</string>
   <string name="morphe_settings_search_remove_message">Видалити з історії пошуку?</string>
+  <string name="morphe_settings_search_remove">Видалити з історії пошуку</string>
   <string name="morphe_settings_search_clear_history">Очистити історію пошуку</string>
   <string name="morphe_settings_search_clear_history_message">Ви впевнені, що хочете очистити всю історію пошуку?</string>
   <string name="morphe_settings_search_tips_title">Поради щодо пошуку</string>
@@ -72,8 +74,8 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_success">Налаштування успішно експортовано</string>
   <string name="morphe_settings_export_file_failed">Не вдалося експортувати налаштування</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Ви використовуєте останню версію Morphe Patches &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Ви використовуєте Morphe Patches версії &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Доступне оновлення: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Щоб оновити ваші патчі, скористайтесь Morphe для повторного патчингу цього застосунку</string>
+  <string name="morphe_settings_about_links_body_version_current">Ви використовуєте останню версію Spectre Patches &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Ви використовуєте Spectre Patches версії &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Доступне оновлення: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Щоб оновити ваші патчі, скористайтесь Spectre для повторного патчингу цього застосунку</string>
   <string name="morphe_settings_about_links_dev_header">Примітка</string>
   <string name="morphe_settings_about_links_dev_body">Ця версія є передрелізною, і її робота може бути нестабільною</string>
   <string name="morphe_settings_about_links_header">Офіційні посилання</string>

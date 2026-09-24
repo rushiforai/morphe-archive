@@ -185,6 +185,10 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
         )
     },
 ) {
+    dependsOn(
+        deviceComplianceCheckPatch,
+    )
+
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
 }
 

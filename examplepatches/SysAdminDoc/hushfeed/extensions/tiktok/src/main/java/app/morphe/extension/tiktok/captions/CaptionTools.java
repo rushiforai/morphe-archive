@@ -170,7 +170,9 @@ public final class CaptionTools {
         boolean visible = clear && !cue.isEmpty()
                 && cueId != null && cueId.equals(currentId) && source != null && source.isAttachedToWindow()
                 && activity != null && !activity.isFinishing() && !activity.isDestroyed()
-                && activity.hasWindowFocus() && FeedVisibility.isOnFeed(activity);
+                && activity.hasWindowFocus() && FeedVisibility.isOnFeed(activity)
+                // It draws on the window's own view, above the daily hold's panel.
+                && !app.morphe.extension.tiktok.wellbeing.SessionBudget.isLocked();
         if (visible) {
             if (!cue.contentEquals(text.getText())) text.setText(cue);
             int size = CaptionStyle.size();

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe-indstillinger nulstillet til standard</string>
   <string name="morphe_settings_import_success">%d indstillinger importeret</string>
   <string name="morphe_settings_import_failure_parse">Import mislykkedes: %s</string>
+  <string name="morphe_settings_navigate_up">Naviger op</string>
   <string name="morphe_settings_search_hint">Søg i indstillinger</string>
   <string name="morphe_settings_search_no_results_title">Ingen resultater fundet for \'%s\'</string>
   <string name="morphe_settings_search_no_results_summary">Prøv et andet søgeord</string>
   <string name="morphe_settings_search_recent_searches">Seneste søgninger</string>
   <string name="morphe_settings_search_remove_message">Fjern fra søgehistorik?</string>
+  <string name="morphe_settings_search_remove">Fjern fra søgehistorik</string>
   <string name="morphe_settings_search_clear_history">Ryd søgehistorik</string>
   <string name="morphe_settings_search_clear_history_message">Er du sikker på, at du vil rydde al søgehistorik?</string>
   <string name="morphe_settings_search_tips_title">Søgetips</string>
@@ -72,8 +74,8 @@ For at oversætte nye sprog eller forbedre de eksisterende oversættelser, besø
   <string name="morphe_settings_export_file_success">Indstillingerne blev eksporteret med succes</string>
   <string name="morphe_settings_export_file_failed">Eksportering af indstillinger mislykkedes</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Du bruger den nyeste Morphe Patches-version &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Du bruger Morphe Patches-version &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Opdatering tilgængelig: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;For at opdatere dine patches, brug Morphe til at genpatche denne app</string>
+  <string name="morphe_settings_about_links_body_version_current">Du bruger den nyeste Spectre Patches-version &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Du bruger Spectre Patches-version &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Opdatering tilgængelig: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;For at opdatere dine patches, brug Spectre til at genpatche denne app</string>
   <string name="morphe_settings_about_links_dev_header">Bemærk</string>
   <string name="morphe_settings_about_links_dev_body">Denne version er en pre-release, og du kan opleve uventede problemer</string>
   <string name="morphe_settings_about_links_header">Officielle links</string>

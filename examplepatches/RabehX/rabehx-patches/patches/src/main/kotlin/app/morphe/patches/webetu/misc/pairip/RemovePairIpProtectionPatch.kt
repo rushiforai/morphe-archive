@@ -19,11 +19,7 @@ private const val PAIRIP_PREFIX = "com.pairip."
 internal var pairipOriginalApplication: String? = null
     private set
 
-/**
- * Bytecode half of the PairIP removal. It is private because the public
- * resource patch below depends on it and must run after the real Application
- * superclass has been extracted.
- */
+/** Prepares the application for protection removal. */
 @Suppress("unused")
 private val removePairIpProtectionBytecodePatch = bytecodePatch {
     execute {
@@ -56,12 +52,7 @@ private val removePairIpProtectionBytecodePatch = bytecodePatch {
     }
 }
 
-/**
- * Removes Google Play's PairIP anti-tamper wrapper so the app runs without
- * license checks. The bytecode dependency runs first, then this resource
- * patch restores the original Application class and removes injected
- * com.pairip.* manifest components.
- */
+/** Removes application protection checks. */
 @Suppress("unused")
 val removePairIpProtectionPatch = resourcePatch(
     name = "Remove PairIP protection",

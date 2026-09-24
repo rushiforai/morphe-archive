@@ -17,6 +17,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.all.misc.clone.resetTargetPackageName
 import app.morphe.patches.all.misc.clone.setOrGetFallbackPackageName
 import app.morphe.patches.all.misc.fix.openurllinks.removeLinkVerification
 import app.morphe.patches.all.misc.resources.addAppResources
@@ -112,6 +113,8 @@ private val settingsResourcePatch = resourcePatch {
     )
 
     execute {
+        resetTargetPackageName()
+
         // Use same colors as stock YouTube.
         overrideThemeColors("@color/yt_white1", "@color/yt_black3")
 

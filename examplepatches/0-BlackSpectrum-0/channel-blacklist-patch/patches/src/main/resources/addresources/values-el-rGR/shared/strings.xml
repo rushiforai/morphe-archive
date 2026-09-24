@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Επαναφέρθηκαν οι προεπιλεγμένες ρυθμίσεις του Morphe</string>
   <string name="morphe_settings_import_success">Έγινε εισαγωγή %d ρυθμίσεων</string>
   <string name="morphe_settings_import_failure_parse">Η εισαγωγή απέτυχε: %s</string>
+  <string name="morphe_settings_navigate_up">Μετάβαση προς τα πάνω</string>
   <string name="morphe_settings_search_hint">Ρυθμίσεις αναζήτησης</string>
   <string name="morphe_settings_search_no_results_title">Δε βρέθηκαν αποτελέσματα για \'%s\'</string>
   <string name="morphe_settings_search_no_results_summary">Δοκιμάστε άλλη λέξη-κλειδί</string>
   <string name="morphe_settings_search_recent_searches">Πρόσφατες αναζητήσεις</string>
   <string name="morphe_settings_search_remove_message">Κατάργηση από το ιστορικό αναζήτησης;</string>
+  <string name="morphe_settings_search_remove">Αφαίρεση από το ιστορικό αναζήτησης</string>
   <string name="morphe_settings_search_clear_history">Εκκαθάριση ιστορικού αναζήτησης</string>
   <string name="morphe_settings_search_clear_history_message">Είστε βέβαιοι ότι θέλετε να εκκαθαρίσετε όλο το ιστορικό αναζήτησης;</string>
   <string name="morphe_settings_search_tips_title">Συμβουλές Αναζήτησης</string>
@@ -73,7 +75,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_failed">Αποτυχία εξαγωγής ρυθμίσεων</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">Χρησιμοποιείτε την πιο πρόσφατη έκδοση τροποποιήσεων του Morphe &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Χρησιμοποιείτε την έκδοση τροποποιήσεων Morphe &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Διαθέσιμη ενημέρωση: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Για να ενημερώσετε τις τροποποιήσεις σας, χρησιμοποιήστε το Morphe για να τροποποιήσετε ξανά αυτήν την εφαρμογή</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Χρησιμοποιείτε την έκδοση τροποποιήσεων Spectre &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Διαθέσιμη ενημέρωση: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Για να ενημερώσετε τις τροποποιήσεις σας, χρησιμοποιήστε το Spectre για να τροποποιήσετε ξανά αυτήν την εφαρμογή</string>
   <string name="morphe_settings_about_links_dev_header">Σημείωση</string>
   <string name="morphe_settings_about_links_dev_body">Αυτή η έκδοση είναι σε πρώιμο στάδιο, επομένως πιθανότατα να αντιμετωπίσετε απρόοπτα προβλήματα</string>
   <string name="morphe_settings_about_links_header">Επίσημοι σύνδεσμοι</string>

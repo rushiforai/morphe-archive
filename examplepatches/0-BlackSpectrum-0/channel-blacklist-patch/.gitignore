@@ -35,7 +35,3 @@ google-services.json
 
 # NPM modules
 node_modules/
-
-# Local backups
-.git_morphe_backup/
-channel-blacklist-patch-prompt.md

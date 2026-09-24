@@ -53,7 +53,7 @@ Pick the resulting file in Morphe with **"I already have an APK"**.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.14.0](https://github.com/Amitaisela/travian-morphe-patches/releases/tag/v1.14.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.16.2](https://github.com/Amitaisela/travian-morphe-patches/releases/tag/v1.16.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Travian: Legends&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

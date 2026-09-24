@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/jaredcat/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-24)
+
+### ✨ New Features
+
+* add OfferUp Hide Ads for 2026.38.0 ([4975f35](https://github.com/jaredcat/morphe-patches/commit/4975f35ec398f59f646c1828041b4fea708228e0))
+
+## [1.2.0](https://github.com/jaredcat/morphe-patches/compare/v1.1.0...v1.2.0) (2026-09-24)
+
+### ✨ New Features
+
+* add Sweepy premium unlock ([046836b](https://github.com/jaredcat/morphe-patches/commit/046836bfd1cd73bbfdea85180e7075cc79a0b573))
+
 ## [1.1.0](https://github.com/jaredcat/morphe-patches/compare/v1.0.1...v1.1.0) (2026-08-28)
 
 ### ✨ New Features

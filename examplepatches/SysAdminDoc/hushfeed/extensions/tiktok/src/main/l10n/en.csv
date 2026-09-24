@@ -415,6 +415,7 @@ Hide TikTok Shop in search,Hide TikTok Shop in search
 Hide TikTok Shop posts from the feed.,Hide TikTok Shop posts from the feed.
 "Hide TikTok's ""Search: ..."" banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.","Hide TikTok's ""Search: ..."" banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box."
 Hide TikTok's Auto scroll button,Hide TikTok's Auto scroll button
+Hide TikTok's short drama episodes and the cards that promote them.,Hide TikTok's short drama episodes and the cards that promote them.
 Hide activity,Hide activity
 Hide activity status,Hide activity status
 "Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships.","Hide ads, Shop posts, LIVE videos and replays, promotional music, and paid partnerships."
@@ -436,6 +437,7 @@ Hide inserted cards,Hide inserted cards
 Hide location labels,Hide location labels
 Hide message requests,Hide message requests
 Hide message streaks,Hide message streaks
+Hide mini dramas,Hide mini dramas
 Hide new follower notifications,Hide new follower notifications
 Hide new followers,Hide new followers
 Hide paid partnerships,Hide paid partnerships
@@ -495,7 +497,7 @@ Hide the plus button under the creator's picture in the right column. Ticking Av
 Hide the purple rewards button beside Add friends on your profile.,Hide the purple rewards button beside Add friends on your profile.
 Hide the question cards TikTok slides over a video near its end.,Hide the question cards TikTok slides over a video near its end.
 Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.,Hide the quick emoji row and automatic sticker suggestions that appear while you type. The emoji and sticker buttons still work.
-Hide the red counts and dots on the Inbox and Profile tabs. The inbox itself still shows what came in.,Hide the red counts and dots on the Inbox and Profile tabs. The inbox itself still shows what came in.
+"Hide the red counts and dots on every bottom tab, Inbox and Profile included. The inbox itself still shows what came in.","Hide the red counts and dots on every bottom tab, Inbox and Profile included. The inbox itself still shows what came in."
 Hide the rewards shortcut,Hide the rewards shortcut
 Hide the right column,Hide the right column
 Hide the row of friends at the top of the share sheet.,Hide the row of friends at the top of the share sheet.
@@ -600,7 +602,7 @@ Loaded-value file export failed,Loaded-value file export failed
 Loading gates...,Loading gates...
 Loading local catalog and current TikTok cache...,Loading local catalog and current TikTok cache...
 Location-tagged videos,Location-tagged videos
-Lock 2x speed with hold and slide,Lock 2x speed with hold and slide
+Lock the hold speed with a pull down,Lock the hold speed with a pull down
 Lock today's budget,Lock today's budget
 Log diagnostics,Log diagnostics
 "Logging, hook status and reports","Logging, hook status and reports"
@@ -619,6 +621,7 @@ Media,Media
 Media config (VE),Media config (VE)
 "Messages, profiles and search still work.","Messages, profiles and search still work."
 Microphone in use,Microphone in use
+Mini dramas,Mini dramas
 Minimum,Minimum
 More options,More options
 Move down,Move down
@@ -627,10 +630,10 @@ Move right,Move right
 "Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this.","Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this."
 Move up,Move up
 Music disc,Music disc
-Mutes the video behind the comment sheet while you read. Sound comes back when the sheet closes.,Mutes the video behind the comment sheet while you read. Sound comes back when the sheet closes.
 Nearby,Nearby
 Never from these countries,Never from these countries
 No,No
+No app on this phone opens that file,No app on this phone opens that file
 No creator to block on this video,No creator to block on this video
 No creator to hide on this video,No creator to hide on this video
 "No creators are hidden yet. Hide one from a video, or add a handle above.","No creators are hidden yet. Hide one from a video, or add a handle above."
@@ -693,6 +696,7 @@ Only bottom tabs TikTok has loaded on this device are shown here. This does not 
 Only fields the Lab can check and copy safely are shown.,Only fields the Lab can check and copy safely are shown.
 Only from these countries,Only from these countries
 Only tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.,Only tabs TikTok has loaded on this device are shown here. This does not force unavailable tabs to appear.
+Open,Open
 "Open a share sheet once, then return here to choose its actions.","Open a share sheet once, then return here to choose its actions."
 Open comments,Open comments
 Open external links directly,Open external links directly
@@ -723,6 +727,7 @@ Overrides disabled. Restart TikTok to apply this.,Overrides disabled. Restart Ti
 Overrides enabled. Restart TikTok to apply this.,Overrides enabled. Restart TikTok to apply this.
 Paid partnerships,Paid partnerships
 Pause Hushfeed,Pause Hushfeed
+Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.,Pauses the video behind the comment sheet while you read. It plays on from the same spot when the sheet closes.
 "People, shortcuts and sending controls","People, shortcuts and sending controls"
 Photo,Photo
 Photo and image posts,Photo and image posts
@@ -837,6 +842,7 @@ Saved one original photo,Saved one original photo
 Saved. Restart TikTok to apply this.,Saved. Restart TikTok to apply this.
 Saving,Saving
 Saving %1$s original photos,Saving %1$s original photos
+Saving one original photo,Saving one original photo
 Saving settings backup,Saving settings backup
 Saving sticker,Saving sticker
 Saving the selected video quality,Saving the selected video quality
@@ -926,6 +932,7 @@ Sound saved to %1$s,Sound saved to %1$s
 Source,Source
 Speed,Speed
 Speed menu choices,Speed menu choices
+Speed while you hold the video,Speed while you hold the video
 Split comment minimum width,Split comment minimum width
 Start each new video at your default. A manual choice lasts until the video changes.,Start each new video at your default. A manual choice lasts until the video changes.
 Start feature gate recording,Start feature gate recording
@@ -960,6 +967,7 @@ Story saved to %1$s,Story saved to %1$s
 Structured value observed,Structured value observed
 Subtitle language,Subtitle language
 Subtitles,Subtitles
+Swipe left,Swipe left
 System,System
 Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.,Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.
 Tap %1$s again to send,Tap %1$s again to send
@@ -1063,7 +1071,8 @@ This video has no sound of its own,This video has no sound of its own
 Thumbs down blocks the commenter,Thumbs down blocks the commenter
 "TikTok closed three times within a minute of starting, so Hushfeed paused itself. Your settings stay as they are.","TikTok closed three times within a minute of starting, so Hushfeed paused itself. Your settings stay as they are."
 TikTok default,TikTok default
-"TikTok default (2x hold, quick share)","TikTok default (2x hold, quick share)"
+"TikTok default (hold to speed up, quick share)","TikTok default (hold to speed up, quick share)"
+TikTok default (open the creator's profile),TikTok default (open the creator's profile)
 TikTok did not block %1$s. Try again in a moment.,TikTok did not block %1$s. Try again in a moment.
 TikTok did not unblock %1$s. Try again in a moment.,TikTok did not unblock %1$s. Try again in a moment.
 TikTok didn't accept the feedback. Try again later.,TikTok didn't accept the feedback. Try again later.
@@ -1124,7 +1133,7 @@ Undoing the last change,Undoing the last change
 "Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.","Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption."
 Use Calm feed,Use Calm feed
 Use Save JSON for this large report,Use Save JSON for this large report
-"Use TikTok's own hold, slide down and release gesture to lock 2x speed.","Use TikTok's own hold, slide down and release gesture to lock 2x speed."
+"Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.","Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another."
 Use a default playback speed,Use a default playback speed
 Use non-personalized search,Use non-personalized search
 Use system font,Use system font

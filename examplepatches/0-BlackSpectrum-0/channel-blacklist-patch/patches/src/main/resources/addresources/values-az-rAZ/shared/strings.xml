@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -37,6 +37,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_search_no_results_summary">Başqa açar sözü yoxla</string>
   <string name="morphe_settings_search_recent_searches">Son axtarışlar</string>
   <string name="morphe_settings_search_remove_message">Axtarış tarixçəsindən silinsin?</string>
+  <string name="morphe_settings_search_remove">Axtarış tarixçəsindən silinsin</string>
   <string name="morphe_settings_search_clear_history">Axtarış tarixçəsini təmizlə</string>
   <string name="morphe_settings_search_clear_history_message">Bütün axtarış tarixçəsini təmizləmək istədiyinizə əminsiniz?</string>
   <string name="morphe_settings_search_tips_title">Axtarış Tövsiyələri</string>
@@ -72,8 +73,8 @@ Yeni dilləri tərcümə etmək və ya mövcud tərcümələri təkmilləşdirm�
   <string name="morphe_settings_export_file_success">Tənzimləmələr uğurla köçürüldü</string>
   <string name="morphe_settings_export_file_failed">Tənzimləmələri köçürmək olmadı</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Siz ən son Morphe Patches versiyasın istifadə edirsiniz &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Siz Morphe Patches-in &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt; versiyasın istifadə edirsiniz. Yenilənmə var: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt; Yamaqlarınızı yeniləmək üçün bu tətbiqi yenidən yamaqlamağa Morphe istifadə edin</string>
+  <string name="morphe_settings_about_links_body_version_current">Siz ən son Spectre Patches versiyasın istifadə edirsiniz &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Siz Spectre Patches-in &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt; versiyasın istifadə edirsiniz. Yenilənmə var: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt; Yamaqlarınızı yeniləmək üçün bu tətbiqi yenidən yamaqlamağa Spectre istifadə edin</string>
   <string name="morphe_settings_about_links_dev_header">Qeyd</string>
   <string name="morphe_settings_about_links_dev_body">Bu versiya ilkin buraxılışdır və gözlənilməz problemlərlə üzləşə bilərsiniz</string>
   <string name="morphe_settings_about_links_header">Rəsmi bağlantılar</string>

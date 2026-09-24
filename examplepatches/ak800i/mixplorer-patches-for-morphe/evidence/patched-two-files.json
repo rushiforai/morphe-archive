@@ -1,0 +1,141 @@
+{
+  "action": "android.intent.action.SEND_MULTIPLE",
+  "type": "text\/*",
+  "flags": "0x1b0800c3",
+  "referrer": "android-app:\/\/com.mixplorer",
+  "receiverSourceCommit": "9552e5541e1274b9557c9832b204dbfcaf44b3dc",
+  "storagePermission": false,
+  "intent": "intent:#Intent;action=android.intent.action.SEND_MULTIPLE;type=text\/*;launchFlags=0x1b0800c3;component=dev.local.shareprobe\/.ShareProbeActivity;end",
+  "extraTypes": {
+    "mix_stream_uri": "java.util.ArrayList",
+    "extra_file_uris": "java.util.ArrayList",
+    "android.intent.extra.STREAM": "java.util.ArrayList"
+  },
+  "clipDescription": "ClipDescription { *\/* }",
+  "clipUris": [
+    "content:\/\/com.mixplorer.file\/509!\/MiXShareProbe-Stable-20260918-204412\/probe-alpha.txt",
+    "content:\/\/com.mixplorer.file\/509!\/MiXShareProbe-Stable-20260918-204412\/probe-beta.txt"
+  ],
+  "files": [
+    {
+      "uri": "content:\/\/com.mixplorer.file\/509!\/MiXShareProbe-Stable-20260918-204412\/probe-alpha.txt",
+      "uriReadPermission": true,
+      "mimeType": "text\/plain",
+      "metadata": {
+        "_display_name": "probe-alpha.txt",
+        "_size": "101",
+        "_data": null,
+        "last_modified": "1789748427000",
+        "date_modified": "1789748427",
+        "mime_type": "text\/plain"
+      },
+      "dataColumn": null,
+      "uriRead": {
+        "bytes": 101,
+        "sha256": "3dd37f611fc1cbc157c69c910d58fbe28f8776ab26fbc2f1d1bee8771727002e"
+      },
+      "modeledSingleFileRead": {
+        "resolvedDataPath": null,
+        "route": "content-uri-to-cache",
+        "exists": true,
+        "size": 101,
+        "payload": {
+          "bytes": 101,
+          "sha256": "3dd37f611fc1cbc157c69c910d58fbe28f8776ab26fbc2f1d1bee8771727002e"
+        },
+        "success": true
+      },
+      "modeledMultiFileRead": {
+        "resolvedDataPath": null,
+        "route": "content-uri-to-cache",
+        "exists": true,
+        "size": 101,
+        "payload": {
+          "bytes": 101,
+          "sha256": "3dd37f611fc1cbc157c69c910d58fbe28f8776ab26fbc2f1d1bee8771727002e"
+        },
+        "success": true
+      },
+      "metadataWithoutData": {
+        "_display_name": "probe-alpha.txt",
+        "_size": "101",
+        "_data": null,
+        "last_modified": "1789748427000",
+        "date_modified": "1789748427",
+        "mime_type": "text\/plain"
+      },
+      "adaptedMimeType": "text\/plain",
+      "modeledMultiFileReadWithoutData": {
+        "resolvedDataPath": null,
+        "route": "content-uri-to-cache",
+        "exists": true,
+        "size": 101,
+        "payload": {
+          "bytes": 101,
+          "sha256": "3dd37f611fc1cbc157c69c910d58fbe28f8776ab26fbc2f1d1bee8771727002e"
+        },
+        "success": true
+      }
+    },
+    {
+      "uri": "content:\/\/com.mixplorer.file\/509!\/MiXShareProbe-Stable-20260918-204412\/probe-beta.txt",
+      "uriReadPermission": true,
+      "mimeType": "text\/plain",
+      "metadata": {
+        "_display_name": "probe-beta.txt",
+        "_size": "119",
+        "_data": null,
+        "last_modified": "1789748427000",
+        "date_modified": "1789748427",
+        "mime_type": "text\/plain"
+      },
+      "dataColumn": null,
+      "uriRead": {
+        "bytes": 119,
+        "sha256": "91a804749e8b51de4a9f0cddbaae20d641c97cb2fb4846823f88456c407029e8"
+      },
+      "modeledSingleFileRead": {
+        "resolvedDataPath": null,
+        "route": "content-uri-to-cache",
+        "exists": true,
+        "size": 119,
+        "payload": {
+          "bytes": 119,
+          "sha256": "91a804749e8b51de4a9f0cddbaae20d641c97cb2fb4846823f88456c407029e8"
+        },
+        "success": true
+      },
+      "modeledMultiFileRead": {
+        "resolvedDataPath": null,
+        "route": "content-uri-to-cache",
+        "exists": true,
+        "size": 119,
+        "payload": {
+          "bytes": 119,
+          "sha256": "91a804749e8b51de4a9f0cddbaae20d641c97cb2fb4846823f88456c407029e8"
+        },
+        "success": true
+      },
+      "metadataWithoutData": {
+        "_display_name": "probe-beta.txt",
+        "_size": "119",
+        "_data": null,
+        "last_modified": "1789748427000",
+        "date_modified": "1789748427",
+        "mime_type": "text\/plain"
+      },
+      "adaptedMimeType": "text\/plain",
+      "modeledMultiFileReadWithoutData": {
+        "resolvedDataPath": null,
+        "route": "content-uri-to-cache",
+        "exists": true,
+        "size": 119,
+        "payload": {
+          "bytes": 119,
+          "sha256": "91a804749e8b51de4a9f0cddbaae20d641c97cb2fb4846823f88456c407029e8"
+        },
+        "success": true
+      }
+    }
+  ]
+}

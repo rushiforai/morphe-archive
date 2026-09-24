@@ -10,11 +10,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
-/**
- * Strips CleverTap (marketing/analytics SDK) initialization from the app
- * process and MainActivity.onCreate. CleverTap was configured to collect the
- * user's phone number as an identity key ("Identity,Phone").
- */
+/** Disables analytics initialization. */
 @Suppress("unused")
 val removeCleverTapPatch = bytecodePatch(
     name = "Remove CleverTap tracking",

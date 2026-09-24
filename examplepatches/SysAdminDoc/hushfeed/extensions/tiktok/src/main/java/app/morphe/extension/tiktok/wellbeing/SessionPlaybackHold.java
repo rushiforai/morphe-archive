@@ -15,7 +15,6 @@ import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,6 +31,13 @@ public final class SessionPlaybackHold {
     // A queued LIZ can still report PLAYING until its native dispatcher applies the pause.
     private static volatile boolean heldPauseObserved;
     private static WeakReference<Object> heldManager = new WeakReference<>(null);
+    // The pause switches' own pause (comments open, or the feed waiting for a tap after a
+    // return), kept apart from the panel's so neither hands back a video the other paused.
+    private static volatile boolean switchWanted;
+    private static final AtomicBoolean switchQueued = new AtomicBoolean();
+    // Main thread only, like held.
+    private static Target switchHeld;
+    private static WeakReference<Object> switchManager = new WeakReference<>(null);
     // Native requests may run on an executor while focus callbacks arrive on another thread.
     // Compare listener identity, and never retain an activity's listener through static state.
     private static final List<WeakReference<Object>> nativeFocusListeners = new ArrayList<>();
@@ -117,9 +123,50 @@ public final class SessionPlaybackHold {
         }
 
         boolean isCurrentCell(Object controller) {
-            Object aweme = Reflect.invoke(controller, "LIZIZ");
+            Object aweme;
+            try {
+                aweme = currentAweme(controller);
+            } catch (RuntimeException notAController) {
+                return false;
+            }
             return awemeId.equals(Reflect.invoke(aweme, "getAid"));
         }
+    }
+
+    /**
+     * What the hold calls on TikTok's player: the video a PlayerController has on screen, and its
+     * player manager's pause and resume. TikTok renames all three with every build (the pause was
+     * LIZ on 46.2.3 and is LJJLIIIJJI on 47.0.3, where LIZ reads a number instead), and naming
+     * them here left the hold covering a video that played on. So nothing here names them: the
+     * Block author patch reads them off PlayerController.pauseVideo and the For You feed's
+     * space-key toggle and writes these three bodies. Unpatched, as in the tests, they go to
+     * {@link #nativeForTests}.
+     */
+    interface NativeControls {
+        Object currentAweme(Object controller);
+        void pause(Object manager);
+        void resume(Object manager);
+    }
+
+    static volatile NativeControls nativeForTests;
+
+    static Object currentAweme(Object controller) {
+        NativeControls controls = nativeForTests;
+        return controls == null ? null : controls.currentAweme(controller);
+    }
+
+    static boolean pauseNative(Object manager) {
+        NativeControls controls = nativeForTests;
+        if (controls == null) return false;
+        controls.pause(manager);
+        return true;
+    }
+
+    static boolean resumeNative(Object manager) {
+        NativeControls controls = nativeForTests;
+        if (controls == null) return false;
+        controls.resume(manager);
+        return true;
     }
 
     /** Called with p0 and p1 from PlayerController.onPlayProgressChange(String, long, long). */
@@ -148,6 +195,14 @@ public final class SessionPlaybackHold {
                     }
                 }
             }
+            // TikTok starts the video again by itself, on a return above all, so while a pause
+            // switch wants it stopped each report of it playing pauses it again.
+            if (switchWanted && switchQueued.compareAndSet(false, true)) {
+                MAIN.post(() -> {
+                    switchQueued.set(false);
+                    pauseForSwitchIfPlaying();
+                });
+            }
             return;
         }
         if (!syncQueued.compareAndSet(false, true)) return;
@@ -169,11 +224,61 @@ public final class SessionPlaybackHold {
         if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))) return;
         // TikTok's feed play/pause control uses this same manager pair. Pause is queued by the
         // native engine, so successful intent is owned without requiring an immediate state flip.
-        if (invoke(manager, "LIZ")) {
+        if (control(manager, true)) {
             held = target;
             heldManager = new WeakReference<>(manager);
             waitingForFocus = null;
             heldPauseObserved = false;
+        }
+    }
+
+    /**
+     * The pause switches want the video on screen stopped: the comments are open, or the feed is
+     * waiting for a tap after a return. They ask for the audio focus, and TikTok 47.0.3's player
+     * plays on through that, so they stop it the way the panel does, with TikTok's own pause: now
+     * if it is playing, and again on any report of it playing, until {@link #releaseForSwitch}.
+     * Main thread.
+     */
+    public static void pauseForSwitch() {
+        switchWanted = true;
+        pauseForSwitchIfPlaying();
+    }
+
+    /**
+     * The switch is done. With {@code resume} the video it paused plays on from where it stopped,
+     * but only while it is still the one on screen in the same player and no panel is up; a video
+     * the reader had paused was never taken, so it is never started. A panel that came up in
+     * between keeps the video stopped after it, for the reader to start. Going away passes false,
+     * since TikTok stops its player itself then. Main thread.
+     */
+    public static void releaseForSwitch(boolean resume) {
+        switchWanted = false;
+        Target owner = switchHeld;
+        Object manager = switchManager.get();
+        switchHeld = null;
+        switchManager.clear();
+        if (!resume || owner == null || manager == null || SessionBudget.isLocked()) return;
+        Object controller = owner.controller.get();
+        if (current != owner || !owner.isCurrentCell(controller)
+                || Reflect.invoke(controller, "getPlayerManager") != manager) return;
+        // As in release: playing can still be the state before the queued pause, and the resume
+        // queues behind it.
+        if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))
+                && !Boolean.TRUE.equals(Reflect.invoke(manager, "isPaused"))) return;
+        control(manager, false);
+    }
+
+    private static void pauseForSwitchIfPlaying() {
+        if (!switchWanted || SessionBudget.isLocked()) return;
+        Target target = current;
+        if (target == null) return;
+        Object controller = target.controller.get();
+        if (!target.isCurrentCell(controller)) return;
+        Object manager = Reflect.invoke(controller, "getPlayerManager");
+        if (!Boolean.TRUE.equals(Reflect.invoke(manager, "isPlaying"))) return;
+        if (control(manager, true)) {
+            switchHeld = target;
+            switchManager = new WeakReference<>(manager);
         }
     }
 
@@ -226,20 +331,16 @@ public final class SessionPlaybackHold {
             return;
         }
         forgetHeld();
-        invoke(manager, "LJIILL");
+        control(manager, false);
     }
 
-    private static boolean invoke(Object manager, String name) {
+    private static boolean control(Object manager, boolean pause) {
         if (manager == null) return false;
-        Method method = Reflect.method(manager.getClass(), name);
-        if (method == null) {
-            Logger.printDebug(() -> "The session hold could not find native playback control " + name);
-            return false;
-        }
         try {
-            method.invoke(manager);
-            return true;
-        } catch (Exception failure) {
+            boolean done = pause ? pauseNative(manager) : resumeNative(manager);
+            if (!done) Logger.printDebug(() -> "The session hold has no native playback control");
+            return done;
+        } catch (RuntimeException failure) {
             Logger.printException(() -> "The session hold could not change native playback", failure);
             return false;
         }

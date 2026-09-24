@@ -1,0 +1,17 @@
+package app.yydarlinker.deepseekcaptions;
+import org.junit.Test;import static org.junit.Assert.*;import java.util.*;
+public class SemanticAsrR6Test {
+    private SourceAtomTimeline.Result track(boolean reference,boolean nativeClock){
+        List<SourceAtomTimeline.Atom>a=new ArrayList<>();
+        for(int i=0;i<16;i++){long t=i*500L+(reference?(i<8?100:350):0);a.add(new SourceAtomTimeline.Atom(t,t+400,"word"+i,i,nativeClock));}
+        return new SourceAtomTimeline.Result(a,16,nativeClock?16:0,nativeClock?0:16,true,false);
+    }
+    @Test public void localAsrTracksVariableDelayAndPreservesText(){SourceAtomTimeline.Result p=track(false,false),a=track(true,true),r=AsrLocalTiming.align(p,a);assertNotSame(p,r);for(int i=0;i<16;i++){assertEquals(p.atoms.get(i).text,r.atoms.get(i).text);assertEquals(a.atoms.get(i).startMs,r.atoms.get(i).startMs);assertEquals(a.atoms.get(i).endMs,r.atoms.get(i).endMs);}}
+    @Test public void estimatedAsrCannotMasqueradeAsNative(){SourceAtomTimeline.Result p=track(false,false);assertSame(p,AsrLocalTiming.align(p,track(true,false)));}
+    @Test public void unrelatedTrackFallsBack(){SourceAtomTimeline.Result p=track(false,false),a=track(true,true);List<SourceAtomTimeline.Atom> other=new ArrayList<>();for(SourceAtomTimeline.Atom x:a.atoms)other.add(new SourceAtomTimeline.Atom(x.startMs,x.endMs,"foreign",x.cueIndex,true));assertSame(p,AsrLocalTiming.align(p,new SourceAtomTimeline.Result(other,16,16,0,true,false)));}
+    @Test public void silenceCannotAdvanceDisplayClock(){PlaybackClockEstimator c=new PlaybackClockEstimator();c.reset(1000,1000,1);c.update(2000,2000,2000);for(long now=2000;now<20000;now+=100){c.estimate(now);assertEquals(2000,c.confirmedPosition());}c.update(2100,20001,2000);assertEquals(2100,c.confirmedPosition());}
+    @Test public void evenFastCallbacksAndSeekUseConfirmedPosition(){PlaybackClockEstimator c=new PlaybackClockEstimator();c.reset(1000,1000,1);c.update(1010,1010,2000);assertEquals(1010,c.confirmedPosition());c.update(100,3000,500);assertEquals(100,c.confirmedPosition());assertEquals(100,SemanticCaptionTimeline.presentationTime(100));}
+    @Test public void transportWindowIsNotASubtitle(){List<SourceAtomTimeline.Atom>a=new ArrayList<>();for(int i=0;i<48;i++)a.add(new SourceAtomTimeline.Atom(i*250,(i+1)*250,"word"+i,i,true));TranslationUnitTimeline.Result r=AnchoredWindowPlanner.build(new SourceAtomTimeline.Result(a,48,48,0,true,false));assertEquals(1,r.units.size());assertEquals(12000,r.units.get(0).endMs);assertEquals(7000,CaptionPresentationPolicy.MAX_MS);}
+    @Test public void failureFallbackIsLabelledAndKeepsSilence(){SourceAtomTimeline.Result p=track(false,false);TranslationUnitTimeline.Unit u=AnchoredWindowPlanner.build(p).units.get(0);assertEquals("[原文 / Original] word0",CaptionFailureFallback.text(p.atoms,u,100));assertEquals("",CaptionFailureFallback.text(p.atoms,u,450));assertEquals("",CaptionFailureFallback.text(p.atoms,u,u.endMs));}
+    @Test public void contextAndProtocolStayBounded(){String text=String.join(" ",Collections.nCopies(100,"context"));assertTrue(ContextualBatchApiClient.boundedContext(Arrays.asList(text),true).length()<=160);assertTrue(ContextualBatchApiClient.boundedContext(Arrays.asList(text),false).length()<=160);assertTrue(AnchoredCaptionPlan.PROMPT.contains("not word by word"));assertTrue(CaptionPresentationPolicy.requestRules().contains("timed_words"));}
+}

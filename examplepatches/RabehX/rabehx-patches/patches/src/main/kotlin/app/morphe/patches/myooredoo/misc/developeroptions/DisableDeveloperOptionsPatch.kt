@@ -16,22 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-/**
- * Neutralizes every path the app uses to detect that Developer Options /
- * USB debugging are enabled. The UI shows a blocking dialog
- * ("For your safety, please turn off developer settings on your phone.")
- * whenever any of these channels reports "enabled".
- *
- * The reads happen through `Settings$Secure.getInt` inside:
- *  - MainActivity's MethodChannel dispatcher ("isDeveloperOptionsOn"/"isUsbDebugOn")
- *  - com.xamdesign.safe_device (DevelopmentModeCheck)
- *  - com.example.root_checker_plus (isDeveloperMode)
- *  - com.emrys.rjsniffer (runprog3 adb gate)
- *
- * Strategy: zero the result of every `Settings$Secure.getInt` call for the
- * two security keys inside the flagged methods, and force the dedicated
- * boolean checks to return false.
- */
+/** Disables developer options detection. */
 @Suppress("unused")
 val disableDeveloperOptionsPatch = bytecodePatch(
     name = "Disable developer options detection",
@@ -42,10 +27,7 @@ val disableDeveloperOptionsPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY_MYOOREDOO)
 
     execute {
-        /**
-         * Zero the result of `Settings$Secure.getInt(...)` instructions found in the method,
-         * so both "development_settings_enabled" and "adb_enabled" always read as 0.
-         */
+        /** Updates security setting checks. */
         fun neutralizeSecureGetInt(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
             val implementation = method.implementation ?: return
             val insns = implementation.instructions.toList()

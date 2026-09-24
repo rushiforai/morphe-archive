@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="morphe_maloja_category_title">Maloja</string>
+    <string name="morphe_maloja_enabled_title">Enabled</string>
+    <string name="morphe_maloja_server_url_title">Server URL</string>
+    <string name="morphe_maloja_server_url_summary">Base URL of your Maloja server, such as https://maloja.example.com</string>
+    <string name="morphe_maloja_api_key_title">API key</string>
+    <string name="morphe_maloja_api_key_summary">API key configured in your Maloja server</string>
+    <string name="morphe_maloja_verify_title">Verify connection</string>
+    <string name="morphe_maloja_verify_summary_missing">Set the server URL and API key first</string>
+    <string name="morphe_maloja_verify_summary_ready">Tap to check the server URL and API key</string>
+    <string name="morphe_maloja_verify_toast_checking">Checking Maloja server…</string>
+    <string name="morphe_maloja_verify_toast_valid">Connected to Maloja: %s</string>
+    <string name="morphe_maloja_verify_toast_invalid">Maloja rejected the API key: %s</string>
+    <string name="morphe_maloja_verify_toast_failed">Could not reach Maloja: %s</string>
+    <string name="morphe_maloja_min_song_duration_title">Minimum song duration</string>
+    <string name="morphe_maloja_min_song_duration_summary">Songs shorter than this many seconds are not scrobbled (10 to 60)</string>
+    <string name="morphe_maloja_delay_percent_title">Scrobble at (percent of song)</string>
+    <string name="morphe_maloja_delay_percent_summary">Percentage of the song that must play before it is scrobbled (30 to 95)</string>
+    <string name="morphe_maloja_delay_seconds_title">Scrobble after (seconds)</string>
+    <string name="morphe_maloja_delay_seconds_summary">Seconds that must play before the song is scrobbled, whichever comes first (30 to 360)</string>
+    <string name="morphe_maloja_metadata_cleanup_title">Clean up metadata</string>
+    <string name="morphe_maloja_metadata_cleanup_summary">Remove tags such as (Official Video), (Remastered) and "- Topic" before scrobbling</string>
+    <string name="morphe_maloja_custom_regex_title">Custom cleanup regex</string>
+    <string name="morphe_maloja_custom_regex_summary">Matches of this regular expression are removed from the title, artist and album</string>
+    <string name="morphe_maloja_parse_title_title">Parse "Artist - Title"</string>
+    <string name="morphe_maloja_parse_title_summary">Use the artist and title from a "Artist - Title" track name</string>
+</resources>

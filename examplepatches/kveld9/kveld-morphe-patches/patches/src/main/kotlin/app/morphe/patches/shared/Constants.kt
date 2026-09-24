@@ -105,7 +105,7 @@ object Constants {
     )
 
     const val NOKOPRINT_PACKAGE_NAME = "com.nokoprint"
-    const val NOKOPRINT_TARGET_VERSION = "5.10.8"
+    const val NOKOPRINT_TARGET_VERSION = "5.28.4"
 
     val COMPATIBILITY_NOKOPRINT = Compatibility(
         name = "NokoPrint - WiFi, Bluetooth, USB",
@@ -115,7 +115,7 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = NOKOPRINT_TARGET_VERSION,
-                description = "Download com.nokoprint v$NOKOPRINT_TARGET_VERSION (nodpi APK) from APKMirror",
+                description = "Download com.nokoprint v$NOKOPRINT_TARGET_VERSION (XAPK bundle) from APKPure",
             )
         )
     )
@@ -147,6 +147,8 @@ object Constants {
     const val TIKTOK_EXTENSION_PRIVACY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokPrivacyHook;"
     const val TIKTOK_EXTENSION_REFRESH_RATE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokRefreshRateHook;"
     const val TIKTOK_EXTENSION_OFFLINE_VIDEOS_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokOfflineVideosHook;"
+    const val TIKTOK_EXTENSION_AUTOPAUSE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokAutoPauseHook;"
+    const val TIKTOK_EXTENSION_SEARCH_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSearchHook;"
     const val BRAVE_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/BraveExtension;"
     const val CHROMIUM_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/ChromiumExtension;"
 }

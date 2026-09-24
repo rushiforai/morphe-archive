@@ -48,10 +48,13 @@ public final class AutoAdvance {
     /**
      * The panel's own Auto scroll action, which hangs off a second flag. Hidden, it is absent
      * whatever the flag or the feed gate says; advance on end runs from the component's own
-     * start, not from that entry, so the switch takes nothing else with it.
+     * start, not from that entry, so the switch takes nothing else with it. The same flag feeds
+     * one other reader, the tablet bottom bar's Auto scroll control, which goes with it. The
+     * hide switch is a child of Auto-advance: with that off its row is greyed out, and it hides
+     * nothing, so an account in TikTok's rollout keeps TikTok's own action.
      */
     public static boolean panelAvailable(boolean nativeValue) {
-        if (Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.get()) return false;
+        if (Settings.AUTO_ADVANCE.get() && Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION.get()) return false;
         return available(nativeValue);
     }
 

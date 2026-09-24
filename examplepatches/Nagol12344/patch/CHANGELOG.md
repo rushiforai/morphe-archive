@@ -1,3 +1,26 @@
+## [1.7.0](https://github.com/Nagol12344/patch/compare/v1.6.0...v1.7.0) (2026-09-24)
+
+### ✨ New Features
+
+* **fix:** totally how these commit messages should work ([9cb03db](https://github.com/Nagol12344/patch/commit/9cb03db5c25f14e5cac12221065885d46e94cf00))
+
+## [1.6.0](https://github.com/Nagol12344/patch/compare/v1.5.0...v1.6.0) (2026-09-24)
+
+### ✨ New Features
+
+* **why:** abcd ([e4398d5](https://github.com/Nagol12344/patch/commit/e4398d56788dcfbd87d18211f92f6837b4255d3a))
+
+## [1.5.0](https://github.com/Nagol12344/patch/compare/v1.4.1...v1.5.0) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **extension:** make buildCharityFramework work on CI runners ([56c4280](https://github.com/Nagol12344/patch/commit/56c4280139bf1e2279ec5f85a5b07994eb097d07))
+
+### ✨ New Features
+
+* **bplace:** inject Charity Framework into bplace WebView ([57429ad](https://github.com/Nagol12344/patch/commit/57429ad555cce9938cbc1aeda17458689b9d0c30))
+* vendor Charity Framework source into repo ([2a21dc9](https://github.com/Nagol12344/patch/commit/2a21dc923fc0fed9733d6d403b0d298c1705df9a))
+
 ## [1.4.1](https://github.com/Nagol12344/patch/compare/v1.4.0...v1.4.1) (2026-08-11)
 
 ### 🐛 Bug Fixes

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<morphe-add-on-preferences xmlns:android="http://schemas.android.com/apk/res/android">
+    <screen after="morphe_music_lastfm" key="morphe_settings_music_screen_6_scrobbling">
+        <PreferenceCategory android:key="morphe_maloja" android:title="@string/morphe_maloja_category_title">
+            <SwitchPreference
+                android:key="morphe_maloja_enabled"
+                android:title="@string/morphe_maloja_enabled_title" />
+            <EditTextPreference
+                android:key="morphe_maloja_server_url"
+                android:title="@string/morphe_maloja_server_url_title"
+                android:summary="@string/morphe_maloja_server_url_summary"
+                android:inputType="textUri"
+                android:dependency="morphe_maloja_enabled" />
+            <EditTextPreference
+                android:key="morphe_maloja_api_key"
+                android:title="@string/morphe_maloja_api_key_title"
+                android:summary="@string/morphe_maloja_api_key_summary"
+                android:inputType="textPassword"
+                android:dependency="morphe_maloja_enabled" />
+            <app.enigma.extension.music.maloja.MalojaVerifyPreference
+                android:key="morphe_maloja_verify"
+                android:title="@string/morphe_maloja_verify_title"
+                android:dependency="morphe_maloja_enabled" />
+            <EditTextPreference
+                android:key="morphe_maloja_min_song_duration"
+                android:title="@string/morphe_maloja_min_song_duration_title"
+                android:summary="@string/morphe_maloja_min_song_duration_summary"
+                android:inputType="number"
+                android:dependency="morphe_maloja_enabled" />
+            <EditTextPreference
+                android:key="morphe_maloja_delay_percent"
+                android:title="@string/morphe_maloja_delay_percent_title"
+                android:summary="@string/morphe_maloja_delay_percent_summary"
+                android:inputType="number"
+                android:dependency="morphe_maloja_enabled" />
+            <EditTextPreference
+                android:key="morphe_maloja_delay_seconds"
+                android:title="@string/morphe_maloja_delay_seconds_title"
+                android:summary="@string/morphe_maloja_delay_seconds_summary"
+                android:inputType="number"
+                android:dependency="morphe_maloja_enabled" />
+            <SwitchPreference
+                android:key="morphe_maloja_metadata_cleanup"
+                android:title="@string/morphe_maloja_metadata_cleanup_title"
+                android:summary="@string/morphe_maloja_metadata_cleanup_summary"
+                android:dependency="morphe_maloja_enabled" />
+            <EditTextPreference
+                android:key="morphe_maloja_custom_regex"
+                android:title="@string/morphe_maloja_custom_regex_title"
+                android:summary="@string/morphe_maloja_custom_regex_summary"
+                android:dependency="morphe_maloja_metadata_cleanup" />
+            <SwitchPreference
+                android:key="morphe_maloja_parse_title"
+                android:title="@string/morphe_maloja_parse_title_title"
+                android:summary="@string/morphe_maloja_parse_title_summary"
+                android:dependency="morphe_maloja_enabled" />
+        </PreferenceCategory>
+    </screen>
+</morphe-add-on-preferences>

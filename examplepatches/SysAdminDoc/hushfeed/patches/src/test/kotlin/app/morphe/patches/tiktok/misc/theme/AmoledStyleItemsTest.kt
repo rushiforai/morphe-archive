@@ -22,14 +22,18 @@ class AmoledStyleItemsTest {
               <style name="zb"><item name="agk">#ff1e1e1e</item><item name="c3">#ffffffff</item></style>
               <style name="z6"><item name="dy">#1effffff</item><item name="agk">?attr/aut</item></style>
               <style name="a_0"><item name="agk">#1d2026</item></style>
+              <style name="zf"><item name="aia">#ff1e1e1e</item><item name="axi">#ffffffff</item></style>
             </resources>
             """.trimIndent(),
         )
 
         val changed = rewriteDarkStyleItems(styles, SHEET_STYLE_ITEMS, "#000000")
 
-        assertEquals(setOf("agk", "c3"), changed)
-        assertEquals(listOf("#000000", "#000000", "#000000", "#ffffffff", "#1effffff", "?attr/aut", "#000000"), values(styles))
+        assertEquals(setOf("agk", "c3", "aia"), changed)
+        assertEquals(
+            listOf("#000000", "#000000", "#000000", "#ffffffff", "#1effffff", "?attr/aut", "#000000", "#000000", "#ffffffff"),
+            values(styles),
+        )
     }
 
     @Test
@@ -41,11 +45,20 @@ class AmoledStyleItemsTest {
     @Test
     fun `a declared build needs every sheet item and a forced build needs one`() {
         assertEquals(setOf("47.0.3"), declaredVersions())
-        checkSheetStyleItems(setOf("agk", "c3"), "47.0.3", setOf("47.0.3"))
+        checkSheetStyleItems(setOf("agk", "c3", "aia"), "47.0.3", setOf("47.0.3"))
+        assertRefused { checkSheetStyleItems(setOf("agk", "c3"), "47.0.3", setOf("47.0.3")) }
         checkSheetStyleItems(setOf("agk"), "46.9.3", setOf("47.0.3"))
         checkSheetStyleItems(setOf("agk"), null, setOf("47.0.3"))
         assertRefused { checkSheetStyleItems(setOf("agk"), "47.0.3", setOf("47.0.3")) }
         assertRefused { checkSheetStyleItems(emptySet(), "46.9.3", setOf("47.0.3")) }
+    }
+
+    /** The review of a02d0d67: on 46.7.3 to 46.9.3 aia is UISheetGrouped3's dark value, another tier. */
+    @Test
+    fun `aia is rewritten only on a declared build`() {
+        assertEquals(SHEET_STYLE_ITEMS, sheetStyleItems("47.0.3", setOf("47.0.3")))
+        assertEquals(setOf("agk", "c3"), sheetStyleItems("46.9.3", setOf("47.0.3")))
+        assertEquals(setOf("agk", "c3"), sheetStyleItems(null, setOf("47.0.3")))
     }
 
     private fun assertRefused(check: () -> Unit) {

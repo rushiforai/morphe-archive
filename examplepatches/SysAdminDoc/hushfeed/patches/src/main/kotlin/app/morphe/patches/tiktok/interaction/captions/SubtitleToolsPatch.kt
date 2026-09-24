@@ -21,6 +21,8 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/captions/"
@@ -76,21 +78,28 @@ val subtitleToolsPatch = bytecodePatch(
             "Subtitle tools: ${render.parameterTypes[1]} has no EXPANDED field, so it is not the " +
                 "caption state this reads."
         }
-        val layoutSetter = render.implementation!!.instructions.mapNotNull { it.getReference<MethodReference>() }
-            .filter { it.name == "setTextLayout" && it.parameterTypes == listOf("Landroid/text/Layout;") }
-            .distinctBy { it.toString() }.singleOrNull()
-            ?: throw PatchException(
-                "Subtitle tools: the caption render does not call exactly one " +
-                    "setTextLayout(Layout).",
-            )
-        (mutableClassDefBy(layoutSetter.definingClass).methods.singleOrNull {
-            it.name == layoutSetter.name && it.parameterTypes == layoutSetter.parameterTypes
-        } ?: throw PatchException(
-            "Subtitle tools: ${layoutSetter.definingClass} has no ${layoutSetter.name} to take " +
-                "the caption layout through.",
-        )).addInstructions(0, """
-            invoke-static/range { p1 .. p1 }, ${EXTENSION}CaptionStyle;->layout(Landroid/text/Layout;)Landroid/text/Layout;
-            move-result-object p1
+        // The caption's layout goes through CaptionStyle at the render's own call. The setter
+        // belongs to TikTok's shared text view (X.09F7 on 47.0.3, which the feed description
+        // draws with as well), so a hook inside it gave other text the caption size.
+        val layoutCalls = render.implementation!!.instructions.withIndex().filter { (_, instruction) ->
+            instruction.getReference<MethodReference>()?.let {
+                it.name == "setTextLayout" && it.parameterTypes == listOf("Landroid/text/Layout;")
+            } == true
+        }
+        val layoutCall = layoutCalls.singleOrNull() ?: throw PatchException(
+            "Subtitle tools: the caption render calls setTextLayout(Layout) ${layoutCalls.size} " +
+                "times, not once.",
+        )
+        val layoutRegister = when (val call = layoutCall.value) {
+            is FiveRegisterInstruction -> call.registerD
+            is RegisterRangeInstruction -> call.startRegister + 1
+            else -> throw PatchException("Subtitle tools: the caption render's setTextLayout call has no layout register.")
+        }
+        // The register is overwritten with the styled layout, which is what the view is given; on
+        // 47.0.3 nothing reads it after the call before writing it again.
+        render.addInstructionsAtControlFlowLabel(layoutCall.index, """
+            invoke-static/range { v$layoutRegister .. v$layoutRegister }, ${EXTENSION}CaptionStyle;->layout(Landroid/text/Layout;)Landroid/text/Layout;
+            move-result-object v$layoutRegister
         """)
         render.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
             .map { it.index }.reversed().forEach { index ->

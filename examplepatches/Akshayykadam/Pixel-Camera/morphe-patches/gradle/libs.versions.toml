@@ -1,0 +1,9 @@
+[versions]
+morphe-patcher = "1.8.0"
+smali = "d92701d947"
+gson = "2.11.0"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+smali = { module = "com.github.MorpheApp.smali:smali-dexlib2", version.ref = "smali" }

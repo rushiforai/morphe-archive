@@ -29,12 +29,15 @@ import org.robolectric.annotation.Config;
  * <p>Hand-built fakes carry the values someone thought to write down. The server sends defaults
  * nobody thought of: Hide series emptied feeds three times because of that gap (#5, #20, #24), the
  * last time over an episode number of "0" on every ordinary profile post. The files under
- * {@code feed-markers/} hold what 426 real videos carried, recorded by the probe's
- * {@code marker-corpus} action with the verdicts Hushfeed gave them on the phone: 276 from four
- * broad routes, then paid partnership results, a search for Series and a playlist. Each file names
+ * {@code feed-markers/} hold what 428 real videos carried, recorded by the probe's
+ * {@code marker-corpus} action with the verdicts Hushfeed gave them on the phone: 266 from four
+ * broad routes, then paid partnership results, a search for Series, a playlist and 12 episodes of
+ * TikTok's short dramas, which are the corpus's Series positives as well. Each file names
  * the build whose filters gave its verdicts. Every ordinary video has to stay ordinary and every
  * labelled one has to stay caught. For You, profile and search were recorded again once the probe
- * read {@code playlist_info}: no ordinary video among them carries one, default or otherwise.
+ * read {@code playlist_info}: no ordinary video among them carries one, default or otherwise. For
+ * You was recorded once more once it read the drama fields, category and card type exactly: all
+ * 59 carry category 0, no inserted card, no drama text and no drama card.
  *
  * <p>The files hold shapes, never content: booleans, filter-equivalent number and text classes,
  * and capped collection sizes. {@link #theCorpusHoldsShapesAndNoContent} holds them to that.
@@ -43,24 +46,28 @@ import org.robolectric.annotation.Config;
 @Config(sdk = 28)
 public class ContentMarkerCorpusTest {
     private static final String[] ROUTES = {
-            "for-you", "profile", "following", "search", "paid", "series", "playlist"
+            "for-you", "profile", "following", "search", "paid", "series", "playlist", "drama"
     };
     private static final Set<String> BROAD_ROUTES = Set.of("for-you", "profile", "following", "search");
-    private static final String[] MARKERS = {"ai", "paid", "series", "playlist"};
+    private static final String[] MARKERS = {"ai", "paid", "series", "playlist", "drama"};
     private static final Set<String> TOKENS = Set.of(
             "b", "num", "txt", "obj", "n", "s", "slen", "sblank", "snum", "c", "m", "o");
     /** Every field the probe records and, for a struct, the names inside it. Nothing else may appear. */
-    private static final Map<String, Set<String>> SHAPE_FIELDS = Map.of(
-            "aigcInfo", Set.of("aigcLabelType"),
-            "moderationAigcInfo", Set.of("moderationAigcLabelType", "moderationUserLabelStatus"),
-            "brandContentAccounts", Set.of(),
-            "commerceVideoAuthInfo", Set.of("isBrandedContent", "isBrandOrganicContent", "brandedContentType",
-                    "brandOrganicType", "ecSearchBoBcLabelText", "isCommerce"),
-            "commercialVideoInfo", Set.of(),
-            "isPaidContent", Set.of(),
-            "mPaidContentInfo", Set.of("paidCollectionId", "collectionName", "episodeNumber", "isPaidCollectionIntro"),
-            "playlist_info", Set.of("mixId"),
-            "mixInfo", Set.of("mixId", "mixName"));
+    private static final Map<String, Set<String>> SHAPE_FIELDS = Map.ofEntries(
+            Map.entry("aigcInfo", Set.of("aigcLabelType")),
+            Map.entry("moderationAigcInfo", Set.of("moderationAigcLabelType", "moderationUserLabelStatus")),
+            Map.entry("brandContentAccounts", Set.of()),
+            Map.entry("commerceVideoAuthInfo", Set.of("isBrandedContent", "isBrandOrganicContent", "brandedContentType",
+                    "brandOrganicType", "ecSearchBoBcLabelText", "isCommerce")),
+            Map.entry("commercialVideoInfo", Set.of()),
+            Map.entry("isPaidContent", Set.of()),
+            Map.entry("mPaidContentInfo", Set.of("paidCollectionId", "collectionName", "episodeNumber",
+                    "isPaidCollectionIntro", "isLimitedFreeShortDrama", "miniDramaInfo", "category")),
+            // The drama card hangs off mPaidContentInfo; the probe records it as a field of its own.
+            Map.entry("miniDramaCardInfo", Set.of("cardType", "dramas")),
+            Map.entry("cardInsertInfo", Set.of("cardType")),
+            Map.entry("playlist_info", Set.of("mixId")),
+            Map.entry("mixInfo", Set.of("mixId", "mixName")));
 
     @Test public void noOrdinaryVideoMatchesAContentMarker() throws Exception {
         List<String> matched = new ArrayList<>();
@@ -108,11 +115,10 @@ public class ContentMarkerCorpusTest {
 
     /**
      * Without recorded positives, a filter that stopped hiding anything passes every other test
-     * here. Series has none yet: TikTok 47.0.3 showed no Series entry anywhere on the test account,
-     * creators who sold one in 2023 now offer Subscription instead, microseries moved to the
-     * separate PineDrama app, and the 56 videos recorded while looking carry the default
-     * PaidContentInfo. The fakes in ContentAndSoundFilterTest hold the Series side until one is
-     * recorded (Roadmap_Blocked.md).
+     * here. Series had none for a long time: TikTok 47.0.3 showed no Series entry anywhere on the
+     * test account, creators who sold one in 2023 now offer Subscription instead, and the 56 videos
+     * recorded while looking carry the default PaidContentInfo. Its positives came with the drama
+     * route; see {@link #seriesAndDramaHaveThreeRecordedExamplesEach}.
      */
     @Test public void paidAndPlaylistHaveThreeRecordedExamplesEach() throws Exception {
         Map<String, Integer> counts = new HashMap<>();
@@ -130,6 +136,37 @@ public class ContentMarkerCorpusTest {
             assertTrue(marker + " has only " + counts.getOrDefault(marker, 0) + " recorded examples",
                     counts.getOrDefault(marker, 0) >= 3);
         }
+    }
+
+    /**
+     * TikTok's short dramas, recorded in its series viewer after a search for short dramas on the
+     * S22 (2026-09-23). A drama episode is sold as a paid Series, so every one must stay a Series
+     * as well as a drama, and those are the Series positives the broad routes never had. A
+     * promotion card is a drama without being a Series, so only paid episodes are held to that.
+     */
+    @Test public void seriesAndDramaHaveThreeRecordedExamplesEach() throws Exception {
+        int series = 0;
+        int dramas = 0;
+        List<String> dramaNotSeries = new ArrayList<>();
+        for (String route : ROUTES) {
+            JSONArray items = corpus(route).getJSONArray("items");
+            for (int i = 0; i < items.length(); i++) {
+                Set<String> markers = new LinkedHashSet<>();
+                JSONArray recorded = items.getJSONObject(i).getJSONArray("markers");
+                for (int m = 0; m < recorded.length(); m++) markers.add(recorded.getString(m));
+                if (markers.contains("series")) series++;
+                if (markers.contains("drama")) {
+                    dramas++;
+                    JSONObject shape = items.getJSONObject(i).getJSONObject("shape");
+                    boolean paidEpisode = shape.optJSONObject("isPaidContent") != null
+                            && shape.getJSONObject("isPaidContent").optBoolean("b");
+                    if (paidEpisode && !markers.contains("series")) dramaNotSeries.add(route + " #" + i);
+                }
+            }
+        }
+        assertTrue("series has only " + series + " recorded examples", series >= 3);
+        assertTrue("drama has only " + dramas + " recorded examples", dramas >= 3);
+        assertEquals("drama episodes the Series filter would miss", Collections.emptyList(), dramaNotSeries);
     }
 
     @Test public void shapeTokensPreserveEveryObservationTheFiltersMake() throws Exception {
@@ -225,7 +262,7 @@ public class ContentMarkerCorpusTest {
     private static Set<String> verdicts(Aweme video) {
         IFilter[] filters = {new ContentMarkerFilters.AiGeneratedFilter(),
                 new ContentMarkerFilters.PaidPartnershipFilter(), new ContentMarkerFilters.SeriesFilter(),
-                new ContentMarkerFilters.PlaylistFilter()};
+                new ContentMarkerFilters.PlaylistFilter(), new ContentMarkerFilters.DramaFilter()};
         Set<String> out = new LinkedHashSet<>();
         for (int i = 0; i < filters.length; i++) {
             if (filters[i].getFiltered(video)) out.add(MARKERS[i]);
@@ -253,9 +290,12 @@ public class ContentMarkerCorpusTest {
         video.commerceVideoAuthInfo = struct(shape, "commerceVideoAuthInfo", new ReplayCommerce());
         video.commercialVideoInfo = value(shape.opt("commercialVideoInfo"));
         video.isPaidContent = value(shape.opt("isPaidContent"));
-        video.mPaidContentInfo = struct(shape, "mPaidContentInfo", new ReplayPaidContent());
+        ReplayPaidContent paid = (ReplayPaidContent) struct(shape, "mPaidContentInfo", new ReplayPaidContent());
+        if (paid != null) paid.miniDramaCardInfo = struct(shape, "miniDramaCardInfo", new ReplayDramaCard());
+        video.mPaidContentInfo = paid;
         video.playlist_info = struct(shape, "playlist_info", new ReplayPlaylistInfo());
         video.mixInfo = struct(shape, "mixInfo", new ReplayMix());
+        video.cardInsertInfo = struct(shape, "cardInsertInfo", new ReplayCardInsert());
         return video;
     }
 
@@ -348,7 +388,7 @@ public class ContentMarkerCorpusTest {
     /** Field-shaped stand-ins; the filters read getter first and field second, like on the phone. */
     public static final class ReplayVideo extends Aweme {
         public Object aigcInfo, moderationAigcInfo, brandContentAccounts, commerceVideoAuthInfo,
-                commercialVideoInfo, isPaidContent, mPaidContentInfo, playlist_info, mixInfo;
+                commercialVideoInfo, isPaidContent, mPaidContentInfo, playlist_info, mixInfo, cardInsertInfo;
     }
 
     public static final class ReplayAigc {
@@ -365,7 +405,16 @@ public class ContentMarkerCorpusTest {
     }
 
     public static final class ReplayPaidContent {
-        public Object paidCollectionId, collectionName, episodeNumber, isPaidCollectionIntro;
+        public Object paidCollectionId, collectionName, episodeNumber, isPaidCollectionIntro,
+                isLimitedFreeShortDrama, miniDramaInfo, miniDramaCardInfo, category;
+    }
+
+    public static final class ReplayCardInsert {
+        public Object cardType;
+    }
+
+    public static final class ReplayDramaCard {
+        public Object cardType, dramas;
     }
 
     public static final class ReplayPlaylistInfo {

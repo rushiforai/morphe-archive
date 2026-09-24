@@ -88,6 +88,8 @@ final class FeedFilterFeedback {
                 new MarkerSwitch(feedFilter, Settings.HIDE_VERIFIED.key, "Hide verified accounts"));
         MARKER_SWITCHES.put("SeriesFilter",
                 new MarkerSwitch(feedFilter, Settings.HIDE_SERIES.key, "Hide Series"));
+        MARKER_SWITCHES.put("DramaFilter",
+                new MarkerSwitch(feedFilter, Settings.HIDE_MINI_DRAMAS.key, "Hide mini dramas"));
         MARKER_SWITCHES.put("PlaylistFilter",
                 new MarkerSwitch(feedFilter, Settings.HIDE_PLAYLIST_VIDEOS.key, "Hide playlist videos"));
         MARKER_SWITCHES.put("PromotionalMusicFilter",
@@ -318,6 +320,7 @@ final class FeedFilterFeedback {
         if ("AiGeneratedFilter".equals(reason)) return "AI-generated posts";
         if ("VerifiedFilter".equals(reason)) return "Verified accounts";
         if ("SeriesFilter".equals(reason)) return "Series posts";
+        if ("DramaFilter".equals(reason)) return "Mini dramas";
         if ("PlaylistFilter".equals(reason)) return "Playlist posts";
         if ("InsertedCardFilter".equals(reason)) return "Inserted cards";
         if ("MidAdFilter".equals(reason)) return "Mid-roll ads";

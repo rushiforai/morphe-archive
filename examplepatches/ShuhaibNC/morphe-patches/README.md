@@ -29,7 +29,7 @@ A collection of patches that I think would be useful to add, based on features, 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
+> **[v1.10.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
 <details open>
 <summary>📦 apk-signer&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -108,6 +108,21 @@ A collection of patches that I think would be useful to add, based on features, 
 </details>
 
 <details open>
+<summary>📦 GoCut&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.0.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock GoCut Pro](#unlock-gocut-pro) | Enables premium features and functionality in the GoCut application. |  |
+
+</details>
+
+<details open>
 <summary>📦 Mvideo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -119,6 +134,21 @@ A collection of patches that I think would be useful to add, based on features, 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Mvideo VIP](#unlock-mvideo-vip) | All VIP features are unlocked. |  |
+
+</details>
+
+<details open>
+<summary>📦 OviCut&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.3.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock OviCut Pro](#unlock-ovicut-pro) | Enables premium features and functionality in the OviCut application. |  |
 
 </details>
 

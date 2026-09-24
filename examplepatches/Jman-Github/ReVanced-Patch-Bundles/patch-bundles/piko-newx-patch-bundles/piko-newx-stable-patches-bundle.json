@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-22T23:46:59",
-  "description": "### \ud83d\udc1b Bug Fixes\n* **Twitter - newx:** rename inline download template token to userName ([c0dd037](https://github.com/crimera/piko/commit/c0dd037aa96ce20b538b523d2af5baae58890e67))",
-  "download_url": "https://github.com/crimera/piko-newx/releases/download/v3.33.1/patches.mpp",
-  "signature_download_url": "https://github.com/crimera/piko-newx/releases/download/v3.33.1/patches.mpp.asc",
-  "version": "v3.33.1"
+  "created_at": "2026-09-23T14:09:25",
+  "description": "### \u2728 New Features\n* **Twitter:** add inline download resolution chooser and quality preferences ([dbade44](https://github.com/crimera/piko/commit/dbade44644d2fbb3490a6d79788f4c4455abc80c))",
+  "download_url": "https://github.com/crimera/piko-newx/releases/download/v3.35.0/patches.mpp",
+  "signature_download_url": "https://github.com/crimera/piko-newx/releases/download/v3.35.0/patches.mpp.asc",
+  "version": "v3.35.0"
 }

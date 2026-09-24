@@ -353,10 +353,10 @@ public final class Haiagaru {
 
     public static void onApplicationCreate(Application application) {
         if (application == null) return;
-        Context context = application.getApplicationContext();
-        applicationContext = context == null ? application : context;
-        runtimePackageName = application.getPackageName();
-        applyUserAgent();
+        // Keep the same process-wide application context used by the provider
+        // hook.  The provider runs before ChMate creates its HTTP clients, so
+        // applying the UA there is required for the first request after restart.
+        initializeApplicationContext(application);
     }
 
     private static void initializeApplicationContext(Context context) {
@@ -368,6 +368,7 @@ public final class Haiagaru {
         runtimePackageName = appContext.getPackageName();
         migrateRestoredPackageReferences(appContext);
         HttpsTransport.setEnabled(preferences(appContext).getBoolean("forceHttps", false));
+        applyUserAgent();
     }
 
     /** Installs the optional crash logger before ChMate's startup provider does any work. */
@@ -1130,6 +1131,98 @@ public final class Haiagaru {
         }
     }
 
+    /**
+     * Recreates 0.8.10.241's Talk authentication request without entering the
+     * generated digest routine.  That routine derives the correct HMAC but can
+     * throw a numeric integrity exception before returning it after an update.
+     */
+    public static Object invokeIoTalkAuth(
+            java.lang.reflect.Method method,
+            Object target,
+            Object[] arguments
+    ) {
+        if (method == null) throw new NullPointerException("method");
+        if ("o.setTimeUpdate".equals(method.getDeclaringClass().getName())
+                && "b".equals(method.getName())
+                && arguments != null && arguments.length == 4
+                && arguments[1] instanceof String
+                && arguments[2] instanceof String
+                && arguments[3] instanceof Number) {
+            try {
+                return requestIoTalkAuth(
+                        (String) arguments[1],
+                        (String) arguments[2],
+                        ((Number) arguments[3]).longValue());
+            } catch (Throwable error) {
+                return Haiagaru.<RuntimeException, Object>throwUnchecked(error);
+            }
+        }
+        return invokeIoTalkPoster(method, target, arguments);
+    }
+
+    private static String requestIoTalkAuth(String id, String password, long suppliedTime)
+            throws Exception {
+        // Keep ChMate 241's wire format: the caller supplies epoch seconds and
+        // the generated authenticator reduces it once more before sending CT.
+        long authTime = suppliedTime / 1000L;
+        String appKey = "KkaD9iXqKv9lp2luO9SuaTL8lmvRPj";
+        String digestInput = id + password + appKey + authTime;
+
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(
+                "eaGheElQLJ6QJNOKHLxWL15GvgLkVn".getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256"));
+        byte[] digest = mac.doFinal(digestInput.getBytes(StandardCharsets.UTF_8));
+        StringBuilder hex = new StringBuilder(digest.length * 2);
+        for (byte item : digest) hex.append(String.format(Locale.ROOT, "%02x", item & 0xff));
+
+        String form = "ID=" + java.net.URLEncoder.encode(id, "UTF-8")
+                + "&PW=" + java.net.URLEncoder.encode(password, "UTF-8")
+                + "&KY=" + java.net.URLEncoder.encode(appKey, "UTF-8")
+                + "&CT=" + authTime
+                + "&HB=" + hex;
+        byte[] body = form.getBytes(StandardCharsets.UTF_8);
+        java.net.HttpURLConnection connection = (java.net.HttpURLConnection)
+                new java.net.URL("https://api.talk-platform.com/v1/auth/").openConnection();
+        connection.setConnectTimeout(15000);
+        connection.setReadTimeout(15000);
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty(
+                "Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        connection.setFixedLengthStreamingMode(body.length);
+        try {
+            java.io.OutputStream output = connection.getOutputStream();
+            output.write(body);
+            output.close();
+            int status = connection.getResponseCode();
+            java.io.InputStream input = status >= 400
+                    ? connection.getErrorStream() : connection.getInputStream();
+            String response = readUtf8Response(input);
+            String firstLine = response == null ? "" : response.split("[\\r\\n]", 2)[0];
+            if (status < 200 || status >= 300 || firstLine.length() <= 26) {
+                throw new java.io.IOException(
+                        "Talk authentication failed (HTTP " + status + "): " + firstLine);
+            }
+            return firstLine.substring(26);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static String readUtf8Response(java.io.InputStream input) throws java.io.IOException {
+        if (input == null) return "";
+        java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int count;
+        try {
+            while ((count = input.read(buffer)) >= 0) output.write(buffer, 0, count);
+        } finally {
+            input.close();
+        }
+        return new String(output.toByteArray(), StandardCharsets.UTF_8);
+    }
+
     /** Recreates 241's two Talk headers without entering its re-signing trap. */
     private static void applyIoTalkPostHeaders(Object[] arguments) throws Exception {
         Object requestBuilder = arguments[0];
@@ -1647,20 +1740,110 @@ public final class Haiagaru {
         safePostCollapseAdView(view, 2500);
     }
 
-    private static void collapseAdView(View view) {
-        collapseView(view);
-        collapseAdContainer(view);
+    /** Removes empty inline slots left between Talk response rows. */
+    public static void hideTalkThreadBlankRows(Activity activity) {
+        if (activity == null || !shouldHideAds()) return;
+        View root = activity.getWindow() == null
+                ? null : activity.getWindow().getDecorView();
+        if (!(root instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) root;
+        Runnable scan = () -> collapseTalkBlankRows(group);
+        group.post(scan);
+        group.postDelayed(scan, 300);
+        group.postDelayed(scan, 1000);
+        group.postDelayed(scan, 2500);
     }
 
-    private static void collapseAdContainer(View adView) {
-        if (!(adView.getParent() instanceof ViewGroup)) return;
-
-        ViewGroup container = (ViewGroup) adView.getParent();
-        // The tablet thread layout reserves a fixed-height wrapper for the banner. Collapse
-        // only a wrapper whose sole child is the ad, leaving normal content containers intact.
-        if (container.getChildCount() == 1 && container.getChildAt(0) == adView) {
-            collapseView(container);
+    private static void collapseTalkBlankRows(View view) {
+        if (!(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        String name = group.getClass().getName();
+        if (name.contains("RecyclerView") || name.contains("AbsListView")
+                || name.contains("ScrollView")) {
+            for (int i = 0; i < group.getChildCount(); i++) {
+                collapseTalkBlankRows(group.getChildAt(i));
+            }
+            return;
         }
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            // 0.8.10.241 leaves its inline-ad slot as a large childless
+            // ViewGroup. Do not recursively classify arbitrary UI containers as
+            // empty here: ChMate's bottom bar uses custom-drawn Views that have
+            // no text/background and would otherwise be mistaken for spacers.
+            if (child.getVisibility() == View.VISIBLE
+                    && child instanceof ViewGroup
+                    && ((ViewGroup) child).getChildCount() == 0
+                    && child.getHeight() >= dp(child.getContext(), 160)) {
+                collapseView(child);
+                continue;
+            }
+            collapseTalkBlankRows(child);
+        }
+    }
+
+    private static void collapseAdView(View view) {
+        boolean wasLaidOut = view != null && view.getHeight() > 0;
+        collapseView(view);
+        collapseAdContainer(view, wasLaidOut);
+    }
+
+    private static void collapseAdContainer(View adView, boolean wasLaidOut) {
+        // onViewCreated can reach the ad before measure/layout. At that point every
+        // sibling also has height 0; walking upward would incorrectly collapse the
+        // whole HomeActivity root and leave a black screen on launch.
+        if (adView == null || !wasLaidOut) return;
+        View current = adView;
+        // Talk's inline slot is sometimes wrapped in a FrameLayout containing a second,
+        // already-empty spacer. The old sole-child check left that wrapper at its reserved
+        // height, producing a large blank row between two responses. Walk only the small
+        // wrapper chain and collapse a parent after every child has become empty or hidden.
+        for (int depth = 0; depth < 4 && current.getParent() instanceof ViewGroup; depth++) {
+            ViewGroup container = (ViewGroup) current.getParent();
+            String name = container.getClass().getName();
+            if (name.contains("RecyclerView") || name.contains("AbsListView")
+                    || name.contains("ScrollView")) {
+                return;
+            }
+            boolean hasVisibleChild = false;
+            for (int i = 0; i < container.getChildCount(); i++) {
+                View child = container.getChildAt(i);
+                if (child.getVisibility() == View.VISIBLE && child.getHeight() > 0
+                        && !isEmptySpacer(child)) {
+                    hasVisibleChild = true;
+                    break;
+                }
+            }
+            if (hasVisibleChild) return;
+            collapseView(container);
+            current = container;
+        }
+    }
+
+    private static boolean isEmptySpacer(View view) {
+        if (view == null || view.getVisibility() != View.VISIBLE || view.getHeight() <= 0) {
+            return true;
+        }
+        if (view instanceof TextView) {
+            CharSequence text = ((TextView) view).getText();
+            return (text == null || text.length() == 0)
+                    && view.getBackground() == null;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            // Talk 241 places the inline ad in a childless FrameLayout. The SDK
+            // background remains attached even after the ad has no content, so
+            // background presence alone cannot make this a non-empty row.
+            if (group.getChildCount() == 0
+                    && view.getHeight() >= dp(view.getContext(), 160)) {
+                return true;
+            }
+            for (int i = 0; i < group.getChildCount(); i++) {
+                if (!isEmptySpacer(group.getChildAt(i))) return false;
+            }
+            return view.getBackground() == null;
+        }
+        return view.getBackground() == null;
     }
 
     private static void collapseView(View view) {

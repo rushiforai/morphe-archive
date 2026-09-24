@@ -101,6 +101,70 @@ function Get-ReleaseBundlePath {
     return Join-Path $Root "patches/build/release/patches-$Version.mpp"
 }
 
+function Get-SourcesNewerThanBundle {
+    <#
+    .SYNOPSIS
+        The source files written after the bundle was built, newest first.
+    .DESCRIPTION
+        Only :patches:buildAndroid writes the release bundle, and :patches:test rebuilds
+        build/libs without it, so a device build made after a patch change and a test run
+        patched with the previous hooks (2026-09-23, Swipe-left controls). Counted: the sources of
+        the patches module and its submodules (patches/src/main, patches/<submodule>/src/main,
+        the compile-only stubs among them, whose constants can be inlined into patch code), the
+        sources of every extension module (extensions/<module>/src/main and
+        extensions/<module>/<submodule>/src/main), the Gradle files that shape them, and the R8
+        rules (*.pro at extensions/ and in each module, extensions/proguard-rules.pro being the
+        one every extension's R8 step reads). Build output is never under src/main, so it is not
+        walked.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string]$Bundle
+    )
+
+    $built = (Get-Item -LiteralPath $Bundle).LastWriteTimeUtc
+    $sourceRoots = @()
+    $gradleFiles = @('gradle.properties', 'settings.gradle.kts', 'build.gradle.kts', 'gradle/libs.versions.toml') |
+        ForEach-Object { Join-Path $Root $_ }
+    $ruleDirs = @()
+    $patches = Join-Path $Root 'patches'
+    $moduleDirs = @()
+    if (Test-Path -LiteralPath $patches -PathType Container) {
+        $moduleDirs += @(Get-Item -LiteralPath $patches) + @(Get-ChildItem -LiteralPath $patches -Directory |
+            Where-Object { $_.Name -notin @('src', 'build') })
+    }
+    $extensions = Join-Path $Root 'extensions'
+    if (Test-Path -LiteralPath $extensions -PathType Container) {
+        $ruleDirs += $extensions
+        foreach ($module in Get-ChildItem -LiteralPath $extensions -Directory) {
+            $moduleDirs += @($module) + @(Get-ChildItem -LiteralPath $module.FullName -Directory |
+                Where-Object { $_.Name -notin @('src', 'build') })
+        }
+    }
+    foreach ($dir in $moduleDirs) {
+        $sourceRoots += Join-Path $dir.FullName 'src/main'
+        $gradleFiles += Join-Path $dir.FullName 'build.gradle.kts'
+        $ruleDirs += $dir.FullName
+    }
+    foreach ($dir in $ruleDirs) {
+        $gradleFiles += @(Get-ChildItem -LiteralPath $dir -File -Filter '*.pro' -ErrorAction SilentlyContinue |
+            ForEach-Object FullName)
+    }
+    $newer = New-Object System.Collections.Generic.List[System.IO.FileInfo]
+    foreach ($sourceRoot in $sourceRoots) {
+        if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) { continue }
+        foreach ($file in Get-ChildItem -LiteralPath $sourceRoot -File -Recurse) {
+            if ($file.LastWriteTimeUtc -gt $built) { $newer.Add($file) }
+        }
+    }
+    foreach ($path in $gradleFiles) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { continue }
+        $file = Get-Item -LiteralPath $path
+        if ($file.LastWriteTimeUtc -gt $built) { $newer.Add($file) }
+    }
+    return @($newer | Sort-Object LastWriteTimeUtc -Descending)
+}
+
 function Resolve-DesktopCli {
     <#
     .SYNOPSIS

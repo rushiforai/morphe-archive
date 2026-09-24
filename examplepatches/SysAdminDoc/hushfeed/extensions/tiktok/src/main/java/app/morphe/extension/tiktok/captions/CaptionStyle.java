@@ -74,9 +74,55 @@ public final class CaptionStyle {
         android.content.Context context = Utils.getContext();
         if (context == null) return original;
         TextPaint paint = new TextPaint(original.getPaint());
-        paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, size, context.getResources().getDisplayMetrics()));
-        return new StaticLayout(original.getText(), paint, Math.max(1, original.getWidth()),
+        android.util.DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, size, metrics));
+        int cap = metrics.widthPixels
+                - Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, TIKTOK_MARGINS_DP, metrics));
+        int width = width(original.getWidth(), original.getPaint().getTextSize(), paint.getTextSize(), cap);
+        Layout built = build(original, paint, width);
+        // TikTok sizes the caption view to its layout and builds that layout as wide as its
+        // longest line, so the strip behind it fits the text. A layout left wider than its text
+        // left an empty band beside it (refutation review of ecf26b6c).
+        int longest = longestLine(built);
+        if (longest > 0 && longest < width) {
+            Layout fitted = build(original, paint, longest);
+            if (fitted.getLineCount() == built.getLineCount()) return fitted;
+        }
+        return built;
+    }
+
+    /**
+     * TikTok's own limit on a caption's width is the screen less these: 12 or 16 dp of margin,
+     * 72 dp for the rail of buttons and 6 dp either side ({@code X.0B1g} on 47.0.3), so a caption
+     * no wider than the screen less 100 dp stays clear of the rail on every layout.
+     */
+    private static final float TIKTOK_MARGINS_DP = 100;
+
+    private static Layout build(Layout original, TextPaint paint, int width) {
+        return new StaticLayout(original.getText(), paint, width,
                 original.getAlignment(), original.getSpacingMultiplier(), original.getSpacingAdd(), true);
+    }
+
+    /** The widest line's drawn width, trailing spaces left out. */
+    static int longestLine(Layout layout) {
+        float widest = 0;
+        for (int line = 0; line < layout.getLineCount(); line++) widest = Math.max(widest, layout.getLineMax(line));
+        return (int) Math.ceil(widest);
+    }
+
+    /**
+     * The width a caption is laid out in at the chosen size. TikTok hands over the width it
+     * measured for its own text, and kept as it was, a bigger size wrapped into that narrow column
+     * and split words ("conditio" over "ns." at 28 on the S22). It grows with the text, so the
+     * lines break where TikTok's did, up to TikTok's own limit ({@code cap}); past that, lines wrap
+     * between words, and only a single word wider than the limit still breaks. Never narrower
+     * than TikTok's own width.
+     */
+    static int width(int measured, float from, float to, int cap) {
+        int base = Math.max(1, measured);
+        if (from <= 0 || to <= from) return base;
+        int grown = (int) Math.ceil(base * (double) to / from);
+        return Math.min(grown, Math.max(base, cap));
     }
 
     static void apply(View root) {

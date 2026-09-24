@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Installation documentation
+    url: https://github.com/Solvo37/vk-video-morphe-patches/blob/main/docs/INSTALL.md
+    about: Check installation and Obtainium instructions before filing a bug.

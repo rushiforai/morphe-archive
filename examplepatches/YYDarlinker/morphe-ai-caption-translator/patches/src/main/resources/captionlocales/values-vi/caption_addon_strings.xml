@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cap_ai_title" formatted="false">"Dịch phụ đề bằng AI"</string>
+    <string name="cap_enable_ai" formatted="false">"Bật dịch phụ đề bằng AI"</string>
+    <string name="cap_api_config" formatted="false">"Cấu hình API"</string>
+    <string name="cap_api_address" formatted="false">"Địa chỉ API"</string>
+    <string name="cap_api_key" formatted="false">"Khóa API"</string>
+    <string name="cap_model" formatted="false">"Mô hình"</string>
+    <string name="cap_test_api" formatted="false">"Kiểm tra API"</string>
+    <string name="cap_translation" formatted="false">"Dịch"</string>
+    <string name="cap_translation_requirements" formatted="false">"Yêu cầu dịch"</string>
+    <string name="cap_style" formatted="false">"Kiểu phụ đề"</string>
+    <string name="cap_size" formatted="false">"Cỡ phụ đề"</string>
+    <string name="cap_opacity" formatted="false">"Độ đục nền"</string>
+    <string name="cap_reset_position" formatted="false">"Đặt lại vị trí phụ đề"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"Bộ nhớ đệm và chẩn đoán"</string>
+    <string name="cap_clear_cache" formatted="false">"Xóa bộ nhớ đệm phụ đề"</string>
+    <string name="cap_delete_key" formatted="false">"Xóa khóa API"</string>
+    <string name="cap_text_debug" formatted="false">"Gỡ lỗi văn bản phụ đề"</string>
+    <string name="cap_diagnostics" formatted="false">"Chẩn đoán phụ đề"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"Xóa chẩn đoán"</string>
+    <string name="cap_preview" formatted="false">"Xem trước phụ đề"</string>
+    <string name="cap_landscape" formatted="false">"Ngang"</string>
+    <string name="cap_portrait" formatted="false">"Dọc"</string>
+    <string name="cap_to_landscape" formatted="false">"Chuyển sang ngang"</string>
+    <string name="cap_to_portrait" formatted="false">"Chuyển sang dọc"</string>
+    <string name="cap_refresh" formatted="false">"Làm mới"</string>
+    <string name="cap_copy" formatted="false">"Sao chép"</string>
+    <string name="cap_expand" formatted="false">"Mở rộng"</string>
+    <string name="cap_collapse" formatted="false">"Thu gọn"</string>
+    <string name="cap_cancel" formatted="false">"Hủy"</string>
+    <string name="cap_delete" formatted="false">"Xóa"</string>
+    <string name="cap_saved" formatted="false">"Đã tự động lưu"</string>
+    <string name="cap_autosave" formatted="false">"Thay đổi được tự động lưu"</string>
+    <string name="cap_enter_key" formatted="false">"Nhập khóa API"</string>
+    <string name="cap_key_saved" formatted="false">"Đã lưu mã hóa; nhập để thay thế"</string>
+    <string name="cap_model_hint" formatted="false">"Chọn mô hình hoặc nhập ID"</string>
+    <string name="cap_preview_hint" formatted="false">"Chạm hình để đổi hướng; xem trước tức thì"</string>
+    <string name="cap_size_hint" formatted="false">"Cỡ tương đối 12–22, theo kích thước video"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% trong suốt, 100% đục; thả để lưu"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"Mở rộng để xem và sao chép chẩn đoán"</string>
+    <string name="cap_use_youtube" formatted="false">"Dùng YouTube"</string>
+    <string name="cap_use_ai" formatted="false">"Dùng AI"</string>
+    <string name="cap_on" formatted="false">"Bật"</string>
+    <string name="cap_off" formatted="false">"Tắt"</string>
+    <string name="cap_configure_api" formatted="false">"Cấu hình API trước khi bật dịch bằng AI"</string>
+    <string name="cap_switch_failed" formatted="false">"Không thể chuyển; đã khôi phục chế độ trước"</string>
+    <string name="cap_choose_translation" formatted="false">"Chọn ngôn ngữ dịch tự động trong trình đơn phụ đề"</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"Khi tắt, YouTube hiển thị phụ đề riêng"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Phụ đề gốc hoạt động trực tiếp; dịch AI cần khóa API"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"Đã bật; chọn ngôn ngữ dịch tự động để dùng phụ đề AI"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"Ghi nguyên văn và bản dịch vào chẩn đoán, chỉ bật khi khắc phục sự cố"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"Không ghi nguyên văn hoặc bản dịch phụ đề"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"Ghi văn bản để khắc phục sự cố; mặc định tắt"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"Kiểm tra kết nối bằng cấu hình đã lưu"</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"Chỉ dịch tự động sử dụng API; phụ đề gốc không bị dịch"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"Đặt lại vị trí dọc, giữ cỡ chữ và nền"</string>
+    <string name="cap_message_10d1b374429d" formatted="false">"Hiển thị khi chỉnh sửa; xóa khi đóng và lưu mã hóa"</string>
+    <string name="cap_message_7da9039cc193" formatted="false">"Khóa API phải nằm trên một dòng"</string>
+    <string name="cap_message_bafa7b1ca6cb" formatted="false">"Địa chỉ API phải bắt đầu bằng https:// hoặc http://"</string>
+    <string name="cap_message_bbbcd9c8bf80" formatted="false">"Không thể tự động lưu"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"Không thể lưu mô hình"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"Cài đặt không xác định"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; giữ giá trị hợp lệ gần nhất"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"Đã đặt lại vị trí phụ đề"</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"Đã xóa bộ nhớ đệm phụ đề"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"Xóa khóa API?"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"Chỉ xóa khóa API được mã hóa trên thiết bị này. Các cài đặt khác giữ nguyên."</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"Đã xóa khóa API"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"Đã xóa chẩn đoán"</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"Đã sao chép chẩn đoán"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"Đang kiểm tra…"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API khả dụng: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"Kiểm tra API thất bại: "</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"Đang làm mới danh sách mô hình…"</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"Đang tải danh sách mô hình…"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"Không tải được mô hình; hãy nhập ID: "</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"Đã cập nhật danh sách mô hình"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"Chưa có yêu cầu dịch. Cấu hình API, chọn ngôn ngữ dịch tự động rồi làm mới chẩn đoán."</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"Bộ máy: "</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"Chế độ: "</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"Dịch tự động"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"Phụ đề gốc (không dùng API dịch)"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"Gỡ lỗi văn bản: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"Giai đoạn mới nhất: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"Mốc thời gian và lỗi (có dấu thời gian): "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"Sự kiện gần đây: "</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"Không thể đọc chẩn đoán: "</string>
+    <string name="cap_message_c34848823d86" formatted="false">" (khoảng "</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" giây trước)"</string>
+    <string name="cap_mode_pending" formatted="false">"Đã lưu chế độ. Chế độ sẽ được áp dụng khi phụ đề của video này sẵn sàng."</string>
+    <string name="cap_mode_off_pending" formatted="false">"Đã tắt AI. Phụ đề YouTube sẽ tiếp tục khi bản phụ đề gốc sẵn sàng."</string>
+    <string name="cap_flyout_title" formatted="false">"Công tắc phụ đề AI trong menu video thường"</string>
+    <string name="cap_flyout_summary" formatted="false">"Hiện lối tắt trong menu trình phát. Ẩn lối tắt không tắt phụ đề AI; có hiệu lực khi mở lại menu."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Công tắc phụ đề AI trong menu Shorts"</string>
+    <string name="cap_profiles_title" formatted="false">"Hồ sơ API"</string>
+    <string name="cap_profile_default" formatted="false">"Cấu hình ban đầu"</string>
+    <string name="cap_profile_name" formatted="false">"Tên hồ sơ"</string>
+    <string name="cap_profile_rename" formatted="false">"Đổi tên"</string>
+    <string name="cap_profile_add" formatted="false">"Thêm hồ sơ"</string>
+    <string name="cap_profiles_summary" formatted="false">"Quản lý hồ sơ hiện tại"</string>
+    <string name="cap_profile_name_error" formatted="false">"Nhập tên dài từ 1 đến 60 ký tự"</string>
+    <string name="cap_profile_limit" formatted="false">"Có thể lưu tối đa 30 hồ sơ"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"Sửa các trường chưa hoàn tất trước khi đổi hồ sơ"</string>
+    <string name="cap_profile_add_failed" formatted="false">"Không thể thêm hồ sơ. Kiểm tra các trường và giới hạn 30 hồ sơ."</string>
+    <string name="cap_profile_manage" formatted="false">"Quản lý hồ sơ hiện tại"</string>
+    <string name="cap_profile_close" formatted="false">"Đóng"</string>
+    <string name="cap_profile_save" formatted="false">"Lưu"</string>
+    <string name="cap_profile_current" formatted="false">"Hồ sơ hiện tại"</string>
+    <string name="cap_profile_delete" formatted="false">"Xóa hồ sơ"</string>
+    <string name="cap_profile_clear_key" formatted="false">"Xóa khóa API của hồ sơ này"</string>
+    <string name="cap_profile_keep_one" formatted="false">"Giữ lại ít nhất một hồ sơ. Bạn có thể xóa khóa API của hồ sơ đó."</string>
+    <string name="cap_profile_new_summary" formatted="false">"Hồ sơ mới có hướng dẫn dịch mặc định, không sao chép khóa hay mô hình. Điền các trường trên trang cài đặt sau khi tạo."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"Xóa địa chỉ, mô hình, hướng dẫn dịch và khóa mã hóa của hồ sơ này khỏi thiết bị. Giữ các hồ sơ khác và cài đặt phụ đề. Nếu đang dùng, hồ sơ đầu tiên còn lại sẽ được kích hoạt. Không thể hoàn tác."</string>
+    <string name="cap_profile_clear_key_summary" formatted="false">"Chỉ xóa khóa đã lưu và phần nhập khóa chưa lưu của hồ sơ này. Giữ địa chỉ, mô hình, hướng dẫn và các hồ sơ khác. Không thu hồi khóa ở phía nhà cung cấp."</string>
+    <string name="cap_prompt_summary" formatted="false">"Lưu cho hồ sơ này. Để trống để khôi phục hướng dẫn mặc định theo ngôn ngữ giao diện. Nội dung bạn sửa được giữ nguyên."</string>
+    <string name="cap_default_prompt" formatted="false">"Dịch trung thực, tự nhiên và súc tích sang ngôn ngữ đích bằng cách diễn đạt bản ngữ. Giữ nguyên tên, thuật ngữ, số liệu, giọng điệu và dấu câu cần thiết. Không thêm giải thích không có trong bản gốc."</string>
+    <string name="cap_profile_more" formatted="false">"Thao tác hồ sơ"</string>
+    <string name="cap_profile_collapse" formatted="false">"Thu gọn thao tác"</string>
+    <string name="cap_profile_finish_name" formatted="false">"Hãy lưu hoặc hủy thay đổi tên trước."</string>
+    <string name="cap_profile_delete_inline" formatted="false">"Xóa hồ sơ này và khóa đã lưu khỏi thiết bị? Các hồ sơ khác được giữ lại. Không thể hoàn tác."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"Sau khi xóa, kích hoạt:"</string>
+    <string name="cap_profile_keep" formatted="false">"Giữ hồ sơ"</string>
+    <string name="cap_profile_confirm_delete" formatted="false">"Xác nhận xóa"</string>
+    <string name="cap_source_retry" formatted="false">"Kết nối phụ đề bị gián đoạn. Đang thử lại…"</string>
+    <string name="cap_source_unavailable" formatted="false">"Không thể tải phụ đề gốc. Hãy chọn lại bản phụ đề."</string>
+    <string name="cap_caption_overflow" formatted="false">"Phụ đề quá dài — không có văn bản gốc"</string>
+    <string name="cap_quality_outcome" formatted="false">"Kiểm tra cục bộ: chấp nhận / từ chối (chất lượng)"</string>
+</resources>

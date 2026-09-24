@@ -86,8 +86,11 @@ val adRemovalPatch = bytecodePatch(
         val fingerprint = Fingerprint(
             name = "invokeSuspend",
             returnType = "Ljava/lang/Object;",
-            custom = { _, classDef ->
-                classDef.sourceFile == "StartupManager.kt"
+            custom = { method, _ ->
+                method.instructions.any { inst ->
+                    inst.opcode == Opcode.CONST_WIDE_16 &&
+                            (inst as? com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction)?.wideLiteral == 2000L
+                }
             }
         )
 

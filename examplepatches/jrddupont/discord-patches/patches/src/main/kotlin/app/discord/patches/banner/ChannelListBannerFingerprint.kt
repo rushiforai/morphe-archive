@@ -15,7 +15,17 @@ package app.discord.patches.banner
  * isDismissed + AdCreativeType QUEST/BOUNTY dispatch +
  * QuestContent.QUEST_BAR_MOBILE, no try/catch):
  *
+ * - 346.13 Stable: fn 62203 (offset 33116380, 535 bytes, frame 198).
+ *   Same checks plus new eligibility hooks (useIsQuestExpired,
+ *   getIsEligibleForQuests, getDeliveredAdCreativeId); head gained a
+ *   CreateFunctionEnvironment, so the edit covers GPE + CFE.
  * - 344.13 Stable: fn 60429 (offset 32664515, 477 bytes, frame 79).
+ *
+ * v1.5.0+: the patch is self-locating (no anchors). It finds the gate
+ * as the single function referencing QUEST_BAR_MOBILE + isDismissed +
+ * userStatus, checks the head against HEAD_SHAPES, and applies the same
+ * 6-byte return-null edit. History above is the proof set, not config.
+ *
  *   Same shape as the 342/343 gate with shifted registers.
  * - 342.16 Stable: fn 59152 (offset 32358749, 387 bytes, frame 251).
  * - 343.12 Stable: fn 59938 (offset 32531367, 387 bytes, frame 49).

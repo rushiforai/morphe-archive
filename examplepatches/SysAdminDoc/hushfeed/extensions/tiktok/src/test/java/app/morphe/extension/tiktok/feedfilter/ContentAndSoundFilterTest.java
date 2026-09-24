@@ -29,9 +29,11 @@ public class ContentAndSoundFilterTest {
         Utils.setContext(RuntimeEnvironment.getApplication());
         markers = new IFilter[]{new ContentMarkerFilters.AiGeneratedFilter(),
                 new ContentMarkerFilters.PaidPartnershipFilter(), new ContentMarkerFilters.SeriesFilter(),
-                new ContentMarkerFilters.PlaylistFilter(), new ContentMarkerFilters.VerifiedFilter()};
+                new ContentMarkerFilters.PlaylistFilter(), new ContentMarkerFilters.VerifiedFilter(),
+                new ContentMarkerFilters.DramaFilter()};
         switches = new BooleanSetting[]{Settings.HIDE_AI_GENERATED, Settings.HIDE_PAID_PARTNERSHIP,
-                Settings.HIDE_SERIES, Settings.HIDE_PLAYLIST_VIDEOS, Settings.HIDE_VERIFIED};
+                Settings.HIDE_SERIES, Settings.HIDE_PLAYLIST_VIDEOS, Settings.HIDE_VERIFIED,
+                Settings.HIDE_MINI_DRAMAS};
         for (BooleanSetting setting : switches) setting.save(false);
         Settings.HIDE_BLOCKED_SOUNDS.save(false);
         Settings.BLOCKED_SOUND_IDS.save("");

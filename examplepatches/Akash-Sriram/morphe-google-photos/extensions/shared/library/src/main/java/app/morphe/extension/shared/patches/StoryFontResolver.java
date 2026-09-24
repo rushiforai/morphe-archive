@@ -580,16 +580,30 @@ public final class StoryFontResolver {
                 File fontsDir = getFontsDir(context);
                 if (!fontsDir.exists()) fontsDir.mkdirs();
 
+                // 1. Immediately extract bundled local Google Sans fonts (offline & instant)
                 ensureGoogleSans(context, fontsDir);
 
-                for (String[] entry : FONT_CATALOG) {
-                    String filename = entry[2];
-                    String url = entry[3];
-                    File dest = new File(fontsDir, filename);
-                    if (!dest.exists() || dest.length() < 1000) {
-                        CdnAssetDownloader.download(url, dest);
-                    }
-                }
+                // 2. Defer external CDN font downloading to not compete with initial photo sync
+                Utils.runOnMainThreadDelayed(() -> {
+                    Thread fontDownloader = new Thread(() -> {
+                        try {
+                            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+                            for (String[] entry : FONT_CATALOG) {
+                                String filename = entry[2];
+                                String url = entry[3];
+                                File dest = new File(fontsDir, filename);
+                                if (!dest.exists() || dest.length() < 1000) {
+                                    CdnAssetDownloader.download(url, dest);
+                                }
+                            }
+                        } catch (Throwable t) {
+                            Logger.printInfo(() -> TAG + ": Background font download failed: " + t.getMessage());
+                        }
+                    }, "StoryFontCDNPreloader");
+                    fontDownloader.setPriority(Thread.MIN_PRIORITY);
+                    fontDownloader.start();
+                }, 45_000L);
+
             } catch (Throwable t) {
                 Logger.printInfo(() -> TAG + ": ensureFontsAsync failed: " + t.getMessage());
             }

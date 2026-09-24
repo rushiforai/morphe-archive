@@ -1,3 +1,9 @@
+## [0.0.3](https://github.com/RabehX/rabehx-patches/compare/v0.0.2...v0.0.3) (2026-09-23)
+
+### Features
+
+* **myooredoo:** add SSL pinning & frida compatibility patches ([d1f3719](https://github.com/RabehX/rabehx-patches/commit/d1f37194137f432bd8e785720d320e84d35f70f7))
+
 ## [0.0.2](https://github.com/RabehX/rabehx-patches/compare/v0.0.1...v0.0.2) (2026-09-22)
 
 ### Bug Fixes

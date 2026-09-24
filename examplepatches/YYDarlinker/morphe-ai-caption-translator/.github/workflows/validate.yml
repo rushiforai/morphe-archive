@@ -1,0 +1,42 @@
+name: Validate caption changes
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ['fix/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify metadata, localization and release contract
+        run: |
+          python3 tools/check_localization.py
+          python3 .github/scripts/test_release_contract.py
+          python3 .github/scripts/validate_morphe_metadata.py "$(jq -r .version patches-bundle.json)"
+      - name: Test and build Android bundle (no publication)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid --no-daemon
+      - name: Validate bundle
+        run: python3 .github/scripts/verify_bundle.py "$(jq -r .version patches-bundle.json)"
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: caption-validation-${{ github.sha }}
+          path: |
+            extensions/extension/build/reports/tests/
+            extensions/extension/build/test-results/
+            patches/build/libs/*.mpp
+          retention-days: 7

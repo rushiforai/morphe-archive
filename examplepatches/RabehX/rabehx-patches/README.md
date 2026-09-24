@@ -27,7 +27,7 @@
 [![Patches](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FRabehX%2Frabehx-patches%2Frefs%2Fheads%2Fmain%2Fpatches-list.json&query=patches.length&label=Patches&color=blue)](https://github.com/RabehX/rabehx-patches/blob/main/patches-list.json)
 
 <details>
-<summary>📦 My Ooredoo&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 My Ooredoo&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **Package name:** `com.algeria.selfcare.app.android`
@@ -36,6 +36,8 @@
 - Disable root & emulator detection
 - Remove CleverTap tracking
 - Disable Play Integrity
+- Disable SSL pinning
+- Disable Frida detection
 
 </details>
 

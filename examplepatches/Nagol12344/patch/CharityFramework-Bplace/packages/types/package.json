@@ -1,0 +1,13 @@
+{
+	"name": "@shuni64/charity-framework-bplace-types",
+	"//": "publishing as beta1 so we can make changes to types",
+	"version": "0.1.9-beta.1",
+	"main": "src/index.ts",
+	"types": "src/index.ts",
+	"dependencies": {
+		"@types/react": "^19.2.14",
+		"@types/react-dom": "^19.2.3",
+		"@violentmonkey/types": "^0.2.2",
+		"sonner": "^2.0.7"
+	}
+}

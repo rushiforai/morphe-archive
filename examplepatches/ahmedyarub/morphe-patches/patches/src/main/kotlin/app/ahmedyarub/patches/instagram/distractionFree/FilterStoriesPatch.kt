@@ -12,7 +12,6 @@ package app.ahmedyarub.patches.instagram.distractionFree
 
 import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.morphe.library.instagram.patches.filterStories
-import app.morphe.library.instagram.patches.filterStoriesListPatch
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 
@@ -24,7 +23,7 @@ val filterStoriesPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 
-    dependsOn(filterStoriesListPatch)
+    dependsOn(filterStoriesTrayHook)
 
     val hideAds by booleanOption(
         key = "hideAdsStories",

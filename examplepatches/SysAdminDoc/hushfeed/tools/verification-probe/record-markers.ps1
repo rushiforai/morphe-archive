@@ -14,7 +14,7 @@
     are dropped. Before the first round it snapshots what is already bound and leaves that out:
     Hushfeed's recent-binds cache still holds up to 16 videos of the screen you came from.
 
-    -Write turns the four broad-route recordings and three labelled-route recordings into
+    -Write turns the four broad-route recordings and four labelled-route recordings into
     extensions/tiktok/src/test/resources/feed-markers/<route>-<version>.json. The key comes off
     every line, and every value is checked to be a shape token and never content: booleans,
     filter-equivalent number and text classes, and capped collection sizes.
@@ -43,7 +43,7 @@
 [CmdletBinding(DefaultParameterSetName = 'Record')]
 param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Record')]
-    [ValidateSet('for-you', 'profile', 'following', 'search', 'paid', 'series', 'playlist')][string]$Route,
+    [ValidateSet('for-you', 'profile', 'following', 'search', 'paid', 'series', 'playlist', 'drama')][string]$Route,
     [Parameter(ParameterSetName = 'Record')][int]$Rounds = 20,
     # x1,y1,x2,y2 in panel pixels. The default moves a full-screen feed up one video.
     [Parameter(ParameterSetName = 'Record')][string]$Swipe = '540,1750,540,650',
@@ -56,13 +56,13 @@ param(
     # The Hushfeed build installed on the phone while recording; its filters gave the verdicts.
     [Parameter(Mandatory = $true, ParameterSetName = 'Write')][string]$HushfeedBuild,
     [Parameter(ParameterSetName = 'Write')]
-    [ValidateSet('for-you', 'profile', 'following', 'search', 'paid', 'series', 'playlist')][string[]]$Only
+    [ValidateSet('for-you', 'profile', 'following', 'search', 'paid', 'series', 'playlist', 'drama')][string[]]$Only
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $workDir = Join-Path $root 'work/marker-corpus'
-$routes = @('for-you', 'profile', 'following', 'search', 'paid', 'series', 'playlist')
+$routes = @('for-you', 'profile', 'following', 'search', 'paid', 'series', 'playlist', 'drama')
 
 if ($Write) {
     $tokenKinds = @('b', 'num', 'txt', 'obj', 'n', 's', 'slen', 'sblank', 'snum', 'c', 'm', 'o')

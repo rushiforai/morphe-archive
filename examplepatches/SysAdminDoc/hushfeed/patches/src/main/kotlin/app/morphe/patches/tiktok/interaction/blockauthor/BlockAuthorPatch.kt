@@ -87,6 +87,11 @@ val blockAuthorPatch = bytecodePatch(
         nativeFocus.abandon.captureNativeFocusAbandon()
         nativeFocus.change.captureNativeFocusChange()
 
+        // The hold's pause and resume, and the video it checks it is pausing. Their names
+        // change with every build, so they are read off TikTok's own pauseVideo and the For You
+        // feed's space-key toggle and written into the hold's three bridge methods.
+        installNativePlayback(resolveNativePlayback())
+
         // Assert the block endpoint still looks the way the extension expects. The
         // extension calls it by reflection, so without this the patch would install a
         // button that silently fails on a build that reshaped the API.

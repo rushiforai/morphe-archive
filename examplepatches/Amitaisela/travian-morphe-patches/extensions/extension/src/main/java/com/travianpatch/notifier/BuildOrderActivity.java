@@ -30,6 +30,7 @@ public class BuildOrderActivity extends Activity {
     private LinearLayout listColumn;
     private Spinner buildingPicker;
     private EditText levelInput;
+    private TextView summaryView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +74,10 @@ public class BuildOrderActivity extends Activity {
         column.addView(villagePicker, UiKit.cardParams(this));
 
         column.addView(UiKit.section(this, "Order"));
+        LinearLayout summaryCard = UiKit.card(this);
+        summaryView = UiKit.body(this, "");
+        summaryCard.addView(summaryView);
+        column.addView(summaryCard, UiKit.cardParams(this));
         listColumn = new LinearLayout(this);
         listColumn.setOrientation(LinearLayout.VERTICAL);
         column.addView(listColumn, new LinearLayout.LayoutParams(
@@ -117,7 +122,14 @@ public class BuildOrderActivity extends Activity {
                 } catch (NumberFormatException e) {
                     return;
                 }
-                order.add(new BuildOrderStore.Entry(buildingIds.get(position), level));
+                int buildingTypeId = buildingIds.get(position);
+                if (BuildingCostTable.has(buildingTypeId) && level > BuildingCostTable.maxLevel(buildingTypeId)) {
+                    android.widget.Toast.makeText(BuildOrderActivity.this,
+                            "That building only goes up to level " + BuildingCostTable.maxLevel(buildingTypeId),
+                            android.widget.Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                order.add(new BuildOrderStore.Entry(buildingTypeId, level));
                 persist();
                 levelInput.setText("");
                 draw();
@@ -142,7 +154,32 @@ public class BuildOrderActivity extends Activity {
                 .apply();
     }
 
+    private void updateSummary() {
+        AutomationSettings.Config settings = AutomationSettings.fromJson(
+                getSharedPreferences(AutomationSettings.PREFS, Context.MODE_PRIVATE)
+                        .getString(AutomationSettings.KEY, null));
+        List<VillageResources.Entry> allResources = VillageResources.fromJson(
+                getSharedPreferences(NotifierWorker.STATE_PREFS, Context.MODE_PRIVATE)
+                        .getString(NotifierWorker.KEY_VILLAGE_RESOURCES, null));
+        VillageResources.Entry res = VillageResources.find(allResources, selectedVillageId);
+        BuildQueueAutomation.Resources stock = res == null ? new BuildQueueAutomation.Resources(0, 0, 0, 0)
+                : new BuildQueueAutomation.Resources(res.lumberStock, res.clayStock, res.ironStock, res.cropStock);
+        BuildQueueAutomation.Resources perHour = res == null ? new BuildQueueAutomation.Resources(0, 0, 0, 0)
+                : new BuildQueueAutomation.Resources(res.lumberPerHour, res.clayPerHour, res.ironPerHour, res.cropPerHour);
+        long now = System.currentTimeMillis();
+        long midnight = now - (now % 86_400_000L);
+        QueueEstimate.Result result = QueueEstimate.estimate(order, stock, perHour, settings, now, midnight);
+        String time = result.estimatedMs <= 0 ? "no time to estimate yet"
+                : "about " + (result.estimatedMs / 3_600_000L) + " h if it ran unattended starting now";
+        String cost = result.totalCost.lumber + " wood, " + result.totalCost.clay + " clay, "
+                + result.totalCost.iron + " iron, " + result.totalCost.crop + " crop";
+        String note = result.allKnown ? "" : " (some items aren't counted yet - no cost data for them)";
+        String staleness = res == null ? " Current stock isn't known yet (no check has completed for this village)." : "";
+        summaryView.setText("Total: " + cost + ". Approximate time: " + time + note + "." + staleness);
+    }
+
     private void draw() {
+        updateSummary();
         listColumn.removeAllViews();
         if (order.isEmpty()) {
             LinearLayout empty = UiKit.card(this);

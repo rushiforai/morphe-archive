@@ -76,12 +76,20 @@ public class NotifierWorker extends Worker {
     static final String KEY_IDLE_VILLAGES = "idle_villages";
     /** Villages the last poll saw (id, name, x, y); read by the Build order screen. */
     static final String KEY_VILLAGES = "known_villages";
+    /** Real resource stock/production per village from the last poll; read by the Build order screen. */
+    static final String KEY_VILLAGE_RESOURCES = "village_resources";
     /** "true"/"false" once read, absent until then; read by the Hub screen. */
     static final String KEY_GOLD_CLUB = "gold_club";
     private static final String KEY_GOLD_CLUB_LOGGED_AT = "gold_club_logged_at";
     private static final String KEY_CP_LOGGED_AT = "cp_logged_at";
     private static final String KEY_BUILD_COST_LOGGED_AT = "build_cost_logged_at";
     private static final String KEY_MARKET_LOGGED_AT = "market_logged_at";
+    /** Set the moment the one-off building-data probe starts, so it never runs a second time. */
+    private static final String KEY_BUILDING_PROBE_DONE = "building_probe_done_v2";
+    /** Longest slice of one response that is logged (a full rules table can be hundreds of KB). */
+    private static final int PROBE_MAX_LOGGED_CHARS = 12000;
+    /** Android cuts a log line near 4 KB, so long text is logged in pieces of this size. */
+    private static final int PROBE_LOG_PIECE = 3000;
     private static final int PENDING_FLAGS = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
     private static final String KEY_RETRIES = "retries";
     /** Wait a few seconds past the finish time so the server has processed the completion. */
@@ -534,7 +542,56 @@ public class NotifierWorker extends Worker {
      * Storage warnings and hero changes. Each is its own request, so a problem with either can
      * never break the main check above.
      */
+    /**
+     * Like runQuery, but for queries that don't start at ownPlayer (bootstrapData, ownVillage(id:)).
+     * The query text is JSON-escaped by JSONObject, so quotes inside it are safe.
+     */
+    private JSONObject runRootQuery(OkHttpClient http, String gameworldHost, String query) throws Exception {
+        String body = new JSONObject().put("query", query).toString();
+        Request req = new Request.Builder()
+                .url(gameworldHost + "/api/v1/graphql")
+                .post(TravianApi.jsonBody(body))
+                .build();
+        return TravianApi.executeJson(http, req);
+    }
+
+    /**
+     * One-off, read-only diagnostic: asks the game for its own building data (its rules table and the
+     * first village's buildings) and logs every raw response, so the Build order screen can later be built
+     * on the game's real field names instead of guesses. Runs once per install, after a poll has seen a
+     * village. Nothing is shown on any screen and nothing is changed in the game.
+     */
+    private void runBuildingProbe(OkHttpClient http, String gameworldHost) {
+        SharedPreferences prefs = statePrefs();
+        List<VillageList.Entry> known = VillageList.fromJson(prefs.getString(KEY_VILLAGES, null));
+        if (!BuildingProbe.shouldRun(prefs.getBoolean(KEY_BUILDING_PROBE_DONE, false), known.size())) {
+            return;
+        }
+        prefs.edit().putBoolean(KEY_BUILDING_PROBE_DONE, true).apply();
+        List<String> queries = BuildingProbe.queries(known.get(0).id);
+        for (int n = 1; n <= queries.size(); n++) {
+            String query = queries.get(n - 1);
+            Log.i(TAG, "PROBE " + n + "/" + queries.size() + " query: " + query);
+            try {
+                String response = runRootQuery(http, gameworldHost, query).toString();
+                Log.i(TAG, "PROBE " + n + " response length: " + response.length());
+                List<String> pieces = LogChunks.split(cut(response, PROBE_MAX_LOGGED_CHARS), PROBE_LOG_PIECE);
+                for (int k = 0; k < pieces.size(); k++) {
+                    Log.i(TAG, "PROBE " + n + " part " + (k + 1) + "/" + pieces.size() + ": " + pieces.get(k));
+                }
+            } catch (Exception e) {
+                Log.i(TAG, "PROBE " + n + " failed: " + e);
+            }
+        }
+        Log.i(TAG, "PROBE finished");
+    }
+
     private void checkExtras(OkHttpClient http, String gameworldHost) {
+        try {
+            runBuildingProbe(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "building probe failed: " + e);
+        }
         try {
             checkStorage(http, gameworldHost);
         } catch (Exception e) {
@@ -626,6 +683,13 @@ public class NotifierWorker extends Worker {
      * Diagnostic only, at most every 30 minutes: logs the game's own upgrade-cost fields for a building,
      * so a "smart queue" advisor can be built on the game's real costs instead of a guessed formula.
      * Nothing is shown on any screen yet.
+     *
+     * Unlike runDiagnosticVariants (used elsewhere in this file), this tries every variant every time
+     * and never stops early on a "clean" response: a real response was seen where the top-level query
+     * succeeded with no GraphQL errors at all, yet the requested nested field (buildingSlots) was simply
+     * missing from the returned object. So "no errors" does not mean "the field I asked for came back" on
+     * this server for a nested selection - each variant below asks for exactly one field at a time so a
+     * silently-dropped nested selection can be pinned to the single field that caused it.
      */
     private void logBuildingCosts(OkHttpClient http, String gameworldHost) {
         SharedPreferences prefs = statePrefs();
@@ -635,12 +699,28 @@ public class NotifierWorker extends Worker {
         }
         prefs.edit().putLong(KEY_BUILD_COST_LOGGED_AT, now).apply();
         String[] variants = {
-                "villages { id name buildingSlots { id buildingTypeId level buildCostObject upgradeCostObject } }",
-                "villages { id name buildEvents { id buildingTypeId aspiredLevel buildCostObject upgradeCostObject } }",
-                "villages { id name buildEvents { id buildingTypeId aspiredLevel } }",
+                "villages { id name buildingSlots { id } }",
+                "villages { id name buildEvents { id buildingTypeId aspiredLevel buildCostObject } }",
+                "villages { id name buildEvents { id buildingTypeId aspiredLevel upgradeCostObject } }",
         };
-        runDiagnosticVariants("building costs", http, gameworldHost, variants);
-        logSchema(http, gameworldHost, "BuildEvent", "fields");
+        for (String selection : variants) {
+            try {
+                JSONObject resp = runQuery(http, gameworldHost, selection);
+                JSONObject data = resp.optJSONObject("data");
+                JSONArray errors = resp.optJSONArray("errors");
+                if (data != null) {
+                    Log.i(TAG, "building costs ok [" + selection + "]: " + cut(data.toString(), 2500));
+                }
+                if (errors != null) {
+                    Log.i(TAG, "building costs errors [" + selection + "]: " + cut(errors.toString(), 1500));
+                }
+                if (data == null && errors == null) {
+                    Log.i(TAG, "building costs empty response [" + selection + "]");
+                }
+            } catch (Exception e) {
+                Log.i(TAG, "building costs request failed [" + selection + "]: " + e);
+            }
+        }
     }
 
     /**
@@ -713,6 +793,7 @@ public class NotifierWorker extends Worker {
             return;
         }
         JSONArray villages = data.getJSONObject("p").getJSONArray("villages");
+        saveVillageResources(villages);
         Set<String> alerted = new HashSet<String>(statePrefs().getStringSet(KEY_STORAGE_ALERTED, new HashSet<String>()));
         int warned = 0;
         for (int i = 0; i < villages.length(); i++) {
@@ -1145,6 +1226,12 @@ public class NotifierWorker extends Worker {
     /** Stores the last poll's villages (id, name, x, y) so screens can key data per village by id. */
     private void saveVillageList(JSONArray villages) {
         statePrefs().edit().putString(KEY_VILLAGES, VillageList.toJson(VillageList.compute(villages))).apply();
+    }
+
+    /** Stores the last poll's real per-village resource stock/production for screens that need the raw numbers. */
+    private void saveVillageResources(JSONArray villages) {
+        statePrefs().edit().putString(KEY_VILLAGE_RESOURCES,
+                VillageResources.toJson(VillageResources.compute(villages))).apply();
     }
 
     // ------------------------------------------------------------------

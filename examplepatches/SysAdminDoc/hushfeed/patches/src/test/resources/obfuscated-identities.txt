@@ -71,9 +71,6 @@ extensions/tiktok/src/main/java/app/morphe/extension/tiktok/share/ShareSheetTool
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/share/ShareSheetTools.java|v3j
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/translation/CommentBatchTranslator.java|LIZ
 extensions/tiktok/src/main/java/app/morphe/extension/tiktok/translation/CommentBatchTranslator.java|LIZIZ
-extensions/tiktok/src/main/java/app/morphe/extension/tiktok/wellbeing/SessionPlaybackHold.java|LIZ
-extensions/tiktok/src/main/java/app/morphe/extension/tiktok/wellbeing/SessionPlaybackHold.java|LIZIZ
-extensions/tiktok/src/main/java/app/morphe/extension/tiktok/wellbeing/SessionPlaybackHold.java|LJIILL
 patches/src/main/kotlin/app/morphe/patches/tiktok/captchapopup/HideCaptchaPopupsPatch.kt|LIZIZ
 patches/src/main/kotlin/app/morphe/patches/tiktok/captchapopup/HideCaptchaPopupsPatch.kt|LIZJ
 patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/sharesheet/ShareModelHooks.kt|LIZ

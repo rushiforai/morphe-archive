@@ -276,6 +276,45 @@ public class FeedOverlaySettingsTest {
         }
     }
 
+    /**
+     * TikTok's clear display puts its controls away and the chips go with them. Clear display is
+     * the feed as far as the hold and the kept caption are concerned (it sets only the tab bar
+     * GONE), so the chips ask whether the controls are cleared as well as whether this is the feed.
+     */
+    @Test public void clearDisplayHidesEveryCustomFeedControlUntilTheControlsComeBack() {
+        showSettings(true, true);
+        bind("video-one");
+        ViewGroup content = activity.findViewById(android.R.id.content);
+        FrameLayout bar = new FrameLayout(activity);
+        View home = new View(activity);
+        home.setSelected(true);
+        bar.addView(home, new FrameLayout.LayoutParams(216, 138));
+        content.addView(bar, new FrameLayout.LayoutParams(1080, 138, Gravity.BOTTOM));
+        WeakReference<View> oldHome = ReflectionHelpers.getStaticField(FeedVisibility.class, "homeTabReference");
+        // TikTok's tab resource is absent from the test app; seed the native view lookup only.
+        ReflectionHelpers.setStaticField(FeedVisibility.class, "homeTabReference", new WeakReference<>(home));
+        String[] controls = {"Block this creator", "Hide this creator on this phone",
+                "Block this sound", "Not interested in this video"};
+        try {
+            layoutRoot(content);
+            content.getViewTreeObserver().dispatchOnGlobalLayout();
+            for (String description : controls) assertVisible(description);
+
+            bar.setVisibility(View.GONE);
+            content.getViewTreeObserver().dispatchOnGlobalLayout();
+            for (String description : controls) {
+                assertEquals(description + " stayed over a cleared screen", View.GONE,
+                        button(description).getVisibility());
+            }
+
+            bar.setVisibility(View.VISIBLE);
+            content.getViewTreeObserver().dispatchOnGlobalLayout();
+            for (String description : controls) assertVisible(description);
+        } finally {
+            ReflectionHelpers.setStaticField(FeedVisibility.class, "homeTabReference", oldHome);
+        }
+    }
+
     @Test public void feedbackRowCannotExposeControlsOverARetainedDailyHold() {
         assertControlStaysBehindHold(Settings.NOT_INTERESTED_BUTTON, "Not interested in this video");
     }

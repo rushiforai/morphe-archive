@@ -34,6 +34,11 @@ package app.discord.patches.composer
  * shouldShowGiftButton/onPressAction/onPressExpression + TransitionItem
  * gift child vs EXPRESSION button, no try/catch):
  *
+ * - 346.13 Stable: fn 56000 (offset 31777206, 505 bytes, 107 instrs).
+ *   Flag load @ fn offset 30; flag register reused as scratch after its
+ *   single JmpFalse test (same as 344). Actions row is fn 55293 with NO
+ *   gift entry — only renderer/enum NITRO_GIFT refs (fn 93533 et al) —
+ *   so the sheet push site is skipped there too.
  * - 344.13 Stable: fn 53139 (offset 31241714, 505 bytes, 107 instrs).
  *   Flag load @ fn offset 30; the flag register is reused as scratch
  *   after its single JmpFalse test, so forcing it false still takes the
@@ -47,6 +52,13 @@ package app.discord.patches.composer
  *
  * v1.1.0 only patched the actions row and the composer gift survived;
  * v1.1.1 adds the RightActions surface.
+ *
+ * v1.5.0+: the patch is self-locating (no bar anchors). It finds
+ * ChatInputRightActions as the shouldShowGiftButton reader with the
+ * TransitionItem + EXPRESSION shape, validates write-once/test-once,
+ * and forces the flag false. The sheet push keeps legacy anchors
+ * (frozen facts about old bundles) with skip-or-fail reasoning.
+ * History above is the proof set, not config.
  *
  * This file is notes-only; there is no Fingerprint to declare here.
  */

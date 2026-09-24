@@ -34,6 +34,9 @@ param(
     # editor's native libraries: the Create tab then dies in TENativeLibsLoader, so a camera
     # check needs a build without it.
     [string[]]$Exclude = @(),
+    # Patch with the release bundle even when a source file is newer than it, for replaying
+    # an earlier build on purpose. Without it a stale bundle stops the run.
+    [switch]$AllowStaleBundle,
     [string]$Apk,
     [string]$DesktopJar,
     [string]$Java,
@@ -73,6 +76,16 @@ if ([string]::IsNullOrEmpty($keystorePassword)) {
 $version = Get-BundleVersion -Root $root
 $bundle = Get-ReleaseBundlePath -Root $root -Version $version
 if (-not (Test-Path $bundle)) { throw "No bundle at $bundle. Build it first: :patches:generatePatchesList then :patches:buildAndroid, through the governor." }
+# Only buildAndroid writes this bundle; a test run after a patch change leaves it behind, and the
+# phone would get the previous hooks while the result reads as a verdict on the new ones.
+if (-not $AllowStaleBundle) {
+    $newerSources = @(Get-SourcesNewerThanBundle -Root $root -Bundle $bundle)
+    if ($newerSources.Count -gt 0) {
+        throw ("The bundle at $bundle is older than $($newerSources.Count) source file(s), the newest " +
+            "$($newerSources[0].FullName). Rebuild it first: :patches:buildAndroid through the governor " +
+            '(or pass -AllowStaleBundle to patch with it as it is).')
+    }
+}
 $names = @($catalog.patches | ForEach-Object { $_.name } | Where-Object { $_ -notin $Exclude })
 foreach ($excluded in $Exclude) {
     if ($excluded -notin ($catalog.patches | ForEach-Object { $_.name })) { throw "No patch named '$excluded' to exclude." }

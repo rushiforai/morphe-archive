@@ -24,7 +24,7 @@
 &nbsp;
 
 # 🧩 Patches
-Morphe Patches
+Spectre Patches
 
 ## ❓ About
 
@@ -35,15 +35,15 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.44.0](https://github.com/MorpheApp/morphe-patches/releases/tag/v1.44.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;150 patches total
+> **[v2.1.3](https://github.com/0-BlackSpectrum-0/channel-blacklist-patch/releases/tag/v2.1.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;85 patches total
 <details>
-<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;84 patches</summary>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;85 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 🧪&nbsp;21.38.123 | 🧪&nbsp;21.37.42 | 🧪&nbsp;21.28.208 | 21.16.256 | 21.13.164 | 20.31.42 | 20.21.37 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 🧪&nbsp;21.38.123 | 🧪&nbsp;21.37.42 | 🧪&nbsp;21.28.208 | 🧪&nbsp;21.23.492 | 21.16.256 | 21.13.164 | 20.31.42 | 20.21.37 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -57,6 +57,7 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 | [Change form factor](#change-form-factor) | Adds an option to change the UI appearance to a phone, tablet, or automotive device. |  |
 | [Change header](#change-header) | Adds an option to change the header logo in the top left corner of the app. | • Custom header logo |
 | [Change start page](#change-start-page) | Adds an option to set which page the app opens in instead of the homepage. |  |
+| [Channel blacklist](#channel-blacklist) | Filter and hide videos from blacklisted channels across YouTube feeds, search results, subscriptions, and comments. |  |
 | [Channel search](#channel-search) | Adds an option to search inside the channel that is currently open instead of searching all of YouTube. |  |
 | [Check watch history domain name resolution](#check-watch-history-domain-name-resolution) | Checks if the device DNS server is preventing user watch history from being saved. |  |
 | [Copy video link](#copy-video-link) | Adds options to display buttons in the video player to copy video links. |  |
@@ -131,109 +132,6 @@ All modifications made by Morphe, along with their dates, can be found in the Gi
 | [Video quality](#video-quality) | Adds options to set default video qualities and always use the advanced video quality menu. |  |
 | [Voice over translation](#voice-over-translation) | Adds additional voice over languages using text-to-speech synchronized to the video playback. |  |
 | [Wide search bar](#wide-search-bar) | Adds a wide search bar to the top of the home and subscription feed. |  |
-
-</details>
-
-<details>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;20 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2026.38.0 | 🧪&nbsp;2026.37.0 | 🧪&nbsp;2026.24.0 | 2026.14.0 | 2026.04.0 |
-| :---: | :---: | :---: | :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [App icon](#app-icon) | Adds an option to select from the Reddit app icons available in the manifest. |  |
-| [Custom branding name for Reddit](#custom-branding-name-for-reddit) | Changes the Reddit app name to the name specified in patch options. | • App name |
-| [Custom font](#custom-font) | Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime. |  |
-| [Disable modern home](#disable-modern-home) | Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier. |  |
-| [Disable screenshot popup](#disable-screenshot-popup) | Adds an option to disable the popup that appears when taking a screenshot. |  |
-| [Force system font](#force-system-font) | Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto. |  |
-| [Hide Ask button](#hide-ask-button) | Adds an option to hide Ask button in the search bar. |  |
-| [Hide Reddit search](#hide-reddit-search) | Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting |  |
-| [Hide Trending shelves](#hide-trending-shelves) | Adds an option to hide the Trending shelves from feed and search suggestions. |  |
-| [Hide ads](#hide-ads) | Adds options to hide ads. |  |
-| [Hide communities shelf](#hide-communities-shelf) | Adds an option to hide the related or suggested communities shelf in subreddits. |  |
-| [Hide navigation buttons](#hide-navigation-buttons) | Adds options to hide buttons in the navigation bar. |  |
-| [Hide sidebar components](#hide-sidebar-components) | Adds options to hide the sidebar components. |  |
-| [Open links directly](#open-links-directly) | Adds an option to skip over redirection URLs in external links. |  |
-| [Open links externally](#open-links-externally) | Adds an option to always open links in your browser instead of with the in-app-browser. |  |
-| [Remove subreddit dialog](#remove-subreddit-dialog) | Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically. |  |
-| [Sanitize sharing links](#sanitize-sharing-links) | Adds an option to sanitize sharing links by removing tracking query parameters. |  |
-| [Show view count](#show-view-count) | Adds an option to show the view count of Posts. |  |
-| [Spoof signature](#spoof-signature) | Spoofs the signature of the app to fix notification issues. |  |
-| [Start as guest](#start-as-guest) | Skips the forced startup login screen using Reddit's native guest browsing mode. |  |
-
-</details>
-
-<details>
-<summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;42 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;9.37.54 | 🧪&nbsp;9.36.50 | 🧪&nbsp;9.35.54 | 9.15.51 |
-| :---: | :---: | :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [App refresh rate](#app-refresh-rate) | Adds an option to change the app refresh rate. |  |
-| [Bypass certificate checks](#bypass-certificate-checks) | Bypasses certificate checks which prevent YouTube Music from working on Android Auto. |  |
-| [Change header](#change-header) | Adds an option to change the header logo in the top left corner of the app. | • Custom header logo |
-| [Change miniplayer color](#change-miniplayer-color) | Adds an option to change the miniplayer background color to match the fullscreen player. |  |
-| [Change start page](#change-start-page) | Adds an option to set which page the app opens in instead of the homepage. |  |
-| [Check watch history domain name resolution](#check-watch-history-domain-name-resolution) | Checks if the device DNS server is preventing user watch history from being saved. |  |
-| [Crossfade](#crossfade) | Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op. |  |
-| [Custom branding](#custom-branding) | Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings. | • App name<br>• Custom icon<br>• App icon |
-| [Disable DRC audio](#disable-drc-audio) | Adds an option to disable DRC (Dynamic Range Compression) audio. |  |
-| [Disable QUIC protocol](#disable-quic-protocol) | Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol. |  |
-| [Disable dislike redirection](#disable-dislike-redirection) | Adds an option to prevent skipping to the next track when the dislike button is pressed. |  |
-| [Downloads](#downloads) | Adds support to download songs using the in-app download button, either with an external downloader app or inside YouTube Music. |  |
-| [Enable debugging](#enable-debugging) | Adds options for debugging and exporting Morphe logs to the clipboard. |  |
-| [Enable exclusive audio playback](#enable-exclusive-audio-playback) | Enables the option to play audio without video. |  |
-| [Enable forced miniplayer](#enable-forced-miniplayer) | Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs. |  |
-| [Enable swipe to dismiss miniplayer](#enable-swipe-to-dismiss-miniplayer) | Adds an option to enable dismissing the miniplayer by swiping down on it. |  |
-| [Force original audio](#force-original-audio) | Adds an option to always use the original audio track. |  |
-| [GmsCore support](#gmscore-support) | Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services. |  |
-| [Hide ads](#hide-ads) | Adds options to hide fullscreen ads, Premium promotions and video ads. |  |
-| [Hide buttons](#hide-buttons) | Adds options to hide the cast, history, notification, and search buttons. |  |
-| [Hide filter bar](#hide-filter-bar) | Adds an option to hide the filter bar at the top of the homepage. |  |
-| [Hide flyout menu components](#hide-flyout-menu-components) | Adds options to hide individual items from the player and queue flyout menus. |  |
-| [Hide layout components](#hide-layout-components) | Adds options to hide general layout components. |  |
-| [Hide music action buttons](#hide-music-action-buttons) | Adds options to hide action buttons under the player. |  |
-| [Miniplayer previous and next buttons](#miniplayer-previous-and-next-buttons) | Adds options to show previous and next track buttons in the miniplayer. |  |
-| [Navigation bar](#navigation-bar) | Adds options to hide navigation bar, labels and buttons. |  |
-| [Network proxy](#network-proxy) | Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices |  |
-| [Play albums songs](#play-albums-songs) | Adds an option to play the song version of album tracks instead of music videos. |  |
-| [PoToken provider](#potoken-provider) | Adds option to get PoToken using an external PoToken minter app. |  |
-| [Remember repeat state](#remember-repeat-state) | Adds an option to remember the repeat state when playing a new track or playlist. |  |
-| [Remember shuffle state](#remember-shuffle-state) | Adds an option to remember the shuffle state when playing a new track or playlist. |  |
-| [Remove background playback restrictions](#remove-background-playback-restrictions) | Removes restrictions on background playback, including playing kids videos in the background. |  |
-| [Remove viewer discretion dialog](#remove-viewer-discretion-dialog) | Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction. |  |
-| [Return YouTube Dislike](#return-youtube-dislike) | Adds an option to show the dislike count of tracks with Return YouTube Dislike. |  |
-| [Sanitize sharing links](#sanitize-sharing-links) | Removes the tracking query parameters from shared links. |  |
-| [Scrobbling](#scrobbling) | Adds options to add played tracks to Last.fm and ListenBrainz. |  |
-| [Settings menu filter](#settings-menu-filter) | Adds an option to hide items on the standard YouTube Music settings screen by their visible name. |  |
-| [SponsorBlock](#sponsorblock) | Adds options to enable and configure SponsorBlock, which can skip non-music segments. |  |
-| [Spoof app version](#spoof-app-version) | Adds an option to trick the app into thinking you are running an older version. |  |
-| [Spoof video streams](#spoof-video-streams) | Adds options to spoof the client video streams to fix playback. |  |
-| [Theme](#theme) | Adds options for theming, and settings to change the app foreground and background colors. | • Dark theme color |
-| [Third-party lyrics](#third-party-lyrics) | Adds an option to show synced lyrics with experience enhancement from 15+ providers in the lyrics panel. |  |
-
-</details>
-
-<details>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
-| [Clone app](#clone-app) | Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior. | • Package name<br>• Update permissions<br>• Update providers |
-| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
-| [Override certificate pinning](#override-certificate-pinning) | Overrides certificate pinning, allowing to inspect traffic via a proxy. |  |
 
 </details>
 

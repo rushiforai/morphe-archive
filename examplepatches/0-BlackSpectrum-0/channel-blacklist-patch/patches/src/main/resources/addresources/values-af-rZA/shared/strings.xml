@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe instellings is teruggesit na verstek</string>
   <string name="morphe_settings_import_success">%d instellings ingevoer</string>
   <string name="morphe_settings_import_failure_parse">Invoer misluk: %s</string>
+  <string name="morphe_settings_navigate_up">Navigeer op</string>
   <string name="morphe_settings_search_hint">Soek instellings</string>
   <string name="morphe_settings_search_no_results_title">Geen resultate gevind vir \'%s\'</string>
   <string name="morphe_settings_search_no_results_summary">Probeer \'n ander sleutelwoord</string>
   <string name="morphe_settings_search_recent_searches">Onlangse soektogte</string>
   <string name="morphe_settings_search_remove_message">Verwyder uit soekgeskiedenis?</string>
+  <string name="morphe_settings_search_remove">Verwyder uit soekgeskiedenis</string>
   <string name="morphe_settings_search_clear_history">Vee soekgeskiedenis uit</string>
   <string name="morphe_settings_search_clear_history_message">Is jy seker dat jy alle soekgeskiedenis wil uitvee?</string>
   <string name="morphe_settings_search_tips_title">Soektip</string>
@@ -72,8 +74,8 @@ Om nuwe tale te vertaal of bestaande vertalings te verbeter, besoek morphe.softw
   <string name="morphe_settings_export_file_success">Instellings is suksesvol uitgevoer</string>
   <string name="morphe_settings_export_file_failed">Instellings kon nie uitgevoer word nie</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Jy gebruik die nuutste Morphe Patches weergawe &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Jy gebruik Morphe Verandering weergawe &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Opdatering beskikbaar: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Om jou veranderinge op te dateer, gebruik Morphe om hierdie program weer te herverander.</string>
+  <string name="morphe_settings_about_links_body_version_current">Jy gebruik die nuutste Spectre Patches weergawe &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Jy gebruik Spectre Verandering weergawe &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Opdatering beskikbaar: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Om jou veranderinge op te dateer, gebruik Spectre om hierdie program weer te herverander.</string>
   <string name="morphe_settings_about_links_dev_header">Let wel</string>
   <string name="morphe_settings_about_links_dev_body">Hierdie weergawe is \'n voorvrystelling en jy mag onverwags probleme ervaar</string>
   <string name="morphe_settings_about_links_header">Amptelike skakels</string>

@@ -1,3 +1,23 @@
+## [3.35.0](https://github.com/crimera/piko-newx/compare/v3.34.1...v3.35.0) (2026-09-23)
+
+### ✨ New Features
+* **Twitter:** add inline download resolution chooser and quality preferences ([dbade44](https://github.com/crimera/piko/commit/dbade44644d2fbb3490a6d79788f4c4455abc80c))
+
+## [3.34.1](https://github.com/crimera/piko-newx/compare/v3.34.0...v3.34.1) (2026-09-23)
+
+### 🐛 Bug Fixes
+* **Twitter:** newx dim theme chrome backgrounds ([a6af4dc](https://github.com/crimera/piko/commit/a6af4dce4184cea0b5c646eacaa3f2e1f2973667))
+
+## [3.34.0](https://github.com/crimera/piko-newx/compare/v3.33.1...v3.34.0) (2026-09-23)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** apply custom sharing domain on share-sheet URL field ([c7230d2](https://github.com/crimera/piko/commit/c7230d2d3c11bcbb2c20137a83bd1d29512bf0bd))
+* **Twitter - newx:** resolve module divider lambda adapter by discriminator ([618c2af](https://github.com/crimera/piko/commit/618c2af3c2c98f036c783c6a591b1700dbd05d8a))
+* **Twitter - newx:** use dim surfaces in extension-owned screens ([5fb32a5](https://github.com/crimera/piko/commit/5fb32a59bfe768cfe74707084f0a8486414ee4e5))
+
+### ✨ New Features
+* **Twitter - newx:** restore classic dim background when dynamic color and AMOLED are off ([097b782](https://github.com/crimera/piko/commit/097b7824c7481901f0bf6c140706d9a525918753))
+
 ## [3.33.1](https://github.com/crimera/piko-newx/compare/v3.33.0...v3.33.1) (2026-09-22)
 
 ### 🐛 Bug Fixes

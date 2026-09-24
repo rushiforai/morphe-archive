@@ -1,0 +1,13 @@
+--- a/smali/qaa.smali
++++ b/smali/qaa.smali
+@@ -1096,10 +1096,6 @@
+ 
+ .method public final v(IZLsnw;)V
+     .locals 2
+-
+-    if-nez p2, :cond_0
+-
+-    return-void
+ 
+     :cond_0
+     iget-object p2, p0, Lqaa;->d:Lput;

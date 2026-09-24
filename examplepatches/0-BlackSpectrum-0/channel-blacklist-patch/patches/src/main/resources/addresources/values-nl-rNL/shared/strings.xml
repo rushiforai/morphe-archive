@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe-instellingen zijn teruggezet naar de standaardinstellingen</string>
   <string name="morphe_settings_import_success">%d instellingen geïmporteerd</string>
   <string name="morphe_settings_import_failure_parse">Importeren mislukt: %s</string>
+  <string name="morphe_settings_navigate_up">Omhoog navigeren</string>
   <string name="morphe_settings_search_hint">Zoekinstellingen</string>
   <string name="morphe_settings_search_no_results_title">Geen resultaten gevonden voor \", %s\"</string>
   <string name="morphe_settings_search_no_results_summary">Probeer een ander trefwoord</string>
   <string name="morphe_settings_search_recent_searches">Recente zoekopdrachten</string>
   <string name="morphe_settings_search_remove_message">Verwijderen uit zoekgeschiedenis?</string>
+  <string name="morphe_settings_search_remove">Verwijderen uit zoekgeschiedenis</string>
   <string name="morphe_settings_search_clear_history">Zoekgeschiedenis wissen</string>
   <string name="morphe_settings_search_clear_history_message">Weet u zeker dat u alle zoekgeschiedenis wilt wissen?</string>
   <string name="morphe_settings_search_tips_title">Zoektips</string>
@@ -72,8 +74,8 @@ Om nieuwe talen te vertalen of bestaande vertalingen te verbeteren, bezoek morph
   <string name="morphe_settings_export_file_success">Instellingen succesvol geëxporteerd</string>
   <string name="morphe_settings_export_file_failed">Het exporteren van instellingen is mislukt</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">U gebruikt de nieuwste Morphe Patches versie &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">U gebruikt Morphe Patches versie &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Bijwerking beschikbaar: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Om uw patches bij te werken, gebruikt u Morphe om deze app opnieuw te patchen</string>
+  <string name="morphe_settings_about_links_body_version_current">U gebruikt de nieuwste Spectre Patches versie &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">U gebruikt Spectre Patches versie &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Bijwerking beschikbaar: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Om uw patches bij te werken, gebruikt u Spectre om deze app opnieuw te patchen</string>
   <string name="morphe_settings_about_links_dev_header">Opmerking</string>
   <string name="morphe_settings_about_links_dev_body">Deze versie is een pre-release en u kunt onverwachte problemen ondervinden</string>
   <string name="morphe_settings_about_links_header">Officiële links</string>

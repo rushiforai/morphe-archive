@@ -1,0 +1,94 @@
+{
+  "schema": "late-HBC98-fullheader37",
+  "source_sha256": "32058e5c3813a8d3a7690a7ed7a40968e1d667b995ef12996205c75e8f7861b4",
+  "source_size": 8226776,
+  "compiler_sha256": "925ddf1bc2f17578e8af5df391c9d84dbd98441540fb43257aac3ef75c54b749",
+  "output_sha256": "27b474fb4faca5f7bd5f52ff8fb159b802eababb3a869552dca2d0cf638449e8",
+  "output_size": 8228444,
+  "targets": [
+    {
+      "id": 1697,
+      "name": "",
+      "old_offset": 3789511,
+      "old_size": 439,
+      "old_body_sha256": "1957891634387eea2ccb5b27f9fe626534b7137d87e333f150f5ddaa33428294",
+      "new_offset": 8226740,
+      "new_size": 439,
+      "new_header_offset": 8227180,
+      "new_body_sha256": "3606219e6ef94e73a89a95383de72001fd268b0d5a7393d0d666030040457188"
+    },
+    {
+      "id": 17970,
+      "name": "createDevice",
+      "old_offset": 5923570,
+      "old_size": 147,
+      "old_body_sha256": "3e4f079ffd3aca0c897b15259babdd4c3ac823638c8b72c337a60181943dea19",
+      "new_offset": 8227220,
+      "new_size": 243,
+      "new_header_offset": 8227464,
+      "new_body_sha256": "17fc9109fae00cd2f7034e0e5e8f331b62ca9e3800097f15f0e0f1f3d60a3313"
+    },
+    {
+      "id": 17972,
+      "name": "calculateFlow",
+      "old_offset": 5924080,
+      "old_size": 142,
+      "old_body_sha256": "3d35aebd4f95ef36f924ce450e8bbfd6fa2853a59709eb3f86902e785e7ff3e3",
+      "new_offset": 8227504,
+      "new_size": 506,
+      "new_header_offset": 8228012,
+      "new_body_sha256": "ab672a2beec4d662f25617d6ec17296ad5ec04f7b0100a9d540bfca6c36491b3"
+    },
+    {
+      "id": 27363,
+      "name": "",
+      "old_offset": 7062490,
+      "old_size": 219,
+      "old_body_sha256": "2bcaf49c03054c4e2a5790e8181f6239e7746a2e80cc98b5abbc272f9c2b27b4",
+      "new_offset": 8228052,
+      "new_size": 315,
+      "new_header_offset": 8228368,
+      "new_body_sha256": "6b4e2f5014cd30d738a9cf05f25973dea4557ba6b6fc51bc298a39bbf0daea4b"
+    }
+  ],
+  "unchanged_functions": 28418,
+  "unchanged_strings": 60339,
+  "edits": [
+    {
+      "offset": 20492,
+      "before": "a4876f000000000000000020",
+      "after": "6c897d000000000000000020"
+    },
+    {
+      "offset": 215768,
+      "before": "30ae76000000000000000020",
+      "after": "888a7d000000000000000020"
+    },
+    {
+      "offset": 215792,
+      "before": "80ae76000000000000000020",
+      "after": "ac8c7d000000000000000020"
+    },
+    {
+      "offset": 328484,
+      "before": "50aa7c000000000000000020",
+      "after": "108e7d000000000000000020"
+    },
+    {
+      "offset": 32,
+      "before": "d8877d00",
+      "after": "5c8e7d00"
+    },
+    {
+      "offset": 108,
+      "before": "b4877d00",
+      "after": "388e7d00"
+    }
+  ],
+  "insert_before_offset": 8226740,
+  "payload_file": "payload.bin",
+  "payload_size": 1668,
+  "payload_sha256": "d517d54ccb995c55ba19781aa4bb5f254a7e97b716272cbab4dc6b3136e126c3",
+  "footer": "Discard original final 20 bytes; append SHA1 of complete mutated prefix after insertion and edits.",
+  "source_hash_field": "Preserved original source provenance; not a file checksum."
+}

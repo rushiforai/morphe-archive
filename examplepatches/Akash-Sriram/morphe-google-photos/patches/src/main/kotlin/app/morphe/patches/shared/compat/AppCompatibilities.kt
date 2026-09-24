@@ -11,7 +11,7 @@ internal object AppCompatibilities {
         appIconColor = 0xFC3F3C,
         targets = listOf(
             AppTarget("7.92.0.977185651"),
-            AppTarget(version = "7.93.0.982110057", isExperimental = true),
+            AppTarget("7.93.0.982110057"),
         ),
     )
 }

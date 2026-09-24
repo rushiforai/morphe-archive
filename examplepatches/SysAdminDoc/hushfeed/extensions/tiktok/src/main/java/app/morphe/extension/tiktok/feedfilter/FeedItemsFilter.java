@@ -49,6 +49,7 @@ public final class FeedItemsFilter {
         new ContentMarkerFilters.AiGeneratedFilter(),
         new ContentMarkerFilters.VerifiedFilter(),
         new ContentMarkerFilters.SeriesFilter(),
+        new ContentMarkerFilters.DramaFilter(),
         new ContentMarkerFilters.PlaylistFilter(),
         new CardFilters.InsertedCardFilter(),
         new SeenVideoFilter(),

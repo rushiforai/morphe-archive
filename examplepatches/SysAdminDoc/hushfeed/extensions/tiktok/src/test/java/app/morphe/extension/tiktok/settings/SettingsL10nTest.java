@@ -668,6 +668,7 @@ public class SettingsL10nTest {
      * messages.
      */
     private static final String SHOWS_TEXT = "(?:\\b\\w*[Tt]oast\\w*|Toast\\s*\\.\\s*makeText|showUndoBanner"
+            + "|showActionBanner|showNoticeBanner"
             + "|setContentDescription|setStateDescription|SettingsUi\\s*\\.\\s*text)\\s*\\(";
 
     /** Marks every character of a source file as code, inside a literal, or inside a comment. */

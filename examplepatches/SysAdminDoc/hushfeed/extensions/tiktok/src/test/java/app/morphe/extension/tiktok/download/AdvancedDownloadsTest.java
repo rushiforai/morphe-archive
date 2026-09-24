@@ -40,16 +40,24 @@ public class AdvancedDownloadsTest {
     public static final class Address extends UrlModel {
         private final String url;
         private final long size;
+        private int width, height;
         Address(String url, long size) { this.url = url; this.size = size; }
+        /** The frame size 47.0.3's UrlModel carries (getWidth, getHeight); 0 is unknown. */
+        Address frame(int w, int h) { width = w; height = h; return this; }
         @Override public List<String> getUrlList() { return url == null ? List.of() : List.of(url); }
         @Override public long getSize() { return size; }
+        public int getWidth() { return width; }
+        public int getHeight() { return height; }
     }
     public static final class Gear {
         public final String gearName;
         public final int bitRate;
         public final UrlModel playAddr;
         public String videoExtra;
+        /** TikTok's codec code: 0 H.264, 1 ByteVC1 (HEVC), 2 ByteVC2. */
+        public int isBytevc1;
         public Gear(String name, int rate, String url) { gearName = name; bitRate = rate; playAddr = new Address(url, rate * 10L); }
+        Gear codec(int code) { isBytevc1 = code; return this; }
     }
     public static final class VideoData {
         public final List<Gear> bitRate;
@@ -59,6 +67,27 @@ public class AdvancedDownloadsTest {
         VideoData(List<Gear> gears) { bitRate = gears; }
         public List<Gear> getBitRate() { throw new AssertionError("Must not recurse into playback getter"); }
         public boolean hasDashBitrate() { return dash; }
+    }
+    /**
+     * TikTok 47.0.3's Video: the list moved to the field bitRateList, and getRawBitRate returns
+     * it whole. The playback getter must still never be asked.
+     */
+    public static final class VideoData47 {
+        public final List<Gear> bitRateList;
+        public Address downloadNoWatermarkAddr, downloadAddr;
+        VideoData47(List<Gear> gears) { bitRateList = gears; }
+        public List<Gear> getRawBitRate() { return bitRateList; }
+        public Address getDownloadNoWatermarkAddr() { return downloadNoWatermarkAddr; }
+        public Address getDownloadAddr() { return downloadAddr; }
+        public List<Gear> getBitRate() { throw new AssertionError("Must not recurse into playback getter"); }
+        public boolean hasDashBitrate() { return false; }
+    }
+    /** The renamed field with no raw getter: the field is read under its new name. */
+    public static final class VideoDataRenamedField {
+        public final List<Gear> bitRateList;
+        VideoDataRenamedField(List<Gear> gears) { bitRateList = gears; }
+        public List<Gear> getBitRate() { throw new AssertionError("Must not recurse into playback getter"); }
+        public boolean hasDashBitrate() { return false; }
     }
     public static final class Audio {
         public final AudioMeta audioMeta;
@@ -77,7 +106,13 @@ public class AdvancedDownloadsTest {
     public static final class Photo {
         public final Address displayImageNoWatermark;
         public final Address thumbnail = new Address("https://example.com/thumb", 50);
+        /** 47.0.3's live photo: the struct whose videoModel is what the flag saves as video. */
+        public LivePhoto livePhotoStruct;
         Photo(String url) { displayImageNoWatermark = new Address(url, 100); }
+        Photo live() { livePhotoStruct = new LivePhoto(); return this; }
+    }
+    public static final class LivePhoto {
+        public final Object videoModel = new Object();
     }
     public static final class Info {
         public List<Photo> imageList;
@@ -131,6 +166,13 @@ public class AdvancedDownloadsTest {
         public final Info photoModeImageInfo;
         Post(List<Photo> photos) { photoModeImageInfo = new Info(photos); }
     }
+    /** A photo post with an id, which is what a save is keyed on. */
+    public static final class PhotoPost {
+        public final Info photoModeImageInfo;
+        private final String aid;
+        PhotoPost(String aid, List<Photo> photos) { this.aid = aid; photoModeImageInfo = new Info(photos); }
+        public String getAid() { return aid; }
+    }
     public static final class TestActivity extends PreferenceActivity {
         @Override public void onCreate(android.os.Bundle state) {
             setTheme(android.R.style.Theme_Material_NoActionBar);
@@ -157,12 +199,166 @@ public class AdvancedDownloadsTest {
         assertEquals(4, gears.size());
     }
 
+    /**
+     * Each build's rendition list is found. 47.0.3 renamed the field to bitRateList; reading
+     * bitRate alone found nothing there and every chosen quality fell back to TikTok's own save
+     * (S22, 2026-09-23). The download's own choice and the address TikTok's save is handed both
+     * read it.
+     */
+    @Test public void everyBuildsRenditionListIsRead() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        Gear low = new Gear("normal_360_0", 100, "https://example.com/low");
+        Gear medium = new Gear("normal_720_0", 200, "https://example.com/mid");
+        Gear high = new Gear("normal_1080_0", 400, "https://example.com/high");
+        List<Gear> gears = List.of(medium, high, low);
+        for (Object video : new Object[]{new VideoData(gears), new VideoData47(gears), new VideoDataRenamedField(gears)}) {
+            String shape = video.getClass().getSimpleName();
+            assertSame(shape + ": the chosen quality", medium, VideoDownloads.selectedGear(video, "720", false));
+            assertSame(shape + ": Automatic with captions takes the highest", high, VideoDownloads.selectedGear(video, "auto", true));
+            assertNull(shape + ": Automatic alone is TikTok's own save", VideoDownloads.selectedGear(video, "auto", false));
+            Settings.DOWNLOAD_VIDEO_QUALITY.save("720");
+            assertSame(shape + ": the address TikTok's save is handed", medium.playAddr, QualitySelector.download(video));
+        }
+    }
+
+    /**
+     * 47.0.3 serves some heights only as ByteVC2, which nothing but TikTok's own player decodes
+     * (a saved file's video track came out as codec tag bvc2 on the S22). Those are never chosen;
+     * at the same height H.264 is taken over HEVC; with nothing playable left the save is
+     * TikTok's own.
+     */
+    @Test public void onlyRenditionsOtherPlayersOpenAreChosen() {
+        Gear bvc2High = new Gear("adapt_lower_720_2", 500, "https://example.com/720-bvc2").codec(2);
+        Gear hevcHigh = new Gear("adapt_lowest_1080_1", 450, "https://example.com/1080-hevc").codec(1);
+        Gear bvc2Mid = new Gear("adapt_540_2", 300, "https://example.com/540-bvc2").codec(2);
+        Gear hevcMid = new Gear("lower_540_1", 200, "https://example.com/540-hevc").codec(1);
+        Gear h264Mid = new Gear("normal_540_0", 150, "https://example.com/540-h264").codec(0);
+        List<Gear> gears = List.of(bvc2High, hevcHigh, bvc2Mid, hevcMid, h264Mid);
+        assertSame("720: the ByteVC2 720 is skipped for the playable 540", h264Mid, QualitySelector.chooseForFile(gears, "720"));
+        assertSame("highest: the playable 1080", hevcHigh, QualitySelector.chooseForFile(gears, "highest"));
+        assertSame("540: H.264 over HEVC and ByteVC2 at the same height", h264Mid, QualitySelector.chooseForFile(gears, "540"));
+        assertSame("lowest: still H.264 at the same height", h264Mid, QualitySelector.chooseForFile(gears, "lowest"));
+        assertSame("without H.264, HEVC", hevcMid, QualitySelector.chooseForFile(List.of(bvc2Mid, hevcMid), "540"));
+        assertNull("nothing playable: TikTok's own save", QualitySelector.chooseForFile(List.of(bvc2High, bvc2Mid), "720"));
+        assertNull("and for the download's own choice too",
+                VideoDownloads.selectedGear(new VideoData47(List.of(bvc2High, bvc2Mid)), "720", false));
+        Settings.DOWNLOAD_VIDEO_QUALITY.save("720");
+        assertSame("and for the address TikTok's save is handed", h264Mid.playAddr, QualitySelector.download(new VideoData47(gears)));
+        // TikTok's own player decodes ByteVC2, so the choice for playback keeps it.
+        assertSame("playback still takes the ByteVC2 720", bvc2High, QualitySelector.choose(gears, "720"));
+    }
+
+    /**
+     * When the asked height is served only as ByteVC2 the playable choice is a shorter one, while
+     * TikTok's own download can be that height in H.264. TikTok's file wins then, but only when its
+     * address says so and it is no taller than asked (refutation review of bd52abf1).
+     */
+    @Test public void aTallerOwnDownloadWinsOverAShorterPlayableChoice() {
+        Gear bvc2High = new Gear("adapt_lower_720_2", 500, "https://example.com/720-bvc2").codec(2);
+        Gear h264Mid = new Gear("normal_540_0", 150, "https://example.com/540-h264").codec(0);
+        VideoData47 video = new VideoData47(List.of(bvc2High, h264Mid));
+        assertSame("an address that says nothing keeps the playable 540",
+                h264Mid, VideoDownloads.selectedGear(video, "720", false));
+
+        // Only the watermarked address says 720: a deferred save would fall to it and put the
+        // watermark on a save the rendition path kept clean, so the playable 540 stays.
+        video.downloadAddr = new Address("https://example.com/marked.mp4", 900).frame(720, 1280);
+        assertSame("a watermarked-only 720 took the save", h264Mid, VideoDownloads.selectedGear(video, "720", false));
+
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean.mp4", 900).frame(720, 1280);
+        assertNull("TikTok's own clean 720 lost to the playable 540", VideoDownloads.selectedGear(video, "720", false));
+        assertNull("for Highest too", VideoDownloads.selectedGear(video, "highest", false));
+        assertNull("and for Automatic with captions", VideoDownloads.selectedGear(video, "auto", true));
+        Settings.DOWNLOAD_VIDEO_QUALITY.save("720");
+        assertNull("TikTok's own save was handed the 540", QualitySelector.download(video));
+        assertSame("asked for 540, the 540", h264Mid, VideoDownloads.selectedGear(video, "540", false));
+        assertSame("Lowest is left alone", h264Mid, VideoDownloads.selectedGear(video, "lowest", false));
+
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean.mp4", 900).frame(1080, 1920);
+        assertSame("taller than asked: the playable 540 stays", h264Mid, VideoDownloads.selectedGear(video, "720", false));
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean.mp4", 900).frame(540, 960);
+        assertSame("no taller than the choice: the playable 540 stays", h264Mid, VideoDownloads.selectedGear(video, "720", false));
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean.mp4", 900).frame(486, 864);
+        assertSame("shorter than the choice: the playable 540 stays", h264Mid, VideoDownloads.selectedGear(video, "720", false));
+        assertSame("and in Highest", h264Mid, VideoDownloads.selectedGear(video, "highest", false));
+    }
+
     @Test public void photosUseOrderedSourceImagesAndNeverThumbnails() {
         Post post = new Post(List.of(new Photo("https://example.com/one"), new Photo("https://example.com/two")));
         assertEquals(List.of(List.of("https://example.com/one"), List.of("https://example.com/two")), OriginalPhotos.sources(post));
         post.photoModeImageInfo.imageList = List.of(new Photo(null));
         assertTrue(OriginalPhotos.sources(post).isEmpty());
         assertTrue(OriginalPhotos.sources(new Object()).isEmpty());
+    }
+
+    /**
+     * 47.0.3's photo save job says which photos it was asked for, counted from 0: the one photo
+     * for "Download image", the picked ones from TikTok's selection sheet. The older entry, the
+     * video download start, asks for all of them.
+     */
+    @Test public void aPhotoSaveTakesOnlyThePhotosItWasAskedFor() {
+        assertEquals(List.of(0, 1, 2), OriginalPhotos.positions(null, 3));
+        assertEquals(List.of(0), OriginalPhotos.positions(java.util.Set.of(0), 3));
+        assertEquals("in the post's order", List.of(0, 2), OriginalPhotos.positions(java.util.Set.of(2, 0), 3));
+        assertEquals("a Long index reads the same", List.of(1), OriginalPhotos.positions(java.util.Set.of(1L), 3));
+        assertEquals("a photo the post doesn't have", List.of(), OriginalPhotos.positions(java.util.Set.of(5), 3));
+        assertEquals(List.of(), OriginalPhotos.positions(java.util.Set.of(), 3));
+    }
+
+    /**
+     * The job's entry takes a save only with the switch on, and only for photos the post has.
+     * The flag is not "this is a video save": the picker sets it for every save, stills
+     * included (the job reads it per item, picking livePhotoStruct.videoModel where one
+     * exists), so the entry stands aside only when a chosen photo really is a live photo. The
+     * old assertion here, "flag set means TikTok's", was that wrong premise: it made every
+     * picker save fall to TikTok's own .webp on the S22. A save already running for the post
+     * answers "taken" before anything is fetched, which is what lets this reach the decision
+     * without the network.
+     */
+    @Test public void thePhotoSaveJobTakesOnlyTheSavesItShould() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication())
+                .grantPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        PhotoPost post = new PhotoPost("busy-post", List.of(new Photo("https://example.com/one"), new Photo("https://example.com/two")));
+        java.util.Set<String> active = org.robolectric.util.ReflectionHelpers.getStaticField(OriginalPhotos.class, "ACTIVE");
+        active.add("busy-post");
+        try {
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.save(true);
+            assertTrue("the second photo, asked for", OriginalPhotos.startPhotos(post, java.util.Set.of(1), false));
+            assertTrue("the picker's flag on plain stills is not a video save",
+                    OriginalPhotos.startPhotos(post, java.util.Set.of(0, 1), true));
+            assertFalse("a photo the post doesn't have", OriginalPhotos.startPhotos(post, java.util.Set.of(2), false));
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.save(false);
+            assertFalse("the switch off", OriginalPhotos.startPhotos(post, java.util.Set.of(0), false));
+        } finally {
+            active.remove("busy-post");
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.resetToDefault();
+        }
+    }
+
+    /** A chosen live photo would come down as a video with the flag set: that save is TikTok's. */
+    @Test public void aChosenLivePhotoLeavesTheSaveToTikTok() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication())
+                .grantPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        Photo still = new Photo("https://example.com/one");
+        Photo live = new Photo("https://example.com/two").live();
+        PhotoPost post = new PhotoPost("live-post", List.of(still, live));
+        java.util.Set<String> active = org.robolectric.util.ReflectionHelpers.getStaticField(OriginalPhotos.class, "ACTIVE");
+        active.add("live-post");
+        try {
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.save(true);
+            assertFalse("the chosen live photo was taken from TikTok",
+                    OriginalPhotos.startPhotos(post, java.util.Set.of(0, 1), true));
+            assertTrue("the still alone is not a video save", OriginalPhotos.startPhotos(post, java.util.Set.of(0), true));
+            assertTrue("without the flag the live photo saves as its still",
+                    OriginalPhotos.startPhotos(post, java.util.Set.of(0, 1), false));
+            assertFalse("an unreadable post with the flag set stays TikTok's",
+                    OriginalPhotos.startPhotos(new Object(), java.util.Set.of(0), true));
+        } finally {
+            active.remove("live-post");
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.resetToDefault();
+        }
     }
 
     @Test public void adaptiveDownloadsPairTheRequestedAudioAndNeverReturnSilentVideoUrl() {

@@ -15,7 +15,7 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/jaredcat/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.3.0](https://github.com/jaredcat/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 Expand&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -30,6 +30,22 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 |----------|----------------|-----------|
 | [Disable Analytics](#disable-analytics) | Prevents Adjust and Firebase Analytics from collecting or sending analytics. |  |
 | [Unlock Plus](#unlock-plus) | Unlocks Expand Plus without a subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 OfferUp&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2026.38.0 |
+| :---: |
+| Patch the device split APKs (base + arm64 + en + xxhdpi) or an APKS/APKM matching this version. Listing map embed will not work after install (resigning breaks the Maps API key). |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Hide Ads](#hide-ads) | Hides Google, Nimbus, Moloco, Liftoff, in-feed promo tiles, Inbox banners, and the Go Premium bar. Note: patching OfferUp breaks the listing map embed (Maps API key is tied to the Play Store signature). |  |
 
 </details>
 
@@ -62,6 +78,22 @@ Click here to add these patches to Morphe: <https://morphe.software/add-source?g
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Unlocks Lumenate Premium without a subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 Sweepy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.1.3 |
+| :---: |
+| Patch the device split APKs (base + arm64 + locale + density) or an APKS/APKM matching this version. |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks Sweepy Premium features. |  |
 
 </details>
 

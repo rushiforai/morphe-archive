@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.5.0
+
+- Self-locating patches: the QuestBar gate and gift-bar flag are now
+  discovered in the bundle at patch time (string co-occurrence + head
+  shape + flag write/test validation) instead of baked-in byte anchors,
+  and compat is a NULL version (any com.discord build). New Discord
+  versions need no patch update as long as discovery holds; anything
+  unrecognized fails loudly with the update point named. Only the
+  attach-sheet push keeps legacy anchors (frozen facts about old
+  bundles) with skip-or-fail reasoning. Proven: discovery reproduces
+  every v1.4.0 site exactly on all five known bundles, CLI bytes
+  identical.
+
+## v1.4.0
+
+- New support: 346.13 Stable (all three patches). QuestBar gate
+  grew eligibility hooks and a CreateFunctionEnvironment in its head
+  (fn 62203, own 17-byte anchor; same 6-byte return-null edit over
+  GPE + CFE); gift-bar flag in ChatInputRightActions (fn 56000, own
+  anchor); the attach-sheet still has no gift entry in 346 (actions
+  row fn 55293, only dead NITRO_GIFT renderer refs), so the sheet-push
+  site is skipped there as in 344. Anchor spec extended to 11 checks,
+  ALL OK; patch simulation shows exact diffs, no strays.
+  Pin-to-builtin-bundle needs no change (DCDReactNativeHost.
+  getJSBundleFile() still present in 346).
+
 ## v1.3.0
 
 - New support: 344.13 Stable (all three patches). QuestBar gate

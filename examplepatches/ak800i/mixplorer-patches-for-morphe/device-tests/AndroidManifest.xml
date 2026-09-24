@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="dev.local.mixplorer.internaltest">
+    <uses-sdk android:minSdkVersion="30" android:targetSdkVersion="33" />
+    <application android:label="MiXplorer Internal Query Test" android:allowBackup="false" />
+    <instrumentation android:name=".InternalQueryTest" android:targetPackage="com.mixplorer" />
+</manifest>

@@ -14,16 +14,7 @@ import app.morphe.patches.shared.bytecode.requireOccurrenceCount
 import app.morphe.patches.shared.bytecode.replaceFirst
 import app.morphe.patches.webetu.shared.WebetuConstants
 
-/**
- * The Resto reservation screen only offers a short date range (3 days).
- * The limit lives in the Hermes bytecode inside `assets/index.android.bundle`
- * (Webetu bundles the JS as Hermes bytecode). Two needles are patched:
- *
- *  1. The date-list generator: `LoadConstUInt8 r1, 3` (the max-days limit)
- *     → `LoadConstUInt8 r1, 40` (30 days + slack).
- *  2. The chip-width formula: the divisor changes the chip width when more
- *     chips are present — keep the formula consistent with 30 days.
- */
+/** Extends the reservation date range. */
 @Suppress("unused")
 val extendDateRangePatch = rawResourcePatch(
     name = "Enable 30-day Resto reservations",

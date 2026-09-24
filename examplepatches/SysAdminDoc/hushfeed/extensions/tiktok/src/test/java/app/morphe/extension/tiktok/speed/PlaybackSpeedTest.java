@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import android.os.Bundle;
 import android.preference.SwitchPreference;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
@@ -33,12 +34,15 @@ public class PlaybackSpeedTest {
         Settings.DEFAULT_SPEED_ENABLED.save(true);
         Settings.DEFAULT_SPEED.save("1.5");
         Settings.CUSTOM_SPEEDS.save("");
+        Settings.HOLD_SPEED.save("2");
         Settings.REMEMBERED_SPEED.save(1f);
         PlaybackSpeedPatch.beginVideo(null);
     }
     @After public void tearDown() {
         SettingsStatus.playbackSpeedEnabled = false;
         SettingsStatus.playbackQualityEnabled = false;
+        // Process-wide, and the Playback page other classes capture shows it.
+        Settings.HOLD_SPEED.resetToDefault();
     }
     @Test public void manualChoiceSurvivesRepeatedFramesUntilTheVideoChanges() {
         Aweme a = video("a"), b = video("b");
@@ -111,6 +115,97 @@ public class PlaybackSpeedTest {
             assertNotNull(fragment.findPreference("default_speed"));
             assertNull(fragment.findPreference("playback_quality"));
             app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "playback-speed-settings.png");
+        }
+    }
+    @Test public void theHoldSpeedRowReplacesTikToksTwoTimesAndBadValuesLeaveIt() {
+        Settings.HOLD_SPEED.save("3");
+        assertEquals(3f, PlaybackSpeedPatch.holdSpeed(2f), 0);
+        Settings.HOLD_SPEED.save("1.5");
+        assertEquals(1.5f, PlaybackSpeedPatch.holdSpeed(2f), 0);
+        // Above the player's ceiling, not a number, and zero all leave TikTok's own value.
+        Settings.HOLD_SPEED.save("4");
+        assertEquals(2f, PlaybackSpeedPatch.holdSpeed(2f), 0);
+        Settings.HOLD_SPEED.save("fast");
+        assertEquals(2f, PlaybackSpeedPatch.holdSpeed(2f), 0);
+        Settings.HOLD_SPEED.save("0");
+        assertEquals(2f, PlaybackSpeedPatch.holdSpeed(2f), 0);
+    }
+    @Test public void tiktoksWordsForTheHoldFollowTheChosenSpeed() {
+        Settings.HOLD_SPEED.save("3");
+        assertEquals("Speed: 3x", PlaybackSpeedPatch.holdSpeedText("Speed: 2x"));
+        assertEquals("Pull down to lock 3x speed", PlaybackSpeedPatch.holdSpeedText("Pull down to lock 2x speed"));
+        assertEquals("Locked at 3× speed", PlaybackSpeedPatch.holdSpeedText("Locked at 2× speed"));
+        // A language that writes the multiplier first.
+        assertEquals("Vitesse x3", PlaybackSpeedPatch.holdSpeedText("Vitesse x2"));
+        Settings.HOLD_SPEED.save("1.25");
+        assertEquals("Locked at 1.25× speed", PlaybackSpeedPatch.holdSpeedText("Locked at 2× speed"));
+        // No 2, a 2 inside another number, or two of them: TikTok's own words stand.
+        for (String kept : new String[]{"Back to normal speed", "Speed: 1x", "Speed: 12x", "Speed: 2.5x", "2x or 2x"}) {
+            assertEquals(kept, PlaybackSpeedPatch.holdSpeedText(kept));
+        }
+        assertNull(PlaybackSpeedPatch.holdSpeedText(null));
+        Settings.HOLD_SPEED.save("2");
+        assertEquals("Speed: 2x", PlaybackSpeedPatch.holdSpeedText("Speed: 2x"));
+        Settings.HOLD_SPEED.save("9");
+        assertEquals("a speed the player refuses keeps TikTok's words",
+                "Speed: 2x", PlaybackSpeedPatch.holdSpeedText("Speed: 2x"));
+    }
+    @Test public void pausedTiktoksWordsForTheHoldStand() {
+        Settings.HOLD_SPEED.save("3");
+        PausedProcess.set(true);
+        try { assertEquals("Speed: 2x", PlaybackSpeedPatch.holdSpeedText("Speed: 2x")); }
+        finally { PausedProcess.set(false); }
+    }
+    @Test public void thePlainBannerIsRewordedFromTikToksOwnTextEachTime() {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        android.widget.LinearLayout banner = new android.widget.LinearLayout(context);
+        android.widget.TextView label = new android.widget.TextView(context);
+        label.setText("Speed: 2x");
+        banner.addView(label);
+        banner.addView(new android.widget.ImageView(context));
+
+        Settings.HOLD_SPEED.save("3");
+        PlaybackSpeedPatch.holdSpeedBanner(banner);
+        assertEquals("Speed: 3x", label.getText().toString());
+        // The next hold starts from TikTok's text, not from the last rewording.
+        Settings.HOLD_SPEED.save("1.5");
+        PlaybackSpeedPatch.holdSpeedBanner(banner);
+        assertEquals("Speed: 1.5x", label.getText().toString());
+        Settings.HOLD_SPEED.save("2");
+        PlaybackSpeedPatch.holdSpeedBanner(banner);
+        assertEquals("Speed: 2x", label.getText().toString());
+        Settings.HOLD_SPEED.save("3");
+        PausedProcess.set(true);
+        try {
+            PlaybackSpeedPatch.holdSpeedBanner(banner);
+            assertEquals("Speed: 2x", label.getText().toString());
+        } finally {
+            PausedProcess.set(false);
+        }
+    }
+    @Test public void pausedTheHoldSpeedIsTikToks() {
+        Settings.HOLD_SPEED.save("3");
+        PausedProcess.set(true);
+        try { assertEquals(2f, PlaybackSpeedPatch.holdSpeed(2f), 0); }
+        finally { PausedProcess.set(false); }
+    }
+    @Test public void theHoldSpeedRowSitsUnderSpeedWithTikToksTwoTimesChosen() throws Exception {
+        try (var owner = Robolectric.buildActivity(app.morphe.extension.tiktok.captions.CaptionToolsTest.CaptionActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            SettingsStatus.playbackSpeedEnabled = true;
+            var fragment = new TikTokPreferenceFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString("morphe_settings_section", "PLAYBACK");
+            fragment.setArguments(arguments);
+            activity.getFragmentManager().beginTransaction().replace(android.R.id.content, fragment).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            var row = (android.preference.ListPreference) fragment.findPreference("hold_speed");
+            assertEquals("2", row.getValue());
+            assertEquals("2x", row.getEntry());
+            row.setValue("3");
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals("3", Settings.HOLD_SPEED.get());
         }
     }
 }

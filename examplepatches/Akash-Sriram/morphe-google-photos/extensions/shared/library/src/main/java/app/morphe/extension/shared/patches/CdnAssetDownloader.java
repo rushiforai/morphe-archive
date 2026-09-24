@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.UnknownHostException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
@@ -20,9 +21,13 @@ public final class CdnAssetDownloader {
     private static final String TAG = "CdnAssetDownloader";
     private static final Set<String> ACTIVE_DOWNLOADS = Collections.synchronizedSet(new HashSet<>());
     private static final int BUFFER_SIZE = 16384;
-    private static final int DEFAULT_MAX_RETRIES = 3;
+    private static final int DEFAULT_MAX_RETRIES = 10;
     private static final int CONNECT_TIMEOUT_MS = 15000;
     private static final int READ_TIMEOUT_MS = 60000;
+    // How long to wait after a DNS failure before retrying (DNS drops typically last ~60s)
+    private static final long DNS_BACKOFF_MS = 35_000L;
+    // How long to wait after a generic network error
+    private static final long NET_BACKOFF_MS = 3_000L;
 
     private CdnAssetDownloader() {}
 
@@ -142,8 +147,16 @@ public final class CdnAssetDownloader {
                     if (tempFile.exists()) {
                         tempFile.delete();
                     }
+                    // DNS failures need a long wait — the router drop typically lasts 30-90s.
+                    // Generic errors only need a short backoff.
+                    boolean isDnsFailure = (t instanceof UnknownHostException)
+                            || (t.getMessage() != null && t.getMessage().contains("No address associated with hostname"));
+                    long waitMs = isDnsFailure ? DNS_BACKOFF_MS : (NET_BACKOFF_MS * attempt);
+                    if (isDnsFailure) {
+                        Logger.printInfo(() -> TAG + ": DNS failure detected, waiting " + (waitMs / 1000) + "s before retry...");
+                    }
                     try {
-                        Thread.sleep(1500L * attempt);
+                        Thread.sleep(waitMs);
                     } catch (InterruptedException ignored) {}
                 }
             }

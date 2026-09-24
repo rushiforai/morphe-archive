@@ -1,0 +1,79 @@
+name: Bug Report / Patch Issue
+description: Something broke after patching; crash, bootloop, feature not working
+labels: ["bug"]
+body:
+  - type: input
+    id: device
+    attributes:
+      label: Device model
+      placeholder: e.g. Xiaomi Redmi Note 13, Vivo X200 Pro, OnePlus 15
+    validations:
+      required: true
+
+  - type: input
+    id: android
+    attributes:
+      label: Android version
+      placeholder: e.g. 13, 14, 15
+    validations:
+      required: true
+
+  - type: input
+    id: rom
+    attributes:
+      label: ROM / custom OS (if any)
+      placeholder: e.g. stock, MIUI, HyperOS, LineageOS, PixelOS
+
+  - type: input
+    id: app
+    attributes:
+      label: Patched app/game
+      placeholder: e.g. Half-Life 3, Spotify 8.9.98
+    validations:
+      required: true
+
+  - type: textarea
+    id: patches
+    attributes:
+      label: Patches applied
+      description: List patches you enabled. Copy from Morphe's Patched / Logs screen or type names one per line. Paste the full list — don't worry about exact spelling.
+      placeholder: |
+        e.g.
+        No Ads (Block Interstitials, Block Banners)
+        Ads Free Rewards (Auto)
+        Spoof Developer Options
+        Preserve App Data
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Patcher log
+      description: Paste the FULL log from Morphe after patching (Share ? Copy). Contains manager/patcher version, package, patches, device — one paste replaces many fields.
+      placeholder: |
+        [INFO] Build: manager=1.27.1-dev.1 patcher=1.10.1-dev.1
+        [INFO] Device: android=16 api=36
+        [INFO] Applying patches...
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue
+    attributes:
+      label: What happens?
+      description: Description of the bug, crash log (if possible)
+      placeholder: App crashes on launch.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: The unpatched app/game works fine on this device
+          required: true
+        - label: I tested the latest version of Nai64ExtraPatches

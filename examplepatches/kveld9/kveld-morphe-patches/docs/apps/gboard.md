@@ -50,11 +50,31 @@ If you perform a clean install of Gboard Lite with background sync debloat patch
 
 | Patch Name | Type | Category | Default | Primary Mechanism |
 | :--- | :--- | :--- | :---: | :--- |
+| **Add AMOLED Theme** | `bytecodePatch` + `resourcePatch` | UI & Appearance | ✅ Yes | Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing standard themes. |
+| **Allow Modified APK** | `bytecodePatch` | Security & Integrity | ✅ Yes | Bypasses internal signature check to allow custom APK execution. |
+| **Block Telemetry** | `bytecodePatch` | Privacy & Security | ✅ Yes | Disables background metrics dispatch, event logging, daily pings, and crash reporting. |
 | **Clipboard Enhancements** | `bytecodePatch` | Usability & Storage | ✅ Yes | Removes hardcoded 1-hour TTL and 5-clip UI throttling, extending retention up to user-configured hours/items. |
-| **Disable MDD Background Sync** | `bytecodePatch` + `resourcePatch` | Battery & Debloat | ✅ Yes | Neutralizes Google Mobile Data Download periodic network polling and sync tasks. |
-| **Disable Superpacks Eager Sync** | `bytecodePatch` | Battery & Debloat | ✅ Yes | Prevents background Superpacks language model sync scheduling. |
-| **Disable WorkManager** | `resourcePatch` | Battery & Optimization | ✅ Yes | Neutralizes AndroidX WorkManager background schedulers in `AndroidManifest.xml`. |
+| **Clone Gboard** | `bytecodePatch` + `resourcePatch` | Utility & Modding | ✅ Yes | Appends a custom suffix to the package name to allow installing Gboard alongside the original application. |
+| **Disable Diagnostics** | `bytecodePatch` | Privacy & Telemetry | ✅ Yes | Disables Google AppDoctor diagnostic and recovery telemetry. |
+| **Disable Google Primes** | `bytecodePatch` | Battery & Debloat | ✅ Yes | Neutralizes Google Primes performance profiling, jank monitoring, native crash sidecars, and background telemetry threads. |
+| **Disable MDD Background Sync** | `bytecodePatch` + `resourcePatch` | Battery & Debloat | ❌ No | Neutralizes Mobile Data Download (MDD) periodic background sync and prefetch tasks (opt-in to preserve initial dictionary downloads). |
+| **Disable Remote Configuration** | `bytecodePatch` | Privacy & Stability | ✅ Yes | Disables periodic remote experiment flag synchronization and background updates. |
+| **Disable Superpacks Eager Sync** | `bytecodePatch` | Battery & Debloat | ❌ No | Neutralizes eager background Superpacks synchronization during application startup (opt-in to preserve initial dictionary downloads). |
+| **Disable Tenor Share Tracking** | `bytecodePatch` | Privacy & Telemetry | ✅ Yes | Disables Tenor GIF selection and share tracking telemetry. |
+| **Disable WorkManager** | `resourcePatch` | Battery & Optimization | ❌ No | Neutralizes AndroidX WorkManager background schedulers in `AndroidManifest.xml` (opt-in to preserve initial dictionary downloads). |
+| **Enable Access Points Menu Redesign** | `bytecodePatch` | UI & Appearance | ✅ Yes | Enables the redesigned access points menu bar and customization panel (Panel V2). |
+| **Enable Bluetooth Microphone** | `bytecodePatch` | Usability & Audio | ✅ Yes | Unlocks Bluetooth microphone recording toggle under Voice typing settings. |
+| **Enable Cursor Trackpad** | `bytecodePatch` | Navigation & Control | ✅ Yes | Enables 2D trackpad cursor navigation and cursor lock mode by holding the spacebar, neutralizing Phenotype flag reset conflicts. |
+| **Enable Dismiss Suggestions Button** | `bytecodePatch` | UI & Usability | ✅ Yes | Adds a close button (X) to dismiss proactive suggestions on the suggestion bar. |
+| **Enable Emoji Scale Setting** | `bytecodePatch` | UI & Appearance | ✅ Yes | Unlocks the emoji size scaling setting in Gboard appearance preferences. |
+| **Enable Grammar Checker** | `bytecodePatch` | Usability & Typing | ✅ Yes | Unlocks Grammar check and Smart Compose / inline suggestions under Text correction preferences. |
+| **Enable Key Shape Selection** | `bytecodePatch` | UI & Appearance | ✅ Yes | Enables the key border shape selection UI (Default, Semi-rounded, Round) in theme customization. |
+| **Force Incognito Mode** | `bytecodePatch` | Privacy & Security | ❌ No | Forces Gboard to always operate in incognito mode (disabling personalized learning and persistent input logging). |
+| **Hardened Intent Security** | `bytecodePatch` | Security & Integrity | ✅ Yes | Enables Gboard internal external intent protection against unauthorized intent hijacking. |
 | **Offline Only** | `bytecodePatch` + `resourcePatch` | Privacy & Security | ❌ No | Completely isolates Gboard from network access by purging manifest permissions, disabling foreground sync services, neutralizing HTTP clients (Cronet, OkHttp, Superpacks), and spoofing offline status. |
+| **Phenotype Flag Resilience** | `bytecodePatch` | Stability & Resilience | ✅ Yes | Neutralizes Phenotype flag registration conflicts to allow runtime flag overrides without crashes. |
+| **Resource Slimmer** | `bytecodePatch` | Optimization | ✅ Yes | Strips embedded third-party license text, onboarding tutorial Lottie animations, promotional GIFs, and APK root metadata/junk files. |
+| **Top Toolbar Item Count** | `bytecodePatch` | UI & Customization | ✅ Yes | Expands and customizes the maximum number of access point icons displayed directly on the top toolbar (default: 5, range: 4..8). |
 | **Universal Slimmers** | `resourcePatch` + `rawResourcePatch` | Optimization | ✅ Yes | `Locale Resource Slimmer`, `DPI Resource Slimmer`, `PNG Asset Optimizer`, and `APK Junk Cleaner`. |
 
 ---
@@ -68,7 +88,7 @@ The **`Offline Only`** patch provides complete network isolation for privacy-foc
 | **Strip Contacts Permission** | `stripContacts` | Boolean | `false` | When enabled, additionally revokes `android.permission.READ_CONTACTS` from `AndroidManifest.xml` for complete device isolation. |
 
 ### Technical Architecture:
-1. **Manifest Purge**: Strips 9 network/tracking permissions (`INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `GET_ACCOUNTS`, `READ_GSERVICES`, `GET_PACKAGE_SIZE`, `FOREGROUND_SERVICE`, `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`), sets `android:usesCleartextTraffic="false"`, and disables network foreground services (`SuperpacksForegroundTaskService`, `SystemForegroundService`).
+1. **Manifest Purge**: Strips 8 network/tracking permissions (`INTERNET`, `ACCESS_WIFI_STATE`, `GET_ACCOUNTS`, `READ_GSERVICES`, `GET_PACKAGE_SIZE`, `FOREGROUND_SERVICE`, `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`), retains `ACCESS_NETWORK_STATE` to prevent GMS Cronet runtime `SecurityException` crashes while blocking actual network traffic at the socket/HTTP layer, sets `android:usesCleartextTraffic="false"`, and disables network foreground services (`SuperpacksForegroundTaskService`, `SystemForegroundService`).
 2. **Bytecode Neutralization**: Spoofs `DeviceStatusMonitor` to `NO_CONNECTION`, mocks `NetworkInfoNotification` offline predicates, redirects central HTTP clients (Cronet, OkHttp, Superpacks) to immediate `IOException("Offline mode")` exceptions, neutralizes language download queues, and disconnects Glide/WorkManager connectivity listeners.
 
 
@@ -95,3 +115,34 @@ The **`Clipboard Enhancements`** patch modernizes Gboard Lite's local clipboard 
 
 3. **Custom Grid Span (`ClipboardKeyboard->b()I`)**:
    - Overrides the `StaggeredGridLayoutManager` span count to render 1, 2, or 3 columns cleanly across phones, foldables, and tablets.
+
+---
+
+## 🎛️ Configurable Options: Top Toolbar Item Count
+
+The **`Top Toolbar Item Count`** patch allows customizing the maximum number of access point icons displayed directly in Gboard's top toolbar:
+
+| Option | Key | Type | Default | Range / Format | Description |
+| :--- | :--- | :--- | :---: | :--- | :--- |
+| **Toolbar item count** | `itemCount` | String | `5` | `4` to `8` | Maximum number of access point icons displayed on the top toolbar without collapsing into the overflow menu. |
+
+---
+
+## 🚀 Productivity & Usability Unlocks
+
+### 1. Cursor Trackpad Mode (`Enable Cursor Trackpad`)
+- **Behavior**: Long-pressing and swiping across the spacebar enters full 2D cursor navigation mode (moving horizontally and vertically) with haptic feedback. Holding until locked enters sticky cursor mode.
+- **Phenotype Resilience**: Neutralizes internal Google Phenotype flag assertions (`svl.n`) that previously triggered `IllegalStateException: Resetting default value is disallowed` when XML resource defaults conflicted with patched compile-time defaults.
+
+### 2. Bluetooth Microphone (`Enable Bluetooth Microphone`)
+- **Behavior**: Unlocks the dedicated "Usar micrófono Bluetooth" (Use Bluetooth microphone) toggle under *Gboard Settings > Dictado por voz* (Voice typing).
+- **Function**: Enables audio capture directly from connected Bluetooth headsets and external wireless microphones during voice input.
+
+### 3. Grammar Checker & Smart Compose (`Enable Grammar Checker`)
+- **Behavior**: Unlocks "Revisión gramatical" (Grammar check with blue squiggly underlines) and client-side inline smart suggestions under *Gboard Settings > Correcciones y sugerencias*.
+
+### 4. Emoji Scale Setting (`Enable Emoji Scale Setting`)
+- **Behavior**: Unlocks the "Tamaño de los emojis" (Emoji size) slider under *Gboard Settings > Preferencias > Apariencia*, enabling granular scaling of emoji keys independently of system font sizing.
+
+### 5. Dismiss Suggestions Button (`Enable Dismiss Suggestions Button`)
+- **Behavior**: Renders a dedicated dismiss button (`X`) on the proactive suggestion bar, allowing quick hiding of proactive recommendations without opening menus.

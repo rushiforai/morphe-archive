@@ -1,0 +1,136 @@
+name: Release
+
+# Morphe Manager discovers a patch source by reading two files from the
+# repository's default branch:
+#
+#   patches-bundle.json  - points at the .mpp to download for this version
+#   patches-list.json    - lets it list the patches without downloading them
+#
+# Publishing therefore means more than attaching an asset: both files have to be
+# regenerated and committed back, or the manager keeps serving stale metadata
+# (or rejects the source outright, if they are empty).
+#
+# Publish a version by tagging:
+#     git tag v1.0.0 && git push origin v1.0.0
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v1.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need history and a branch (not a detached tag) to commit metadata back.
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # git on Windows does not record the executable bit, so the wrapper can
+      # arrive here as 0644 and fail with "./gradlew: Permission denied".
+      # The bit is set in the index too; this is just belt and braces.
+      - name: Make wrapper executable
+        run: chmod +x gradlew
+
+      # The tag is the single source of truth for the version. Passing it to
+      # Gradle keeps the artifact filename, the bundle manifest's Version and
+      # patches-list.json all in step with patches-bundle.json. Without this,
+      # tagging v1.0.1 while gradle.properties still says 1.0.0 produces
+      # patches-1.0.0.mpp advertised as version 1.0.1, and the manager fails
+      # with "patch bundle could not be downloaded".
+      #
+      # app.morphe artifacts live on GitHub Packages, which requires
+      # authentication even for public packages. GITHUB_TOKEN carries
+      # read:packages for workflow runs.
+      # buildAndroid is mandatory, not optional. It compiles the patches to DEX
+      # and adds classes.dex to the bundle. Morphe Manager runs on Android and
+      # loads patches through a dex class loader, so a bundle built with plain
+      # `build` (JVM .class files only) is rejected at load time with
+      # "Patch bundle is missing dex entries".
+      - name: Build patch bundle and patch list
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          ./gradlew --no-daemon -Pversion="${TAG#v}" \
+            :patches:generatePatchesList :patches:buildAndroid
+
+      - name: Collect bundle
+        id: bundle
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Ship only the patch bundle itself, matching how the upstream
+          # morphe-patches releases are laid out. The -sources/-javadoc
+          # variants are build by-products and must not be published, or the
+          # manager may pick the wrong asset.
+          bundle=$(ls patches/build/libs/*.mpp \
+                   | grep -vE -- '-(sources|javadoc)\.mpp$' \
+                   | head -1)
+          name=$(basename "$bundle")
+          version="${TAG#v}"
+
+          # Refuse to publish a bundle whose name disagrees with the tag,
+          # rather than shipping metadata that points at a file that is not there.
+          if [ "$name" != "patches-${version}.mpp" ]; then
+            echo "::error::Built $name but tag $TAG implies patches-${version}.mpp"
+            exit 1
+          fi
+
+          # A bundle without classes.dex downloads fine and then fails inside
+          # Morphe Manager. Catch it here instead of shipping it.
+          if ! unzip -l "$bundle" | grep -q ' classes\.dex$'; then
+            echo "::error::$name contains no classes.dex - did :patches:buildAndroid run?"
+            unzip -l "$bundle"
+            exit 1
+          fi
+
+          echo "Publishing $bundle"
+          echo "path=$bundle" >> "$GITHUB_OUTPUT"
+          echo "name=$name"   >> "$GITHUB_OUTPUT"
+
+      - name: Write patches-bundle.json
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+          ASSET: ${{ steps.bundle.outputs.name }}
+        run: python3 .github/scripts/write_bundle_json.py
+
+      - name: Commit metadata back to the default branch
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json
+          if git diff --cached --quiet; then
+            echo "Metadata unchanged, nothing to commit."
+            exit 0
+          fi
+          git checkout -B "${{ github.event.repository.default_branch }}"
+          git commit -m "chore: update patch bundle metadata for ${{ github.event.inputs.tag || github.ref_name }} [skip ci]"
+          git push origin "HEAD:${{ github.event.repository.default_branch }}"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: ${{ github.event.inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          files: ${{ steps.bundle.outputs.path }}

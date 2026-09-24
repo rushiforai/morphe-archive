@@ -197,8 +197,8 @@ public final class ProfileAvatarSaver {
                 String extension = RemoteMedia.fetch(urlSnapshot, temp, RemoteMedia.Kind.IMAGE);
                 String mime = "jpg".equals(extension) ? "image/jpeg" : "image/" + extension;
                 String saved = name.substring(0, name.lastIndexOf('.') + 1) + extension;
-                MediaFileWriter.publish(app, temp, saved, mime, path, false);
-                Utils.showToastShort(L10n.f("Profile picture saved to %1$s", path));
+                MediaFileWriter.Saved landed = MediaFileWriter.publishForResult(app, temp, saved, mime, path, false);
+                SaveNotice.saved(L10n.f("Profile picture saved to %1$s", path), landed);
             } catch (IOException | RuntimeException exception) {
                 Logger.printException(() -> "Profile picture download failed", exception);
                 Utils.showToastLong(L10n.t("The profile picture couldn't be saved. Try again."));

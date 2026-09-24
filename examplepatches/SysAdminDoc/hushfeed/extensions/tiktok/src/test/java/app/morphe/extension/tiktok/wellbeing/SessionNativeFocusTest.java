@@ -47,12 +47,14 @@ public class SessionNativeFocusTest {
     @Before public void setUp() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
         SessionBudget.setClockForTests(now::get);
+        SessionPlaybackHoldTest.installNativeControls();
         clearHold();
     }
 
     @After public void tearDown() throws Exception {
         clearHold();
         SessionBudget.setClockForTests(null);
+        SessionPlaybackHold.nativeForTests = null;
     }
 
     @Test public void nativeGrantAfterActivityReplacementLetsTheHeldVideoResume() throws Exception {
@@ -278,7 +280,7 @@ public class SessionNativeFocusTest {
                 if (independentResume == 1) hold.player.manager.nativeResume();
                 // The real progress bridge runs even when the current source ID is unchanged.
                 hold.player.reportProgress();
-                if (independentResume == 1) hold.player.manager.LIZ();
+                if (independentResume == 1) hold.player.manager.pause();
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
                 assertTrue("the native player was not paused before focus returned",
                         hold.player.manager.isPaused());
@@ -447,7 +449,7 @@ public class SessionNativeFocusTest {
             openActivity();
             player.manager.deferNativeCommands = deferNativeCommands;
             if (pausedBeforeHold) {
-                player.manager.LIZ();
+                player.manager.pause();
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
                 assertTrue("the native pause did not precede the daily hold", player.manager.isPaused());
             }

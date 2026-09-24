@@ -99,6 +99,9 @@ All patches follow the same general workflow using **Morphe Manager**:
 > for how the current native (`libpvhook.so`) approach works and complete install
 > recommendations. The original Reddit announcement is archived for transparency at
 > [`docs/archive/2026-07_prime-video-reddit-post.md`](docs/archive/2026-07_prime-video-reddit-post.md).
+>
+> 🔬 **How it works under the hood:** [`docs/PRIME_VIDEO_ATV_SYSTEM_DESIGN.md`](docs/PRIME_VIDEO_ATV_SYSTEM_DESIGN.md)
+> is a reverse-engineering teardown of Prime Video's ad and playback system, and of why the patch works.
 
 ---
 
@@ -135,6 +138,9 @@ All patches follow the same general workflow using **Morphe Manager**:
 > ⚠️ **Not a subscription bypass.** You need a valid, paid Netflix account and you
 > log in normally. This only removes ads and trims device telemetry inside an app
 > you're already entitled to use.
+>
+> 🔬 **How it works under the hood:** [`docs/NETFLIX_ATV_SYSTEM_DESIGN.md`](docs/NETFLIX_ATV_SYSTEM_DESIGN.md)
+> is a reverse-engineering teardown of Netflix's ATV ad and playback system, and of why the patch works.
 
 ---
 
@@ -201,6 +207,9 @@ All patches follow the same general workflow using **Morphe Manager**:
 > the app's external files dir (`Android/data/tv.pluto.android/files/`): create **`slate_off`**
 > to disable it on-device without re-patching, or **`pluto_slate_mode`** containing `black`
 > (cover only) or `mute` (mute only) instead of the default both.
+>
+> 🔬 **How it works under the hood:** [`docs/PLUTO_TV_ATV_SYSTEM_DESIGN.md`](docs/PLUTO_TV_ATV_SYSTEM_DESIGN.md)
+> is a reverse-engineering teardown of Pluto TV's ad and playback system, and of why the patch works.
 
 ---
 

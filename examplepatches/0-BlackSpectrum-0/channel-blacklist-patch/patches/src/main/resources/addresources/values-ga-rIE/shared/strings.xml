@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Athshocraigh socruithe Morphe go réamhshocrú</string>
   <string name="morphe_settings_import_success">%d socruithe allmhairithe</string>
   <string name="morphe_settings_import_failure_parse">Theip ar allmhairiú: %s</string>
+  <string name="morphe_settings_navigate_up">Téigh suas</string>
   <string name="morphe_settings_search_hint">Socruithe cuardaigh</string>
   <string name="morphe_settings_search_no_results_title">Níor aimsíodh aon torthaí do \'%s\'</string>
   <string name="morphe_settings_search_no_results_summary">Bain triail as eochairfhocal eile</string>
   <string name="morphe_settings_search_recent_searches">Cuardaigh le déanaí</string>
   <string name="morphe_settings_search_remove_message">Bain as stair an chuardaigh?</string>
+  <string name="morphe_settings_search_remove">Bain as stair an chuardaigh</string>
   <string name="morphe_settings_search_clear_history">Glan stair chuardaigh</string>
   <string name="morphe_settings_search_clear_history_message">An bhfuil tú cinnte gur mhaith leat stair chuardaigh go léir a ghlanadh?</string>
   <string name="morphe_settings_search_tips_title">Leideanna Cuardaigh</string>
@@ -72,8 +74,8 @@ Chun teangacha nua a aistriú nó chun na haistriúcháin atá ann cheana a fhea
   <string name="morphe_settings_export_file_success">Easpórtáladh na socruithe go rathúil</string>
   <string name="morphe_settings_export_file_failed">Theip ar shocruithe a easpórtáil</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Tá tú ag baint úsáide as an leagan is déanaí de Morphe Patches &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Tá tú ag baint úsáide as leagan &lt;i&gt;%1$s&lt;/i&gt; Morphe Patches&lt;br&gt;&lt;br&gt;&lt;b&gt;Nuashonrú ar fáil: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Chun do phaisteanna a nuashonrú, bain úsáid as Morphe chun an aip seo a athphaisteáil</string>
+  <string name="morphe_settings_about_links_body_version_current">Tá tú ag baint úsáide as an leagan is déanaí de Spectre Patches &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Tá tú ag baint úsáide as leagan &lt;i&gt;%1$s&lt;/i&gt; Spectre Patches&lt;br&gt;&lt;br&gt;&lt;b&gt;Nuashonrú ar fáil: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Chun do phaisteanna a nuashonrú, bain úsáid as Spectre chun an aip seo a athphaisteáil</string>
   <string name="morphe_settings_about_links_dev_header">Nóta</string>
   <string name="morphe_settings_about_links_dev_body">Is réamh-eisiúint é an leagan seo agus d\'fhéadfadh fadhbanna gan choinne a bheith agat</string>
   <string name="morphe_settings_about_links_header">Naisc oifigiúla</string>

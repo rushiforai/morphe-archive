@@ -14,6 +14,39 @@ Comprehensive reference for universal optimization and resource slimming patches
 | **[PNG Asset Optimizer](#4-png-asset-optimizer-pngassetoptimizerpatch)** | `rawResourcePatch` | PNG Assets (`res/**`, `assets/**`) | In-memory RGBA-verified level 9 zlib recompression + metadata strip | **~1–8 MB** saved, 0% visual degradation |
 | **[APK Junk Cleaner](#5-apk-junk-cleaner-apkjunkcleanerpatch)** | `rawResourcePatch` | Root & Metadata (`META-INF/**`, root) | Prunes compiler metadata, Kotlin debug tables, duplicate licenses | **~0.5–2 MB** saved, cleaner packaging |
 | **[Universal Offline Mode](#6-universal-offline-mode-universalofflinepatch)** | `resourcePatch` | Manifest (`AndroidManifest.xml`) | Revokes `INTERNET` & network permissions + blocks cleartext HTTP | Complete network isolation at OS kernel level |
+| **[Universal Telemetry Neutralizer](#7-universal-telemetry-neutralizer-universaltelemetryneutralizerpatch)** | `resourcePatch` | Manifest (`AndroidManifest.xml`) | Strips ad permissions, disables analytics providers/services, injects opt-out flags | Neutralizes third-party analytics & telemetry dispatch |
+| **[Universal Native Binary Trimmer](#8-universal-native-binary-trimmer-universalnativebinarytrimmerpatch)** | `rawResourcePatch` | Native Libraries (`lib/**`) | In-situ byte-level zeroing of non-essential tracking & debug `.so` files | **~1–15 MB** saved, removes resident native crash sidecars |
+| **[Universal WebP Asset Optimizer](#9-universal-webp-asset-optimizer-universalwebpoptimizerpatch)** | `rawResourcePatch` | WebP Assets (`res/**`, `assets/**`) | Lossless chunk stripping (`EXIF`, `XMP`, `ICCP`) + VP8X header recalculation | **~0.5–5 MB** saved, 0% visual degradation |
+| **[Background Sync & JobScheduler Purge](#10-background-sync--jobscheduler-purge-backgroundsyncpurgepatch)** | `resourcePatch` | Manifest (`AndroidManifest.xml`) | Strips boot permissions and disables boot receivers & WorkManager schedulers | Eliminates background wakeups, radio alarms, and standby battery drain |
+
+---
+
+## 🛡️ Layered Architecture: Universal vs. App-Specific Patches
+
+Morphe Patches uses a multi-tiered **defense-in-depth** model separating generic packaging-level mitigations from specialized Dalvik runtime hooks:
+
+- **Universal Patches**: Operate at the platform and packaging tier. They transform Android XML resources (`AndroidManifest.xml`), optimize asset payloads (`res/**`, `assets/**`), and inspect standard native architecture directories (`lib/**`).
+- **App-Specific Patches**: Operate at the Dalvik bytecode execution tier (`dexlib2`), companion runtime DEX payloads (`extension.mpe`), and proprietary binary targets (`libchrome.so`). They neutralize internal state machines, spoof hardware checks, and stub obfuscated methods.
+
+### Coexistence & Pipeline Idempotency
+Applying both universal and app-specific patches simultaneously to the same target APK is **completely safe and idempotent**:
+1. **Manifest Operations**: If a universal patch (such as `Universal Telemetry Neutralizer`) and an app-specific patch (such as `NokoPrint Block Telemetry`) both target the same component (e.g., `AppMeasurementService`), assigning `android:enabled="false"` multiple times is idempotent.
+2. **Permission Revocation**: If a permission node is pruned by an earlier patch pass, subsequent passes skip the missing node without throwing exceptions.
+3. **Binary Trimming**: Universal native trimmers zero only standard crash/telemetry libraries without colliding with app-specific bloat trimmers (such as `Brave Native Bloat Slimmer` or `TikTok Core Asset De-bloat`).
+
+### Patch Selection Matrix: Universal Suitability
+
+| Universal Patch | Safe Across Any APK? | Notes & Usage Guidelines |
+| :--- | :---: | :--- |
+| **Universal Telemetry Neutralizer** | ✅ Yes | Strips advertising IDs and disables third-party analytics providers/receivers without impacting app functionality. |
+| **Universal Native Binary Trimmer** | ✅ Yes | Zeroes standard crash reporting and profiler `.so` files (`libcrashlytics`, `libsentry`, `libgwp-asan`). |
+| **Universal WebP Asset Optimizer** | ✅ Yes | Lossless metadata stripping adhering strictly to RFC 9649 / libwebp bitstream specification. |
+| **PNG Asset Optimizer** | ✅ Yes | Lossless RGBA-verified zlib recompression and chunk stripping. |
+| **APK Junk Cleaner** | ✅ Yes | Prunes compiler properties, Kotlin debug tables, and duplicate license files from the APK root. |
+| **DPI Resource Slimmer** | ✅ Yes | Safely retains target device screen density and preserves orphan resources. |
+| **Locale Resource Slimmer** | ✅ Yes | Prunes unselected translation folders from `res/values-*`. |
+| **Background Sync & JobScheduler Purge** | ⚠️ Safe by Default | Keep `stripWakeLock = false` (default) on web browsers (Brave, Vivaldi) to prevent suspending background file downloads when the screen turns off. |
+| **Universal Offline Mode** | ⚠️ Contextual | **Never apply to web browsers (Brave, Vivaldi) or streaming media apps (TikTok)**, as it halts socket creation at the OS kernel level (`AID_INET`). For Gboard Lite and Xiaomi Earbuds, pair with their companion app-specific offline patches for graceful timeout handling. |
 
 ---
 
@@ -177,7 +210,13 @@ The **`Universal Offline Mode`** patch isolates any application from the network
 > [!TIP]
 > ### Universal vs. App-Specific Offline Patches
 > - **`Universal Offline Mode`**: Operates at the Android manifest level (`AndroidManifest.xml`) by revoking `INTERNET` and enforcing `usesCleartextTraffic="false"`. It provides kernel-level socket blocking across any standard application (such as NokoPrint, Hevy, or custom tools).
-> - **App-Specific Offline Patches**: Applications managing physical hardware or aggressive background cloud sync (such as `Xiaomi Earbuds Offline Only`) provide companion Dalvik bytecode patches. Those specialized patches hook internal network listeners and cloud managers so local Bluetooth controls respond immediately without waiting for network timeout loops or displaying infinite loading spinners.
+> - **App-Specific Companion Patches**: Applications managing local hardware or maintaining internal network state machines provide companion Dalvik bytecode patches that should be applied alongside `Universal Offline Mode`:
+>   - **`Xiaomi Earbuds Offline Only`**: Hooks `NetworkExtKt.isNetworkAvailable() -> false` and network predicates so local Bluetooth controls respond instantly without waiting for cloud timeout loops or hanging on infinite loading spinners.
+>   - **`Gboard Offline Only`**: Spoofs `DeviceStatusMonitor` to `NO_CONNECTION` and forces HTTP clients (`Cronet`, `OkHttp3`, `Superpacks`) to immediately fail with graceful `IOException("Offline mode")` rather than raw socket permission errors, eliminating download queue retry storms and UI latency.
+
+> [!WARNING]
+> ### Do Not Apply to Browsers or Streaming Apps
+> Never enable **`Universal Offline Mode`** on applications that inherently require network access, such as web browsers (**Brave**, **Vivaldi**) or streaming platforms (**TikTok**). Revoking `android.permission.INTERNET` causes the Linux kernel to omit the `AID_INET` supplementary group at fork time, causing all web page navigation and video buffering to fail immediately at the OS level.
 
 ### Configuration in Morphe Manager
 
@@ -188,4 +227,97 @@ All options in **`Universal Offline Mode`** are declared as native boolean switc
 - **Strip Push Notification Permissions (`stripPush`)**: Removes `com.google.android.c2dm.permission.RECEIVE` (Toggle, default: `false`).
 - **Strip Google Services Sync Permissions (`stripGoogleServices`)**: Removes `com.google.android.providers.gsf.permission.READ_GSERVICES` and `android.permission.GET_ACCOUNTS` (Toggle, default: `false`).
 - **Block Cleartext Traffic (`blockCleartext`)**: Enforces `android:usesCleartextTraffic="false"` in `AndroidManifest.xml` (Toggle, default: `true`).
+
+---
+
+## 7. Universal Telemetry Neutralizer (`universalTelemetryNeutralizerPatch`)
+
+The **`Universal Telemetry Neutralizer`** patch neutralizes pervasive third-party tracking, ad-attribution SDKs, and crash analytics frameworks at the Android application manifest level (`AndroidManifest.xml`). It combines permission revocation, component deactivation, and declarative metadata opt-out injection.
+
+> [!NOTE]
+> ### The Multi-Layer Telemetry Defense
+> Rather than relying exclusively on network blocking or domain filtering, `Universal Telemetry Neutralizer` operates across three structural tiers in Android:
+> 1. **OS Capability Revocation**: Strips the Android Advertising ID (`AD_ID`) and Privacy Sandbox permissions so the Google Play Services subsystem cannot return a hardware-bound advertising identifier or assign ad attribution topics.
+> 2. **Component Execution Halting**: Explicitly sets `android:enabled="false"` on known third-party analytics ContentProviders and background upload services. Since Android initializes `ContentProvider.onCreate()` before `Application.onCreate()`, disabling these providers halts SDK bootstrap before any user code or tracking loops run.
+> 3. **Declarative Opt-Out Injection**: Injects vendor-standard `<meta-data>` opt-out flags directly into `<application>`. Modern SDKs (such as Firebase Analytics, Google Analytics, Firebase Crashlytics, Firebase Performance, AppsFlyer, and Sentry) check these manifest flags during early initialization and automatically deactivate internal collectors and schedulers.
+
+### Neutralized Tracking & Analytics Frameworks
+
+- **Google & Firebase Measurement**: `AppMeasurementContentProvider`, `AppMeasurementService`, `AppMeasurementJobService`, `AppMeasurementReceiver`.
+- **Google DataTransport**: `JobInfoSchedulerService`, `TransportBackendDiscovery`, `AlarmManagerSchedulerBroadcastReceiver`.
+- **Sentry Crash & Performance**: `SentryInitProvider`, `SentryPerformanceProvider`.
+- **Facebook AppEvents**: `FacebookInitProvider`.
+- **AppsFlyer Attribution**: `PluginInfoContentProvider`, `AFJobSchedulerService`, `SingleInstallBroadcastReceiver`, `MultipleInstallBroadcastReceiver`.
+- **Adjust Attribution**: `AdjustReferrerReceiver`.
+- **Flurry & Branch Analytics**: `FlurryContentProvider`, `BranchInitProvider`.
+
+### Configuration in Morphe Manager
+
+- **Revoke Advertising & Tracking Permissions (`revokePermissions`)**: Strips `com.google.android.gms.permission.AD_ID`, Android Privacy Sandbox permissions (`ACCESS_ADSERVICES_ATTRIBUTION`, `ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_CUSTOM_AUDIENCE`, `ACCESS_ADSERVICES_TOPICS`), and install referrer permissions (Toggle, default: `true`).
+- **Disable Telemetry ContentProviders (`disableProviders`)**: Sets `android:enabled="false"` on analytics and tracker ContentProviders (Toggle, default: `true`).
+- **Disable Telemetry Background Services (`disableServices`)**: Sets `android:enabled="false"` on telemetry upload, JobScheduler, and DataTransport background services (Toggle, default: `true`).
+- **Disable Telemetry Receivers (`disableReceivers`)**: Sets `android:enabled="false"` on campaign, install referrer, and measurement broadcast receivers (Toggle, default: `true`).
+- **Inject Telemetry Opt-Out Flags (`injectOptOutMetadata`)**: Injects declarative opt-out `<meta-data>` tags into `<application>` for Firebase Analytics, Crashlytics, Performance, Google Analytics, Sentry, and AppsFlyer (Toggle, default: `true`).
+- **Disable Firebase Init Provider (`disableFirebaseInitProvider`)**: Sets `android:enabled="false"` on `FirebaseInitProvider` (Toggle, default: `false`). *Keep disabled if the target app relies on Firebase Core, Auth, or Cloud Messaging (FCM).*
+
+---
+
+## 8. Universal Native Binary Trimmer (`universalNativeBinaryTrimmerPatch`)
+
+The **`Universal Native Binary Trimmer`** patch inspects native architecture directories in `lib/**` (`lib/arm64-v8a/`, `lib/armeabi-v7a/`, `lib/x86_64/`, etc.) and performs byte-level in-situ zeroing (`writeBytes(byteArrayOf())`) on non-essential crash reporters, telemetry engines, and debugging/profiling companion shared libraries (`.so`).
+
+### 🛡️ In-Situ Zeroing vs. File Deletion
+- **ZIP Central Directory Invariant**: In Morphe's patching pipeline, deleting native `.so` files from the resource tree can break APK alignment and trigger `UnsatisfiedLinkError` if the application's Java/Kotlin code contains strict class-level `System.loadLibrary(...)` calls without exception handlers.
+- **Empty Stub Execution**: By replacing the payload of tracking `.so` files with a 0-byte stub directly in the APK, APK storage is fully reclaimed while eliminating native crash reporting background threads, memory dump scanners, and watchdog sidecars.
+
+### Targeted Native Libraries
+
+- **Crash Reporting & Telemetry**: `libcrashlytics.so`, `libcrashlytics-trampoline.so`, `libsentry.so`, `libsentry-android.so`, `libbugly.so`, `libfirebase-crashlytics.so`, `libapp-measurement.so`, `libplcrashreporter.so`.
+- **Debuggers & Profilers**: `libgwp-asan.so`, `libprofiler-service.so`, `libperfa.so`, `libperfa_arm.so`, `libperfa_arm64.so`, `libsimpleperf.so`, `libleaktracer.so`.
+
+### Configuration in Morphe Manager
+
+- **Trim Crash Reporting Libraries (`trimCrashReporters`)**: Replaces native crash reporting and telemetry `.so` binaries with 0-byte stubs (Toggle, default: `true`).
+- **Trim Debug & Profiling Libraries (`trimDebugProfilers`)**: Replaces runtime profilers, memory leak detectors, and ASan instrumentation `.so` binaries with 0-byte stubs (Toggle, default: `true`).
+
+---
+
+## 9. Universal WebP Asset Optimizer (`universalWebpOptimizerPatch`)
+
+The **`Universal WebP Asset Optimizer`** losslessly strips non-rendering metadata chunks (`EXIF`, `XMP `, `ICCP`) from WebP images located in `res/**` and `assets/**` across any Android application.
+
+### 🛡️ RFC 9649 / libwebp Bitstream Safety
+- **Extended Header Recalculation**: WebP files using the extended `VP8X` chunk format store feature flags in byte 0 of their payload. When `EXIF`, `XMP `, or `ICCP` chunks are stripped, `Universal WebP Asset Optimizer` updates the bitmask to clear the corresponding flag bits (`0x08` for EXIF, `0x04` for XMP, `0x20` for ICCP) while strictly preserving image dimensions, the alpha channel bit (`0x10`), and the animation flag (`0x02`).
+- **Container Simplification**: If an extended WebP contains only a single visual frame (`VP8 ` lossy or `VP8L` lossless) and no alpha or animation data after metadata stripping, the patch downgrades the file to a standard simple WebP container (`RIFF....WEBPVP8 ...`), eliminating the unnecessary 18-byte `VP8X` header entirely.
+- **Strict Bitstream Bounds**: Any malformed, truncated, or non-conforming WebP file where chunk offsets do not cleanly match the total file size is skipped untouched to prevent visual corruption.
+
+### Configuration in Morphe Manager
+
+- **Strip EXIF Metadata (`stripExif`)**: Removes `EXIF` chunks containing camera metadata, GPS tags, timestamps, and device serials (Toggle, default: `true`).
+- **Strip XMP Metadata (`stripXmp`)**: Removes `XMP ` chunks containing XML-based authoring and editing history (Toggle, default: `true`).
+- **Strip ICC Color Profiles (`stripIcc`)**: Removes embedded `ICCP` color profiles (Toggle, default: `true`).
+
+---
+
+## 10. Background Sync & JobScheduler Purge (`backgroundSyncPurgePatch`)
+
+The **`Background Sync & JobScheduler Purge`** patch stops unneeded background wakeups, radio modem alarms, and persistent standby battery drain by removing startup permissions and disabling boot-triggered broadcast receivers and periodic WorkManager scheduler components in `AndroidManifest.xml`.
+
+> [!NOTE]
+> ### Eliminating Standby Battery Drain
+> Many modern Android applications register broadcast receivers with `android.intent.action.BOOT_COMPLETED` and `android.intent.action.MY_PACKAGE_REPLACED`. Whenever the device boots or an app is updated, Android awakens the app process to reschedule background sync tasks, initialize databases, and ping remote servers. `Background Sync & JobScheduler Purge` eliminates this behavior entirely.
+
+### Neutralized Components
+
+- **Boot & Restart Receivers**: Receivers listening for `BOOT_COMPLETED`, `LOCKED_BOOT_COMPLETED`, `QUICKBOOT_POWERON`, `REBOOT`, `MY_PACKAGE_REPLACED`, `PACKAGE_REPLACED`, and `PACKAGE_RESTARTED`.
+- **WorkManager & JobScheduler Components**: `SystemJobService`, `SystemAlarmService`, `SystemForegroundService`, `RescheduleReceiver`, `ForceStopRunnable$BroadcastReceiver`, `ConstraintProxy`, and `DiagnosticsReceiver`.
+- **DataTransport Scheduling**: `JobInfoSchedulerService`, `TransportBackendDiscovery`, `AlarmManagerSchedulerBroadcastReceiver`.
+
+### Configuration in Morphe Manager
+
+- **Strip RECEIVE_BOOT_COMPLETED Permission (`stripBootPermission`)**: Removes `android.permission.RECEIVE_BOOT_COMPLETED` and HTC/OEM quickboot permissions from `AndroidManifest.xml` (Toggle, default: `true`).
+- **Disable Boot & Package Receivers (`disableBootReceivers`)**: Disables broadcast receivers registered for device startup, reboot, and app replacement events (Toggle, default: `true`).
+- **Disable WorkManager & Job Schedulers (`disableWorkManager`)**: Disables WorkManager background services and constraint-checking broadcast receivers (Toggle, default: `true`).
+- **Strip WAKE_LOCK Permission (`stripWakeLock`)**: Removes `android.permission.WAKE_LOCK` from `AndroidManifest.xml` (Toggle, default: `false`). *Keep disabled if the target application requires wake locks for continuous audio playback, video recording, screen-off background downloads (Brave, Vivaldi), or foreground navigation.*
+
 

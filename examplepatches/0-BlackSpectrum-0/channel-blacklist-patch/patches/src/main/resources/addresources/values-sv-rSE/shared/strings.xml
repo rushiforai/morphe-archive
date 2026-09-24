@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe-inställningarna återställdes till standard</string>
   <string name="morphe_settings_import_success">Importerade %d inställningar</string>
   <string name="morphe_settings_import_failure_parse">Importen misslyckades: %s</string>
+  <string name="morphe_settings_navigate_up">Navigera upp</string>
   <string name="morphe_settings_search_hint">Sök i inställningar</string>
   <string name="morphe_settings_search_no_results_title">Inga resultat hittades för \"%s\"</string>
   <string name="morphe_settings_search_no_results_summary">Försök med ett annat sökord</string>
   <string name="morphe_settings_search_recent_searches">Senaste sökningar</string>
   <string name="morphe_settings_search_remove_message">Ta bort från sökhistoriken?</string>
+  <string name="morphe_settings_search_remove">Ta bort från sökhistoriken</string>
   <string name="morphe_settings_search_clear_history">Rensa sökhistorik</string>
   <string name="morphe_settings_search_clear_history_message">Är du säker på att du vill rensa all sökhistorik?</string>
   <string name="morphe_settings_search_tips_title">Söktips</string>
@@ -72,8 +74,8 @@ Om du vill översätta till nya språk eller förbättra befintliga översättni
   <string name="morphe_settings_export_file_success">Inställningarna har exporterats</string>
   <string name="morphe_settings_export_file_failed">Det gick inte att exportera inställningarna</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Du använder den senaste Morphe Patches-versionen &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Du använder Morphe Patches-versionen &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Uppdatering är tillgänglig: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Om du vill uppdatera dina tillägg använder du Morphe för att modifiera den här appen igen</string>
+  <string name="morphe_settings_about_links_body_version_current">Du använder den senaste Spectre Patches-versionen &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Du använder Spectre Patches-versionen &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Uppdatering är tillgänglig: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Om du vill uppdatera dina tillägg använder du Spectre för att modifiera den här appen igen</string>
   <string name="morphe_settings_about_links_dev_header">Obs!</string>
   <string name="morphe_settings_about_links_dev_body">Den här versionen är en förhandsversion och du kan uppleva oväntade problem</string>
   <string name="morphe_settings_about_links_header">Officiella länkar</string>

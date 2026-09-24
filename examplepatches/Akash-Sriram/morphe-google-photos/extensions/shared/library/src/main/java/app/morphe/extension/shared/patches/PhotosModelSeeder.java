@@ -18,9 +18,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 
 public final class PhotosModelSeeder {
     private static final Object LOCK = new Object();
@@ -44,10 +49,22 @@ public final class PhotosModelSeeder {
     }
 
     public static volatile boolean isModelPatchEnabled = false;
+    // 3 parallel download threads: fast enough to complete quickly, low enough not to starve photo sync
+    private static final int DOWNLOAD_PARALLELISM = 3;
 
     public static void enableAndEnsureSeeded(Context context) {
         isModelPatchEnabled = true;
-        ensureSeeded(context);
+        if (context == null) return;
+        final Context appContext = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+
+        // Start immediately on a low-priority background thread.
+        // Photo sync and ML model downloads run fully in parallel — no blocking of each other.
+        Thread worker = new Thread(() -> {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            ensureSeeded(appContext);
+        }, "PhotosModelSeederInit");
+        worker.setPriority(Thread.MIN_PRIORITY);
+        worker.start();
     }
 
     public static void ensureSeeded(Context context) {
@@ -131,19 +148,11 @@ public final class PhotosModelSeeder {
         if (isDownloading) return;
         isDownloading = true;
 
-        new Thread(() -> {
-            android.content.SharedPreferences prefs = context.getSharedPreferences("morphe_photos_seeder_prefs", Context.MODE_PRIVATE);
-            long lastToastTime = prefs.getLong("last_toast_time", 0);
-            long currentTime = System.currentTimeMillis();
-            boolean shouldShowToast = (currentTime - lastToastTime) > (24 * 60 * 60 * 1000L);
+        // Coordinator thread: parses manifests, then fans out to DOWNLOAD_PARALLELISM worker threads
+        Thread coordinator = new Thread(() -> {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
-            if (shouldShowToast) {
-                Logger.printInfo(() -> "PhotosModelSeeder: Initiating dynamic CDN download of ML models...");
-                showToast(context, "Google Photos: Downloading Magic Eraser & AI models...");
-                prefs.edit().putLong("last_toast_time", currentTime).apply();
-            } else {
-                Logger.printInfo(() -> "PhotosModelSeeder: Initiating dynamic CDN download (silently)...");
-            }
+            Logger.printInfo(() -> "PhotosModelSeeder: Initiating parallel CDN download of ML models in background...");
 
             try {
                 if (!targetModelsDir.exists()) targetModelsDir.mkdirs();
@@ -158,61 +167,63 @@ public final class PhotosModelSeeder {
                     return;
                 }
 
-                Logger.printInfo(() -> "PhotosModelSeeder: Dynamically discovered " + urlToFile.size() + " ML models to download.");
+                final List<Map.Entry<String, String>> entries = new ArrayList<>(urlToFile.entrySet());
+                final int total = entries.size();
+                Logger.printInfo(() -> "PhotosModelSeeder: Dynamically discovered " + total + " ML models to download (" + DOWNLOAD_PARALLELISM + " parallel threads).");
 
-                int downloaded = 0;
-                int newlyDownloaded = 0;
-                for (Map.Entry<String, String> entry : urlToFile.entrySet()) {
-                    String urlStr = entry.getKey();
-                    String filename = entry.getValue();
+                final AtomicInteger downloaded = new AtomicInteger(0);
+                final CountDownLatch latch = new CountDownLatch(total);
 
-                    File dest = new File(targetModelsDir, filename);
-                    if (dest.exists() && dest.length() > 0) {
-                        downloaded++;
-                        continue;
-                    }
+                ExecutorService pool = Executors.newFixedThreadPool(DOWNLOAD_PARALLELISM, r -> {
+                    Thread t = new Thread(r, "PhotosModelDL");
+                    t.setPriority(Thread.MIN_PRIORITY);
+                    t.setDaemon(true);
+                    return t;
+                });
 
-                    if (CdnAssetDownloader.download(urlStr, dest)) {
-                        downloaded++;
-                        newlyDownloaded++;
-                    } else {
-                        Logger.printInfo(() -> "PhotosModelSeeder: Failed to download " + filename + " from " + urlStr);
-                    }
+                for (Map.Entry<String, String> entry : entries) {
+                    final String urlStr = entry.getKey();
+                    final String filename = entry.getValue();
+                    pool.submit(() -> {
+                        try {
+                            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+                            File dest = new File(targetModelsDir, filename);
+                            if (dest.exists() && dest.length() > 0) {
+                                downloaded.incrementAndGet();
+                                return;
+                            }
+                            if (CdnAssetDownloader.download(urlStr, dest)) {
+                                downloaded.incrementAndGet();
+                            } else {
+                                Logger.printInfo(() -> "PhotosModelSeeder: Failed to download " + filename);
+                            }
+                        } finally {
+                            latch.countDown();
+                        }
+                    });
                 }
 
-                final int finalDownloaded = downloaded;
-                final int expectedCount = urlToFile.size();
-                if (finalDownloaded >= expectedCount) {
+                pool.shutdown();
+                latch.await(); // wait for all downloads to finish
+
+                final int finalDownloaded = downloaded.get();
+                if (finalDownloaded >= total) {
                     injectManifests(prefsDir, context.getPackageName());
-
                     CdnAssetDownloader.lockDirectory(targetModelsDir);
-
                     isSeeded = true;
-                    if (newlyDownloaded > 0) {
-                        Logger.printInfo(() -> "PhotosModelSeeder: Successfully dynamically downloaded and seeded all " + finalDownloaded + " models! Restarting app...");
-                        showToast(context, "AI Models downloaded! Restarting to apply...");
-
-                        try { Thread.sleep(2000); } catch (Exception ignored) {}
-
-                        android.content.Intent intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName());
-                        if (intent != null) {
-                            intent.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            context.startActivity(intent);
-                        }
-                        Runtime.getRuntime().exit(0);
-                    } else {
-                        Logger.printInfo(() -> "PhotosModelSeeder: All " + finalDownloaded + " models already present on disk. Ready.");
-                    }
+                    Logger.printInfo(() -> "PhotosModelSeeder: All " + finalDownloaded + " models downloaded and seeded.");
                 } else {
-                    Logger.printInfo(() -> "PhotosModelSeeder: Downloaded " + finalDownloaded + " of " + expectedCount + " models.");
+                    Logger.printInfo(() -> "PhotosModelSeeder: Downloaded " + finalDownloaded + " of " + total + " models.");
                 }
 
             } catch (Throwable t) {
-                Logger.printInfo(() -> "PhotosModelSeeder: Dynamic download failed: " + t.getMessage());
+                Logger.printInfo(() -> "PhotosModelSeeder: Parallel download failed: " + t.getMessage());
             } finally {
                 isDownloading = false;
             }
-        }, "PhotosModelDownloader").start();
+        }, "PhotosModelCoordinator");
+        coordinator.setPriority(Thread.MIN_PRIORITY);
+        coordinator.start();
     }
 
     public static class ModelEntry {

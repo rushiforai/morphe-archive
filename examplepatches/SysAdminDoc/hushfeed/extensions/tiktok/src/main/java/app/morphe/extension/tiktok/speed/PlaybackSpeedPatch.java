@@ -4,11 +4,21 @@
  */
 package app.morphe.extension.tiktok.speed;
 
+import android.text.TextUtils;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Helper methods injected by the TikTok playback speed bytecode patch. */
 public final class PlaybackSpeedPatch {
@@ -27,6 +37,13 @@ public final class PlaybackSpeedPatch {
     public static final int MAX_MENU_SPEEDS = 8;
     public static final float MIN_SPEED = 0.5f;
     public static final float MAX_SPEED = 3f;
+
+    /** TikTok's own hold speed, written into the gesture and into its words for it. */
+    static final float TIKTOK_HOLD_SPEED = 2f;
+    private static final Pattern STANDALONE_TWO = Pattern.compile("(?<![\\p{Nd}.,])2(?![\\p{Nd}.,])");
+    /** The hold banner's labels and the text TikTok gave each, kept while the view lives. */
+    private static final Map<TextView, CharSequence> BANNER_TEXT = new WeakHashMap<>();
+    private static volatile float loggedHoldSpeed = Float.NaN;
 
     private static volatile float rememberedSpeed = 1.0f;
     private static String currentVideoId = "";
@@ -112,6 +129,92 @@ public final class PlaybackSpeedPatch {
             Settings.REMEMBERED_SPEED.save(speed);
         } catch (Throwable ignored) {
             // Settings can be unavailable during early startup.
+        }
+    }
+
+    /**
+     * The speed the row under Speed picks for the hold gesture, or NaN when TikTok's own stands:
+     * Hushfeed paused, or a value the player would refuse.
+     */
+    static float chosenHoldSpeed() {
+        if (Setting.isPaused()) return Float.NaN;
+        try {
+            float value = Float.parseFloat(Settings.HOLD_SPEED.get());
+            return isValidSpeed(value) && value >= MIN_SPEED && value <= MAX_SPEED ? value : Float.NaN;
+        } catch (NumberFormatException refused) {
+            return Float.NaN;
+        }
+    }
+
+    /**
+     * The speed the hold gesture plays at and its pull-down lock keeps (upstream #52). TikTok
+     * writes it as a literal 2x in the gesture, in its banner's "already at that speed" check
+     * and in the lock's telemetry; each of those literals comes through here.
+     */
+    public static float holdSpeed(float nativeSpeed) {
+        float chosen = chosenHoldSpeed();
+        if (Float.isNaN(chosen)) return nativeSpeed;
+        if (Float.compare(chosen, nativeSpeed) != 0 && Float.compare(chosen, loggedHoldSpeed) != 0) {
+            // Once per value per process: the export says the gesture was reached and what it
+            // ran at, without a line for every hold.
+            loggedHoldSpeed = chosen;
+            Logger.printInfo(() -> "Hold gesture speed " + speedLabel(chosen)
+                    + "x in place of TikTok's " + speedLabel(nativeSpeed) + "x");
+        }
+        return chosen;
+    }
+
+    /**
+     * TikTok's own words for the hold carry its fixed number: "Speed: 2x", "Pull down to lock
+     * 2x speed", "Locked at 2× speed". With another hold speed chosen, the one standalone 2 in
+     * such a text becomes that speed, whatever the language puts around it. A text with no 2 in
+     * it ("Back to normal speed") or with more than one is left as TikTok wrote it.
+     */
+    public static String holdSpeedText(String text) {
+        float chosen = chosenHoldSpeed();
+        if (text == null || Float.isNaN(chosen) || Float.compare(chosen, TIKTOK_HOLD_SPEED) == 0) return text;
+        Matcher two = STANDALONE_TWO.matcher(text);
+        if (!two.find()) return text;
+        int at = two.start();
+        if (two.find()) return text;
+        return text.substring(0, at) + speedLabel(chosen) + text.substring(at + 1);
+    }
+
+    /**
+     * The lock's toast, which TikTok sets from a string id: the reworded text, or null to keep
+     * TikTok's own. The id is resolved the way TikTok resolves it, through its activity, because
+     * most of its strings are served at run time rather than kept in the APK.
+     */
+    public static CharSequence holdSpeedToast(int id) {
+        try {
+            android.content.Context context = Utils.getActivity();
+            if (context == null) context = Utils.getContext();
+            if (context == null) return null;
+            String text = context.getString(id);
+            String wanted = holdSpeedText(text);
+            return wanted == null || wanted.equals(text) ? null : wanted;
+        } catch (RuntimeException unreadable) {
+            Logger.printInfo(() -> "Hold speed toast left as TikTok wrote it", unreadable);
+            return null;
+        }
+    }
+
+    /**
+     * The banner TikTok shows during a hold when the lock is off, a label it builds once with
+     * "Speed: 2x" in it. It is shown and hidden from here, and each time the label is set from
+     * the text TikTok gave it, so a changed row or a pause shows up at the next hold.
+     */
+    public static void holdSpeedBanner(ViewGroup banner) {
+        for (int i = 0; i < banner.getChildCount(); i++) {
+            if (!(banner.getChildAt(i) instanceof TextView)) continue;
+            TextView label = (TextView) banner.getChildAt(i);
+            CharSequence original = BANNER_TEXT.get(label);
+            if (original == null) {
+                original = label.getText();
+                BANNER_TEXT.put(label, original);
+            }
+            String wanted = holdSpeedText(String.valueOf(original));
+            if (!TextUtils.equals(wanted, label.getText())) label.setText(wanted);
         }
     }
 

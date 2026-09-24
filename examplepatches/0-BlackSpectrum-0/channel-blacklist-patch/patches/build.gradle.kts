@@ -2,12 +2,12 @@ group = "app.morphe"
 
 patches {
     about {
-        name = "Morphe Patches"
-        description = "Patches for Morphe"
-        source = "git@github.com:MorpheApp/morphe-patches.git"
-        author = "MorpheApp"
+        name = "Spectre Patches"
+        description = "Patches for Spectre"
+        source = "https://github.com/0-BlackSpectrum-0/channel-blacklist-patch.git"
+        author = "0-BlackSpectrum-0"
         contact = "na"
-        website = "https://morphe.software"
+        website = "https://github.com/0-BlackSpectrum-0/channel-blacklist-patch"
         license = "GNU General Public License v3.0, with additional GPL section 7 requirements"
     }
 }
@@ -26,9 +26,14 @@ dependencies {
 
     // Android API stubs defined here.
     compileOnly(project(":patches:stub"))
+
+    testImplementation(kotlin("test"))
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
     register<JavaExec>("checkStringResources") {
         description = "Checks resource strings for invalid formatting"
 

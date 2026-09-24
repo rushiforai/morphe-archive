@@ -1,0 +1,28 @@
+{
+  "rebuild_identical": true,
+  "manifest_reconstruction_identical": true,
+  "sha1_footer_valid": true,
+  "output_sha256": "27b474fb4faca5f7bd5f52ff8fb159b802eababb3a869552dca2d0cf638449e8",
+  "original_native": {
+    "exit_code": 0,
+    "stderr": "",
+    "lines": 1425189,
+    "prefix_sha256": "a3c74426f884a196f228f00569cf8489181f550dc70e82c4df8036c116e18ee2",
+    "suffix_sha256": "2d5273a24dcb46c20dac4e16a9ce6bf5ce485aa2187a45cf5525dd89e73ee892"
+  },
+  "patched_native": {
+    "exit_code": 0,
+    "stderr": "",
+    "lines": 1425292,
+    "prefix_sha256": "a3c74426f884a196f228f00569cf8489181f550dc70e82c4df8036c116e18ee2",
+    "suffix_sha256": "2d5273a24dcb46c20dac4e16a9ce6bf5ce485aa2187a45cf5525dd89e73ee892"
+  },
+  "native_changed_function_ids": [
+    1697,
+    17970,
+    17972,
+    27363
+  ],
+  "native_unchanged_functions": 28418,
+  "unaffected_function_hashes_sha256": "8126d128e501fd72e5010ecb8a9def2905b55cf5f6db517cffdaac5def7ff651"
+}

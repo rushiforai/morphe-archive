@@ -26,6 +26,9 @@ import org.robolectric.annotation.GraphicsMode;
 public class AutomaticClearDisplayTest {
     @After public void tearDown() {
         SettingsStatus.automaticClearDisplayEnabled = false;
+        // The live state is static and outlived every test: one asserted "not cleared" first
+        // and passed only because JUnit ran it before the ones that clear.
+        RememberClearDisplayPatch.resetForTests();
     }
     public static class Event {
         public boolean LIZ;
@@ -34,12 +37,68 @@ public class AutomaticClearDisplayTest {
     }
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        RememberClearDisplayPatch.resetForTests();
         Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
         Settings.CLEAR_DISPLAY.save(false);
         RememberClearDisplayPatch.firstFrame("reset", () -> true, value -> {});
         Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
         Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(1000);
     }
+    /**
+     * The daily hold's panel says messages, profiles and search still work, and clear display
+     * takes away the tabs that lead there. So a hold going up gives the controls back, and while
+     * it runs neither the automatic path nor a remembered clear display clears again. The choice
+     * stays saved for the videos after the hold.
+     */
+    @Test public void theDailyHoldBringsTheControlsBackAndNothingClearsUnderIt() {
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(app.morphe.extension.tiktok.wellbeing.SessionBudget.class, "awaitWritesForTests");
+        try {
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("before", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+            assertTrue("the fixture never cleared", RememberClearDisplayPatch.isClearDisplayNow());
+
+            lockTheDay();
+            RememberClearDisplayPatch.leaveForHold();
+            assertFalse("the hold left the controls hidden", RememberClearDisplayPatch.isClearDisplayNow());
+
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("held", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2000));
+            assertEquals("the automatic path cleared under the hold", List.of(false), events);
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+            Settings.CLEAR_DISPLAY.save(true);
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("remembered", () -> true, events::add);
+            assertEquals("a remembered clear display cleared under the hold", List.of(), events);
+
+            unlockTheDay();
+            RememberClearDisplayPatch.firstFrame("after", () -> true, events::add);
+            assertEquals("the remembered choice didn't come back after the hold", List.of(true), events);
+        } finally {
+            unlockTheDay();
+        }
+    }
+
+    private static void lockTheDay() {
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        app.morphe.extension.tiktok.wellbeing.SessionBudget.noteVideo("clear-display-held");
+        assertTrue("the fixture's hold never started", app.morphe.extension.tiktok.wellbeing.SessionBudget.claimNotice());
+        assertTrue(app.morphe.extension.tiktok.wellbeing.SessionBudget.isLocked());
+    }
+
+    private static void unlockTheDay() {
+        Class<?> budget = app.morphe.extension.tiktok.wellbeing.SessionBudget.class;
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(budget, "awaitWritesForTests");
+        Settings.SESSION_BUDGET_STATE.save("");
+        Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
+        Settings.SESSION_BUDGET_LOCK_MINUTES.resetToDefault();
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(budget, "resetForTests");
+    }
+
     @Test public void theAutomaticPathReportsClearDisplayEvenThoughItNeverWritesTheSetting() {
         // rememberClearDisplayEvent is the only writer of the setting, and it returns early
         // for anything posted from here, so the setting stays false through the whole
@@ -114,6 +173,127 @@ public class AutomaticClearDisplayTest {
         RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
         assertEquals(List.of(false, false, true), events);
     }
+    /**
+     * The switch-off branch ran only for items with an id, so an item with no id left the
+     * controls hidden and the tab strip hide kept TikTok's top bar away there. It gives the
+     * controls back to any item now; clearing still needs an id.
+     */
+    @Test public void switchingTheAutomaticPathOffGivesTheControlsBackOnAnItemWithNoId() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertTrue("the fixture never cleared", RememberClearDisplayPatch.isClearDisplayNow());
+
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        events.clear();
+        RememberClearDisplayPatch.firstFrame(null, () -> true, events::add);
+        assertEquals("an item with no id kept the controls hidden", List.of(false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        // A remembered clear display still needs an id to clear.
+        Settings.CLEAR_DISPLAY.save(true);
+        events.clear();
+        RememberClearDisplayPatch.firstFrame("", () -> true, events::add);
+        assertEquals("an item with no id was cleared", List.of(), events);
+    }
+
+    /**
+     * And with nothing switched off. A remembered clear display is posted per video with an id,
+     * and TikTok gives the controls back on a new item by itself, so an item with no id after a
+     * cleared one showed TikTok's controls while the live state still said hidden, and the tab
+     * strip hide kept the top bar away there (refutation review of b172f2c5).
+     */
+    @Test public void aRememberedClearDisplayGivesTheControlsBackOnAnItemWithNoId() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        Settings.CLEAR_DISPLAY.save(true);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame(null, () -> true, events::add);
+        assertEquals("an item with no id kept the remembered clear state", List.of(true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        assertEquals("the next video lost the remembered choice", List.of(true, false, true), events);
+    }
+
+    /**
+     * A clear mode the user set through TikTok's own bar is theirs: an item with no id must not
+     * undo it (refutation review of b5183ca7). Only the clears this patch makes are undone there.
+     */
+    @Test public void tikToksOwnClearModeStaysAcrossAnItemWithNoId() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(true, 0));
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame(null, () -> true, events::add);
+        assertEquals("an item with no id undid TikTok's own clear mode", List.of(), events);
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+    }
+
+    @Test public void theAutomaticPathGivesTheControlsBackOnAnItemWithNoId() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame("", () -> true, events::add);
+        assertEquals("an item with no id kept the automatic clear state", List.of(false, true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+        assertEquals("an item with no id was cleared", List.of(false, true, false), events);
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertEquals(List.of(false, true, false, false, true), events);
+    }
+
+    /**
+     * Switched off while it had the controls hidden: TikTok shows them on the next video by
+     * itself (S22, 2026-09-23), and the live state has to say so, or the tab strip hide keeps
+     * TikTok's top strip away with the feature off. Once shown, later videos ask nothing more.
+     */
+    @Test public void switchingTheAutomaticPathOffShowsTheControlsOnTheNextVideo() {
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        assertEquals(List.of(false, true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+
+        RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
+        assertEquals(List.of(false, true, false), events);
+    }
+
+    /**
+     * A clear display the user chose is theirs, even where it isn't remembered: while Hushfeed
+     * is paused TikTok's own clear mode is not saved, and switching nothing on or off must not
+     * bring the controls back over it.
+     */
+    @Test public void aClearDisplayTheUserChoseIsLeftAloneWhilePaused() {
+        List<Boolean> events = new ArrayList<>();
+        // The automatic path hides the controls and the user brings them back with TikTok's X,
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1000));
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 0));
+        app.morphe.extension.shared.settings.PausedProcess.set(true);
+        try {
+            // then, paused, hides them with TikTok's own mode, which a paused process doesn't save.
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(true, 0));
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+            RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
+            assertEquals("nothing asked of TikTok on the next video", List.of(false, true), events);
+            assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        } finally {
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+        }
+    }
+
     @Test public void disablingAndReenablingBeforeTheDeadlineCancelsTheTimer() {
         List<Boolean> events = new ArrayList<>();
         RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);

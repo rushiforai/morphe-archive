@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -66,7 +66,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_failed">Извоз на поставките не успеа</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">Користите најнова верзија на Morphe Пачови &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Користите Morphe Пачови верзија &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Ажурирање достапно: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;За да ги ажурирате вашите пачови, користете Morphe за да ја надопачете оваа апликација</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Користите Spectre Пачови верзија &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Ажурирање достапно: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;За да ги ажурирате вашите пачови, користете Spectre за да ја надопачете оваа апликација</string>
   <string name="morphe_settings_about_links_dev_header">Забелешка</string>
   <string name="morphe_settings_about_links_dev_body">Оваа верзија е претходна и може да наидете на неочекувани проблеми</string>
   <string name="morphe_settings_about_links_header">Официјални линкови</string>

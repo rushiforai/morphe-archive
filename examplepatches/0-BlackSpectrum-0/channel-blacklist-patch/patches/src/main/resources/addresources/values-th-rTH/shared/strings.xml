@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">การตั้งค่า Morphe ถูกตั้งค่าเป็นค่าเริ่มต้น</string>
   <string name="morphe_settings_import_success">นำเข้าการตั้งค่า %d</string>
   <string name="morphe_settings_import_failure_parse">การนำเข้าล้มเหลว: %s</string>
+  <string name="morphe_settings_navigate_up">นำทางขึ้น</string>
   <string name="morphe_settings_search_hint">ค้นหาในการตั้งค่า</string>
   <string name="morphe_settings_search_no_results_title">ไม่พบผลลัพธ์สำหรับ \"%s\"</string>
   <string name="morphe_settings_search_no_results_summary">ลองใช้คำหลักอื่น</string>
   <string name="morphe_settings_search_recent_searches">การค้นหาล่าสุด</string>
   <string name="morphe_settings_search_remove_message">นำออกจากประวัติการค้นหาหรือไม่?</string>
+  <string name="morphe_settings_search_remove">ลบออกจากประวัติการค้นหา</string>
   <string name="morphe_settings_search_clear_history">ล้างประวัติการค้นหา</string>
   <string name="morphe_settings_search_clear_history_message">คุณแน่ใจหรือไม่ว่าต้องการล้างประวัติการค้นหาทั้งหมด?</string>
   <string name="morphe_settings_search_tips_title">เคล็ดลับการค้นหา</string>
@@ -72,8 +74,8 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_success">การส่งออกการตั้งค่าสำเร็จ</string>
   <string name="morphe_settings_export_file_failed">การส่งออกการตั้งค่าล้มเหลว</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">คุณกำลังใช้ Morphe Patches เวอร์ชัน &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">คุณกำลังใช้ Morphe Patches เวอร์ชัน &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;อัพเดตใหม่พร้อมให้ใช้: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;เพื่ออัพเดตแพทช์ของคุณ ให้ใช้ Morphe เพื่อแพทช์แอปพลิเคชันนี้ใหม่</string>
+  <string name="morphe_settings_about_links_body_version_current">คุณกำลังใช้ Spectre Patches เวอร์ชัน &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">คุณกำลังใช้ Spectre Patches เวอร์ชัน &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;อัพเดตใหม่พร้อมให้ใช้: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;เพื่ออัพเดตแพทช์ของคุณ ให้ใช้ Spectre เพื่อแพทช์แอปพลิเคชันนี้ใหม่</string>
   <string name="morphe_settings_about_links_dev_header">หมายเหตุ</string>
   <string name="morphe_settings_about_links_dev_body">เวอร์ชันนี้เป็นเวอร์ชันก่อนวางจำหน่ายและคุณอาจพบปัญหาที่ไม่คาดคิด</string>
   <string name="morphe_settings_about_links_header">ลิงก์อย่างเป็นทางการ</string>

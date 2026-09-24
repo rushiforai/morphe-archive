@@ -1,3 +1,9 @@
+## [1.0.9](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.8...v1.0.9) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **thescore:** update adblock and widget fingerprints for v26.14.0 ([3e97d45](https://github.com/rhubarbshoelaces/morphe-patches/commit/3e97d45f683e1e749fe664dfd78ed454b1679340))
+
 ## [1.0.7](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.6...v1.0.7) (2026-08-21)
 
 ### 🐛 Bug Fixes

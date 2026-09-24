@@ -30,9 +30,9 @@ import org.robolectric.annotation.Config;
 
 /**
  * The feed keeps playing behind an open comment sheet, and it starts itself again every time
- * the app comes back. Neither is something the reader asked for, and there is no pause hook in
- * this extension, so both are answered by asking for the audio focus, which is how one app
- * tells another to stop.
+ * the app comes back. Neither is something the reader asked for, so both ask for the audio focus,
+ * which is how one app tells another to stop. These cover the focus, the sheet and the catcher;
+ * the pause on TikTok's own player is in wellbeing.PauseSwitchPlaybackTest.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
@@ -196,8 +196,8 @@ public class PausePlaybackTest {
     }
 
     /**
-     * Coming back to the app holds the feed until one tap. The tap is taken and nothing else
-     * happens with it, which is what "a tap plays" means when there is no pause hook to press.
+     * Coming back to the app holds the feed until one tap. The tap is taken and does nothing but
+     * hand the feed back: the sound, and the video if the cover paused it.
      */
     @Test public void comingBackHoldsTheFeedUntilATap() {
         Settings.NO_RESUME_ON_FOREGROUND.save(true);

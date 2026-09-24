@@ -8,7 +8,6 @@ package app.ahmedyarub.patches.instagram.distractionFree
 
 import app.morphe.library.instagram.patches.blockUrl
 import app.morphe.library.instagram.patches.blockUrlBasePatch
-import app.morphe.library.instagram.patches.filterStoriesListPatch
 import app.morphe.library.instagram.patches.overrideMobileConfigBooleanFlag
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
@@ -55,7 +54,7 @@ val hideSuggestedContentPatch = bytecodePatch(
             // Hides suggestions in search box
             override = "111509::3" to false // ig_search_ta_nullstate_suggestions::is_android_enabled
         ),
-        filterStoriesListPatch,
+        filterStoriesTrayHook,
         blockUrlBasePatch
     )
 

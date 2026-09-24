@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">मorphe सेटिंग्स डिफ़ॉल्ट पर वापस लाएं</string>
   <string name="morphe_settings_import_success">%d सेटिंग्स आयात किए गए</string>
   <string name="morphe_settings_import_failure_parse">आयात विफल: %s</string>
+  <string name="morphe_settings_navigate_up">ऊपर जाएँ</string>
   <string name="morphe_settings_search_hint">सेटिंग्स खोजें</string>
   <string name="morphe_settings_search_no_results_title">\'%s\' के लिए कोई परिणाम नहीं मिला</string>
   <string name="morphe_settings_search_no_results_summary">अन्य शब्द का प्रयोग करें</string>
   <string name="morphe_settings_search_recent_searches">हाल की खोजें</string>
   <string name="morphe_settings_search_remove_message">खोज इतिहास से हटाएं?</string>
+  <string name="morphe_settings_search_remove">खोज इतिहास से हटाएँ</string>
   <string name="morphe_settings_search_clear_history">खोज इतिहास मिटाएं</string>
   <string name="morphe_settings_search_clear_history_message">क्या आप वाकई सभी खोज इतिहास को मिटाना चाहते हैं?</string>
   <string name="morphe_settings_search_tips_title">खोज टिप्पणियाँ</string>
@@ -72,8 +74,8 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_success">सेटिंग्स सफलतापूर्वक एक्सपोर्ट हो गया</string>
   <string name="morphe_settings_export_file_failed">सेटिंग्स एक्सपोर्ट करने में विफल</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">आप Morphe Patches की नवीनतम संस्करण &lt;i&gt;%s&lt;/i&gt; का उपयोग कर रहे हैं</string>
-  <string name="morphe_settings_about_links_body_version_outdated">आप Morphe Patches संस्करण &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;अपडेट उपलब्ध है: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;अपडेट करने के लिए, इस ऐप को पुनपटच करें</string>
+  <string name="morphe_settings_about_links_body_version_current">आप Spectre Patches की नवीनतम संस्करण &lt;i&gt;%s&lt;/i&gt; का उपयोग कर रहे हैं</string>
+  <string name="morphe_settings_about_links_body_version_outdated">आप Spectre Patches संस्करण &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;अपडेट उपलब्ध है: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;अपडेट करने के लिए, इस ऐप को पुनपटच करें</string>
   <string name="morphe_settings_about_links_dev_header">नोट</string>
   <string name="morphe_settings_about_links_dev_body">यह संस्करण एक प्री-रीलिज़ संस्करण है और आप अप्रत्याशित समस्याओं का अनुभव कर सकते हैं</string>
   <string name="morphe_settings_about_links_header">ოფიციალური ლინკები</string>

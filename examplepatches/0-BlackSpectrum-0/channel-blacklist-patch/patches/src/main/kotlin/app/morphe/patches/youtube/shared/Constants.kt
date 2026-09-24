@@ -33,6 +33,11 @@ internal object Constants {
                 isExperimental = true
             ),
             AppTarget(
+                version = "21.23.492", // Last version for Android 9.0
+                minSdk = 28,
+                isExperimental = true
+            ),
+            AppTarget(
                 version = "21.16.256",
                 minSdk = 28
             ),

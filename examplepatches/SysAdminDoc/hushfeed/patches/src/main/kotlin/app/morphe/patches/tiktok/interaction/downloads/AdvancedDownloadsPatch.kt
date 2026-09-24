@@ -203,6 +203,35 @@ private object StartDownloadFingerprint : Fingerprint(
     returnType = "V",
 )
 
+private const val STRING = "Ljava/lang/String;"
+private const val SET = "Ljava/util/Set;"
+private const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
+
+/**
+ * TikTok's photo save job: static, void, (its own class, String, String, ?, Aweme, the Set of
+ * photo indices asked for, ?, the live-video flag, Function1, the default-arguments mask).
+ *
+ * <p>On 47.0.3 a photo post's Download never reaches [StartDownloadFingerprint]. It is its own
+ * share action (`save_photo`), and every way it saves runs this job: "Download image" in the
+ * sheet it asks with (`setOf(0)`), a single photo saved without asking, the photos picked in
+ * TikTok's selection sheet, and a TikTok Now save; "Download video" on a live photo comes
+ * through with the flag set. It is `X.0CYc.LJIIJJI` on 47.0.3 and one method of this shape on
+ * each of the five fixtures, always named LJIIJJI; only 46.2.3's lacks the "initializeJob"
+ * log strings, so the shape is the anchor.
+ */
+internal fun Method.isPhotoSaveJob(classDef: ClassDef): Boolean {
+    if (accessFlags and AccessFlags.STATIC.value == 0 || returnType != "V") return false
+    val types = parameterTypes.map { it.toString() }
+    return types.size == 10 && types[0] == classDef.type && types[1] == STRING && types[2] == STRING &&
+        types[4] == AWEME && types[5] == SET && types[7] == "Z" && types[8] == FUNCTION1 && types[9] == "I"
+}
+
+private object PhotoSaveJobFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("L", STRING, STRING, "L", AWEME, SET, "L", "Z", FUNCTION1, "I"),
+    custom = { method, classDef -> method.isPhotoSaveJob(classDef) },
+)
+
 @Suppress("unused")
 val advancedDownloadsPatch = bytecodePatch(
     name = "Advanced downloads",
@@ -228,6 +257,21 @@ val advancedDownloadsPatch = bytecodePatch(
             requireLocals("Advanced downloads", 1)
             addInstructionsWithLabels(0, """
                 invoke-static/range { p1 .. p2 }, ${EXTENSION}OriginalPhotos;->start(Ljava/lang/Object;Landroid/content/Context;)Z
+                move-result v0
+                if-eqz v0, :original
+                return-void
+            """, ExternalLabel("original", getInstruction(0)))
+        }
+        // A photo post's own saves, which the start above never sees on 47.0.3. The job is
+        // handed the post (p4), the photos asked for (p5) and the live-video flag (p7); the
+        // extension keeps a live photo's video and anything it can't take TikTok's.
+        PhotoSaveJobFingerprint.method.apply {
+            requireLocals("Advanced downloads", 3)
+            addInstructionsWithLabels(0, """
+                move-object/from16 v0, p4
+                move-object/from16 v1, p5
+                move/from16 v2, p7
+                invoke-static { v0, v1, v2 }, ${EXTENSION}OriginalPhotos;->startPhotos(Ljava/lang/Object;Ljava/util/Set;Z)Z
                 move-result v0
                 if-eqz v0, :original
                 return-void

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -63,8 +63,8 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_success">ترتیبات کی برآمدی مکمل ہو چکی</string>
   <string name="morphe_settings_export_file_failed">ترتیبات کی برآمدی ناکام ہو گئی</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">آپ Morphe Patches کا جدید ورژن استعمال کر رہے ہیں &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">آپ Morphe Patches کا ورژن &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt; استعمال کررہے ہیں اپڈیٹ دستیاب ہے: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt; پیچ کو اپڈیٹ کرنے کے لئے، Morphe کے استعمال سے اس ایپ کو دوبارہ پیچ کریں</string>
+  <string name="morphe_settings_about_links_body_version_current">آپ Spectre Patches کا جدید ورژن استعمال کر رہے ہیں &lt;i&gt;%s&lt;/i&gt;</string>
+  <string name="morphe_settings_about_links_body_version_outdated">آپ Spectre Patches کا ورژن &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt; استعمال کررہے ہیں اپڈیٹ دستیاب ہے: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt; پیچ کو اپڈیٹ کرنے کے لئے، Spectre کے استعمال سے اس ایپ کو دوبارہ پیچ کریں</string>
   <string name="morphe_settings_about_links_dev_header">نوٹ</string>
   <string name="morphe_settings_about_links_dev_body">یہ ورژن ایک pre-release ہے اور آپکو کچھ غیر متوقع مسائل کا سامنا کرنا پڑ سکتا ہے</string>
   <string name="morphe_settings_about_links_header">آفیشل لنک</string>

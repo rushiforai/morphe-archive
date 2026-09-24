@@ -17,12 +17,7 @@ import app.morphe.patches.shared.dom.trimIndentMultiline
 import org.w3c.dom.Element
 import java.io.File
 
-/**
- * Resource half: network_security_config trusts user CAs (with overridePins).
- *
- * Private on purpose: it is applied through [bypassTlsPinningPatch]'s
- * dependsOn and must not appear as a separate entry in the patch list.
- */
+/** Configures certificate handling. */
 @Suppress("unused")
 private val bypassTlsPinningResourcePatch = resourcePatch {
     execute {
@@ -103,12 +98,7 @@ private val bypassTlsPinningResourcePatch = resourcePatch {
     }
 }
 
-/**
- * Bytecode half: ACLTrustManager.checkServerTrusted is the central trust
- * boundary used by both the native SDK and the WebView SSL-error handler.
- * Returning directly is intentional: delegating to clientTrustDelegate would
- * still reject a user-installed interception certificate.
- */
+/** Updates certificate checks. */
 @Suppress("unused")
 val bypassTlsPinningBytecodePatch = bytecodePatch(
     name = "Bypass certificate checks",

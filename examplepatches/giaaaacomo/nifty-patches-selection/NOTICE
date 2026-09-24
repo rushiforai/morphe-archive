@@ -1,0 +1,25 @@
+Morphe-derived code notice
+==========================
+
+This repository contains code derived from Morphe Patches:
+https://github.com/MorpheApp/morphe-patches
+
+7b. Attribution Requirement
+---------------------------
+
+This notice must be preserved in distributions of the source code and its
+derivative works.
+
+7c. Project Name Restriction
+----------------------------
+
+The name "Morphe" may not be used as the primary name, identity, logo, or
+branding of a derivative work. References to Morphe are permitted only for
+accurate, descriptive compatibility statements that do not imply authorship or
+endorsement by the Morphe project.
+
+Third-party attribution
+-----------------------
+
+The Instagram bootstrap fingerprint was informed by the Piko project:
+https://github.com/crimera/piko

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Setările Morphe au fost resetate la valorile implicite</string>
   <string name="morphe_settings_import_success">Au fost importate %d setări</string>
   <string name="morphe_settings_import_failure_parse">Importare eșuată: %s</string>
+  <string name="morphe_settings_navigate_up">Navighează în sus</string>
   <string name="morphe_settings_search_hint">Caută în setări</string>
   <string name="morphe_settings_search_no_results_title">Nu s-au găsit rezultate pentru „%s”</string>
   <string name="morphe_settings_search_no_results_summary">Încearcă un alt cuvânt-cheie</string>
   <string name="morphe_settings_search_recent_searches">Căutări recente</string>
   <string name="morphe_settings_search_remove_message">Eliminați din istoricul căutărilor?</string>
+  <string name="morphe_settings_search_remove">Eliminați din istoricul căutărilor</string>
   <string name="morphe_settings_search_clear_history">Șterge istoricul căutărilor</string>
   <string name="morphe_settings_search_clear_history_message">Sigur doriți să ștergeți tot istoricul căutărilor?</string>
   <string name="morphe_settings_search_tips_title">Sfaturi de căutare</string>
@@ -73,7 +75,7 @@ Pentru a traduce limbi noi sau pentru a îmbunătăți traducerile existente, vi
   <string name="morphe_settings_export_file_failed">Eșec la exportarea setărilor</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">Utilizați cea mai recentă versiune a patch-urilor Morphe &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Utilizați versiunea patch-urilor Morphe &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Actualizare disponibilă: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Pentru a actualiza patch-urile, folosiți Morphe pentru a repatcha această aplicație</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Utilizați versiunea patch-urilor Spectre &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Actualizare disponibilă: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Pentru a actualiza patch-urile, folosiți Spectre pentru a repatcha această aplicație</string>
   <string name="morphe_settings_about_links_dev_header">Notă</string>
   <string name="morphe_settings_about_links_dev_body">Această versiune este o pre-lansare și este posibil să întâmpinați probleme neașteptate</string>
   <string name="morphe_settings_about_links_header">Link-uri oficiale</string>

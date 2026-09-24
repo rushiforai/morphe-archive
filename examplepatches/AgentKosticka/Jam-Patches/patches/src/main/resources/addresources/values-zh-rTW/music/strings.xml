@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
+    Raw strings still require escaping embedded double quotes but escaping embedded single quotes is optional.
+
+    Raw strings are required because Crowdin AI translations regularly gets confused and
+    replace \n with an encoded new line character.
+
+    Bad:
+        <string name="summary_key">First \'item\' text\nSecond \"item\" text</string>
+
+    Good:
+        <string name="summary_key">"First 'item' text
+Second \"item\" text"</string>
+
+-->
+<resources>
+  <!-- layout.branding.customBrandingPatch -->
+  <!-- layout.branding.header.changeHeaderPatch -->
+  <string name="morphe_header_logo_title">標題標誌</string>
+  <string name="morphe_header_logo_entry_1">預設</string>
+  <string name="morphe_header_logo_entry_3">自訂</string>
+  <!-- misc.album.albumMusicVideoPatch -->
+  <string name="morphe_music_play_album_songs_title">播放專輯音訊曲目</string>
+  <!-- 'Spoof video streams' should match the language used in 'morphe_spoof_video_streams_screen_title' -->
+  <string name="morphe_music_play_album_songs_summary">播放專輯中歌曲的純音訊版本，而不是音樂錄影帶。需要「欺騙影片串流」</string>
+  <!-- interaction.downloads.downloadsPatch -->
+  <string name="morphe_external_downloader_screen_summary">使用第三方下載應用程式下載音樂影片、播客或歌曲</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
+  <string name="morphe_external_downloader_action_button_title">覆蓋「下載」動作按鈕</string>
+  <string name="morphe_external_downloader_action_button_summary">使用您選擇的外部下載器取代內建的下載動作按鈕</string>
+  <string name="morphe_external_downloader_flyout_menu_title">覆蓋下載選單</string>
+  <string name="morphe_external_downloader_flyout_menu_summary">使用您選擇的外部下載器取代內建的下載飛出選單</string>
+  <string name="morphe_music_in_app_downloads_title">在應用程式內下載</string>
+  <string name="morphe_music_in_app_downloads_summary">不開啟外部下載器應用程式，改在 YouTube Music 中下載音訊。</string>
+  <string name="morphe_music_in_app_downloads_user_dialog_message">"歌曲會儲存到應用程式的專用儲存區域中，如果解除安裝 YouTube Music，歌曲也會被刪除。
+
+啟用此功能後，「下載」頁籤會列出這些歌曲，而非 Music Premium 離線庫。關閉此功能將會恢復該頁籤，而且Premium下載永遠不會受到影響。"</string>
+  <string name="morphe_music_downloads_screen_title">已下載的音樂</string>
+  <string name="morphe_music_downloads_empty">"沒有已下載的音樂
+下載的歌曲會顯示在這裡"</string>
+  <string name="morphe_music_downloads_track_subtitle">%1$s • %2$s • %3$s MB</string>
+  <string name="morphe_music_downloads_summary">%1$s 首歌曲 • %2$s MB</string>
+  <string name="morphe_music_downloads_search_hint">搜尋已下載的音樂</string>
+  <string name="morphe_music_downloads_sort">排序</string>
+  <string name="morphe_music_downloads_sort_artist">按藝人排序</string>
+  <string name="morphe_music_downloads_sort_title">按標題排序</string>
+  <string name="morphe_music_downloads_sort_size">按大小排序</string>
+  <string name="morphe_music_downloads_delete_all">刪除所有已下載的音樂</string>
+  <string name="morphe_music_downloads_delete_all_title">要刪除所有已下載的內容嗎？</string>
+  <string name="morphe_music_downloads_delete_all_message">這個裝置中所有已下載的曲目將會被刪除</string>
+  <string name="morphe_music_downloads_all_deleted">已刪除下載的音樂</string>
+  <string name="morphe_music_downloads_nothing_found">沒有找到任何內容</string>
+  <string name="morphe_music_downloads_actions_for">%s 的操作</string>
+  <string name="morphe_music_downloads_play">播放</string>
+  <string name="morphe_music_downloads_play_pause">播放或暫停</string>
+  <string name="morphe_music_downloads_previous">上一首</string>
+  <string name="morphe_music_downloads_next">下一首</string>
+  <string name="morphe_music_downloads_pause">暫停</string>
+  <string name="morphe_music_downloads_close">關閉</string>
+  <string name="morphe_music_downloads_delete">刪除</string>
+  <string name="morphe_music_downloads_delete_track">刪除下載的內容</string>
+  <string name="morphe_music_downloads_delete_track_title">確定要刪除下載的內容？</string>
+  <string name="morphe_music_downloads_delete_track_message">將會從這個裝置中刪除%s</string>
+  <string name="morphe_music_downloads_track_deleted">已刪除下載的內容</string>
+  <string name="morphe_music_downloads_track_delete_failed">無法刪除下載的內容</string>
+  <string name="morphe_music_downloads_play_failed">無法播放下載的內容</string>
+  <string name="morphe_music_downloads_notification_channel">音訊下載</string>
+  <string name="morphe_music_downloads_playback_channel">離線播放</string>
+  <string name="morphe_music_downloads_unknown_track">無法識別要下載的曲目</string>
+  <string name="morphe_music_downloads_already_running">已在進行下載過程</string>
+  <string name="morphe_music_downloads_already_saved">已經下載了</string>
+  <string name="morphe_music_downloads_started">已開始下載</string>
+  <string name="morphe_music_downloads_starting">正在開始下載…</string>
+  <string name="morphe_music_downloads_progress">正在下載%s%%</string>
+  <string name="morphe_music_downloads_complete">下載完成</string>
+  <string name="morphe_music_downloads_failed">下載失敗</string>
+  <!-- misc.settings.settingsPatch -->
+  <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
+  <string name="morphe_settings_music_screen_0_about_title">關於</string>
+  <string name="morphe_settings_music_screen_1_ads_title">廣告</string>
+  <string name="morphe_settings_music_screen_2_feed_title">推薦內容</string>
+  <string name="morphe_settings_music_screen_3_general_title">一般</string>
+  <string name="morphe_settings_music_screen_4_player_title">播放器</string>
+  <string name="morphe_settings_music_screen_5_lyrics_title">歌詞</string>
+  <string name="morphe_settings_music_screen_9_misc_title">其他</string>
+  <!-- ad.hideAdsPatch -->
+  <string name="morphe_music_hide_get_premium_label_title">隱藏「取得 Music Premium」標籤</string>
+  <string name="morphe_music_hide_music_premium_promotions_title">隱藏 Music Premium 促銷內容</string>
+  <string name="morphe_music_hide_video_ads_title">隱藏影片廣告</string>
+  <!-- layout.hide.general.hideLayoutComponentsPatch -->
+  <string name="morphe_music_hide_audio_video_toggle_title">隱藏音訊/影片切換按鈕</string>
+  <string name="morphe_music_hide_explore_shelf_title">隱藏「探索」區塊</string>
+  <string name="morphe_music_hide_grid_shelves_title">隱藏格狀區塊</string>
+  <string name="morphe_music_hide_horizontal_shelves_title">隱藏橫向區塊</string>
+  <string name="morphe_music_hide_list_shelves_title">隱藏列表區塊</string>
+  <string name="morphe_music_hide_lyrics_panel_category_title">歌詞面板</string>
+  <string name="morphe_music_hide_lyrics_share_button_title">隱藏「分享」按鈕</string>
+  <string name="morphe_music_hide_lyrics_translate_button_title">隱藏「翻譯」按鈕</string>
+  <string name="morphe_music_hide_new_from_shelf_title">隱藏「來自」區塊</string>
+  <string name="morphe_music_hide_playlist_shelves_title">隱藏歌單區塊</string>
+  <string name="morphe_music_hide_repeat_button_title">隱藏重複按鈕</string>
+  <string name="morphe_music_hide_shuffle_button_title">隱藏隨機播放按鈕</string>
+  <string name="morphe_music_hide_speed_dial_shelf_title">隱藏「快速撥號」區塊</string>
+  <string name="morphe_music_comments_screen_title">留言區</string>
+  <string name="morphe_music_comments_screen_summary">選擇要在留言區中顯示哪些元件</string>
+  <string name="morphe_music_hide_comments_community_guidelines_title">隱藏社群守則</string>
+  <string name="morphe_music_hide_comments_context_title">隱藏內容訊息</string>
+  <string name="morphe_music_hide_comments_emoji_button_title">隱藏表情圖示按鈕</string>
+  <string name="morphe_music_hide_comments_info_button_title">隱藏資訊按鈕</string>
+  <string name="morphe_music_hide_comments_timestamp_button_title">隱藏時間戳按鈕</string>
+  <!-- interaction.crossfade.crossfadePatch -->
+  <string name="morphe_music_crossfade_screen_title">漸色混合</string>
+  <string name="morphe_music_crossfade_screen_summary">將音軌平滑地混合在一起</string>
+  <string name="morphe_music_crossfade_enabled_title">啟用漸色混合</string>
+  <string name="morphe_music_crossfade_curve_title">淡出曲線</string>
+  <string name="morphe_music_crossfade_curve_entry_equal_power">等功率</string>
+  <string name="morphe_music_crossfade_curve_entry_ease_out_cubic">微妙延遲</string>
+  <string name="morphe_music_crossfade_curve_entry_ease_out_quad">柔和過渡</string>
+  <string name="morphe_music_crossfade_curve_entry_smoothstep">平滑S曲線</string>
+  <!-- Empty string because custom preference handles the title itself -->
+  <string name="morphe_music_crossfade_curve_preview_outgoing">外寄</string>
+  <string name="morphe_music_crossfade_curve_preview_incoming">內寄</string>
+  <string name="morphe_music_crossfade_duration_title">淡出持續時間</string>
+  <string name="morphe_crossfade_duration_250ms">250 毫秒</string>
+  <string name="morphe_crossfade_duration_500ms">500 毫秒</string>
+  <string name="morphe_crossfade_duration_750ms">750 毫秒</string>
+  <string name="morphe_crossfade_duration_1000ms">1 秒</string>
+  <string name="morphe_crossfade_duration_2000ms">2 秒</string>
+  <string name="morphe_crossfade_duration_3000ms">3 秒</string>
+  <string name="morphe_crossfade_duration_4000ms">4 秒</string>
+  <string name="morphe_crossfade_duration_5000ms">5 秒</string>
+  <string name="morphe_crossfade_duration_6000ms">6 秒</string>
+  <string name="morphe_crossfade_duration_7000ms">7 秒</string>
+  <string name="morphe_crossfade_duration_8000ms">8 秒</string>
+  <string name="morphe_crossfade_duration_9000ms">9 秒</string>
+  <string name="morphe_crossfade_duration_10000ms">10 秒</string>
+  <string name="morphe_crossfade_duration_11000ms">11 秒</string>
+  <string name="morphe_crossfade_duration_12000ms">12 秒</string>
+  <string name="morphe_music_crossfade_on_skip_title">手動跳過時淡出</string>
+  <string name="morphe_music_crossfade_on_skip_summary">手動跳到下一首歌曲時套用淡入淡出效果</string>
+  <string name="morphe_music_crossfade_on_auto_advance_title">自動循環時淡出</string>
+  <string name="morphe_music_crossfade_on_auto_advance_summary">歌曲自然結束時套用淡入淡出效果</string>
+  <string name="morphe_music_crossfade_session_control_title">工作階段控制</string>
+  <string name="morphe_music_crossfade_session_control_summary">長按隨機播放按鈕以暫停或復原淡入淡出效果</string>
+  <string name="morphe_music_crossfade_paused_toast">已暫停此工作階段的淡入淡出效果</string>
+  <string name="morphe_music_crossfade_resumed_toast">已復原淡入淡出效果</string>
+  <string name="morphe_music_crossfade_video_mode_disabled_toast">啟用淡入淡出效果時，視訊模式不可用</string>
+  <string name="morphe_music_crossfade_cast_unstable_toast">投射或鏡像音訊時，淡入淡出效果會暫停。投射／鏡像時的淡入淡出效果不穩定，且可能永遠無法得到修正。</string>
+  <string name="morphe_music_crossfade_about_title">關於</string>
+  <string name="morphe_music_crossfade_about_summary">淡入淡出功能如何運作 — 以及何時無法運作</string>
+  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="morphe_music_crossfade_about_how_title">運作方式</string>
+  <string name="morphe_music_crossfade_about_how_summary">"淡入淡出功能會將一首歌的結尾與下一首歌的開頭重疊，在您選擇的時長和曲線之上，逐漸降低一首歌的音量，同時逐漸提高另一首歌的音量。
+
+它在自動進階（歌曲自行結束時）和手動跳過時運作 — 上方各有自己的切換開關。在自動進階時，淡入淡出效果會在歌曲結束前幾秒開始。
+
+需要 YouTube Music 9.x 或更新版本。"</string>
+  <string name="morphe_music_crossfade_about_best_title">最適合</string>
+  <string name="morphe_music_crossfade_about_best_summary">正常的歌曲播放和自動進階、單曲循環（歌曲會淡入淡出自身）、以及本機音訊 — 手機揚聲器、有線耳機、藍牙或 USB。</string>
+  <string name="morphe_music_crossfade_about_quirks_title">運作不太順暢</string>
+  <string name="morphe_music_crossfade_about_quirks_summary">"播放音樂影片時，僅播放音訊（如果您想暫停影片，請長按隨機播放按鈕）
+
+低於淡出時長的歌曲可能會跳過淡出效果
+
+鎖定畫面或通知可能會短暫顯示過時的狀態，尤其是在轉換過程中"</string>
+  <string name="morphe_music_crossfade_about_known_title">已知問題</string>
+  <string name="morphe_music_crossfade_about_known_summary">"將音樂影片設定為第一首歌曲，或從目前佇列外部啟動的音樂影片，可能會在僅播放音訊模式開始前短暫顯示影片
+
+暫停淡出效果以觀看音樂影片可能會導致部分影片畫面變黑（那些音訊來自影片本身的影片）。在選擇歌曲之前暫停淡出效果可以避免此情況"</string>
+  <string name="morphe_music_crossfade_about_unsupported_title">完全無法運作</string>
+  <string name="morphe_music_crossfade_about_unsupported_summary">"串流或鏡像音訊（Chromecast、螢幕或音訊鏡像）—淡出效果會暫停，因為在那裡並不穩定，而且可能無法修正。
+
+YouTube Music 8.x — 淡出效果僅在 9.x 及更高版本中運行"</string>
+  <string name="morphe_music_crossfade_about_credit_title">鳴謝</string>
+  <string name="morphe_music_crossfade_about_credit_summary">Crossfade 功能由 VazerOG 提供</string>
+  <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
+  <string name="morphe_music_remember_repeat_state_title">記住重複狀態</string>
+  <!-- interaction.remember.shufflestate.rememberShuffleStatePatch -->
+  <string name="morphe_music_remember_shuffle_state_title">記住隨機播放狀態</string>
+  <!-- interaction.dislikeredirection.disableDislikeRedirectionPatch -->
+  <string name="morphe_music_disable_dislike_redirection_title">停用取消喜歡重新導向</string>
+  <string name="morphe_music_disable_dislike_redirection_summary">防止按下不喜歡按鈕時跳到下一首歌曲</string>
+  <!-- layout.buttons.hideButtonsPatch -->
+  <string name="morphe_music_hide_cast_button_title">隱藏投放按鈕</string>
+  <string name="morphe_music_hide_history_button_title">隱藏歷史記錄按鈕</string>
+  <string name="morphe_music_hide_notification_button_title">隱藏通知按鈕</string>
+  <string name="morphe_music_hide_search_button_title">隱藏搜尋按鈕</string>
+  <!-- layout.hide.actionbuttons.hideActionButtonsPatch -->
+  <string name="morphe_music_action_buttons_screen_title">動作按鈕</string>
+  <string name="morphe_music_action_buttons_screen_summary">選擇要在播放器下方顯示哪些動作按鈕</string>
+  <string name="morphe_music_hide_action_bar_title">隱藏動作列</string>
+  <string name="morphe_music_hide_like_dislike_button_title">隱藏喜歡和不喜歡按鈕</string>
+  <string name="morphe_music_hide_comments_button_title">隱藏留言按鈕</string>
+  <!-- 'Live chat replay' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="morphe_music_hide_live_chat_replay_button_title">隱藏「直播聊天重播」按鈕</string>
+  <!-- 'Lyrics' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="morphe_music_hide_lyrics_button_title">隱藏歌詞按鈕</string>
+  <!-- 'Share' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="morphe_music_hide_share_button_title">隱藏「分享」按鈕</string>
+  <!-- 'Save' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="morphe_music_hide_save_button_title">隱藏「儲存」按鈕</string>
+  <!-- 'Download' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="morphe_music_hide_download_button_title">隱藏「下載」按鈕</string>
+  <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
+  <string name="morphe_music_hide_radio_button_title">隱藏「開始電台」按鈕</string>
+  <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
+  <string name="morphe_music_hide_flyout_menu_components_screen_title">彈出式介面選單</string>
+  <string name="morphe_music_hide_flyout_menu_components_screen_summary">選擇要在播放器和佇列彈出式選單中顯示哪些組件</string>
+  <string name="morphe_music_hide_flyout_menu_3_column_component_title">隱藏三欄式元件</string>
+  <string name="morphe_music_hide_flyout_menu_like_dislike_title">隱藏喜歡與不喜歡按鈕</string>
+  <string name="morphe_music_hide_flyout_menu_taste_match_title">隱藏「品味相符」選單</string>
+  <string name="morphe_music_hide_flyout_menu_add_to_listen_later_title">隱藏「新增至「稍後收聽」播放清單」選單</string>
+  <string name="morphe_music_hide_flyout_menu_add_to_queue_title">隱藏「新增至佇列」選單</string>
+  <string name="morphe_music_hide_flyout_menu_captions_title">隱藏「字幕」選單</string>
+  <string name="morphe_music_hide_flyout_menu_delete_playlist_title">隱藏「刪除播放清單」選單</string>
+  <string name="morphe_music_hide_flyout_menu_dismiss_queue_title">隱藏「清除佇列」選單</string>
+  <string name="morphe_music_hide_flyout_menu_dont_recommend_artist_title">隱藏「不要推薦此藝人」選單</string>
+  <string name="morphe_music_hide_flyout_menu_download_title">隱藏下載選單</string>
+  <string name="morphe_music_hide_flyout_menu_edit_playlist_title">隱藏「編輯播放清單」選單</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_album_title">隱藏「前往專輯」選單</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_artist_title">隱藏「前往藝人」選單</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_episode_title">隱藏「前往節目」選單</string>
+  <string name="morphe_music_hide_flyout_menu_go_to_podcast_title">隱藏「前往播客」選單</string>
+  <string name="morphe_music_hide_flyout_menu_help_title">隱藏說明選單</string>
+  <string name="morphe_music_hide_flyout_menu_mark_episode_as_played_title">隱藏「標示節目為已播放」選單</string>
+  <string name="morphe_music_hide_flyout_menu_not_interested_title">隱藏「不感興趣」選單</string>
+  <string name="morphe_music_hide_flyout_menu_pin_to_speed_dial_title">隱藏「固定到快速撥號」選單</string>
+  <string name="morphe_music_hide_flyout_menu_play_next_title">隱藏「播放下一首」選單</string>
+  <string name="morphe_music_hide_flyout_menu_quality_title">隱藏「影片畫質」選單</string>
+  <string name="morphe_music_hide_flyout_menu_remove_from_library_title">隱藏「從媒體庫中移除」選單</string>
+  <string name="morphe_music_hide_flyout_menu_remove_from_playlist_title">隱藏「從播放清單中移除」選單</string>
+  <string name="morphe_music_hide_flyout_menu_report_title">隱藏檢舉選單</string>
+  <string name="morphe_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">隱藏「稍後儲存節目」/「儲存到媒體庫」選單</string>
+  <string name="morphe_music_hide_flyout_menu_save_to_playlist_title">隱藏「儲存到播放清單」選單</string>
+  <string name="morphe_music_hide_flyout_menu_share_title">隱藏分享選單</string>
+  <string name="morphe_music_hide_flyout_menu_shuffle_play_title">隱藏「隨機播放」選單</string>
+  <string name="morphe_music_hide_flyout_menu_sleep_timer_title">隱藏「睡眠計時器」選單</string>
+  <string name="morphe_music_hide_flyout_menu_start_radio_title">隱藏「開始廣播」選單</string>
+  <string name="morphe_music_hide_flyout_menu_stats_for_nerds_title">隱藏「極客統計」選單</string>
+  <string name="morphe_music_hide_flyout_menu_subscribe_title">隱藏「訂閱」選單</string>
+  <string name="morphe_music_hide_flyout_menu_unpin_from_speed_dial_title">隱藏「從快速撥號解除固定」選單</string>
+  <string name="morphe_music_hide_flyout_menu_view_song_credit_title">隱藏「檢視歌曲資訊」選單</string>
+  <!-- layout.startpage.changeStartPagePatch -->
+  <string name="morphe_change_start_page_title">開始頁面</string>
+  <string name="morphe_change_start_page_entry_default">預設</string>
+  <string name="morphe_change_start_page_entry_charts">圖表</string>
+  <string name="morphe_change_start_page_entry_episodes_for_later">待播清單</string>
+  <string name="morphe_change_start_page_entry_explore">探索</string>
+  <string name="morphe_change_start_page_entry_history">歷史記錄</string>
+  <string name="morphe_change_start_page_entry_library">媒體庫</string>
+  <string name="morphe_change_start_page_entry_liked_music">喜歡的音樂</string>
+  <string name="morphe_change_start_page_entry_playlists">播放清單</string>
+  <string name="morphe_change_start_page_entry_search">搜尋</string>
+  <string name="morphe_change_start_page_entry_subscriptions">訂閱內容</string>
+  <!-- layout.compactheader.hideFilterBarPatch -->
+  <string name="morphe_music_hide_filter_bar_title">隱藏篩選列</string>
+  <!-- layout.miniplayer.changeMiniplayerColorPatch -->
+  <string name="morphe_music_change_miniplayer_color_title">變更迷你播放器顏色</string>
+  <string name="morphe_music_change_miniplayer_color_summary">迷你播放器顏色符合全螢幕播放器</string>
+  <string name="morphe_music_change_navigation_bar_color_title">變更導航列顏色</string>
+  <string name="morphe_music_change_navigation_bar_color_summary">將導航列顏色調整為全螢幕播放器的顏色</string>
+  <!-- layout.miniplayer.miniplayerNextPreviousButtonsPatch -->
+  <string name="morphe_music_miniplayer_next_button_title">顯示下一首按鈕於迷你播放器</string>
+  <string name="morphe_music_miniplayer_previous_button_title">顯示上一首按鈕於迷你播放器</string>
+  <!-- layout.miniplayer.enableForcedMiniplayerPatch -->
+  <string name="morphe_music_enable_forced_miniplayer_title">啟用強制迷你播放器</string>
+  <string name="morphe_music_enable_forced_miniplayer_summary">防止播放器在開始播放新歌曲時自動展開至全螢幕</string>
+  <!-- layout.miniplayer.enableSwipeToDismissMiniplayerPatch -->
+  <string name="morphe_music_enable_swipe_to_dismiss_miniplayer_title">啟用滑動手勢關閉迷你播放器</string>
+  <string name="morphe_music_enable_swipe_to_dismiss_miniplayer_summary">允許透過在迷你播放器上滑動來關閉它</string>
+  <!-- layout.navigationbar.navigationBarPatch -->
+  <string name="morphe_music_navigation_bar_screen_title">導覽列</string>
+  <string name="morphe_music_navigation_bar_screen_summary">選擇在底部導航欄中顯示哪些按鈕</string>
+  <!-- 'Home' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_home_button_title">隱藏「首頁」按鈕</string>
+  <!-- 'Samples' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_samples_button_title">隱藏「音訊範例」按鈕</string>
+  <!-- 'Explore' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_explore_button_title">隱藏「探索」按鈕</string>
+  <!-- 'Library' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_library_button_title">隱藏「媒體庫」按鈕</string>
+  <!-- 'Upgrade' should be translated using the same localized wording YouTube Music displays for the tab. -->
+  <string name="morphe_music_hide_navigation_bar_upgrade_button_title">隱藏「升級」按鈕</string>
+  <string name="morphe_music_hide_navigation_bar_title">隱藏導覽列</string>
+  <string name="morphe_music_hide_navigation_bar_labels_title">隱藏導覽列按鈕標籤</string>
+  <!-- interaction.scrobbling.scrobblingPatch -->
+  <string name="morphe_music_scrobbling_summary">設定Last.fm和ListenBrainz整合</string>
+  <string name="morphe_music_scrobbling_summary_logged_out">未登入。點擊以設定</string>
+  <string name="morphe_music_scrobbling_log_out">登出</string>
+  <string name="morphe_music_scrobbling_logged_out_toast">已登出</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_enabled_title">啟用聆聽記錄</string>
+  <string name="morphe_music_scrobbling_now_playing_title">提交「正在播放」狀態</string>
+  <string name="morphe_music_scrobbling_min_song_duration_title">最短歌曲時長</string>
+  <!-- 'scrobbled' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_min_song_duration_summary">短於此時長的歌曲將不會被列入聆聽記錄</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_percent_title">聆聽記錄延遲百分比</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_percent_summary">在聆聽歌曲達到此百分比後觸發 scrobble</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_seconds_title">聆聽記錄延遲秒數</string>
+  <!-- 'scrobble' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_delay_seconds_summary">在聆聽此秒數後觸發聆聽記錄行為</string>
+  <string name="morphe_music_listenbrainz_token_title">ListenBrainz 帳戶</string>
+  <string name="morphe_music_listenbrainz_token_summary_logged_in">已登入。點擊以管理帳戶</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_listenbrainz_token_dialog_instruction">輸入您的 ListenBrainz 使用者 Token 以啟用聆聽紀錄</string>
+  <string name="morphe_music_listenbrainz_token_dialog_hint">Token</string>
+  <string name="morphe_music_listenbrainz_token_dialog_get_token">取得 Token</string>
+  <string name="morphe_music_listenbrainz_token_dialog_verify">驗證</string>
+  <string name="morphe_music_listenbrainz_token_status_empty">請輸入 Token</string>
+  <string name="morphe_music_listenbrainz_token_status_validating">驗證中…</string>
+  <string name="morphe_music_listenbrainz_token_status_valid">Token 有效！使用者：%s</string>
+  <string name="morphe_music_listenbrainz_token_status_invalid">Token 無效：%s</string>
+  <string name="morphe_music_listenbrainz_token_status_invalid_unknown">未知</string>
+  <string name="morphe_music_listenbrainz_token_status_failed">驗證失敗：%s</string>
+  <string name="morphe_music_listenbrainz_token_toast_cleared">Token 已清除</string>
+  <string name="morphe_music_listenbrainz_token_toast_saved">Token 已儲存</string>
+  <string name="morphe_music_listenbrainz_token_toast_invalid_warning">警告：儲存的 Token 無效！</string>
+  <string name="morphe_music_lastfm_love_on_like_title">對喜歡的歌曲按讚</string>
+  <string name="morphe_music_lastfm_love_on_like_summary">當您在 YouTube Music 上對喜歡的歌曲按讚時，自動在 Last.fm 上讚好歌曲（以及在取消喜歡或不喜歡時移除讚好）</string>
+  <string name="morphe_music_lastfm_token_title">Last.fm 帳戶</string>
+  <string name="morphe_music_lastfm_token_summary_logged_in">已作為 %s 登入。點擊以管理帳戶</string>
+  <string name="morphe_music_lastfm_token_dialog_instruction">輸入您的 Last.fm 憑證以登入</string>
+  <string name="morphe_music_lastfm_token_dialog_username_hint">使用者名稱</string>
+  <string name="morphe_music_lastfm_token_dialog_password_hint">密碼</string>
+  <string name="morphe_music_lastfm_token_dialog_login">登入</string>
+  <string name="morphe_music_lastfm_token_status_empty">請輸入使用者名稱和密碼</string>
+  <string name="morphe_music_lastfm_token_status_logging_in">正在登入…</string>
+  <string name="morphe_music_lastfm_token_status_success">登入成功！</string>
+  <string name="morphe_music_lastfm_token_status_no_session">從 Last.fm 取得 Session 失敗</string>
+  <string name="morphe_music_lastfm_token_status_failed">登入失敗：%s</string>
+  <string name="morphe_music_lastfm_token_toast_saved">Last.fm 憑證已儲存！</string>
+  <string name="morphe_settings_music_scrobbling_metadata_title">Metadata 清理</string>
+  <string name="morphe_music_scrobbling_metadata_cleanup_title">清理 Metadata</string>
+  <string name="morphe_music_scrobbling_metadata_cleanup_summary">在同步聆聽紀錄之前自動清理標題、藝人和專輯中的常見雜亂內容（例如「官方影片」、「復刻版」、「現場」）</string>
+  <string name="morphe_music_scrobbling_custom_regex_title">自訂正規表示式清理</string>
+  <string name="morphe_music_scrobbling_custom_regex_summary">輸入自訂正規表示式以移除歌曲標題、藝人或專輯中的額外文字。例如：(?i)\\s*\\((clean|explicit)\\)</string>
+  <string name="morphe_music_scrobbling_parse_title_title">解析標題中的藝人和歌曲</string>
+  <string name="morphe_music_scrobbling_parse_title_summary">使用 \" - \" 分隔符從影片標題中提取藝人和歌曲名稱。對於重新上傳的內容，頻道名稱可用作藝人，此功能很有用。</string>
+  <string name="morphe_music_scrobbling_guess_album_title">填入缺少的專輯</string>
+  <string name="morphe_music_scrobbling_guess_album_summary">當音樂未包含專輯時，在 Last.fm 上查詢，讓你的聆聽記錄完整</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_about_title">關於聆聽記錄</string>
+  <!-- 'scrobbling' must be kept untranslated -->
+  <string name="morphe_music_scrobbling_about_summary">"聆聽記錄會自動將您的 YouTube Music 使用情況與您的 Last.fm 或 ListenBrainz 個人資料同步
+
+為了確保在背景播放期間同步聆聽記錄，請確保 YouTube Music 的應用程式電池使用量設定為「無限制」。"</string>
+  <!-- layout.lyrics.lyricsPatch -->
+  <string name="morphe_music_lyrics_enabled_title">使用第三方歌詞</string>
+  <string name="morphe_music_lyrics_enabled_summary">從第三方服務顯示歌詞，若找不到則改用內建歌詞</string>
+  <string name="morphe_music_lyrics_section_service_title">歌詞服務</string>
+  <string name="morphe_music_lyrics_section_overlay_title">疊加層</string>
+  <string name="morphe_music_lyrics_section_sync_title">同步</string>
+  <string name="morphe_music_lyrics_section_about_title">關於</string>
+  <!-- Shown under the preference; the actual priority list is rendered live by the custom preference. -->
+  <string name="morphe_music_lyrics_source_summary">點擊 ▲/▼ 設定優先順序，並勾選或取消勾選以啟用或停用每個提供者</string>
+  <string name="morphe_music_lyrics_source_all_disabled">所有提供者均已停用 — 內建歌詞與嵌入歌詞</string>
+  <string name="morphe_music_lyrics_source_reset_title">重設提供者順序？</string>
+  <string name="morphe_music_lyrics_source_reset_message">將提供者還原為預設優先順序</string>
+  <string name="morphe_music_token_dialog_get_token">取得權杖</string>
+  <string name="morphe_music_apple_music_token_title">Apple Music Media-user-token</string>
+  <string name="morphe_music_apple_music_token_dialog_instruction">"貼上來自 music.apple.com 的 media-user-token Cookie
+
+步驟：
+1. 以會員身分登入 music.apple.com
+2. 開啟 DevTools → Application → Cookies → music.apple.com
+3. 複製「media-user-token」的值"</string>
+  <string name="morphe_music_apple_music_token_toast_saved">Apple Music：media-user-token 已儲存</string>
+  <string name="morphe_music_apple_music_token_toast_cleared">Apple Music：媒體使用者權杖已清除</string>
+  <string name="morphe_music_apple_music_token_toast_invalid">Apple Music：媒體使用者權杖無效。請檢查後再試一次。</string>
+  <string name="morphe_music_spotify_token_title">Spotify SpDc</string>
+  <string name="morphe_music_spotify_token_dialog_instruction">"貼上來自 Spotify 的 sp_dc cookie。
+
+步驟：
+1. 登入 open.spotify.com
+2. 開啟 DevTools → Application → Cookies → open.spotify.com
+3. 複製「sp_dc」的值"</string>
+  <string name="morphe_music_spotify_token_toast_saved">Spotify：sp_dc 為選填。未提供時，將使用 Lyrically 作為替代。</string>
+  <string name="morphe_music_spotify_token_toast_cleared">Spotify：sp_dc 已清除</string>
+  <string name="morphe_music_spotify_token_toast_invalid">Spotify：無效的 sp_dc — 請檢查後重試</string>
+  <string name="morphe_music_apple_token_optional_hint">Apple Music Token是可選的。若沒有Token，將會用Lyrically作為備用方案。</string>
+  <string name="morphe_music_deezer_arl_title">Deezer ARL</string>
+  <string name="morphe_music_deezer_arl_dialog_instruction">"貼上來自 Deezer 的 arl cookie。
+
+步驟：
+1. 登入 deezer.com
+2. 開啟 DevTools → Application → Cookies → deezer.com
+3. 複製「arl」的值"</string>
+  <string name="morphe_music_deezer_arl_toast_saved">Deezer：arl 已儲存</string>
+  <string name="morphe_music_deezer_arl_toast_cleared">Could not romanize the lyrics</string>
+  <string name="morphe_music_deezer_arl_toast_invalid">Deezer：arl 無效。請檢查後再試一次。</string>
+  <string name="morphe_music_musixmatch_token_title">Musixmatch：[…] 複製「token」的值</string>
+  <string name="morphe_music_musixmatch_token_dialog_instruction">"Musixmatch無需Token即可運作，因此該欄位可以留空。
+
+新增Token僅用於使用您自己的帳戶。Token必須來自Musixmatch Android應用程式：從 musixmatch.com 複製的Token屬於已淘汰的桌面客戶端，而且 API 會拒絕那些Token。"</string>
+  <string name="morphe_music_musixmatch_token_dialog_hint">使用者Token</string>
+  <string name="morphe_music_musixmatch_token_toast_saved">Musixmatch：已儲存使用者Token</string>
+  <string name="morphe_music_musixmatch_token_toast_cleared">Musixmatch：已清除使用者Token</string>
+  <string name="morphe_music_musixmatch_token_toast_invalid">Musixmatch：無效的使用者Token — 請檢查並重試</string>
+  <string name="morphe_music_youtube_cookies_title">YouTube Cookie</string>
+  <string name="morphe_music_youtube_cookies_dialog_instruction">"貼上您的 YouTube Cookie 以從 YouTube 查詢字幕和時間文字。
+
+步驟：
+1. 在瀏覽器中開啟 youtube.com 並登入
+2. 開啟 DevTools (F12) → 應用程式 → Cookies → youtube.com
+3.複製完整的Cookie字串（鍵=值，以分號去分隔每一對）
+
+所需的Cookie：SID、HSID、SSID、SAPISID、__Secure-3PAPISID、__Secure-1PAPISID、LOGIN_INFO"</string>
+  <string name="morphe_music_youtube_cookies_toast_saved">YouTube：已儲存Cookie</string>
+  <string name="morphe_music_youtube_cookies_toast_cleared">YouTube：已清除Cookie</string>
+  <string name="morphe_music_youtube_cookies_toast_invalid">YouTube：無效Cookie — 請檢查並重試</string>
+  <string name="morphe_music_lyrics_tap_to_seek_title">點擊行以尋找</string>
+  <string name="morphe_music_lyrics_tap_to_seek_summary">點擊一行會跳到歌曲的那個時間點</string>
+  <string name="morphe_music_lyrics_show_copy_button_title">顯示複製按鈕</string>
+  <string name="morphe_music_lyrics_show_copy_button_summary">點擊可複製純文字歌詞；長按可將原始歌詞來源儲存到下載的歌曲</string>
+  <string name="morphe_music_lyrics_show_translate_button_title">顯示翻譯按鈕</string>
+  <string name="morphe_music_lyrics_show_translate_button_summary">使用提供者翻譯或Google翻譯去翻譯歌詞</string>
+  <string name="morphe_music_lyrics_show_romanize_button_title">顯示羅馬拼音按鈕</string>
+  <string name="morphe_music_lyrics_show_romanize_button_summary">使用提供者的羅馬拼音或Google翻譯的羅馬拼音將歌詞以羅馬拼音方式顯示</string>
+  <string name="morphe_music_lyrics_show_refresh_button_title">顯示重新整理按鈕</string>
+  <string name="morphe_music_lyrics_show_refresh_button_summary">已儲存</string>
+  <string name="morphe_music_lyrics_saved">已儲存</string>
+  <string name="morphe_music_lyrics_word_sync_title">強調已同步的歌詞</string>
+  <string name="morphe_music_lyrics_word_sync_summary">優先使用已同步歌詞而非未同步歌詞</string>
+  <string name="morphe_music_lyrics_hide_played_title">隱藏已播放行</string>
+  <string name="morphe_music_lyrics_hide_played_summary">隱藏目前播放中那一行上方的歌詞行</string>
+  <string name="morphe_music_lyrics_hide_unplayed_title">隱藏未播放的歌詞</string>
+  <string name="morphe_music_lyrics_hide_unplayed_summary">隱藏目前播放中畫面下方的歌詞行</string>
+  <string name="morphe_music_lyrics_mediasession_title">在鎖定畫面上顯示 MediaSession 歌詞</string>
+  <string name="morphe_music_lyrics_miniplayer_title">顯示迷你播放器的歌詞</string>
+  <string name="morphe_music_lyrics_display_artist_first_title">藝人和標題的顯示順序</string>
+  <string name="morphe_music_lyrics_display_artist_first_summary">切換迷你播放器和媒體工作階段中藝人和標題的顯示順序。 ON「藝人 - 標題」和 OFF「標題 - 藝人」不影響歌詞搜索</string>
+  <string name="morphe_settings_music_lyrics_metadata_title">篩選器</string>
+  <string name="morphe_music_lyrics_custom_regex_title">元資料正規表示式</string>
+  <string name="morphe_music_lyrics_custom_regex_summary">在尋找歌詞之前，將正規表示式套用於標題、藝人和專輯。留空以停用。預設值會消除常見的混亂內容，例如「官方影片」、「重製版」和「- 主題」</string>
+  <string name="morphe_music_lyrics_text_filter_title">歌詞篩選器正規表示式</string>
+  <string name="morphe_music_lyrics_text_filter_summary">正規表示式僅套用於原始歌詞文字（不適用於翻譯或羅馬拼音）。留空以停用</string>
+  <string name="morphe_music_lyrics_credit_line_regex_title">資訊列標記</string>
+  <string name="morphe_music_lyrics_credit_line_regex_summary">如果歌詞被錯誤地過濾到底部，請調整或清除它。逗號分隔的標記：包含標記後跟冒號的行在底部顯示為製作團隊資訊。留空以停用</string>
+  <string name="morphe_music_lyrics_text_size_title">文字大小</string>
+  <string name="morphe_music_lyrics_text_size_summary">歌詞文字的大小</string>
+  <string name="morphe_music_lyrics_offset_ms_title">時間偏移</string>
+  <string name="morphe_music_lyrics_offset_ms_summary">同步歌詞跟隨播放。如果它們漂移，請調整定時偏移。向前或向後移動同步歌詞。如果歌詞在歌曲前面，則使用正值</string>
+  <!-- Shown under the lyrics. The placeholder is a service name such as LRCLIB. -->
+  <string name="morphe_music_lyrics_source_label">來源：%s</string>
+  <string name="morphe_music_lyrics_translated_by_google">由 Google 翻譯</string>
+  <string name="morphe_music_lyrics_romanized_by_google">由 Google 轉寫</string>
+  <string name="morphe_music_lyrics_translated_by_ai">由 %s 進行翻譯</string>
+  <string name="morphe_music_lyrics_romanized_by_ai">由 %s 進行羅馬拼音翻譯</string>
+  <!-- Tappable label under the lyrics that turns the translation on. -->
+  <string name="morphe_music_lyrics_translate_hide">已翻譯</string>
+  <string name="morphe_music_lyrics_translating">正在翻譯…</string>
+  <string name="morphe_music_lyrics_translate_failed">無法翻譯歌詞</string>
+  <string name="morphe_music_lyrics_romanize_hide">已翻譯成羅馬拼音</string>
+  <string name="morphe_music_lyrics_romanizing">正在翻譯成羅馬拼音…</string>
+  <string name="morphe_music_lyrics_romanize_failed">無法將歌詞翻譯成羅馬拼音</string>
+  <string name="morphe_music_lyrics_copied">已複製到剪貼簿</string>
+  <string name="morphe_music_lyrics_refreshing">正在重新整理</string>
+  <string name="morphe_music_lyrics_refreshed">已重新整理</string>
+  <string name="morphe_music_lyrics_about_summary">"歌詞會依歌曲標題與藝人搜尋，接著依提供者排序。您可以按重新整理按鈕來切換版本。"</string>
+  <string name="morphe_music_lyrics_hide_info_title">隱藏來源標示</string>
+  <string name="morphe_music_lyrics_hide_info_summary">在歌詞畫面中隱藏來源標示</string>
+  <string name="morphe_music_lyrics_swap_trans_roma_title">交換翻譯和羅馬拼音</string>
+  <string name="morphe_music_lyrics_swap_trans_roma_summary">開啟時將羅馬拼音放在歌詞下面，翻譯放在上面； 關閉時維持羅馬拼音放在上面，翻譯放在下面</string>
+  <string name="morphe_music_lyrics_use_ai_translation_title">OpenAI 相容翻譯</string>
+  <string name="morphe_music_lyrics_use_ai_translation_summary">使用自訂的 OpenAI 相容 API 進行翻譯和羅馬拼音，取代 Google 翻譯</string>
+  <string name="morphe_music_lyrics_ai_config_dialog_title">AI 翻譯設定</string>
+  <string name="morphe_music_lyrics_ai_config_dialog_instruction">設定用於 AI 歌詞翻譯和羅馬拼音的 OpenAI 相容 API 端點。</string>
+  <string name="morphe_music_lyrics_ai_config_base_url_hint">API 端點 URL（例如 https://text.pollinations.ai/openai）</string>
+  <string name="morphe_music_lyrics_ai_config_api_token_hint">API 金鑰（留空以匿名存取）</string>
+  <string name="morphe_music_lyrics_ai_config_model_hint">模型名稱（例如 openai-fast、gpt-4o-mini）</string>
+  <string name="morphe_music_lyrics_ai_config_toast_saved">AI 翻譯設定已儲存</string>
+  <string name="morphe_music_lyrics_ai_config_toast_invalid">無法連線到 AI 端點。請檢查您的設定。</string>
+  <string name="morphe_music_lyrics_ai_config_toast_reset">AI 翻譯設定已重設</string>
+  <string name="morphe_music_lyrics_ai_config_status_configured">已設定</string>
+  <string name="morphe_music_lyrics_ai_config_status_not_configured">點擊以設定</string>
+  <string name="morphe_music_lyrics_ai_config_status_empty_url">Base URL 不能為空</string>
+  <string name="morphe_music_lyrics_ai_config_status_invalid_url">Base URL 必須以 http:// 或 https:// 開頭</string>
+  <string name="morphe_music_lyrics_ai_config_status_empty_model">模型名稱不能為空</string>
+  <string name="morphe_music_lyrics_ai_config_status_validating">正在驗證連線…</string>
+  <!-- misc.spoof.appversion.spoofAppVersionPatch -->
+  <string name="morphe_music_spoof_app_version_target_entry_8_23_51">8.23.51 - 停用粗體圖示</string>
+  <string name="morphe_music_spoof_app_version_target_entry_9_13_51">9.13.51 - 恢復播放器「接下來播放」、「歌詞」和「相關」標籤</string>
+</resources>

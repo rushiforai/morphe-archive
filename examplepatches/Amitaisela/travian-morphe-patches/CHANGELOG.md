@@ -1,3 +1,42 @@
+## [1.16.2](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.16.1...v1.16.2) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** second read-only look at the game's building data ([86d9ba6](https://github.com/Amitaisela/travian-morphe-patches/commit/86d9ba6475dfc815b9168f534a699628e1a1eab2))
+
+## [1.16.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.16.0...v1.16.1) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** add the read-only building-data probe queries ([ea4fedc](https://github.com/Amitaisela/travian-morphe-patches/commit/ea4fedc63b57fbcf1159f570e31ae20854e7d7dd))
+* **Travian: Legends:** log the game's own building data once (read-only) ([393b58d](https://github.com/Amitaisela/travian-morphe-patches/commit/393b58d75128105dd6ba97a651bcecb48be01893))
+
+## [1.16.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.15.0...v1.16.0) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** resource field production was one level too low ([4a0330d](https://github.com/Amitaisela/travian-morphe-patches/commit/4a0330d8863fbc98ab06f94e484ff7bf0d626eeb))
+
+### ✨ New Features
+
+* **Travian: Legends:** add AutomationSettings, the saved automation knobs ([0cbee14](https://github.com/Amitaisela/travian-morphe-patches/commit/0cbee14ad726df84cb8a6864f4ac58f5c5fbf71b))
+* **Travian: Legends:** add BuildingCostTable, real cost/time/effect data ([6343439](https://github.com/Amitaisela/travian-morphe-patches/commit/63434394243468be018a798bed5223580bdfc837))
+* **Travian: Legends:** add QueueEstimate, total cost + approximate finish time ([52da38f](https://github.com/Amitaisela/travian-morphe-patches/commit/52da38f1bf518bdeeb9738c1a9a8ac7e6f8dcc6d))
+* **Travian: Legends:** add the Automation settings screen ([a2deac6](https://github.com/Amitaisela/travian-morphe-patches/commit/a2deac678be171fd5da2f9688dcc948999aed858))
+* **Travian: Legends:** persist real per-village resource stock and production ([4245fb4](https://github.com/Amitaisela/travian-morphe-patches/commit/4245fb43030127d75e26e3bc3d64b5442b4ed565))
+* **Travian: Legends:** show queue totals and cap adding beyond max level ([5439001](https://github.com/Amitaisela/travian-morphe-patches/commit/5439001668e0808c533f36ee2484a653b8cf9207))
+
+## [1.15.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.14.0...v1.15.0) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** probe building-cost fields one at a time, don't stop early ([599958d](https://github.com/Amitaisela/travian-morphe-patches/commit/599958d39902c1a6c2018c60bfe5b1b02a17e65a))
+
+### ✨ New Features
+
+* **Travian: Legends:** add BuildQueueAutomation, the fire-or-wait decision ([b90c065](https://github.com/Amitaisela/travian-morphe-patches/commit/b90c0658cca97d6e4b8f5087dc315fd1ed404c3e))
+* **Travian: Legends:** add QuietHours, the daily automation blackout window ([90154d9](https://github.com/Amitaisela/travian-morphe-patches/commit/90154d98e2d52df3eeacc86d415f70de14590321))
+
 ## [1.14.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.13.2...v1.14.0) (2026-09-22)
 
 ### 🐛 Bug Fixes

@@ -1,0 +1,102 @@
+package app.morphe.patches.music.interaction.jam
+
+import app.morphe.patcher.Patcher
+import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.matchSingle
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import kotlin.io.path.createTempDirectory
+import kotlin.io.path.readText
+import kotlin.io.path.walk
+import kotlin.test.Test
+import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
+
+class JamPatchRegressionTest {
+    @Test
+    fun `queue ABI rejects a missing required constructor`() = rejectInvalidConstructor(false)
+
+    @Test
+    fun `queue ABI rejects ambiguous constructors`() = rejectInvalidConstructor(true)
+
+    private fun rejectInvalidConstructor(ambiguous: Boolean) {
+        val apkPath = System.getProperty("jamApk")
+        assumeTrue(!apkPath.isNullOrBlank()) { "Pass -PjamApk to exercise real APK resolver failures" }
+        val fixture = bytecodePatch {
+            execute {
+                val managerType = QueueEnqueueFingerprint.matchSingle().originalClassDef.type
+                val manager = mutableClassDefBy(managerType)
+                if (ambiguous) {
+                    // Deliberately invalid native capability, never serialized or installed.
+                    manager.addBridge("<init>", listOf("Ljava/lang/Throwable;"), "V", 2, body = "return-void")
+                } else {
+                    manager.methods.removeAll { it.name == "<init>" }
+                }
+                assertFailsWith<PatchException> { resolveJamQueueAbi() }
+            }
+        }
+        val workspace = createTempDirectory("jam-negative-resolution")
+        Patcher(PatcherConfig(kotlin.io.path.Path(apkPath).toFile(), workspace.toFile())).use { patcher ->
+            patcher += setOf(fixture)
+            runBlocking {
+                patcher().collect { result ->
+                    assertTrue(result.exception == null, result.exception?.stackTraceToString().orEmpty())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `Jam discovery has no version branches or implementation class anchors`() {
+        val sourceRoot = kotlin.io.path.Path("src/main/kotlin/app/morphe/patches/music/interaction/jam")
+        val prohibited = listOf(
+            Regex("\\b\\d+\\.\\d+\\.\\d+\\b"),
+            Regex("MusicPlaybackControls|WatchFragment|AutoCropImageView"),
+            Regex("\\.(?:firstOrNull|first|lastOrNull|last)\\s*\\("),
+            Regex("\\b(?:methodKey|sameMethod|sameSignature|requireSingle|methodReferences|fieldReferences)\\s*\\("),
+            Regex("\\.methods\\.(?:filter|single|first)"),
+            Regex("runCatching"),
+            Regex("name\\s*=\\s*\"[a-z]{1,2}\""),
+            Regex("const\\s+val\\s+\\w*(?:METHOD|CLASS|TYPE)\\w*\\s*=\\s*\"[a-z]{1,6}\""),
+        )
+        val violations = sourceRoot.walk().filter {
+            it.fileName.toString().endsWith("Fingerprints.kt") || it.fileName.toString().endsWith("Abi.kt")
+        }.flatMap { path ->
+            val name = path.fileName
+            val source = path.readText()
+            prohibited.flatMap { pattern -> pattern.findAll(source).map { "$name: ${it.value}" }.toList() }
+        }
+        assertTrue(violations.toList().isEmpty(), violations.joinToString("\n"))
+    }
+
+    @Test
+    fun `Jam patch sources do not encode host obfuscation descriptors`() {
+        val sourceRoot = kotlin.io.path.Path("src/main/kotlin/app/morphe/patches/music/interaction/jam")
+        val descriptors = Regex("(?<![A-Za-z0-9_/])L[a-z]{1,6};")
+        val matches = sourceRoot.walk().filter { it.toString().endsWith(".kt") }.flatMap { source ->
+            descriptors.findAll(source.readText()).map { "${source.fileName}: ${it.value}" }
+        }.toList()
+        assertTrue(matches.isEmpty(), "Jam patch sources contain host ABI literals: ${matches.joinToString()}")
+    }
+
+    @Test
+    fun `Jam fingerprints resolve against the supplied target APK`() {
+        val apkPath = System.getProperty("jamApk")
+        assumeTrue(!apkPath.isNullOrBlank()) {
+            "Jam APK resolution test skipped; pass -PjamApk=/absolute/path/to/ytm.apk"
+        }
+        val workspace = createTempDirectory("jam-patch-resolution")
+        Patcher(PatcherConfig(kotlin.io.path.Path(apkPath).toFile(), workspace.toFile())).use { patcher ->
+            patcher += setOf(jamQueueProbePatch)
+            runBlocking {
+                patcher().collect { result ->
+                    assertTrue(result.exception == null, result.exception?.stackTraceToString().orEmpty())
+                }
+            }
+            patcher.get()
+        }
+    }
+}

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cap_ai_title" formatted="false">"AI 字幕翻訳"</string>
+    <string name="cap_enable_ai" formatted="false">"AI 字幕翻訳を有効にする"</string>
+    <string name="cap_api_config" formatted="false">"API 設定"</string>
+    <string name="cap_api_address" formatted="false">"API アドレス"</string>
+    <string name="cap_api_key" formatted="false">"API キー"</string>
+    <string name="cap_model" formatted="false">"モデル"</string>
+    <string name="cap_test_api" formatted="false">"API をテスト"</string>
+    <string name="cap_translation" formatted="false">"翻訳"</string>
+    <string name="cap_translation_requirements" formatted="false">"翻訳への指示"</string>
+    <string name="cap_style" formatted="false">"字幕のスタイル"</string>
+    <string name="cap_size" formatted="false">"字幕のサイズ"</string>
+    <string name="cap_opacity" formatted="false">"背景の不透明度"</string>
+    <string name="cap_reset_position" formatted="false">"字幕の位置をリセット"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"キャッシュと診断"</string>
+    <string name="cap_clear_cache" formatted="false">"字幕キャッシュを消去"</string>
+    <string name="cap_delete_key" formatted="false">"API キーを削除"</string>
+    <string name="cap_text_debug" formatted="false">"字幕テキストのデバッグ"</string>
+    <string name="cap_diagnostics" formatted="false">"字幕の診断"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"診断記録を消去"</string>
+    <string name="cap_preview" formatted="false">"字幕プレビュー"</string>
+    <string name="cap_landscape" formatted="false">"横向き"</string>
+    <string name="cap_portrait" formatted="false">"縦向き"</string>
+    <string name="cap_to_landscape" formatted="false">"横向きに切り替え"</string>
+    <string name="cap_to_portrait" formatted="false">"縦向きに切り替え"</string>
+    <string name="cap_refresh" formatted="false">"更新"</string>
+    <string name="cap_copy" formatted="false">"コピー"</string>
+    <string name="cap_expand" formatted="false">"展開"</string>
+    <string name="cap_collapse" formatted="false">"折りたたむ"</string>
+    <string name="cap_cancel" formatted="false">"キャンセル"</string>
+    <string name="cap_delete" formatted="false">"削除"</string>
+    <string name="cap_saved" formatted="false">"自動保存しました"</string>
+    <string name="cap_autosave" formatted="false">"変更は自動保存されます"</string>
+    <string name="cap_enter_key" formatted="false">"API キーを入力"</string>
+    <string name="cap_key_saved" formatted="false">"暗号化して保存済み。入力すると置き換わります"</string>
+    <string name="cap_model_hint" formatted="false">"モデルを選択するか ID を入力"</string>
+    <string name="cap_preview_hint" formatted="false">"画像をタップして向きを変更。スタイルは即時反映"</string>
+    <string name="cap_size_hint" formatted="false">"相対サイズ 12～22。動画の大きさに合わせて調整"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% は透明、100% は不透明。指を離すと保存"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"展開して診断記録を確認・コピー"</string>
+    <string name="cap_use_youtube" formatted="false">"YouTube を使用"</string>
+    <string name="cap_use_ai" formatted="false">"AI を使用"</string>
+    <string name="cap_on" formatted="false">"オン"</string>
+    <string name="cap_off" formatted="false">"オフ"</string>
+    <string name="cap_configure_api" formatted="false">"AI 翻訳を有効にする前に API を設定してください"</string>
+    <string name="cap_switch_failed" formatted="false">"切り替えに失敗したため以前のモードに戻しました"</string>
+    <string name="cap_choose_translation" formatted="false">"字幕メニューで自動翻訳の言語を選択してください"</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"オフの場合は YouTube が元の字幕を表示します"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"原字幕はそのまま使えます。AI 翻訳には API キーが必要です"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"有効です。自動翻訳の言語を選ぶと AI 字幕を使用します"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"原文と訳文を診断に記録します。問題の調査時のみ有効にしてください"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"字幕の原文と訳文を記録しません"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"調査用に字幕テキストを記録します。初期設定はオフです"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"保存済みの設定で接続をテストします"</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"API を使用するのは自動翻訳のみです。原字幕は翻訳しません"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"縦位置のみリセットし、サイズと背景は保持します"</string>
+    <string name="cap_message_10d1b374429d" formatted="false">"編集中は表示され、閉じると消去されます。保存内容は暗号化されます"</string>
+    <string name="cap_message_7da9039cc193" formatted="false">"API キーは 1 行で入力してください"</string>
+    <string name="cap_message_bafa7b1ca6cb" formatted="false">"API アドレスは https:// または http:// で始めてください"</string>
+    <string name="cap_message_bbbcd9c8bf80" formatted="false">"自動保存できませんでした"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"モデルを保存できませんでした"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"不明な設定"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"。前回の有効な値を保持します"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"字幕の位置をリセットしました"</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"字幕キャッシュを消去しました"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"API キーを削除しますか？"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"この端末の暗号化済み API キーのみ削除します。他の設定は変更しません。"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"API キーを削除しました"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"診断を消去しました"</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"診断をコピーしました"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"テスト中…"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API を利用できます："</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"API テストに失敗："</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"モデル一覧を更新中…"</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"モデル一覧を読み込み中…"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"モデルを取得できません。ID を手動入力してください："</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"モデル一覧を更新しました"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"翻訳リクエストはまだありません。API を設定し、プレーヤーで自動翻訳の言語を選んでから診断を更新してください。"</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"エンジン："</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"モード："</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"自動翻訳"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"原字幕（翻訳 API なし）"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"テキストのデバッグ："</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"最新の段階："</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"時刻参照とエラー（タイムスタンプ付き）："</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"最近のイベント："</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"診断を読み取れません："</string>
+    <string name="cap_message_c34848823d86" formatted="false">"（約 "</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" 秒前）"</string>
+    <string name="cap_mode_pending" formatted="false">"モードを保存しました。この動画の字幕の準備ができ次第、適用されます。"</string>
+    <string name="cap_mode_off_pending" formatted="false">"AI をオフにしました。元の字幕トラックの準備ができ次第、YouTube の字幕が再開されます。"</string>
+    <string name="cap_flyout_title" formatted="false">"通常動画メニューの AI 字幕スイッチ"</string>
+    <string name="cap_flyout_summary" formatted="false">"プレーヤーメニューに切替スイッチを表示します。非表示にしても AI 字幕は無効になりません。次にメニューを開くと反映されます。"</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Shorts メニューの AI 字幕スイッチ"</string>
+    <string name="cap_profiles_title" formatted="false">"API プロファイル"</string>
+    <string name="cap_profile_default" formatted="false">"既存の設定"</string>
+    <string name="cap_profile_name" formatted="false">"プロファイル名"</string>
+    <string name="cap_profile_rename" formatted="false">"名前を変更"</string>
+    <string name="cap_profile_add" formatted="false">"プロファイルを追加"</string>
+    <string name="cap_profiles_summary" formatted="false">"現在のプロファイルを管理"</string>
+    <string name="cap_profile_name_error" formatted="false">"1～60 文字の名前を入力してください"</string>
+    <string name="cap_profile_limit" formatted="false">"最大 30 件のプロファイルを保存できます"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"切り替える前に未完了の入力を修正してください"</string>
+    <string name="cap_profile_add_failed" formatted="false">"追加できません。入力内容と 30 件の上限を確認してください。"</string>
+    <string name="cap_profile_manage" formatted="false">"現在のプロファイルを管理"</string>
+    <string name="cap_profile_close" formatted="false">"閉じる"</string>
+    <string name="cap_profile_save" formatted="false">"保存"</string>
+    <string name="cap_profile_current" formatted="false">"現在のプロファイル"</string>
+    <string name="cap_profile_delete" formatted="false">"プロファイルを削除"</string>
+    <string name="cap_profile_clear_key" formatted="false">"このプロファイルの API キーを消去"</string>
+    <string name="cap_profile_keep_one" formatted="false">"少なくとも1件のプロファイルを残してください。API キーだけを消去できます。"</string>
+    <string name="cap_profile_new_summary" formatted="false">"新規プロファイルには既定の翻訳指示が含まれます。キーやモデルはコピーしません。作成後に設定画面で入力してください。"</string>
+    <string name="cap_profile_delete_summary" formatted="false">"このプロファイルのアドレス、モデル、翻訳指示、暗号化キーを端末から削除します。他のプロファイルと字幕設定は保持します。使用中の場合は残った最初のプロファイルが有効になります。元に戻せません。"</string>
+    <string name="cap_profile_clear_key_summary" formatted="false">"このプロファイルの保存済みキーと未保存のキー入力のみ消去します。アドレス、モデル、翻訳指示、他のプロファイルは保持します。提供元でキーを失効させる操作ではありません。"</string>
+    <string name="cap_prompt_summary" formatted="false">"このプロファイルに保存します。空にすると既定の指示に戻ります。既定の文は画面言語に従い、独自の内容は変更しません。"</string>
+    <string name="cap_default_prompt" formatted="false">"対象言語の自然な表現を使い、忠実かつ簡潔に翻訳してください。人名、専門用語、数字、語調、必要な句読点を保持し、原文にない説明を追加しないでください。"</string>
+    <string name="cap_profile_more" formatted="false">"プロファイルの操作"</string>
+    <string name="cap_profile_collapse" formatted="false">"操作を折りたたむ"</string>
+    <string name="cap_profile_finish_name" formatted="false">"先に名前の変更を保存またはキャンセルしてください。"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"このプロファイルと端末に保存されたキーを削除しますか？他のプロファイルは保持されます。元に戻せません。"</string>
+    <string name="cap_profile_delete_switch" formatted="false">"削除後に有効にするプロファイル："</string>
+    <string name="cap_profile_keep" formatted="false">"プロファイルを残す"</string>
+    <string name="cap_profile_confirm_delete" formatted="false">"削除を確定"</string>
+    <string name="cap_source_retry" formatted="false">"字幕の接続が切れました。再試行中…"</string>
+    <string name="cap_source_unavailable" formatted="false">"元の字幕を取得できません。字幕トラックを選び直してください。"</string>
+    <string name="cap_caption_overflow" formatted="false">"字幕が長すぎます。原文を表示できません"</string>
+    <string name="cap_quality_outcome" formatted="false">"ローカル検証：採用 / 拒否（品質）"</string>
+</resources>

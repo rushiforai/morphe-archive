@@ -1,3 +1,41 @@
+## [1.30.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.29.2...v1.30.0) (2026-09-23)
+
+### ✨ New Features
+
+* **crossyroad-refactor:** consolidate free store patches ([dcf4bfe](https://github.com/byehi98/okish-morphe-patches/commit/dcf4bfe025d632dda8f1c6b668be54b705d0fe2a))
+* **crossyroad:** implement free store ([c8453dd](https://github.com/byehi98/okish-morphe-patches/commit/c8453dd9d1851bd548719d11b63a98581a0bf0d6))
+
+## [1.30.0-dev.2](https://github.com/byehi98/okish-morphe-patches/compare/v1.30.0-dev.1...v1.30.0-dev.2) (2026-09-23)
+
+### ✨ New Features
+
+* **crossyroad-refactor:** consolidate free store patches ([dcf4bfe](https://github.com/byehi98/okish-morphe-patches/commit/dcf4bfe025d632dda8f1c6b668be54b705d0fe2a))
+
+## [1.30.0-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.29.2...v1.30.0-dev.1) (2026-09-23)
+
+### ✨ New Features
+
+* **crossyroad:** implement free store ([c8453dd](https://github.com/byehi98/okish-morphe-patches/commit/c8453dd9d1851bd548719d11b63a98581a0bf0d6))
+
+## [1.29.2](https://github.com/byehi98/okish-morphe-patches/compare/v1.29.1...v1.29.2) (2026-09-23)
+
+### 🚀 Updated App Support
+
+* **dtm:** bump target app version to 1.14.03 ([5b19d14](https://github.com/byehi98/okish-morphe-patches/commit/5b19d14476056a404b772185a4c16e3f6e969f5d))
+* **onlyone:** bump target version to 1.3043 ([675c89d](https://github.com/byehi98/okish-morphe-patches/commit/675c89dfff8a69809fa8b49d52b5920a85897c96))
+
+## [1.29.2-dev.2](https://github.com/byehi98/okish-morphe-patches/compare/v1.29.2-dev.1...v1.29.2-dev.2) (2026-09-23)
+
+### 🚀 Updated App Support
+
+* **onlyone:** bump target version to 1.3043 ([675c89d](https://github.com/byehi98/okish-morphe-patches/commit/675c89dfff8a69809fa8b49d52b5920a85897c96))
+
+## [1.29.2-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.29.1...v1.29.2-dev.1) (2026-09-23)
+
+### 🚀 Updated App Support
+
+* **dtm:** bump target app version to 1.14.03 ([5b19d14](https://github.com/byehi98/okish-morphe-patches/commit/5b19d14476056a404b772185a4c16e3f6e969f5d))
+
 ## [1.29.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.29.0...v1.29.1) (2026-09-21)
 
 ### 🐛 Bug Fixes

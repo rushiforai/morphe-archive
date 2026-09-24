@@ -585,7 +585,7 @@ final class ArchivedThreadImporter {
         }
         Log.i(LOG_TAG, "Converted " + comments.length() + " Talk posts for "
                 + info.board + ":" + info.thread);
-        return dat.toString().getBytes(MS932);
+        return TalkDatEncoding.encode(dat.toString());
     }
 
     private static String request(String url, Charset charset) throws IOException {

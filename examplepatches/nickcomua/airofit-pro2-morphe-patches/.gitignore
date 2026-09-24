@@ -1,0 +1,9 @@
+.gradle/
+build/
+patches/build/
+tooling/lib/*.jar
+*.apk
+*.apks
+*.xapk
+.signing/
+__pycache__/

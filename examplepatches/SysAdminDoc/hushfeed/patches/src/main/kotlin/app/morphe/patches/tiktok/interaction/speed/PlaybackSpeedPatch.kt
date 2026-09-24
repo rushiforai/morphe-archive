@@ -35,7 +35,7 @@ private const val AWEME = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
 @Suppress("unused")
 val playbackSpeedPatch = bytecodePatch(
     name = "Playback speed",
-    description = "Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x. Switch: Hushfeed settings > Playback.",
+    description = "Remembers playback speed or applies a default to each new video, with custom menu choices up to 3x and your own speed for the hold gesture. Switch: Hushfeed settings > Playback.",
     default = true,
 ) {
     category("Playback")
@@ -207,6 +207,19 @@ val playbackSpeedPatch = bytecodePatch(
                 """)
             }
         }
+        // The hold gesture plays at a literal 2x (upstream #52): one 2.0f in the press method,
+        // feeding the apply call and the "already at 2x" lock state, and two in the release
+        // method, one for the speed-up telemetry and one the pull-down lock applies and
+        // persists through the selection boundary. Every one of them goes through the hold
+        // speed row, so press, lock and telemetry agree on the number, and so do TikTok's own
+        // words for the hold: the two banners and the lock toast (HoldSpeed.kt).
+        val press = EdgeSpeedupPressFingerprint.method
+        val release = EdgeSpeedupReleaseFingerprint.method
+        press.routeThroughHoldSpeed(press.holdSpeedLiterals("the hold gesture's press method"))
+        release.routeThroughHoldSpeed(release.holdSpeedLiterals("the hold gesture's release method"))
+        rewordHoldSpeedToasts(release)
+        rewordHoldSpeedBanners(HoldBannerReceiverFingerprint.method)
+
         SettingsStatusLoadFingerprint.method.addInstruction(0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enablePlaybackSpeed()V")
     }

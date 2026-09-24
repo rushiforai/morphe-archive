@@ -1,0 +1,106 @@
+name: Release
+
+concurrency:
+  group: release-publisher
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Validate current Morphe metadata
+        run: |
+          current="$(jq -r '.version // empty' patches-bundle.json)"
+          python3 .github/scripts/validate_morphe_metadata.py "$current"
+
+      - name: Test release metadata rejection paths
+        run: python3 .github/scripts/test_release_contract.py
+
+      - name: Validate addon localization resources
+        run: python3 tools/check_localization.py
+
+      - name: Reject stale release checkout
+        run: |
+          set -euo pipefail
+          remote="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test "$remote" = "$(git rev-parse HEAD)" || { echo "::error::main changed; release the latest commit instead"; exit 1; }
+
+      - name: Setup Java
+        uses: actions/setup-java@v5.7.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Semantic release is the only publisher. Its prepare phase validates generated metadata
+      # before @semantic-release/git creates a release commit or a version tag.
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate published Morphe metadata
+        run: |
+          current="$(jq -r '.version // empty' patches-bundle.json)"
+          python3 .github/scripts/validate_morphe_metadata.py "$current"
+
+      - name: Verify published release asset
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag='${{ steps.release.outputs.new_release_git_tag }}'
+          version='${{ steps.release.outputs.new_release_version }}'
+          expected="patches-${version}.mpp"
+          gh release view "$tag" --json tagName,isPrerelease,assets > "$RUNNER_TEMP/release.json"
+          jq -e --arg tag "$tag" '.tagName == $tag' "$RUNNER_TEMP/release.json" >/dev/null
+          jq -r '.assets[].name' "$RUNNER_TEMP/release.json" | grep -Fx "$expected"
+
+      - name: Verify final published bundle
+        if: steps.release.outputs.new_release_published == 'true'
+        run: |
+          version='${{ steps.release.outputs.new_release_version }}'
+          python3 .github/scripts/verify_bundle.py "$version"
+          echo "EXPECTED_ASSET_SHA256=$(sha256sum patches/build/libs/patches-${version}.mpp | cut -d' ' -f1)" >> "$GITHUB_ENV"
+
+      - name: Verify anonymous Manager source chain
+        run: python3 .github/scripts/verify_remote_source.py "${{ github.ref_name }}" "$(jq -r .version patches-bundle.json)"
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-${{ steps.release.outputs.new_release_version }}.mpp
+
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid --no-daemon

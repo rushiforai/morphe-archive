@@ -8,6 +8,7 @@ package app.morphe.extension.tiktok.interaction;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
 import app.morphe.extension.shared.Logger;
@@ -23,6 +24,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
+import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -294,6 +296,199 @@ public final class GestureActions {
         } catch (RuntimeException exception) {
             Logger.printException(() -> "Could not open comments from the feed gesture", exception);
             return false;
+        }
+    }
+
+    /**
+     * Whether TikTok's main pager is on its feed page, the one a left swipe leaves for the creator's
+     * profile. The profile is the pager's last page and the feed the one before it: on 47.0.3 the
+     * home pager's adapter holds three pages, a side panel at 0, the feed at 1 and the profile at 2
+     * (the probe's pagerstate on the S22, 2026-09-23), and a video opened from a profile, search or
+     * a link sits in a pager of two, the video and the profile. Unreadable reads as not the feed.
+     */
+    static boolean onFeedPage(Object pager) {
+        int page = currentPage(pager);
+        int count = pageCount(pager);
+        if (page < 0 || count < 2) return false;
+        if (!swipeBound) {
+            swipeBound = true;
+            HookStatus.bound(SWIPE_FAMILY, "main pager");
+        }
+        return page == count - 2;
+    }
+
+    /*
+     * Swipe left. TikTok's feed-to-profile pager (on 47.0.3 the base class X.05lU: the home
+     * pager's own class extends it, and a video opened from a profile, search or a link sits in a
+     * bare one inflated from XML) asks one private check whether it may page, from its dispatch,
+     * its intercept and its own touch handling, each only while its paging valve is set. The
+     * patch reads the gesture at the start of the dispatch, before anything asks, and hears
+     * TikTok's own answer at the check's return.
+     */
+
+    /** The Hook status family the left swipe reports under. */
+    static final String SWIPE_FAMILY = "swipe left";
+
+    private static boolean swipeBound;
+    private static float swipeDownX;
+    private static float swipeDownY;
+    /** Where the gesture is now, for the direction {@link #allowProfileSwipe} holds. */
+    private static float swipeLastX;
+    /** Whether TikTok itself would page during this gesture: its own check answered yes. */
+    private static boolean swipePagingOn;
+    /** Whether this gesture was held: TikTok said yes and the setting said no. */
+    private static boolean swipeHeld;
+    private static boolean swipeTracking;
+    private static boolean swipeFired;
+
+    /** Each event, at the start of the pager's dispatch: before anything in it asks whether it may page. */
+    public static void onMainPagerDispatch(Object pager, MotionEvent event) {
+        if (event == null) return;
+        swipeLastX = event.getX();
+        if (event.getActionMasked() != MotionEvent.ACTION_DOWN) return;
+        swipeDownX = event.getX();
+        swipeDownY = event.getY();
+        swipePagingOn = false;
+        swipeHeld = false;
+        swipeTracking = "comments".equals(Settings.SWIPE_LEFT_ACTION.get()) && onFeedPage(pager);
+        swipeFired = false;
+    }
+
+    /**
+     * TikTok's own answer to whether the pager may page, as its check returns it, and the answer
+     * the pager gets. TikTok's no stays no: it turns paging off itself on surfaces that aren't
+     * the feed (the Inbox, your own profile), and nothing here pages or opens anything there.
+     */
+    public static boolean pagingEnabled(Object pager, boolean original) {
+        if (!original) return false;
+        swipePagingOn = true;
+        if (allowProfileSwipe(pager)) return true;
+        swipeHeld = true;
+        return false;
+    }
+
+    /**
+     * Whether a pager TikTok lets page may page for this gesture. Only a gesture heading for the
+     * profile is held, and only on the feed page: at the touch down TikTok still records where the
+     * gesture starts, a swipe the other way still opens TikTok's side panel, from the profile the
+     * swipe back stays TikTok's, and a pager whose pages can't be read pages as usual.
+     */
+    static boolean allowProfileSwipe(Object pager) {
+        if ("default".equals(Settings.SWIPE_LEFT_ACTION.get())) return true;
+        if (towardProfile(pager, swipeLastX - swipeDownX) <= 0) return true;
+        return !onFeedPage(pager);
+    }
+
+    /**
+     * How far a horizontal movement goes toward the profile page: to the left in a left-to-right
+     * layout, to the right in a right-to-left one, where TikTok's pager runs the other way. Decided
+     * the way TikTok decides it (X.05QH.LIZJ): the layout direction of the configuration.
+     */
+    static float towardProfile(Object pager, float dx) {
+        boolean rtl = pager instanceof View
+                ? ((View) pager).getContext().getResources().getConfiguration().getLayoutDirection()
+                        == View.LAYOUT_DIRECTION_RTL
+                : TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL;
+        return rtl ? dx : -dx;
+    }
+
+    /**
+     * Each event the pager's intercept or its own touch handling sees: from the intercept until it
+     * takes the gesture, from onTouchEvent after. A child that takes the gesture for itself, a
+     * photo carousel for one, keeps the rest from both, so only a swipe nothing else wanted gets
+     * this far. With Swipe left set to comments, a clearly sideways move toward the profile from
+     * the feed page opens the video's comments, once a swipe, where TikTok itself would page.
+     */
+    public static void onMainPagerTouch(Object pager, MotionEvent event) {
+        if (event == null || event.getActionMasked() != MotionEvent.ACTION_MOVE) return;
+        if (!swipeTracking || swipeFired || !swipePagingOn) return;
+        float dx = event.getX() - swipeDownX;
+        float dy = event.getY() - swipeDownY;
+        if (towardProfile(pager, dx) < swipeDistance() || Math.abs(dx) < 2 * Math.abs(dy)) return;
+        swipeFired = true;
+        swipeCommentsOpener.run();
+    }
+
+    /**
+     * The pager's own touch handling. TikTok hands it the up of every gesture whatever the check
+     * says, and the pager picks its page there from the drag it saw and the fling: a gesture that
+     * dragged a little before it was held, or touched down while the pager was settling back from
+     * the profile, could land on the profile. A held gesture ends in a cancel instead, which
+     * settles the pager on the page it is on.
+     */
+    public static void onMainPagerOwnTouch(Object pager, MotionEvent event) {
+        onMainPagerTouch(pager, event);
+        if (event != null && swipeHeld && event.getActionMasked() == MotionEvent.ACTION_UP) {
+            event.setAction(MotionEvent.ACTION_CANCEL);
+        }
+    }
+
+    /** How far left counts as a swipe: an eighth of the screen's width. */
+    static float swipeDistance() {
+        Context context = Utils.getContext();
+        int width = context == null ? 0 : context.getResources().getDisplayMetrics().widthPixels;
+        return (width > 0 ? width : 1080) / 8f;
+    }
+
+    /** What a left swipe set to comments does; a test stands in its own. */
+    static Runnable swipeCommentsOpener = () -> {
+        if (!openComments(Reflect.string(CurrentVideoAuthor.getAweme(), "getAid", "aid"))) {
+            Utils.showToastShort(L10n.t("Comments aren't available for this video"));
+        }
+    };
+
+    private static Method currentItem;
+    private static Class<?> currentItemOwner;
+    private static Method adapterGetter;
+    private static Class<?> adapterOwner;
+    private static Method countGetter;
+    private static Class<?> countOwner;
+
+    /** The pager's current page, or -1 when it can't be read. Asked on every touch, so the lookup is kept. */
+    static int currentPage(Object pager) {
+        if (pager == null) return -1;
+        try {
+            Method getter = currentItem;
+            if (getter == null || currentItemOwner != pager.getClass()) {
+                getter = pager.getClass().getMethod("getCurrentItem");
+                getter.setAccessible(true);
+                currentItem = getter;
+                currentItemOwner = pager.getClass();
+            }
+            Object page = getter.invoke(pager);
+            return page instanceof Integer ? (Integer) page : -1;
+        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+            HookStatus.missingMember(SWIPE_FAMILY, "method", pager.getClass().getName(), "getCurrentItem");
+            return -1;
+        }
+    }
+
+    /** How many pages the pager's adapter holds, or -1 when it can't be read. */
+    static int pageCount(Object pager) {
+        if (pager == null) return -1;
+        try {
+            Method getter = adapterGetter;
+            if (getter == null || adapterOwner != pager.getClass()) {
+                getter = pager.getClass().getMethod("getAdapter");
+                getter.setAccessible(true);
+                adapterGetter = getter;
+                adapterOwner = pager.getClass();
+            }
+            Object adapter = getter.invoke(pager);
+            if (adapter == null) return -1;
+            Method count = countGetter;
+            if (count == null || countOwner != adapter.getClass()) {
+                // Made accessible: the adapter's own class need not be public.
+                count = adapter.getClass().getMethod("getCount");
+                count.setAccessible(true);
+                countGetter = count;
+                countOwner = adapter.getClass();
+            }
+            Object pages = count.invoke(adapter);
+            return pages instanceof Integer ? (Integer) pages : -1;
+        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+            HookStatus.missingMember(SWIPE_FAMILY, "method", pager.getClass().getName(), "getAdapter().getCount()");
+            return -1;
         }
     }
 }

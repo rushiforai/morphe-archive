@@ -11,23 +11,27 @@ import ajstrick81.morphe.patches.primevideo.shared.Constants
 // CertificatePinningPatch uses (get(path) -> java.io.File -> write), except it
 // writes a binary into lib/<abi>/ instead of XML into res/.
 //
-// The prebuilt libpvhook.so (from the NDK build of ../jni) must be checked in
-// as a bundled patch resource so it's on the classpath at patch time:
+// libpvhook.so must be a bundled patch resource so it's on the classpath at
+// patch time:
 //
 //   patches/src/main/resources/native/armeabi-v7a/libpvhook.so
+//
+// CI and release compile it from source (experimental/primevideo-libignite-
+// native/jni/, NDK r28c, after its host unit test passes) and install it over
+// that path before packaging, so a released bundle always matches the source.
+// The committed copy is what a local Gradle build packages.
 //
 // Target ABI is armeabi-v7a only, per Constants (6.23.23+v15.5.0.70-armv7a).
 // Add arm64-v8a here too if/when a 64-bit target ships.
 //
-// SCAFFOLD — not registered in the build. Companion to loadNativeHookPatch,
-// which injects the load() call and dependsOn() this so the .so is in place
-// first.
+// Companion to loadNativeHookPatch, which injects the load() call and
+// dependsOn() this so the .so is in place first.
 // ─────────────────────────────────────────────────────────────────────────────
 @Suppress("unused")
 val bundleNativeHookPatch = resourcePatch(
     name = "Bundle native ad-strip hook",
     description = "Packages libpvhook.so into the APK's native lib dir for the " +
-        "in-process PRS Remote-item strip (libignite memcpy/memmove GOT/PLT import hook).",
+        "in-process ad strip (libignite memcpy/memmove GOT/PLT import hook).",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

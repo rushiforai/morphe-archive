@@ -1,0 +1,7 @@
+package app.yydarlinker.deepseekcaptions;
+import org.junit.*;import org.junit.runner.RunWith;import static org.junit.Assert.*;import org.robolectric.*;import org.robolectric.annotation.*;import android.app.Activity;import android.media.session.*;import android.os.SystemClock;
+@RunWith(RobolectricTestRunner.class) @Config(manifest=Config.NONE,sdk=28)
+public class Media110FrameworkTest {
+ @Test public void activityWithoutControllerStaysOnConfirmedTime(){Activity a=Robolectric.buildActivity(Activity.class).setup().get();MediaPlaybackClock.activity(a);MediaPlaybackClock.video("video-no-controller");MediaPlaybackClock.raw();MediaPlaybackClock.refresh();assertFalse(MediaPlaybackClock.available());assertEquals(1234,MediaPlaybackClock.position(1234,SystemClock.elapsedRealtime()));a.finish();}
+ @Test public void newVideoClearsOldMediaSignal(){Activity a=Robolectric.buildActivity(Activity.class).setup().get();MediaSession session=new MediaSession(a,"caption-test");try{a.setMediaController(new MediaController(a,session.getSessionToken()));MediaPlaybackClock.activity(a);MediaPlaybackClock.video("first-video");MediaPlaybackClock.raw();session.setPlaybackState(new PlaybackState.Builder().setState(PlaybackState.STATE_PAUSED,1200,0,SystemClock.elapsedRealtime()).build());MediaPlaybackClock.refresh();MediaPlaybackClock.video("next-video");assertFalse(MediaPlaybackClock.available());assertEquals(0,MediaPlaybackClock.position(0,SystemClock.elapsedRealtime()));}finally{session.release();a.finish();}}
+}

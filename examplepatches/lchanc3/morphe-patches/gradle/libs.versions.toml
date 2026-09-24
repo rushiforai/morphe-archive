@@ -1,0 +1,20 @@
+[versions]
+morphe-patcher = "1.13.0"
+#noinspection GradleDependency
+smali = "d92701d947"
+gson = "2.14.0"
+# Must match what morphe-patcher brings in at runtime: the verification
+# harness only compiles against it, the patcher supplies it.
+kotlinx-coroutines = "1.10.2"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+# The Gradle plugin adds the dependency during the build; declared here only so
+# dependency tooling can see it.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+
+[plugins]
+# Version comes from the app.morphe.patches settings plugin.
+android-library = { id = "com.android.library" }

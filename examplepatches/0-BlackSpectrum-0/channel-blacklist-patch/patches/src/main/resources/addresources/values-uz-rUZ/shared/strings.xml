@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -66,8 +66,8 @@ Yangi tillarni tarjima qilish yoki mavjud tarjimalarni yaxshilash uchun morphe.s
   <string name="morphe_settings_export_file_success">Sozlamalar muvaffaqiyatli eksport qilindi</string>
   <string name="morphe_settings_export_file_failed">Sozlamalarni eksport qilishda xato yuz berdi</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Siz Morphe Patches-larning eng so\'nggi versiyasi &lt;i&gt;%s&lt;/i&gt;dan foydalanmoqdasiz</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Siz Morphe Patches-larning &lt;i&gt;%1$s&lt;/i&gt; versiyasidan foydalanmoqdasiz&lt;br&gt;&lt;br&gt;&lt;b&gt;Yangilanish mavjud: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Patch-laringizni yangilash uchun Morphe yordamida ushbu ilovani qayta patch qiling</string>
+  <string name="morphe_settings_about_links_body_version_current">Siz Spectre Patches-larning eng so\'nggi versiyasi &lt;i&gt;%s&lt;/i&gt;dan foydalanmoqdasiz</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Siz Spectre Patches-larning &lt;i&gt;%1$s&lt;/i&gt; versiyasidan foydalanmoqdasiz&lt;br&gt;&lt;br&gt;&lt;b&gt;Yangilanish mavjud: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Patch-laringizni yangilash uchun Spectre yordamida ushbu ilovani qayta patch qiling</string>
   <string name="morphe_settings_about_links_dev_header">Eslatma</string>
   <string name="morphe_settings_about_links_dev_body">Ushbu versiya pre-reliz hisoblanadi va kutilmagan muammolar yuzaga kelishi mumkin</string>
   <string name="morphe_settings_about_links_header">Rasmiy havolalar</string>

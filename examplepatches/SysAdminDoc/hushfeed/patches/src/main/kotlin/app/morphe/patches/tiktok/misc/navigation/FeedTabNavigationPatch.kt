@@ -129,7 +129,7 @@ val feedTabNavigationPatch = bytecodePatch(
             setter.addInstructions(
                 0,
                 """
-                    invoke-static {p1}, $TAB_BADGES_CLASS_DESCRIPTOR->$hook(I)I
+                    invoke-static/range {p1 .. p1}, $TAB_BADGES_CLASS_DESCRIPTOR->$hook(I)I
                     move-result p1
                 """,
             )

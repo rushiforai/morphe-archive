@@ -1,40 +1,29 @@
 package app.discord.patches.banner
 
+import app.discord.patches.hermes.HermesBundle
+import app.discord.patches.hermes.fail
 import app.morphe.patcher.patch.resourcePatch
 
 /**
  * Hides the quest promo banner (QuestBar) by neutering its visibility gate
  * directly in the Hermes bundle.
  *
- * Target analysis (Hermes bytecode v98 in all four builds):
+ * Self-locating: instead of baked-in byte anchors, the patch finds the
+ * gate at patch time - the single function referencing QUEST_BAR_MOBILE
+ * + isDismissed + userStatus - validates its head shape, and returns
+ * null on entry (6-byte edit, decoder alignment preserved). It attempts
+ * to work on Discord versions it never saw; anything unrecognized fails
+ * loudly with the update point named.
  *
- * - 344.13 Stable: gate is function 60429 (offset 32664515, 477 bytes,
- *   frame 79). Same shape as the 342/343 gate (getDeliveredQuest,
- *   null/userStatus checks, isDismissed, QuestContent.QUEST_BAR_MOBILE)
- *   with shifted registers, so it gets its own anchor.
- * - 342.16 Stable: gate is function 59152 (frame 251, 387 bytes).
- * - 343.12 Stable: gate is function 59938 (frame 49, 387 bytes).
- * - 341.13 Stable: gate is function 58782 (50 regs, 279 bytes).
+ * Gate history (Hermes bytecode v98): 341.13 hook-style variant (quest
+ * via parent), 342/343 identical codegen, 344 shifted registers, 346 new
+ * eligibility hooks + a CreateFunctionEnvironment in the head. All share
+ * the same string co-occurrence and a 6-byte replaceable head.
  *
- * The 342/343 gates read getDeliveredQuest(), bail on null quest /
- * userStatus, honor isDismissed, dispatch AdCreativeType QUEST vs BOUNTY,
- * and render QuestContent.QUEST_BAR_MOBILE. The 341 gate is hook-style
- * (quest arrives via parent, no getDeliveredQuest call inside) but enforces
- * the same null quest / userStatus / isDismissed checks before rendering
- * QUEST_BAR_MOBILE. None contains try/catch.
- *
- * The edit replaces the gate's first two instructions (6 bytes:
- * GetParentEnvironment + LoadParam) with:
+ * The edit replaces the gate's first two instructions
+ * (GetParentEnvironment + LoadParam, or GetParentEnvironment +
+ * CreateFunctionEnvironment) with:
  *   LoadConstNull r2 (94 02) + Ret r2 (76 02) + LoadConstUndefined r0 (93 00)
- * The gate returns null on entry; decoder alignment is preserved and the
- * rest of the body is unreachable but intact. Verified per version: the
- * edited bundle re-disassembles with this as the ONLY difference across
- * all ~125k functions.
- *
- * 342 and 343 share byte-identical gate codegen; 341 and 344 differ, so
- * three anchors cover all four builds. The patch tries each anchor and applies
- * the one found exactly once; anything else fails loudly so a Discord
- * codegen change can never silently corrupt the bundle.
  */
 val hideQuestBarPatch = resourcePatch(
     name = "Hide quest promo banner",
@@ -44,44 +33,61 @@ val hideQuestBarPatch = resourcePatch(
     compatibleWith(DiscordConstants.COMPATIBILITY_DISCORD)
 
     execute {
-        val replacement = b("94 02 76 02 93 00")
-        val anchors = listOf(
-            // 342.16 / 343.12 gate (fn 59152 / 59938, identical codegen).
-            b("34 03 00 89 0a 01 3b 0b 03 00 3b 09 03 02 5e 04"),
-            // 341.13 gate (fn 58782, offset 32203161).
-            b("34 03 00 89 04 01 3b 06 03 01 3b 08 03 02 5e 05"),
-            // 344.13 gate (fn 60429, offset 32664515).
-            b("34 03 00 89 0b 01 3b 0c 03 00 3b 0a 03 02 5e 04"),
-        )
-
         val bundle = get("assets/index.android.bundle", true)
-        val bytes = bundle.readBytes().toMutableList()
+        val bytes = bundle.readBytes()
+        val hbc = HermesBundle(bytes)
 
-        val matched = anchors.map { it to findAll(bytes, it) }
-            .filter { (_, hits) -> hits.isNotEmpty() }
-        check(matched.size == 1 && matched[0].second.size == 1) {
-            "QuestBar gate anchor matched ${matched.sumOf { it.second.size }} " +
-                "time(s) across ${matched.size} known pattern(s); " +
-                "Discord likely changed the bundle - patch needs re-analysis."
-        }
-
-        val at = matched[0].second[0]
-        replacement.forEachIndexed { i, byte -> bytes[at + i] = byte }
-        bundle.writeBytes(bytes.toByteArray())
+        val at = findQuestGate(hbc)
+        QUEST_REPLACEMENT.forEachIndexed { i, byte -> bytes[at + i] = byte }
+        bundle.writeBytes(bytes)
+        println("Hide quest promo banner: gate neutered at bundle offset $at")
     }
 }
 
-private fun b(hex: String): ByteArray =
-    hex.split(" ").map { it.toInt(16).toByte() }.toByteArray()
+private val QUEST_STRINGS = listOf("QUEST_BAR_MOBILE", "isDismissed", "userStatus")
 
-private fun findAll(haystack: List<Byte>, needle: ByteArray): List<Int> {
-    val out = mutableListOf<Int>()
-    if (needle.isEmpty() || haystack.size < needle.size) return out
-    outer@ for (i in 0..haystack.size - needle.size) {
-        for (j in needle.indices) {
-            if (haystack[i + j] != needle[j]) continue@outer
+// Accepted gate head shapes (first two instructions). The 6-byte edit
+// overwrites exactly these; anything else fails below.
+private val HEAD_SHAPES = listOf(
+    listOf("GetParentEnvironment", "LoadParam"),
+    listOf("GetParentEnvironment", "CreateFunctionEnvironment"),
+)
+
+private val QUEST_REPLACEMENT: ByteArray =
+    byteArrayOf(0x94.toByte(), 0x02, 0x76, 0x02, 0x93.toByte(), 0x00)
+
+private fun findQuestGate(hbc: HermesBundle): Int {
+    val sids = QUEST_STRINGS.map { s ->
+        val sid = hbc.stringId(s)
+        if (sid < 0) {
+            fail("Hide quest promo banner FAILED: string '$s' missing " +
+                "from the bundle string table (renamed/removed?) - " +
+                "update QUEST_STRINGS in HideQuestBarPatch.kt")
         }
-        out.add(i)
+        sid
     }
-    return out
+    val sets = sids.map { hbc.findersOf(it).toSet() }
+    val cands = sets.reduce { a, b -> a.intersect(b) }.sorted()
+    if (cands.size != 1) {
+        fail("Hide quest promo banner FAILED: ${cands.size} functions " +
+            "reference $QUEST_STRINGS: $cands (want exactly 1, the gate) - " +
+            "tighten QUEST_STRINGS in HideQuestBarPatch.kt")
+    }
+    val fid = cands[0]
+    val instrs = hbc.decode(fid)
+    val head = instrs.take(2).map { it.op.name }
+    if (!HEAD_SHAPES.contains(head)) {
+        val seen = instrs.take(3).map { it.op.name }
+        fail("Hide quest promo banner FAILED: gate fn $fid head is $seen, " +
+            "matches no known HEAD_SHAPES $HEAD_SHAPES - add the new " +
+            "shape (and its replacement) in HideQuestBarPatch.kt")
+    }
+    val headLen = instrs.take(2).sumOf { it.len }
+    if (headLen != QUEST_REPLACEMENT.size) {
+        fail("Hide quest promo banner FAILED: gate fn $fid head $head is " +
+            "$headLen bytes but the replacement is " +
+            "${QUEST_REPLACEMENT.size} - re-derive QUEST_REPLACEMENT " +
+            "in HideQuestBarPatch.kt")
+    }
+    return instrs[0].off
 }

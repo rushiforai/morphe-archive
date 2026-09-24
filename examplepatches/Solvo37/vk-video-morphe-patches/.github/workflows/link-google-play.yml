@@ -1,0 +1,61 @@
+name: Link Google Play
+
+on:
+  workflow_dispatch:
+    inputs:
+      pairing_code:
+        description: 'One-time code from gplaydl Authenticator → Link gplaydl'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: link-google-play
+  cancel-in-progress: true
+
+jobs:
+  link:
+    if: github.repository == 'Solvo37/vk-video-morphe-patches'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Claim pairing code and encrypt API key
+        env:
+          PAIRING_CODE: ${{ inputs.pairing_code }}
+          ENC_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${ENC_PASSWORD:-}" ]]; then
+            echo "ANDROID_KEY_PASSWORD secret is required." >&2
+            exit 1
+          fi
+
+          RESPONSE="$(curl -fsS             -X POST 'https://dispenser.gplaydl.com/api/v1/pair/claim-cli'             -H 'Content-Type: application/json'             --data "$(jq -n               --arg code "$PAIRING_CODE"               --arg label "Solvo37 GitHub Actions"               '{code: $code, label: $label}')")"
+
+          API_KEY="$(jq -r '.apiKey // empty' <<< "$RESPONSE")"
+          if [[ -z "$API_KEY" ]]; then
+            echo "Pairing failed: dispenser returned no API key." >&2
+            exit 1
+          fi
+
+          mkdir -p ci
+          printf '%s' "$API_KEY"             | openssl enc -aes-256-cbc -pbkdf2 -salt -a -A                 -pass env:ENC_PASSWORD             > ci/gplaydl-api-key.enc
+
+          unset API_KEY RESPONSE PAIRING_CODE
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci/gplaydl-api-key.enc
+          git commit -m "chore: link Google Play for auto builds" || true
+          git push
+
+      - name: Verify encrypted credential exists
+        run: |
+          set -euo pipefail
+          test -s ci/gplaydl-api-key.enc
+          echo "Google Play is linked. Only encrypted credential material is committed."

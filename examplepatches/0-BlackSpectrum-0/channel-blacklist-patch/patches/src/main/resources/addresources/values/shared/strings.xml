@@ -32,11 +32,13 @@ Second \"item\" text"</string>
     <string name="morphe_settings_import_reset">Morphe settings reset to default</string>
     <string name="morphe_settings_import_success">Imported %d settings</string>
     <string name="morphe_settings_import_failure_parse">Import failed: %s</string>
+    <string name="morphe_settings_navigate_up">Navigate up</string>
     <string name="morphe_settings_search_hint">Search settings</string>
     <string name="morphe_settings_search_no_results_title">No results found for \'%s\'</string>
     <string name="morphe_settings_search_no_results_summary">Try another keyword</string>
     <string name="morphe_settings_search_recent_searches">Recent searches</string>
     <string name="morphe_settings_search_remove_message">Remove from search history?</string>
+    <string name="morphe_settings_search_remove">Remove from search history</string>
     <string name="morphe_settings_search_clear_history">Clear search history</string>
     <string name="morphe_settings_search_clear_history_message">Are you sure you want to clear all search history?</string>
     <string name="morphe_settings_search_tips_title">Search Tips</string>
@@ -74,8 +76,8 @@ To translate new languages or improve the existing translations, visit morphe.so
     <string name="morphe_settings_export_file_failed">Failed to export settings</string>
 
     <!-- String is also duplicated in Reddit about preference -->
-    <string name="morphe_settings_about_links_body_version_current">You are using the latest Morphe Patches version &lt;i>%s&lt;/i></string>
-    <string name="morphe_settings_about_links_body_version_outdated">You are using Morphe Patches version &lt;i>%1$s&lt;/i>&lt;br>&lt;br>&lt;b>Update available: &lt;i>%2$s&lt;/i>&lt;/b>&lt;br>&lt;br>To update your patches, use Morphe to repatch this app</string>
+    <string name="morphe_settings_about_links_body_version_current">You are using the latest Spectre Patches version &lt;i>%s&lt;/i></string>
+    <string name="morphe_settings_about_links_body_version_outdated">You are using Spectre Patches version &lt;i>%1$s&lt;/i>&lt;br>&lt;br>&lt;b>Update available: &lt;i>%2$s&lt;/i>&lt;/b>&lt;br>&lt;br>To update your patches, use Spectre to repatch this app</string>
     <string name="morphe_settings_about_links_dev_header">Note</string>
     <string name="morphe_settings_about_links_dev_body">This version is a pre-release and you may experience unexpected issues</string>
     <string name="morphe_settings_about_links_header">Official links</string>

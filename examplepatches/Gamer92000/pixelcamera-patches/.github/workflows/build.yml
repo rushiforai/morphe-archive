@@ -1,0 +1,65 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  static-checks:
+    name: Static analysis tooling
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # The analysis tools are pure standard library on purpose: they must run
+      # anywhere, with no Android SDK and no apktool.
+      - name: Byte-compile the analysis tools
+        run: python -m compileall -q tools
+
+      - name: Tool smoke test
+        run: |
+          python tools/dexscan.py --help
+          python tools/apksigcert.py || true
+          python tools/verify_fingerprints.py || true
+
+  build:
+    name: Build patch bundle
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # git on Windows does not record the executable bit, so the wrapper can
+      # arrive here as 0644 and fail with "./gradlew: Permission denied".
+      # The bit is set in the index too; this is just belt and braces.
+      - name: Make wrapper executable
+        run: chmod +x gradlew
+
+      # app.morphe artifacts live on GitHub Packages, which requires
+      # authentication even for public packages. GITHUB_TOKEN carries the
+      # read:packages scope for workflow runs.
+      - name: Build and test
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew --no-daemon build :patches:buildAndroid
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: patch-bundle
+          path: |
+            patches/build/libs/*.mpp
+            patches/build/libs/*.jar
+          if-no-files-found: warn

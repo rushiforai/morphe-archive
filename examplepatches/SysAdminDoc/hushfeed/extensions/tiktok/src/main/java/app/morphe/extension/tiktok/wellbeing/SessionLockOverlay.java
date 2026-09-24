@@ -23,6 +23,7 @@ import android.widget.TextView;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
+import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 
@@ -202,6 +203,8 @@ public final class SessionLockOverlay {
             overlay.setVisibility(View.VISIBLE);
             if (goingUp) hideBehind(parentOf(overlay), overlay, true);
             if (goingUp) requestQuiet();
+            // Over a cleared screen the tabs the panel points to are gone: bring them back.
+            if (goingUp) RememberClearDisplayPatch.leaveForHold();
             if (goingUp && before == overlay && Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                 // A retained panel shown again after the reader was away on messages or search.
                 // From P the pane title announces the arrival each time; before it, the one
@@ -486,6 +489,10 @@ public final class SessionLockOverlay {
             bar = parent;
             if (bar.getWidth() >= contentWidth && bar.getWidth() > 0) break;
         }
+        // A bar clear display set GONE keeps its last size and place, and that strip is where
+        // TikTok draws its own clear display bar, whose X brings the tabs back. It stays out from
+        // under the panel like the tabs do: covered, nothing on screen led anywhere but the
+        // panel's own buttons.
         int height = bar.getHeight();
         if (height <= 0 || height >= root.getHeight() / 3) return 0;
         View ancestor = bar;

@@ -67,7 +67,8 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
         addPreference(new TogglePreference(
                 context,
                 "Hide the unread badges on the bottom tabs",
-                "Hide the red counts and dots on the Inbox and Profile tabs. The inbox itself still shows what came in.",
+                "Hide the red counts and dots on every bottom tab, Inbox and Profile included. "
+                        + "The inbox itself still shows what came in.",
                 Settings.HIDE_TAB_BADGES
         ));
         addPreference(new TogglePreference(

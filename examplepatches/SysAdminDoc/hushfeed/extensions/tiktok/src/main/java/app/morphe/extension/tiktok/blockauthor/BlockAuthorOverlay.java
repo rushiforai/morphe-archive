@@ -176,7 +176,9 @@ public final class BlockAuthorOverlay {
         if (activity == null) {
             return;
         }
+        // Clear display is the feed, but with TikTok's controls put away the chips go too.
         setFeedVisible(FeedVisibility.isOnFeed(activity)
+                && !FeedVisibility.isFeedCleared(activity)
                 && !FeedVisibility.isCommentSheetVisible(activity)
                 && CurrentVideoAuthor.get() != null);
     }
@@ -1002,8 +1004,8 @@ public final class BlockAuthorOverlay {
      * measures it, so it never covers the tabs or the caption; a build the bar cannot be found
      * on gets the old fixed offset. In a sheet, which is any root that is not the activity's
      * own window, it sits a gap above the lowest text field, which is the comments sheet's
-     * input row, and at the top of the sheet when there is no field to clear. Every window
-     * decor is a FrameLayout, so gravity params work in any root.
+     * input row, and near the bottom when there is no field to clear. Every window decor is a
+     * FrameLayout, so gravity params work in any root.
      */
     static FrameLayout.LayoutParams bannerParams(Activity activity, ViewGroup root) {
         int side = SettingsUi.dp(activity, BANNER_GAP_DP);
@@ -1028,9 +1030,13 @@ public final class BlockAuthorOverlay {
                 return params;
             }
         }
+        // No field to clear. The top of the sheet put the banner over whatever the full-screen
+        // sheet window is transparent to, the dark video above TikTok's share panel among it,
+        // where a dark banner reads as nothing (S22, the save banner). The bottom is where the
+        // eye already is in a sheet, and the fallback offset keeps its lowest row readable.
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(-1, -2,
-                Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-        params.setMargins(side, gap, side, 0);
+                Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        params.setMargins(side, 0, side, SettingsUi.dp(activity, BANNER_FALLBACK_BOTTOM_DP));
         return params;
     }
 

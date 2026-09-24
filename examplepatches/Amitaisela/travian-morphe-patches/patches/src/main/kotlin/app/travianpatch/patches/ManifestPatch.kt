@@ -100,6 +100,12 @@ private val TOOLS_ACTIVITIES = """
             android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
             android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
         <activity
+            android:name="com.travianpatch.notifier.AutomationSettingsActivity"
+            android:exported="false"
+            android:label="Travian Tools"
+            android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
+            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
+        <activity
             android:name="com.travianpatch.notifier.RecentActivity"
             android:exported="false"
             android:label="Travian Tools"

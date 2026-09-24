@@ -1,0 +1,13 @@
+node_modules
+*.log
+/.idea
+/.nyc_output
+/coverage
+/dist
+/dist-repo
+/plugin
+/types
+/docs
+bun.lockb
+package-lock.json
+.DS_Store

@@ -1,0 +1,133 @@
+AI 字幕翻译	cap_ai_title
+启用 AI 字幕翻译	cap_enable_ai
+API 配置	cap_api_config
+API 地址	cap_api_address
+API Key	cap_api_key
+模型	cap_model
+测试 API	cap_test_api
+翻译	cap_translation
+翻译要求	cap_translation_requirements
+字幕样式	cap_style
+字幕大小	cap_size
+背景不透明度	cap_opacity
+恢复字幕默认位置	cap_reset_position
+缓存与诊断	cap_cache_diagnostics
+清除字幕缓存	cap_clear_cache
+删除 API Key	cap_delete_key
+显示文本调试	cap_text_debug
+字幕诊断	cap_diagnostics
+清空诊断记录	cap_clear_diagnostics
+字幕预览	cap_preview
+横屏	cap_landscape
+竖屏	cap_portrait
+切换为横屏	cap_to_landscape
+切换为竖屏	cap_to_portrait
+刷新	cap_refresh
+复制	cap_copy
+展开	cap_expand
+收起	cap_collapse
+取消	cap_cancel
+删除	cap_delete
+已自动保存	cap_saved
+修改后自动保存	cap_autosave
+请输入 API Key	cap_enter_key
+已加密保存；输入可替换	cap_key_saved
+选择模型或输入模型 ID	cap_model_hint
+点按画面切换方向，样式实时预览	cap_preview_hint
+相对字号 12–22，随画面比例缩放	cap_size_hint
+0% 为透明，100% 为不透明；松手保存	cap_opacity_hint
+展开查看并复制诊断记录	cap_diagnostic_hint
+使用 YouTube	cap_use_youtube
+使用 AI	cap_use_ai
+开启	cap_on
+关闭	cap_off
+请先配置 API，再启用 AI 翻译	cap_configure_api
+切换失败，已恢复原来的模式	cap_switch_failed
+请在字幕菜单选择自动翻译语言	cap_choose_translation
+模型不可为空	cap_model_hint
+可从下方选择，也可手动输入模型 ID	cap_model_hint
+选择模型：	cap_model_hint
+请选模型或直接输入 ID	cap_model_hint
+已加密保存，不回显原 Key	cap_key_saved
+已自动加密保存	cap_saved
+模型已自动保存	cap_saved
+填写兼容接口地址，停止输入后自动保存	cap_autosave
+点按画面切换方向 · 字号与背景设置实时预览	cap_preview_hint
+竖屏字幕示例	cap_preview
+这是字幕样式预览	cap_preview
+字幕预览，点击切换方向	cap_preview_hint
+排查翻译或时间问题时，可展开查看并复制记录	cap_diagnostic_hint
+展开查看，可手动刷新或复制	cap_diagnostic_hint
+字幕链路诊断	cap_diagnostics
+AI 字幕诊断	cap_diagnostics
+收起字幕诊断	cap_collapse
+展开字幕诊断	cap_expand
+根据 API 地址和 Key 自动获取，也可手动输入	cap_model_hint
+自动获取可用模型，也支持手动输入	cap_model_hint
+请先填写 API Key	cap_enter_key
+请先填写 API Key；模型也可手动输入	cap_configure_api
+填写 API 地址和 API Key 后会自动获取；仍可手动输入	cap_model_hint
+可点“刷新”重试，或直接输入模型 ID	cap_model_hint
+重新获取	cap_refresh
+翻译、字幕样式与诊断 · 修改后自动保存	cap_autosave
+开	cap_on
+关	cap_off
+关闭后使用 YouTube 原生字幕显示	cap_message_7b7480271fa5
+原字幕可直接显示；自动翻译需填写 API Key	cap_message_1cc3c4b0aab0
+已启用；从自动翻译选择任意语言即可启动 AI 字幕	cap_message_2c107e436145
+诊断中记录字幕原文与译文，仅建议排查时开启	cap_message_ea9ebe26591a
+关闭时不记录字幕原文与译文	cap_message_f496dd228d0b
+排查时记录字幕原文与译文，默认关闭	cap_message_261f1c6f0fde
+使用当前已自动保存的配置测试连接	cap_message_92561907fadc
+仅自动翻译模式调用 API；原字幕原文显示	cap_message_33c08bcbc79b
+恢复竖直位置，保留字号和背景设置	cap_message_fd1ada5395a0
+编辑时可见；关闭页面清空，加密保存	cap_message_10d1b374429d
+API Key 应为单行	cap_message_7da9039cc193
+API 地址必须以 https:// 或 http:// 开头	cap_message_bafa7b1ca6cb
+自动保存失败	cap_message_bbbcd9c8bf80
+模型自动保存失败	cap_message_b795d97808e8
+未知设置项	cap_message_9a6606c64f5f
+；保留上次有效值	cap_message_8500e82ca181
+字幕已恢复水平居中的默认位置	cap_message_a25bd037963d
+字幕缓存已清除	cap_message_e8b2177e1cd3
+删除 API Key？	cap_message_1f328bc723d4
+只删除本机加密保存的 API Key，不修改其他设置。	cap_message_6ec744dcc83a
+API Key 已删除	cap_message_574dd3f1ccfe
+诊断记录已清空	cap_message_8bfb437edfc4
+诊断已复制	cap_message_896c4b51d7e9
+测试中…	cap_message_49562bf14c82
+API 可用：	cap_message_3a1185c1dc9f
+API 测试失败：	cap_message_88ce10e8f20b
+正在重新获取模型列表…	cap_message_ec966cf35a63
+正在自动获取模型列表…	cap_message_462efc3e98ef
+获取失败，可手动输入：	cap_message_2d61f9891514
+列表已更新	cap_message_17ea5266e7a5
+尚未捕获到自动翻译请求。启用并填写 API Key 后，播放视频并从“自动翻译”选择任意目标语言，再回来点“刷新诊断”。	cap_message_7e7bfd29c71d
+引擎：	cap_message_dd0fb9f395bc
+当前模式：	cap_message_8736a99d18f2
+自动翻译	cap_message_0825b4b0cb7d
+原字幕（零翻译 API）	cap_message_375e0f929195
+显示文本调试：	cap_message_c46b062d22ba
+最近阶段：	cap_message_44feb4d98d48
+时间参照与异常（独立保留，含时间戳）：	cap_message_dedc85cbb813
+最近链路：	cap_message_30070c30d85c
+读取诊断状态失败：	cap_message_75a885d3b526
+（约 	cap_message_c34848823d86
+ 秒前）	cap_message_33cc168ccb4e
+可选择模型或直接输入 ID	cap_model_hint
+选择模型（	cap_model
+在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效	cap_flyout_summary
+普通视频弹出菜单中的 AI 字幕开关	cap_flyout_title
+Shorts 弹出菜单中的 AI 字幕开关	cap_shorts_flyout_title
+API 配置方案	cap_profiles_title
+原有配置	cap_profile_default
+方案名称	cap_profile_name
+重命名	cap_profile_rename
+新增方案	cap_profile_add
+选择方案后立即生效，可在下方编辑；其他方案保留。新方案不复制密钥，请先填写地址、密钥和模型。	cap_profiles_summary
+请输入 1–60 个字符的方案名称	cap_profile_name_error
+最多可保存 30 套配置方案	cap_profile_limit
+请先修正当前未完成的输入，再切换方案	cap_profile_invalid_edits
+无法新增方案，请检查输入及 30 套方案上限。	cap_profile_add_failed
+各方案独立保存；清空恢复随界面语言变化的默认要求	cap_prompt_summary
+清除本方案的 API Key	cap_profile_clear_key

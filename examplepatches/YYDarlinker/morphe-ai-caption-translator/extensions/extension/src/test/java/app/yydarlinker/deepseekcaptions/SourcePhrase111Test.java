@@ -1,0 +1,13 @@
+package app.yydarlinker.deepseekcaptions;
+import org.junit.Test;import static org.junit.Assert.*;import java.util.*;import org.json.*;
+public class SourcePhrase111Test {
+ private List<SourceAtomTimeline.Atom> atoms(){return Arrays.asList(new SourceAtomTimeline.Atom(70440,72320,"but one,",0,true),new SourceAtomTimeline.Atom(72320,73720,"they're never really required to",1,true),new SourceAtomTimeline.Atom(73720,74560,"explain",1,true),new SourceAtomTimeline.Atom(74560,78520,"what three to four times more shatter resistant actually means.",2,true));}
+ private TranslationUnitTimeline.Unit unit(){return new TranslationUnitTimeline.Unit(0,"test",0,3,0,2,70440,78520,"but one, they're never really required to explain what three to four times more shatter resistant actually means.",TranslationUnitTimeline.Confidence.HIGH,"test");}
+ @Test public void copiedPhraseKeepsExplainUntilItsRealEnd()throws Exception{JSONArray rows=new JSONArray().put(new JSONArray().put("but one, they're never really required to explain").put("但第一，他们从来不需要解释")).put(new JSONArray().put("what three to four times more shatter resistant actually means.").put("抗摔性是原来的三到四倍到底意味着什么。"));AnchoredCaptionPlan p=AnchoredCaptionPlan.parse(rows,atoms(),unit());assertEquals(74560,p.segments.get(0).endMs);assertEquals(74560,p.segments.get(1).startMs);}
+ @Test public void cannotSkipOrReorderWords(){try{SourcePhraseAlignment.end("explain",atoms(),0,3);fail();}catch(IllegalArgumentException expected){assertTrue(expected.getMessage().contains("source_phrase_mismatch"));}}
+ @Test public void punctuationAndSpacingDoNotChangeTiming(){assertEquals(2,SourcePhraseAlignment.end("BUT ONE they’re never really required to explain!",atoms(),0,3));}
+ @Test public void partialAtomCannotClaimCompleteSource(){try{SourcePhraseAlignment.end("but",atoms(),0,3);fail();}catch(IllegalArgumentException expected){}}
+ @Test public void foreignVideoAndHostAreRejected(){assertFalse(WordTimingReference.safe("https://example.com/api/timedtext?v=abcdefghijk","abcdefghijk"));assertFalse(WordTimingReference.safe("https://www.youtube.com/api/timedtext?v=otheridxxxx","abcdefghijk"));assertTrue(WordTimingReference.safe("https://www.youtube.com/api/timedtext?v=abcdefghijk","abcdefghijk"));}
+ @Test public void staleMediaOffsetCannotAdvanceByAnExtraSecond(){assertEquals(1200,PlaybackSignalPolicy.position(1000,1000,500,1800,1000,1,true,false,1200));assertEquals(1000,PlaybackSignalPolicy.position(1000,1000,500,1800,1000,0,false,true,9000));}
+ @Test public void normalStartupAndRetryBudgetRemainBounded(){assertEquals(4,StartupCaptionPolicy.targetLimit(false,4));assertEquals(3,AnchoredRetryPolicy.MAX_FAILURES);}
+}

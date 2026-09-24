@@ -1,0 +1,44 @@
+name: Sync Upstream Dev
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at 00:00 UTC
+  workflow_dispatch:     # Allow manual run from Actions tab
+
+jobs:
+  sync:
+    name: Sync Morphe Dev Branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync dev branch with upstream
+        run: |
+          echo "Configuring upstream remote..."
+          git remote add upstream https://github.com/MorpheApp/morphe-patches.git || true
+          
+          echo "Fetching upstream dev..."
+          git fetch upstream dev
+          
+          echo "Fetching origin dev..."
+          git fetch origin dev
+          
+          LOCAL_HASH=$(git rev-parse origin/dev 2>/dev/null || echo "none")
+          UPSTREAM_HASH=$(git rev-parse upstream/dev)
+          
+          echo "Current origin/dev: $LOCAL_HASH"
+          echo "Upstream dev:       $UPSTREAM_HASH"
+          
+          if [ "$LOCAL_HASH" = "$UPSTREAM_HASH" ]; then
+            echo "dev branch is already up to date with upstream/dev. No sync needed."
+          else
+            echo "Updates found! Syncing dev branch to match upstream/dev..."
+            git push origin upstream/dev:refs/heads/dev --force
+            echo "Successfully synced dev branch to $UPSTREAM_HASH."
+          fi

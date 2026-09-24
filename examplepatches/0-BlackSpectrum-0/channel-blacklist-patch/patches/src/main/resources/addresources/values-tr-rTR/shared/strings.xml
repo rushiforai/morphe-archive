@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Morphe ayarları varsayılanlara sıfırlandı</string>
   <string name="morphe_settings_import_success">%d ayar içe aktarıldı</string>
   <string name="morphe_settings_import_failure_parse">İçe aktarılamadı: %s</string>
+  <string name="morphe_settings_navigate_up">Yukarı git</string>
   <string name="morphe_settings_search_hint">Ayarları ara</string>
   <string name="morphe_settings_search_no_results_title">\'%s\' için sonuç bulunamadı</string>
   <string name="morphe_settings_search_no_results_summary">Başka bir anahtar kelime deneyin</string>
   <string name="morphe_settings_search_recent_searches">Son aramalar</string>
   <string name="morphe_settings_search_remove_message">Arama geçmişinden kaldırılsın mı?</string>
+  <string name="morphe_settings_search_remove">Arama geçmişinden kaldırılsın mı</string>
   <string name="morphe_settings_search_clear_history">Arama geçmişini temizle</string>
   <string name="morphe_settings_search_clear_history_message">Tüm arama geçmişini temizlemek istediğinizden emin misiniz?</string>
   <string name="morphe_settings_search_tips_title">Arama İpuçları</string>
@@ -72,8 +74,8 @@ Yeni dilleri çevirmek veya mevcut çevirileri iyileştirmek için morphe.softwa
   <string name="morphe_settings_export_file_success">Ayarlar başarıyla dışa aktarıldı</string>
   <string name="morphe_settings_export_file_failed">Ayarlar dışa aktarılamadı</string>
   <!-- String is also duplicated in Reddit about preference -->
-  <string name="morphe_settings_about_links_body_version_current">Morphe Patches &lt;i&gt;%s&lt;/i&gt; sürümünü kullanıyorsunuz</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Morphe Patches &lt;i&gt;%1$s&lt;/i&gt; sürümünü kullanıyorsunuz&lt;br&gt;&lt;br&gt;&lt;b&gt;Güncelleme mevcut: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Yamaları güncellemek için Morphe uygulamasını kullanın</string>
+  <string name="morphe_settings_about_links_body_version_current">Spectre Patches &lt;i&gt;%s&lt;/i&gt; sürümünü kullanıyorsunuz</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Spectre Patches &lt;i&gt;%1$s&lt;/i&gt; sürümünü kullanıyorsunuz&lt;br&gt;&lt;br&gt;&lt;b&gt;Güncelleme mevcut: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Yamaları güncellemek için Spectre uygulamasını kullanın</string>
   <string name="morphe_settings_about_links_dev_header">Not</string>
   <string name="morphe_settings_about_links_dev_body">Bu sürüm bir ön sürümdür ve beklenmeyen sorunlar yaşayabilirsiniz</string>
   <string name="morphe_settings_about_links_header">Resmî bağlantılar</string>

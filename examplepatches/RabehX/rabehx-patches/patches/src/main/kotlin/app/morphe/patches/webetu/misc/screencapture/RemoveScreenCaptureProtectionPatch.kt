@@ -13,11 +13,7 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.webetu.shared.WebetuConstants
 
-/**
- * The app blocks screenshots via expo-screen-capture's ScreenCaptureModule.
- * The module's AsyncFunction lambda calls Window.addFlags(FLAG_SECURE) —
- * replace the lambda body with a no-op so capture never gets blocked.
- */
+/** Allows screen capture. */
 @Suppress("unused")
 val removeScreenCaptureProtectionPatch = bytecodePatch(
     name = "Allow screenshots",

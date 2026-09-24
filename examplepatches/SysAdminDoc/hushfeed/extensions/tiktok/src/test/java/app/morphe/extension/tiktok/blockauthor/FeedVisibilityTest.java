@@ -137,6 +137,91 @@ public class FeedVisibilityTest {
     }
 
     /**
+     * Clear display on 47.0.3 sets the tab bar, the Home tab's own parent, GONE and nothing else:
+     * the probe's feed report on the S22 on 2026-09-23 found that bar the one hidden ancestor
+     * with the controls cleared. That is still the feed, which the hold and the kept caption
+     * need, and a cleared one, which the chips need. The search page hides the whole page above
+     * the bar instead ({@code v4w}, six levels up) and is neither.
+     */
+    @Test public void clearDisplayIsTheFeedWithItsControlsPutAway() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            FrameLayout page = new FrameLayout(activity);
+            FrameLayout bar = new FrameLayout(activity);
+            View homeTab = new View(activity);
+            homeTab.setId(0x7f0a4b89);
+            homeTab.setSelected(true);
+            bar.addView(homeTab, new FrameLayout.LayoutParams(216, 138));
+            page.addView(bar, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 138, Gravity.BOTTOM));
+            activity.setContentView(page);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            FeedVisibility.resolveForTests(activity.getPackageName(), "omq", homeTab.getId());
+            try {
+                assertTrue(FeedVisibility.isOnFeed(activity));
+                assertFalse(FeedVisibility.isFeedCleared(activity));
+
+                // Clear display: the bar goes, the page stays.
+                bar.setVisibility(View.GONE);
+                assertFalse("the fixture's tab still reads shown", homeTab.isShown());
+                assertTrue("clear display counted as leaving the feed",
+                        FeedVisibility.isOnFeed(activity));
+                assertTrue(FeedVisibility.isFeedCleared(activity));
+                assertFalse("a label nobody can dismiss stays off a cleared screen",
+                        FeedVisibility.onRecommendationFeed(activity));
+
+                // Another tab chosen is not the feed, bar or no bar.
+                homeTab.setSelected(false);
+                assertFalse(FeedVisibility.isOnFeed(activity));
+                assertFalse(FeedVisibility.isFeedCleared(activity));
+                homeTab.setSelected(true);
+
+                // The search page: the whole page goes, with the bar away or not.
+                page.setVisibility(View.GONE);
+                assertFalse("the search page counted as a cleared feed",
+                        FeedVisibility.isOnFeed(activity));
+                assertFalse(FeedVisibility.isFeedCleared(activity));
+                bar.setVisibility(View.VISIBLE);
+                assertFalse(FeedVisibility.isOnFeed(activity));
+                page.setVisibility(View.VISIBLE);
+
+                // A tab hidden in its own right is not clear display either.
+                bar.setVisibility(View.GONE);
+                homeTab.setVisibility(View.INVISIBLE);
+                assertFalse(FeedVisibility.isFeedCleared(activity));
+                assertFalse(FeedVisibility.isOnFeed(activity));
+                homeTab.setVisibility(View.VISIBLE);
+
+                // A detail page registered over it answers as it always did: the page keeps
+                // its chips and its hold, whichever tab is selected, and nothing calls it cleared.
+                Object detailPage = new Object();
+                View detail = new View(activity);
+                ((FrameLayout) activity.findViewById(android.R.id.content)).addView(detail, new FrameLayout.LayoutParams(100, 100));
+                FeedVisibility.onDetailView(detailPage, detail);
+                FeedVisibility.onDetailResume(detailPage);
+                try {
+                    assertTrue("the fixture has no detail page", FeedVisibility.isDetailVisible());
+                    assertFalse("a detail page read as a cleared feed", FeedVisibility.isFeedCleared(activity));
+                    assertTrue(FeedVisibility.isOnFeed(activity));
+                    homeTab.setSelected(false);
+                    assertTrue("a detail page opened from another tab lost the feed's answer",
+                            FeedVisibility.isOnFeed(activity));
+                    homeTab.setSelected(true);
+                } finally {
+                    FeedVisibility.onDetailDestroyed(detailPage);
+                }
+
+                // The controls back.
+                bar.setVisibility(View.VISIBLE);
+                assertTrue(FeedVisibility.isOnFeed(activity));
+                assertFalse(FeedVisibility.isFeedCleared(activity));
+            } finally {
+                FeedVisibility.resolveForTests(activity.getPackageName(), "omq", 0);
+            }
+        }
+    }
+
+    /**
      * An ancestor that has not laid out, or that draws outside itself, cannot prove the tab is
      * gone; one that has laid out at nothing can. The first two used to answer "not the feed" on
      * the feed, which costs the reader the button and lifts the daily hold, since

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!--
 
     Strings with new lines must be raw strings where they're wrapped in quotes and new lines are not encoded.
@@ -32,11 +32,13 @@ Second \"item\" text"</string>
   <string name="morphe_settings_import_reset">Réinitialisation des paramètres de Morphe aux valeurs par défaut</string>
   <string name="morphe_settings_import_success">%d paramètres importés</string>
   <string name="morphe_settings_import_failure_parse">Importation échouée : %s</string>
+  <string name="morphe_settings_navigate_up">Revenir en haut</string>
   <string name="morphe_settings_search_hint">Rechercher des paramètres</string>
   <string name="morphe_settings_search_no_results_title">Aucun résultat trouvé pour \"%s\"</string>
   <string name="morphe_settings_search_no_results_summary">Essayez un autre mot-clé</string>
   <string name="morphe_settings_search_recent_searches">Recherches récentes</string>
   <string name="morphe_settings_search_remove_message">Supprimer de l\'historique de recherche ?</string>
+  <string name="morphe_settings_search_remove">Supprimer de l\'historique de recherche </string>
   <string name="morphe_settings_search_clear_history">Effacer l\'historique de recherche</string>
   <string name="morphe_settings_search_clear_history_message">Voulez-vous vraiment effacer tout l\'historique de recherche ?</string>
   <string name="morphe_settings_search_tips_title">Conseils de recherche</string>
@@ -74,7 +76,7 @@ Pour traduire de nouvelles langues ou améliorer les traductions existantes, vis
   <string name="morphe_settings_export_file_failed">Échec de l\'exportation des paramètres</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">Vous utilisez la dernière version des Patchs Morphe &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">Vous utilisez la version des Patchs Morphe &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Mise à jour disponible : &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Pour mettre à jour vos patchs, utilisez Morphe pour re-patcher cette application</string>
+  <string name="morphe_settings_about_links_body_version_outdated">Vous utilisez la version des Patchs Spectre &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;Mise à jour disponible : &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Pour mettre à jour vos patchs, utilisez Spectre pour re-patcher cette application</string>
   <string name="morphe_settings_about_links_dev_header">Remarque</string>
   <string name="morphe_settings_about_links_dev_body">Cette version est une préversion et vous pourriez rencontrer des problèmes inattendus</string>
   <string name="morphe_settings_about_links_header">Liens officiels</string>

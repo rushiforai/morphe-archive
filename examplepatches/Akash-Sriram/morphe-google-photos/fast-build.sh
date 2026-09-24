@@ -8,7 +8,7 @@ set -e
 PROJECT_DIR="/mnt/WindowsDrive/Users/akash/Downloads/Project/Morphe"
 FAST_CACHE_DIR="$HOME/.cache/morphe-fast-build"
 CLI_JAR="$PROJECT_DIR/morphe-desktop-1.15.1-dev.7-all.jar"
-STOCK_APK="$PROJECT_DIR/photos_7.92.0.977185651-52372370.apk"
+STOCK_APK="$PROJECT_DIR/com.google.android.apps.photos_7.93.0.apk"
 OUTPUT_APK="$PROJECT_DIR/photos_patched.apk"
 
 SOURCE_TARGET="main"
