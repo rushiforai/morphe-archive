@@ -1035,14 +1035,6 @@
                 "updatedAt": 1786263569063
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/ang3lo-azevedo/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 131,
-                "createdAt": 1786263569700,
-                "updatedAt": 1786263569700
-            },
-            {
                 "name": "braintropy-patches",
                 "source": "https://raw.githubusercontent.com/braiNtropy/braintropy-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2113,6 +2105,62 @@
                 "sortOrder": 279,
                 "createdAt": 1790220043531,
                 "updatedAt": 1790220043531
+            },
+            {
+                "name": "PixelBoard",
+                "source": "https://raw.githubusercontent.com/Akshayykadam/PixelBoard/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 280,
+                "createdAt": 1790348736777,
+                "updatedAt": 1790348736777
+            },
+            {
+                "name": "Hushfacebook",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/Hushfacebook/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 281,
+                "createdAt": 1790348739050,
+                "updatedAt": 1790348739050
+            },
+            {
+                "name": "hushfeed",
+                "source": "https://raw.githubusercontent.com/Wake-Old-Hyphen/hushfeed/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 282,
+                "createdAt": 1790348739525,
+                "updatedAt": 1790348739525
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/bearinmindcat/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 283,
+                "createdAt": 1790348741159,
+                "updatedAt": 1790348741159
+            },
+            {
+                "name": "MRXHalawa-Patches",
+                "source": "https://raw.githubusercontent.com/mrx7014/MRXHalawa-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 284,
+                "createdAt": 1790348743255,
+                "updatedAt": 1790348743255
+            },
+            {
+                "name": "onlynazril-patches",
+                "source": "https://raw.githubusercontent.com/na-x-ril/onlynazril-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 285,
+                "createdAt": 1790348743481,
+                "updatedAt": 1790348743481
+            },
+            {
+                "name": "edge-window-patches",
+                "source": "https://raw.githubusercontent.com/ymshin-dev/edge-window-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 286,
+                "createdAt": 1790348744860,
+                "updatedAt": 1790348744860
             }
         ]
     }

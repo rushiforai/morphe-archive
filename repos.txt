@@ -5,6 +5,7 @@ AgentKosticka/Jam-Patches
 Akash-Sriram/De-Vanced
 Akash-Sriram/morphe-google-photos
 Akshayykadam/Pixel-Camera
+Akshayykadam/PixelBoard
 Alastor-Kaneki/Morphe-Patches
 AlecBlance/android-patches
 AlexNaga/android-patches
@@ -98,6 +99,7 @@ Sfehhrths/ekispert-morphe-patches
 ShuhaibNC/morphe-patches
 Solvo37/vk-video-morphe-patches
 SouBryan/pinterest-morphed
+SysAdminDoc/Hushfacebook
 SysAdminDoc/hushfeed
 TheRealCrazyfuy/abeja-morphe-patches
 TheRealSkywarp/morphe-patches
@@ -110,6 +112,7 @@ V4n1X/morphe-patches
 WZSE/aapam-patches
 WZSE/morphe-patches
 WaggBR/Wagg13Patch_Morphe
+Wake-Old-Hyphen/hushfeed
 WalkTheEarth/morphe-ytvr-patches
 XTapped/morphe-patches
 Xhehab/Xhehab-Patches
@@ -146,6 +149,7 @@ ausamnco/gboard-enc-patches
 azksama/aniskip-stremio
 babyhuehnchen/morphe-patches
 bdgerszewski/morphe-patches-ihealth
+bearinmindcat/morphe-patches
 benzophury/oraimo-health-morphe-patches
 bernardo7894/remove-permaban-banner-patch
 bigyank/morphe-patches-samsung
@@ -250,8 +254,10 @@ lyyako/realme-link-patches
 madhu-gowda6/atharv-patches
 meridianfresco/morphe-meta-patches
 miketweaver/friendsturner-patches
+mrx7014/MRXHalawa-Patches
 mvaishak/letterboxd-morphe-patches
 mxkrgt/dbtcoach-morphe-patches
+na-x-ril/onlynazril-patches
 nickcomua/airofit-pro2-morphe-patches
 nosini/disable-shorts-repeat
 nvbangg/builder-for-morphe
@@ -299,5 +305,6 @@ wchill/rvx-morphed
 xob0t/morphe-patches
 xxxR3Dxxx/R3D-PatchLab
 yann-soliman/morphe-patches
+ymshin-dev/edge-window-patches
 ynotzort/morphe-patches
 zeldrisho/morphe-patches
