@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-25 13:35 UTC",
+  "generatedAt": "2026-09-25 14:05 UTC",
   "configFile": "morphe_archive_config_v56.json",
   "configVersion": 56,
   "repoCount": 258,
@@ -25778,8 +25778,8 @@
       ],
       "patches": [
         "Disable PairIP DRM",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -25787,12 +25787,12 @@
           "description": "Disables PairIP signature verification and Google Play LVL license check. Required for the app to launch after re-signing."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all AT4K premium features by forcing the premium status to true."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks AT4K Launcher's premium features without paying, like more apps per row and the premium wallpaper options. It all runs on the device, so nothing stays locked."
         }
       ],
       "versions": [
@@ -45285,8 +45285,8 @@
         "Custom offline videos limit",
         "Custom Offline Videos Limit",
         "Custom Share Sheet",
-        "Device privacy guard",
         "Device Privacy Guard",
+        "Device privacy guard",
         "Diagnostic tools",
         "Disable Comment Suggested Emojis",
         "Disable Double Tap to Like",
@@ -45390,8 +45390,8 @@
         "Share sheet tools",
         "Show author region",
         "Show LIVE search",
-        "Show seekbar",
         "Show Seekbar",
+        "Show seekbar",
         "Show seekbar thumbnail",
         "Show the progress bar",
         "Show the progress bar thumbnail",
@@ -45541,12 +45541,12 @@
           "description": "Customizes and simplifies the native TikTok share sheet by removing third-party app bloat, hiding specified apps or actions, and optionally suppressing the friends/contacts direct message row."
         },
         {
-          "name": "Device privacy guard",
-          "description": "Blocks TikTok from reading your clipboard. Copying a link you asked for still works. Switch: Hushfeed settings > Privacy."
-        },
-        {
           "name": "Device Privacy Guard",
           "description": "Neutralizes invasive runtime permissions (contacts sync, location tracking, nearby devices), advertising ID profiling, background clipboard snooping routines, motion sensor profiling, and screenshot/recording detection to protect user data."
+        },
+        {
+          "name": "Device privacy guard",
+          "description": "Blocks TikTok from reading your clipboard. Copying a link you asked for still works. Switch: Hushfeed settings > Privacy."
         },
         {
           "name": "Diagnostic tools",
@@ -45961,12 +45961,12 @@
           "description": "Shows TikTok's search entry in the LIVE drawer where supported."
         },
         {
-          "name": "Show seekbar",
-          "description": "Shows TikTok's native video seekbar where it would normally be hidden."
-        },
-        {
           "name": "Show Seekbar",
           "description": "Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled."
+        },
+        {
+          "name": "Show seekbar",
+          "description": "Shows TikTok's native video seekbar where it would normally be hidden."
         },
         {
           "name": "Show seekbar thumbnail",
@@ -89884,8 +89884,8 @@
       ],
       "patches": [
         "Disable tracking",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -89893,12 +89893,12 @@
           "description": "Disables analytics and crash reporting."
         },
         {
-          "name": "Unlock Premium",
-          "description": "Unlocks Projectivy Launcher Premium"
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Unlocks Projectivy Launcher Premium"
         }
       ],
       "versions": [
@@ -92859,8 +92859,8 @@
       ],
       "patches": [
         "AMOLED dark theme",
-        "Bypass session expiry",
-        "Bypass Session Expiry"
+        "Bypass Session Expiry",
+        "Bypass session expiry"
       ],
       "patchDetails": [
         {
@@ -92868,12 +92868,12 @@
           "description": "Replaces the light theme with a pure black dark theme. Requires Android 13 or later."
         },
         {
-          "name": "Bypass session expiry",
-          "description": "Stops the security prompt that signs the account out."
-        },
-        {
           "name": "Bypass Session Expiry",
           "description": "Kills session expiry dialogs"
+        },
+        {
+          "name": "Bypass session expiry",
+          "description": "Stops the security prompt that signs the account out."
         }
       ],
       "versions": [
@@ -94254,13 +94254,13 @@
         "Disable screenshot popup",
         "Enable guest mode",
         "Force system font",
-        "Hide ads",
         "Hide Ads",
+        "Hide ads",
         "Hide Ask button",
         "Hide Ask button from search bar",
         "Hide awards",
-        "Hide communities shelf",
         "Hide Communities Shelf",
+        "Hide communities shelf",
         "Hide community highlights",
         "Hide community menu badge",
         "Hide navigation buttons",
@@ -94273,8 +94273,8 @@
         "Hide share count",
         "Hide sidebar components",
         "Hide Sidebar Components",
-        "Hide Trending shelves",
         "Hide Trending Shelves",
+        "Hide Trending shelves",
         "Hide upvote scores",
         "Hide user community badges",
         "Hide user flairs",
@@ -94293,8 +94293,8 @@
         "Remove Subreddit Dialogs",
         "Sanitize Reddit share links",
         "Sanitize share links",
-        "Sanitize Sharing Links",
         "Sanitize sharing links",
+        "Sanitize Sharing Links",
         "Show view count",
         "Spoof signature",
         "Start as guest",
@@ -94374,12 +94374,12 @@
           "description": "Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto."
         },
         {
-          "name": "Hide ads",
-          "description": "Adds options to hide ads."
-        },
-        {
           "name": "Hide Ads",
           "description": "Removes promoted posts and comment ads without requiring Reddit Premium unlock."
+        },
+        {
+          "name": "Hide ads",
+          "description": "Adds options to hide ads."
         },
         {
           "name": "Hide Ask button",
@@ -94394,12 +94394,12 @@
           "description": "Hides the awards on Reddit posts and comments."
         },
         {
-          "name": "Hide communities shelf",
-          "description": "Adds an option to hide the related or suggested communities shelf in subreddits."
-        },
-        {
           "name": "Hide Communities Shelf",
           "description": "Hides the related or suggested communities shelf in subreddits."
+        },
+        {
+          "name": "Hide communities shelf",
+          "description": "Adds an option to hide the related or suggested communities shelf in subreddits."
         },
         {
           "name": "Hide community highlights",
@@ -94450,12 +94450,12 @@
           "description": "Hides About, Resources, and Reddit Pro sections from the community sidebar."
         },
         {
-          "name": "Hide Trending shelves",
-          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
-        },
-        {
           "name": "Hide Trending Shelves",
           "description": "Removes Trending Today from the feed and trending searches from the search screen."
+        },
+        {
+          "name": "Hide Trending shelves",
+          "description": "Adds an option to hide the Trending shelves from feed and search suggestions."
         },
         {
           "name": "Hide upvote scores",
@@ -94530,12 +94530,12 @@
           "description": "Unshortens and removes the tracking query parameters from shared links."
         },
         {
-          "name": "Sanitize Sharing Links",
-          "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
-        },
-        {
           "name": "Sanitize sharing links",
           "description": "Adds an option to sanitize sharing links by removing tracking query parameters."
+        },
+        {
+          "name": "Sanitize Sharing Links",
+          "description": "Returns the raw permalink before UTM tracking parameters are appended to shared Reddit URLs."
         },
         {
           "name": "Show view count",
@@ -105923,18 +105923,18 @@
         }
       ],
       "patches": [
-        "Unlock Premium",
         "Unlock premium",
+        "Unlock Premium",
         "Unlock Symfonium"
       ],
       "patchDetails": [
         {
-          "name": "Unlock Premium",
-          "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks all premium features."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": "Turns on Symfonium's paid features. The build ships as a public beta with a built-in trial, so this also prevents the expired-beta screen. The license is checked locally and the unlock does not require an account. Connecting Plex, Jellyfin and other media servers is untouched."
         },
         {
           "name": "Unlock Symfonium",
@@ -113683,8 +113683,8 @@
       ],
       "patches": [
         "Disable analytics",
-        "Disable telemetry",
         "Disable Telemetry",
+        "Disable telemetry",
         "Disable update check",
         "Enable premium features",
         "GMS sign-in bypass",
@@ -113728,11 +113728,11 @@
           "description": "Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry."
         },
         {
-          "name": "Disable telemetry",
+          "name": "Disable Telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
-          "name": "Disable Telemetry",
+          "name": "Disable telemetry",
           "description": "Disables AppStartTracker and other telemetry points."
         },
         {
@@ -117350,8 +117350,8 @@
       ],
       "patches": [
         "Disable rating prompt",
-        "Unlock Premium",
-        "Unlock premium"
+        "Unlock premium",
+        "Unlock Premium"
       ],
       "patchDetails": [
         {
@@ -117359,12 +117359,12 @@
           "description": "Stops the Google Play rating prompt from appearing."
         },
         {
-          "name": "Unlock Premium",
-          "description": ""
-        },
-        {
           "name": "Unlock premium",
           "description": "Unlocks premium, removes ads and the free session time limit."
+        },
+        {
+          "name": "Unlock Premium",
+          "description": ""
         }
       ],
       "versions": [
@@ -124562,8 +124562,8 @@
         "Video playback",
         "Video quality",
         "Visual preferences icons for YouTube",
-        "Voice over translation",
         "Voice Over Translation",
+        "Voice over translation",
         "Voice Over Translation (Yandex)",
         "Watch history",
         "Watch later button",
@@ -125134,12 +125134,12 @@
           "description": "Adds icons to specific preferences in the settings."
         },
         {
-          "name": "Voice over translation",
-          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
-        },
-        {
           "name": "Voice Over Translation",
           "description": "Adds an option to enable Yandex voice-over translation of video audio tracks."
+        },
+        {
+          "name": "Voice over translation",
+          "description": "Adds additional voice over languages using text-to-speech synchronized to the video playback."
         },
         {
           "name": "Voice Over Translation (Yandex)",
