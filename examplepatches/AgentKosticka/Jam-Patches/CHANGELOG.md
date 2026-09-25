@@ -1,3 +1,33 @@
+## [1.0.0-dev.12](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **music:** sync reviewed Jam sources and preserve callback cancellation ([6450ae1](https://github.com/AgentKosticka/Jam-Patches/commit/6450ae1d90bfa97f6cbaff70e9806f1ca9bcc7b1))
+
+## [1.0.0-dev.11](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.10...v1.0.0-dev.11) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **music:** preserve autoplay suggestions and queue boundary ([3ab5959](https://github.com/AgentKosticka/Jam-Patches/commit/3ab5959fc9be084deb684b3364f1725d3bb730ee))
+
+## [1.0.0-dev.10](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **music:** follow host autoplay and improve Jam setup ([204be6d](https://github.com/AgentKosticka/Jam-Patches/commit/204be6d71f8520fcec9913b661528e32d797a1a7))
+
+## [1.0.0-dev.9](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **music:** restore lyrics resources in Jam source ([a1294cd](https://github.com/AgentKosticka/Jam-Patches/commit/a1294cd390b8adde2ddd9922e15d20315654b37e))
+
+## [1.0.0-dev.8](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **music:** sync Jam review fixes ([271befc](https://github.com/AgentKosticka/Jam-Patches/commit/271befcead27f9a9286f521e888d63d4ec7d28b6))
+
 ## [1.0.0-dev.7](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-09-21)
 
 ### 🐛 Bug Fixes

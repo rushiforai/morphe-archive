@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.interaction.searchfeatures
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 
 internal object NonPersonalizedSearchGateFingerprint : Fingerprint(
     returnType = "Z",

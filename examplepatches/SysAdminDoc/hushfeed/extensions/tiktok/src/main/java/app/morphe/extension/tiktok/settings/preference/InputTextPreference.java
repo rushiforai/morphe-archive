@@ -40,6 +40,22 @@ public class InputTextPreference extends EditTextPreference {
     @Nullable
     private Check check;
 
+    /**
+     * Says something about the value that the reader should see without opening the editor,
+     * or null when there is nothing to say.
+     *
+     * <p>Read again each time the row is drawn, not only when its own value changes, because
+     * what it says can depend on other rows: an exception the block list also names is a
+     * conflict the moment either list changes.
+     */
+    public interface Note {
+        @Nullable
+        String line(String value);
+    }
+
+    @Nullable
+    private Note note;
+
     /** The description, kept so the summary can be rebuilt when the value changes. */
     private final String baseSummary;
 
@@ -75,7 +91,21 @@ public class InputTextPreference extends EditTextPreference {
         } else {
             shown = value;
         }
-        super.setSummary(baseSummary + "\n" + L10n.f(getContext(), "Current: %1$s", shown));
+        String summary = baseSummary + "\n" + L10n.f(getContext(), "Current: %1$s", shown);
+        String extra = note == null ? null : note.line(value == null ? "" : value);
+        if (extra != null && !extra.isEmpty()) summary += "\n" + extra;
+        super.setSummary(summary);
+    }
+
+    /**
+     * Adds a line under the value that depends on more than the value. The platform only
+     * redraws a row whose summary text actually changed, so rebuilding on every draw is cheap
+     * and never loops.
+     */
+    public InputTextPreference withNote(Note note) {
+        this.note = note;
+        rebuildSummary();
+        return this;
     }
 
     @Override
@@ -110,6 +140,7 @@ public class InputTextPreference extends EditTextPreference {
 
     @Override
     protected void onBindView(View view) {
+        if (note != null) rebuildSummary();
         super.onBindView(view);
 
         app.morphe.extension.tiktok.Utils.setTitleAndSummaryColor(view);

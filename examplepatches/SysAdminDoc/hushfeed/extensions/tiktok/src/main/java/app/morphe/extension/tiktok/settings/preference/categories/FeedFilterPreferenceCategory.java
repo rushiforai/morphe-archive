@@ -24,6 +24,7 @@ import app.morphe.extension.tiktok.settings.preference.CalmFeedPresetPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.feedfilter.AdvancedFeedRules;
+import app.morphe.extension.tiktok.feedfilter.CreatorExceptions;
 
 /**
  * What reaches the feed, in the order a reader asks: which kinds of post, how much of them,
@@ -198,6 +199,14 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
             addPreference(new CreatorListPreference(context, "Creators hidden on this phone",
                     "Creators you hid from a video. Search the list and remove one at a time.",
                     Settings.LOCAL_HIDDEN_CREATORS));
+            addPreference(new InputTextPreference(context, "Creator exceptions",
+                    "Comma separated account handles or user ids. Their videos stay when only a "
+                            + "filter on the kind of post, its labels, age, length or counts would "
+                            + "hide them. Ads, blocked creators, words, sounds and countries, and "
+                            + "seen videos still apply.",
+                    Settings.CREATOR_FILTER_EXCEPTIONS)
+                    .withCheck(CreatorExceptions::entryProblem)
+                    .withNote(CreatorExceptions::conflictNote));
         }
         // The player's own buttons. They were the middle of the App page's Player card,
         // three pages away from the lists they add to.

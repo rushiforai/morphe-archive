@@ -42,10 +42,24 @@ final class MediaBudget {
         }
     }
 
+    /**
+     * A refusal that ends a save of several files rather than skipping one: no room on the disk
+     * for any of them, or the job's time is up. Still an IOException to every single-file caller.
+     */
+    static final class StopException extends IOException {
+        /** True for the disk, false for the clock. */
+        final boolean space;
+
+        StopException(String message, boolean space) {
+            super(message);
+            this.space = space;
+        }
+    }
+
     static void check(Deadline deadline) throws IOException {
         if (deadline == null) deadline = CURRENT_DEADLINE.get();
         if (deadline != null && deadline.expired()) {
-            throw new IOException("Media job deadline exceeded");
+            throw new StopException("Media job deadline exceeded", false);
         }
     }
 
@@ -87,7 +101,7 @@ final class MediaBudget {
                 : transferBytes;
         long required = estimate + PUBLISH_OVERHEAD_BYTES + MIN_FREE_BYTES;
         if (free < required) {
-            throw new IOException("Not enough free space for this media");
+            throw new StopException("Not enough free space for this media", true);
         }
     }
 
@@ -101,7 +115,7 @@ final class MediaBudget {
         if (free <= 0) return;
         long required = STREAM_SPACE_CHECK_BYTES + PUBLISH_OVERHEAD_BYTES + MIN_FREE_BYTES;
         if (free < required) {
-            throw new IOException("Not enough free space for this media");
+            throw new StopException("Not enough free space for this media", true);
         }
     }
 

@@ -1,3 +1,47 @@
+## [1.29.0](https://github.com/legendsciber/morphe-patches/compare/v1.28.0...v1.29.0) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** escape dollar signs in free iap smali snippet ([2e68055](https://github.com/legendsciber/morphe-patches/commit/2e68055c7f7146a68fb481816b50d7b593a71b88))
+
+### ✨ New Features
+
+* **hungryshark:** add free iap patch ([48affa1](https://github.com/legendsciber/morphe-patches/commit/48affa1cb29c448609dd0d5fb533f756761715be))
+
+## [1.28.0](https://github.com/legendsciber/morphe-patches/compare/v1.27.0...v1.28.0) (2026-09-24)
+
+### ✨ New Features
+
+* **hungryshark:** add installer source fix patch ([6a0a82d](https://github.com/legendsciber/morphe-patches/commit/6a0a82d662e3aaad9089031b0fb262772b81d867))
+
+## [1.27.0](https://github.com/legendsciber/morphe-patches/compare/v1.26.0...v1.27.0) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **aphelion:** resolve patch context in installer source helper ([98b3aee](https://github.com/legendsciber/morphe-patches/commit/98b3aee3b92f54e4794208e7810bb8b0af5e9ee3))
+
+### ✨ New Features
+
+* **aphelion:** spoof installer source to fix play store redirect ([a998c4d](https://github.com/legendsciber/morphe-patches/commit/a998c4d936807f979a4ff63ecea56e9a5076c47d))
+
+## [1.26.0](https://github.com/legendsciber/morphe-patches/compare/v1.25.1...v1.26.0) (2026-09-24)
+
+### ✨ New Features
+
+* **aphelion:** add force update bypass patch ([9af2b6e](https://github.com/legendsciber/morphe-patches/commit/9af2b6e219aada2d52fe3f58448bd7e150b38ecd))
+
+## [1.25.1](https://github.com/legendsciber/morphe-patches/compare/v1.25.0...v1.25.1) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **aphelion:** return directly instead of jumping to an external label ([206c680](https://github.com/legendsciber/morphe-patches/commit/206c68062996b8bf53b105d68dc2d3c7a8ffc8c9))
+
+## [1.25.0](https://github.com/legendsciber/morphe-patches/compare/v1.24.2...v1.25.0) (2026-09-24)
+
+### ✨ New Features
+
+* **aphelion:** add ad-free hint unlock patch ([221bf1e](https://github.com/legendsciber/morphe-patches/commit/221bf1e18126fad5337c19b8b871028b128ea55e))
+
 ## [1.24.2](https://github.com/legendsciber/morphe-patches/compare/v1.24.1...v1.24.2) (2026-09-23)
 
 ### 🐛 Bug Fixes

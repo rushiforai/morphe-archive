@@ -14,6 +14,8 @@ patches {
 
 dependencies {
     compileOnly(libs.morphe.patcher)
+    testImplementation(libs.morphe.patcher)
+    testImplementation("junit:junit:4.13.2")
 
     // Used by JsonGenerator.
     implementation(libs.gson)

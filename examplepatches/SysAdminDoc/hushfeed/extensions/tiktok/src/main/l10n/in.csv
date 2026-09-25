@@ -62,6 +62,7 @@ A green dot in the top corner while TikTok has the camera open and an orange one
 "A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.","Host pengganti tiktok.com saat kamu membagikan atau menyalin tautan, misalnya vxtiktok.com. Kosongkan untuk membagikan tautan TikTok sendiri. Hanya tautan TikTok yang diubah, dan hanya bagian host-nya, tidak ada yang dikirim ke mana pun."
 A newer clear replaced that undo. Tap the row again to undo.,Penghapusan yang lebih baru menggantikan pengurungan itu. Ketuk barisnya lagi untuk mengurungkan.
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.",Label kecil di feed menunjukkan menit atau video yang tersisa dari anggaran hari ini.
+A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,Mengetuk Beranda atau tab Untuk Kamu saat Untuk Kamu sedang tampil tidak lagi memuat ulang feed. Video yang sedang kamu tonton tetap.
 A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.,Satu ketukan pada orang di baris Kirim ke hanya memilihnya. Ketukan kedua pada orang yang sama dalam %1$d detik mengirim videonya.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,"Alamat web yang ditulis seseorang di komentar bisa diketuk, bukan disalin manual. Mengetuk bagian lain dari komentar tetap seperti sebelumnya."
 AI-generated posts,Kiriman buatan AI
@@ -204,8 +205,11 @@ Compare gate reads with their previous values.,Bandingkan pembacaan gate dengan 
 Completed an interrupted settings change. Restart TikTok to apply this.,Perubahan pengaturan yang terhenti telah diselesaikan. Mulai ulang TikTok agar berlaku.
 Config,Konfigurasi
 Config (Settings Manager),Konfigurasi (Settings Manager)
+Confirm before a quick repost,Konfirmasi sebelum repost cepat
 Confirm before following,Konfirmasi sebelum mengikuti
 Confirm before liking,Konfirmasi sebelum menyukai
+Confirm before liking a comment,Konfirmasi sebelum menyukai komentar
+Confirm before liking a story,Konfirmasi sebelum menyukai Story
 Confirm before sending to a friend,Konfirmasi sebelum mengirim ke teman
 Continue supported videos from where you stopped when you scroll back to them.,Lanjutkan video yang didukung dari titik terakhir saat kamu menggulir kembali ke video itu.
 Controls,Kontrol
@@ -268,6 +272,8 @@ Diagnostic report copied to the clipboard,Laporan diagnostik disalin ke papan kl
 Diagnostics,Diagnostik
 Disable,Matikan
 Stop analytics and tracking,Hentikan analitik dan pelacakan
+Keep For You on a Home tap,Pertahankan Untuk Kamu saat mengetuk Beranda
+Keep For You on a pull down,Pertahankan Untuk Kamu saat tarik ke bawah
 Keep long press from quick sharing,Jangan biarkan tekan lama membagikan cepat
 Keep long press from reposting,Jangan biarkan tekan lama me-repost
 Disabled,Nonaktif
@@ -429,7 +435,7 @@ Hide LIVE videos from the feed.,Sembunyikan video LIVE dari feed.
 The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.,Baris Permintaan pesan hilang dari Kotak Masuk. Permintaan tetap masuk dan menunggu di sana sampai kamu mematikan ini.
 The New followers row leaves the top of the Inbox. The accounts still follow you.,Baris Pengikut baru hilang dari bagian atas Kotak Masuk. Akun-akun itu tetap mengikutimu.
 Hide the Send to row,Sembunyikan baris Kirim ke
-"Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments.","Sembunyikan gelembung Tako AI di atas tombol profil, bilah Tako di bawah video, tombol Tanya Tako di halaman pencarian, dan bilah Tako di atas komentar."
+"Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page, the Ask Tako tab on search results and the Tako bar above comments.","Sembunyikan gelembung Tako AI di atas tombol profil, bilah Tako di bawah video, tombol Tanya Tako di halaman pencarian, tab Tanya Tako di hasil pencarian, dan bilah Tako di atas komentar."
 The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.,Percakapan dengan asisten Tako hilang dari daftar Kotak Masuk. Gelembung Tako di feed punya sakelar sendiri di Tab feed.
 The activity status control leaves the Inbox header. Whether others see you as active is unchanged.,Kontrol status aktivitas hilang dari bagian atas Kotak Masuk. Apakah orang lain melihatmu aktif tidak berubah.
 Hide the add people icon,Sembunyikan ikon tambah orang
@@ -521,6 +527,7 @@ Last recording: %1$d gates.,Rekaman terakhir: %1$d gate.
 Last recording: 1 gate.,Rekaman terakhir: 1 gate.
 Layout,Tata letak
 "Layout, player, search and system","Tata letak, pemutar, pencarian, dan sistem"
+Leave when TikTok says time is up,Keluar saat TikTok bilang waktunya habis
 Leave maximum empty to keep it unlimited.,Kosongkan nilai maksimum agar tetap tanpa batas.
 Leave the sound out of the saved video. Save the sound as well still writes the .m4a beside it if you want both.,Hilangkan suara dari video yang disimpan. Simpan suaranya juga tetap menulis berkas .m4a di sebelahnya kalau kamu mau keduanya.
 Length and views per like,Durasi dan penayangan per suka
@@ -689,6 +696,7 @@ Promotional music,Musik promosi
 Proof,Bukti
 Post age,Usia kiriman
 Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.,Tambahkan kotak pencarian untuk memfilter komentar yang sudah dimuat pada video ini berdasarkan teks atau nama pengguna. Ini tidak mencari di seluruh TikTok atau menghapus banner saran pencarian TikTok.
+Pulling down at the top of For You no longer reloads it.,Menarik ke bawah di bagian atas Untuk Kamu tidak lagi memuat ulang feed.
 Putting the settings back to their defaults,Mengembalikan pengaturan ke bawaan
 Quality,Kualitas
 "Quality, files, subtitles and hand-off","Kualitas, berkas, subtitel, dan penerusan"
@@ -771,7 +779,6 @@ Saved,Tersimpan
 Saved %1$s,Tersimpan: %1$s
 Saved %1$s of %2$s photos before the story failed,%1$s dari %2$s foto tersimpan sebelum Story gagal
 Saved %1$s original photos,%1$s foto asli tersimpan
-"Saved %1$s photos. The rest failed, so try again.","%1$s foto tersimpan. Sisanya gagal, coba lagi."
 Saved one original photo,Satu foto asli disimpan
 "Saved, override off","Disimpan, penggantian mati"
 Saved. Restart TikTok to apply this.,Tersimpan. Mulai ulang TikTok agar berlaku.
@@ -899,8 +906,12 @@ System,Sistem
 Feed tabs to keep,Tab feed yang dipertahankan
 Hide the streak button in a chat and the reminder message that goes with it.,Sembunyikan tombol rentetan di obrolan beserta pesan pengingatnya.
 Tap %1$s again to send,Ketuk %1$s lagi untuk mengirim
+Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.,Ketuk ikon hati komentar dua kali dalam %1$d detik. Ketuk dua kali pada komentar juga perlu diulang. Membatalkan suka tetap langsung berlaku.
+Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.,Ketuk ikon hati Story dua kali dalam %1$d detik. Membatalkan suka tetap langsung berlaku.
+Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,Ketuk Repost di bilah bawah video dua kali dalam %1$d detik. Repost dengan catatan dibiarkan.
 Tap again to follow,Ketuk lagi untuk mengikuti
 Tap again to like,Ketuk lagi untuk menyukai
+Tap again to repost,Ketuk lagi untuk me-repost
 Tap again to send,Ketuk lagi untuk mengirim
 Tap the feed Follow button twice within %1$d seconds.,Ketuk tombol Ikuti di feed dua kali dalam %1$d detik.
 Tap the like heart twice within %1$d seconds. Removing a like stays immediate.,Ketuk ikon hati dua kali dalam %1$d detik. Membatalkan suka tetap langsung berlaku.
@@ -1002,6 +1013,7 @@ TikTok didn't accept the feedback. Try again later.,TikTok tidak menerima masuka
 TikTok read it,TikTok sudah membacanya
 "TikTok read it, but the override couldn't be applied. Reset it and save it again.","TikTok sudah membacanya, tapi penggantian tidak bisa diterapkan. Atur ulang lalu simpan lagi."
 TikTok refused the follow: %1$s,TikTok menolak permintaan mengikuti: %1$s
+"TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.","Pengingat waktu layar harian milik TikTok sendiri mengirim aplikasi ke latar belakang, bukan menunggu ditutup. Kalau kamu langsung kembali, pengingatnya tetap di layar, jadi batasnya tetap bisa dijangkau. Perlu batas harian di Pengaturan dan privasi TikTok, di bagian Waktu dan kesehatan."
 TikTok's own value,Nilai milik TikTok
 TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.,Server TikTok bisa memasukkan akun ke eksperimen yang mengosongkan tab Favorit di profil kamu. Pertahankan tab itu beserta video yang tersimpan.
 TikTok's size,Ukuran TikTok
@@ -1194,3 +1206,25 @@ Hide TikTok's short drama episodes and the cards that promote them.,Sembunyikan 
 Mini dramas,Drama mini
 Swipe left,Geser ke kiri
 TikTok default (open the creator's profile),Bawaan TikTok (buka profil kreator)
+Saving %1$s of %2$s,Menyimpan %1$s dari %2$s
+Stopping after this file,Berhenti setelah berkas ini
+"Saved %1$s of %2$s, the rest cancelled","%1$s dari %2$s tersimpan, sisanya dibatalkan"
+"Saved %1$s of %2$s, %3$s skipped","%1$s dari %2$s tersimpan, %3$s dilewati"
+"Saved %1$s of %2$s, %3$s skipped and the rest cancelled","%1$s dari %2$s tersimpan, %3$s dilewati, dan sisanya dibatalkan"
+None of the photos could be saved. Try again.,Tidak ada foto yang bisa disimpan. Coba lagi.
+"Saved %1$s of %2$s, the rest need more free space","%1$s dari %2$s tersimpan, sisanya butuh ruang kosong lebih"
+"Saved %1$s of %2$s, the rest ran out of time","%1$s dari %2$s tersimpan, sisanya kehabisan waktu"
+Live photo clip saved to %1$s,Klip foto langsung disimpan ke %1$s
+The live photo's clip couldn't be saved. Try again.,Klip foto langsung tidak bisa disimpan. Coba lagi.
+Creator exceptions,Pengecualian kreator
+"Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds and countries, and seen videos still apply.","Nama akun atau id pengguna yang dipisahkan koma. Video mereka tetap ada bila hanya filter jenis postingan, label, umur, durasi, atau jumlahnya yang akan menyembunyikannya. Iklan, kreator, kata, suara, dan negara yang diblokir, serta video yang sudah ditonton tetap berlaku."
+"An exception names one creator, so a pattern can't be one: %1$s","Pengecualian menyebut satu kreator, jadi pola tidak bisa menjadi pengecualian: %1$s"
+"An exception takes a handle or id, not a display name: %1$s","Pengecualian memakai nama akun atau id, bukan nama tampilan: %1$s"
+"Also on a block list, so still hidden: %1$s","Juga ada di daftar blokir, jadi tetap disembunyikan: %1$s"
+Find the sound on YouTube Music,Cari suaranya di YouTube Music
+YouTube Music isn't installed,YouTube Music belum terpasang
+This video's sound has no title to look for,Suara video ini tidak punya judul untuk dicari
+YouTube Music couldn't be opened. Open it yourself and search for the sound.,YouTube Music tidak bisa dibuka. Buka sendiri lalu cari suaranya.
+Allow storage for TikTok in Android settings to save the live photo's clip,Izinkan penyimpanan untuk TikTok di pengaturan Android untuk menyimpan klip foto langsung
+"This is the video's own sound, so YouTube Music won't have it","Ini suara asli video itu sendiri, jadi YouTube Music tidak akan memilikinya"
+"Not a handle or id, so ignored: %1$s","Bukan nama akun atau id, jadi diabaikan: %1$s"

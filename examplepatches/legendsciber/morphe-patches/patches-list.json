@@ -1,7 +1,59 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.24.2",
+  "version": "1.29.0",
   "patches": [
+    {
+      "name": "Aphelion Ad-Free Hint Unlock",
+      "description": "Unlocks level hints instantly without watching an ad: the share gate's watch ad action grants the hint immediately, with no ad playback required, even offline.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.wave.aphelion",
+          "name": "Aphelion",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1A237E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "0.4.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Aphelion Installer Source Fix",
+      "description": "Spoofs the installer source as Google Play for every install-source check the game performs, so sideloaded installs pass and the forced Google Play Store redirect on launch is fixed.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.wave.aphelion",
+          "name": "Aphelion",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1A237E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "0.4.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Bypass Google Play Install Check",
       "description": "App always behaves as if installed from Google Play, bypassing the install source check.",
@@ -174,6 +226,58 @@
           "targets": [
             {
               "version": "1.71.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hungry Shark Free IAP",
+      "description": "All in-app purchases are granted instantly and free without Google Play billing.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.fgol.HungrySharkEvolution",
+          "name": "Hungry Shark",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#0D47A1",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "14.5.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hungry Shark Installer Source Fix",
+      "description": "Spoofs the installer source as Google Play for every install-source check in the game and its SDKs, so sideloaded installs are treated as store installs and the Google Play Store redirect is fixed.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.fgol.HungrySharkEvolution",
+          "name": "Hungry Shark",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#0D47A1",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "14.5.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

@@ -1,3 +1,10 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/3014
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.extension.music.jam;
 
 import java.io.ByteArrayOutputStream;
@@ -70,7 +77,9 @@ public final class QueueModel {
           host.equals("lh3.googleusercontent.com") ||
           host.equals("lh3.ggpht.com"))
       ) return url;
-    } catch (Exception ignored) {}
+    } catch (IllegalArgumentException ignored) {
+      // Invalid artwork URLs use the known YouTube thumbnail fallback.
+    }
     return "https://i.ytimg.com/vi/" + video + "/hqdefault.jpg";
   }
 

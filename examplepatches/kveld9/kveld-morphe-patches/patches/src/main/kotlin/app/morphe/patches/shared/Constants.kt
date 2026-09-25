@@ -5,18 +5,18 @@ import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
-    const val BRAVE_TARGET_VERSION = "1.95.104"
+    const val BRAVE_TARGET_VERSION = "1.96.59"
     const val BRAVE_PACKAGE_NAME = "com.brave.browser"
 
     val COMPATIBILITY_BRAVE = Compatibility(
         name = "Brave Private Web Browser, VPN",
         packageName = BRAVE_PACKAGE_NAME,
-        apkFileType = ApkFileType.APKM,
+        apkFileType = ApkFileType.APK,
         appIconColor = 0xFF4500,
         targets = listOf(
             AppTarget(
                 version = BRAVE_TARGET_VERSION,
-                description = "Download Bravemonoarm64.apk or BraveMonoarm.apk (v1.95.104) from github.com/brave/brave-browser/releases"
+                description = "Download Bravemonoarm64.apk or BraveMonoarm.apk (v1.96.59) from github.com/brave/brave-browser/releases"
             )
         )
     )
@@ -149,6 +149,8 @@ object Constants {
     const val TIKTOK_EXTENSION_OFFLINE_VIDEOS_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokOfflineVideosHook;"
     const val TIKTOK_EXTENSION_AUTOPAUSE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokAutoPauseHook;"
     const val TIKTOK_EXTENSION_SEARCH_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSearchHook;"
+    const val TIKTOK_EXTENSION_SHARE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokShareHook;"
+    const val TIKTOK_EXTENSION_LOGIN_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokLoginHook;"
     const val BRAVE_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/BraveExtension;"
     const val CHROMIUM_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/ChromiumExtension;"
 }

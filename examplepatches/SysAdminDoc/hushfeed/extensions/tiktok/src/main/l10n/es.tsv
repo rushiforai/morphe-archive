@@ -61,11 +61,13 @@ A green dot in the top corner while TikTok has the camera open and an orange one
 A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Un host que sustituya a tiktok.com al compartir o copiar un enlace, como vxtiktok.com. Déjalo vacío para compartir los enlaces de TikTok. Solo cambian los enlaces de TikTok, y solo el host: no se envía nada a ningún sitio nuevo.
 A newer clear replaced that undo. Tap the row again to undo.	Un borrado más reciente sustituyó ese deshacer. Toca la fila otra vez para deshacerlo.
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Una pequeña etiqueta en el feed muestra los minutos o videos restantes del presupuesto de hoy.
+A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Tocar Inicio o la pestaña Para ti mientras se muestra Para ti ya no lo recarga. El vídeo que estás viendo se queda.
 A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.	Al tocar a una persona en la fila Enviar a solo se la selecciona. Un segundo toque sobre la misma persona antes de %1$d segundos envía el vídeo.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Una dirección web escrita en un comentario se puede tocar en lugar de copiarla a mano. Tocar en cualquier otra parte del comentario sigue haciendo lo de siempre.
 AI-generated posts	Publicaciones generadas por IA
 About	Acerca de
 A forced value applies to this copy of TikTok whichever account is signed in. It cannot get past a check the server makes.	Un valor forzado se aplica a esta copia de TikTok, sea cual sea la cuenta con sesión iniciada. No puede saltarse una comprobación que haga el servidor.
+Leave when TikTok says time is up	Salir cuando TikTok diga que se acabó el tiempo
 No app on this phone opens that file	Ninguna app de este teléfono abre ese archivo
 Open	Abrir
 This key touches account safety. Forcing it can change login, region, payment or security checks.	Esta clave afecta a la protección de la cuenta. Forzarla puede cambiar las comprobaciones de inicio de sesión, región, pagos o seguridad.
@@ -73,6 +75,7 @@ Activity	Actividad
 Activity center (PIA)	Centro de actividad (PIA)
 Add	Añadir
 Block the creator in one tap. Once TikTok confirms, skip to the next video. A small Unblock button appears at the top left for two seconds. You can also unblock later in TikTok's Privacy > Blocked accounts.	Bloquea al creador con un toque. Cuando TikTok lo confirme, pasa al siguiente video. Aparece un botón pequeño para desbloquear arriba a la izquierda durante dos segundos. También puedes desbloquear más tarde en Privacidad > Cuentas bloqueadas de TikTok.
+TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.	El propio recordatorio diario de tiempo en pantalla de TikTok manda la app a segundo plano en vez de esperar a que lo cierres. Si vuelves enseguida, el recordatorio se queda en pantalla, para que el límite siga a tu alcance. Necesita un límite diario en Ajustes y privacidad de TikTok, en Tiempo y bienestar.
 Unblock	Desbloquear
 Add a button beside the block control to send feedback about the current video.	Añade un botón junto al control de bloqueo para enviar comentarios sobre el vídeo actual.
 Add a creator	Añadir un creador
@@ -203,8 +206,11 @@ Compare gate reads with their previous values.	Compara las lecturas de los inter
 Completed an interrupted settings change. Restart TikTok to apply this.	Se completó un cambio de ajustes interrumpido. Reinicia TikTok para que se aplique.
 Config	Configuración
 Config (Settings Manager)	Configuración (Settings Manager)
+Confirm before a quick repost	Confirmar antes de un repost rápido
 Confirm before following	Confirmar antes de seguir
 Confirm before liking	Confirmar antes de dar me gusta
+Confirm before liking a comment	Confirmar antes de dar me gusta a un comentario
+Confirm before liking a story	Confirmar antes de dar me gusta a una historia
 Confirm before sending to a friend	Confirmar antes de enviar a un amigo
 Continue supported videos from where you stopped when you scroll back to them.	Continuar los vídeos compatibles desde donde los dejaste cuando vuelvas a ellos.
 Controls	Controles
@@ -267,6 +273,8 @@ Diagnostic report copied to the clipboard	Informe de diagnóstico copiado al por
 Diagnostics	Diagnóstico
 Disable	Desactivar
 Stop analytics and tracking	Detener la analítica y el seguimiento
+Keep For You on a Home tap	Mantener Para ti al tocar Inicio
+Keep For You on a pull down	Mantener Para ti al deslizar hacia abajo
 Keep long press from quick sharing	Que la pulsación larga no comparta rápido
 Keep long press from reposting	Que la pulsación larga no haga repost
 Disabled	Desactivados
@@ -428,7 +436,7 @@ Hide LIVE videos from the feed.	Ocultar vídeos LIVE del feed.
 The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.	La fila Solicitudes de mensaje desaparece de la bandeja de entrada. Las solicitudes siguen llegando y esperan ahí hasta que desactives esto.
 The New followers row leaves the top of the Inbox. The accounts still follow you.	La fila Nuevos seguidores desaparece de la parte superior de la bandeja de entrada. Las cuentas te siguen igual.
 Hide the Send to row	Ocultar la fila Enviar a
-Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments.	Ocultar la burbuja de Tako AI encima del botón de perfil, la barra de Tako debajo de los videos, el botón Preguntar a Tako en la página de búsqueda y la barra de Tako encima de los comentarios.
+Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page, the Ask Tako tab on search results and the Tako bar above comments.	Ocultar la burbuja de Tako AI encima del botón de perfil, la barra de Tako debajo de los videos, el botón Preguntar a Tako en la página de búsqueda, la pestaña Preguntar a Tako en los resultados de búsqueda y la barra de Tako encima de los comentarios.
 The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.	La conversación con el asistente Tako desaparece de la lista de la bandeja de entrada. La burbuja de Tako en el feed tiene su propio interruptor en Pestañas del feed.
 The activity status control leaves the Inbox header. Whether others see you as active is unchanged.	El control del estado de actividad desaparece de la cabecera de la bandeja de entrada. Que otros te vean activo no cambia.
 Hide the add people icon	Ocultar el icono de añadir personas
@@ -688,6 +696,7 @@ Promotional music	Música promocional
 Proof	Prueba
 Post age	Antigüedad de la publicación
 Add a search box that filters comments already loaded on this video by text or username. It doesn't search all of TikTok or remove TikTok's suggested-search banner.	Añade un cuadro de búsqueda para filtrar los comentarios ya cargados de este video por texto o nombre de usuario. No busca en todo TikTok ni elimina su banner de búsquedas sugeridas.
+Pulling down at the top of For You no longer reloads it.	Deslizar hacia abajo al principio de Para ti ya no lo recarga.
 Putting the settings back to their defaults	Devolviendo los ajustes a sus valores de fábrica
 Quality	Calidad
 Quality, files, subtitles and hand-off	Calidad, archivos, subtítulos y traspaso
@@ -770,7 +779,6 @@ Saved	Guardado
 Saved %1$s	Guardado: %1$s
 Saved %1$s of %2$s photos before the story failed	Se guardaron %1$s de %2$s fotos antes de que la historia fallara
 Saved %1$s original photos	%1$s fotos originales guardadas
-Saved %1$s photos. The rest failed, so try again.	%1$s fotos guardadas. Las demás fallaron, inténtalo otra vez.
 Saved one original photo	Se guardó una foto original
 Saved, override off	Guardado, sustitución desactivada
 Saved. Restart TikTok to apply this.	Guardado. Reinicia TikTok para que se aplique.
@@ -898,8 +906,12 @@ System	Sistema
 Feed tabs to keep	Pestañas del feed que mantener
 Hide the streak button in a chat and the reminder message that goes with it.	Ocultar el botón de racha de un chat y el mensaje recordatorio que lo acompaña.
 Tap %1$s again to send	Toca %1$s otra vez para enviar
+Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.	Toca el corazón de un comentario dos veces en menos de %1$d segundos. Un doble toque en el comentario también necesita un segundo. Quitar un me gusta sigue siendo inmediato.
+Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.	Toca el corazón de una historia dos veces en menos de %1$d segundos. Quitar un me gusta sigue siendo inmediato.
+Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.	Toca Repost en la barra bajo un vídeo dos veces en menos de %1$d segundos. Un repost con nota no se toca.
 Tap again to follow	Toca otra vez para seguir
 Tap again to like	Toca otra vez para dar me gusta
+Tap again to repost	Toca otra vez para hacer repost
 Tap again to send	Toca otra vez para enviar
 Tap the feed Follow button twice within %1$d seconds.	Toca el botón Seguir del feed dos veces en menos de %1$d segundos.
 Tap the like heart twice within %1$d seconds. Removing a like stays immediate.	Toca el corazón de me gusta dos veces en menos de %1$d segundos. Quitar un me gusta sigue siendo inmediato.
@@ -1193,3 +1205,25 @@ Hide TikTok's short drama episodes and the cards that promote them.	Ocultar los 
 Mini dramas	Minidramas
 Swipe left	Deslizar a la izquierda
 TikTok default (open the creator's profile)	Predeterminado de TikTok (abrir el perfil del creador)
+Saving %1$s of %2$s	Guardando %1$s de %2$s
+Stopping after this file	Se detendrá después de este archivo
+Saved %1$s of %2$s, the rest cancelled	Se guardaron %1$s de %2$s, el resto se canceló
+Saved %1$s of %2$s, %3$s skipped	Se guardaron %1$s de %2$s, %3$s omitidos
+Saved %1$s of %2$s, %3$s skipped and the rest cancelled	Se guardaron %1$s de %2$s, %3$s omitidos y el resto cancelado
+None of the photos could be saved. Try again.	No se pudo guardar ninguna de las fotos. Inténtalo de nuevo.
+Saved %1$s of %2$s, the rest need more free space	Se guardaron %1$s de %2$s, el resto necesita más espacio libre
+Saved %1$s of %2$s, the rest ran out of time	Se guardaron %1$s de %2$s, al resto se le acabó el tiempo
+Live photo clip saved to %1$s	Clip de la foto en vivo guardado en %1$s
+The live photo's clip couldn't be saved. Try again.	No se pudo guardar el clip de la foto en vivo. Inténtalo de nuevo.
+Creator exceptions	Excepciones de creadores
+Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds and countries, and seen videos still apply.	Nombres de cuenta o ids de usuario separados por comas. Sus videos se quedan cuando solo un filtro por tipo de publicación, etiquetas, antigüedad, duración o cifras los ocultaría. Los anuncios, los creadores, palabras, sonidos y países bloqueados y los videos ya vistos siguen aplicándose.
+An exception names one creator, so a pattern can't be one: %1$s	Una excepción nombra a un creador, así que un patrón no puede serlo: %1$s
+An exception takes a handle or id, not a display name: %1$s	Una excepción toma un nombre de cuenta o un id, no un nombre para mostrar: %1$s
+Also on a block list, so still hidden: %1$s	También está en una lista de bloqueo, así que sigue oculto: %1$s
+Find the sound on YouTube Music	Buscar el sonido en YouTube Music
+YouTube Music isn't installed	YouTube Music no está instalado
+This video's sound has no title to look for	El sonido de este video no tiene título que buscar
+YouTube Music couldn't be opened. Open it yourself and search for the sound.	No se pudo abrir YouTube Music. Ábrelo tú mismo y busca el sonido.
+Allow storage for TikTok in Android settings to save the live photo's clip	Permite el almacenamiento para TikTok en los ajustes de Android para guardar el clip de la foto en vivo
+This is the video's own sound, so YouTube Music won't have it	Este es el sonido propio del video, así que YouTube Music no lo tendrá
+Not a handle or id, so ignored: %1$s	No es un nombre de cuenta ni un id, así que se ignora: %1$s

@@ -26,11 +26,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/speed/PlaybackSpeedPatch;"
 private const val AWEME = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
+private const val VIEW = "Landroid/view/View;"
+private const val BASE_SHARE_PACKAGE = "Lcom/ss/android/ugc/aweme/share/base/model/BaseSharePackage;"
 
 @Suppress("unused")
 val playbackSpeedPatch = bytecodePatch(
@@ -207,6 +210,42 @@ val playbackSpeedPatch = bytecodePatch(
                 """)
             }
         }
+        // TikTok's speed menu toast names the nearest built-in speed for a custom one: the click
+        // handler picks the label by exact value (only 0.5, 1.5, 2 and 3 have their own) and
+        // formats "Playing at %s speed", so 2.5x reads "Playing at 2x speed". Where the label goes
+        // into the format's one argument the chosen speed field is also still in hand, so the label
+        // is reworded to the speed there. Of the class's three (View, BaseSharePackage) methods the
+        // other two are trivial delegators; the handler is the one that reads the speed and builds
+        // the toast's single format argument.
+        val speedField = menuClass.fields.filter { it.type == "F" }
+            .singleOrPatchException("Playback speed: the speed menu class's float speed field")
+        fun readsSpeed(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction) =
+            instruction.opcode == Opcode.IGET && instruction.getReference<FieldReference>()?.let {
+                it.definingClass == speedField.definingClass && it.name == speedField.name && it.type == "F"
+            } == true
+        val toastHandler = menuClass.methods.filter { method ->
+            method.parameterTypes == listOf(VIEW, BASE_SHARE_PACKAGE) && method.returnType == "V" &&
+                method.implementation?.instructions?.count { it.opcode == Opcode.APUT_OBJECT } == 1 &&
+                method.implementation!!.instructions.any(::readsSpeed)
+        }.singleOrPatchException("Playback speed: the speed menu toast handler")
+        val toastInstructions = toastHandler.implementationOrPatchException("Playback speed").instructions.toList()
+        val speedRegister = toastInstructions.filter(::readsSpeed)
+            .singleOrPatchException("Playback speed: the menu toast's speed field read")
+            .let { (it as OneRegisterInstruction).registerA }
+        val labelPut = toastInstructions.withIndex().filter { it.value.opcode == Opcode.APUT_OBJECT }
+            .singleOrPatchException("Playback speed: the menu toast's format argument")
+        val labelRegister = (labelPut.value as ThreeRegisterInstruction).registerA
+        if (labelRegister > 15 || speedRegister > 15) {
+            throw PatchException("Playback speed: the menu toast's registers no longer fit a short call.")
+        }
+        toastHandler.addInstructions(
+            labelPut.index,
+            """
+                invoke-static {v$labelRegister, v$speedRegister}, $EXTENSION->menuSpeedText(Ljava/lang/String;F)Ljava/lang/String;
+                move-result-object v$labelRegister
+            """,
+        )
+
         // The hold gesture plays at a literal 2x (upstream #52): one 2.0f in the press method,
         // feeding the apply call and the "already at 2x" lock state, and two in the release
         // method, one for the speed-up telemetry and one the pull-down lock applies and

@@ -13,7 +13,6 @@ private val forceSystemFontGithubUiMonospaceCssPatch = resourcePatch(
     description = "Internal dependency patch for webview CSS override used by Force system font (UI monospace).",
     default = true,
 ) {
-    category("Font")
     
     compatibleWith(COMPATIBILITY_GITHUB)
 
@@ -47,6 +46,7 @@ val forceSystemFontGithubUiMonospacePatch = bytecodePatch(
     description = "Renders GitHub UI and monospace text using the device system UI font.",
     default = false,
 ) {
+    category("Font")
     compatibleWith(COMPATIBILITY_GITHUB)
     dependsOn(forceSystemFontGithubUiMonospaceCssPatch)
 

@@ -164,7 +164,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [HXReborn](#-hxreborn-bundle-patch-list) | 65 | 35 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 10 | 9 | Generated |
-| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 36 | 2 | Generated |
+| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 40 | 2 | Generated |
 | [Morning-Entree](#-morning-entree-bundle-patch-list) | 82 | 108 | Generated |
 | [VocaColle](#-vocacolle-bundle-patch-list) | 7 | 1 | Generated |
 | [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
@@ -207,7 +207,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 14 | 1 | Generated |
 | [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
 | [MauroGamerVN](#-maurogamervn-bundle-patch-list) | 2 | 2 | Generated |
-| [Kveld](#-kveld-bundle-patch-list) | 112 | 11 | Generated |
+| [Kveld](#-kveld-bundle-patch-list) | 128 | 11 | Generated |
 | [Anime-Witcher](#-anime-witcher-bundle-patch-list) | 9 | 1 | Generated |
 | [Apos](#-apos-bundle-patch-list) | 1 | 1 | Generated |
 | [HH](#-hh-bundle-patch-list) | 4 | 1 | Generated |
@@ -221,9 +221,9 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Psychonaut-Wiki-Journal](#-psychonaut-wiki-journal-bundle-patch-list) | 7 | 1 | Generated |
 | [Dr4w](#-dr4w-bundle-patch-list) | 2 | 1 | Generated |
 | [Aimal](#-aimal-bundle-patch-list) | 6 | 4 | Generated |
-| [ShuhaibNC](#-shuhaibnc-bundle-patch-list) | 21 | 15 | Generated |
+| [ShuhaibNC](#-shuhaibnc-bundle-patch-list) | 22 | 16 | Generated |
 | [Stremio-AndroidTV](#-stremio-androidtv-bundle-patch-list) | 3 | 1 | Generated |
-| [Legendsciber](#-legendsciber-bundle-patch-list) | 13 | 7 | Generated |
+| [Legendsciber](#-legendsciber-bundle-patch-list) | 17 | 9 | Generated |
 | [SteamLink](#-steamlink-bundle-patch-list) | 24 | 1 | Generated |
 | [Froggo](#-froggo-bundle-patch-list) | 12 | 2 | Generated |
 | [Kecerim24](#-kecerim24-bundle-patch-list) | 4 | 3 | Generated |
@@ -233,7 +233,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Jackblk](#-jackblk-bundle-patch-list) | 1 | 1 | Generated |
 | [Educal72](#-educal72-bundle-patch-list) | 1 | 1 | Generated |
 | [Canh0chua](#-canh0chua-bundle-patch-list) | 4 | 1 | Generated |
-| [Jaredcat](#-jaredcat-bundle-patch-list) | 4 | 3 | Generated |
+| [Jaredcat](#-jaredcat-bundle-patch-list) | 6 | 5 | Generated |
 | [Dan1elTheMan1el](#-dan1eltheman1el-bundle-patch-list) | 17 | 4 | Generated |
 | [Csagataj2](#-csagataj2-bundle-patch-list) | 5 | 1 | Generated |
 | [Rafag00](#-rafag00-bundle-patch-list) | 1 | 1 | Generated |
@@ -313,10 +313,10 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [BestApp](#-bestapp-bundle-patch-list) | - | - | Pending patch list |
 | [Media](#-media-bundle-patch-list) | 5 | 5 | Generated |
 | [Psychonaut-Journal](#-psychonaut-journal-bundle-patch-list) | 7 | 1 | Generated |
-| [Oyasumi](#-oyasumi-bundle-patch-list) | 4 | 3 | Generated |
+| [Oyasumi](#-oyasumi-bundle-patch-list) | 2 | 1 | Generated |
 | [Jam](#-jam-bundle-patch-list) | 151 | 4 | Generated |
 | [Nai64-Extra](#-nai64-extra-bundle-patch-list) | 431 | 2 | Generated |
-| [Akshay-Pixel-Camera](#-akshay-pixel-camera-bundle-patch-list) | 6 | 3 | Generated |
+| [Akshay-Pixel-Camera](#-akshay-pixel-camera-bundle-patch-list) | 8 | 1 | Generated |
 | [Wagg13](#-wagg13-bundle-patch-list) | 3 | 3 | Generated |
 | [Anilili](#-anilili-bundle-patch-list) | 1 | 1 | Generated |
 | [Aidans](#-aidans-bundle-patch-list) | 6 | 1 | Generated |
@@ -3797,48 +3797,48 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Video quality``` | ```Adds options to set default video qualities and always use the advanced video quality menu.``` | ```YouTube``` | ```21.38.123, 21.37.42, 21.28.208, 21.23.492, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
 | ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.38.123, 21.37.42, 21.28.208, 21.23.492, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
 | ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.38.123, 21.37.42, 21.28.208, 21.23.492, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
-| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Bypass certificate checks``` | ```Bypasses certificate checks which prevent YouTube Music from working on Android Auto.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Change miniplayer color``` | ```Adds an option to change the miniplayer background color to match the fullscreen player.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Crossfade``` | ```Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Disable dislike redirection``` | ```Adds an option to prevent skipping to the next track when the dislike button is pressed.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Downloads``` | ```Adds support to download songs using the in-app download button, either with an external downloader app or inside YouTube Music.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable exclusive audio playback``` | ```Enables the option to play audio without video.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable forced miniplayer``` | ```Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable swipe to dismiss miniplayer``` | ```Adds an option to enable dismissing the miniplayer by swiping down on it.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide ads``` | ```Adds options to hide fullscreen ads, Premium promotions and video ads.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide buttons``` | ```Adds options to hide the cast, history, notification, and search buttons.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide filter bar``` | ```Adds an option to hide the filter bar at the top of the homepage.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide flyout menu components``` | ```Adds options to hide individual items from the player and queue flyout menus.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide music action buttons``` | ```Adds options to hide action buttons under the player.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Miniplayer previous and next buttons``` | ```Adds options to show previous and next track buttons in the miniplayer.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Navigation bar``` | ```Adds options to hide navigation bar, labels and buttons.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Play albums songs``` | ```Adds an option to play the song version of album tracks instead of music videos.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remember repeat state``` | ```Adds an option to remember the repeat state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remember shuffle state``` | ```Adds an option to remember the shuffle state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of tracks with Return YouTube Dislike.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Scrobbling``` | ```Adds options to add played tracks to Last.fm and ListenBrainz.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube Music settings screen by their visible name.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip non-music segments.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 15+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
+| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Bypass certificate checks``` | ```Bypasses certificate checks which prevent YouTube Music from working on Android Auto.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Change miniplayer color``` | ```Adds an option to change the miniplayer background color to match the fullscreen player.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Crossfade``` | ```Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Disable dislike redirection``` | ```Adds an option to prevent skipping to the next track when the dislike button is pressed.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Downloads``` | ```Adds support to download songs using the in-app download button, either with an external downloader app or inside YouTube Music.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable exclusive audio playback``` | ```Enables the option to play audio without video.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable forced miniplayer``` | ```Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable swipe to dismiss miniplayer``` | ```Adds an option to enable dismissing the miniplayer by swiping down on it.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide ads``` | ```Adds options to hide fullscreen ads, Premium promotions and video ads.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide buttons``` | ```Adds options to hide the cast, history, notification, search, voice search, and sound search buttons.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide filter bar``` | ```Adds an option to hide the filter bar at the top of the homepage.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide flyout menu components``` | ```Adds options to hide individual items from the player and queue flyout menus.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide music action buttons``` | ```Adds options to hide action buttons under the player.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Miniplayer previous and next buttons``` | ```Adds options to show previous and next track buttons in the miniplayer.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Navigation bar``` | ```Adds options to hide navigation bar, labels and buttons.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Play albums songs``` | ```Adds an option to play the song version of album tracks instead of music videos.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remember repeat state``` | ```Adds an option to remember the repeat state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remember shuffle state``` | ```Adds an option to remember the shuffle state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of tracks with Return YouTube Dislike.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Scrobbling``` | ```Adds options to add played tracks to Last.fm and ListenBrainz.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube Music settings screen by their visible name.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip non-music segments.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 15+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
 
 </details>
 
@@ -4927,10 +4927,10 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Bundle native ad-strip hook``` | ```Packages libpvhook.so into the APK's native lib dir for the in-process PRS Remote-item strip (libignite memcpy/memmove GOT/PLT import hook).``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
+| ```Bundle native ad-strip hook``` | ```Packages libpvhook.so into the APK's native lib dir for the in-process ad strip (libignite memcpy/memmove GOT/PLT import hook).``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Clone Prime Video``` | ```Renames the package to <original>.mod (and its provider authorities / custom permissions) so the patched app installs side-by-side with a non-removable system Prime Video. Opt-in.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Disable auto-updates``` | ```Prevents Google Play Store from automatically replacing the patched APK with the official unpatched version.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
-| ```Load native ad-strip hook``` | ```Loads libpvhook.so at startup to blank Remote (ad) items from the PRS intraTitlePlaylist in-process (libignite memcpy/memmove GOT/PLT import hook).``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
+| ```Load native ad-strip hook``` | ```Loads libpvhook.so at startup to strip ads in-process: blanks Remote (ad) items in the PRS intraTitlePlaylist and empties getVideoAds ad responses (libignite memcpy/memmove GOT/PLT import hook).``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Override certificate pinning``` | ```Adds a network_security_config trusting user CAs (no pin sets) so AdGuard Premium can inspect the app's platform-stack HTTPS. Optional adjunct: Prime Video's ad plane is largely native libcurl, so DNS blocking is the primary tool.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Prime Video extension``` | ```Integrates the Prime Video ATV extension for ad group skipping.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
 | ```Skip ads``` | ```Multi-layer ad suppression targeting the SSAI schedule, impression reporting, and the Volley network chokepoint.``` | ```com.amazon.amazonvideo.livingroom``` | ```6.23.23+v15.5.0.70-armv7a``` |
@@ -5559,11 +5559,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Force system font (Bitwarden)``` | ```Renders the app using the device's system font instead of DM Sans / Roboto.``` | ```Bitwarden``` | ```2026.8.1``` |
-| ```Custom font (GitHub)``` | ```Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file.``` | ```GitHub``` | ```1.276.0``` |
-| ```Custom monospace font (GitHub)``` | ```Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file.``` | ```GitHub``` | ```1.276.0``` |
-| ```Force system font (GitHub)``` | ```Renders GitHub UI text using the device system font by overriding bundled font resources at runtime.``` | ```GitHub``` | ```1.276.0``` |
-| ```Force system font (including monospace) (GitHub)``` | ```Renders GitHub UI and monospace text using the device system UI font.``` | ```GitHub``` | ```1.276.0``` |
+| ```Force system font (Bitwarden)``` | ```Renders the app using the device's system font instead of DM Sans / Roboto.``` | ```Bitwarden``` | ```2026.9.0``` |
+| ```Custom font (GitHub)``` | ```Replaces GitHub's bundled Inter and Mona Sans UI fonts with a custom font file.``` | ```GitHub``` | ```1.277.0``` |
+| ```Custom monospace font (GitHub)``` | ```Replaces GitHub's bundled Roboto Mono code font with a custom monospace font file.``` | ```GitHub``` | ```1.277.0``` |
+| ```Force system font (GitHub)``` | ```Renders GitHub UI text using the device system font by overriding bundled font resources at runtime.``` | ```GitHub``` | ```1.277.0``` |
+| ```Force system font (including monospace) (GitHub)``` | ```Renders GitHub UI and monospace text using the device system UI font.``` | ```GitHub``` | ```1.277.0``` |
 | ```Force system font (Instagram)``` | ```Renders Instagram UI text using the device system font.``` | ```Instagram``` | ```439.0.0.37.89``` |
 
 </details>
@@ -5686,42 +5686,46 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 AndrewLiang25 Bundle Patch List:
 [📦 AndrewLiang25-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-andrewliang25-patches-bundle-morphe)
 <details>
-<summary><b>AndrewLiang25</b> - 36 patches, 2 apps</summary>
+<summary><b>AndrewLiang25</b> - 40 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```[Ad] Block ad telemetry``` | ```Stops Facebook watching for screenshots of ads and reporting which apps you install for ad attribution.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Ad] Block background ad prefetch``` | ```Stops Facebook downloading ads, ad images and the on-device ad-ranking model in the background. Saves mobile data, battery and storage whether or not you also hide the ads themselves.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Ad] Disable Audience Network``` | ```Stops the Facebook app acting as the ad server for other apps on your device. This is the one patch that changes how other apps behave rather than how Facebook behaves: apps that show Facebook ads fall back to their own ad sources or show nothing, and an app that makes you watch an ad for a reward may not be able to give you one.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Feed] Hide sponsored posts``` | ```Removes sponsored posts from the news feed. The ad is dropped before it reaches the feed list, so it leaves no gap and its impression is never logged. Covers both server-delivered ads and the ones the app ranks and inserts locally.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Feed] Hide suggested and promoted posts``` | ```Removes feed units Facebook injects rather than units your friends and pages posted: "Pages you may like" and its variants, the in-feed upsell nags and surveys, and the ad-experiment slots. Paid ads are a separate patch.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[General] AMOLED black theme``` | ```Makes the dark mode of Facebook black instead of dark grey, which saves power on an OLED screen. Turn on dark mode in Facebook first. Dividers, borders, text, icons and the coloured banners do not change.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[General] Open links in external browser``` | ```A web link that you tap opens in your default browser, and not in the in-app browser of Facebook. The pages of Facebook still open in the app. Thus login and checkout still work.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Reels] Download any reel``` | ```Adds a Download button beside every reel, and not only the reels that you posted. It saves the video the player is streaming, at the best quality the player holds, to Movies/Facebook.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Reels] Hide sponsored reels``` | ```Removes ads from Reels and Watch, so scrolling only shows videos from creators. Ads that play inside a video, such as mid-rolls, are not covered.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Stories] Download any story``` | ```Adds a save option to the menu of any story, and not only to the stories that you posted. It saves the picture or the video that the story shows, including a story with music, which Facebook's own save refuses. Files go to Pictures/Facebook or Movies/Facebook.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Ad] Block background ad prefetch``` | ```Stops Facebook downloading ads and its ad model in the background, which saves data, battery and storage.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Ad] Disable Audience Network``` | ```Stops Facebook serving ads to other apps. Those apps then show their own ads or none, and rewarded ads can fail.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Feed] Hide sponsored posts``` | ```Removes sponsored posts from the news feed, with no gap left behind.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Feed] Hide suggested and promoted posts``` | ```Removes posts that Facebook adds to the feed, such as "Pages you may like", upsells and surveys.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Fix] Restore screens on re-signed builds``` | ```Makes profiles and some Settings pages open again on a re-signed build. A Root Mount install does not need this patch.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[General] AMOLED black theme``` | ```Makes Facebook's dark mode black instead of dark grey. Turn on dark mode in Facebook first.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[General] Open links in external browser``` | ```Opens web links in your default browser instead of Facebook's in-app browser. Facebook pages still open in the app.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Reels] Download any reel``` | ```Adds a Download button beside every reel. Videos save at the best quality the player streams.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Reels] Hide sponsored reels``` | ```Removes ads from Reels and Watch, including product banners over a reel and ads inside a video.``` | ```Facebook``` | ```577.0.0.50.72``` |
+| ```[Stories] Download any story``` | ```Adds Save to the menu of any story, including stories with music. Videos save at the best quality the player streams.``` | ```Facebook``` | ```577.0.0.50.72``` |
 | ```[Stories] Hide sponsored stories``` | ```Removes ad cards from the story viewer, so swiping through stories only shows stories people posted.``` | ```Facebook``` | ```577.0.0.50.72``` |
-| ```[Ad] Hide ad views``` | ```Hides the LINE display ad views. These are the LINE Ads SDK containers in the whole app, the chat-list Smart Channel banner, and the Google AdManager ads.``` | ```LINE``` | ```26.14.0``` |
+| ```[Ad] Hide ad views``` | ```Hides LINE display ads: the LINE Ads banners, the Smart Channel banner in the chat list and Google AdManager ads.``` | ```LINE``` | ```26.14.0``` |
 | ```[Ad] Remove banner ads``` | ```LINE no longer loads the Smart Channel banner ads. This patch makes the getBanners and getPrefetchableBanners responses null.``` | ```LINE``` | ```26.14.0``` |
-| ```[Chat] Hide attach menu extra tools``` | ```Removes all the server-provided extra tools from the + attach menu in a chat room (Poll, Reservation, Schedule, Ladder shuffle, and more). The built-in tiles (camera, gallery, files, and contact) do not change.``` | ```LINE``` | ```26.14.0``` |
-| ```[Chat] Hide calendar buttons``` | ```Removes every LINE Calendar surface inside the messenger. One is in the Chats-tab header. Four are in a chat room: the top toolbar, the + attach menu, the slide-out chat menu, and the message long-press menu. The last is the Calendar block in the Friends sub-tab of the Home tab.``` | ```LINE``` | ```26.14.0``` |
+| ```[Chat] Hide AI Friends button``` | ```Removes the AI Friends button from the Chats tab header. The Album button shows in its place.``` | ```LINE``` | ```26.14.0``` |
+| ```[Chat] Hide attach menu extra tools``` | ```Removes the server-provided tools (Poll, Schedule and more) from the + menu in a chat. Built-in tiles stay.``` | ```LINE``` | ```26.14.0``` |
+| ```[Chat] Hide calendar buttons``` | ```Removes every LINE Calendar button: in the Chats tab, the chat toolbar and menus, and the Home tab.``` | ```LINE``` | ```26.14.0``` |
 | ```[Chat] Hide community button``` | ```Removes the community (OpenChat) button from the top of the Chats tab header.``` | ```LINE``` | ```26.14.0``` |
 | ```[Chat] Hide Events button``` | ```Removes the "Events" row from the slide-out menu in a chat room. Events is a different feature from LINE Calendar, and it opens a server-hosted page.``` | ```LINE``` | ```26.14.0``` |
 | ```[Chat] Hide LINE GIFT button``` | ```Removes the LINE GIFT tile from the + attach menu in a chat room.``` | ```LINE``` | ```26.14.0``` |
+| ```[Chat] Hide tips under messages``` | ```Hides the "CHECK" tips under some messages, such as a received video.``` | ```LINE``` | ```26.14.0``` |
 | ```[Chat] Hide Transfer button``` | ```Removes the Transfer (LINE Pay) tile from the + attach menu in a chat room.``` | ```LINE``` | ```26.14.0``` |
-| ```[Chat] Keep chats unread``` | ```When you open a 1:1 or group chat, LINE does not mark it read and sends no read receipt. If you use "Mark as read" or "Mark all as read", LINE marks the chat read and sends the receipt.``` | ```LINE``` | ```26.14.0``` |
-| ```[Chat] Keep unsent messages``` | ```Keeps unsent messages from 1:1 and group chats on your device instead of erasing them. This patch shows the usual "unsent a message" notice directly below the message that it kept. This patch does not apply to OpenChat.``` | ```LINE``` | ```26.14.0``` |
-| ```[Fix] Restore chat backup sign-in via MicroG-RE``` | ```Sends the Google account picker and the Drive token of chat-history backup through MicroG-RE. Backup and restore then work on a re-signed build. It does not change how you sign in to a Google account. A Root Mount install does not need this patch.``` | ```LINE``` | ```26.14.0``` |
-| ```[Fix] Restore location maps via MicroG-RE``` | ```Shows a map again on the location screens of a re-signed build. This covers the location picker, the location messages in a chat, and the location posts. The tiles come from OpenFreeMap and do not look like Google Maps. This patch needs MicroG-RE 7.0.0 or later. A Root Mount install does not need this patch.``` | ```LINE``` | ```26.14.0``` |
+| ```[Chat] Keep chats unread``` | ```When you open a chat, LINE does not mark it read or send a read receipt. "Mark as read" still works.``` | ```LINE``` | ```26.14.0``` |
+| ```[Chat] Keep unsent messages``` | ```Keeps messages that others unsend in 1:1 and group chats, with a notice below each one. OpenChat is not covered.``` | ```LINE``` | ```26.14.0``` |
+| ```[Fix] Restore chat backup sign-in via MicroG-RE``` | ```Makes Google Drive chat backup and restore work on a re-signed build, through MicroG-RE. Root Mount does not need it.``` | ```LINE``` | ```26.14.0``` |
+| ```[Fix] Restore location maps via MicroG-RE``` | ```Shows maps again on a re-signed build, with OpenFreeMap tiles. It needs MicroG-RE 7.0.0 or later. Root Mount does not need it.``` | ```LINE``` | ```26.14.0``` |
 | ```[Fix] Restore push notifications``` | ```When LINE is fully closed, push notifications work again on a re-signed build. A Root Mount install does not need this patch.``` | ```LINE``` | ```26.14.0``` |
 | ```[General] Disable VOOM``` | ```VOOM deep links, shares, and notifications do nothing. If you open the standalone VOOM feed, it closes. Messaging and the other tabs do not change.``` | ```LINE``` | ```26.14.0``` |
+| ```[General] Hide Agent i buttons``` | ```Removes the Agent i button from the Home header and from the search bar.``` | ```LINE``` | ```26.14.0``` |
 | ```[General] Hide new item badges``` | ```Hides the green dots and N badges that mark new items, on header buttons, tabs, menus, lists and settings rows. Unread message counts do not change.``` | ```LINE``` | ```26.14.0``` |
-| ```[General] Open links in external browser``` | ```When you tap a web link (http or https), it opens in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE deep links do not change.``` | ```LINE``` | ```26.14.0``` |
-| ```[General] Redirect LINE Pay``` | ```Opens LINE Pay flows in the standalone LINE Pay app instead of inside LINE. The device-integrity check that fails on a re-signed build never runs. Messaging does not change.``` | ```LINE``` | ```26.14.0``` |
-| ```[Home] Hide Home content feed``` | ```Removes the content feed below the friends list on the Home tab. The feed shows LINE NEWS posts, official account posts, live cards, content units, and ranking units. The friends list, the service icons, and the other Home modules do not change.``` | ```LINE``` | ```26.14.0``` |
-| ```[Home] Hide Home modules``` | ```Hides clutter modules on the Home tab: the recommended stickers and content section, the real-time hot-topics (即時夯話題) block, and the ad modules. A separate patch hides the content feed below the friends list.``` | ```LINE``` | ```26.14.0``` |
-| ```[Premium] Disable LINE Premium``` | ```Hides all LINE Yahoo Premium (LYP) surfaces: the upsells, the badges, the Premium settings page, and the subscribe and manage flows. Premium chat backup changes to the ordinary chat-history backup. This patch unlocks nothing, because the server enforces premium.``` | ```LINE``` | ```26.14.0``` |
-| ```[Premium] Hide premium unsend upsells``` | ```Removes the LYP premium-unsend upsells that stay after "Disable LINE Premium". These are the "Unsend discreetly" button, the post-unsend promo link, and the expired-window unsend upsell. Ordinary unsend still works.``` | ```LINE``` | ```26.14.0``` |
+| ```[General] Open links in external browser``` | ```Opens web links in your default browser instead of LINE's in-app browser. LIFF mini-apps and LINE links stay in LINE.``` | ```LINE``` | ```26.14.0``` |
+| ```[General] Redirect LINE Pay``` | ```Opens LINE Pay in the standalone LINE Pay app, so the integrity check that fails on a re-signed build never runs.``` | ```LINE``` | ```26.14.0``` |
+| ```[Home] Hide Home content feed``` | ```Removes the content feed below the friends list on the Home tab: LINE NEWS, official account posts and rankings.``` | ```LINE``` | ```26.14.0``` |
+| ```[Home] Hide Home modules``` | ```Hides the recommended content, hot-topics and ad modules on the Home tab.``` | ```LINE``` | ```26.14.0``` |
+| ```[Premium] Disable LINE Premium``` | ```Hides all LINE Premium upsells, badges and pages. It unlocks nothing, because the server enforces Premium.``` | ```LINE``` | ```26.14.0``` |
+| ```[Premium] Hide premium unsend upsells``` | ```Removes the Premium unsend upsells that "Disable LINE Premium" leaves. Ordinary unsend still works.``` | ```LINE``` | ```26.14.0``` |
 | ```[Tab] Hide LINE TODAY tab``` | ```Removes the LINE TODAY (News) tab from the main bottom navigation, in both the news-tab and news-row layouts.``` | ```LINE``` | ```26.14.0``` |
 | ```[Tab] Hide Shopping tab``` | ```Removes the Shopping tab from the main bottom navigation. This includes the Japan variant (Shopping, ショッピング) and the Taiwan variant (Discover, 逛逛).``` | ```LINE``` | ```26.14.0``` |
 | ```[Tab] Hide VOOM tab``` | ```Removes the VOOM (formerly Timeline) tab from the main bottom navigation.``` | ```LINE``` | ```26.14.0``` |
@@ -6712,23 +6716,23 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Kveld Bundle Patch List:
 [📦 Kveld-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-kveld-patches-bundle-morphe)
 <details>
-<summary><b>Kveld</b> - 112 patches, 11 apps</summary>
+<summary><b>Kveld</b> - 128 patches, 11 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Brave In-Product & Commercial Notification Optimizer``` | ```Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Brave Native Library Extraction Compatibility``` | ```Enforces native library extraction in AndroidManifest.xml to ensure 16 KB page and BTI compatibility across modern ARM64 devices.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Brave Origin``` | ```Unlocks Brave Origin and enables local feature toggle controls.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Brave Startup Performance Optimization``` | ```Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Clean New Tab Page``` | ```Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Native Bloat Slimmer``` | ```Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size.``` | ```Brave Private Web Browser, VPN``` | ```1.95.104``` |
-| ```Clean Share URL``` | ```Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.104, 8.2.4147.93``` |
-| ```Disable Battery Status API & OS Listener``` | ```Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.104, 8.2.4147.93``` |
-| ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.104, 8.2.4147.93``` |
-| ```Sensor Privacy Guard``` | ```Neutralizes motion, ambient, and orientation sensor providers to prevent hardware fingerprinting and tracking via Generic Sensor APIs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.104, 8.2.4147.93``` |
-| ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.95.104, 8.2.4147.93``` |
+| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Brave In-Product & Commercial Notification Optimizer``` | ```Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns.``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Brave Origin``` | ```Unlocks Brave Origin and enables local feature toggle controls.``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Brave Startup Performance Optimization``` | ```Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Clean New Tab Page``` | ```Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page.``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks.``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Native Bloat Slimmer``` | ```Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size.``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Suppress In-App Promos & Surveys``` | ```Suppresses intrusive in-app rating surveys, Play Store review prompts, and marketing promo popups (YouTube promo, ad-free callouts, and Brave Ads onboarding).``` | ```Brave Private Web Browser, VPN``` | ```1.96.59``` |
+| ```Clean Share URL``` | ```Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.96.59, 8.2.4147.93``` |
+| ```Disable Battery Status API & OS Listener``` | ```Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.96.59, 8.2.4147.93``` |
+| ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.96.59, 8.2.4147.93``` |
+| ```Sensor Privacy Guard``` | ```Neutralizes motion, ambient, and orientation sensor providers to prevent hardware fingerprinting and tracking via Generic Sensor APIs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.96.59, 8.2.4147.93``` |
+| ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN, Vivaldi Browser - Fast & Safe``` | ```1.96.59, 8.2.4147.93``` |
 | ```Add AMOLED Theme``` | ```Adds a selectable Pure Black AMOLED theme using Gboard's native color_black theme package, without replacing Dark, Light, System Auto, or Dynamic Color.``` | ```Gboard Lite``` | ```18.2.4.969776716-lite_beta-arm64-v8a, 18.2.4.969776716-lite_beta-armeabi-v7a``` |
 | ```Allow Modified APK``` | ```Bypasses internal signature check to allow custom APK execution.``` | ```Gboard Lite``` | ```18.2.4.969776716-lite_beta-arm64-v8a, 18.2.4.969776716-lite_beta-armeabi-v7a``` |
 | ```Block Telemetry``` | ```Disables background metrics dispatch, event logging, daily pings, and crash reporting.``` | ```Gboard Lite``` | ```18.2.4.969776716-lite_beta-arm64-v8a, 18.2.4.969776716-lite_beta-armeabi-v7a``` |
@@ -6757,16 +6761,17 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Block Hevy Telemetry & Trackers``` | ```Neutralizes Sentry crash reporting, Adjust attribution, Facebook AppEvents, Branch referral tracking, and WearOS background sync.``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14``` |
 | ```Hevy Battery Optimization & Background Sync Killer``` | ```Disables background WorkManager alarms, periodic job schedulers, Google Play Billing IPC (~89 MB RAM), and removes largeHeap to force aggressive Garbage Collection.``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14``` |
 | ```Hevy Resource Slimmer``` | ```Strips embedded onboarding MP4 tutorial video, heavy IMG.LY photo editor stickers/textures, and compiler junk metadata.``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14``` |
-| ```Unlock Pro``` | ```Unlocks local Hevy Pro capabilities (unlimited workout routines, routine folders, advanced graphs, and local analytics) by dynamically enabling Pro getters in Hermes Bytecode (HBC96).``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14``` |
-| ```NokoPrint Ad Activities Slimmer``` | ```Disables over 40 third-party ad mediation activities, internal web browsers, and debuggers registered in AndroidManifest.xml.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
-| ```NokoPrint Ad Dispatch Governor``` | ```Neutralizes in-app banner, interstitial, and rewarded ad loaders, preloading schedulers, and refresh handlers.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
-| ```NokoPrint Asset De-bloat``` | ```Strips embedded secondary Meta Audience Network DEX and redundant web ad-viewer HTML/JS assets to save APK space.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
-| ```NokoPrint Background Sync Optimizer``` | ```Neutralizes background WorkManager constraint tasks and diagnostic wakelocks.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
-| ```NokoPrint Block Telemetry & Trackers``` | ```Neutralizes Firebase Analytics and Google Measurement tracking and event dispatching.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
-| ```NokoPrint Multi-Store Debridger``` | ```Disables orphan billing activities, background services, and permissions for alternative OEM stores (Huawei HMS, Xiaomi, Samsung, CafeBazaar, OneStore).``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
-| ```NokoPrint Network Security Hardening``` | ```Enforces HTTPS encryption for driver downloads and backend communications with nokoprint.com while preserving local cleartext traffic for LAN network printers.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
-| ```NokoPrint Startup Performance Optimizer``` | ```Disables non-essential ad mediation and tracker ContentProviders that auto-initialize before Application.onCreate, accelerating cold startup.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.10.8``` |
+| ```Unlock Pro``` | ```Unlocks local Hevy Pro capabilities (unlimited workout routines, routine folders, advanced graphs, and local analytics) by dynamically enabling Pro getters and suppressing grace period payment warnings in Hermes Bytecode (HBC96).``` | ```Hevy - Gym Log Workout Tracker``` | ```3.1.14``` |
+| ```NokoPrint Ad Activities Slimmer``` | ```Disables over 100 third-party ad mediation activities, internal web browsers, and debuggers registered in AndroidManifest.xml.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
+| ```NokoPrint Ad Dispatch Governor``` | ```Neutralizes in-app banner, interstitial, and rewarded ad loaders, preloading schedulers, and refresh handlers.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
+| ```NokoPrint Asset De-bloat``` | ```Strips embedded secondary Meta Audience Network DEX, tracking scripts, ad-viewer HTML/JS templates, RuStore TLS certs, and third-party ad assets to save APK space.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
+| ```NokoPrint Background Sync Optimizer``` | ```Neutralizes background WorkManager constraint tasks and diagnostic wakelocks.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
+| ```NokoPrint Block Telemetry & Trackers``` | ```Neutralizes Firebase Analytics and Google Measurement tracking and event dispatching.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
+| ```NokoPrint Multi-Store Debridger``` | ```Disables orphan billing activities, background services, and permissions for alternative OEM stores (Huawei HMS, Xiaomi, Samsung, CafeBazaar, OneStore).``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
+| ```NokoPrint Network Security Hardening``` | ```Enforces HTTPS encryption for driver downloads and backend communications with nokoprint.com while preserving local cleartext traffic for LAN network printers.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
+| ```NokoPrint Startup Performance Optimizer``` | ```Disables non-essential ad mediation and tracker ContentProviders that auto-initialize before Application.onCreate, accelerating cold startup.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.4``` |
 | ```Always show publish date``` | ```Forces video publish/upload date to remain visible in video author information across all feed types.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Auto-pause first video``` | ```Automatically pauses the first video when opening TikTok, allowing the application to finish background initialization and preventing playback lag.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Auto-translate comments``` | ```Automatically translates comments into your preferred language using TikTok's native translation engine.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Bypass Mandatory Login``` | ```Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Clean Share URL``` | ```Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
@@ -6774,14 +6779,29 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Copy comments without username``` | ```Copies only the comment text without prepending the author username.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Core Asset De-bloat``` | ```Strips embedded Microblink/FinTech card scanner models, Pitaya AI & ByteNN LLM engines, C2PA origin verification, DLNA cast scanners, and redundant non-Latin fonts to save APK space.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Custom Offline Videos Limit``` | ```Customizes the maximum number of videos available for offline download caching.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
-| ```Device Privacy Guard``` | ```Neutralizes background clipboard snooping routines, motion sensor profiling, and screenshot/recording detection and telemetry listeners to protect user data.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Device Privacy Guard``` | ```Neutralizes invasive runtime permissions (contacts sync, location tracking, nearby devices), advertising ID profiling, background clipboard snooping routines, motion sensor profiling, and screenshot/recording detection to protect user data.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Disable Comment Suggested Emojis``` | ```Removes the horizontal bar of suggested quick emojis displayed above the comment input box.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Disable double tap to like``` | ```Disables the double tap gesture to like videos in the feed, preventing accidental likes while scrolling or pausing. Videos can still be liked using the like button.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Disable Profile Photo LIVE Status``` | ```Removes the pulsing LIVE ring and badge from creator avatars in the feed and ensures clicking navigates strictly to the user profile instead of launching the live stream.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Disable Push Notifications``` | ```Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Disable Search History Recording``` | ```Prevents search queries and keywords from being recorded in local history, databases, and analytics stores.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Disable Story Feed Indicators``` | ```Removes the top-center story drop-down indicator pill (e.g. '1 Story') and creator profile photo story rings from feed videos, ensuring avatar photos remain clean.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Disable Watch History Recording``` | ```Prevents viewed videos from being recorded in account watch history, playback duration stores, and local history caches.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Display Refresh Rate Governor``` | ```Forces TikTok to run at peak display refresh rate (120Hz/90Hz/60Hz) and neutralizes video playback framerate downclocking routines.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Enable Voice Comments``` | ```Forces the native voice comment recording button in comment input bars, bypassing regional rollout restrictions and remote server blocks.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Feed Ad Blocker``` | ```Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
-| ```Feed Bloat & Distraction Blocker``` | ```Removes non-video clutter and floating ad widgets from the For You and Following feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, and mini-drama paywalls.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Feed Bloat & Distraction Blocker``` | ```Removes non-video clutter and floating ad widgets from the For You, Following, and Friends feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, and mini-drama paywalls.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Feed Live Stream Blocker``` | ```Removes live stream broadcast cards and live recommendations from the For You and Following feeds.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Fix Google login``` | ```Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Force auto-scroll``` | ```Forces the activation of the native video auto-scroll experiment flag for accounts and regions that lack it due to A/B testing.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Hide AI-Generated Content``` | ```Filters and skips videos tagged with native AI-generated metadata, C2PA content credentials, or creator AI disclosure tags across the For You, Following, and Friends feeds.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Hide Feed Search Bar``` | ```Removes the search suggestion pill and trending bar ('Search · <keyword>') from the bottom of feed videos, providing a clean viewing area without search distractions.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Hide Popular Lives In Search``` | ```Removes the 'LIVE populares' (Popular LIVEs) recommendation card and stream broadcasts from the search intermediate page.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Hide Profile Photo Follow Button``` | ```Hides the plus (+) follow badge on creator profile avatars in the feed and disables its touch interaction.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Hide STEM and Community Tabs``` | ```Removes the STEM and Comunidad (Explore / Topics) tabs from the top navigation feed strip.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Hide Suggested Searches``` | ```Removes the 'Podría interesarte' (You may like / Guess Search) suggested keywords section from the search intermediate page.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Hide TikTok Shop & Mall``` | ```Removes product showcase badges, shopping cart tags, and the TikTok Shop / Mall tab from navigation bars and video posts.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
+| ```Hide Top-Left LIVE Button``` | ```Removes the top-left LIVE broadcast button and tab entry point from the top navigation bar.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```In-App Browser Privacy Guard``` | ```Redirects external and third-party web links to the default system browser and neutralizes inline JavaScript tracking, DOM monitoring, and AJAX hooking in residual in-app WebViews.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Instant Launch & Splash Blocker``` | ```Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch).``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
 | ```Language Pack Purger``` | ```Strips unselected language string bundles from assets/strings#lang_* to save APK space.``` | ```TikTok, TikTok``` | ```47.0.3, 47.0.3``` |
@@ -7065,7 +7085,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 ShuhaibNC Bundle Patch List:
 [📦 ShuhaibNC-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-shuhaibnc-patches-bundle-morphe)
 <details>
-<summary><b>ShuhaibNC</b> - 21 patches, 15 apps</summary>
+<summary><b>ShuhaibNC</b> - 22 patches, 16 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -7074,6 +7094,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Unlock Beat.ly VIP``` | ```All VIP features are unlocked.``` | ```Beat.ly``` | ```2.46.10897``` |
 | ```Disable Tracking``` | ```Disable tracking statistics for CandyLink VPN .``` | ```CandyLink VPN``` | ```4.0.2``` |
 | ```Unlock Premium``` | ```Premium features are unlocked and ads are disabled.``` | ```CandyLink VPN``` | ```4.0.2``` |
+| ```Disable In-Built Browser``` | ```Disables the in-built browser in Facebook Lite by removing its activities from the manifest.``` | ```Facebook Lite``` | ```All versions``` |
 | ```Remove Ads of FFmpeg``` | ```Unlock donator features and removes ads.``` | ```FFmpeg Media Encoder``` | ```6.1.3_1``` |
 | ```Unlock Footej Camera Premium``` | ```All Premium features are unlocked.``` | ```Footej Camera``` | ```2.4.1 build 202``` |
 | ```Unlock GoCut Pro``` | ```Enables premium features and functionality in the GoCut application.``` | ```GoCut``` | ```3.0.4``` |
@@ -7157,16 +7178,20 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Legendsciber Bundle Patch List:
 [📦 Legendsciber-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-legendsciber-patches-bundle-morphe)
 <details>
-<summary><b>Legendsciber</b> - 13 patches, 7 apps</summary>
+<summary><b>Legendsciber</b> - 17 patches, 9 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Aphelion Ad-Free Hint Unlock``` | ```Unlocks level hints instantly without watching an ad: the share gate's watch ad action grants the hint immediately, with no ad playback required, even offline.``` | ```Aphelion``` | ```0.4.9``` |
+| ```Aphelion Installer Source Fix``` | ```Spoofs the installer source as Google Play for every install-source check the game performs, so sideloaded installs pass and the forced Google Play Store redirect on launch is fixed.``` | ```Aphelion``` | ```0.4.9``` |
 | ```Dan The Man Free IAP``` | ```All in-app purchases are granted instantly and free without Google Play billing.``` | ```Dan The Man``` | ```1.14.02``` |
 | ```Extreme Car Driving Add Native Lib``` | ```Adds libcurrencyhack.so to assets and helper dex.``` | ```Extreme Car Driving Simulator``` | ```7.13.1``` |
 | ```Extreme Car Driving Unlimited Currencies``` | ```Sets all in-game currencies (diamonds, coins, upgrade points) to 999,999,999 via IL2CPP API.``` | ```Extreme Car Driving Simulator``` | ```7.13.1``` |
 | ```Hill Climb Racing Ad Removal``` | ```Completely removes ads: banners and interstitials can never be displayed (CFirebaseAds.showBanners/showInterstitial become no-ops) and ad-free is granted once per app start — loadStore() seeds mAdFree = 1, the native engine's poll grants it and the store's own reset (inappPurchasesProcessed) zeroes the field, so no repeated purchase popups.``` | ```Hill Climb Racing``` | ```1.71.1``` |
 | ```Hill Climb Racing Free Store``` | ```Every store item is granted instantly and free: coins, gems, paints, ad-skips, ad-free and bundles, without launching Google Play billing.``` | ```Hill Climb Racing``` | ```1.71.1``` |
 | ```Hill Climb Racing Instant Rewarded Video Rewards``` | ```Rewarded video ads grant their reward instantly without playing the ad: the native engine receives onVideoStartedSuccess + onVideoCompletedSuccess on the GL thread, exactly as if the video had been watched and completed.``` | ```Hill Climb Racing``` | ```1.71.1``` |
+| ```Hungry Shark Free IAP``` | ```All in-app purchases are granted instantly and free without Google Play billing.``` | ```Hungry Shark``` | ```14.5.0``` |
+| ```Hungry Shark Installer Source Fix``` | ```Spoofs the installer source as Google Play for every install-source check in the game and its SDKs, so sideloaded installs are treated as store installs and the Google Play Store redirect is fixed.``` | ```Hungry Shark``` | ```14.5.0``` |
 | ```RB4 Premium & Skin Unlock``` | ```Unlocks premium, removes ads and unlocks all ball skins.``` | ```Red Ball 4``` | ```1.17.03``` |
 | ```Smash Hit Premium Unlock``` | ```Unlocks premium and all game modes without purchase.``` | ```Smash Hit``` | ```1.5.14``` |
 | ```Soccer Star Ad Removal``` | ```Disables ads completely: EnableAD always returns false, interstitials and banners are no-ops, Adjust purchase verification is skipped.``` | ```Soccer Star``` | ```0.3.88``` |
@@ -7348,7 +7373,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Jaredcat Bundle Patch List:
 [📦 Jaredcat-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-jaredcat-patches-bundle-morphe)
 <details>
-<summary><b>Jaredcat</b> - 4 patches, 3 apps</summary>
+<summary><b>Jaredcat</b> - 6 patches, 5 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -7356,6 +7381,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable Analytics``` | ```Prevents Adjust and Firebase Analytics from collecting or sending analytics.``` | ```Expand``` | ```2.1.1``` |
 | ```Unlock Plus``` | ```Unlocks Expand Plus without a subscription.``` | ```Expand``` | ```2.1.1``` |
 | ```Unlock Premium``` | ```Unlocks Lumenate Premium without a subscription.``` | ```Lumenate``` | ```7.1.3``` |
+| ```Hide Ads``` | ```Hides Google, Nimbus, Moloco, Liftoff, in-feed promo tiles, Inbox banners, and the Go Premium bar. Note: patching OfferUp breaks the listing map embed (Maps API key is tied to the Play Store signature).``` | ```OfferUp``` | ```2026.38.0``` |
+| ```Unlock Premium``` | ```Unlocks Sweepy Premium features.``` | ```Sweepy``` | ```6.1.3``` |
 
 </details>
 
@@ -7664,48 +7691,48 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Voice over translation``` | ```Adds additional voice over languages using text-to-speech synchronized to the video playback.``` | ```YouTube``` | ```21.38.123, 21.37.42, 21.28.208, 21.23.492, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
 | ```Wide search bar``` | ```Adds a wide search bar to the top of the home and subscription feed.``` | ```YouTube``` | ```21.38.123, 21.37.42, 21.28.208, 21.23.492, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
 | ```Yandex voice-over translation``` | ```Adds a separate Yandex translation button alongside Morphe voice-over translation.``` | ```YouTube``` | ```21.38.123, 21.37.42, 21.28.208, 21.23.492, 21.16.256, 21.13.164, 20.31.42, 20.21.37``` |
-| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Bypass certificate checks``` | ```Bypasses certificate checks which prevent YouTube Music from working on Android Auto.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Change miniplayer color``` | ```Adds an option to change the miniplayer background color to match the fullscreen player.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Crossfade``` | ```Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Disable dislike redirection``` | ```Adds an option to prevent skipping to the next track when the dislike button is pressed.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Downloads``` | ```Adds support to download songs using the in-app download button, either with an external downloader app or inside YouTube Music.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable exclusive audio playback``` | ```Enables the option to play audio without video.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable forced miniplayer``` | ```Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Enable swipe to dismiss miniplayer``` | ```Adds an option to enable dismissing the miniplayer by swiping down on it.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide ads``` | ```Adds options to hide fullscreen ads, Premium promotions and video ads.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide buttons``` | ```Adds options to hide the cast, history, notification, and search buttons.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide filter bar``` | ```Adds an option to hide the filter bar at the top of the homepage.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide flyout menu components``` | ```Adds options to hide individual items from the player and queue flyout menus.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Hide music action buttons``` | ```Adds options to hide action buttons under the player.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Miniplayer previous and next buttons``` | ```Adds options to show previous and next track buttons in the miniplayer.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Navigation bar``` | ```Adds options to hide navigation bar, labels and buttons.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Play albums songs``` | ```Adds an option to play the song version of album tracks instead of music videos.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remember repeat state``` | ```Adds an option to remember the repeat state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remember shuffle state``` | ```Adds an option to remember the shuffle state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of tracks with Return YouTube Dislike.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Scrobbling``` | ```Adds options to add played tracks to Last.fm and ListenBrainz.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube Music settings screen by their visible name.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip non-music segments.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 15+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
+| ```App refresh rate``` | ```Adds an option to change the app refresh rate.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Bypass certificate checks``` | ```Bypasses certificate checks which prevent YouTube Music from working on Android Auto.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Change header``` | ```Adds an option to change the header logo in the top left corner of the app.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Change miniplayer color``` | ```Adds an option to change the miniplayer background color to match the fullscreen player.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Change start page``` | ```Adds an option to set which page the app opens in instead of the homepage.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Check watch history domain name resolution``` | ```Checks if the device DNS server is preventing user watch history from being saved.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Crossfade``` | ```Adds a true dual-player crossfade between consecutive tracks. Requires YouTube Music 9.00 or newer; on older versions the patch is a no-op.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Custom branding``` | ```Adds options to change the app icon and app name. For mounted (root) installations the branding is applied while patching, because it cannot be changed from the app settings.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Disable dislike redirection``` | ```Adds an option to prevent skipping to the next track when the dislike button is pressed.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Disable DRC audio``` | ```Adds an option to disable DRC (Dynamic Range Compression) audio.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Disable QUIC protocol``` | ```Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Downloads``` | ```Adds support to download songs using the in-app download button, either with an external downloader app or inside YouTube Music.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable debugging``` | ```Adds options for debugging and exporting Morphe logs to the clipboard.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable exclusive audio playback``` | ```Enables the option to play audio without video.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable forced miniplayer``` | ```Adds an option to enable forced miniplayer when switching between music videos, podcasts, or songs.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Enable swipe to dismiss miniplayer``` | ```Adds an option to enable dismissing the miniplayer by swiping down on it.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Force original audio``` | ```Adds an option to always use the original audio track.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```GmsCore support``` | ```Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide ads``` | ```Adds options to hide fullscreen ads, Premium promotions and video ads.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide buttons``` | ```Adds options to hide the cast, history, notification, search, voice search, and sound search buttons.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide filter bar``` | ```Adds an option to hide the filter bar at the top of the homepage.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide flyout menu components``` | ```Adds options to hide individual items from the player and queue flyout menus.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Hide music action buttons``` | ```Adds options to hide action buttons under the player.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Miniplayer previous and next buttons``` | ```Adds options to show previous and next track buttons in the miniplayer.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Navigation bar``` | ```Adds options to hide navigation bar, labels and buttons.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Play albums songs``` | ```Adds an option to play the song version of album tracks instead of music videos.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```PoToken provider``` | ```Adds option to get PoToken using an external PoToken minter app.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remember repeat state``` | ```Adds an option to remember the repeat state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remember shuffle state``` | ```Adds an option to remember the shuffle state when playing a new track or playlist.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remove background playback restrictions``` | ```Removes restrictions on background playback, including playing kids videos in the background.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Remove viewer discretion dialog``` | ```Adds an option to remove the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Return YouTube Dislike``` | ```Adds an option to show the dislike count of tracks with Return YouTube Dislike.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Sanitize sharing links``` | ```Removes the tracking query parameters from shared links.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Scrobbling``` | ```Adds options to add played tracks to Last.fm and ListenBrainz.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Settings menu filter``` | ```Adds an option to hide items on the standard YouTube Music settings screen by their visible name.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```SponsorBlock``` | ```Adds options to enable and configure SponsorBlock, which can skip non-music segments.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Spoof app version``` | ```Adds an option to trick the app into thinking you are running an older version.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Spoof video streams``` | ```Adds options to spoof the client video streams to fix playback.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Theme``` | ```Adds options for theming, and settings to change the app foreground and background colors.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
+| ```Third-party lyrics``` | ```Adds an option to show synced lyrics with experience enhancement from 15+ providers in the lyrics panel.``` | ```YouTube Music``` | ```9.38.51, 9.37.54, 9.36.50, 9.15.51``` |
 
 </details>
 
@@ -7816,9 +7843,9 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Hide gift button``` | ```Hides the gift button in the chat message composer.``` | ```Discord``` | ```346.13 - Stable, 344.13 - Stable, 343.12 - Stable, 342.16 - Stable, 341.13 - Stable``` |
-| ```Hide quest promo banner``` | ```Hides the quest promo banner at the top of the server channel list.``` | ```Discord``` | ```346.13 - Stable, 344.13 - Stable, 343.12 - Stable, 342.16 - Stable, 341.13 - Stable``` |
-| ```Pin app to built-in bundle``` | ```Forces Discord to always run the bundle inside the APK and ignore downloaded (OTA) updates, which would otherwise silently undo the other patches. Turn this off (or update the APK) to receive official updates.``` | ```Discord``` | ```346.13 - Stable, 344.13 - Stable, 343.12 - Stable, 342.16 - Stable, 341.13 - Stable``` |
+| ```Hide gift button``` | ```Hides the gift button in the chat message composer.``` | ```Discord``` | ```All versions``` |
+| ```Hide quest promo banner``` | ```Hides the quest promo banner at the top of the server channel list.``` | ```Discord``` | ```All versions``` |
+| ```Pin app to built-in bundle``` | ```Forces Discord to always run the bundle inside the APK and ignore downloaded (OTA) updates, which would otherwise silently undo the other patches. Turn this off (or update the APK) to receive official updates.``` | ```Discord``` | ```All versions``` |
 
 </details>
 
@@ -8163,7 +8190,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 |----------|---------------|---------------------|-------------------------|
 | ```Peafowl - Unlock Theme Ownership (Experimental)``` | ```Use Peafowl's local free-theme path without the billing preflight. Experimental; server downloads are not guaranteed.``` | ```Peafowl Theme Maker for EMUI``` | ```GMS_27.5.1``` |
 | ```Pillo - Hybrid Lock-Screen Notifications``` | ```Use fullscreen alarms while the phone is locked and banner notifications while it is unlocked. Select Pillo's Banner/Light notification mode.``` | ```Pillo``` | ```0.6.19``` |
-| ```Reddit - Content filters (Experimental)``` | ```Adds keyword and per-community flair filters under Morphe > Filters, including cached and joined-community posts.``` | ```Reddit``` | ```2026.37.0``` |
+| ```Reddit - Content filters (Experimental)``` | ```Adds keyword and per-community flair filters under Morphe > Filters. Home-feed flair filtering requires Show flairs in home feed, which is installed automatically.``` | ```Reddit``` | ```2026.37.0``` |
 | ```Reddit - Show flairs in home feed (Experimental)``` | ```Shows native post flair badges below titles in the home feed, including cached and joined-community posts. Controlled by Morphe > Layout.``` | ```Reddit``` | ```2026.37.0``` |
 | ```Reddit - Start as guest``` | ```Skips the forced startup login screen using Reddit's native browse-logged-out action. Login remains available from the account menu. Already included upstream in Morphe Patches PR #3109: https://github.com/MorpheApp/morphe-patches/pull/3109``` | ```Reddit``` | ```2026.37.0``` |
 
@@ -8374,6 +8401,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Enable Saver Pack``` | ```Enables side trail and no ads``` | ```An Elmwood Trail``` | ```3.1.6``` |
 | ```Enable premium features``` | ```Removed validation on purchases, and forced to acknowledge that user is a premium user``` | ```Daylio``` | ```1.69.2``` |
 | ```Enable Premium``` | ```Enables the premium features of the app.``` | ```Decompile``` | ```3.3.2``` |
 | ```Enable VIP and no-ads download``` | ```Let's you watch all episodes without ads and download all episodes without watching ads beforehand.``` | ```FreeReels``` | ```2.4.70``` |
@@ -8382,7 +8410,6 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable Premium``` | ```Enables the premium features of the app.``` | ```Remindio``` | ```2.25.8``` |
 | ```Enable Premium``` | ```For premium patch to work, you need to login using your email and password (not Google)``` | ```Todaii Japanese``` | ```5.5.5``` |
 | ```Enable Premium``` | ```Enables the premium features of the app.``` | ```Touch The Notch``` | ```2.1.7``` |
-| ```Spoof App Signature``` | ```(Copied from BlazeFTL) Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes or shows a tamper warning because it checks its own certificate. Does not bypass Play Integrity / SafetyNet hardware attestation. Apply with Original app certificate patch.``` | ```Universal``` | ```All versions``` |
 | ```Enable Pro``` | ```Enable Pro features.``` | ```Vaulty``` | ```26.09.09``` |
 | ```Enable Premium``` | ```Enables Premium features except Bank Sync, Group Sharing, Facebook and Google login.``` | ```Wallet``` | ```9.3.10``` |
 | ```Enable Pro``` | ```Enables Pro features.``` | ```Wavelet``` | ```26.05``` |
@@ -9075,14 +9102,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Oyasumi Bundle Patch List:
 [📦 Oyasumi-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-oyasumi-patches-bundle-morphe)
 <details>
-<summary><b>Oyasumi</b> - 4 patches, 3 apps</summary>
+<summary><b>Oyasumi</b> - 2 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Walk-and-win step spoof``` | ```Report a fixed step count (10000) to walk-and-win instead of the real sensor value. Rewards are issued server-side and may still require genuine activity.``` | ```Djezzy``` | ```3.0.9``` |
-| ```Play license bypass``` | ```Skip the Play Store install and signature checks so the patched app launches instead of redirecting to the Play Store.``` | ```Goodnight``` | ```1.345.0``` |
-| ```Premium unlock``` | ```Unlock premium-gated UI and the ad-free match flow. Features validated server-side may still require a subscription.``` | ```Goodnight``` | ```1.345.0``` |
-| ```Example Patch``` | ```Example patch to start with.``` | ```XYZ app``` | ```2.0.0, 1.0.2``` |
+| ```Disable ads``` | ```Skip ADM's app-level ad initialization and display routines.``` | ```ADM``` | ```14.0.27``` |
+| ```Disable rating prompts``` | ```Skip ADM's rating dialog without changing service teardown.``` | ```ADM``` | ```14.0.27``` |
 
 </details>
 
@@ -9225,7 +9250,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide flyout menu components``` | ```Adds options to hide individual items from the player and queue flyout menus.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Hide layout components``` | ```Adds options to hide general layout components.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Hide music action buttons``` | ```Adds options to hide action buttons under the player.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
-| ```Jam queue sharing``` | ```Adds a native Jam queue panel and authenticated bridge. Experimental; validated on YTM 9.15.51.``` | ```YouTube Music``` | ```9.15.51``` |
+| ```Jam queue sharing``` | ```Adds a native Jam queue panel and authenticated bridge. Experimental; validated on YTM 9.15.51. Root installation is not supported.``` | ```YouTube Music``` | ```9.15.51``` |
 | ```Miniplayer previous and next buttons``` | ```Adds options to show previous and next track buttons in the miniplayer.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Navigation bar``` | ```Adds options to hide navigation bar, labels and buttons.``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
 | ```Network proxy``` | ```Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices``` | ```YouTube Music``` | ```9.37.54, 9.36.50, 9.35.54, 9.15.51``` |
@@ -9709,16 +9734,18 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Akshay-Pixel-Camera Bundle Patch List:
 [📦 Akshay-Pixel-Camera-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-akshay-pixel-camera-patches-bundle-morphe)
 <details>
-<summary><b>Akshay-Pixel-Camera</b> - 6 patches, 3 apps</summary>
+<summary><b>Akshay-Pixel-Camera</b> - 8 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```10x Viewfinder Quick Zoom``` | ```Unlocks the discrete 10x quick zoom button on viewfinder in Photo mode.``` | ```Pixel Camera, Pixel Camera (Eng), Pixel Camera (Clone)``` | ```11.0.073.972752740.32, 11.0.073.972752740.32, 11.0.073.972752740.32``` |
-| ```Camera Looks Backport``` | ```Enables Google Pixel 11's 10 signature Camera Looks (Sauce & Tomte) on Pixel 6 through Pixel 10.``` | ```Pixel Camera, Pixel Camera (Eng), Pixel Camera (Clone)``` | ```11.0.073.972752740.32, 11.0.073.972752740.32, 11.0.073.972752740.32``` |
-| ```Pixel Camera Clone (Non-Root)``` | ```Changes package identifier to com.google.android.GoogleCamera.morphe to allow side-by-side installation alongside stock Camera.``` | ```Pixel Camera, Pixel Camera (Eng), Pixel Camera (Clone)``` | ```11.0.073.972752740.32, 11.0.073.972752740.32, 11.0.073.972752740.32``` |
-| ```Pixel Camera Creator Suite``` | ```Enables Teleprompter HUD (Biotite), Live Audio VU Meter (Mica), and Social Framing Guides (Slate).``` | ```Pixel Camera, Pixel Camera (Eng), Pixel Camera (Clone)``` | ```11.0.073.972752740.32, 11.0.073.972752740.32, 11.0.073.972752740.32``` |
-| ```Pro Manual Controls``` | ```Enables Pro Manual Controls (Manual Focus, Shutter Speed, ISO, Focus Peaking, and Live Badges) on non-Pro Pixel models.``` | ```Pixel Camera, Pixel Camera (Eng), Pixel Camera (Clone)``` | ```11.0.073.972752740.32, 11.0.073.972752740.32, 11.0.073.972752740.32``` |
-| ```Viewfinder Quick Access Controls``` | ```Enables customizable Left/Right viewfinder quick-access shortcut slots and interactive 10-tick slider.``` | ```Pixel Camera, Pixel Camera (Eng), Pixel Camera (Clone)``` | ```11.0.073.972752740.32, 11.0.073.972752740.32, 11.0.073.972752740.32``` |
+| ```10x Viewfinder Quick Zoom``` | ```Unlocks the discrete 10x quick zoom button on viewfinder in Photo mode.``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
+| ```Camera Looks Backport``` | ```Enables Google Pixel 11's 10 signature Camera Looks (Sauce & Tomte) on Pixel 6 through Pixel 10, fixes Portrait Mode blur on all cameras, and resolves Pixel 10 photo saving.``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
+| ```Permanent Portrait Mode Fix``` | ```Fixes front camera total blur and rear camera flat/bokeh-less portraits by routing portrait processing to Google's pure-TFLite monocular depth pipeline across all cameras.``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
+| ```Pixel 10 Photo Saving Fix``` | ```Resolves Pixel 10 & Pro 12MP photos not saving by disabling failing Flare Removal (ceftazidime) and Eclipse AE, mapping binned RAW stream dimensions, and guarding telephoto streams.``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
+| ```Pixel Camera Clone (Non-Root)``` | ```Changes package identifier to com.google.android.GoogleCamera.morphe to allow side-by-side installation alongside stock Camera.``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
+| ```Pixel Camera Creator Suite``` | ```Enables Teleprompter HUD (Biotite), Live Audio VU Meter (Mica), and Social Framing Guides (Slate).``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
+| ```Pro Manual Controls``` | ```Enables Pro Manual Controls (Manual Focus, Shutter Speed, ISO, Focus Peaking, and Live Badges) on non-Pro Pixel models.``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
+| ```Viewfinder Quick Access Controls``` | ```Enables customizable Left/Right viewfinder quick-access shortcut slots and interactive 10-tick slider.``` | ```Pixel Camera``` | ```11.0.073.972752740.32``` |
 
 </details>
 

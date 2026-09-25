@@ -28,6 +28,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.RobolectricTestRunner;
@@ -490,6 +493,50 @@ public class CommentBatchTranslatorTest {
                 1, NativeManager.requests);
     }
 
+    /**
+     * The keyword filter reads a finished batch through {@link CommentBatchTranslator#completedBatch}:
+     * the comments TikTok asked about and the results it got, off the runner its completion hook
+     * is handed. The filter's own hook is Comment tools', so the translator's completion leaves a
+     * batch it did not ask for alone even with the filter on, and judging it is covered where the
+     * filter lives (TranslatedCommentFilterTest).
+     */
+    @Test public void aFinishedBatchIsReadOffTikTokRunnerForTheKeywordFilter() {
+        Settings.COMMENT_BATCH_TRANSLATION.save(false);
+        Settings.COMMENT_KEYWORD_FILTER.save(true);
+        Settings.COMMENT_BLOCKED_KEYWORDS.save("the");
+        try {
+            Comment comment = new Comment("aid-own", "cid-own");
+            comment.text = "el gato";
+            List<Translation> results = Arrays.asList(new Translation("cid-own", "the cat"));
+            Runner runner = new Runner(results, comment);
+
+            Object[] batch = CommentBatchTranslator.completedBatch(runner);
+            assertNotNull("the runner's batch was not read", batch);
+            assertEquals(Arrays.asList(comment), batch[0]);
+            assertSame(results, batch[1]);
+            assertNull("a runner that lost its task was read anyway",
+                    CommentBatchTranslator.completedBatch(new RunnerWithoutTask(results)));
+            assertNull(CommentBatchTranslator.completedBatch(null));
+
+            Anchor anchor = new Anchor(comment, new TranslationContext("aid-own"));
+            View cell = new View(context);
+            cell.setLayoutParams(new android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+            CommentBatchTranslator.registerCommentCell(cell, anchor);
+            int handled = CommentBatchTranslator.completionsHandledForTests();
+            CommentBatchTranslator.onNativeBatchComplete(runner);
+            assertEquals("a batch nobody asked for was counted as handled", handled,
+                    CommentBatchTranslator.completionsHandledForTests());
+            assertEquals("the translator judged a batch the filter's own hook owns",
+                    View.VISIBLE, cell.getVisibility());
+        } finally {
+            Settings.COMMENT_KEYWORD_FILTER.save(false);
+            Settings.COMMENT_BLOCKED_KEYWORDS.save("");
+            app.morphe.extension.tiktok.comment.TranslatedCommentFilter.resetForTests();
+        }
+    }
+
     /** Robolectric advances SystemClock.elapsedRealtime as the paused looper is idled. */
     private static void idleFor(long millis) {
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(millis));
@@ -653,6 +700,7 @@ public class CommentBatchTranslatorTest {
         private final String aid;
         private final String cid;
         boolean translated;
+        String text;
 
         Comment(String aid, String cid) {
             this.aid = aid;
@@ -663,7 +711,19 @@ public class CommentBatchTranslatorTest {
         public String getAwemeId() { return aid; }
         public String getCid() { return cid; }
         public boolean isTranslated() { return translated; }
+        public String getText() { return text; }
         public String getCommentLanguage() { return "zh"; }
+    }
+
+    /** Stands in for TikTok's TranslationResult, the shape the completion runner carries. */
+    public static final class Translation {
+        public final String contentId;
+        public final String translatedContent;
+
+        Translation(String contentId, String translatedContent) {
+            this.contentId = contentId;
+            this.translatedContent = translatedContent;
+        }
     }
 
     /**

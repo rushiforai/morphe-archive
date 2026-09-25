@@ -110,7 +110,7 @@ public class NativeCoordinateLongPressTest {
 
     @Test public void coordinateRemapsRunTheirActionsWithoutTheNativeMenu() {
         ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-        for (String action : new String[]{"copy_link", "copy_sound_link", "comments", "original_sound", "nothing"}) {
+        for (String action : new String[]{"copy_link", "copy_sound_link", "comments", "original_sound", "nothing", "youtube_music"}) {
             for (float fraction : new float[]{0.1f, 0.9f}) {
                 Settings.LONG_PRESS_ACTION.save(action);
                 NativeCell cell = cell(350, 1, false);
@@ -128,6 +128,8 @@ public class NativeCoordinateLongPressTest {
                     assertEquals(1, cell.commentClicks);
                 } else if ("original_sound".equals(action)) {
                     assertEquals("This video has no original sound to save", ShadowToast.getTextOfLatestToast());
+                } else if ("youtube_music".equals(action)) {
+                    assertEquals("This video's sound has no title to look for", ShadowToast.getTextOfLatestToast());
                 }
                 assertEquals(action, 1, cell.coordinate.handled);
                 assertTrue(action, cell.menus.isEmpty());

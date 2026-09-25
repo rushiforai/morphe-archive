@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.misc.share
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal object ShareUrlTrackerFingerprint : Fingerprint(

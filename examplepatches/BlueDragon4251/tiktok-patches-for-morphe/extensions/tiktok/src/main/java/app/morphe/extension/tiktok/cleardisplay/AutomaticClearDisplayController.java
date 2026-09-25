@@ -3,45 +3,66 @@ package app.morphe.extension.tiktok.cleardisplay;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
- * Owns Automatic Clear Display for TikTok 46.4.3.
+ * Owns Automatic Clear Display for TikTok 46.7.3.
  *
- * TikTok validates clear-mode events against the current panel/feed context. For that
- * reason BlueIT no longer fabricates an event and calls event.post(). Instead we retain
- * the real ClearModePanelComponent and ask it to enter clear mode through TikTok's own
- * request method (Rv0), using the native PINCH_ZOOM event type and "pinch" source.
+ * Runtime requests are deliberately kept out of TikTok's verifier-sensitive bytecode. The patch
+ * passes only the discovered clear-event class name as a String from exact native lifecycle hooks;
+ * event construction, PINCH_ZOOM type resolution and event-bus dispatch all happen reflectively in
+ * extension code and fail open.
  */
 @SuppressWarnings({"unused", "JavaReflectionMemberAccess"})
 public final class AutomaticClearDisplayController {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final Object LOCK = new Object();
 
-    private static final String CLEAR_PANEL_REQUEST_METHOD = "Rv0";
-    private static final String CLEAR_EVENT_TYPE_CLASS = "X.12x2";
-    private static final String CLEAR_EVENT_PINCH_ZOOM = "PINCH_ZOOM";
-    private static final String CLEAR_EVENT_DISPATCHER_CLASS = "X.093F";
+    // Exact 46.7.3 discoveries. They are Strings on purpose: no verifier/link-time dependency is
+    // introduced into the patched TikTok method.
+    private static final String EVENT_TYPE_CLASS = "X.0tlj";
+    private static final String EVENT_TYPE_PINCH_ZOOM = "PINCH_ZOOM";
+    private static final String EVENT_DISPATCHER_CLASS = "X.06sX";
+
+    private static final ConcurrentHashMap<String, Constructor<?>> EVENT_CONSTRUCTORS =
+            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Method> EVENT_POST_METHODS =
+            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Method> EVENT_DISPATCH_METHODS =
+            new ConcurrentHashMap<>();
+    private static final AtomicBoolean FIRST_TRIGGER_LOGGED = new AtomicBoolean(false);
+    private static final AtomicInteger PANEL_TRIGGER_LOG_BUDGET = new AtomicInteger(12);
 
     private static Runnable pending;
-    private static Object latestEvent;
-    private static Object latestPanel;
-    private static String latestPanelToken = "";
+    private static String latestEventClassName = "";
+    private static int videoGeneration;
+    private static volatile boolean patchEnabled;
     private static volatile boolean manualOverride;
     private static volatile long lastAutomaticPostAtMs;
+    private static volatile boolean compatibilityFailureLogged;
     private static volatile Integer pinchZoomType;
 
     private AutomaticClearDisplayController() {
     }
 
+    /** Called only when the Automatic Clear Display patch is actually present in the patched APK. */
+    public static void enablePatch() {
+        patchEnabled = true;
+    }
+
     public static boolean isEnabled() {
-        return Settings.AUTOMATIC_CLEAR_DISPLAY.get();
+        return patchEnabled && Settings.AUTOMATIC_CLEAR_DISPLAY.get();
     }
 
     public static boolean shouldRestoreRememberedState() {
@@ -49,83 +70,90 @@ public final class AutomaticClearDisplayController {
     }
 
     /**
-     * Called from ClearModePanelComponent.resetClearMode for the current feed item.
-     * Keeping the real panel is essential because it supplies TikTok's current eventType.
+     * Primary 46.7.3 per-item trigger. Called at the final return of the exact
+     * ClearModePanelComponent method containing the native "resetClearMode" path.
      */
-    public static void updatePanelContext(Object panel, Object itemContext) {
-        if (panel == null) return;
+    public static void onPanelReset(String eventClassName) {
+        // If this callback exists in the APK, the optional patch is definitely installed. This also
+        // makes runtime activation independent of opening BlueIT settings or a particular feed body.
+        patchEnabled = true;
 
-        String token = contextToken(itemContext);
+        String normalized = normalizeClassName(eventClassName);
+        if (normalized.isEmpty()) return;
+
+        if (BaseSettings.DEBUG.get() && PANEL_TRIGGER_LOG_BUDGET.getAndDecrement() > 0) {
+            final boolean enabled = isEnabled();
+            Logger.printInfo(() -> "[BlueIT ClearDisplay] native panel-reset trigger enabled="
+                    + enabled + " class=" + normalized + " delayMs=" + delayMs());
+        }
+
         synchronized (LOCK) {
-            boolean changed = panel != latestPanel || !token.equals(latestPanelToken);
-            latestPanel = panel;
-            latestPanelToken = token;
-
-            if (changed) {
-                cancelLocked();
-                manualOverride = false;
-                lastAutomaticPostAtMs = 0L;
-
-                // resetClearMode is itself a per-item lifecycle signal. Schedule here as
-                // a fallback in case PlayerController's first-frame callback is delayed.
-                if (isEnabled()) {
-                    scheduleLocked(panel, token);
-                }
+            latestEventClassName = normalized;
+            videoGeneration++;
+            manualOverride = false;
+            lastAutomaticPostAtMs = 0L;
+            cancelLocked();
+            if (isEnabled()) {
+                scheduleLocked(videoGeneration, normalized);
             }
         }
-    }
-
-    /** Called for every newly rendered feed video by the existing proven first-frame hook. */
-    public static void onNewVideo(Object clearDisplayEvent) {
-        synchronized (LOCK) {
-            latestEvent = clearDisplayEvent;
-            if (!isEnabled() || manualOverride || latestPanel == null) {
-                return;
-            }
-
-            cancelLocked();
-            scheduleLocked(latestPanel, latestPanelToken);
-        }
-    }
-
-    /** Immediately enters clear-display mode using TikTok's current real panel. */
-    public static boolean postNow() {
-        final Object panel;
-        final Object fallbackEvent;
-        synchronized (LOCK) {
-            panel = latestPanel;
-            fallbackEvent = latestEvent;
-            cancelLocked();
-        }
-
-        if (panel != null && requestNativeClearDisplay(panel, false)) {
-            return true;
-        }
-
-        // Compatibility fallback for a surface where no ClearModePanelComponent was
-        // observed. The native 46.4.3 event-bus dispatcher is attempted before post().
-        return fallbackEvent != null && dispatchEvent(fallbackEvent, false);
     }
 
     /**
-     * Tracks native clear-display state. A false state before BlueIT ever entered clear
-     * mode is ordinary TikTok setup, not a manual override. Once automatic clear mode was
-     * requested, a later false state suppresses re-entry until the next feed item.
+     * Secondary fallback retained for feeds that expose the proven render-first-frame hook. The
+     * native panel-reset callback above is the primary trigger on 46.7.3.
+     */
+    public static void onRenderFirstFrame(String eventClassName) {
+        if (!isEnabled()) return;
+
+        String normalized = normalizeClassName(eventClassName);
+        if (normalized.isEmpty()) return;
+
+        if (BaseSettings.DEBUG.get() && FIRST_TRIGGER_LOGGED.compareAndSet(false, true)) {
+            Logger.printInfo(() -> "[BlueIT ClearDisplay] first-frame fallback trigger active class="
+                    + normalized + " delayMs=" + delayMs());
+        }
+
+        synchronized (LOCK) {
+            latestEventClassName = normalized;
+            videoGeneration++;
+            manualOverride = false;
+            lastAutomaticPostAtMs = 0L;
+            cancelLocked();
+            scheduleLocked(videoGeneration, normalized);
+        }
+    }
+
+    /** Gesture/manual entry point used by optional integrations after a current event class is known. */
+    public static boolean postNow() {
+        final String eventClassName;
+        synchronized (LOCK) {
+            eventClassName = latestEventClassName;
+            cancelLocked();
+        }
+        if (!isEnabled() || eventClassName.isEmpty()) return false;
+        return postEvent(eventClassName, true);
+    }
+
+    /** Proven remembered-state restoration, also kept fully reflective for verifier safety. */
+    public static boolean postRemembered(String eventClassName) {
+        String normalized = normalizeClassName(eventClassName);
+        if (normalized.isEmpty()) return false;
+        return postEvent(normalized, false);
+    }
+
+    /**
+     * Tracks native clear-display state. If the user manually leaves clear display after our
+     * automatic request, do not force it back on for the same video. A new panel reset clears this.
      */
     public static void onClearDisplayStateChanged(boolean enabled) {
-        if (!isEnabled() || enabled) {
-            return;
-        }
+        if (!isEnabled() || enabled) return;
 
         long automaticPostAt = lastAutomaticPostAtMs;
-        if (automaticPostAt <= 0L) {
-            return;
-        }
+        if (automaticPostAt <= 0L) return;
 
-        // Ignore only the immediate synchronous event-bus churn caused by the request.
-        if (System.currentTimeMillis() - automaticPostAt <= 150L) {
-            return;
-        }
+        // Ignore immediate synchronous state churn caused by our own event dispatch.
+        if (System.currentTimeMillis() - automaticPostAt <= 150L) return;
 
         synchronized (LOCK) {
             manualOverride = true;
@@ -139,20 +167,25 @@ public final class AutomaticClearDisplayController {
         }
     }
 
-    private static void scheduleLocked(Object panel, String token) {
-        if (panel == null || manualOverride) return;
+    /** Compatibility no-op for older development APK bytecode. */
+    public static void updatePanelContext(Object panel, Object itemContext) {
+        // Intentionally unused in the verifier-safe 46.7.3 implementation.
+    }
 
-        final Object scheduledPanel = panel;
-        final String scheduledToken = token;
+    private static void scheduleLocked(int generation, String eventClassName) {
+        if (manualOverride) return;
+
         pending = () -> {
             synchronized (LOCK) {
                 pending = null;
-                if (!isEnabled() || manualOverride || scheduledPanel != latestPanel
-                        || !scheduledToken.equals(latestPanelToken)) {
+                if (!isEnabled()
+                        || manualOverride
+                        || generation != videoGeneration
+                        || !eventClassName.equals(latestEventClassName)) {
                     return;
                 }
             }
-            requestNativeClearDisplay(scheduledPanel, true);
+            postEvent(eventClassName, true);
         };
         MAIN.postDelayed(pending, delayMs());
     }
@@ -170,144 +203,202 @@ public final class AutomaticClearDisplayController {
     }
 
     /**
-     * TikTok 46.4.3: ClearModePanelComponent.Rv0(int eventType, String source,
-     * boolean isClean). Rv0 obtains the current feed eventType itself, creates LX/0RG4
-     * and dispatches it through LX/093F, matching the native pinch implementation.
+     * Creates TikTok's real four-argument ClearDisplay event. Automatic entry uses the exact
+     * PINCH_ZOOM enum type discovered from 46.7.3 and source="pinch". Remembered-state restoration
+     * intentionally keeps the legacy neutral type/source combination.
      */
-    private static boolean requestNativeClearDisplay(Object panel, boolean automatic) {
+    private static boolean postEvent(String eventClassName, boolean automatic) {
         try {
-            int eventType = getPinchZoomType();
-            Method request = findMethod(
-                    panel.getClass(),
-                    CLEAR_PANEL_REQUEST_METHOD,
-                    int.class,
-                    String.class,
-                    boolean.class
+            Constructor<?> constructor = eventConstructor(eventClassName);
+            int eventType = automatic ? getPinchZoomType() : 0;
+            Object event = constructor.newInstance(
+                    true,
+                    eventType,
+                    "",
+                    automatic ? "pinch" : "long_press"
             );
-            if (request == null) {
-                throw new NoSuchMethodException(panel.getClass().getName() + ".Rv0(int,String,boolean)");
-            }
-            request.setAccessible(true);
 
-            Object result = request.invoke(panel, eventType, "pinch", true);
-            boolean accepted = !(result instanceof Boolean) || (Boolean) result;
-            if (accepted && automatic) {
-                lastAutomaticPostAtMs = System.currentTimeMillis();
+            if (automatic) lastAutomaticPostAtMs = System.currentTimeMillis();
+            if (!dispatchEvent(eventClassName, event)) {
+                throw new NoSuchMethodException("No compatible TikTok event dispatcher/post method");
             }
 
             if (BaseSettings.DEBUG.get()) {
-                Logger.printInfo(() -> "[BlueIT ClearDisplay] native panel request "
-                        + (automatic ? "automatic" : "gesture")
-                        + " accepted=" + accepted
-                        + " eventType=" + eventType);
+                final int postedType = eventType;
+                Logger.printInfo(() -> "[BlueIT ClearDisplay] event posted "
+                        + (automatic ? "automatically" : "for remembered state")
+                        + " class=" + eventClassName
+                        + " type=" + postedType
+                        + " source=" + (automatic ? "pinch" : "long_press"));
             }
-            return accepted;
+            return true;
         } catch (Throwable throwable) {
-            if (automatic) {
-                lastAutomaticPostAtMs = 0L;
-            }
-            if (BaseSettings.DEBUG.get()) {
-                Logger.printException(() -> "[BlueIT ClearDisplay] native panel request failed", throwable);
-            }
+            if (automatic) lastAutomaticPostAtMs = 0L;
+            logCompatibilityFailureOnce(throwable, eventClassName);
             return false;
         }
     }
 
+    /** Use TikTok's own LX/06sX.LIZ(IEvent) dispatcher first; instance post() is only a fallback. */
+    private static boolean dispatchEvent(String eventClassName, Object event) {
+        try {
+            Method cached = EVENT_DISPATCH_METHODS.get(eventClassName);
+            if (cached == null) {
+                Class<?> dispatcher = loadClass(EVENT_DISPATCHER_CLASS);
+                for (Method candidate : dispatcher.getDeclaredMethods()) {
+                    Class<?>[] parameters = candidate.getParameterTypes();
+                    if (!"LIZ".equals(candidate.getName())
+                            || !Modifier.isStatic(candidate.getModifiers())
+                            || parameters.length != 1
+                            || !parameters[0].isAssignableFrom(event.getClass())) {
+                        continue;
+                    }
+                    candidate.setAccessible(true);
+                    cached = candidate;
+                    EVENT_DISPATCH_METHODS.put(eventClassName, candidate);
+                    break;
+                }
+            }
+            if (cached != null) {
+                cached.invoke(null, event);
+                return true;
+            }
+        } catch (Throwable ignored) {
+            // Fall through to the event's own post() helper.
+        }
+
+        try {
+            Method post = eventPostMethod(eventClassName, event.getClass());
+            post.invoke(event);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    /** Resolve LX/0tlj.PINCH_ZOOM.getType() without linking the obfuscated enum into bytecode. */
     private static int getPinchZoomType() throws Exception {
         Integer cached = pinchZoomType;
         if (cached != null) return cached;
 
-        Class<?> typeClass = Class.forName(CLEAR_EVENT_TYPE_CLASS);
-        Field field = typeClass.getDeclaredField(CLEAR_EVENT_PINCH_ZOOM);
-        field.setAccessible(true);
-        Object enumValue = field.get(null);
-        if (enumValue == null) throw new IllegalStateException("PINCH_ZOOM is null");
+        Class<?> typeClass = loadClass(EVENT_TYPE_CLASS);
+        Object enumValue = null;
 
-        Method getType = findMethod(enumValue.getClass(), "getType");
-        if (getType == null) throw new NoSuchMethodException("PINCH_ZOOM.getType()");
+        try {
+            Field field = typeClass.getDeclaredField(EVENT_TYPE_PINCH_ZOOM);
+            field.setAccessible(true);
+            enumValue = field.get(null);
+        } catch (NoSuchFieldException ignored) {
+            // Fail-open fallback for a future minor obfuscation that preserves a useful label.
+            for (Field field : typeClass.getDeclaredFields()) {
+                if (!Modifier.isStatic(field.getModifiers())) continue;
+                try {
+                    field.setAccessible(true);
+                    Object candidate = field.get(null);
+                    if (candidate == null) continue;
+                    String label = (field.getName() + " " + String.valueOf(candidate))
+                            .toLowerCase(Locale.ROOT);
+                    if (label.contains("pinch") && label.contains("zoom")) {
+                        enumValue = candidate;
+                        break;
+                    }
+                } catch (Throwable ignoredCandidate) {
+                }
+            }
+        }
+
+        if (enumValue == null) {
+            throw new NoSuchFieldException(EVENT_TYPE_CLASS + ".PINCH_ZOOM");
+        }
+
+        Method getType = findNoArgMethod(enumValue.getClass(), "getType");
+        if (getType == null) throw new NoSuchMethodException(EVENT_TYPE_CLASS + ".getType()");
         getType.setAccessible(true);
         Object value = getType.invoke(enumValue);
-        if (!(value instanceof Number)) throw new IllegalStateException("PINCH_ZOOM.getType() is not numeric");
+        if (!(value instanceof Number)) {
+            throw new IllegalStateException("PINCH_ZOOM.getType() is not numeric");
+        }
 
         int resolved = ((Number) value).intValue();
         pinchZoomType = resolved;
         return resolved;
     }
 
-    /** Native event-bus fallback for 46.4.3. */
-    private static boolean dispatchEvent(Object event, boolean automatic) {
-        try {
-            Class<?> dispatcher = Class.forName(CLEAR_EVENT_DISPATCHER_CLASS);
-            Method dispatch = null;
-            for (Method candidate : dispatcher.getDeclaredMethods()) {
-                if (!candidate.getName().equals("LIZ") || candidate.getParameterTypes().length != 1
-                        || !Modifier.isStatic(candidate.getModifiers())) {
-                    continue;
-                }
-                if (candidate.getParameterTypes()[0].isAssignableFrom(event.getClass())) {
-                    dispatch = candidate;
-                    break;
-                }
-            }
-            if (dispatch != null) {
-                dispatch.setAccessible(true);
-                if (automatic) lastAutomaticPostAtMs = System.currentTimeMillis();
-                dispatch.invoke(null, event);
-                return true;
-            }
-        } catch (Throwable ignored) {
-            // Fall through to the legacy event instance method.
-        }
+    private static Constructor<?> eventConstructor(String eventClassName) throws Exception {
+        Constructor<?> cached = EVENT_CONSTRUCTORS.get(eventClassName);
+        if (cached != null) return cached;
 
+        Class<?> eventClass = loadClass(eventClassName);
+        Constructor<?> constructor = eventClass.getDeclaredConstructor(
+                boolean.class,
+                int.class,
+                String.class,
+                String.class
+        );
+        constructor.setAccessible(true);
+        EVENT_CONSTRUCTORS.put(eventClassName, constructor);
+        return constructor;
+    }
+
+    private static Method eventPostMethod(String eventClassName, Class<?> eventClass) throws Exception {
+        Method cached = EVENT_POST_METHODS.get(eventClassName);
+        if (cached != null) return cached;
+
+        Method post = findNoArgMethod(eventClass, "post");
+        if (post == null) {
+            throw new NoSuchMethodException(eventClassName + ".post()");
+        }
+        post.setAccessible(true);
+        EVENT_POST_METHODS.put(eventClassName, post);
+        return post;
+    }
+
+    private static Class<?> loadClass(String className) throws ClassNotFoundException {
         try {
-            Method post = findMethod(event.getClass(), "post");
-            if (post == null) return false;
-            post.setAccessible(true);
-            if (automatic) lastAutomaticPostAtMs = System.currentTimeMillis();
-            post.invoke(event);
-            return true;
-        } catch (Throwable throwable) {
-            if (automatic) lastAutomaticPostAtMs = 0L;
-            if (BaseSettings.DEBUG.get()) {
-                Logger.printException(() -> "[BlueIT ClearDisplay] fallback event dispatch failed", throwable);
+            return Class.forName(className);
+        } catch (ClassNotFoundException first) {
+            ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
+            if (contextLoader != null) {
+                return Class.forName(className, false, contextLoader);
             }
-            return false;
+            throw first;
         }
     }
 
-    private static String contextToken(Object itemContext) {
-        if (itemContext == null) return "null";
-        try {
-            Object aweme = invokeNoArg(itemContext, "getAweme");
-            if (aweme != null) {
-                Object aid = invokeNoArg(aweme, "getAid");
-                if (aid instanceof String && !((String) aid).isEmpty()) {
-                    return "aid:" + aid;
-                }
-            }
-        } catch (Throwable ignored) {
-        }
-        return itemContext.getClass().getName() + "@" + System.identityHashCode(itemContext);
-    }
-
-    private static Object invokeNoArg(Object target, String name) throws Exception {
-        Method method = findMethod(target.getClass(), name);
-        if (method == null) return null;
-        method.setAccessible(true);
-        return method.invoke(target);
-    }
-
-    private static Method findMethod(Class<?> type, String name, Class<?>... parameterTypes) {
+    private static Method findNoArgMethod(Class<?> type, String name) {
         for (Class<?> current = type; current != null; current = current.getSuperclass()) {
             try {
-                return current.getDeclaredMethod(name, parameterTypes);
+                return current.getDeclaredMethod(name);
             } catch (NoSuchMethodException ignored) {
             }
         }
         try {
-            return type.getMethod(name, parameterTypes);
+            return type.getMethod(name);
         } catch (NoSuchMethodException ignored) {
             return null;
         }
+    }
+
+    private static String normalizeClassName(String eventClassName) {
+        if (eventClassName == null) return "";
+        String value = eventClassName.trim();
+        if (value.startsWith("L") && value.endsWith(";") && value.length() > 2) {
+            value = value.substring(1, value.length() - 1);
+        }
+        return value.replace('/', '.');
+    }
+
+    private static void logCompatibilityFailureOnce(Throwable throwable, String eventClassName) {
+        if (compatibilityFailureLogged) return;
+        compatibilityFailureLogged = true;
+        Logger.printInfo(() -> "[BlueIT ClearDisplay] reflected 46.7.3 route unavailable "
+                + "class=" + eventClassName
+                + " (" + throwable.getClass().getSimpleName()
+                + ": " + safeMessage(throwable) + ")");
+    }
+
+    private static String safeMessage(Throwable throwable) {
+        String message = throwable.getMessage();
+        return message == null ? "no message" : message;
     }
 }

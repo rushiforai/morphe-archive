@@ -18,6 +18,11 @@ public final class VerifyTalkDatEncoding {
         require(encoded.endsWith("<>Talk &#128512;スレ\n"));
         require(dat.equals(decodeNumericEntities(encoded)));
 
+        String smile = "日本国　貧困弁当が流行る☺️";
+        String encodedSmile = new String(TalkDatEncoding.encode(smile), MS932);
+        require(encodedSmile.equals("日本国　貧困弁当が流行る&#9786;"));
+        require(!encodedSmile.contains("�"));
+
         System.out.println("Talk DAT Unicode encoding verification passed");
     }
 

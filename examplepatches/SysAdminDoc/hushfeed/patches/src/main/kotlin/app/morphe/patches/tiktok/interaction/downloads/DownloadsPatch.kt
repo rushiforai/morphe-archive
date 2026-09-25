@@ -38,6 +38,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/download/DownloadsPatch;"
 private const val STICKER_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/download/StickerGallerySaver;"
 private const val FILENAME_FORMATTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/download/DownloadFilenameFormatter;"
+private const val COMMENT_LIVE_PHOTO_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/download/CommentLivePhotoSaver;"
+internal const val COMMENT_MODEL_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
 
 /**
  * Hands the finished download's path and video to the filename formatter, at index 0.
@@ -218,6 +220,48 @@ val downloadsPatch = bytecodePatch(
                     """,
                 )
             }
+        }
+
+        // The clip of a live photo in a comment (upstream #169). TikTok's own Save photo hands its
+        // downloader the still's UrlModel alone, so the clip in livePhotoInfoModel.urlList never
+        // lands. Once the save routine has the comment and the tapped photo's index (the index
+        // unboxed just before the comment is read), the extension fetches the clip beside the still.
+        CommentPhotoSaveFingerprint.method.apply {
+            val instructions = implementation!!.instructions.toList()
+            val commentCall = instructions.indexOfFirst {
+                it.opcode == Opcode.INVOKE_VIRTUAL &&
+                    it.getReference<MethodReference>()?.returnType == COMMENT_MODEL_DESCRIPTOR
+            }
+            if (commentCall < 0 || instructions[commentCall + 1].opcode != Opcode.MOVE_RESULT_OBJECT) {
+                throw PatchException("Downloads: the comment photo save no longer reads its comment where the clip hook sits")
+            }
+            val commentRegister = (instructions[commentCall + 1] as OneRegisterInstruction).registerA
+            if (commentRegister > 15) {
+                throw PatchException("Downloads: the comment photo save keeps its comment past v15")
+            }
+            // 47.0.3 unboxes the tapped photo's index just before the comment; 46.2.3 saved the
+            // first photo with no index at all, and gets the one-argument call.
+            val indexCall = instructions.subList(0, commentCall).indexOfLast {
+                it.getReference<MethodReference>()?.let { reference ->
+                    reference.definingClass == "Ljava/lang/Integer;" && reference.name == "intValue"
+                } == true
+            }
+            val indexRegister = if (indexCall >= 0 && instructions[indexCall + 1].opcode == Opcode.MOVE_RESULT) {
+                (instructions[indexCall + 1] as OneRegisterInstruction).registerA
+            } else {
+                null
+            }
+            if (indexRegister != null && indexRegister > 15) {
+                throw PatchException("Downloads: the comment photo save keeps the photo's index past v15")
+            }
+            addInstruction(
+                commentCall + 2,
+                if (indexRegister == null) {
+                    "invoke-static {v$commentRegister}, $COMMENT_LIVE_PHOTO_CLASS_DESCRIPTOR->saveClip(Ljava/lang/Object;)V"
+                } else {
+                    "invoke-static {v$commentRegister, v$indexRegister}, $COMMENT_LIVE_PHOTO_CLASS_DESCRIPTOR->saveClip(Ljava/lang/Object;I)V"
+                },
+            )
         }
 
         // Preserve the full StickerItem behind TikTok's reduced preview model for media detection.

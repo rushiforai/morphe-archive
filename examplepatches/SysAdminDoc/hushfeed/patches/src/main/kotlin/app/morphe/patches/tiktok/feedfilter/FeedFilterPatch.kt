@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.tiktok.feedfilter
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -17,6 +18,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.objectIn
@@ -26,7 +28,9 @@ import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
+import app.morphe.util.implementationOrPatchException
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -34,6 +38,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -44,6 +49,8 @@ private const val PROFILE_DETAIL_PANEL_DESCRIPTOR =
     "Lcom/ss/android/ugc/aweme/detail/panel/ProfileDetailFragmentPanel;"
 private const val TAKO_AI_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/TakoAiFilter;"
 private const val CARD_FILTERS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/CardFilters;"
+private const val SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/SearchLynxCards;"
+private const val FEED_ITEM_LIST_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
 
 @Suppress("unused")
 val feedFilterPatch = bytecodePatch(
@@ -54,7 +61,10 @@ val feedFilterPatch = bytecodePatch(
         "the playlist bar, the floating event badge and inserted cards. Videos can also be " +
         "filtered by your own caption words, creator handles or patterns, sound names, length, " +
         "the country they were posted from and their view, like, comment, favorite and share " +
-        "counts. Sponsored cards are dropped from the profile video viewer, the search grids " +
+        "counts. A short list of creator exceptions lets chosen accounts through the filters on " +
+        "the kind of post, its labels, age, length and counts. Ads, blocked creators, words, " +
+        "sounds and countries, paid and Shop content, LIVE and seen videos still apply to them. " +
+        "Sponsored cards are dropped from the profile video viewer, the search grids " +
         "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
         "into a video pager after the list has loaded and the ads a creator's video pager asks " +
         "for on its own. The share prompt that appears after a like can be hidden too, and so " +
@@ -91,6 +101,49 @@ val feedFilterPatch = bytecodePatch(
                     "invoke-static/range { v$register .. v$register }, $EXTENSION_CLASS_DESCRIPTOR->filter(Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;)V",
                 )
             }
+        }
+
+        // The cold-start TopView is the one community leak route no list filter reaches. The
+        // feed fetch hands the response's preload ads to the splash ad service before
+        // fetchFeedList returns, which is where filter(FeedItemList) runs, so upstream PR #166's
+        // reset of preloadAds at filter time reached nothing on 47.0.3. The list is rerouted
+        // through the extension on its way into the service: with Remove ads on the service gets
+        // an empty list, and the route is counted on a TopViewPreload line either way. The
+        // install marker at entry puts the family in the export on a cold start that was served
+        // no TopView, the way the mid-roll marker does. The marker goes in first, so the handoff
+        // index below is read from the shifted body.
+        FeedApiFetchFingerprint.method.apply {
+            addInstruction(0, "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->topViewPreloadInstalled()V")
+            // One hook, at the read of preloadAds, which every non-null response reaches and
+            // which comes before TikTok's own "nothing to preload" check. The list is counted
+            // and, with Remove ads on, replaced by an empty one right there, so that check then
+            // takes TikTok down the path it takes on every fetch served no ads: past the
+            // stamping loop, the handoff and the preload task. Emptying at the handoff instead
+            // would have handed the service an empty list it never sees in stock TikTok and run
+            // its task on the result, a path nothing had ever executed. The emptied list is also
+            // written back into the field, so the later readers of preloadAds (the list's clone,
+            // the commerce preload) see it too. The field keeps its name and is read once; the
+            // handoff is still required of the fetch so the thin request beside it cannot match.
+            val (readIndex, read) = implementationOrPatchException("Feed filter").instructions.withIndex()
+                .filter { it.value.isTopViewPreloadRead() }
+                .singleOrPatchException("Feed filter: the feed fetch's one read of preloadAds")
+            val listRegister = (read as TwoRegisterInstruction).registerA
+            val holderRegister = read.registerB
+            // The write-back is an iput-object, whose registers are four bits wide.
+            if (listRegister > 15 || holderRegister > 15) {
+                throw PatchException(
+                    "Feed filter: preloadAds is read into v$listRegister from v$holderRegister, past what " +
+                        "the write-back can name.",
+                )
+            }
+            addInstructions(
+                readIndex + 1,
+                """
+                    invoke-static/range {v$listRegister .. v$listRegister}, $EXTENSION_CLASS_DESCRIPTOR->dropTopViewPreload(Ljava/util/List;)Ljava/util/List;
+                    move-result-object v$listRegister
+                    iput-object v$listRegister, v$holderRegister, $FEED_ITEM_LIST_DESCRIPTOR->preloadAds:Ljava/util/List;
+                """,
+            )
         }
 
         // Some 47.0.3 main-feed lists are restored or filled after fetchFeedList has returned.
@@ -194,6 +247,22 @@ val feedFilterPatch = bytecodePatch(
         SearchResultRequestIdFingerprint.method.addInstructions(
             0,
             "invoke-static/range {p0 .. p0}, $EXTENSION_CLASS_DESCRIPTOR->filterSearchAds(Ljava/lang/Object;)V",
+        )
+        // The server-drawn Lynx cards in search, TikTok's Short Drama block among them, are built
+        // from a results chunk's patches and never pass through the list above, so each one is
+        // judged where its row binds it: the Top results adapter hands a card to one of two
+        // holders, each as (this, fragment, patch), and the other lists' Lynx cell binds
+        // (this cell, item). All three are required on a build the patch is declared for, where
+        // a missing one would let the block back in without a word; a build the patch is forced
+        // onto keeps the rest of the feed filter without them.
+        val declaredBuild = packageMetadata.versionName in declaredVersions()
+        fun lynxBind(fingerprint: Fingerprint) = if (declaredBuild) fingerprint.method else fingerprint.methodOrNull
+        val holderBound = "invoke-static/range {p0 .. p2}, $SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR->onHolderBound(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
+        lynxBind(SearchLynxHolderBindFingerprint)?.addInstructions(0, holderBound)
+        lynxBind(SearchDynamicHolderBindFingerprint)?.addInstructions(0, holderBound)
+        lynxBind(SearchLynxCardBindFingerprint)?.addInstructions(
+            0,
+            "invoke-static/range {p0 .. p1}, $SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR->onCardBound(Ljava/lang/Object;Ljava/lang/Object;)V",
         )
 
         // The Friends tab is a separate feed with its own response type, so none of the
@@ -488,6 +557,50 @@ val feedFilterPatch = bytecodePatch(
                     return-object v0
                 """,
             )
+        }
+
+        // The search results tab strip is served as a list of dynamic tab infos whose only
+        // consumer is the strip's view model, reading through two real-named getters that each
+        // open with one read of the field. The list is filtered at both reads, the guard for a
+        // build that serves an Ask Tako tab as data; on 47.0.3 none does (the pill below is a
+        // view of its own), and the extension records the keys it meets.
+        listOf(
+            SearchDynamicTabListGetTabListFingerprint,
+            SearchDynamicTabListGetSearchTabListFingerprint,
+        ).forEach { fingerprint ->
+            fingerprint.method.apply {
+                val (index, read) = implementationOrPatchException("Feed filter").instructions.withIndex()
+                    .filter { it.value.isSearchTabListRead() }
+                    .singleOrPatchException("Feed filter: one read of the search tab list in $name")
+                val register = (read as TwoRegisterInstruction).registerA
+                addInstructions(
+                    index + 1,
+                    """
+                        invoke-static/range {v$register .. v$register}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->filterSearchTabs(Ljava/util/List;)Ljava/util/List;
+                        move-result-object v$register
+                    """,
+                )
+            }
+        }
+
+        // The Ask Tako pill at the head of every search results page, the one Tako surface the
+        // switch left standing (issue #21's screenshots). It is not a served tab but a view the
+        // fragment inflates with the strip and styles before it returns, so the extension is
+        // handed the fragment's view at every return and hides the pill's column by the real id
+        // name its text view keeps.
+        SearchContainerFragmentOnViewCreatedFingerprint.method.let { method ->
+            val returnIndices = method.implementationOrPatchException("Feed filter").instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_VOID }
+                .map { it.index }
+            if (returnIndices.isEmpty()) {
+                throw PatchException("Feed filter: SearchContainerFragment.onViewCreated has no return to hook")
+            }
+            returnIndices.asReversed().forEach { returnIndex ->
+                method.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    "invoke-static/range {p1 .. p1}, $TAKO_AI_FILTER_CLASS_DESCRIPTOR->hideSearchTabEntrance(Landroid/view/View;)V",
+                )
+            }
         }
 
         // The Tako bar inside the comments sheet, the "related words" strip above the comment

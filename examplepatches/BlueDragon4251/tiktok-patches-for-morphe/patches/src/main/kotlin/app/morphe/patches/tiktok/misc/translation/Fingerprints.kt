@@ -1,6 +1,6 @@
 package app.morphe.patches.tiktok.misc.translation
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -209,9 +209,15 @@ internal object CommentListLoadedFingerprint : Fingerprint(
     },
 )
 
+/**
+ * Native multi-comment translation completion callback.
+ *
+ * The unique task marker survives TikTok 46.7.3, while the callback parameter
+ * descriptor changed. The BlueIT hook only consumes p0 (the callback object),
+ * so pinning the unstable parameter type is unnecessary.
+ */
 internal object MultiCommentTranslationCompleteFingerprint : Fingerprint(
     returnType = "V",
-    parameters = listOf("L"),
     strings = listOf("MultiCommentTranslationTask startTranslate onComplete "),
 )
 

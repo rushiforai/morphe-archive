@@ -148,12 +148,17 @@ public class Settings extends BaseSettings {
             new IntegerSetting("edge_seek_seconds", 5).withRange(0, 60);
     public static final BooleanSetting CONFIRM_FOLLOW = new BooleanSetting("confirm_follow", FALSE);
     public static final BooleanSetting CONFIRM_LIKE = new BooleanSetting("confirm_like", FALSE);
+    public static final BooleanSetting CONFIRM_COMMENT_LIKE = new BooleanSetting("confirm_comment_like", FALSE);
+    public static final BooleanSetting CONFIRM_STORY_LIKE = new BooleanSetting("confirm_story_like", FALSE);
+    public static final BooleanSetting CONFIRM_QUICK_REPOST = new BooleanSetting("confirm_quick_repost", FALSE);
     public static final StringSetting BLOCKED_CAPTION_WORDS =
             new FeedRuleStringSetting("blocked_caption_words", false);
     public static final StringSetting BLOCKED_CREATORS =
             new FeedRuleStringSetting("blocked_creators", true);
     public static final StringSetting LOCAL_HIDDEN_CREATORS =
             new FeedRuleStringSetting("local_hidden_creators", true);
+    public static final StringSetting CREATOR_FILTER_EXCEPTIONS =
+            new FeedRuleStringSetting("creator_filter_exceptions", true);
     public static final StringSetting REGION_ONLY_FROM = new StringSetting("region_only_from", "", true);
     public static final StringSetting REGION_NEVER_FROM = new StringSetting("region_never_from", "", true);
     public static final IntegerSetting MAX_VIDEO_SECONDS =
@@ -229,6 +234,8 @@ public class Settings extends BaseSettings {
     );
     /** The red count on Inbox and the dot on Profile, the pull that reopens the app. */
     public static final BooleanSetting HIDE_TAB_BADGES = new BooleanSetting("hide_tab_badges", FALSE, true);
+    public static final BooleanSetting KEEP_FOR_YOU_ON_TAB_TAP = new BooleanSetting("keep_for_you_on_tab_tap", FALSE);
+    public static final BooleanSetting KEEP_FOR_YOU_ON_PULL_DOWN = new BooleanSetting("keep_for_you_on_pull_down", FALSE);
     public static final BooleanSetting HIDE_TAKO_AI = new BooleanSetting("hide_tako_ai", FALSE, true);
     public static final BooleanSetting HIDE_BOTTOM_SEARCH_BAR = new BooleanSetting("hide_bottom_search_bar", FALSE, true);
     public static final BooleanSetting COMMENT_BATCH_TRANSLATION = new BooleanSetting("comment_batch_translation", FALSE);
@@ -311,6 +318,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting NO_RESUME_ON_FOREGROUND = new BooleanSetting(
             "no_resume_on_foreground", FALSE, true);
+    /**
+     * Sends TikTok to the background when TikTok's own daily screen-time reminder comes up,
+     * instead of leaving the reminder there to be dismissed. Off by default, read at show
+     * time, and it needs a daily limit set under TikTok's own Time and well-being settings
+     * to have anything to react to.
+     */
+    public static final BooleanSetting LEAVE_ON_REST_REMINDER = new BooleanSetting(
+            "leave_on_rest_reminder", FALSE);
     /**
      * A daily budget for the feed, off at zero. The two counts are independent of
      * {@link #AUTO_ADVANCE_LIMIT}, which only ever counted videos Hushfeed itself advanced past.

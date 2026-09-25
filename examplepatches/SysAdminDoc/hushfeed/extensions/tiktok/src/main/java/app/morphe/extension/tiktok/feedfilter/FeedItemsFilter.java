@@ -332,6 +332,65 @@ public final class FeedItemsFilter {
         return true;
     }
 
+    /** The counter line for the cold-start TopView preload, the one ad route no list filter sees. */
+    static final String TOP_VIEW_SOURCE = "TopViewPreload";
+    private static final String TOP_VIEW_HOOK_FAMILY = "topview preload";
+    private static final String TOP_VIEW_REASON = "TopViewFilter";
+
+    /**
+     * Called where the feed fetch hands its preload ads to the splash ad service, so the family
+     * is in the export on a cold start that was served no TopView. Without it a missing family
+     * reads as both "not patched" and "never served", which is the confusion the mid-roll
+     * marker exists to end.
+     */
+    public static void topViewPreloadInstalled() {
+        HookStatus.bound(TOP_VIEW_HOOK_FAMILY, "installed");
+    }
+
+    /**
+     * The cold-start TopView is the one community leak route the list filters cannot reach. The
+     * feed fetch reads {@code preloadAds} off the response, stamps each ad with the request id and
+     * hands the list to the splash ad service, all before {@code fetchFeedList} returns, which is
+     * where {@link #filter(FeedItemList)} runs; so a reset of that field at filter time reaches
+     * nothing. Called as the fetch reads the field, before TikTok's own "nothing to preload"
+     * check: the route is counted on every fetch, ads or none (a delivery of nothing has to
+     * leave a line too, or an account served no TopView reads the same as a build where the
+     * fetch was never patched), and with Remove ads on a list of ads is replaced by an empty
+     * one, so that check then sends TikTok down the path it takes on every fetch served no ads,
+     * past the stamping, the handoff and the preload task. Emptying at the handoff instead would
+     * hand the service an empty list it never sees in stock TikTok and run its task on the
+     * result. With the switch off the list goes through untouched. Fails open: this runs inside
+     * the cold-start fetch, and a failure here must never keep the feed from loading.
+     *
+     * @return the list to carry on with: a fresh empty one when the ads are dropped, else
+     *         {@code preloads} itself (null stays null, so TikTok's own null handling holds).
+     */
+    public static List<?> dropTopViewPreload(List<?> preloads) {
+        try {
+            HookStatus.bound(TOP_VIEW_HOOK_FAMILY, "read");
+            int count = preloads == null ? 0 : preloads.size();
+            FeedFilterCounters.sawList(TOP_VIEW_SOURCE, count);
+            if (count == 0) return preloads;
+            boolean verbose = BaseSettings.DEBUG.get();
+            if (!ADS_FILTER.getEnabled()) {
+                for (Object ad : preloads) {
+                    if (ad instanceof Aweme) logKeptItem(TOP_VIEW_SOURCE, (Aweme) ad, verbose);
+                }
+                return preloads;
+            }
+            FeedFilterCounters.removed(TOP_VIEW_SOURCE, count, TOP_VIEW_REASON);
+            for (Object ad : preloads) {
+                if (ad instanceof Aweme) logItem((Aweme) ad, TOP_VIEW_REASON, verbose);
+            }
+            // A fresh mutable list, in case anything of TikTok's adds to it before the check.
+            return new ArrayList<>();
+        } catch (Throwable ex) {
+            HookStatus.threw(TOP_VIEW_HOOK_FAMILY, "read", ex);
+            Logger.printException(() -> "Could not empty the TopView preload while the feed fetched it", ex);
+            return preloads;
+        }
+    }
+
     /** The counter line for the profile pager's own ad request, so an export names the route. */
     static final String PROFILE_AD_SOURCE = "ProfileAdResponse";
     private static final String PROFILE_AD_HOOK_FAMILY = "profile ads";
@@ -499,6 +558,17 @@ public final class FeedItemsFilter {
         Object patch = Reflect.readField(card, "dynamicPatch");
         if (patch != null) {
             kind.append(Boolean.TRUE.equals(Reflect.readField(patch, "isEcom")) ? " Shop patch" : " patch");
+            String source = searchCardSource(Reflect.readField(patch, "alaSrc"));
+            if (source != null) kind.append(" ").append(source);
+        }
+        if (Reflect.readField(card, "minis") != null) kind.append(" minis");
+        if (Reflect.readField(card, "miniGame") != null) kind.append(" mini game");
+        if (Reflect.readField(card, "entityCard") != null) kind.append(" hub");
+        if (Reflect.readField(card, "nimbleCardInfo") != null) kind.append(" nimble");
+        if (Reflect.readField(card, "commonAladdin") != null) kind.append(" aladdin");
+        if (patch == null) {
+            String source = searchCardSource(Reflect.readField(card, "mAlaSrc"));
+            if (source != null) kind.append(" ").append(source);
         }
         for (String name : SEARCH_AD_FIELDS) {
             if (Reflect.readField(card, name) != null) {
@@ -507,6 +577,21 @@ public final class FeedItemsFilter {
             }
         }
         return kind.toString();
+    }
+
+    /**
+     * A search card's source type (its alaSrc), the name TikTok's server gives the kind of card
+     * it sent, such as a Shop block or a drama module. A card type, not anything the card says:
+     * only letters, digits and underscores are kept, and at most 40 of them.
+     */
+    static String searchCardSource(Object alaSrc) {
+        if (!(alaSrc instanceof String)) return null;
+        StringBuilder out = new StringBuilder();
+        for (char c : ((String) alaSrc).toCharArray()) {
+            if (out.length() == 40) break;
+            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_') out.append(c);
+        }
+        return out.length() == 0 ? null : "src " + out;
     }
 
     /** True when the card is an advert, by its own admission or by the video it wraps. */
@@ -1004,9 +1089,22 @@ public final class FeedItemsFilter {
     }
 
     private static String getFilterReason(List<IFilter> activeFilters, Aweme item) {
+        // Read once per item, and only once a filter it could answer for has matched.
+        Boolean excepted = null;
         for (IFilter filter : activeFilters) {
             try {
                 if (filter.getFiltered(item)) {
+                    if (CreatorExceptions.isSubjective(filter)) {
+                        if (excepted == null) excepted = CreatorExceptions.excepted(item);
+                        if (excepted) {
+                            if (BaseSettings.DEBUG.get()) {
+                                Logger.printInfo(() -> "[Morphe TikTok FeedFilter] "
+                                    + filter.getClass().getSimpleName() + " matched aid="
+                                    + item.getAid() + " but its creator is excepted");
+                            }
+                            continue;
+                        }
+                    }
                     return filter.getClass().getSimpleName();
                 }
             } catch (RuntimeException exception) {
@@ -1320,7 +1418,21 @@ public final class FeedItemsFilter {
         StringBuilder builder = new StringBuilder();
         appendFilterMask(builder, activeContentFilters);
         appendFilterMask(builder, activeRangeFilters);
+        // The exceptions decide what the same filters keep, so a changed list is a changed mask
+        // and a page the filter has already seen is read again.
+        String exceptions = CreatorExceptions.maskToken();
+        if (!exceptions.isEmpty()) {
+            if (builder.length() > 0) builder.append('|');
+            builder.append(exceptions);
+        }
         return builder.toString();
+    }
+
+    /** Every filter a feed response runs through, content then ranges, for the classification test. */
+    static List<IFilter> allFiltersForTests() {
+        List<IFilter> all = new ArrayList<>(CONTENT_FILTERS);
+        all.addAll(RANGE_FILTERS);
+        return all;
     }
 
     private static void appendFilterMask(StringBuilder builder, List<IFilter> activeFilters) {

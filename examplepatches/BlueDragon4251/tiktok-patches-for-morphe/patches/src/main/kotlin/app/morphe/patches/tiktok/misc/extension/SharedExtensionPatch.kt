@@ -10,7 +10,7 @@
  */
 package app.morphe.patches.tiktok.misc.extension
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import app.morphe.patches.shared.misc.extension.ExtensionHook
 import app.morphe.patches.shared.misc.extension.sharedExtensionPatch
 
@@ -53,7 +53,7 @@ private val storeRegionInitHook = ExtensionHook(
     contextRegisterResolver = { "p1" },
 )
 
-val sharedExtensionPatch = sharedExtensionPatch(
+private val baseExtensionPatch = sharedExtensionPatch(
     extensionName = "tiktok",
     isYouTubeOrYouTubeMusic = false,
     initHook,
@@ -61,3 +61,13 @@ val sharedExtensionPatch = sharedExtensionPatch(
     storeRegionInitHook,
 )
 
+
+val sharedExtensionPatch = app.morphe.patcher.patch.bytecodePatch {
+    dependsOn(baseExtensionPatch)
+    execute {
+        app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint.captureOriginalClasses()
+    }
+    finalize {
+        app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint.writeReport()
+    }
+}

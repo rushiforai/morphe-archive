@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.interaction.speed
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal object GetSpeedFingerprint : Fingerprint(

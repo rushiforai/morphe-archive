@@ -1,3 +1,10 @@
+## [1.37.5](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.4...v1.37.5) (2026-09-24)
+
+
+### Bug Fixes
+
+* **pluto:** lift the live ad mask when the last ad ends ([cce4172](https://github.com/ajstrick81/morphe-androidtv-patches/commit/cce417218d339446aab80a1bf476ff9f66647aed))
+
 ## [1.37.4](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.3...v1.37.4) (2026-09-20)
 
 

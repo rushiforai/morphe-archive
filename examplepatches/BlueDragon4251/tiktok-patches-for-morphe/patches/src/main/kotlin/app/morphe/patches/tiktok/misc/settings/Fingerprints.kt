@@ -4,7 +4,10 @@
  */
 package app.morphe.patches.tiktok.misc.settings
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal object AddSettingsEntryFingerprint : Fingerprint(
     custom = { method, classDef ->
@@ -56,10 +59,13 @@ internal object SettingsComposeRowsFingerprint : Fingerprint(
     custom = { method, classDef ->
         classDef.endsWith("/SettingsComposeRvmpFragment;") &&
             method.returnType == "V" &&
-            (
-                (method.name == "XN" && method.parameterTypes.size == 8) ||
-                    (method.name in setOf("ER", "SR") && method.parameterTypes.size == 11)
-            )
+            method.implementation?.instructions?.any { instruction ->
+                if (instruction.opcode != Opcode.INVOKE_STATIC) return@any false
+                val reference = instruction.getReference<MethodReference>() ?: return@any false
+                reference.name in setOf("LJLJLLL", "LJLLLL") &&
+                    reference.parameterTypes == listOf("Ljava/util/Comparator;", "Ljava/lang/Iterable;") &&
+                    reference.returnType == "Ljava/util/List;"
+            } == true
     },
 )
 

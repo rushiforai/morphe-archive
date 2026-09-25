@@ -15,6 +15,11 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 private const val GESTURE_REMAPPER =
     "Lapp/morphe/extension/tiktok/interaction/gesture/GestureRemapper;"
 
+// TikTok 46.7.3 portrait feed gesture listener and its delegates.
+private const val PORTRAIT_GESTURE_LISTENER = "LX/0BBw;"
+private const val DOUBLE_CLICK_HANDLER = "LX/04YX;"
+private const val PLAYBACK_ACTION_HANDLER = "LX/0BBz;"
+
 @Suppress("unused")
 val gestureRemapperPatch = bytecodePatch(
     name = "Gesture remapper",
@@ -57,9 +62,9 @@ val gestureRemapperPatch = bytecodePatch(
                     return v0
 
                     :blueit_single_play_pause
-                    iget-object v1, p0, LX/0QeR;->LLILLL:LX/0Qdk;
+                    iget-object v1, p0, $PORTRAIT_GESTURE_LISTENER->LLILZIL:$PLAYBACK_ACTION_HANDLER
                     const/4 v0, 0x3
-                    invoke-interface {v1, v0}, LX/0Qdk;->LIZ(I)V
+                    invoke-interface {v1, v0}, $PLAYBACK_ACTION_HANDLER->LIZ(I)V
 
                     :blueit_single_consume
                     const/4 v0, 0x1
@@ -90,7 +95,7 @@ val gestureRemapperPatch = bytecodePatch(
                     add-int/lit8 v0, v0, -0x1
                     if-eqz v0, :blueit_double_clear_display
 
-                    iget-object v0, p0, LX/0QeR;->LL:LX/0Qqd;
+                    iget-object v0, p0, $PORTRAIT_GESTURE_LISTENER->LL:$DOUBLE_CLICK_HANDLER
                     invoke-static {v0, p1}, $GESTURE_REMAPPER->handleConfiguredSeek(Ljava/lang/Object;Landroid/view/MotionEvent;)Z
                     move-result v0
                     if-eqz v0, :blueit_double_default
@@ -105,15 +110,15 @@ val gestureRemapperPatch = bytecodePatch(
                     return v0
 
                     :blueit_double_play_pause
-                    iget-object v0, p0, LX/0QeR;->LLILLL:LX/0Qdk;
+                    iget-object v0, p0, $PORTRAIT_GESTURE_LISTENER->LLILZIL:$PLAYBACK_ACTION_HANDLER
                     const/4 p1, 0x3
-                    invoke-interface {v0, p1}, LX/0Qdk;->LIZ(I)V
+                    invoke-interface {v0, p1}, $PLAYBACK_ACTION_HANDLER->LIZ(I)V
                     const/4 v0, 0x1
                     return v0
 
                     :blueit_double_like
-                    iget-object v0, p0, LX/0QeR;->LL:LX/0Qqd;
-                    invoke-interface {v0, p1}, LX/0Qqd;->handleDoubleClick(Landroid/view/MotionEvent;)V
+                    iget-object v0, p0, $PORTRAIT_GESTURE_LISTENER->LL:$DOUBLE_CLICK_HANDLER
+                    invoke-interface {v0, p1}, $DOUBLE_CLICK_HANDLER->handleDoubleClick(Landroid/view/MotionEvent;)V
 
                     :blueit_double_consume
                     const/4 v0, 0x1

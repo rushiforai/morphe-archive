@@ -53,19 +53,25 @@ public final class AdvancedFeedRules {
                     || !Settings.LOCAL_HIDDEN_CREATORS.get().trim().isEmpty();
         }
         public boolean getFiltered(Aweme item) {
-            Object author = Reflect.property(item, "getAuthor", "author");
-            String uid = Reflect.string(author, "getUid", "uid");
-            String secUid = Reflect.string(author, "getSecUid", "secUid");
-            String handle = Reflect.string(author, "getUniqueId", "uniqueId");
-            String nickname = Reflect.string(author, "getNickname", "nickname");
-            String normalizedUid = normalizedCreator(uid);
-            String normalizedSecUid = normalizedCreator(secUid);
-            String normalizedHandle = normalizedCreator(handle);
+            CreatorIdentity who = CreatorIdentity.of(item);
             return BLOCKED_CREATOR_CACHE.get(Settings.BLOCKED_CREATORS.get()).matches(
-                    normalizedUid, normalizedSecUid, normalizedHandle, handle, nickname)
+                    who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname)
                     || LOCAL_CREATOR_CACHE.get(Settings.LOCAL_HIDDEN_CREATORS.get()).matches(
-                    normalizedUid, normalizedSecUid, normalizedHandle, handle, nickname);
+                    who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname);
         }
+    }
+
+    /**
+     * Whether the block lists name one creator, given only the handle or id typed for it.
+     * The entry is tried as each of the three ids and, for a pattern, as the handle.
+     */
+    static boolean blockListsName(String entry) {
+        String normalized = normalizedCreator(entry);
+        if (normalized.isEmpty()) return false;
+        return BLOCKED_CREATOR_CACHE.get(Settings.BLOCKED_CREATORS.get()).matches(
+                normalized, normalized, normalized, normalized, null)
+                || LOCAL_CREATOR_CACHE.get(Settings.LOCAL_HIDDEN_CREATORS.get()).matches(
+                normalized, normalized, normalized, normalized, null);
     }
 
     /** One setting's exact-source snapshot. Blocked and local lists own separate instances. */
@@ -137,7 +143,12 @@ public final class AdvancedFeedRules {
                 Collections.unmodifiableList(patterns));
     }
 
-    private static String normalizedCreator(String value) {
+    /**
+     * A handle or id the way every list and every item is compared: trimmed, one leading @
+     * dropped, lower case. The editor's duplicate check and the feed's match share it, so an
+     * entry the editor refuses as already present is one the feed would have matched.
+     */
+    static String normalizedCreator(String value) {
         if (value == null) return "";
         String normalized = value.trim();
         if (normalized.startsWith("@")) normalized = normalized.substring(1);
@@ -352,11 +363,8 @@ public final class AdvancedFeedRules {
     }
 
     private static boolean sameCreatorEntry(String left, String right) {
-        String a = left == null ? "" : left.trim();
-        String b = right == null ? "" : right.trim();
-        if (a.startsWith("@")) a = a.substring(1);
-        if (b.startsWith("@")) b = b.substring(1);
-        return !a.isEmpty() && a.equalsIgnoreCase(b);
+        String a = normalizedCreator(left);
+        return !a.isEmpty() && a.equals(normalizedCreator(right));
     }
 
     /** An entry between slashes is a pattern rather than a name to match exactly. */

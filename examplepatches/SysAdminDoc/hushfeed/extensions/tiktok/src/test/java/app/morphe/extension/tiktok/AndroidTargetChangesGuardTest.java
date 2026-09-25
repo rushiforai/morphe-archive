@@ -119,6 +119,9 @@ public class AndroidTargetChangesGuardTest {
                 "not fetched: built for an ACTION_SEND extra handed to another installed app");
         REVIEWED_ADDRESSES.put("https://www.tiktok.com/music/x-",
                 "not fetched: built for the clipboard");
+        REVIEWED_ADDRESSES.put("https://music.youtube.com/search?q=",
+                "not fetched: built for an ACTION_VIEW intent handed to the installed YouTube "
+                        + "Music app, which opens it as its own search");
         REVIEWED_ADDRESSES.put("https://github.com/SysAdminDoc/hushfeed",
                 "not fetched: the source link on the About row, opened in the reader's browser");
         REVIEWED_ADDRESSES.put("https://",

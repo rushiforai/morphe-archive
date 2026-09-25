@@ -13,7 +13,6 @@ import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -109,11 +108,13 @@ public final class OriginalPhotos {
         Utils.showToastShort(L10n.quantity(app, chosen.size(),
                 "Saving one original photo", "Saving %1$s original photos"));
         boolean submitted = MediaJobScheduler.submit("original photos", () -> {
-            int saved = 0;
             // The banner's Open lands on the newest photo, which is where the gallery puts the rest.
-            MediaFileWriter.Saved last = null;
+            MediaFileWriter.Saved[] last = {null};
             try {
-                for (int i : chosen) {
+                // From three photos up a row counts them and offers Cancel; a photo that fails
+                // is skipped and the rest still land, and the result says what did.
+                SaveProgress.Outcome outcome = SaveProgress.begin(chosen.size()).run(index -> {
+                    int i = chosen.get(index);
                     MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
                     File temp = MediaCache.createTempFile(app, "original-photo-", ".tmp");
                     try {
@@ -121,18 +122,20 @@ public final class OriginalPhotos {
                         String mime = "jpg".equals(extension) ? "image/jpeg" : "image/" + extension;
                         // Numbered by the photo's place in the post, also when only some are saved.
                         String name = DownloadFilenameFormatter.formatOriginalPhotoName(aweme, i + 1, extension);
-                        last = MediaFileWriter.publishForResult(app, temp, name, mime, DownloadsPatch.getPhotoDownloadPath(), false);
-                        saved++;
+                        last[0] = MediaFileWriter.publishForResult(app, temp, name, mime, DownloadsPatch.getPhotoDownloadPath(), false);
                     } finally {
                         if (!MediaCache.delete(temp)) Logger.printInfo(() -> "Could not remove original photo temporary file");
                     }
+                });
+                if (outcome.saved == 0 && outcome.cancelled == 0) {
+                    Utils.showToastLong(L10n.t("None of the photos could be saved. Try again."));
+                } else {
+                    SaveNotice.saved(SaveProgress.message(outcome, L10n.quantity(Utils.getContext(), outcome.saved,
+                            "Saved one original photo", "Saved %1$s original photos")), last[0]);
                 }
-                SaveNotice.saved(L10n.quantity(Utils.getContext(), saved,
-                        "Saved one original photo", "Saved %1$s original photos"), last);
-            } catch (IOException | RuntimeException exception) {
-                int completed = saved;
-                Logger.printException(() -> "Original photo download failed after " + completed + " photos", exception);
-                Utils.showToastLong(L10n.f("Saved %1$s photos. The rest failed, so try again.", saved));
+            } catch (RuntimeException exception) {
+                Logger.printException(() -> "Original photo download failed", exception);
+                Utils.showToastLong(L10n.t("None of the photos could be saved. Try again."));
             } finally {
                 ACTIVE.remove(id);
             }

@@ -1,6 +1,6 @@
 # The view ids the extension looks up by name on the phone, one group per line:
 #
-#   source|group|names|package|owner
+#   source|group|names|package|owner|tell
 #
 # source   the extension file, under extensions/tiktok/src/main/java/app/morphe/extension/tiktok/
 # group    the constant that holds the names, or "inline" for a name written into the lookup call
@@ -12,6 +12,18 @@
 #          class-method:<name>, a class that declares a real method name and loads the id. Use -
 #          only where none exists. A dynamic feature module's classes count: its code ships as
 #          lib/<abi>/libdex_<module>.so, which the test reads
+# tell     what tells the id from the other ids the same owner loads, since an owner that loads
+#          many ids would pass any of them. on:<type>[#n], the id is set on, cast to or stored
+#          as a view of that type (the receiver of setId in a generated inflater, the check-cast
+#          after a findViewById, or the type of the field the found view lands in), and with #n
+#          the n-th distinct such id in code order; tag:<tag>[#n], for a layout owner, the id
+#          sits on an element with that tag, the n-th such id over the owner's layouts in the
+#          order of their ids; to:<class>, the id is handed to a method of that class other than
+#          a find or setId; at:<n>, the n-th distinct id the owner loads, for an id nothing else
+#          tells apart. A type may be written in full or by its simple name, never by an R8 name
+#          (X.05y1 is a different name on every build). - only where the owner loads one id.
+#          A method-string owner's order is that of the one method; a class-method owner's is
+#          the whole class's
 #
 # RuntimeViewIdAnchorsTest holds every line against the code and against the target fixture.
 # TikTok hands the same short names out again on every build, mostly to other views, so every
@@ -20,57 +32,58 @@
 # names a group to read off the new build's live view tree again. An owner shared by two groups
 # (VideoDiggAssem holds the like button and its count) shows both ids are still its own, not
 # which is which, so two names swapped between such groups pass; read those pairs off the tree.
-feed/VideoOverlayHider.java|VISUAL_SEARCH_LAYER_IDS|fo|df_search_biz|com.ss.android.ugc.aweme.search.entry.visualsearch.v2.ui.SearchVisualSearchContainerComponentV2
-feed/VideoOverlayHider.java|VISUAL_SEARCH_PILL_IDS|d4|df_search_biz|com.ss.android.ugc.aweme.search.entry.visualsearch.v2.tagv3.impl.AlgoVTagProcessorV3
-feed/VideoOverlayHider.java|LIVE_ENTRANCE_IDS|k_5|app|com.bytedance.tiktok.homepage.mainfragment.inflate.HomepageIconServiceImpl
-feed/VideoOverlayHider.java|CAPTION_IDS|desc|app|com.ss.android.ugc.aweme.feed.assem.desc.VideoDescAssem
-feed/VideoOverlayHider.java|MUSIC_IDS|videomusiccoverblock|app|com.by.andInflater.common_feed_interaction_area_feed
-feed/VideoOverlayHider.java|ACTION_BAR_IDS|liy|app|com.ss.android.ugc.feed.platform.cell.interact.InteractAreaComponent
-feed/VideoOverlayHider.java|SURVEY_IDS|f7u|app|layout:com.by.andInflater.common_feed_item_feed
-feed/VideoOverlayHider.java|TAB_STRIP_IDS|uvy|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.top.TopTabLayoutAbility
-feed/VideoOverlayHider.java|CELL_ROOT_ID|view_rootview|app|com.ss.android.ugc.aweme.feed.adapter.VideoViewCell
-feed/VideoOverlayHider.java|LIKE_COUNT_ROW_IDS|g6t|app|com.by.andInflater.common_feed_layout_video_digg
-feed/VideoOverlayHider.java|COMMENT_COUNT_ROW_IDS|ej_|app|com.by.andInflater.common_feed_layout_video_comment_count
-feed/VideoOverlayHider.java|FAVORITE_COUNT_ROW_IDS|i6r|app|com.by.andInflater.common_feed_layout_video_favorite
-feed/VideoOverlayHider.java|SHARE_COUNT_ROW_IDS|w6_|app|com.by.andInflater.common_feed_layout_video_share
-feed/VideoOverlayHider.java|LIKE_COUNT_TEXT_IDS|g6s|app|com.ss.android.ugc.aweme.feed.assem.digg.VideoDiggAssem
-feed/VideoOverlayHider.java|COMMENT_COUNT_TEXT_IDS|ej9|app|com.ss.android.ugc.aweme.feed.assem.videocomment.VideoCommentAssem
-feed/VideoOverlayHider.java|FAVORITE_COUNT_TEXT_IDS|i6q|app|com.ss.android.ugc.aweme.feed.favorite.VideoFavoriteAssem
-feed/VideoOverlayHider.java|SHARE_COUNT_TEXT_IDS|w69|app|com.ss.android.ugc.aweme.feed.assem.share.VideoShareAssem
-feed/VideoOverlayHider.java|AVATAR_BUTTON_IDS|i98|app|com.ss.android.ugc.aweme.feed.assem.avatar.FeedAvatarAssemWrap
-feed/VideoOverlayHider.java|LIKE_BUTTON_IDS|g6r|app|com.ss.android.ugc.aweme.feed.assem.digg.VideoDiggAssem
-feed/VideoOverlayHider.java|COMMENT_BUTTON_IDS|ep7|app|com.ss.android.ugc.aweme.feed.assem.videocomment.VideoCommentAssem
-feed/VideoOverlayHider.java|FAVORITE_BUTTON_IDS|i7r|app|com.ss.android.ugc.aweme.feed.favorite.VideoFavoriteAssem
-feed/VideoOverlayHider.java|MUSIC_BUTTON_IDS|pnp|app|com.ss.android.ugc.aweme.feed.assem.music.VideoMusicCoverAssem
-feed/VideoOverlayHider.java|SHARE_BUTTON_IDS|w_2|app|com.ss.android.ugc.aweme.feed.assem.share.VideoShareAssem
-feed/FeedOverlayControls.java|inline|view_rootview|app|com.ss.android.ugc.aweme.feed.adapter.VideoViewCell
-feed/FeedOverlayControls.java|inline|feed_multi_tag_layout|app|com.ss.android.ugc.aweme.fcpanchor.access.VideoFeedMultiTagAssem
-feed/AuthorRegion.java|NAME_ID|title|app|com.by.andInflater.common_feed_layout_video_title
-feed/AuthorRegion.java|POST_TIME_ID|tv_post_time|app|com.ss.android.ugc.aweme.feed.assem.videoauthorinfo.VideoAuthorInfoRelationAssem
-inbox/InboxFilter.java|LIST_IDS|l7b|app|com.ss.android.ugc.aweme.inbox.BaseInboxFragment
-inbox/InboxFilter.java|SYSTEM_ROW_IDS|uy5|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask
-inbox/InboxFilter.java|CHAT_ROW_IDS|w1f|app|com.by.andInflater.im_item_session_inbox_single_chat_cell
-inbox/InboxFilter.java|MESSAGE_REQUESTS_IDS|tv_request_unread_count|app|com.by.andInflater.im_item_session_inbox_message_request_cell
-inbox/InboxFilter.java|SAY_HI_ROW_IDS|olv|app|layout:com.ss.android.ugc.aweme.im.chatlist.impl.feature.maf.ui.MafChatListWidgetV2
-inbox/InboxFilter.java|SYSTEM_ROW_TITLE_IDS|brb|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask
-inbox/InboxFilter.java|USER_ROW_TITLE_IDS|user_name|app|com.by.andInflater.im_item_session_inbox_single_chat_cell
-inbox/InboxFilter.java|STORIES_TITLE_IDS|wqq|app|layout:com.ss.android.ugc.aweme.story.inbox.view.StoryInboxCell
-inbox/InboxFilter.java|SUGGESTED_HEADER_IDS|q3m|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.TitleAreaCell
-inbox/InboxFilter.java|SUGGESTED_TITLE_IDS|u1n|app|com.ss.android.ugc.aweme.relation.feed.performanceui.PerformanceUserCardRootAssem
-inbox/InboxFilter.java|SUGGESTED_REMOVE_IDS|fwz|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.BaseSquareRecUserCell
-inbox/InboxFilter.java|HEADER_ADD_PEOPLE_IDS|fg5|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2
-inbox/InboxFilter.java|HEADER_SEARCH_IDS|kp1|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2
-inbox/InboxFilter.java|HEADER_ACTIVITY_STATUS_IDS|l7d|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask
-share/ShareSheetTools.java|CONTACTS_SECTION_IDS|ip5|app|com.ss.android.ugc.aweme.share.core.ui.TuxSharePanelNewBehavior
-share/ShareSheetTools.java|CONTACTS_LIST_IDS|v3j|app|com.ss.android.ugc.aweme.internalshare.impl.refactor.assem.SharePanelContactRootAssem
-share/ShareSheetTools.java|CHANNELS_LIST_IDS|dwr|app|com.ss.android.ugc.aweme.internalshare.impl.fragment.DownloadAndShareFragment
-share/ShareSheetTools.java|ACTIONS_LIST_IDS|a5t|app|method-string:share_panel_action
-blockauthor/FeedVisibility.java|HOME_TAB_RESOURCE_NAMES|omq|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.bottom.hometab.HomeTabProtocol
-blockauthor/FeedVisibility.java|INBOX_TAB_RESOURCE_NAMES|omr|app|com.ss.android.ugc.aweme.notification.view.NotificationTabProtocol
-blockauthor/FeedVisibility.java|COMMENT_SHEET_RESOURCE_NAMES|pvp|app|layout:com.ss.android.ugc.aweme.commentv2.commentpage.commonvideo.DefaultCommentPageContainerFragment
-blockauthor/FeedVisibility.java|COMMENT_TITLE_RESOURCE_NAMES|wk7|app|com.ss.android.ugc.aweme.commentv2.actionbar.CommentPageActionBarAssem
-blockauthor/FeedVisibility.java|STORY_PAGER_RESOURCE_NAME|vp_story_collection|app|com.by.andInflater.story_layout_immersive_play_area
-comment/CommentTools.java|DISLIKE_BUTTON_IDS|k0k|app|class-method:setHateVisibility
-comment/CommentTools.java|DISLIKE_ICON_IDS|mmt|app|class-method:setHateVisibility
-captions/CaptionStyle.java|TEXT_ID|dlr|app|method-string:caption_balancer
-captions/CaptionStyle.java|BACKGROUND_ID|dlk|app|com.ss.android.ugc.aweme.autocaption.refactor.CLACaptionAssemV2
+feed/VideoOverlayHider.java|VISUAL_SEARCH_LAYER_IDS|fo|df_search_biz|com.ss.android.ugc.aweme.search.entry.visualsearch.v2.ui.SearchVisualSearchContainerComponentV2|-
+feed/VideoOverlayHider.java|VISUAL_SEARCH_PILL_IDS|d4|df_search_biz|com.ss.android.ugc.aweme.search.entry.visualsearch.v2.tagv3.impl.AlgoVTagProcessorV3|on:View#1
+feed/VideoOverlayHider.java|LIVE_ENTRANCE_IDS|k_5|app|com.bytedance.tiktok.homepage.mainfragment.inflate.HomepageIconServiceImpl|on:TuxIconView#1
+feed/VideoOverlayHider.java|CAPTION_IDS|desc|app|com.ss.android.ugc.aweme.feed.assem.desc.VideoDescAssem|on:View
+feed/VideoOverlayHider.java|MUSIC_IDS|videomusiccoverblock|app|com.by.andInflater.common_feed_interaction_area_feed|at:6
+feed/VideoOverlayHider.java|ACTION_BAR_IDS|liy|app|com.ss.android.ugc.feed.platform.cell.interact.InteractAreaComponent|on:View#4
+feed/VideoOverlayHider.java|SURVEY_IDS|f7u|app|layout:com.by.andInflater.common_feed_item_feed|tag:RelativeLayout#1
+feed/VideoOverlayHider.java|TAB_STRIP_IDS|uvy|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.top.TopTabLayoutAbility|on:View
+feed/VideoOverlayHider.java|CELL_ROOT_ID|view_rootview|app|com.ss.android.ugc.aweme.feed.adapter.VideoViewCell|at:3
+feed/VideoOverlayHider.java|LIKE_COUNT_ROW_IDS|g6t|app|com.by.andInflater.common_feed_layout_video_digg|on:InteractRelativeLayout
+feed/VideoOverlayHider.java|COMMENT_COUNT_ROW_IDS|ej_|app|com.by.andInflater.common_feed_layout_video_comment_count|on:InteractRelativeLayout
+feed/VideoOverlayHider.java|FAVORITE_COUNT_ROW_IDS|i6r|app|com.by.andInflater.common_feed_layout_video_favorite|on:InteractRelativeLayout
+feed/VideoOverlayHider.java|SHARE_COUNT_ROW_IDS|w6_|app|com.by.andInflater.common_feed_layout_video_share|on:InteractRelativeLayout
+feed/VideoOverlayHider.java|LIKE_COUNT_TEXT_IDS|g6s|app|com.ss.android.ugc.aweme.feed.assem.digg.VideoDiggAssem|on:TuxTextView
+feed/VideoOverlayHider.java|COMMENT_COUNT_TEXT_IDS|ej9|app|com.ss.android.ugc.aweme.feed.assem.videocomment.VideoCommentAssem|on:TuxTextView#1
+feed/VideoOverlayHider.java|FAVORITE_COUNT_TEXT_IDS|i6q|app|com.ss.android.ugc.aweme.feed.favorite.VideoFavoriteAssem|on:TuxTextView
+feed/VideoOverlayHider.java|SHARE_COUNT_TEXT_IDS|w69|app|com.ss.android.ugc.aweme.feed.assem.share.VideoShareAssem|on:View#3
+feed/VideoOverlayHider.java|AVATAR_BUTTON_IDS|i98|app|com.ss.android.ugc.aweme.feed.assem.avatar.FeedAvatarAssemWrap|to:ScrollHardwareLayerDelegateKt
+feed/VideoOverlayHider.java|LIKE_BUTTON_IDS|g6r|app|com.by.andInflater.common_feed_layout_video_digg|on:InteractFrameLayout
+feed/VideoOverlayHider.java|COMMENT_BUTTON_IDS|ep7|app|com.ss.android.ugc.aweme.feed.assem.videocomment.VideoCommentAssem|to:ScrollHardwareLayerDelegateKt
+feed/VideoOverlayHider.java|FAVORITE_BUTTON_IDS|i7r|app|com.ss.android.ugc.aweme.feed.favorite.VideoFavoriteAssem|to:ScrollHardwareLayerDelegateKt
+feed/VideoOverlayHider.java|MUSIC_BUTTON_IDS|pnp|app|com.ss.android.ugc.aweme.feed.assem.music.VideoMusicCoverAssem|on:RelativeLayout
+feed/VideoOverlayHider.java|SHARE_BUTTON_IDS|w_2|app|com.ss.android.ugc.aweme.feed.assem.share.VideoShareAssem|to:ScrollHardwareLayerDelegateKt
+feed/FeedOverlayControls.java|inline|view_rootview|app|com.ss.android.ugc.aweme.feed.adapter.VideoViewCell|at:3
+feed/FeedOverlayControls.java|inline|feed_multi_tag_layout|app|com.ss.android.ugc.aweme.fcpanchor.access.VideoFeedMultiTagAssem|at:1
+feed/AuthorRegion.java|NAME_ID|title|app|com.by.andInflater.common_feed_layout_video_title|at:4
+feed/AuthorRegion.java|POST_TIME_ID|tv_post_time|app|com.ss.android.ugc.aweme.feed.assem.videoauthorinfo.VideoAuthorInfoRelationAssem|on:TuxTextView#1
+inbox/InboxFilter.java|LIST_IDS|l7b|app|com.ss.android.ugc.aweme.inbox.BaseInboxFragment|at:2
+inbox/InboxFilter.java|SYSTEM_ROW_IDS|uy5|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:MultiSelectConstraintLayout
+inbox/InboxFilter.java|CHAT_ROW_IDS|w1f|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:MultiSelectConstraintLayout
+inbox/InboxFilter.java|MESSAGE_REQUESTS_IDS|tv_request_unread_count|app|com.by.andInflater.im_item_session_inbox_message_request_cell|at:11
+inbox/InboxFilter.java|SAY_HI_ROW_IDS|olv|app|layout:com.ss.android.ugc.aweme.im.chatlist.impl.feature.maf.ui.MafChatListWidgetV2|tag:MultiSelectConstraintLayout
+inbox/InboxFilter.java|SYSTEM_ROW_TITLE_IDS|brb|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:TuxTextView#5
+inbox/InboxFilter.java|USER_ROW_TITLE_IDS|user_name|app|com.by.andInflater.im_item_session_inbox_single_chat_cell|on:TuxTextView#1
+inbox/InboxFilter.java|STORIES_TITLE_IDS|wqq|app|layout:com.ss.android.ugc.aweme.story.inbox.view.StoryInboxCell|tag:TuxTextView#2
+inbox/InboxFilter.java|SUGGESTED_HEADER_IDS|q3m|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.TitleAreaCell|on:View#1
+inbox/InboxFilter.java|SUGGESTED_TITLE_IDS|u1n|app|com.ss.android.ugc.aweme.relation.feed.performanceui.PerformanceUserCardRootAssem|on:View#2
+inbox/InboxFilter.java|SUGGESTED_REMOVE_IDS|fwz|app|com.ss.android.ugc.aweme.relation.usercard.impl.cell.BaseSquareRecUserCell|on:TuxIconView
+inbox/InboxFilter.java|HEADER_ADD_PEOPLE_IDS|fg5|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#1
+inbox/InboxFilter.java|HEADER_SEARCH_IDS|kp1|app|com.ss.android.ugc.aweme.inbox.v2.InboxFragmentV2|on:TuxIconView#2
+inbox/InboxFilter.java|HEADER_ACTIVITY_STATUS_IDS|l7d|app|layout:com.ss.android.ugc.aweme.inbox.lego.PreloadInboxTask|tag:LinearLayout#2
+share/ShareSheetTools.java|CONTACTS_SECTION_IDS|ip5|app|com.ss.android.ugc.aweme.share.core.ui.TuxSharePanelNewBehavior|on:View#3
+share/ShareSheetTools.java|CONTACTS_LIST_IDS|v3j|app|com.ss.android.ugc.aweme.internalshare.impl.refactor.assem.SharePanelContactRootAssem|-
+share/ShareSheetTools.java|CHANNELS_LIST_IDS|dwr|app|com.ss.android.ugc.aweme.internalshare.impl.fragment.DownloadAndShareFragment|on:View#3
+share/ShareSheetTools.java|ACTIONS_LIST_IDS|a5t|app|method-string:share_panel_action|on:View#1
+blockauthor/FeedVisibility.java|HOME_TAB_RESOURCE_NAMES|omq|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.bottom.hometab.HomeTabProtocol|-
+blockauthor/FeedVisibility.java|INBOX_TAB_RESOURCE_NAMES|omr|app|com.ss.android.ugc.aweme.notification.view.NotificationTabProtocol|-
+blockauthor/FeedVisibility.java|COMMENT_SHEET_RESOURCE_NAMES|pvp|app|layout:com.ss.android.ugc.aweme.commentv2.commentpage.commonvideo.DefaultCommentPageContainerFragment|tag:LinearLayout#1
+blockauthor/FeedVisibility.java|COMMENT_TITLE_RESOURCE_NAMES|wk7|app|com.ss.android.ugc.aweme.commentv2.actionbar.CommentPageActionBarAssem|on:TuxTextView#1
+blockauthor/FeedVisibility.java|STORY_PAGER_RESOURCE_NAME|vp_story_collection|app|com.by.andInflater.story_layout_immersive_play_area|at:2
+comment/CommentTools.java|DISLIKE_BUTTON_IDS|k0k|app|class-method:setHateVisibility|to:RelativeLayout$LayoutParams
+comment/CommentTools.java|DISLIKE_ICON_IDS|mmt|app|class-method:setHateVisibility|on:TuxIconView#4
+captions/CaptionStyle.java|TEXT_ID|dlr|app|method-string:caption_balancer|at:1
+captions/CaptionStyle.java|BACKGROUND_ID|dlk|app|com.ss.android.ugc.aweme.autocaption.refactor.CLACaptionAssemV2|on:View#2
+feedfilter/TakoAiFilter.java|SEARCH_TAB_ENTRANCE_ID|tv_tab_tako_entrance|app|layout:com.ss.android.ugc.aweme.search.pages.core.ui.fragment.SearchContainerFragment|tag:TuxTextView

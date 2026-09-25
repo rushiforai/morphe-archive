@@ -97,7 +97,7 @@ class ExtensionHostsTest {
 
     private companion object {
         /** The hosts the README's Privacy section names. */
-        val ALLOWED_HOSTS = setOf("github.com", "gitlab.com", "www.gnu.org", "www.tiktok.com")
+        val ALLOWED_HOSTS = setOf("github.com", "gitlab.com", "www.gnu.org", "www.tiktok.com", "music.youtube.com")
         const val TRANSPORT = "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/MediaTransport.java"
         val URL = Regex("""(?:https?|wss?)://([A-Za-z0-9.-]+)""")
         val NETWORK = Regex(

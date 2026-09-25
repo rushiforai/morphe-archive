@@ -53,6 +53,12 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                         + "come back to the app. Messages, profiles and search are still "
                         + "one tap away.",
                 Settings.NO_RESUME_ON_FOREGROUND));
+        addPreference(new TogglePreference(context, "Leave when TikTok says time is up",
+                "TikTok's own daily screen-time reminder sends the app to the background "
+                        + "instead of waiting to be dismissed. Coming straight back leaves the "
+                        + "reminder on screen, so the limit stays reachable. Needs a daily limit "
+                        + "set under TikTok's Settings and privacy, under Time and well-being.",
+                Settings.LEAVE_ON_REST_REMINDER));
 
         addPreference(new SectionHeadingPreference(context, "Daily budget"));
         addPreference(new NumberInputPreference(context, "Daily video budget",

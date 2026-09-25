@@ -43,6 +43,20 @@ internal object BlockServiceFingerprint : Fingerprint(
 )
 
 /**
+ * The feed panel slot that is TikTok's daily screen-time reminder, the full-screen card
+ * over the feed once the limit under TikTok's own Time and well-being settings is spent.
+ * The slot is only created to be shown (its `onViewCreated` logs `PrivacyDWL_popup_show`
+ * unconditionally on 47.0.3), so the view being built is the reminder coming up, which is
+ * what the "Leave when TikTok says time is up" switch reacts to.
+ */
+internal object DailyScreenTimeReminderFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/compliance/protection/timelock/ui/assem/" +
+        "STMDailyScreenTimeAssem;",
+    name = "onViewCreated",
+    parameters = listOf("Landroid/view/View;"),
+)
+
+/**
  * Reports playback progress for the video that is actually on screen, carrying its id in
  * the first parameter. The bind callback above fires for items the feed has prefetched, so
  * this is what decides which of them is current.

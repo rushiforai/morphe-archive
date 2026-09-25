@@ -11,6 +11,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val FEATURE_CONTROLS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/featurecontrols/FeatureControls;"
@@ -35,20 +36,23 @@ val hideQuickCommentReactionsPatch = bytecodePatch(
         val gateMethod = legacyMethod ?: QuickCommentReactionGateBooleanFingerprint.method
 
         gateMethod.apply {
-            implementation!!.instructions.withIndex()
+            val returnIndices = implementation!!.instructions.withIndex()
                 .filter { it.value.opcode == Opcode.RETURN }
                 .map { it.index }
-                .asReversed()
-                .forEach { returnIndex ->
-                    val instruction = if (legacyMethod != null) {
-                        "invoke-static {v0, p0}, $FEATURE_CONTROLS_DESCRIPTOR->overrideHideQuickCommentEmoji(ZI)Z\n" +
-                            "move-result v0"
-                    } else {
-                        "invoke-static {v0}, $FEATURE_CONTROLS_DESCRIPTOR->overrideHideQuickCommentEmoji(Z)Z\n" +
-                            "move-result v0"
-                    }
-                    addInstructions(returnIndex, instruction)
+                .toList()
+
+            returnIndices.asReversed().forEach { returnIndex ->
+                val resultRegister =
+                    (implementation!!.instructions[returnIndex] as OneRegisterInstruction).registerA
+                val instruction = if (legacyMethod != null) {
+                    "invoke-static {v$resultRegister, p0}, $FEATURE_CONTROLS_DESCRIPTOR->overrideHideQuickCommentEmoji(ZI)Z\n" +
+                        "move-result v$resultRegister"
+                } else {
+                    "invoke-static {v$resultRegister}, $FEATURE_CONTROLS_DESCRIPTOR->overrideHideQuickCommentEmoji(Z)Z\n" +
+                        "move-result v$resultRegister"
                 }
+                addInstructions(returnIndex, instruction)
+            }
         }
     }
 }

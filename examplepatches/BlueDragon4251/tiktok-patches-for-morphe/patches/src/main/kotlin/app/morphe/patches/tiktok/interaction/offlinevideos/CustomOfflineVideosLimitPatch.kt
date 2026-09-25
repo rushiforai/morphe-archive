@@ -59,13 +59,16 @@ val customOfflineVideosLimitPatch = bytecodePatch(
                                 field.type == "Ljava/util/List;"
                         } == true
                 }
-                val moveResultIndex = indexOfFirstInstructionReversedOrThrow(fieldWriteIndex - 1) {
-                    opcode == Opcode.MOVE_RESULT_OBJECT
-                }
-                val optionsRegister = getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
+
+                // 46.7.3 no longer materializes every configured list through a nearby
+                // MOVE_RESULT_OBJECT. SPUT_OBJECT itself already tells us the exact
+                // register containing the list, so transform that register immediately
+                // before TikTok stores it. This is independent of how the list was built.
+                val optionsRegister =
+                    getInstruction<OneRegisterInstruction>(fieldWriteIndex).registerA
 
                 addInstructions(
-                    moveResultIndex + 1,
+                    fieldWriteIndex,
                     """
                         invoke-static {v$optionsRegister}, $CUSTOM_OFFLINE_VIDEOS_HELPER->getOfflineVideoOptions(Ljava/util/List;)Ljava/util/List;
                         move-result-object v$optionsRegister

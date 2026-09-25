@@ -145,9 +145,8 @@ public final class CommentBatchTranslator {
     }
 
     public static void registerCommentCell(View itemView, Object manager) {
-        if (disabledForSession) return;
-        if (!Settings.COMMENT_BATCH_TRANSLATION.get()) return;
         if (itemView == null || manager == null) return;
+        if (disabledForSession || !Settings.COMMENT_BATCH_TRANSLATION.get()) return;
 
         try {
             AnchorParts parts = resolveAnchorParts(manager);
@@ -332,7 +331,7 @@ public final class CommentBatchTranslator {
         // nothing outstanding there is nothing here to do, and everything below it walks the
         // declared fields of two objects and takes the global lock on TikTok's thread.
         if (!Settings.COMMENT_BATCH_TRANSLATION.get() && outstandingRequests == 0) return;
-        
+
         completionsHandledForTests++;
         Field resultsField = runner == null ? null : runnerField(runner.getClass(), "l0", true);
         Field taskField = runner == null ? null : runnerField(runner.getClass(), "l1", false);
@@ -403,6 +402,19 @@ public final class CommentBatchTranslator {
                     + " resultSize=" + collectionSize(results)
                     + " succeeded=" + succeeded);
         }
+    }
+
+    /**
+     * The comments a finished batch asked about and the results it got, as {@code {requested,
+     * results}}, read quietly off TikTok's batch runner as a completion hook sees it, or null
+     * when the runner does not have that shape. The keyword filter reads a batch through this.
+     */
+    public static Object[] completedBatch(Object runner) {
+        if (runner == null) return null;
+        Object results = readFieldQuiet(runner, runnerField(runner.getClass(), "l0", true));
+        Object task = readFieldQuiet(runner, runnerField(runner.getClass(), "l1", false));
+        Object requested = readFieldQuiet(task, "LIZ");
+        return requested instanceof List ? new Object[] {requested, results} : null;
     }
 
     private static void translateLoadedBatchIfReady(Object anchor, boolean allowVisibleFallback) {

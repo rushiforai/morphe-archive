@@ -198,7 +198,8 @@ public class SettingsBackupTest {
             tooLarge.append('é');
         }
         for (String key : new String[]{Settings.BLOCKED_CAPTION_WORDS.key,
-                Settings.BLOCKED_CREATORS.key, Settings.LOCAL_HIDDEN_CREATORS.key}) {
+                Settings.BLOCKED_CREATORS.key, Settings.LOCAL_HIDDEN_CREATORS.key,
+                Settings.CREATOR_FILTER_EXCEPTIONS.key}) {
             for (String invalid : new String[]{tooMany, tooLarge.toString()}) {
                 JSONObject backup = new JSONObject(baseline);
                 backup.getJSONObject("settings").put(key, invalid);

@@ -102,44 +102,79 @@ final class VideoDownloads {
                 : L10n.f("Saving video and subtitles to %1$s", path));
         boolean submitted = MediaJobScheduler.submit("video", () -> {
             List<File> temporary = new ArrayList<>();
+            // The video, the sound beside it when wanted, then each subtitle track. From three
+            // files up a row counts them and offers Cancel, which lets the file under way finish
+            // and leaves the rest. The video is the save itself: when it fails nothing else is
+            // tried; a sound or a track that fails is skipped, and the result says so.
+            int files = 1 + (audioNameSnapshot != null ? 1 : 0) + captionSnapshot.size();
+            int firstSubtitle = files - captionSnapshot.size();
+            SaveProgress progress = SaveProgress.begin(files);
+            MediaFileWriter.Saved[] published = {null};
+            File[] picture = {null};
+            File[] sound = {null};
+            int[] subtitles = {0};
+            boolean[] soundSkipped = {false};
             try {
-                File picture = temp(app, temporary);
-                RemoteMedia.fetch(videoUrls, picture, RemoteMedia.Kind.VIDEO);
-                File result = picture, sound = null;
-                if (dash && !muted) {
-                    // The sound is a separate stream here and the save is not finished without
-                    // it, so a failure to fetch it fails the whole thing.
-                    sound = temp(app, temporary);
-                    RemoteMedia.fetch(audioUrls, sound, RemoteMedia.Kind.VIDEO);
-                    result = temp(app, temporary);
-                    TrackMuxer.combine(picture, sound, result);
-                } else if (dash && AudioDownloads.enabled() && !audioUrls.isEmpty()) {
-                    // Muted, but the sound is wanted beside it as an .m4a. That is a second
-                    // file, so losing it is not a reason to lose the video as well.
-                    try {
-                        File separate = temp(app, temporary);
-                        RemoteMedia.fetch(audioUrls, separate, RemoteMedia.Kind.VIDEO);
-                        sound = separate;
-                    } catch (IOException | RuntimeException exception) {
-                        Logger.printException(() -> "Could not fetch the sound to save beside a muted video", exception);
+                SaveProgress.Outcome outcome = progress.run(index -> {
+                    if (index == 0) {
+                        try {
+                            picture[0] = temp(app, temporary);
+                            RemoteMedia.fetch(videoUrls, picture[0], RemoteMedia.Kind.VIDEO);
+                            File result = picture[0];
+                            if (dash && !muted) {
+                                // The sound is a separate stream here and the save is not
+                                // finished without it, so a failure to fetch it fails the whole thing.
+                                sound[0] = temp(app, temporary);
+                                RemoteMedia.fetch(audioUrls, sound[0], RemoteMedia.Kind.VIDEO);
+                                result = temp(app, temporary);
+                                TrackMuxer.combine(picture[0], sound[0], result);
+                            } else if (dash && AudioDownloads.enabled() && !audioUrls.isEmpty()) {
+                                // Muted, but the sound is wanted beside it as an .m4a. That is a
+                                // second file, so losing it is not a reason to lose the video as well.
+                                try {
+                                    File separate = temp(app, temporary);
+                                    RemoteMedia.fetch(audioUrls, separate, RemoteMedia.Kind.VIDEO);
+                                    sound[0] = separate;
+                                } catch (IOException | RuntimeException exception) {
+                                    Logger.printException(() -> "Could not fetch the sound to save beside a muted video", exception);
+                                }
+                            } else if (!dash && muted) {
+                                // One file with both tracks in it, so the picture is copied out on its own.
+                                result = temp(app, temporary);
+                                TrackMuxer.videoOnly(picture[0], result);
+                            }
+                            published[0] = MediaFileWriter.publishForResult(app, result, name, "video/mp4", path, true);
+                        } catch (IOException | RuntimeException failure) {
+                            progress.cancel();
+                            throw failure;
+                        }
+                    } else if (index < firstSubtitle) {
+                        // The sound is already on disk: the separate stream when the video has
+                        // one, otherwise the video itself, which still carries it because the
+                        // copy that dropped it went to a different file. Fetching it again would
+                        // download twice. Its word keeps to a toast, so the video's banner below
+                        // isn't taken down.
+                        // The writer says a failure by toast and answers false; the count has
+                        // to know, or a lost sound would read as a save with everything in it.
+                        if (!AudioDownloads.write(app, audioNameSnapshot, sound[0] == null ? picture[0] : sound[0], false)) {
+                            soundSkipped[0] = true;
+                            throw new IOException("The sound beside the video was not saved");
+                        }
+                    } else {
+                        SubtitleDownloads.saveOne(app, captionSnapshot.get(index - firstSubtitle), published[0].name, path);
+                        subtitles[0]++;
                     }
-                } else if (!dash && muted) {
-                    // One file with both tracks in it, so the picture is copied out on its own.
-                    result = temp(app, temporary);
-                    TrackMuxer.videoOnly(picture, result);
+                });
+                if (published[0] == null) {
+                    Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
+                } else {
+                    // The video's own words when everything landed or only a track is missing,
+                    // since they name the tracks that came; the count for anything else.
+                    String own = subtitleResult(captionSnapshot.size(), subtitles[0], path);
+                    boolean onlyTracks = outcome.cancelled == 0 && outcome.stop == SaveProgress.Stop.NONE && !soundSkipped[0];
+                    SaveNotice.saved(onlyTracks ? own : SaveProgress.message(outcome, own), published[0]);
                 }
-                MediaFileWriter.Saved published = MediaFileWriter.publishForResult(app, result, name, "video/mp4", path, true);
-                String savedName = published.name;
-                // The sound is already on disk: the separate stream when the video has one,
-                // otherwise the video itself, which still carries it because the copy that
-                // dropped it went to a different file. Fetching it again would download twice.
-                // Its word keeps to a toast, so the video's banner below isn't taken down.
-                if (audioNameSnapshot != null) {
-                    AudioDownloads.write(app, audioNameSnapshot, sound == null ? picture : sound, false);
-                }
-                int saved = SubtitleDownloads.save(app, captionSnapshot, savedName, path);
-                SaveNotice.saved(subtitleResult(captionSnapshot.size(), saved, path), published);
-            } catch (IOException | RuntimeException exception) {
+            } catch (RuntimeException exception) {
                 Logger.printException(() -> "Selected-quality download failed", exception);
                 Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
             } finally {

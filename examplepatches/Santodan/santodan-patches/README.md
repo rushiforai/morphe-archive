@@ -11,7 +11,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.3.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v0.3.2](https://github.com/Santodan/santodan-patches/releases/tag/v0.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
 <summary>📦 Peafowl Theme Maker for EMUI&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -53,7 +53,7 @@ https://github.com/Santodan/santodan-patches
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Reddit - Content filters (Experimental)](#reddit-content-filters-experimental) | Adds keyword and per-community flair filters under Morphe > Filters, including cached and joined-community posts. |  |
+| [Reddit - Content filters (Experimental)](#reddit-content-filters-experimental) | Adds keyword and per-community flair filters under Morphe > Filters. Home-feed flair filtering requires Show flairs in home feed, which is installed automatically. |  |
 | [Reddit - Show flairs in home feed (Experimental)](#reddit-show-flairs-in-home-feed-experimental) | Shows native post flair badges below titles in the home feed, including cached and joined-community posts. Controlled by Morphe > Layout. |  |
 | [Reddit - Start as guest](#reddit-start-as-guest) | Skips the forced startup login screen using Reddit's native browse-logged-out action. Login remains available from the account menu. Already included upstream in Morphe Patches PR #3109: https://github.com/MorpheApp/morphe-patches/pull/3109 |  |
 
@@ -93,21 +93,8 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 
 | App | Package | Supported version | Patch |
 | --- | --- | --- | --- |
-| Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Start as guest |
+| Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Show flairs in home feed (Experimental); Start as guest |
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
 | Pillo | `xyz.rtrvr.pillo` | `0.6.19` | Hybrid Lock-Screen Notifications |
-
-### Reddit - Content filters (Experimental)
-
-Enable this patch together with an official Reddit patch that provides the **Settings > Morphe** screen, such as **Hide ads**. Configure the filters at runtime under **Settings > Morphe > Filters**:
-
-- **Keyword filters** matches post titles and bodies with case-insensitive regular expressions.
-- **Community flair filters** lets you search for a community and select its flairs. On a community page, long-press a flair chip to hide or show posts with that flair. Filtered chips are gray; other chips use their flair colors when available.
-
-Rules are stored in the app's preferences and take effect when subsequent feed listings load. The patch filters posts, not comments.
-
-### Reddit - Start as guest
-
-Skips Reddit's startup login prompt and opens the feed using Reddit's guest-browsing path. You can still sign in later from the account menu.
 
 See [AI_Guide.md](AI_Guide.md) for implementation details and device-testing notes.

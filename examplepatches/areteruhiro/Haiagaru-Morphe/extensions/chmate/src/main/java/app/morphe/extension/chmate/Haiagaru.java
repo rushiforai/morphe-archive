@@ -27,6 +27,10 @@ import android.os.Process;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
@@ -61,6 +65,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.Socket;
+import javax.net.SocketFactory;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -74,6 +81,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.regex.Pattern;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -81,6 +90,17 @@ import javax.crypto.spec.SecretKeySpec;
 /** Runtime component of the Haiagaru patch, embedded in ChMate. */
 public final class Haiagaru {
     private static final String LOG_TAG = "Haiagaru";
+    /**
+     * A cellular Network requested for a post must remain requested while the
+     * HTTP client is using its socket.  Releasing the callback immediately
+     * after onAvailable() lets Android tear down the request underneath the
+     * socket and can reproduce "Binding socket to network N failed: EPERM".
+     * ChMate closes its sockets inside generated code, so the extension keeps
+     * the lease for a bounded post window instead of guessing at a close hook.
+     */
+    private static final long CELLULAR_NETWORK_LEASE_MILLIS = 120_000L;
+    private static final Handler CELLULAR_NETWORK_LEASE_HANDLER =
+            new Handler(Looper.getMainLooper());
     private static final Map<Activity, PopupWindow> SETTINGS_BUTTON_POPUPS =
             new WeakHashMap<>();
     private static final String PREFS_NAME =
@@ -129,8 +149,16 @@ public final class Haiagaru {
     private static final String AD_CLASS_241 = "o.setUseHandlerThreadForCallbacks";
     private static final String AD_CLASS_243 = "o.zzexb";
     private static final Pattern LEGACY_BE_ATTACHMENT_TOKEN = Pattern.compile(
-            "(?:(?:sssp|https?):)?//img\\.5ch\\.(?:io|net)/ico/[^\\s<\\u0003\\u3000]+"
-                    + "|\\u0003img\\.5ch\\.(?:io|net)/ico/[^\\s<\\u0003\\u3000]+",
+            "(?:(?:sssp|https?):)?//img\\.5ch\\.(?:io|net)/(?:ico|premium)/[^\\s<\\u0003\\u3000]+"
+                    + "|\\u0003img\\.5ch\\.(?:io|net)/(?:ico|premium)/[^\\s<\\u0003\\u3000]+",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern LEGACY_PREMIUM_BE_URL = Pattern.compile(
+            "(?:(?:(?:sssp|https?):)?//|\\u0003)img\\.5ch\\.(?:io|net)/premium/([^\\s<\\u0003\\u3000]+)",
+            Pattern.CASE_INSENSITIVE
+    );
+    private static final Pattern LEGACY_BE_ICO_URL = Pattern.compile(
+            "(?:(?:(?:sssp|https?):)?//|\\u0003)img\\.5ch\\.(?:io|net)/ico/([^\\s<\\u0003\\u3000]+)",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGACY_THREAD_READ_PATH = Pattern.compile(
@@ -832,6 +860,14 @@ public final class Haiagaru {
         );
     }
 
+    /** Rewrites a stored legacy board-menu endpoint to the canonical 5ch.io host. */
+    public static String rewriteBbsMenuUrl(String original) {
+        if (original == null || !isChtoioEnabled()) return original;
+        return original
+                .replace("https://menu.5ch.net", "https://menu.5ch.io")
+                .replace("http://menu.5ch.net", "https://menu.5ch.io");
+    }
+
     public static String rewrite5chUrl(String original) {
         if (original == null) return null;
         String rewritten = rewriteLegacyTalkBoardResource(original);
@@ -913,6 +949,166 @@ public final class Haiagaru {
      */
     public static boolean loadLiveTalkDat(String url, File destination) throws IOException {
         return ArchivedThreadImporter.loadLiveTalkDat(url, destination);
+    }
+
+    /**
+     * Creates a socket on the currently usable cellular network. ChMate's
+     * cellular-only client keeps one Network.SocketFactory, but Android 16 can
+     * invalidate that Network while a post is being assembled. Resolve the
+     * network again for every new socket and retry the current candidates before
+     * falling back to ChMate's original factory.
+     */
+    public static Socket createCellularSocket(SocketFactory fallback, String host, int port)
+            throws IOException {
+        if (!isCellularNetworkRefreshEnabled()) return fallback.createSocket(host, port);
+        return createRequestedCellularSocket(host, port, null, 0);
+    }
+
+    public static Socket createCellularSocket(
+            SocketFactory fallback, String host, int port, InetAddress localAddress, int localPort)
+            throws IOException {
+        if (!isCellularNetworkRefreshEnabled()) {
+            return fallback.createSocket(host, port, localAddress, localPort);
+        }
+        return createRequestedCellularSocket(host, port, localAddress, localPort);
+    }
+
+    public static Socket createCellularSocket(
+            SocketFactory fallback, InetAddress address, int port) throws IOException {
+        if (!isCellularNetworkRefreshEnabled()) return fallback.createSocket(address, port);
+        return createRequestedCellularSocket(address, port, null, 0);
+    }
+
+    public static Socket createCellularSocket(
+            SocketFactory fallback, InetAddress address, int port,
+            InetAddress localAddress, int localPort) throws IOException {
+        if (!isCellularNetworkRefreshEnabled()) {
+            return fallback.createSocket(address, port, localAddress, localPort);
+        }
+        return createRequestedCellularSocket(address, port, localAddress, localPort);
+    }
+
+    private static Socket createRequestedCellularSocket(
+            String host, int port, InetAddress localAddress, int localPort) throws IOException {
+        IOException last = null;
+        for (int attempt = 0; attempt < 2; attempt++) {
+            CellularNetworkLease lease = requestCellularNetwork();
+            if (lease == null) continue;
+            try {
+                Socket socket = localAddress == null
+                        ? lease.network.getSocketFactory().createSocket(host, port)
+                        : lease.network.getSocketFactory().createSocket(
+                                host, port, localAddress, localPort);
+                retainCellularNetworkLease(lease);
+                Log.i(LOG_TAG, "Using requested cellular network " + lease.network
+                        + " for post socket");
+                return socket;
+            } catch (IOException error) {
+                last = error;
+                lease.release();
+                Log.w(LOG_TAG, "Requested cellular network socket failed on attempt "
+                        + (attempt + 1), error);
+            }
+        }
+        throw last != null ? last : new IOException("No cellular network available for post");
+    }
+
+    private static Socket createRequestedCellularSocket(
+            InetAddress address, int port, InetAddress localAddress, int localPort)
+            throws IOException {
+        IOException last = null;
+        for (int attempt = 0; attempt < 2; attempt++) {
+            CellularNetworkLease lease = requestCellularNetwork();
+            if (lease == null) continue;
+            try {
+                Socket socket = localAddress == null
+                        ? lease.network.getSocketFactory().createSocket(address, port)
+                        : lease.network.getSocketFactory().createSocket(
+                                address, port, localAddress, localPort);
+                retainCellularNetworkLease(lease);
+                Log.i(LOG_TAG, "Using requested cellular network " + lease.network
+                        + " for post socket");
+                return socket;
+            } catch (IOException error) {
+                last = error;
+                lease.release();
+                Log.w(LOG_TAG, "Requested cellular network socket failed on attempt "
+                        + (attempt + 1), error);
+            }
+        }
+        throw last != null ? last : new IOException("No cellular network available for post");
+    }
+
+    private static CellularNetworkLease requestCellularNetwork() {
+        Context context = applicationContext;
+        if (context == null) return null;
+        ConnectivityManager manager = null;
+        CellularNetworkLease lease = null;
+        try {
+            manager = (ConnectivityManager)
+                    context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (manager == null) return null;
+            CountDownLatch ready = new CountDownLatch(1);
+            Network[] result = new Network[1];
+            ConnectivityManager.NetworkCallback callback = new ConnectivityManager.NetworkCallback() {
+                @Override
+                public void onAvailable(Network network) {
+                    result[0] = network;
+                    ready.countDown();
+                }
+
+            };
+            NetworkRequest request = new NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    .build();
+            manager.requestNetwork(request, callback);
+            lease = new CellularNetworkLease(manager, callback);
+            if (!ready.await(5L, TimeUnit.SECONDS) || result[0] == null) {
+                lease.release();
+                return null;
+            }
+            lease.network = result[0];
+            return lease;
+        } catch (Throwable error) {
+            if (lease != null) lease.release();
+            Log.w(LOG_TAG, "Unable to request a fresh cellular network", error);
+            return null;
+        }
+    }
+
+    private static void retainCellularNetworkLease(final CellularNetworkLease lease) {
+        CELLULAR_NETWORK_LEASE_HANDLER.postDelayed(
+                lease::release, CELLULAR_NETWORK_LEASE_MILLIS);
+    }
+
+    /** Whether the user enabled the fresh-cellular-network workaround. */
+    public static boolean isCellularNetworkRefreshEnabled() {
+        SharedPreferences preferences = preferencesOrNull();
+        return preferences == null || preferences.getBoolean("refreshCellularNetwork", true);
+    }
+
+    private static final class CellularNetworkLease {
+        private final ConnectivityManager manager;
+        private final ConnectivityManager.NetworkCallback callback;
+        private volatile Network network;
+        private boolean released;
+
+        private CellularNetworkLease(
+                ConnectivityManager manager,
+                ConnectivityManager.NetworkCallback callback) {
+            this.manager = manager;
+            this.callback = callback;
+        }
+
+        private synchronized void release() {
+            if (released) return;
+            released = true;
+            try {
+                manager.unregisterNetworkCallback(callback);
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
     /**
@@ -1162,9 +1358,10 @@ public final class Haiagaru {
 
     private static String requestIoTalkAuth(String id, String password, long suppliedTime)
             throws Exception {
-        // Keep ChMate 241's wire format: the caller supplies epoch seconds and
-        // the generated authenticator reduces it once more before sending CT.
-        long authTime = suppliedTime / 1000L;
+        // ChMate 241 passes epoch seconds here.  Do not convert the value a
+        // second time: using milliseconds-to-seconds conversion again changes
+        // the HMAC input and makes Talk reject the write token.
+        long authTime = suppliedTime;
         String appKey = "KkaD9iXqKv9lp2luO9SuaTL8lmvRPj";
         String digestInput = id + password + appKey + authTime;
 
@@ -1557,12 +1754,25 @@ public final class Haiagaru {
 
     public static String normalizeBeIconUrl(String original) {
         if (original == null) return null;
-        return original.replace("://img.5ch.net/", "://img.5ch.io/");
+        return original
+                .replace("://img.5ch.net/ico/_be_", "://img.5ch.io/premium/")
+                .replace("://img.5ch.net/ico/_be", "://img.5ch.io/premium/")
+                .replace("://img.5ch.net/", "://img.5ch.io/");
     }
 
     public static String prepareLegacyBeParsing(String original) {
-        if (original == null || !original.contains("sssp://img.5ch.io/")) return original;
-        return original.replace("sssp://img.5ch.io/", "sssp://img.5ch.net/");
+        if (original == null) return null;
+        // The 191 parser only routes sssp://img.5ch.net/ico/... through its
+        // inline icon renderer. Normalize every public spelling, including
+        // ordinary https://, protocol-relative, and control-character encoded
+        // /ico/ URLs. This matters when
+        // the optional thread-date renderer inserts text before the URL: leaving
+        // the image as a normal link makes the span offsets and attachment pass
+        // disagree, which produces duplicate icons or a broken link.
+        String prepared = LEGACY_PREMIUM_BE_URL.matcher(original)
+                .replaceAll("sssp://img.5ch.net/ico/_be$1");
+        return LEGACY_BE_ICO_URL.matcher(prepared)
+                .replaceAll("sssp://img.5ch.net/ico/$1");
     }
 
     public static String stripLegacyBeAttachmentTokens(String original) {
@@ -1582,8 +1792,7 @@ public final class Haiagaru {
         if (start >= end) return found;
 
         String candidate = text.substring(start, end).toLowerCase(Locale.ROOT);
-        if (candidate.contains("img.5ch.io/ico/")
-                || candidate.contains("img.5ch.net/ico/")) {
+        if (isBeIconUrl(candidate)) {
             linkInfo[3] = 0;
             linkInfo[5] = 4;
         }
@@ -1656,7 +1865,9 @@ public final class Haiagaru {
         if (url == null) return false;
         String normalized = url.toLowerCase(Locale.ROOT);
         return normalized.contains("img.5ch.io/ico/")
-                || normalized.contains("img.5ch.net/ico/");
+                || normalized.contains("img.5ch.net/ico/")
+                || normalized.contains("img.5ch.io/premium/")
+                || normalized.contains("img.5ch.net/premium/");
     }
 
     public static boolean is5chHost(String host) {
@@ -1743,6 +1954,15 @@ public final class Haiagaru {
     /** Removes empty inline slots left between Talk response rows. */
     public static void hideTalkThreadBlankRows(Activity activity) {
         if (activity == null || !shouldHideAds()) return;
+        // This hook is installed on ResListActivity, which is also used for
+        // ordinary 5ch threads.  Their response container can still be empty
+        // while the first network load is in progress.  Treating that
+        // container as an ad slot hides the whole thread on its first open.
+        Intent intent = activity.getIntent();
+        if (intent == null || intent.getData() == null
+                || !ArchivedThreadImporter.isTalkThreadUrl(intent.getData().toString())) {
+            return;
+        }
         View root = activity.getWindow() == null
                 ? null : activity.getWindow().getDecorView();
         if (!(root instanceof ViewGroup)) return;
@@ -2102,6 +2322,21 @@ public final class Haiagaru {
                 text("自動DAT取得", "Automatic DAT retrieval"),
                 preferences.getBoolean("automaticDat", true)
         );
+        Switch refreshCellularNetwork = addSwitch(
+                layout,
+                activity,
+                text("投稿時にモバイル回線を再取得する", "Refresh the cellular network before posting"),
+                preferences.getBoolean("refreshCellularNetwork", true)
+        );
+        TextView refreshCellularNetworkDescription = new TextView(activity);
+        refreshCellularNetworkDescription.setText(text(
+                "ON（推奨）では、古いNetwork IDを使わず投稿前にセルラー回線を再要求します。"
+                        + " OFFにするとChMate本来の接続選択へ戻ります。",
+                "ON (recommended) requests a fresh cellular network before posting instead of reusing "
+                        + "a stale Network ID. OFF restores ChMate's original selection."
+        ));
+        refreshCellularNetworkDescription.setTextSize(13);
+        layout.addView(refreshCellularNetworkDescription, rowParams(activity));
         Switch bypassPostPreflight = addSwitch(
                 layout,
                 activity,
@@ -2303,6 +2538,7 @@ public final class Haiagaru {
                             .putBoolean("edgeReporterId", edgeReporterId.isChecked())
                             .putBoolean("forceHttps", forceHttps.isChecked())
                             .putBoolean("automaticDat", automaticDat.isChecked())
+                            .putBoolean("refreshCellularNetwork", refreshCellularNetwork.isChecked())
                             .putBoolean("bypassPostPreflight", bypassPostPreflight.isChecked())
                             .commit();
                     if (archiveRouteTemplates != null) {
@@ -2962,6 +3198,7 @@ public final class Haiagaru {
         final boolean edgeReporterId;
         final boolean forceHttps;
         final boolean automaticDat;
+        final boolean refreshCellularNetwork;
         final String archiveRouteTemplates;
 
         private ConfigSnapshot(
@@ -2977,6 +3214,7 @@ public final class Haiagaru {
                 boolean edgeReporterId,
                 boolean forceHttps,
                 boolean automaticDat,
+                boolean refreshCellularNetwork,
                 String archiveRouteTemplates
         ) {
             this.hideAd = hideAd;
@@ -2991,6 +3229,7 @@ public final class Haiagaru {
             this.edgeReporterId = edgeReporterId;
             this.forceHttps = forceHttps;
             this.automaticDat = automaticDat;
+            this.refreshCellularNetwork = refreshCellularNetwork;
             this.archiveRouteTemplates = archiveRouteTemplates;
         }
 
@@ -3008,6 +3247,7 @@ public final class Haiagaru {
                     preferences.getBoolean("edgeReporterId", true),
                     preferences.getBoolean("forceHttps", false),
                     preferences.getBoolean("automaticDat", true),
+                    preferences.getBoolean("refreshCellularNetwork", true),
                     preferences.getString(
                             ARCHIVE_ROUTE_TEMPLATES_KEY,
                             DEFAULT_ARCHIVE_ROUTE_TEMPLATES
@@ -3026,6 +3266,7 @@ public final class Haiagaru {
                     && edgeReporterId == value.edgeReporterId
                     && forceHttps == value.forceHttps
                     && automaticDat == value.automaticDat
+                    && refreshCellularNetwork == value.refreshCellularNetwork
                     && equal(userAgent, value.userAgent)
                     && equal(cookieClass, value.cookieClass)
                     && equal(monaKeyFile, value.monaKeyFile)

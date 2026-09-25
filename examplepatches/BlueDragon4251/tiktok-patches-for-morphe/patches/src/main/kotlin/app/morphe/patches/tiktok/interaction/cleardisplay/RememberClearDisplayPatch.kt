@@ -5,17 +5,19 @@
 package app.morphe.patches.tiktok.interaction.cleardisplay
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.shared.OnRenderFirstFrameFingerprint
-import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+
+private const val AUTOMATIC_CONTROLLER =
+    "Lapp/morphe/extension/tiktok/cleardisplay/AutomaticClearDisplayController;"
+private const val REMEMBER_CONTROLLER =
+    "Lapp/morphe/extension/tiktok/cleardisplay/RememberClearDisplayPatch;"
 
 @Suppress("unused")
 val rememberClearDisplayPatch = bytecodePatch(
@@ -23,7 +25,7 @@ val rememberClearDisplayPatch = bytecodePatch(
     description = "Remembers TikTok's clear-display state between videos.",
     default = true,
 ) {
-    compatibleWith(*AppCompatibilities.tiktok4643())
+    compatibleWith(*AppCompatibilities.tiktok4673())
 
     execute {
         ClearModeLogCoreFingerprint.methodOrNull?.returnEarly()
@@ -37,41 +39,30 @@ val rememberClearDisplayPatch = bytecodePatch(
             method.addInstructions(
                 isEnabledIndex,
                 "invoke-static {v$isEnabledRegister}, " +
-                    "Lapp/morphe/extension/tiktok/cleardisplay/RememberClearDisplayPatch;->rememberClearDisplayState(Z)V",
+                    "$REMEMBER_CONTROLLER->rememberClearDisplayState(Z)V",
             )
 
-            val clearDisplayEventClass = method.parameters[0].type
+            // The event class is known from TikTok's real onClearModeEvent signature, but it is no
+            // longer referenced as a type from the early player method. Pass only its Java class
+            // name as a String and let extension code construct/post the event reflectively.
+            val eventClassName = method.parameters[0].type
+                .removePrefix("L")
+                .removeSuffix(";")
+                .replace('/', '.')
+
             OnRenderFirstFrameFingerprint.method.apply {
-                val returnIndex = findInstructionIndicesReversedOrThrow {
-                    opcode == Opcode.RETURN_VOID
-                }.first()
-                addInstructionsWithLabels(
+                val returnIndex = implementation!!.instructions.withIndex()
+                    .filter { it.value.opcode == Opcode.RETURN_VOID }
+                    .map { it.index }
+                    .last()
+
+                addInstructions(
                     returnIndex,
                     """
-                        const/4 v0, 0x1
-                        const/4 v1, 0x0
-                        const-string v2, ""
-                        const-string p1, "long_press"
-                        new-instance p0, $clearDisplayEventClass
-                        invoke-direct {p0, v0, v1, v2, p1}, $clearDisplayEventClass-><init>(ZILjava/lang/String;Ljava/lang/String;)V
-                        invoke-static {p0}, Lapp/morphe/extension/tiktok/cleardisplay/AutomaticClearDisplayController;->onNewVideo(Ljava/lang/Object;)V
-
-                        invoke-static {}, Lapp/morphe/extension/tiktok/cleardisplay/AutomaticClearDisplayController;->isEnabled()Z
-                        move-result v0
-                        if-nez v0, :blueit_clear_display_return
-
-                        invoke-static {}, Lapp/morphe/extension/tiktok/cleardisplay/RememberClearDisplayPatch;->getClearDisplayState()Z
-                        move-result v0
-                        if-eqz v0, :blueit_clear_display_return
-
-                        const/4 v1, 0x0
-                        const-string v2, ""
-                        const-string p1, "long_press"
-                        new-instance p0, $clearDisplayEventClass
-                        invoke-direct {p0, v0, v1, v2, p1}, $clearDisplayEventClass-><init>(ZILjava/lang/String;Ljava/lang/String;)V
-                        invoke-virtual {p0}, $clearDisplayEventClass->post()Lcom/ss/android/ugc/governance/eventbus/IEvent;
-                    """,
-                    ExternalLabel("blueit_clear_display_return", getInstruction(returnIndex)),
+                        const-string v0, "$eventClassName"
+                        invoke-static {v0}, $AUTOMATIC_CONTROLLER->onRenderFirstFrame(Ljava/lang/String;)V
+                        invoke-static {v0}, $REMEMBER_CONTROLLER->restoreClearDisplayState(Ljava/lang/String;)V
+                    """.trimIndent(),
                 )
             }
         }

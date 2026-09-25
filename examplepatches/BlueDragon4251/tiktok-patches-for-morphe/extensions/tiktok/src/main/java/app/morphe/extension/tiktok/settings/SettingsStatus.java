@@ -21,6 +21,7 @@ public class SettingsStatus {
     public static boolean captchaPopupSuppressionEnabled = false;
     public static boolean promotionalBannersEnabled = false;
     public static boolean automaticClearDisplayEnabled = false;
+    public static boolean themeEngineEnabled = false;
     public static boolean gestureRemapperEnabled = false;
     public static boolean longPressSpeedLockEnabled = false;
     public static boolean disableLongPressQuickShareEnabled = false;
@@ -48,6 +49,7 @@ public class SettingsStatus {
     public static void enableCaptchaPopupSuppression() { captchaPopupSuppressionEnabled = true; }
     public static void enablePromotionalBanners() { promotionalBannersEnabled = true; }
     public static void enableAutomaticClearDisplay() { automaticClearDisplayEnabled = true; }
+    public static void enableThemeEngine() { themeEngineEnabled = true; }
     public static void enableGestureRemapper() { gestureRemapperEnabled = true; }
     public static void enableLongPressSpeedLock() { longPressSpeedLockEnabled = true; }
     public static void enableDisableLongPressQuickShare() { disableLongPressQuickShareEnabled = true; }

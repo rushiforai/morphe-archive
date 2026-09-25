@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.interaction.looping
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 private const val VIDEO_ENGINE_CLASS_DESCRIPTOR =

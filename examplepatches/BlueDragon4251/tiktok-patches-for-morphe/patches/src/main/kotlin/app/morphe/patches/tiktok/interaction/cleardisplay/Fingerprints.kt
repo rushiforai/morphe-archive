@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.interaction.cleardisplay
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 internal object OnClearDisplayEventFingerprint : Fingerprint(
@@ -14,15 +14,16 @@ internal object OnClearDisplayEventFingerprint : Fingerprint(
 )
 
 /**
- * TikTok 46.4.3 clear-mode panel reset for the currently displayed feed item.
- * This gives BlueIT the real panel instance and current item context instead of
- * fabricating a context-free clear-mode event from PlayerController.
+ * Clear-mode panel reset for the currently displayed feed item.
+ *
+ * TikTok 46.7.3 keeps the concrete ClearModePanelComponent and the
+ * `resetClearMode` semantic marker, but obfuscates the method name and the
+ * current-item parameter type. The injected hook only needs p0 (panel) and p1
+ * (current item), so those unstable descriptors are intentionally not pinned.
  */
 internal object ClearModePanelResetFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/feed/platform/panel/clearmode/ClearModePanelComponent;",
-    name = "ap",
     returnType = "V",
-    parameters = listOf("LX/0SKe;", "Z"),
     strings = listOf("resetClearMode"),
 )
 

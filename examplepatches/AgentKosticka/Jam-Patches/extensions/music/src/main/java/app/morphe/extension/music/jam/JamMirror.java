@@ -1,9 +1,25 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/3014
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.extension.music.jam;
 
+import static app.morphe.extension.shared.StringRef.str;
+
 import android.content.Context;
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 import app.morphe.jam.ipc.QueueEdits;
-import java.util.*;
-import org.json.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /** Native adapters display authoritative state plus unacknowledged local gestures. */
 public final class JamMirror {
@@ -49,6 +65,7 @@ public final class JamMirror {
     try {
       access = YtmBridge.access();
     } catch (Exception e) {
+      Logger.printDebug(() -> "Jam queue bridge is not ready", e);
       return;
     }
     access.patch_jamViewThread(() -> {
@@ -107,7 +124,7 @@ public final class JamMirror {
         edits.accept(view);
         render();
       } catch (Exception e) {
-        android.util.Log.e("MorpheJam", "Native mirror failed", e);
+        Logger.printException(() -> "Native mirror failed", e);
       }
     });
   }
@@ -199,14 +216,10 @@ public final class JamMirror {
   private static String nowText(String key) {
     JSONObject view = snapshot;
     int index = current;
-    try {
-      JSONArray rows = view == null ? null : view.optJSONArray("items");
-      return rows == null || index < 0 || index >= rows.length()
-        ? null
-        : rows.getJSONObject(index).optString(key, "");
-    } catch (Exception ignored) {
-      return null;
-    }
+    JSONArray rows = view == null ? null : view.optJSONArray("items");
+    JSONObject row =
+      rows == null || index < 0 ? null : rows.optJSONObject(index);
+    return row == null ? null : row.optString(key, "");
   }
 
   public static int current(Object list) {
@@ -252,6 +265,7 @@ public final class JamMirror {
       );
       return true;
     } catch (Exception e) {
+      Logger.printInfo(() -> "Could not remove Jam queue item", e);
       return false;
     }
   }
@@ -268,7 +282,7 @@ public final class JamMirror {
           .put("lane", lane)
       );
     } catch (Exception e) {
-      JamUi.toast(context, "Queue changed; try the gesture again");
+      Utils.showToastLong(str("morphe_music_jam_queue_changed_gesture"));
     }
     return true;
   }
@@ -281,7 +295,7 @@ public final class JamMirror {
         render();
         sendNext();
       } catch (Exception e) {
-        JamUi.toast(context, e.getMessage());
+        Utils.showToastLong(e.getMessage());
       }
     });
   }
@@ -299,10 +313,9 @@ public final class JamMirror {
           edits.complete(response);
           render();
         } catch (Exception e) {
-          android.util.Log.e("MorpheJam", "Edit acknowledgement failed", e);
+          Logger.printException(() -> "Edit acknowledgement failed", e);
         }
-        if (!response.optBoolean("ok")) JamUi.toast(
-          context,
+        if (!response.optBoolean("ok")) Utils.showToastLong(
           response.optString("error")
         );
         sendNext();
@@ -311,8 +324,13 @@ public final class JamMirror {
       try {
         edits.complete(new JSONObject());
         render();
-      } catch (Exception ignored) {}
-      JamUi.toast(context, e.getMessage());
+      } catch (Exception cleanupError) {
+        Logger.printInfo(
+          () -> "Could not roll back Jam queue edit",
+          cleanupError
+        );
+      }
+      Utils.showToastLong(e.getMessage());
       sendNext();
     }
   }

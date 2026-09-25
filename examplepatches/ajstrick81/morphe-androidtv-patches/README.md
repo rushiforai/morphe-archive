@@ -12,6 +12,21 @@ I'm just like you — I enjoy watching TV and movies without being bored and ann
 
 ---
 
+## 🧭 Philosophy
+
+> **You bought the TV. You control the TV. You own the glass.**
+>
+> — Rory Gallagher, [lg-webos-dashboard](https://github.com/rorygallagher2024/lg-webos-dashboard) (MIT). This project shares inspiration and is aligned with Rory's work.
+
+That line is the reason this project exists. If you own the TV and pay for the service, what plays on your screen should be your call, not an ad network's. These patches hand that choice back to you:
+
+- **Your screen, your choice.** Ads, pause-screen promos and ad-tracking beacons are removed or masked, so the show you picked is what plays.
+- **Local and transparent.** Everything runs on your TV, inside the patched app. The source is open, and the [seam map](docs/SEAM_MAP.md) shows what each patch changes.
+- **No data collection.** The patches don't phone home, and nothing is sent to this project. Several of them cut the apps' own ad-tracking calls.
+- **No dark patterns.** Optional features stay optional and are clearly labeled.
+
+---
+
 ## 📊 Patch Status
 
 | App | Package | Status | Tested Version | Date |

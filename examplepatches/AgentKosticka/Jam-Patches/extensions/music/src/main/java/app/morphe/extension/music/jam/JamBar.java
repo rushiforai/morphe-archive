@@ -1,9 +1,23 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/3014
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.extension.music.jam;
+
+import static app.morphe.extension.shared.StringRef.str;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.*;
-import android.widget.*;
+import android.view.Gravity;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import app.morphe.extension.shared.Utils;
 import java.util.function.Consumer;
 import org.json.JSONObject;
 
@@ -93,12 +107,12 @@ public final class JamBar extends LinearLayout {
     subtitle.setText(JamPanel.status(view));
     action.setText(
       "Host".equals(role)
-        ? "Manage"
+        ? str("morphe_music_jam_manage")
         : "Participant".equals(role)
-          ? "Details"
+          ? str("morphe_music_jam_details")
           : "Joining".equals(role)
-            ? "Cancel"
-            : "Open"
+            ? str("morphe_music_jam_cancel")
+            : str("morphe_music_jam_open")
     );
     boolean busy = JamPanel.waiting(view);
     progress.setVisibility(busy ? VISIBLE : GONE);

@@ -66,7 +66,7 @@ final class SaveNotice {
      * The topmost attached window root, the way the verification probe reads them, or null when
      * the host keeps its windows somewhere this Android does not expose.
      */
-    private static ViewGroup topWindowRoot(Activity activity) {
+    static ViewGroup topWindowRoot(Activity activity) {
         try {
             List<View> roots = windowRootsForTests;
             if (roots == null) {

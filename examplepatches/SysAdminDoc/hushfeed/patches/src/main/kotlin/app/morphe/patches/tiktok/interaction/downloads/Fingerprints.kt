@@ -197,6 +197,18 @@ internal object ImagePostMediaCopyFingerprint : Fingerprint(
     },
 )
 
+/**
+ * TikTok's save of a comment photo: an R8-named class and method, but the one method in the app
+ * that asks for storage under the "bpea-comment_photo_save_request_storage" policy. It unboxes
+ * the tapped photo's index, reads the comment, and hands its downloader the still's UrlModel
+ * alone, which is where a live photo's clip is lost (upstream #169).
+ */
+internal object CommentPhotoSaveFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = emptyList(),
+    strings = listOf("bpea-comment_photo_save_request_storage"),
+)
+
 internal object StickerPreviewSourceFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(

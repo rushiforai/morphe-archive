@@ -1,0 +1,170 @@
+name: TikTok 46.7.3 fingerprint discovery
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+concurrency:
+  group: tiktok-46-7-3-discovery-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download exact TikTok 46.7.3 APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED="b9e96e64e94ac0f9ea229dd0ba743f1930121a8b6941cf9fd87191604da0129e"
+          curl -fL --retry 4 --retry-delay 3 \
+            -A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36' \
+            'https://d.apkpure.net/b/APK/com.zhiliaoapp.musically?versionCode=2024607030' \
+            -o tiktok-46.7.3.apk
+          ACTUAL="$(sha256sum tiktok-46.7.3.apk | awk '{print $1}')"
+          echo "SHA-256: $ACTUAL"
+          test "$ACTUAL" = "$EXPECTED"
+          rm -rf /tmp/dex /tmp/dumps
+          mkdir -p /tmp/dex /tmp/dumps
+          unzip -q -j tiktok-46.7.3.apk 'classes*.dex' -d /tmp/dex
+
+      - name: Locate and dump remaining anchors
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEXDUMP="$(find "$ANDROID_HOME/build-tools" -type f -name dexdump 2>/dev/null | sort -V | tail -n 1)"
+          test -x "$DEXDUMP"
+          : > remaining-evidence.txt
+
+          REGEX='onSingleTapConfirmed, currentMode=|onSingleTapConfirmed, multiIntercept:|TakoAssem|feed/assem/tikbot|RiskControlService|BdTuringCallback|LiveHostUser|popCaptchaV2|DOWNLOAD_200_VIDEOS|OfflineModeSheetPageAssem|OfflineModeListVM'
+          GESTURE_REGEX='onSingleTapConfirmed|onDoubleTap|onLongPress|handleDoubleClick|handleConfiguredSeek'
+
+          for dex in /tmp/dex/*.dex; do
+            strings_file="/tmp/$(basename "$dex").strings"
+            strings "$dex" > "$strings_file"
+
+            base_match=0
+            gesture_match=0
+            if grep -Eiq "$REGEX" "$strings_file"; then
+              base_match=1
+            fi
+            if grep -Fxq 'onSingleTapConfirmed' "$strings_file" && \
+               grep -Fxq 'onDoubleTap' "$strings_file" && \
+               grep -Fxq 'onLongPress' "$strings_file"; then
+              gesture_match=1
+            fi
+
+            if test "$base_match" = 1 || test "$gesture_match" = 1; then
+              echo "=== MATCHING DEX $(basename "$dex") ===" >> remaining-evidence.txt
+              grep -Ei "$REGEX|$GESTURE_REGEX|PersonalizedEmojiExperiment|ExposedEmojiPanelTrigger|im_long_press_share_button_to_quick_share" \
+                "$strings_file" | sort -u | head -n 2000 >> remaining-evidence.txt || true
+
+              dump="/tmp/dumps/$(basename "$dex").txt"
+              timeout 100s "$DEXDUMP" -d "$dex" > "$dump" 2>&1 || true
+              if test -s "$dump"; then
+                echo "=== CONTEXT $(basename "$dex") ===" >> remaining-evidence.txt
+                grep -Ein -B 160 -A 140 "$REGEX|$GESTURE_REGEX" "$dump" | head -n 70000 >> remaining-evidence.txt || true
+              fi
+            fi
+          done
+
+      - name: Discover TikTok theme and color providers
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEXDUMP="$(find "$ANDROID_HOME/build-tools" -type f -name dexdump 2>/dev/null | sort -V | tail -n 1)"
+          test -x "$DEXDUMP"
+          : > theme-evidence.txt
+
+          THEME_REGEX='SettingsComposeRvmpFragment|AndroidComposeView|ComposeView|MaterialTheme|ColorScheme|LocalContentColor|LocalColors|TUX|Tux|ThemeMode|theme_mode|ColorMode|color_mode|DarkMode|dark_mode|LightMode|light_mode|semantic.?color|color.?token|palette|surface.?color|background.?color|ColorStateList|getColorStateList|getColor\(|setBackgroundColor|setStatusBarColor|setNavigationBarColor'
+
+          for dex in /tmp/dex/*.dex; do
+            strings_file="/tmp/$(basename "$dex").strings"
+            test -f "$strings_file" || strings "$dex" > "$strings_file"
+            if ! grep -Eiq "$THEME_REGEX" "$strings_file"; then
+              continue
+            fi
+
+            echo "=== THEME STRINGS $(basename "$dex") ===" >> theme-evidence.txt
+            grep -Ei "$THEME_REGEX" "$strings_file" | sort -u | head -n 3500 >> theme-evidence.txt || true
+
+            dump="/tmp/dumps/theme-$(basename "$dex").txt"
+            timeout 75s "$DEXDUMP" -d "$dex" > "$dump" 2>&1 || true
+            if test -s "$dump"; then
+              echo "=== THEME DEX CONTEXT $(basename "$dex") ===" >> theme-evidence.txt
+              grep -Ein -B 80 -A 100 "$THEME_REGEX" "$dump" | head -n 50000 >> theme-evidence.txt || true
+            fi
+          done
+
+          echo '=== MANIFEST / RESOURCE THEME NAMES ===' >> theme-evidence.txt
+          unzip -l tiktok-46.7.3.apk | grep -Ei 'color|theme|style|compose|tux' | head -n 8000 >> theme-evidence.txt || true
+
+      - name: Dump central TUX color resolver
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEXDUMP="$(find "$ANDROID_HOME/build-tools" -type f -name dexdump 2>/dev/null | sort -V | tail -n 1)"
+          : > theme-core-evidence.txt
+
+          for dex in /tmp/dex/*.dex; do
+            strings_file="/tmp/$(basename "$dex").strings"
+            test -f "$strings_file" || strings "$dex" > "$strings_file"
+            if ! grep -Eq 'LX/0547;|LX/0tK8;|setThemeMode|switchDarkLightThemeMode|setNavBarBackground\$tux_theme_release' "$strings_file"; then
+              continue
+            fi
+
+            dump="/tmp/dumps/core-$(basename "$dex").txt"
+            timeout 80s "$DEXDUMP" -d "$dex" > "$dump" 2>&1 || true
+            test -s "$dump" || continue
+
+            echo "=== CORE DEX $(basename "$dex") ===" >> theme-core-evidence.txt
+            grep -Ein -B 120 -A 260 "Class descriptor.*LX/0547;|Class descriptor.*LX/0tK8;|name          : 'setThemeMode'|name          : 'switchDarkLightThemeMode'|name          : 'setNavBarBackground\\\$tux_theme_release'" \
+              "$dump" | head -n 90000 >> theme-core-evidence.txt || true
+          done
+
+      - name: Dump exact navigation sidebar and settings surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEXDUMP="$(find "$ANDROID_HOME/build-tools" -type f -name dexdump 2>/dev/null | sort -V | tail -n 1)"
+          test -x "$DEXDUMP"
+          : > ui-surface-evidence.txt
+
+          SURFACE_STRINGS='SettingsComposeRvmpFragment|SidebarPageFragment|ProfilePageMenuFragment|HomepageViewPagerAssem|MainPageBusinessAssem|HomeTabAbility|ProfileSidebar|ISidebarAbility|setTranslationX|showBottomTab'
+          SURFACE_DUMP_REGEX='Class descriptor.*SettingsComposeRvmpFragment;|Class descriptor.*SidebarPageFragment;|Class descriptor.*ProfilePageMenuFragment;|Class descriptor.*HomepageViewPagerAssem;|Class descriptor.*MainPageBusinessAssem;|HomeTabAbility|ProfileSidebar|ISidebarAbility|setTranslationX|showBottomTab|setBackgroundColor'
+
+          for dex in /tmp/dex/*.dex; do
+            strings_file="/tmp/$(basename "$dex").strings"
+            test -f "$strings_file" || strings "$dex" > "$strings_file"
+            if ! grep -Eiq "$SURFACE_STRINGS" "$strings_file"; then
+              continue
+            fi
+
+            echo "=== SURFACE STRINGS $(basename "$dex") ===" >> ui-surface-evidence.txt
+            grep -Ei "$SURFACE_STRINGS" "$strings_file" | sort -u | head -n 2500 >> ui-surface-evidence.txt || true
+
+            dump="/tmp/dumps/surface-$(basename "$dex").txt"
+            timeout 90s "$DEXDUMP" -d "$dex" > "$dump" 2>&1 || true
+            test -s "$dump" || continue
+
+            echo "=== SURFACE DEX $(basename "$dex") ===" >> ui-surface-evidence.txt
+            grep -Ein -B 180 -A 720 "$SURFACE_DUMP_REGEX" "$dump" | head -n 140000 >> ui-surface-evidence.txt || true
+          done
+
+      - name: Upload discovery evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiktok-46.7.3-fingerprint-discovery
+          path: |
+            remaining-evidence.txt
+            theme-evidence.txt
+            theme-core-evidence.txt
+            ui-surface-evidence.txt
+          if-no-files-found: error
+          retention-days: 1

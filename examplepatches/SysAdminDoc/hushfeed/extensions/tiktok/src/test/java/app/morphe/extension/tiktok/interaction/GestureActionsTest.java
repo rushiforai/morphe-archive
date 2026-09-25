@@ -186,7 +186,7 @@ public class GestureActionsTest {
         }
     }
 
-    @Test public void longPressPatchHasSixReachableChoices() throws Exception {
+    @Test public void longPressPatchHasSevenReachableChoices() throws Exception {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
             var activity = controller.get();
             Utils.setContext(activity);
@@ -196,7 +196,7 @@ public class GestureActionsTest {
             ChoicePreference choice = (ChoicePreference) screen.findPreference("long_press_action");
             assertNotNull(choice);
             assertArrayEquals(new String[]{"default", "nothing", "comments", "original_sound",
-                    "copy_link", "copy_sound_link"}, choice.getEntryValues());
+                    "copy_link", "copy_sound_link", "youtube_music"}, choice.getEntryValues());
             assertEquals("every value needs a label to pick it by",
                     choice.getEntryValues().length, choice.getEntries().length);
             // The edge seek rides on the same patch, so its two controls come with it.
@@ -261,7 +261,9 @@ public class GestureActionsTest {
                     (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
             String[][] cases = {
                     {"copy_link", "This video has no link to copy"},
-                    {"copy_sound_link", "This video has no sound of its own"}
+                    {"copy_sound_link", "This video has no sound of its own"},
+                    // The same dispatch: a video with no sound has nothing to look up either.
+                    {"youtube_music", "This video's sound has no title to look for"}
             };
             for (String[] testCase : cases) {
                 Settings.LONG_PRESS_ACTION.save(testCase[0]);

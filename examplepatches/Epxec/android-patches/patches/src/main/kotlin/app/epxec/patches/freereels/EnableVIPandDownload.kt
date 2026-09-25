@@ -5,6 +5,7 @@ import app.epxec.patches.shared.Constants.COMPATIBILITY_Freereels
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.epxec.patches.freereels.Fingerprints.FreereelsVipFingerprint
 import app.epxec.patches.freereels.Fingerprints.FreereelsDownloadAdsFingerprint
+import app.epxec.patches.freereels.Fingerprints.FreereelsDNSBlockFingerprint
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 
@@ -36,6 +37,14 @@ val enableVipPatch = bytecodePatch(
             iputIndex,
             """
                     const/4 p1, 0x0
+            """
+        )
+
+        FreereelsDNSBlockFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
             """
         )
     }

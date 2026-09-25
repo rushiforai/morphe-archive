@@ -1,11 +1,27 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/3014
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.extension.music.jam;
 
-import android.app.*;
-import android.content.*;
+import static app.morphe.extension.shared.StringRef.str;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.view.*;
-import android.widget.*;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.Switch;
+import android.widget.TextView;
+import app.morphe.extension.shared.Logger;
 import java.util.function.Consumer;
 import org.json.JSONObject;
 
@@ -20,41 +36,50 @@ final class JamPanel {
   static String title(JSONObject view) {
     String r = role(view);
     return "Host".equals(r)
-      ? "Your Jam"
+      ? str("morphe_music_jam_your_jam")
       : "Participant".equals(r)
-        ? "Listening together"
+        ? str("morphe_music_jam_listening_together")
         : "Joining".equals(r)
-          ? "Joining Jam"
-          : "Listen together";
+          ? str("morphe_music_jam_joining_jam")
+          : str("morphe_music_jam_listen_together");
   }
 
   static String status(JSONObject view) {
     JSONObject s = view.optJSONObject("session");
     String r = role(view);
-    if (JamUi.pending > 0) return "Updating Jam…";
-    if ("Joining".equals(r)) return "Finding your host on Wi-Fi…";
+    if (JamUi.pending > 0) return str("morphe_music_jam_updating");
+    if ("Joining".equals(r)) return str("morphe_music_jam_finding_host");
     if ("Host".equals(r)) {
       int n = s.optInt("peers");
       return (
         (n == 0
-          ? "Waiting for people"
-          : n + " " + (n == 1 ? "person" : "people") + " connected") +
+          ? str("morphe_music_jam_waiting_people")
+          : String.format(
+              str(
+                n == 1
+                  ? "morphe_music_jam_one_connected"
+                  : "morphe_music_jam_many_connected"
+              ),
+              n
+            )) +
         " · " +
-        (s.optBoolean("allowGuestEdits", true) ? "Edits open" : "Edits locked")
+        (s.optBoolean("allowGuestEdits", true)
+          ? str("morphe_music_jam_edits_open")
+          : str("morphe_music_jam_edits_locked"))
       );
     }
     if ("Participant".equals(r)) {
       if (view.has("error")) return view.optString("error");
       String t = s.optString("transport");
       return "Aware".equals(t)
-        ? "Connected via Wi-Fi Aware"
+        ? str("morphe_music_jam_connected_aware")
         : "LAN".equals(t)
-          ? "Connected via Wi-Fi"
-          : "Reconnecting to your host…";
+          ? str("morphe_music_jam_connected_wifi")
+          : str("morphe_music_jam_reconnecting_host");
     }
     return s == null && view.has("error")
       ? view.optString("error")
-      : "Share a queue. Let everyone add songs.";
+      : str("morphe_music_jam_share_prompt");
   }
 
   static boolean waiting(JSONObject v) {
@@ -104,7 +129,7 @@ final class JamPanel {
     body.addView(actions);
     AlertDialog dialog = new AlertDialog.Builder(c)
       .setView(body)
-      .setNegativeButton("Done", null)
+      .setNegativeButton(str("morphe_music_jam_done"), null)
       .create();
     final String[] previous = { "" };
     Consumer<JSONObject> observer = v -> {
@@ -122,11 +147,16 @@ final class JamPanel {
       previous[0] = key;
       actions.removeAllViews();
       if ("Host".equals(role)) {
-        button(c, actions, "Invite people", false, !busy, () ->
-          JamUi.invite(c)
+        button(
+          c,
+          actions,
+          str("morphe_music_jam_invite_people"),
+          false,
+          !busy,
+          () -> JamUi.invite(c)
         );
         Switch edits = new Switch(c);
-        edits.setText("Guests can edit the queue");
+        edits.setText(str("morphe_music_jam_guest_edits"));
         edits.setTextColor(0xffeeeeee);
         edits.setTextSize(15);
         edits.setMinHeight(JamUi.dp(c, 56));
@@ -137,17 +167,23 @@ final class JamPanel {
           edits.setEnabled(false);
           try {
             JamUi.edit(c, JamUi.command("GUEST_EDITS").put("allow", checked));
-          } catch (Exception ignored) {}
+          } catch (Exception error) {
+            Logger.printInfo(
+              () -> "Could not send Jam guest edit choice",
+              error
+            );
+            edits.setEnabled(true);
+          }
         });
-        button(c, actions, "End Jam", true, !busy, () ->
+        button(c, actions, str("morphe_music_jam_end_jam"), true, !busy, () ->
           JamUi.edit(c, JamUi.command("END"))
         );
       } else if ("Participant".equals(role) || "Joining".equals(role)) {
         TextView help = new TextView(c);
         help.setText(
           "Participant".equals(role)
-            ? "The host plays the music. Add, move or remove songs directly in the YouTube Music queue."
-            : "Keep both devices nearby. You can cancel while we look for the host."
+            ? str("morphe_music_jam_participant_help")
+            : str("morphe_music_jam_joining_help")
         );
         help.setTextColor(0xffbbbbbb);
         help.setTextSize(14);
@@ -156,7 +192,9 @@ final class JamPanel {
         button(
           c,
           actions,
-          "Joining".equals(role) ? "Cancel joining" : "Leave Jam",
+          "Joining".equals(role)
+            ? str("morphe_music_jam_cancel_joining")
+            : str("morphe_music_jam_leave_jam"),
           true,
           true,
           () -> JamUi.edit(c, JamUi.command("END"))
@@ -164,15 +202,36 @@ final class JamPanel {
       } else {
         boolean paired = state != null && state.optBoolean("paired");
         if (paired) {
-          button(c, actions, "Start a Jam", false, !busy, () -> JamUi.host(c));
-          button(c, actions, "Join with a code", false, !busy, () -> {
+          button(
+            c,
+            actions,
+            str("morphe_music_jam_start_jam"),
+            false,
+            !busy,
+            () -> JamUi.host(c)
+          );
+          button(
+            c,
+            actions,
+            str("morphe_music_jam_join_with_code"),
+            false,
+            !busy,
+            () -> {
+              dialog.dismiss();
+              JamUi.join(c);
+            }
+          );
+        } else button(
+          c,
+          actions,
+          str("morphe_music_jam_setup_layer"),
+          false,
+          !busy,
+          () -> {
             dialog.dismiss();
-            JamUi.join(c);
-          });
-        } else button(c, actions, "Set up Jam Layer", false, !busy, () -> {
-          dialog.dismiss();
-          JamUi.pair(c);
-        });
+            JamUi.pair(c);
+          }
+        );
       }
     };
     dialog.setOnDismissListener(d -> JamUi.unobserve(observer));

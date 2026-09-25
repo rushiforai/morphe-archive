@@ -65,39 +65,31 @@ public final class RedditContentFilterPatch {
 
     private static BytecodePatch createRedditContentFilterPatch() {
         return PatchKt.bytecodePatch(NAME,
-            "Adds keyword and per-community flair filters under Morphe > Filters, including cached and joined-community posts.",
+            "Adds keyword and per-community flair filters under Morphe > Filters. Home-feed flair filtering requires Show flairs in home feed, which is installed automatically.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "Reddit", null, ApkFileType.APK,
                     null, null, Collections.singletonList(new AppTarget(VERSION, false, null)), false));
-                builder.extendWith(RedditContentFilterPatch::extensionStream);
+                builder.dependsOn(RedditShowHomeFlairsPatch.getRedditShowHomeFlairsPatch());
                 builder.execute(context -> {
                     if (!PACKAGE.equals(context.getPackageMetadata().getPackageName())
                         || !VERSION.equals(context.getPackageMetadata().getVersionName()))
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
-                    hookLinkRegistration(findLinkConstructor(context.mutableClassDefBy(LINK)));
                     hookChildrenGetter(findChildrenGetter(context.mutableClassDefBy(LISTING)));
                     hookSubredditRegistration(findSubredditConstructor(context.mutableClassDefBy(SUBREDDIT)));
                     hookFlairSource(findFlairSourceConstructor(context.mutableClassDefBy(FLAIR_SOURCE)));
                     hookSubredditSource(findSubredditSourceConstructor(context.mutableClassDefBy(SUBREDDIT_SOURCE)));
-                    hookPostByIdSource(context.mutableClassDefBy(POST_BY_ID_SOURCE));
-                    hookLinkSource(context.mutableClassDefBy(LINK_SOURCE));
-                    hookLinkRepository(context.mutableClassDefBy(LINK_REPOSITORY));
                     hookSubredditHeader(findSubredditHeader(context.mutableClassDefBy(SUBREDDIT_HEADER_VIEW)));
                     hookSubredditFeedLambda(findObjectLambda(context.mutableClassDefBy(SUBREDDIT_FEED_LAMBDA),
                         "subreddit feed composable"));
                     hookFlairRow(findFlairRow(context.mutableClassDefBy(FLAIR_ROW)));
                     hookFlairChip(findFlairChip(context.mutableClassDefBy(FLAIR_CHIP)));
                     hookFilterChipLambda(findFilterChipLambda(context.mutableClassDefBy(FILTER_CHIP_LAMBDA)));
-                    hookFeedSectionMapper(findFeedSectionMapper(context.mutableClassDefBy(FEED_SECTION_MAPPER)));
+                    hookFeedSectionFilter(findFeedSectionMapper(context.mutableClassDefBy(FEED_SECTION_MAPPER)));
                     hookFeedPostCell(findFeedPostCellConstructor(context.mutableClassDefBy(FEED_POST_CELL)));
                     hookHomePostMapper(findHomePostMapper(context.mutableClassDefBy(HOME_POST_MAPPER)));
-                    hookFeedLinkMapper(findFeedLinkMapper(context.mutableClassDefBy(FEED_LINK_MAPPER), "a"));
-                    hookFeedLinkMapper(findFeedLinkMapper(context.mutableClassDefBy(FEED_LINK_ALTERNATE_MAPPER), "D"));
                     hookClassicPostMapper(findClassicPostMapper(context.mutableClassDefBy(CLASSIC_POST_MAPPER)));
                     for (MutableMethod renderer : findClassicPostComposables(
                         context.mutableClassDefBy(CLASSIC_POST_COMPOSABLE))) hookClassicPostComposable(renderer);
-                    hookFeedElementProcessor(findFeedElementProcessor(
-                        context.mutableClassDefBy(FEED_ELEMENT_PROCESSOR)));
                     MutableClass settings = context.mutableClassDefByOrNull(SETTINGS);
                     if (settings == null) throw unsupported("Morphe's Reddit settings extension is missing; "
                         + "also enable an official Reddit patch that adds the Morphe settings menu");
@@ -686,6 +678,31 @@ public final class RedditContentFilterPatch {
                 new ImmutableMethodReference(EXTENSION, "filterFeedSection",
                     Collections.singletonList("Ljava/lang/Object;"), "Ljava/lang/Object;")));
         method.getImplementation().addInstruction(returnIndex + 1,
+            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, sectionRegister));
+    }
+
+    /** Adds content filtering to the feed mapper already prepared by the home-flair patch. */
+    static void hookFeedSectionFilter(MutableMethod method) {
+        List<Instruction> all = instructions(method);
+        int showIndex = -1;
+        int sectionRegister = -1;
+        for (int i = 0; i < all.size(); i++) {
+            Instruction instruction = all.get(i);
+            if (!(instruction instanceof ReferenceInstruction)
+                || !((ReferenceInstruction) instruction).getReference().toString()
+                    .contains("->showHomePostFlair(")) continue;
+            if (!(instruction instanceof RegisterRangeInstruction))
+                throw unsupported("Home-flair feed hook does not use a register range");
+            showIndex = i;
+            sectionRegister = ((RegisterRangeInstruction) instruction).getStartRegister();
+            break;
+        }
+        if (showIndex < 0) throw unsupported("Home-flair feed hook was not found");
+        method.getImplementation().addInstruction(showIndex,
+            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, sectionRegister, 1,
+                new ImmutableMethodReference(EXTENSION, "filterFeedSection",
+                    Collections.singletonList("Ljava/lang/Object;"), "Ljava/lang/Object;")));
+        method.getImplementation().addInstruction(showIndex + 1,
             new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, sectionRegister));
     }
 

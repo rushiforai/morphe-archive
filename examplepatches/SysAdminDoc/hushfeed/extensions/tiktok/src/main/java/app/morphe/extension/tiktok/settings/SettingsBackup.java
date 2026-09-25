@@ -519,7 +519,8 @@ public final class SettingsBackup {
         if (setting == Settings.BLOCKED_CAPTION_WORDS) {
             return FeedRuleLimits.captionProblem(text);
         }
-        if (setting == Settings.BLOCKED_CREATORS || setting == Settings.LOCAL_HIDDEN_CREATORS) {
+        if (setting == Settings.BLOCKED_CREATORS || setting == Settings.LOCAL_HIDDEN_CREATORS
+                || setting == Settings.CREATOR_FILTER_EXCEPTIONS) {
             return FeedRuleLimits.creatorProblem(text);
         }
         return null;

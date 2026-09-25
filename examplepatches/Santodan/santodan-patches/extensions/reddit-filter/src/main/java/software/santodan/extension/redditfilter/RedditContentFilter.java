@@ -1306,7 +1306,8 @@ public final class RedditContentFilter {
         Context context = applicationContext != null ? applicationContext : appContext();
         if (context == null) return original;
         List<FlairRule> rules = parseFlairs(prefs(context).getString(FLAIRS, ""));
-        if (rules.isEmpty()) return original;
+        boolean showFlairs = prefs(context).getBoolean(SHOW_HOME_FLAIRS, false);
+        if (rules.isEmpty() && !showFlairs) return original;
         ArrayList<Object> kept = new ArrayList<>(original.size());
         for (Object element : original) {
             if (element == null) { kept.add(null); continue; }
@@ -1337,7 +1338,7 @@ public final class RedditContentFilter {
             for (FlairRule rule : rules) if (rule.community.equals(community)) {
                 filteredCommunity = true; break;
             }
-            if (filteredCommunity && (info == null || info.flair.isEmpty())) {
+            if ((filteredCommunity || showFlairs) && (info == null || info.flair.isEmpty())) {
                 CompletableFuture<Void> lookup = requestPostDetails(id);
                 if (lookup != null) try { lookup.get(3000, TimeUnit.MILLISECONDS); }
                 catch (InterruptedException error) { Thread.currentThread().interrupt(); }
@@ -1357,17 +1358,16 @@ public final class RedditContentFilter {
                     + " community=" + community + " flair=" + flair
                     + " class=" + element.getClass().getName());
             if (!hide) {
-                if (info != null && !info.flair.isEmpty()
-                    && prefs(context).getBoolean(SHOW_HOME_FLAIRS, false))
-                    addFlairToPreviewElement(element, id, info);
+                if (info != null && !info.flair.isEmpty() && showFlairs)
+                    addFlairToFeedElement(element, id, info);
                 kept.add(element);
             } else matchedCards++;
         }
         return kept.size() == original.size() ? original : kept;
     }
 
-    /** Adds the missing PostFlairsElement to Reddit's cached PostPreviewFeedElement (w230). */
-    private static void addFlairToPreviewElement(Object element, String id, PostInfo post) {
+    /** Adds the missing native flair child to cached-preview feed elements. */
+    private static void addFlairToFeedElement(Object element, String id, PostInfo post) {
         if (element == null || !"w230".equals(element.getClass().getName())) return;
         try {
             Field existingField = element.getClass().getDeclaredField("n");
@@ -1419,7 +1419,7 @@ public final class RedditContentFilter {
             lastHomeFlairDisplay = id + " preview displayed: " + post.flair;
             if (context != null && prefs(context).getBoolean(DEBUG, false))
                 appendDecision("ELEMENT FLAIR id=" + id + " community=" + post.community
-                    + " flair=" + post.flair);
+                    + " flair=" + post.flair + " class=w230");
         } catch (ReflectiveOperationException | RuntimeException error) {
             lastHomeFlairDisplay = id + " preview failed " + error.getClass().getSimpleName()
                 + ": " + error.getMessage();

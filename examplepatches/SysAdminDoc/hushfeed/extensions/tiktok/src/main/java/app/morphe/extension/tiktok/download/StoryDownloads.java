@@ -238,31 +238,35 @@ public final class StoryDownloads {
         }
     }
 
-    private static void savePhotos(Context app, Object aweme, List<List<String>> photos) throws IOException {
+    private static void savePhotos(Context app, Object aweme, List<List<String>> photos) {
         String path = DownloadsPatch.getPhotoDownloadPath();
         List<File> temporary = new ArrayList<>();
-        int saved = 0;
         // The banner's Open lands on the newest photo, which is where the gallery puts the rest.
-        MediaFileWriter.Saved last = null;
+        MediaFileWriter.Saved[] last = {null};
         try {
-            for (int index = 0; index < photos.size(); index++) {
+            // From three photos up a row counts them and offers Cancel; a photo that fails is
+            // skipped and the rest still land. Say what did: a story that stopped part way has
+            // files in the gallery already, and "nothing was saved" would send the reader back
+            // for duplicates.
+            SaveProgress.Outcome outcome = SaveProgress.begin(photos.size()).run(index -> {
                 MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
                 File temp = MediaCache.createTempFile(app, "story-photo-", ".tmp");
                 temporary.add(temp);
                 String extension = RemoteMedia.fetch(photos.get(index), temp, RemoteMedia.Kind.IMAGE);
                 String mime = "jpg".equals(extension) ? "image/jpeg" : "image/" + extension;
                 String name = DownloadFilenameFormatter.formatOriginalPhotoName(aweme, index + 1, extension);
-                last = MediaFileWriter.publishForResult(app, temp, name, mime, path, false);
-                saved++;
+                last[0] = MediaFileWriter.publishForResult(app, temp, name, mime, path, false);
+            });
+            if (outcome.saved == 0 && outcome.cancelled == 0) {
+                Utils.showToastLong(L10n.f("Saved %1$s of %2$s photos before the story failed",
+                        String.valueOf(0), String.valueOf(photos.size())));
+            } else {
+                SaveNotice.saved(SaveProgress.message(outcome, L10n.f("Story saved to %1$s", path)), last[0]);
             }
-            SaveNotice.saved(L10n.f("Story saved to %1$s", path), last);
-        } catch (IOException | RuntimeException exception) {
-            // Say what did land: a story that stopped part way through has files in the gallery
-            // already, and "nothing was saved" would send the user back for duplicates.
-            final int completed = saved;
-            Logger.printException(() -> "Story photo save stopped after " + completed, exception);
+        } catch (RuntimeException exception) {
+            Logger.printException(() -> "Story photo save failed", exception);
             Utils.showToastLong(L10n.f("Saved %1$s of %2$s photos before the story failed",
-                    String.valueOf(completed), String.valueOf(photos.size())));
+                    String.valueOf(0), String.valueOf(photos.size())));
         } finally {
             for (File file : temporary) {
                 if (!MediaCache.delete(file)) Logger.printInfo(() -> "Could not remove story temporary file");

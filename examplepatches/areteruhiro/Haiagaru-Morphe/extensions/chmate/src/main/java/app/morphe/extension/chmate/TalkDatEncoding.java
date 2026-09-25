@@ -16,6 +16,10 @@ final class TalkDatEncoding {
         StringBuilder escaped = new StringBuilder(value.length() + 32);
         for (int offset = 0; offset < value.length();) {
             int codePoint = value.codePointAt(offset);
+            if (codePoint == 0xFE0F) {
+                offset += Character.charCount(codePoint);
+                continue;
+            }
             String character = new String(Character.toChars(codePoint));
             if (encoder.canEncode(character)) {
                 escaped.append(character);

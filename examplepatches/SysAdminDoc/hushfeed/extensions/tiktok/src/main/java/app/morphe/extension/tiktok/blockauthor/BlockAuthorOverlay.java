@@ -1007,7 +1007,7 @@ public final class BlockAuthorOverlay {
      * input row, and near the bottom when there is no field to clear. Every window decor is a
      * FrameLayout, so gravity params work in any root.
      */
-    static FrameLayout.LayoutParams bannerParams(Activity activity, ViewGroup root) {
+    public static FrameLayout.LayoutParams bannerParams(Activity activity, ViewGroup root) {
         int side = SettingsUi.dp(activity, BANNER_GAP_DP);
         int gap = side;
         View decor = activity.getWindow() == null ? null : activity.getWindow().getDecorView();

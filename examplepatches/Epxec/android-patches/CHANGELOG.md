@@ -1,3 +1,22 @@
+## [1.10.0](https://github.com/Epxec/android-patches/compare/v1.9.0...v1.10.0) (2026-09-24)
+
+### ✨ New Features
+
+* elmwood saver pack ([d83a4a5](https://github.com/Epxec/android-patches/commit/d83a4a5f56db3ed8bf1289ff3822fa327ee7d875))
+* freereels dns block bypass ([58ea2b5](https://github.com/Epxec/android-patches/commit/58ea2b59afbb81908d646547b03e667aace67c54))
+
+## [1.10.0-dev.2](https://github.com/Epxec/android-patches/compare/v1.10.0-dev.1...v1.10.0-dev.2) (2026-09-24)
+
+### ✨ New Features
+
+* elmwood saver pack ([d83a4a5](https://github.com/Epxec/android-patches/commit/d83a4a5f56db3ed8bf1289ff3822fa327ee7d875))
+
+## [1.10.0-dev.1](https://github.com/Epxec/android-patches/compare/v1.9.0...v1.10.0-dev.1) (2026-09-23)
+
+### ✨ New Features
+
+* freereels dns block bypass ([58ea2b5](https://github.com/Epxec/android-patches/commit/58ea2b59afbb81908d646547b03e667aace67c54))
+
 ## [1.9.0](https://github.com/Epxec/android-patches/compare/v1.8.1...v1.9.0) (2026-09-22)
 
 ### ✨ New Features

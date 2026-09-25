@@ -175,6 +175,7 @@ public class DeepFeedFilterBoundaryTest {
         save(Settings.BLOCKED_CAPTION_WORDS);
         save(Settings.BLOCKED_CREATORS);
         save(Settings.LOCAL_HIDDEN_CREATORS);
+        save(Settings.CREATOR_FILTER_EXCEPTIONS);
         save(Settings.BLOCKED_SOUND_IDS);
         save(Settings.BLOCKED_SOUND_NAMES);
         save(Settings.REGION_ONLY_FROM);
@@ -240,6 +241,7 @@ public class DeepFeedFilterBoundaryTest {
         Settings.BLOCKED_CAPTION_WORDS.save("");
         Settings.BLOCKED_CREATORS.save("");
         Settings.LOCAL_HIDDEN_CREATORS.save("");
+        Settings.CREATOR_FILTER_EXCEPTIONS.save("");
         Settings.BLOCKED_SOUND_IDS.save("");
         Settings.BLOCKED_SOUND_NAMES.save("");
         Settings.REGION_ONLY_FROM.save("");

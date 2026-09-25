@@ -24,6 +24,26 @@ app update, anti-tamper/detection countermeasures, etc.), default to this
 mindset: explore first, question assumed limitations, and iterate rather
 than settling for the first workaround.
 
+## Why we build this: ownership
+
+> **You bought the TV. You control the TV. You own the glass.**
+> — Rory Gallagher, [lg-webos-dashboard](https://github.com/rorygallagher2024/lg-webos-dashboard) (MIT).
+> This project is inspired by and aligned with Rory's work.
+
+Growth mindset is *how* we work; ownership is *why*. Owning the device and
+paying for the service should mean the viewer decides what plays on their
+screen. Every patch should serve that, so when designing or reviewing one:
+
+- **Stay local.** Patches run on the device. Never add calls to a
+  project-controlled server, analytics, or telemetry of our own.
+- **Take away, don't add.** Remove or mask ads and ad-tracking; don't
+  introduce new tracking, accounts, or cloud dependencies in their place.
+- **Be transparent.** Keep patch names and descriptions honest about what
+  they change, and keep `docs/SEAM_MAP.md` current.
+- **No dark patterns.** Anything that changes behavior beyond ad removal
+  (clones, household prompts, origin blocks) stays opt-in and clearly
+  labeled.
+
 # Repository Conventions
 
 Learned during the 2026-09 cleanup (PR #191); keep the repo this way.

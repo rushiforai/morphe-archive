@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Implementation-Title: morphe-desktop
+Implementation-Version: 1.16.0
+Enable-Native-Access: ALL-UNNAMED
+Main-Class: app.morphe.MorpheLauncherKt
+Multi-Release: true
+

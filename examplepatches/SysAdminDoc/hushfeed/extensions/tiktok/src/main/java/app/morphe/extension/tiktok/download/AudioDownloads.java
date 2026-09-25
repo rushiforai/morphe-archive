@@ -108,8 +108,9 @@ final class AudioDownloads {
      * carries the sound shows one banner, its own, and a second banner a tick later would take
      * the first one down before anyone saw it.
      */
-    static void write(Context app, String name, File source, boolean announce) {
-        if (!enabled()) return;
+    /** True when the sound landed; false when the switch is off or the save failed (said by toast). */
+    static boolean write(Context app, String name, File source, boolean announce) {
+        if (!enabled()) return false;
         File output = null;
         try {
             output = MediaCache.createTempFile(app, "sound-", ".m4a");
@@ -118,9 +119,11 @@ final class AudioDownloads {
             MediaFileWriter.Saved saved = MediaFileWriter.publishForResult(app, output, name, "audio/mp4", path, true);
             if (announce) SaveNotice.saved(L10n.f("Sound saved to %1$s", path), saved);
             else Utils.showToastShort(L10n.f("Sound saved to %1$s", path));
+            return true;
         } catch (IOException | RuntimeException exception) {
             Logger.printException(() -> "Sound save failed", exception);
             Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
+            return false;
         } finally {
             if (output != null && !MediaCache.delete(output)) {
                 Logger.printInfo(() -> "Could not remove sound temporary file");

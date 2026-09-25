@@ -1,7 +1,16 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/3014
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.extension.music.jam;
 
+import android.content.res.Resources;
 import android.text.TextUtils;
 import android.widget.TextView;
+import app.morphe.extension.shared.Utils;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -31,7 +40,9 @@ public final class JamMetadata {
       String name = "";
       try {
         name = view.getResources().getResourceEntryName(view.getId());
-      } catch (android.content.res.Resources.NotFoundException ignored) {}
+      } catch (android.content.res.Resources.NotFoundException ignored) {
+        // Native labels can have generated IDs; they are not player title or artist views.
+      }
       boolean title = "title".equals(name) || "mini_player_title".equals(name);
       boolean artist =
         "artist".equals(name) || "mini_player_subtitle".equals(name);

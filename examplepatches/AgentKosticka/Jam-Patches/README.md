@@ -12,16 +12,16 @@ This is a prerelease-only source. Both `main` and `dev` source metadata point to
 
 ## Source and validation
 
-The implementation is synchronized from fork commit [`1bb87b1f58ef28f3489f76e03daae3238cade8e9`](https://github.com/AgentKosticka/morphe-patches/commit/1bb87b1f58ef28f3489f76e03daae3238cade8e9). The matching Companion commit is [`e2c9e0f0299be84e4d1e95d9dbf5fc7a2a2aed1f`](https://github.com/AgentKosticka/Jam-Layer/commit/e2c9e0f0299be84e4d1e95d9dbf5fc7a2a2aed1f).
+The source baseline is fork commit [`1bb87b1f58ef28f3489f76e03daae3238cade8e9`](https://github.com/AgentKosticka/morphe-patches/commit/1bb87b1f58ef28f3489f76e03daae3238cade8e9). Jam review and runtime fixes from `feat/jam-queue-sharing` commit [`4039c05495af3a0388c7b3414a8686d387534117`](https://github.com/AgentKosticka/morphe-patches/commit/4039c05495af3a0388c7b3414a8686d387534117) are overlaid on 30 source and test files, preserving the custom-source baseline for non-Jam Music strings. The Jam APK validation selection also includes Lyrics to check their shared settings resources. The matching Companion commit is [`741ccac0e3cec6927747a12f9bbdd5a5838b2e58`](https://github.com/AgentKosticka/Jam-Layer/commit/741ccac0e3cec6927747a12f9bbdd5a5838b2e58).
 
-Reproduce the source sync with `python .github/scripts/sync_fork.py ../morphe-patches 1bb87b1f58ef28f3489f76e03daae3238cade8e9`. `source-revision.json` records the exact upstream files, hashes, dependency revisions, and build metadata overlay. Source identity and release metadata remain specific to this repository.
+The baseline can be reproduced with `python .github/scripts/sync_fork.py ../morphe-patches 1bb87b1f58ef28f3489f76e03daae3238cade8e9`; then apply the committed Jam overlay and removals recorded in `reviewOverlay`, merging only Jam strings into the Music resources. `source-revision.json` records the review overlay file hashes and paths alongside the source baseline, dependency revisions, and build metadata overlay. Source identity and release metadata remain specific to this repository.
 
 The fork passed Jam regression tests, 9.15.51 patch/build and DEX hierarchy verification, and manual device checks including autoplay, clock updates and LAN discovery. Participant next/previous controls now forward to the host through the authenticated Jam command path and consume the local player click. The new published bundle still requires the clean Morphe Manager source and two-device manual acceptance test. Versions 9.34.52, 9.35.54 and 9.36.50 failed required semantic capability resolution and are not supported.
 
 ## Patch catalog
 
 <!-- PATCHES_START -->
-> **[v1.0.0-dev.7](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
+> **[v1.0.0-dev.12](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.12)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;84 patches</summary>
 <br>
@@ -189,7 +189,7 @@ The fork passed Jam regression tests, 9.15.51 patch/build and DEX hierarchy veri
 | [Hide flyout menu components](#hide-flyout-menu-components) | Adds options to hide individual items from the player and queue flyout menus. |  |
 | [Hide layout components](#hide-layout-components) | Adds options to hide general layout components. |  |
 | [Hide music action buttons](#hide-music-action-buttons) | Adds options to hide action buttons under the player. |  |
-| [Jam queue sharing](#jam-queue-sharing) | Adds a native Jam queue panel and authenticated bridge. Experimental; validated on YTM 9.15.51. |  |
+| [Jam queue sharing](#jam-queue-sharing) | Adds a native Jam queue panel and authenticated bridge. Experimental; validated on YTM 9.15.51. Root installation is not supported. |  |
 | [Miniplayer previous and next buttons](#miniplayer-previous-and-next-buttons) | Adds options to show previous and next track buttons in the miniplayer. |  |
 | [Navigation bar](#navigation-bar) | Adds options to hide navigation bar, labels and buttons. |  |
 | [Network proxy](#network-proxy) | Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices |  |

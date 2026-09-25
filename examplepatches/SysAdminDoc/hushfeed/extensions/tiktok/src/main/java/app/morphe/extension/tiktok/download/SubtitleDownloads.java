@@ -119,6 +119,29 @@ final class SubtitleDownloads {
             MediaTransport.Client transport
     ) {
         int saved = 0;
+        for (Track track : tracks) {
+            try {
+                saveOne(context, track, videoName, path, transport);
+                saved++;
+            } catch (IOException | RuntimeException error) {
+                Logger.printException(() -> "Could not save " + track.language + " subtitles", error);
+            }
+        }
+        return saved;
+    }
+
+    /** One track beside its video, named after it; throws when it could not be written. */
+    static void saveOne(Context context, Track track, String videoName, String path) throws IOException {
+        saveOne(context, track, videoName, path, MediaTransport.DEFAULT);
+    }
+
+    static void saveOne(
+            Context context,
+            Track track,
+            String videoName,
+            String path,
+            MediaTransport.Client transport
+    ) throws IOException {
         // The name comes back from the media provider, which is free to hand back one with no
         // extension. Taking the whole name then keeps the subtitle beside its video instead of
         // throwing away a save whose video is already on disk.
@@ -127,23 +150,17 @@ final class SubtitleDownloads {
         String base = videoName == null || videoName.isEmpty() ? "video" : videoName;
         int dot = base.lastIndexOf('.');
         String stem = dot > 0 ? base.substring(0, dot) : base;
-        for (Track track : tracks) {
-            File temp = null;
-            try {
-                MediaBudget.check(null);
-                String srt = fetch(track.urls, track.format, transport);
-                MediaBudget.checkDiskSpace(context.getCacheDir(), srt.length() * 2L);
-                temp = MediaCache.createTempFile(context, "subtitle-", ".srt");
-                try (var output = new FileOutputStream(temp)) { output.write(srt.getBytes(StandardCharsets.UTF_8)); }
-                MediaFileWriter.publish(context, temp, stem + "." + track.language + ".srt", "application/x-subrip", path, false);
-                saved++;
-            } catch (IOException | RuntimeException error) {
-                Logger.printException(() -> "Could not save " + track.language + " subtitles", error);
-            } finally {
-                if (temp != null && !MediaCache.delete(temp)) Logger.printInfo(() -> "Could not remove temporary subtitle file");
-            }
+        File temp = null;
+        try {
+            MediaBudget.check(null);
+            String srt = fetch(track.urls, track.format, transport);
+            MediaBudget.checkDiskSpace(context.getCacheDir(), srt.length() * 2L);
+            temp = MediaCache.createTempFile(context, "subtitle-", ".srt");
+            try (var output = new FileOutputStream(temp)) { output.write(srt.getBytes(StandardCharsets.UTF_8)); }
+            MediaFileWriter.publish(context, temp, stem + "." + track.language + ".srt", "application/x-subrip", path, false);
+        } finally {
+            if (temp != null && !MediaCache.delete(temp)) Logger.printInfo(() -> "Could not remove temporary subtitle file");
         }
-        return saved;
     }
 
     static String fetch(List<String> urls, String format) throws IOException {

@@ -1,3 +1,60 @@
+## [1.7.0](https://github.com/dh6k/morphe-patches/compare/v1.6.0...v1.7.0) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* **brave:** avoid param-register clobber in NTP wallpaper prologue ([62132b9](https://github.com/dh6k/morphe-patches/commit/62132b919f54d5cd6194cb29de87fce38f12a41c))
+* **brave:** fit NTP catalog factory in 3 registers via R.drawable ([bb3e4df](https://github.com/dh6k/morphe-patches/commit/bb3e4dff5a0983d1e2a4fe2d4286ddcc5d1a7a89))
+* **brave:** resolve NTP wallpaper via extension helper (2-reg invoke) ([33a3c93](https://github.com/dh6k/morphe-patches/commit/33a3c934f126d76a1bf96dcd6ffb99f331767d62))
+* **brave:** route NTP wallpaper through Java ambient catalog ([7c78a3c](https://github.com/dh6k/morphe-patches/commit/7c78a3cb11e44c04b1bb4fed833f1b4626c4932d))
+* **brave:** use invoke-interface for Runnable callback drain ([adf562b](https://github.com/dh6k/morphe-patches/commit/adf562b790e0a994a2400ddfb49bfe84e9e7620e))
+
+### ✨ New Features
+
+* **brave:** add Brave Startup Performance Optimization ([9b9f1ab](https://github.com/dh6k/morphe-patches/commit/9b9f1ab25f7de74231ff78abf2efd7afe072ddf8))
+* **brave:** custom NTP wallpaper patch (alpha, default off) ([387a449](https://github.com/dh6k/morphe-patches/commit/387a44977241523f2b8cab985ac76dd4e2a290a0))
+
+## [1.7.0-dev.7](https://github.com/dh6k/morphe-patches/compare/v1.7.0-dev.6...v1.7.0-dev.7) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **brave:** use invoke-interface for Runnable callback drain ([adf562b](https://github.com/dh6k/morphe-patches/commit/adf562b790e0a994a2400ddfb49bfe84e9e7620e))
+
+## [1.7.0-dev.6](https://github.com/dh6k/morphe-patches/compare/v1.7.0-dev.5...v1.7.0-dev.6) (2026-09-23)
+
+### ✨ New Features
+
+* **brave:** add Brave Startup Performance Optimization ([9b9f1ab](https://github.com/dh6k/morphe-patches/commit/9b9f1ab25f7de74231ff78abf2efd7afe072ddf8))
+
+## [1.7.0-dev.5](https://github.com/dh6k/morphe-patches/compare/v1.7.0-dev.4...v1.7.0-dev.5) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **brave:** resolve NTP wallpaper via extension helper (2-reg invoke) ([33a3c93](https://github.com/dh6k/morphe-patches/commit/33a3c934f126d76a1bf96dcd6ffb99f331767d62))
+
+## [1.7.0-dev.4](https://github.com/dh6k/morphe-patches/compare/v1.7.0-dev.3...v1.7.0-dev.4) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **brave:** fit NTP catalog factory in 3 registers via R.drawable ([bb3e4df](https://github.com/dh6k/morphe-patches/commit/bb3e4dff5a0983d1e2a4fe2d4286ddcc5d1a7a89))
+
+## [1.7.0-dev.3](https://github.com/dh6k/morphe-patches/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **brave:** route NTP wallpaper through Java ambient catalog ([7c78a3c](https://github.com/dh6k/morphe-patches/commit/7c78a3cb11e44c04b1bb4fed833f1b4626c4932d))
+
+## [1.7.0-dev.2](https://github.com/dh6k/morphe-patches/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-09-23)
+
+### 🐛 Bug Fixes
+
+* **brave:** avoid param-register clobber in NTP wallpaper prologue ([62132b9](https://github.com/dh6k/morphe-patches/commit/62132b919f54d5cd6194cb29de87fce38f12a41c))
+
+## [1.7.0-dev.1](https://github.com/dh6k/morphe-patches/compare/v1.6.0...v1.7.0-dev.1) (2026-09-22)
+
+### ✨ New Features
+
+* **brave:** custom NTP wallpaper patch (alpha, default off) ([387a449](https://github.com/dh6k/morphe-patches/commit/387a44977241523f2b8cab985ac76dd4e2a290a0))
+
 ## [1.6.0](https://github.com/dh6k/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-20)
 
 ### 🐛 Bug Fixes

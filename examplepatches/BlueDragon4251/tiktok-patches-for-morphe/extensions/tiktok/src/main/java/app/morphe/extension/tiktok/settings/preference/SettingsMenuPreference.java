@@ -70,6 +70,7 @@ public final class SettingsMenuPreference extends Preference {
                 SettingsUi.dp(context, 20),
                 SettingsUi.dp(context, 8)
         );
+        row.setBackground(SettingsUi.roundedSurface(context, 16, false));
 
         FrameLayout iconFrame = new FrameLayout(context);
         iconFrame.setId(android.R.id.icon_frame);
@@ -118,6 +119,7 @@ public final class SettingsMenuPreference extends Preference {
         super.onBindView(view);
         SettingsUi.styleTitleAndSummary(view);
         view.setMinimumHeight(SettingsUi.dp(getContext(), 68));
+        view.setBackground(SettingsUi.roundedSurface(getContext(), 16, false));
         styleText(view);
         styleIcon(view);
         addAccessory(view);
@@ -179,7 +181,7 @@ public final class SettingsMenuPreference extends Preference {
                     getContext(),
                     activeCount + " on",
                     11.5f,
-                    SettingsUi.ACCENT,
+                    SettingsUi.accent(),
                     1
             );
             badge.setGravity(Gravity.CENTER);
@@ -208,7 +210,13 @@ public final class SettingsMenuPreference extends Preference {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
         BadgeDrawable() {
-            paint.setColor(Color.argb(SettingsUi.isDarkMode() ? 38 : 24, 240, 45, 99));
+            int accent = SettingsUi.accent();
+            paint.setColor(Color.argb(
+                    SettingsUi.isDarkMode() ? 48 : 32,
+                    Color.red(accent),
+                    Color.green(accent),
+                    Color.blue(accent)
+            ));
         }
 
         @Override
@@ -278,17 +286,11 @@ public final class SettingsMenuPreference extends Preference {
 
         MenuIconDrawable(Icon icon) {
             this.icon = icon;
-            fill.setColor(SettingsUi.isDarkMode()
-                    ? Color.argb(255, 23, 23, 29)
-                    : Color.argb(255, 246, 246, 248));
-            border.setColor(SettingsUi.isDarkMode()
-                    ? Color.argb(255, 48, 48, 56)
-                    : Color.argb(255, 224, 224, 228));
+            fill.setColor(SettingsUi.liftedSurface());
+            border.setColor(SettingsUi.border());
             border.setStyle(Paint.Style.STROKE);
             border.setStrokeWidth(1f);
-            line.setColor(SettingsUi.isDarkMode()
-                    ? Color.argb(255, 207, 207, 215)
-                    : Color.argb(255, 72, 72, 78));
+            line.setColor(SettingsUi.textPrimary());
             line.setStyle(Paint.Style.STROKE);
             line.setStrokeWidth(1.8f);
             line.setStrokeCap(Paint.Cap.ROUND);

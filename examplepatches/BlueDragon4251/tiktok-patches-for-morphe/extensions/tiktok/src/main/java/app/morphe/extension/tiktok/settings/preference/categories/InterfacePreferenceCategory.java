@@ -10,7 +10,10 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
+import app.morphe.extension.tiktok.settings.preference.ThemeColorPreference;
+import app.morphe.extension.tiktok.settings.preference.ThemePresetPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
+import app.morphe.extension.tiktok.theme.ThemeSettings;
 
 @SuppressWarnings("deprecation")
 public final class InterfacePreferenceCategory extends ConditionalPreferenceCategory {
@@ -21,7 +24,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
 
     @Override
     public boolean getSettingsStatus() {
-        return SettingsStatus.captchaPopupSuppressionEnabled
+        return SettingsStatus.themeEngineEnabled
+                || SettingsStatus.captchaPopupSuppressionEnabled
                 || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.alwaysShowPublishDateEnabled
                 || SettingsStatus.automaticClearDisplayEnabled;
@@ -29,6 +33,63 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
 
     @Override
     public void addPreferences(Context context) {
+        if (SettingsStatus.themeEngineEnabled) {
+            addPreference(new ThemePresetPreference(context));
+            addPreference(new ThemeColorPreference(
+                    context,
+                    "Custom background",
+                    "Background color used by the Custom preset.",
+                    ThemeSettings.CUSTOM_BACKGROUND,
+                    true
+            ));
+            addPreference(new ThemeColorPreference(
+                    context,
+                    "Custom surface",
+                    "Navigation and panel surface color used by the Custom preset.",
+                    ThemeSettings.CUSTOM_SURFACE,
+                    true
+            ));
+            addPreference(new ThemeColorPreference(
+                    context,
+                    "Custom accent",
+                    "Accent color exposed by the Theme Engine for supported TikTok surfaces.",
+                    ThemeSettings.CUSTOM_ACCENT,
+                    true
+            ));
+            addPreference(new ThemeColorPreference(
+                    context,
+                    "Custom text",
+                    "Text/contrast color exposed by the Theme Engine for supported surfaces.",
+                    ThemeSettings.CUSTOM_TEXT,
+                    true
+            ));
+            addPreference(new ThemeColorPreference(
+                    context,
+                    "Liquid Glass tint",
+                    "Tint and base transparency for the Liquid Glass preset.",
+                    ThemeSettings.GLASS_TINT,
+                    true
+            ));
+            addPreference(new NumberInputPreference(
+                    context,
+                    "Liquid Glass opacity",
+                    "Opacity of glass-like navigation and panel surfaces. Choose 10-95%.",
+                    ThemeSettings.GLASS_OPACITY_PERCENT,
+                    10,
+                    95,
+                    "%"
+            ));
+            addPreference(new NumberInputPreference(
+                    context,
+                    "Liquid Glass corner radius",
+                    "Corner radius for glass-like surfaces. Choose 0-48 dp.",
+                    ThemeSettings.GLASS_CORNER_RADIUS_DP,
+                    0,
+                    48,
+                    "dp"
+            ));
+        }
+
         if (SettingsStatus.automaticClearDisplayEnabled) {
             addPreference(new TogglePreference(
                     context,

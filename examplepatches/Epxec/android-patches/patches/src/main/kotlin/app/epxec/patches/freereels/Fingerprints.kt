@@ -34,3 +34,11 @@ object FreereelsDownloadAdsFingerprint : Fingerprint(
         )
     ),
 )
+
+object FreereelsDNSBlockFingerprint: Fingerprint(
+    name = "a",
+    definingClass = "Lcom/dramawave/shared/ad/core/E;",
+    filters = listOf(
+        string("0.0.0.0"),
+    ),
+)

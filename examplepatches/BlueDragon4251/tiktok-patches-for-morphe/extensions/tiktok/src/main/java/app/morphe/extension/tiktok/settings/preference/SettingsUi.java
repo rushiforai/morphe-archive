@@ -31,7 +31,12 @@ import android.widget.TextView;
 
 import androidx.annotation.ColorInt;
 
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.theme.ThemeEngine;
+import app.morphe.extension.tiktok.theme.ThemeStateStore;
+
 public final class SettingsUi {
+    /** Legacy/fallback accent for callers that still reference the constant directly. */
     public static final @ColorInt int ACCENT = Color.argb(255, 240, 45, 99);
     public static final @ColorInt int DARK_BACKGROUND = Color.argb(255, 13, 13, 16);
     public static final @ColorInt int DARK_SURFACE = Color.argb(255, 21, 21, 26);
@@ -55,6 +60,13 @@ public final class SettingsUi {
     }
 
     public static boolean isDarkMode() {
+        Context context = themeContext();
+        if (themeActive(context)) {
+            try {
+                return ThemeEngine.isDarkUi(context);
+            } catch (Throwable ignored) {
+            }
+        }
         return isDarkModeEnabled();
     }
 
@@ -62,36 +74,97 @@ public final class SettingsUi {
         return Math.round(value * context.getResources().getDisplayMetrics().density);
     }
 
+    public static @ColorInt int accent() {
+        Context context = themeContext();
+        if (themeActive(context)) {
+            try {
+                return ThemeEngine.accentColor(context);
+            } catch (Throwable ignored) {
+            }
+        }
+        return ACCENT;
+    }
+
     public static @ColorInt int background() {
-        return isDarkMode() ? DARK_BACKGROUND : LIGHT_BACKGROUND;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            try {
+                return ThemeEngine.backgroundColor(context);
+            } catch (Throwable ignored) {
+            }
+        }
+        return isDarkModeEnabled() ? DARK_BACKGROUND : LIGHT_BACKGROUND;
     }
 
     public static @ColorInt int surface() {
-        return isDarkMode() ? DARK_SURFACE : LIGHT_SURFACE;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            try {
+                return ThemeEngine.surfaceColor(context);
+            } catch (Throwable ignored) {
+            }
+        }
+        return isDarkModeEnabled() ? DARK_SURFACE : LIGHT_SURFACE;
     }
 
     public static @ColorInt int liftedSurface() {
-        return isDarkMode() ? DARK_SURFACE_LIFTED : LIGHT_SURFACE_LIFTED;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            int base = surface();
+            return mixPreserveAlpha(base, textPrimary(), isDarkMode() ? 0.075f : 0.045f);
+        }
+        return isDarkModeEnabled() ? DARK_SURFACE_LIFTED : LIGHT_SURFACE_LIFTED;
     }
 
     public static @ColorInt int border() {
-        return isDarkMode() ? DARK_BORDER : LIGHT_BORDER;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            int base = surface();
+            return withAlpha(mixPreserveAlpha(base, textPrimary(), 0.24f),
+                    ThemeStateStore.isLiquidGlass(context) ? 120 : 190);
+        }
+        return isDarkModeEnabled() ? DARK_BORDER : LIGHT_BORDER;
     }
 
     public static @ColorInt int divider() {
-        return isDarkMode() ? DARK_DIVIDER : LIGHT_DIVIDER;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            try {
+                return ThemeEngine.dividerColor(context);
+            } catch (Throwable ignored) {
+            }
+        }
+        return isDarkModeEnabled() ? DARK_DIVIDER : LIGHT_DIVIDER;
     }
 
     public static @ColorInt int textPrimary() {
-        return isDarkMode() ? DARK_TEXT_PRIMARY : LIGHT_TEXT_PRIMARY;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            try {
+                return ThemeEngine.textColor(context);
+            } catch (Throwable ignored) {
+            }
+        }
+        return isDarkModeEnabled() ? DARK_TEXT_PRIMARY : LIGHT_TEXT_PRIMARY;
     }
 
     public static @ColorInt int textSecondary() {
-        return isDarkMode() ? DARK_TEXT_SECONDARY : LIGHT_TEXT_SECONDARY;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            try {
+                return ThemeEngine.secondaryTextColor(context);
+            } catch (Throwable ignored) {
+            }
+        }
+        return isDarkModeEnabled() ? DARK_TEXT_SECONDARY : LIGHT_TEXT_SECONDARY;
     }
 
     public static @ColorInt int textDisabled() {
-        return isDarkMode() ? DARK_TEXT_DISABLED : LIGHT_TEXT_DISABLED;
+        Context context = themeContext();
+        if (themeActive(context)) {
+            return mixPreserveAlpha(textSecondary(), background(), 0.58f);
+        }
+        return isDarkModeEnabled() ? DARK_TEXT_DISABLED : LIGHT_TEXT_DISABLED;
     }
 
     public static void styleTitleAndSummary(View view) {
@@ -109,7 +182,7 @@ public final class SettingsUi {
     public static void styleCategory(View view) {
         TextView title = view.findViewById(android.R.id.title);
         if (title != null) {
-            title.setTextColor(ACCENT);
+            title.setTextColor(accent());
             title.setTextSize(13);
             title.setTypeface(title.getTypeface(), Typeface.BOLD);
         }
@@ -126,7 +199,22 @@ public final class SettingsUi {
 
     public static GradientDrawable roundedSurface(Context context, int radiusDp, boolean lifted) {
         GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(lifted ? liftedSurface() : surface());
+        int base = lifted ? liftedSurface() : surface();
+
+        if (themeActive(context) && ThemeStateStore.isLiquidGlass(context)) {
+            // Android cannot blur arbitrary content behind a normal View without a custom renderer,
+            // but keeping real alpha plus a subtle highlight gradient gives the settings surfaces a
+            // visibly translucent glass treatment instead of the old outline-only appearance.
+            int highlight = mixPreserveAlpha(base,
+                    isDarkMode() ? Color.WHITE : Color.BLACK,
+                    isDarkMode() ? 0.10f : 0.045f);
+            int lowlight = mixPreserveAlpha(base, background(), 0.16f);
+            drawable.setColors(new int[]{highlight, lowlight});
+            drawable.setOrientation(GradientDrawable.Orientation.TL_BR);
+        } else {
+            drawable.setColor(base);
+        }
+
         drawable.setCornerRadius(dp(context, radiusDp));
         return drawable;
     }
@@ -162,7 +250,7 @@ public final class SettingsUi {
     public static void styleFramedDialog(Dialog dialog) {
         Window window = dialog.getWindow();
         if (window != null) {
-            window.setBackgroundDrawable(borderedSurface(dialog.getContext(), 6, true));
+            window.setBackgroundDrawable(borderedSurface(dialog.getContext(), 10, true));
         }
 
         if (dialog instanceof AlertDialog) {
@@ -234,7 +322,7 @@ public final class SettingsUi {
             checkedTextView.setTextColor(textPrimary());
             checkedTextView.setCheckMarkDrawable(new DialogCheckMarkDrawable(checkedTextView.getContext()));
         } else if (view instanceof Button) {
-            ((Button) view).setTextColor(ACCENT);
+            ((Button) view).setTextColor(accent());
         } else if (view instanceof TextView) {
             ((TextView) view).setTextColor(textPrimary());
         }
@@ -251,13 +339,13 @@ public final class SettingsUi {
         if (button == null) {
             return;
         }
-        button.setTextColor(primary ? ACCENT : textSecondary());
+        button.setTextColor(primary ? accent() : textSecondary());
         button.setAllCaps(false);
         button.setTypeface(button.getTypeface(), primary ? Typeface.BOLD : Typeface.NORMAL);
     }
 
     public static void styleTextAction(TextView button, boolean primary) {
-        button.setTextColor(primary ? ACCENT : textSecondary());
+        button.setTextColor(primary ? accent() : textSecondary());
         button.setTypeface(button.getTypeface(), primary ? Typeface.BOLD : Typeface.NORMAL);
     }
 
@@ -265,7 +353,7 @@ public final class SettingsUi {
         editText.setTextColor(textPrimary());
         editText.setHintTextColor(textSecondary());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            editText.setBackgroundTintList(ColorStateList.valueOf(ACCENT));
+            editText.setBackgroundTintList(ColorStateList.valueOf(accent()));
         }
     }
 
@@ -276,9 +364,44 @@ public final class SettingsUi {
                     new int[]{-android.R.attr.state_enabled},
                     new int[]{}
             };
-            int[] colors = new int[]{ACCENT, textDisabled(), textSecondary()};
+            int[] colors = new int[]{accent(), textDisabled(), textSecondary()};
             button.setButtonTintList(new ColorStateList(states, colors));
         }
+    }
+
+    private static Context themeContext() {
+        try {
+            return Utils.getContext();
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static boolean themeActive(Context context) {
+        if (context == null) return false;
+        try {
+            return !"default".equals(ThemeStateStore.currentPreset(context));
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static int withAlpha(int color, int alpha) {
+        return Color.argb(
+                Math.max(0, Math.min(255, alpha)),
+                Color.red(color),
+                Color.green(color),
+                Color.blue(color)
+        );
+    }
+
+    /** Mixes RGB toward target while preserving the source alpha. */
+    private static int mixPreserveAlpha(int source, int target, float amount) {
+        float t = Math.max(0f, Math.min(1f, amount));
+        int red = Math.round(Color.red(source) * (1f - t) + Color.red(target) * t);
+        int green = Math.round(Color.green(source) * (1f - t) + Color.green(target) * t);
+        int blue = Math.round(Color.blue(source) * (1f - t) + Color.blue(target) * t);
+        return Color.argb(Color.alpha(source), red, green, blue);
     }
 
     private static final class DialogCheckMarkDrawable extends Drawable {
@@ -306,7 +429,7 @@ public final class SettingsUi {
             RectF box = new RectF(left, top, left + boxSize, top + boxSize);
 
             if (checked) {
-                fill.setColor(ACCENT);
+                fill.setColor(accent());
                 canvas.drawRoundRect(box, radius, radius, fill);
                 stroke.setColor(Color.WHITE);
                 float unit = boxSize / 18f;

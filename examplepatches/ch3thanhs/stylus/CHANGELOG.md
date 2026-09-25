@@ -1,3 +1,15 @@
+## [1.5.3](https://github.com/ch3thanhs/stylus/compare/v1.5.2...v1.5.3) (2026-09-24)
+
+### 🚀 Updated App Support
+
+* **bitwarden and github:** update app support ([a8a8b58](https://github.com/ch3thanhs/stylus/commit/a8a8b588a3998cbb55223f50c253e2d5444308da))
+
+## [1.5.3-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.5.2...v1.5.3-dev.1) (2026-09-24)
+
+### 🚀 Updated App Support
+
+* **bitwarden and github:** update app support ([a8a8b58](https://github.com/ch3thanhs/stylus/commit/a8a8b588a3998cbb55223f50c253e2d5444308da))
+
 ## [1.5.2](https://github.com/ch3thanhs/stylus/compare/v1.5.1...v1.5.2) (2026-09-13)
 
 ### 🚀 Updated App Support

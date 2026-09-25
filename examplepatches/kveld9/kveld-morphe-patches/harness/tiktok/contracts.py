@@ -437,6 +437,32 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         criticality="HIGH",
     ),
     PatchContract(
+        patch_id="disable_watch_history_recording",
+        name="Disable Watch History Recording",
+        target_type="bytecode",
+        description="Prevents viewed videos from being recorded in account watch history, playback duration stores, and local history caches.",
+        required_classes=[
+            "Lcom/ss/android/ugc/aweme/feed/api/AwemeStatsApi;",
+            "LX/03nB;",
+            "LX/0a5M;",
+        ],
+        required_strings=["/aweme/v1/aweme/stats/"],
+        criticality="HIGH",
+    ),
+    PatchContract(
+        patch_id="disable_double_tap_to_like",
+        name="Disable double tap to like",
+        target_type="bytecode",
+        description="Disables the double tap gesture to like videos in the feed, preventing accidental likes while scrolling or pausing. Videos can still be liked using the like button.",
+        required_classes=[
+            "Lcom/ss/android/ugc/feed/platform/panel/digg/DiggPanelComponent;",
+            "Lcom/ss/android/ugc/aweme/feed/landscape/LandscapeFragmentPanel;",
+            "Lcom/ss/android/ugc/aweme/friendstab/ui/feed/cell/component/base/FriendsV3GestureDetectorAssem;",
+        ],
+        required_strings=["handleDoubleClick"],
+        criticality="HIGH",
+    ),
+    PatchContract(
         patch_id="hide_suggested_searches",
         name="Hide Suggested Searches",
         target_type="bytecode",
@@ -459,6 +485,33 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         required_strings=[],
         criticality="HIGH",
     ),
+    PatchContract(
+        patch_id="enable_voice_comments",
+        name="Enable Voice Comments",
+        target_type="bytecode",
+        description="Forces the native voice comment recording button in comment input bars, bypassing regional rollout restrictions and remote server blocks.",
+        required_classes=[
+            "Lcom/ss/android/ugc/aweme/comment/model/CommentKeyboardModel;",
+        ],
+        required_strings=[
+            "audio_comment_publish",
+            "comment_audio_publish_entry_forbidden",
+            "comment_audio_asr_translate_enable",
+        ],
+        criticality="HIGH",
+    ),
+    PatchContract(
+        patch_id="hide_ai_tagged_content",
+        name="Hide AI-Generated Content",
+        target_type="bytecode",
+        description="Filters and skips videos tagged with native AI-generated metadata, C2PA content credentials, or creator AI disclosure tags across the For You, Following, and Friends feeds.",
+        required_classes=[
+            "Lcom/ss/android/ugc/aweme/feed/FeedApiService;",
+            "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+            "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
+            "Lcom/ss/android/ugc/aweme/feed/AIGCInfo;",
+        ],
+        required_strings=[],
+        criticality="HIGH",
+    ),
 ]
-
-

@@ -1,6 +1,9 @@
 package app.morphe.patches.tiktok.interaction.offlinevideos
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 internal object OfflineModeSheetOptionsFingerprint : Fingerprint(
     returnType = "V",
@@ -20,12 +23,28 @@ internal object OfflineModeListConstructorFingerprint : Fingerprint(
     },
 )
 
+/**
+ * Offline option list configuration.
+ *
+ * The owner is obfuscated and changed after 46.4.3. The fields consumed by the
+ * patch (`LJ` and `LJFF`, both List) are the stable structural contract, so use
+ * the class initializer that writes both instead of pinning an LX name.
+ */
 internal object OfflineModeOptionConfigFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, classDef ->
-        classDef.type == "LX/0itW;" &&
-            method.name == "<clinit>" &&
-            method.parameterTypes.isEmpty()
+        if (method.name != "<clinit>" || method.parameterTypes.isNotEmpty()) {
+            false
+        } else {
+            val fields = method.implementation?.instructions
+                ?.filter { it.opcode == Opcode.SPUT_OBJECT }
+                ?.mapNotNull { it.getReference<FieldReference>() }
+                ?.filter { it.definingClass == classDef.type && it.type == "Ljava/util/List;" }
+                ?.map { it.name }
+                ?.toSet()
+                ?: emptySet()
+            "LJ" in fields && "LJFF" in fields
+        }
     },
 )
 

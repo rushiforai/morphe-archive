@@ -163,4 +163,17 @@ object Constants {
         )
     ) 
 
+    val COMPATIBILITY_Elmwood = Compatibility(
+        name = "An Elmwood Trail",
+        packageName = "com.techyonic.textbasedrpg",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF1234,
+        targets = listOf(
+            AppTarget(
+                version = "3.1.6",
+                versionCode = 1728
+            )
+        )
+    ) 
+
 }

@@ -74,7 +74,7 @@ public final class GestureActions {
         String action = Settings.LONG_PRESS_ACTION.get();
         return !"nothing".equals(action) && !"comments".equals(action)
                 && !"original_sound".equals(action) && !"copy_link".equals(action)
-                && !"copy_sound_link".equals(action);
+                && !"copy_sound_link".equals(action) && !"youtube_music".equals(action);
     }
 
     /**
@@ -166,6 +166,12 @@ public final class GestureActions {
         }
         if ("original_sound".equals(action)) {
             OriginalSoundDownloads.start(CurrentVideoAuthor.getAweme(), Utils.getActivity());
+            return true;
+        }
+        if ("youtube_music".equals(action)) {
+            Context context = Utils.getActivity();
+            YouTubeMusicSearch.open(CurrentVideoAuthor.getAweme(),
+                    context != null ? context : Utils.getContext());
             return true;
         }
         if (!"comments".equals(action)) return false;

@@ -66,6 +66,19 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
         ));
         addPreference(new TogglePreference(
                 context,
+                "Keep For You on a Home tap",
+                "A tap on Home or on the For You tab while For You is showing no longer reloads it. "
+                        + "The video you're on stays.",
+                Settings.KEEP_FOR_YOU_ON_TAB_TAP
+        ));
+        addPreference(new TogglePreference(
+                context,
+                "Keep For You on a pull down",
+                "Pulling down at the top of For You no longer reloads it.",
+                Settings.KEEP_FOR_YOU_ON_PULL_DOWN
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Hide the unread badges on the bottom tabs",
                 "Hide the red counts and dots on every bottom tab, Inbox and Profile included. "
                         + "The inbox itself still shows what came in.",
@@ -75,7 +88,8 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
                 context,
                 "Hide the Tako bubble",
                 "Hide the Tako AI bubble above the profile button, the Ask bar under videos, "
-                        + "the Ask Tako button on the search page and the Tako bar above comments.",
+                        + "the Ask Tako button on the search page, the Ask Tako tab on search results "
+                        + "and the Tako bar above comments.",
                 Settings.HIDE_TAKO_AI
         ));
     }

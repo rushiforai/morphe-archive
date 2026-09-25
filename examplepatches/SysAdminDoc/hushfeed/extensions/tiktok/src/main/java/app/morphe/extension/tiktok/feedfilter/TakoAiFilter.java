@@ -5,20 +5,22 @@
 package app.morphe.extension.tiktok.feedfilter;
 
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import com.ss.android.ugc.aweme.feed.model.banner.BannerCommonKey;
 import com.ss.android.ugc.aweme.feed.model.banner.BannerCommonStruct;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class TakoAiFilter {
@@ -82,6 +84,149 @@ public final class TakoAiFilter {
         return enabled;
     }
 
+    private static final String SEARCH_TABS_READ = "search tabs read";
+    private static final String SEARCH_TAB_HIDDEN = "search tab hidden";
+    private static final String SEARCH_TAB_LEFT = "search tab left";
+    /**
+     * The keys an Ask Tako tab would be served under, with any tab whose name says Tako. On
+     * 47.0.3 the pill at the head of the strip is not a served tab at all (the strip's keys are
+     * general, user, video, shop, live, music, place, photos and hashtag) but a view of its own,
+     * hidden by {@link #hideSearchTabEntrance}; this filter is the guard for a build that serves
+     * it as data, and it logs the keys it meets so an export says what the strip held.
+     */
+    private static final Set<String> TAKO_TAB_KEYS = Set.of("tako", "ask_tako", "tako_tab", "asktako");
+
+    /**
+     * The search results tab strip (Ask Tako, Top, Users, Videos, ...) arrives as a list of
+     * dynamic tab infos whose only consumer, the strip's view model, reads it through two getters
+     * the patch filters here. With Hide the Tako bubble on the Ask Tako tab is dropped, so the
+     * strip is built without it and the other tabs keep their order; with it off, and when the
+     * tab is not in the list, the list goes back as it came. Fails open, the way the banners do.
+     */
+    public static List filterSearchTabs(List tabs) {
+        HookStatus.bound(HOOK_FAMILY, SEARCH_TABS_READ);
+        if (tabs == null || tabs.isEmpty()) return tabs;
+        try {
+            noteSearchTabKeys(tabs);
+            boolean hide = Settings.HIDE_TAKO_AI.get();
+            List kept = null;
+            boolean seen = false;
+            for (int i = 0; i < tabs.size(); i++) {
+                Object tab = tabs.get(i);
+                boolean tako = isTakoTab(tab);
+                if (tako) seen = true;
+                if (tako && hide) {
+                    if (kept == null) kept = new ArrayList(tabs.subList(0, i));
+                } else if (kept != null) {
+                    kept.add(tab);
+                }
+            }
+            if (seen) HookStatus.bound(HOOK_FAMILY, hide ? SEARCH_TAB_HIDDEN : SEARCH_TAB_LEFT);
+            return kept == null ? tabs : kept;
+        } catch (Throwable failure) {
+            // A build whose tab model moved: leave the strip as TikTok sent it and say so.
+            HookStatus.threw(HOOK_FAMILY, "search tabs", failure);
+            return tabs;
+        }
+    }
+
+    static boolean isTakoTab(Object tab) {
+        String key = Reflect.string(tab, "getTabKey", "tabKey");
+        if (key != null && TAKO_TAB_KEYS.contains(key.trim().toLowerCase(java.util.Locale.ROOT))) return true;
+        String name = Reflect.string(tab, "getTabName", "tabName");
+        return name != null && name.toLowerCase(java.util.Locale.ROOT).contains("tako");
+    }
+
+    /**
+     * The keys served: one marker per distinct set (HookStatus keeps one of a name, and honours a
+     * clear) and, with diagnostic logging on, a line the export carries.
+     */
+    private static void noteSearchTabKeys(List tabs) {
+        StringBuilder keys = new StringBuilder();
+        for (Object tab : tabs) {
+            String key = Reflect.string(tab, "getTabKey", "tabKey");
+            if (key == null) continue;
+            if (keys.length() > 0) keys.append(',');
+            keys.append(key);
+        }
+        String set = keys.toString();
+        if (set.isEmpty()) return;
+        HookStatus.bound(HOOK_FAMILY, "search tab keys " + set);
+        if (BaseSettings.DEBUG.get()) {
+            Logger.printInfo(() -> "[Morphe TikTok TakoAI] Search tabs served: " + set);
+        }
+    }
+
+    private static final String SEARCH_TAB_ENTRANCE_ID = "tv_tab_tako_entrance";
+    private static final int SEARCH_TAB_ENTRANCE_WRAPPERS = 4;
+
+    /**
+     * The Ask Tako pill at the head of the search results tab strip (issue #21's screenshots),
+     * the one Tako surface the switch left standing. It is not a served tab but a view TikTok
+     * inflates with the strip when its own gate allows a Tako entrance, then styles: a text view
+     * that keeps the real id name tv_tab_tako_entrance, inside a clickable pill, inside a frame,
+     * in a column beside the tab row, the wrappers R8-named. Asked with the fragment's view once
+     * it is created: with the switch on the pill's column goes GONE, so the strip lays out
+     * without it and the tabs keep their order and selection; a page inflated without the pill
+     * is left alone; a build without the id name is named in the export.
+     */
+    public static void hideSearchTabEntrance(View root) {
+        try {
+            if (!Settings.HIDE_TAKO_AI.get()) {
+                HookStatus.bound(HOOK_FAMILY, "search tab entrance left");
+                return;
+            }
+            if (root == null) return;
+            int id = root.getResources().getIdentifier(
+                    SEARCH_TAB_ENTRANCE_ID, "id", root.getContext().getPackageName());
+            if (id == 0) {
+                HookStatus.missingViewId(HOOK_FAMILY, SEARCH_TAB_ENTRANCE_ID);
+                return;
+            }
+            HookStatus.recoveredViewId(HOOK_FAMILY, SEARCH_TAB_ENTRANCE_ID);
+            hideSearchTabEntrance(root, root.findViewById(id));
+        } catch (Throwable failure) {
+            // A build whose strip moved: leave it as TikTok inflated it and say so.
+            HookStatus.threw(HOOK_FAMILY, "search tab entrance", failure);
+        }
+    }
+
+    /** The pill's text found under the root, or null on a page whose strip has no pill. */
+    static void hideSearchTabEntrance(View root, View text) {
+        if (text == null) {
+            HookStatus.bound(HOOK_FAMILY, "search tab entrance absent");
+            return;
+        }
+        searchTabEntranceColumn(root, text).setVisibility(View.GONE);
+        HookStatus.bound(HOOK_FAMILY, "search tab entrance hidden");
+    }
+
+    /**
+     * The pill's own subtree: the text's parent (the pill, which may hold a GONE icon beside the
+     * text), then up through wrappers holding nothing else visible, to the first view with a
+     * visible sibling (the column beside the tab row on 47.0.3). Never the root, and never more
+     * than a few levels, so a build that nests it deeper keeps its strip.
+     */
+    static View searchTabEntranceColumn(View root, View text) {
+        View view = text;
+        for (int level = 0; level < SEARCH_TAB_ENTRANCE_WRAPPERS; level++) {
+            ViewParent parent = view.getParent();
+            if (!(parent instanceof ViewGroup) || parent == root) break;
+            ViewGroup group = (ViewGroup) parent;
+            if (level > 0 && !holdsOnly(group, view)) break;
+            view = group;
+        }
+        return view;
+    }
+
+    private static boolean holdsOnly(ViewGroup group, View child) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View other = group.getChildAt(i);
+            if (other != child && other.getVisibility() != View.GONE) return false;
+        }
+        return true;
+    }
+
     /**
      * The commentv2 bridge that hands the Tako service the comments sheet's top bar questions.
      * Its base class serves nine bridges, ads and shop among them, so the guard on that base
@@ -134,9 +279,10 @@ public final class TakoAiFilter {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static List filterBanners(Aweme video, List banners) {
         HookStatus.bound(HOOK_FAMILY, BANNERS_READ);
-        if (banners == null || banners.isEmpty()) return banners;
+        if (banners == null) return banners;
         try {
-            noteBannerKinds(banners);
+            countBanners(banners);
+            if (banners.isEmpty()) return banners;
             boolean hideAsk = Settings.HIDE_TAKO_AI.get();
             boolean hideSearch = Settings.HIDE_BOTTOM_SEARCH_BAR.get();
             if (containsAskBanner(banners)) {
@@ -145,21 +291,27 @@ public final class TakoAiFilter {
             if (!hideAsk && !hideSearch) return banners;
 
             List kept = null;
-            boolean removedAsk = false, removedSearch = false;
+            int removedAsk = 0, removedSearch = 0;
             for (int i = 0; i < banners.size(); i++) {
                 Object banner = banners.get(i);
                 boolean ask = hideAsk && isAskBanner(banner);
                 boolean search = hideSearch && isSearchBanner(banner);
                 if (ask || search) {
                     if (kept == null) kept = new ArrayList(banners.subList(0, i));
-                    removedAsk |= ask;
-                    removedSearch |= search;
+                    if (ask) removedAsk++;
+                    else removedSearch++;
                 } else if (kept != null) kept.add(banner);
             }
             if (kept == null) return banners;
             if (video != null) video.setBanners(kept);
-            if (removedAsk) logAskBannerHidden();
-            if (removedSearch) HookStatus.bound("feed bottom search", "search banner removed");
+            if (removedAsk > 0) {
+                logAskBannerHidden();
+                FeedFilterCounters.removed(BANNER_SOURCE, removedAsk, ASK_BANNER_REASON);
+            }
+            if (removedSearch > 0) {
+                HookStatus.bound("feed bottom search", "search banner removed");
+                FeedFilterCounters.removed(BANNER_SOURCE, removedSearch, SEARCH_BANNER_REASON);
+            }
             return kept;
         } catch (Throwable failure) {
             // A build whose banner model moved: leave the banners as TikTok sent them and say so.
@@ -168,31 +320,32 @@ public final class TakoAiFilter {
         }
     }
 
-    private static final int MAX_BANNER_KINDS = 32;
-    private static final Set<String> BANNER_KINDS_SEEN =
-            Collections.newSetFromMap(new ConcurrentHashMap<>());
+    /** The export's route for the banners under a video, one list per read of the getter. */
+    static final String BANNER_SOURCE = "BottomBanner";
+    static final String ASK_BANNER_REASON = "takoAskBanner";
+    static final String SEARCH_BANNER_REASON = "searchBanner";
+    private static final FeedServedKinds BANNER_KINDS = new FeedServedKinds("Bottom banner");
 
     /**
-     * Names each kind of bottom banner once, with diagnostic logging on, so an export says which
-     * banners a phone is served. Issue #6 took two releases to reach this route because nothing
-     * could say what the bar under the video was; the next export names it.
+     * Counts the banners each read hands out, by kind, whatever the logging switch says, so an
+     * export says which banners a phone is served. Issue #6 took two releases to reach this route
+     * because nothing could say what the bar under the video was; the next export names it.
      */
-    private static void noteBannerKinds(List<?> banners) {
+    private static void countBanners(List<?> banners) {
+        FeedFilterCounters.sawList(BANNER_SOURCE, banners.size());
         for (Object banner : banners) {
             if (!(banner instanceof BannerCommonStruct)) continue;
             BannerCommonKey key = ((BannerCommonStruct) banner).bannerKey;
-            String kind = key == null ? null : key.componentKey;
-            if (kind == null || BANNER_KINDS_SEEN.contains(kind)
-                    || BANNER_KINDS_SEEN.size() >= MAX_BANNER_KINDS) continue;
-            if (BANNER_KINDS_SEEN.add(kind) && BaseSettings.DEBUG.get()) {
-                Logger.printInfo(() -> "[Morphe TikTok TakoAI] Bottom banner served: " + kind);
-            }
+            String kind = FeedServedKinds.kind(key == null ? null : key.componentKey, null);
+            if (kind == null) continue;
+            FeedFilterCounters.sawKind(BANNER_SOURCE, kind);
+            BANNER_KINDS.note(kind);
         }
     }
 
     /** Forgets the banner kinds already named, between deterministic runtime tests. */
     static void resetBannerKindsForTests() {
-        BANNER_KINDS_SEEN.clear();
+        BANNER_KINDS.resetForTests();
     }
 
     private static boolean containsAskBanner(List<?> banners) {

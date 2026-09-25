@@ -7,8 +7,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.findFreeRegister
 import app.morphe.util.findMutableMethodOf
@@ -27,6 +29,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import org.w3c.dom.Element
+import org.w3c.dom.Document
+import java.net.URI
+import java.util.Locale
 
 private const val EXTENSION = "Lapp/morphe/extension/chmate/Haiagaru;"
 
@@ -476,14 +481,19 @@ private val haiagaruBytecodePatch = bytecodePatch {
                     "Lo/processAdDisplayErrorPostbackForUserError;",
                     "Lo/setExtraParameter\$RemoteActionCompatParcelizer;",
                 )
+                patchBbsMenuUrl("a", "Lo/a7a\$read;")
                 patchLegacy5chIoCompatibility()
                 patchLegacyTalkDatLoading()
                 patchLegacyTalkAuthIntegrity()
+                patchLegacyCellularNetworkSelection()
+                patchLegacyCellularSocketRefresh()
             }
             "0.8.10.226 dev" -> {
                 patchProgrammableNg226()
                 patchPreIoHissiMenu()
+                patchBbsMenuUrl("a", "Lo/isInlineAdaptiveAdView\$read;")
                 patchPreIoCellularNetworkSelection()
+                patchPreIoCellularSocketRefresh()
                 patchThreadBannerAdWrapper("Lo/TTVideoLandingPageLink2Activity1;")
                 patchLegacyThreadListAd("Lo/listener;")
                 patchPreIoTalkDatLoading()
@@ -504,6 +514,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
             "0.8.10.243 dev" -> {
                 patchProgrammableNgModern("Lo/zzdic;", "a", "c")
                 patchSetTextCalls()
+                patchBbsMenuUrl("b", "Lo/StandardAndroidSocketAdapterCompanion\$RemoteActionCompatParcelizer;")
                 patchModernThreadListAd()
                 patchModernTalkDatLoading()
                 patchModernTalkPostIntegrity()
@@ -511,8 +522,10 @@ private val haiagaruBytecodePatch = bytecodePatch {
             }
             "0.8.10.241" -> {
                 patchSetTextCalls()
+                patchBbsMenuUrl("c", "Lo/TaskRunnerCompanion\$ComponentActivity;")
                 patchIoTalkDatLoading()
                 patchIoTalkPostIntegrity()
+                patchIoThreadRefreshCache()
             }
             else -> patchSetTextCalls()
         }
@@ -575,10 +588,186 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoCellularNetw
     selector.addInstructionsWithLabels(
         snapshotCalls.single() + 2,
         """
+            invoke-static {}, $EXTENSION->isCellularNetworkRefreshEnabled()Z
+            move-result v$sizeRegister
+            if-eqz v$sizeRegister, :haiagaru_keep_226_networks
             const/4 v$sizeRegister, 0x0
             new-array v$resultRegister, v$sizeRegister, [Landroid/net/Network;
+            :haiagaru_keep_226_networks
+            nop
         """.trimIndent(),
     )
+}
+
+/**
+ * 191 has the same stale getAllNetworks() preference, but in the older
+ * createDefault network builder. Keep the workaround runtime-toggleable so
+ * disabling it restores the stock path without requiring a new patch.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyCellularNetworkSelection() {
+    val selector = mutableClassDefBy("Lo/createDefault;").methods.single { method ->
+        method.name == "b"
+            && method.returnType == "Lo/r8lambdaz0gPFulMuhJ_LGn4qb5HDvuDsis;"
+            && method.parameterTypes.map(CharSequence::toString) == listOf(
+                "Lo/r8lambdaz0gPFulMuhJ_LGn4qb5HDvuDsis;"
+            )
+    }
+    val instructions = selector.implementation?.instructions
+        ?: error("ChMate 191 cellular network selector has no implementation")
+    val snapshotCalls = instructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ?: return@mapIndexedNotNull null
+        if (reference.definingClass == "Landroid/net/ConnectivityManager;"
+            && reference.name == "getAllNetworks"
+            && reference.returnType == "[Landroid/net/Network;"
+            && reference.parameterTypes.isEmpty()
+            && instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+        ) index else null
+    }
+    check(snapshotCalls.size == 1) {
+        "Expected one ChMate 191 cellular network snapshot, found ${snapshotCalls.size}"
+    }
+    val snapshotIndex = snapshotCalls.single()
+    val resultRegister = (instructions[snapshotIndex + 1] as OneRegisterInstruction).registerA
+    val scratchRegister = selector.findFreeRegister(snapshotIndex + 2)
+    selector.addInstructionsWithLabels(
+        snapshotIndex + 2,
+        """
+            invoke-static {}, $EXTENSION->isCellularNetworkRefreshEnabled()Z
+            move-result v$scratchRegister
+            if-eqz v$scratchRegister, :haiagaru_keep_191_networks
+            const/4 v$scratchRegister, 0x0
+            new-array v$resultRegister, v$scratchRegister, [Landroid/net/Network;
+            :haiagaru_keep_191_networks
+            nop
+        """.trimIndent(),
+    )
+}
+
+/**
+ * The selector fix above still leaves the returned Network.SocketFactory fixed
+ * for the complete request. Refresh that factory at each socket creation too;
+ * Android 16 may invalidate the selected cellular Network between those points.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoCellularSocketRefresh() {
+    val factory = mutableClassDefBy(
+        "Lo/accessisAvailablecp\$RemoteActionCompatParcelizer;"
+    )
+    val methods = factory.methods.filter { method ->
+        method.name == "createSocket" && method.returnType == "Ljava/net/Socket;"
+    }
+    check(methods.size == 5) {
+        "Expected five ChMate 226 cellular socket methods, found ${methods.size}"
+    }
+    methods.single { method ->
+        method.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/lang/String;", "I")
+    }.addInstructionsWithLabels(0, """
+        iget-object v0, p0, Lo/accessisAvailablecp${'$'}RemoteActionCompatParcelizer;->d:Ljavax/net/SocketFactory;
+        invoke-static {v0, p1, p2}, $EXTENSION->createCellularSocket(
+            Ljavax/net/SocketFactory;Ljava/lang/String;I)Ljava/net/Socket;
+        move-result-object p1
+        return-object p1
+    """.trimIndent())
+    methods.single { method ->
+        method.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/lang/String;", "I", "Ljava/net/InetAddress;", "I")
+    }.addInstructionsWithLabels(0, """
+        iget-object v0, p0, Lo/accessisAvailablecp${'$'}RemoteActionCompatParcelizer;->d:Ljavax/net/SocketFactory;
+        invoke-static {v0, p1, p2, p3, p4}, $EXTENSION->createCellularSocket(
+            Ljavax/net/SocketFactory;Ljava/lang/String;ILjava/net/InetAddress;I)Ljava/net/Socket;
+        move-result-object p1
+        return-object p1
+    """.trimIndent())
+    methods.single { method ->
+        method.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/net/InetAddress;", "I")
+    }.addInstructionsWithLabels(0, """
+        iget-object v0, p0, Lo/accessisAvailablecp${'$'}RemoteActionCompatParcelizer;->d:Ljavax/net/SocketFactory;
+        invoke-static {v0, p1, p2}, $EXTENSION->createCellularSocket(
+            Ljavax/net/SocketFactory;Ljava/net/InetAddress;I)Ljava/net/Socket;
+        move-result-object p1
+        return-object p1
+    """.trimIndent())
+    methods.single { method ->
+        method.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/net/InetAddress;", "I", "Ljava/net/InetAddress;", "I")
+    }.addInstructionsWithLabels(0, """
+        iget-object v0, p0, Lo/accessisAvailablecp${'$'}RemoteActionCompatParcelizer;->d:Ljavax/net/SocketFactory;
+        invoke-static {v0, p1, p2, p3, p4}, $EXTENSION->createCellularSocket(
+            Ljavax/net/SocketFactory;Ljava/net/InetAddress;ILjava/net/InetAddress;I)Ljava/net/Socket;
+        move-result-object p1
+        return-object p1
+    """.trimIndent())
+    methods.single { method ->
+        method.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/net/Socket;", "Ljava/lang/String;", "I", "Z")
+    }.addInstructionsWithLabels(0, """
+        iget-object p1, p0, Lo/accessisAvailablecp${'$'}RemoteActionCompatParcelizer;->c:Ljavax/net/ssl/SSLSocketFactory;
+        iget-object v0, p0, Lo/accessisAvailablecp${'$'}RemoteActionCompatParcelizer;->d:Ljavax/net/SocketFactory;
+        invoke-static {v0, p2, p3}, $EXTENSION->createCellularSocket(
+            Ljavax/net/SocketFactory;Ljava/lang/String;I)Ljava/net/Socket;
+        move-result-object v0
+        invoke-virtual {p1, v0, p2, p3, p4}, Ljavax/net/ssl/SSLSocketFactory;->createSocket(
+            Ljava/net/Socket;Ljava/lang/String;IZ)Ljava/net/Socket;
+        move-result-object p1
+        return-object p1
+    """.trimIndent())
+}
+
+/** Refresh the five cellular socket overloads in 191's older wrapper. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyCellularSocketRefresh() {
+    val factory = mutableClassDefBy("Lo/createDefault\$setContentView;")
+    val methods = factory.methods.filter { method ->
+        method.name == "createSocket" && method.returnType == "Ljava/net/Socket;"
+    }
+    check(methods.size == 5) {
+        "Expected five ChMate 191 cellular socket methods, found ${methods.size}"
+    }
+    methods.single { it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I") }
+        .addInstructionsWithLabels(0, """
+            iget-object v0, p0, Lo/createDefault${'$'}setContentView;->e:Ljavax/net/SocketFactory;
+            invoke-static {v0, p1, p2}, $EXTENSION->createCellularSocket(
+                Ljavax/net/SocketFactory;Ljava/lang/String;I)Ljava/net/Socket;
+            move-result-object p1
+            return-object p1
+        """.trimIndent())
+    methods.single { it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "I", "Ljava/net/InetAddress;", "I") }
+        .addInstructionsWithLabels(0, """
+            iget-object v0, p0, Lo/createDefault${'$'}setContentView;->e:Ljavax/net/SocketFactory;
+            invoke-static {v0, p1, p2, p3, p4}, $EXTENSION->createCellularSocket(
+                Ljavax/net/SocketFactory;Ljava/lang/String;ILjava/net/InetAddress;I)Ljava/net/Socket;
+            move-result-object p1
+            return-object p1
+        """.trimIndent())
+    methods.single { it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/net/InetAddress;", "I") }
+        .addInstructionsWithLabels(0, """
+            iget-object v0, p0, Lo/createDefault${'$'}setContentView;->e:Ljavax/net/SocketFactory;
+            invoke-static {v0, p1, p2}, $EXTENSION->createCellularSocket(
+                Ljavax/net/SocketFactory;Ljava/net/InetAddress;I)Ljava/net/Socket;
+            move-result-object p1
+            return-object p1
+        """.trimIndent())
+    methods.single { it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/net/InetAddress;", "I", "Ljava/net/InetAddress;", "I") }
+        .addInstructionsWithLabels(0, """
+            iget-object v0, p0, Lo/createDefault${'$'}setContentView;->e:Ljavax/net/SocketFactory;
+            invoke-static {v0, p1, p2, p3, p4}, $EXTENSION->createCellularSocket(
+                Ljavax/net/SocketFactory;Ljava/net/InetAddress;ILjava/net/InetAddress;I)Ljava/net/Socket;
+            move-result-object p1
+            return-object p1
+        """.trimIndent())
+    methods.single { it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/net/Socket;", "Ljava/lang/String;", "I", "Z") }
+        .addInstructionsWithLabels(0, """
+            iget-object p1, p0, Lo/createDefault${'$'}setContentView;->a:Ljavax/net/ssl/SSLSocketFactory;
+            iget-object v0, p0, Lo/createDefault${'$'}setContentView;->e:Ljavax/net/SocketFactory;
+            invoke-static {v0, p2, p3}, $EXTENSION->createCellularSocket(
+                Ljavax/net/SocketFactory;Ljava/lang/String;I)Ljava/net/Socket;
+            move-result-object v0
+            invoke-virtual {p1, v0, p2, p3, p4}, Ljavax/net/ssl/SSLSocketFactory;->createSocket(
+                Ljava/net/Socket;Ljava/lang/String;IZ)Ljava/net/Socket;
+            move-result-object p1
+            return-object p1
+        """.trimIndent())
 }
 
 /** Rewrite at expansion time so existing user menu settings are repaired as well. */
@@ -1273,6 +1462,128 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoTalkAuthenticat
     }
 }
 
+/**
+ * 241 sends the cached DAT ETag on every normal thread refresh.  Immediately
+ * after a successful post the server can still expose the preceding ETag, so
+ * the refresh returns 304 and ChMate reports "no update" while the local post
+ * is not rendered.  Skip only this conditional header in 241's downloader;
+ * the normal response and local index handling remain unchanged.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoThreadRefreshCache() {
+    val networkClass = mutableClassDefBy("Lo/VLj;")
+    val downloader = networkClass.methods.singleOrNull { method ->
+        method.name == "e"
+            && method.returnType == "Lo/VLj\$RemoteActionCompatParcelizer;"
+            && method.parameterTypes.map(CharSequence::toString) == listOf(
+                "Ljp/syoboi/a2chMate/client/BBSUrlInfo;",
+                "Z",
+                "Lo/GNk17;",
+            )
+    } ?: error("ChMate 241 thread downloader was not found")
+    val instructions = downloader.implementation?.instructions
+        ?: error("ChMate 241 thread downloader has no implementation")
+    val etagNames = instructions.indices.filter { index ->
+        ((instructions[index] as? ReferenceInstruction)?.reference as? StringReference)
+            ?.string == "If-None-Match"
+    }
+    check(etagNames.size == 1) {
+        "Expected one ChMate 241 If-None-Match header, found ${etagNames.size}"
+    }
+    val nameIndex = etagNames.single()
+    val headerCall = instructions.indices.firstOrNull { index ->
+        index > nameIndex
+            && ((instructions[index] as? ReferenceInstruction)?.reference as? MethodReference)
+                ?.let { reference ->
+                    reference.definingClass == "Lokhttp3/Headers\$ComponentActivity;"
+                        && reference.name == "c"
+                        && reference.parameterTypes.map(CharSequence::toString) ==
+                            listOf("Ljava/lang/String;", "Ljava/lang/String;")
+                } == true
+    } ?: error("ChMate 241 If-None-Match header call was not found")
+    val resume = instructions.getOrNull(headerCall + 1)
+        ?: error("ChMate 241 If-None-Match header has no continuation")
+    downloader.addInstructionsWithLabels(
+        headerCall,
+        "goto :haiagaru_241_skip_etag",
+        ExternalLabel("haiagaru_241_skip_etag", resume),
+    )
+}
+
+private const val ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android"
+private const val OPEN_URL_ACTIVITY = "app.morphe.extension.chmate.OpenUrlActivity"
+
+private data class OpenUrlPattern(
+    val scheme: String,
+    val host: String,
+    val port: Int?,
+    val path: String?,
+    val prefix: Boolean,
+)
+
+private fun parseAdditionalOpenUrls(value: String): List<OpenUrlPattern> {
+    val entries = value.split(Regex("[,\\r\\n]+"))
+        .map(String::trim)
+        .filter(String::isNotEmpty)
+    if (entries.size > 32) {
+        throw PatchException("追加できるURLは32件までです。")
+    }
+    return entries.map { entry ->
+        val prefix = entry.endsWith("/*")
+        val url = if (prefix) entry.dropLast(1) else entry
+        val uri = try {
+            URI(url)
+        } catch (_: Exception) {
+            throw PatchException("URLの形式が正しくありません: $entry")
+        }
+        val scheme = uri.scheme?.lowercase(Locale.ROOT)
+        val host = uri.host?.lowercase(Locale.ROOT)
+        if (scheme !in setOf("http", "https") || host.isNullOrBlank()
+            || uri.userInfo != null || uri.query != null || uri.fragment != null
+            || uri.port == 0 || uri.port > 65535 || uri.path?.contains('*') == true
+        ) {
+            throw PatchException("http(s)のURLを指定してください（クエリ・#・途中の*は不可）: $entry")
+        }
+        OpenUrlPattern(
+            scheme = requireNotNull(scheme),
+            host = host,
+            port = uri.port.takeIf { it >= 0 },
+            path = uri.path?.takeIf(String::isNotEmpty),
+            prefix = prefix,
+        )
+    }.distinct()
+}
+
+private fun Document.addOpenUrlFilter(
+    activity: Element,
+    schemes: List<String>,
+    host: String,
+    port: Int? = null,
+    path: String? = null,
+    pathAttribute: String = "android:path",
+) {
+    val filter = createElement("intent-filter")
+    filter.appendChild(createElement("action").apply {
+        setAttributeNS(ANDROID_XML_NAMESPACE, "android:name", "android.intent.action.VIEW")
+    })
+    listOf("android.intent.category.DEFAULT", "android.intent.category.BROWSABLE")
+        .forEach { categoryName ->
+            filter.appendChild(createElement("category").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:name", categoryName)
+            })
+        }
+    schemes.forEach { scheme ->
+        filter.appendChild(createElement("data").apply {
+            setAttributeNS(ANDROID_XML_NAMESPACE, "android:scheme", scheme)
+        })
+    }
+    filter.appendChild(createElement("data").apply {
+        setAttributeNS(ANDROID_XML_NAMESPACE, "android:host", host)
+        port?.let { setAttributeNS(ANDROID_XML_NAMESPACE, "android:port", it.toString()) }
+        path?.let { setAttributeNS(ANDROID_XML_NAMESPACE, pathAttribute, it) }
+    })
+    activity.appendChild(filter)
+}
+
 @Suppress("unused")
 val haiagaruPatch = resourcePatch(
     name = "Haiagaru",
@@ -1281,7 +1592,15 @@ val haiagaruPatch = resourcePatch(
     compatibleWith(chMateCompatibility)
     dependsOn(haiagaruBytecodePatch)
 
+    val additionalOpenUrls = stringOption(
+        key = "additionalOpenUrls",
+        default = "",
+        title = "アプリで開くURLを追加",
+        description = "http(s)://から始まるURLをカンマ区切りで指定。末尾/*は配下も対象です。ChMateが解析できる板・スレURLに使用してください。",
+    )
+
     execute {
+        val customUrls = parseAdditionalOpenUrls(additionalOpenUrls.value.orEmpty())
         document("AndroidManifest.xml").use { document ->
             val additions = buildList {
                 val dataElements = document.getElementsByTagName("data")
@@ -1359,6 +1678,45 @@ val haiagaruPatch = resourcePatch(
                     intentFilter.appendChild(pathData)
                 }
             }
+
+            val application = document.getElementsByTagName("application").item(0) as Element
+            val openUrlActivity = document.createElement("activity").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:name", OPEN_URL_ACTIVITY)
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:exported", "true")
+                setAttributeNS(
+                    ANDROID_XML_NAMESPACE,
+                    "android:theme",
+                    "@android:style/Theme.Translucent.NoTitleBar",
+                )
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:excludeFromRecents", "true")
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:noHistory", "true")
+            }
+
+            // One routing Activity avoids competing board/thread Activity matches.
+            // Separate filters keep custom hosts and paths from being combined.
+            document.addOpenUrlFilter(
+                openUrlActivity, listOf("http", "https"), "talk.jp",
+                path = "/boards/", pathAttribute = "android:pathPrefix",
+            )
+            document.addOpenUrlFilter(
+                openUrlActivity, listOf("http", "https"), "talk.jp",
+                path = "/test/read.cgi/", pathAttribute = "android:pathPrefix",
+            )
+            document.addOpenUrlFilter(
+                openUrlActivity, listOf("http", "https"), "talk.jp",
+                path = "/.*/", pathAttribute = "android:pathPattern",
+            )
+            customUrls.forEach { url ->
+                document.addOpenUrlFilter(
+                    activity = openUrlActivity,
+                    schemes = listOf(url.scheme),
+                    host = url.host,
+                    port = url.port,
+                    path = url.path,
+                    pathAttribute = if (url.prefix) "android:pathPrefix" else "android:path",
+                )
+            }
+            application.appendChild(openUrlActivity)
         }
     }
 }
@@ -2964,6 +3322,75 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoUrlSpanAlign
 }
 
 /**
+ * Rewrite the board-menu endpoint at the point where ChMate starts its menu
+ * download.  The URL is persisted in ChMate preferences, so replacing only
+ * string constants does not repair installations that still store
+ * menu.5ch.net.  The method signatures differ across the supported builds;
+ * callers provide the stable return type for the corresponding worker.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchBbsMenuUrl(
+    methodName: String,
+    returnType: String,
+) {
+    val worker = mutableClassDefBy("Ljp/syoboi/a2chMate/bbs/BBSMenuUpdateWork;")
+    val fetch = worker.methods.singleOrNull { method ->
+        method.name == methodName
+            && method.returnType == returnType
+            && method.parameters.map(CharSequence::toString) == listOf("Ljava/lang/String;")
+    } ?: error("ChMate BBS menu download method was not found: $methodName $returnType")
+    fetch.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range { p1 .. p1 }, $EXTENSION->rewriteBbsMenuUrl(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p1
+        """,
+    )
+
+    // ChMate leaves URL 1 empty on a fresh install. The worker above can only
+    // migrate a URL that already exists, so give its first menu preference a
+    // default without changing any explicitly saved user value.
+    val menuDefaults = mutableListOf<Pair<MutableMethod, Int>>()
+    classDefForEach { classDef ->
+        if (!classDef.type.startsWith("Ljp/syoboi/") && !classDef.type.startsWith("Lo/")) {
+            return@classDefForEach
+        }
+        classDef.methods.filter { it.name == "<clinit>" }.forEach { method ->
+            val index = method.implementation?.instructions?.indexOfFirst { instruction ->
+                ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string ==
+                    "bbsMenuUrl"
+            } ?: -1
+            if (index >= 0) {
+                menuDefaults += mutableClassDefBy(classDef).findMutableMethodOf(method) to index
+            }
+        }
+    }
+    check(menuDefaults.size <= 1) { "ChMate has multiple first BBS menu preferences" }
+    if (menuDefaults.isEmpty()) return
+    val (initializer, menuKeyIndex) = menuDefaults.single()
+    val instructions = initializer.implementation!!.instructions
+    val constructorIndex = (menuKeyIndex + 1 until minOf(menuKeyIndex + 5, instructions.size))
+        .firstOrNull { index ->
+            val instruction = instructions[index]
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            instruction.opcode == Opcode.INVOKE_DIRECT
+                && instruction is FiveRegisterInstruction
+                && instruction.registerCount == 3
+                && reference?.name == "<init>"
+                && reference.parameterTypes.map(CharSequence::toString) ==
+                    listOf("Ljava/lang/String;", "Ljava/lang/String;")
+        } ?: error("ChMate's first BBS menu default constructor was not found")
+    val defaultRegister = (instructions[constructorIndex] as FiveRegisterInstruction).registerE
+    initializer.addInstructionsWithLabels(
+        constructorIndex + 1,
+        "const-string v$defaultRegister, \"\"",
+    )
+    initializer.addInstructionsWithLabels(
+        constructorIndex,
+        "const-string v$defaultRegister, \"https://menu.5ch.io/bbsmenu.html\"",
+    )
+}
+
+/**
  * Ports the URL-model and fixed endpoint handling used by the legacy 191 route
  * to later pre-5ch.io builds whose parser implementation has different names.
  * BE rendering and image upload stay on the target's own newer implementations.
@@ -3138,6 +3565,35 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
             iget-object v7, v7, $legacyLinkParserType->e:[I
             invoke-static { v6, v7, v$linkFoundRegister }, $EXTENSION->classifyLegacyBeIcon(Ljava/lang/String;[IZ)Z
             move-result v$linkFoundRegister
+        """
+    )
+
+    // When the optional 5ch thread-date display is enabled, ChMate replaces
+    // the matched URL with "board/date" before creating the link span. A BE
+    // icon earlier in the response can shift the native parser's coordinates
+    // by one character. Fix the deletion position while the original URL is
+    // still present; correcting only the later span leaves its first "h" in
+    // the displayed text ("hニュー速(嫌儲)/2026-...").
+    val legacyDateReplacementIndex = legacyTextParserMethod.implementation!!.instructions
+        .mapIndexedNotNull { index, instruction ->
+            val reference = (instruction as? ReferenceInstruction)?.reference
+                as? MethodReference ?: return@mapIndexedNotNull null
+            if (reference.definingClass == "Ljava/lang/StringBuilder;"
+                && reference.name == "delete"
+                && reference.parameterTypes.map(CharSequence::toString) == listOf("I", "I")
+                && reference.returnType == "Ljava/lang/StringBuilder;"
+            ) index else null
+        }.singleOrNull() ?: error("ChMate 191 thread-date URL replacement was not found")
+    legacyTextParserMethod.addInstructionsWithLabels(
+        legacyDateReplacementIndex,
+        """
+            move v13, v8
+            invoke-static { v12, v5, v8, v11 }, $EXTENSION->alignLegacyLinkRange(Ljava/lang/CharSequence;Ljava/lang/String;II)J
+            move-result-wide v14
+            long-to-int v8, v14
+            sub-int v13, v8, v13
+            add-int/2addr v11, v13
+            add-int/2addr v4, v13
         """
     )
 
@@ -3543,9 +3999,10 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
             }
 
             // The old implementation parses and merges the confirmation form but
-            // then restores its form parameter before retrying. Store the parsed
-            // server form in that existing parameter immediately while its type is
-            // known, so the original retry edge naturally sends it unchanged.
+            // then restores its form parameter before retrying. Keep the original
+            // form in p4 throughout the merge: replacing it with the parsed form
+            // before the iterator runs loses MESSAGE and can modify the collection
+            // being iterated. Only assign the merged form after that loop finishes.
             val confirmationParserIndexes = instructions.mapIndexedNotNull { index, instruction ->
                 val reference = (instruction as? ReferenceInstruction)?.reference
                     as? MethodReference ?: return@mapIndexedNotNull null
@@ -3564,8 +4021,19 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
                 ?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT }
                 as? OneRegisterInstruction)?.registerA
                 ?: error("ChMate legacy parsed confirmation form was not found")
+            val confirmationMergeEndIndex = instructions.mapIndexedNotNull { index, instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference
+                    as? MethodReference ?: return@mapIndexedNotNull null
+                if (index > parserIndex
+                    && reference.definingClass == "Lo/getJsonData;"
+                    && reference.name == "e"
+                    && reference.returnType == "Z"
+                    && reference.parameterTypes.map(CharSequence::toString) ==
+                    listOf("Ljava/lang/String;")
+                ) index else null
+            }.singleOrNull() ?: error("ChMate legacy confirmation merge end was not found")
             method.addInstruction(
-                parserIndex + 2,
+                confirmationMergeEndIndex,
                 "move-object/from16 p4, v$parsedFormRegister"
             )
         }

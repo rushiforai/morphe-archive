@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.misc.login.disablerequirement
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 
 internal object MandatoryLoginServiceFingerprint : Fingerprint(
     custom = { method, classDef ->

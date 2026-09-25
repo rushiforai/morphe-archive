@@ -30,6 +30,52 @@ internal object MainFeedResponseFingerprint : Fingerprint(
     },
 )
 
+private const val SPLASH_AD_SERVICE_DESCRIPTOR =
+    "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/service/ISplashAdService;"
+
+/**
+ * Whether the instruction hands a List to the splash ad service: the cold-start TopView
+ * preload handoff. The service's method is R8's and returns the preload task, so the call is
+ * known by the service's real name and its one List parameter, in either invoke shape.
+ */
+internal fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.isTopViewPreloadHandoff(): Boolean =
+    (opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_INTERFACE ||
+        opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_INTERFACE_RANGE) &&
+        getReference<MethodReference>()?.let { reference ->
+            reference.definingClass == SPLASH_AD_SERVICE_DESCRIPTOR &&
+                reference.parameterTypes == listOf("Ljava/util/List;")
+        } == true
+
+/**
+ * Whether the instruction reads the response's preload ads off the FeedItemList: the TopView
+ * preload read, which every non-null response reaches before TikTok's own "nothing to preload"
+ * check jumps past the handoff. The field keeps its name on every retained build.
+ */
+internal fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.isTopViewPreloadRead(): Boolean =
+    opcode == com.android.tools.smali.dexlib2.Opcode.IGET_OBJECT &&
+        getReference<FieldReference>()?.let { field ->
+            field.definingClass == "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;" &&
+                field.name == "preloadAds" && field.type == "Ljava/util/List;"
+        } == true
+
+/**
+ * The feed fetch and its post-processing: it reads the response's preload ads, stamps each
+ * with the request id and log pb, hands the list to the splash ad service as a TopView
+ * preload task and writes hasAd into every item, all before fetchFeedList returns. The class
+ * keeps its name; the method and its parameter type are R8's, and FeedApi carries two methods
+ * of this exact shape (the other is the thin request), so the fetch is the one whose body
+ * makes the handoff, which is also the site the patch rewrites.
+ */
+internal object FeedApiFetchFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/feed/api/FeedApi;",
+    returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+    custom = { method, _ ->
+        method.parameterTypes.size == 1 && method.implementation?.instructions?.let { instructions ->
+            instructions.any { it.isTopViewPreloadRead() } && instructions.any { it.isTopViewPreloadHandoff() }
+        } == true
+    },
+)
+
 /**
  * The real-named model getter is the stable late boundary for main-feed lists. TikTok 47.0.3
  * has delivery paths that do not return through FeedApiService.fetchFeedList, but all retained
@@ -417,6 +463,58 @@ internal object SearchResultRequestIdFingerprint : Fingerprint(
 )
 
 /**
+ * Binds a server-drawn Lynx card into its row of the search results, TikTok's Short Drama block
+ * among them. TikTok 47.0.3 streams the Top results in chunks and builds these cards from a
+ * chunk's patches, so they never pass through the result list [SearchResultRequestIdFingerprint]
+ * filters. The cell keeps its real name on every fixture, and so does its bind.
+ */
+internal object SearchLynxCardBindFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/search/lynx/core/ui/component/SearchLynxCardCell;",
+    name = "onBindItemView",
+    returnType = "V",
+)
+
+internal const val SEARCH_MIX_FEED_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/search/pages/result/topsearch/core/model/SearchMixFeed;"
+internal const val DYNAMIC_PATCH_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/discover/mixfeed/DynamicPatch;"
+internal const val LYNX_SSR_INFO_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/search/pages/result/topsearch/core/model/LynxSSRInfo;"
+
+/**
+ * The Top results list's own Lynx card holder binding a card's data into its row (LX/0J8X;->P5
+ * on 47.0.3, called by the results adapter's bind). The Short Drama block is bound here: TikTok
+ * builds it from a streamed chunk's patches and slots it into the adapter, past the result list
+ * [SearchResultRequestIdFingerprint] filters. Named by the real types among its ten parameters:
+ * the DynamicPatch second, the Lynx server-render info fifth and the card itself ninth.
+ */
+internal object SearchLynxHolderBindFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        val parameters = method.parameterTypes.map { it.toString() }
+        parameters.size == 10 &&
+            parameters[1] == DYNAMIC_PATCH_DESCRIPTOR &&
+            parameters[4] == LYNX_SSR_INFO_DESCRIPTOR &&
+            parameters[8] == SEARCH_MIX_FEED_DESCRIPTOR
+    },
+)
+
+/**
+ * The results adapter's other Lynx card holder. The adapter's bind hands a card to this one
+ * instead of [SearchLynxHolderBindFingerprint]'s when TikTok routes it here: feed type 996 always,
+ * and feed type 65514 when its template is on the server's `dynamic_new_arch_white_list` (empty by
+ * default). DynamicViewHolder keeps its real name on every fixture; its bind takes eight
+ * parameters, the fragment first, the DynamicPatch second and the Lynx server-render info fifth.
+ */
+internal object SearchDynamicHolderBindFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/search/lynx/core/ui/viewholder/DynamicViewHolder;",
+    returnType = "V",
+    custom = { method, _ ->
+        val parameters = method.parameterTypes.map { it.toString() }
+        parameters.size == 8 &&
+            parameters[1] == DYNAMIC_PATCH_DESCRIPTOR &&
+            parameters[4] == LYNX_SSR_INFO_DESCRIPTOR
+    },
+)
+
+/**
  * The Friends tab is its own feed and never arrives as a FeedItemList. Its response carries
  * FriendsFeed wrappers in a real named `friendFeedData` field, and `setRequestId` on that
  * class, which is what the search grid is hooked on, has no callers at all in 46.2.3.
@@ -646,6 +744,55 @@ internal object TakoCommentTopBarBridgeFingerprint : Fingerprint(
     definingClass = TAKO_COMMENT_TOP_BAR_BRIDGE,
     name = "bridgeTopBar",
     parameters = emptyList(),
+)
+
+internal const val SEARCH_DYNAMIC_TAB_LIST_DESCRIPTOR =
+    "Lcom/ss/android/ugc/aweme/search/pages/result/common/tabs/core/model/SearchDynamicTabList;"
+
+/** Whether the instruction reads the served tab list off the response: the field both getters open with. */
+internal fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.isSearchTabListRead(): Boolean =
+    opcode == com.android.tools.smali.dexlib2.Opcode.IGET_OBJECT &&
+        getReference<FieldReference>()?.let { field ->
+            field.definingClass == SEARCH_DYNAMIC_TAB_LIST_DESCRIPTOR &&
+                field.name == "tabList" && field.type == "Ljava/util/List;"
+        } == true
+
+/**
+ * The search results tab strip (Ask Tako, Top, Users, Videos, ...) is served as a list of dynamic
+ * tab infos on this response, and the strip's view model is its only consumer, reading it through
+ * these two getters: the plain one, and the one that keeps the keys the app's tab registry knows.
+ * Both are real names on a real-named class, and each opens with one read of the field, where a
+ * Tako tab would be dropped from what every consumer sees. On 47.0.3 the Ask Tako pill is not in
+ * this list (the strip's keys are general, user, video, shop, live, music, place, photos and
+ * hashtag) but a view of its own, hidden through the fragment below; the filter at these reads is
+ * the guard for a build that serves it as data, and the extension records the keys it meets.
+ */
+internal object SearchDynamicTabListGetTabListFingerprint : Fingerprint(
+    definingClass = SEARCH_DYNAMIC_TAB_LIST_DESCRIPTOR,
+    name = "getTabList",
+    returnType = "Ljava/util/List;",
+    parameters = emptyList(),
+)
+
+internal object SearchDynamicTabListGetSearchTabListFingerprint : Fingerprint(
+    definingClass = SEARCH_DYNAMIC_TAB_LIST_DESCRIPTOR,
+    name = "getSearchTabList",
+    returnType = "Ljava/util/List;",
+    parameters = emptyList(),
+)
+
+/**
+ * The fragment that inflates the search results tab strip, with the Ask Tako pill at its head when
+ * TikTok's own Tako gate allows it: a text view keeping the real id name tv_tab_tako_entrance, in a
+ * clickable pill, in a frame, in a column beside the tab row, all styled by an R8-named helper the
+ * fragment calls before it returns. Real-named class and method, so the extension is handed the
+ * view at every return and finds the pill by that id name.
+ */
+internal object SearchContainerFragmentOnViewCreatedFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/search/pages/core/ui/fragment/SearchContainerFragment;",
+    name = "onViewCreated",
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
 )
 
 internal object FollowFeedPresenterPostProcessFingerprint : Fingerprint(

@@ -61,11 +61,13 @@ A green dot in the top corner while TikTok has the camera open and an orange one
 A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Bir bağlantıyı paylaşırken veya kopyalarken tiktok.com yerine konacak alan adı, örneğin vxtiktok.com. TikTok'un kendi bağlantılarını paylaşmak için boş bırak. Yalnızca TikTok bağlantıları değişir, onların da yalnızca alan adı: hiçbir yere yeni bir şey gönderilmez.
 A newer clear replaced that undo. Tap the row again to undo.	Daha yeni bir temizleme o geri almanın yerini aldı. Geri almak için satıra tekrar dokun.
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Akıştaki küçük bir etiket, bugünkü bütçenden kalan dakikayı veya video sayısını gösterir, hangisi bitmeye daha yakınsa onu.
+A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Senin İçin açıkken Ana Sayfa'ya ya da Senin İçin sekmesine dokunmak artık akışı yenilemez. İzlediğin video yerinde kalır.
 A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.	Şuraya gönder satırındaki bir kişiye dokunmak onu yalnızca seçer. Aynı kişiye %1$d saniye içinde ikinci kez dokunmak videoyu gönderir.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Birinin yoruma bıraktığı web adresine, elle kopyalamak yerine dokunulabilir. Yorumun başka bir yerine dokunmak yine eskiden ne yapıyorsa onu yapar.
 AI-generated posts	Yapay zeka ile üretilmiş gönderiler
 About	Hakkında
 A forced value applies to this copy of TikTok whichever account is signed in. It cannot get past a check the server makes.	Zorlanan bir değer, hangi hesap oturum açmış olursa olsun bu TikTok kopyası için geçerlidir. Sunucunun yaptığı bir denetimi aşamaz.
+Leave when TikTok says time is up	TikTok süre doldu deyince uygulamadan çık
 No app on this phone opens that file	Bu telefonda o dosyayı açan bir uygulama yok
 Open	Aç
 This key touches account safety. Forcing it can change login, region, payment or security checks.	Bu anahtar hesap güvenliğine dokunur. Zorlamak giriş, bölge, ödeme veya güvenlik denetimlerini değiştirebilir.
@@ -211,8 +213,11 @@ Compare gate reads with their previous values.	Özellik kapısı okumalarını �
 Completed an interrupted settings change. Restart TikTok to apply this.	Yarıda kalan bir ayar değişikliği tamamlandı. Bunu uygulamak için TikTok'u yeniden başlat.
 Config	Yapılandırma
 Config (Settings Manager)	Yapılandırma (Settings Manager)
+Confirm before a quick repost	Hızlı yeniden yayınlamadan önce onay iste
 Confirm before following	Takip etmeden önce onay iste
 Confirm before liking	Beğenmeden önce onay iste
+Confirm before liking a comment	Bir yorumu beğenmeden önce onay iste
+Confirm before liking a story	Bir hikayeyi beğenmeden önce onay iste
 Confirm before sending to a friend	Bir arkadaşa göndermeden önce onay iste
 Continue supported videos from where you stopped when you scroll back to them.	Desteklenen videolara geri kaydırdığında kaldığın yerden devam et.
 Controls	Kontroller
@@ -279,6 +284,8 @@ Diagnostic report copied to the clipboard	Tanılama raporu panoya kopyalandı
 Diagnostics	Tanılama
 Disable	Devre dışı bırak
 Stop analytics and tracking	Analitiği ve izlemeyi durdur
+Keep For You on a Home tap	Ana Sayfa'ya dokununca Senin İçin'i koru
+Keep For You on a pull down	Aşağı çekince Senin İçin'i koru
 Keep long press from quick sharing	Uzun basma hızlı paylaşmasın
 Keep long press from reposting	Uzun basma yeniden yayınlamasın
 Disabled	Devre dışı
@@ -453,7 +460,7 @@ The Message requests row leaves the Inbox. Requests keep arriving and wait there
 The New followers row leaves the top of the Inbox. The accounts still follow you.	Yeni takipçiler satırı Gelen Kutusu'nun üstünden kalkar. Hesaplar seni takip etmeye devam eder.
 Hide the Report button on videos	Videolardaki Bildir düğmesini gizle
 Hide the Send to row	Şuraya gönder satırını gizle
-Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page and the Tako bar above comments.	Profil düğmesinin üzerindeki Tako AI balonunu, videoların altındaki Sor çubuğunu, arama sayfasındaki Tako'ya Sor düğmesini ve yorumların üstündeki Tako çubuğunu gizle.
+Hide the Tako AI bubble above the profile button, the Ask bar under videos, the Ask Tako button on the search page, the Ask Tako tab on search results and the Tako bar above comments.	Profil düğmesinin üzerindeki Tako AI balonunu, videoların altındaki Sor çubuğunu, arama sayfasındaki Tako'ya Sor düğmesini, arama sonuçlarındaki Tako'ya Sor sekmesini ve yorumların üstündeki Tako çubuğunu gizle.
 The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.	Tako asistanıyla olan sohbet Gelen Kutusu listesinden kalkar. Akıştaki Tako balonunun Akış sekmeleri altında kendi anahtarı var.
 Hide the Tako bubble	Tako balonunu gizle
 Hide the Tako chat	Tako sohbetini gizle
@@ -586,6 +593,7 @@ Comments range	Yorum aralığı
 Favorites range	Favori aralığı
 Likes range	Beğeni aralığı
 Shares range	Paylaşım aralığı
+TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.	TikTok'un kendi günlük ekran süresi hatırlatması, kapatılmayı beklemek yerine uygulamayı arka plana gönderir. Hemen geri dönersen hatırlatma ekranda kalır, böylece limit ulaşılabilir kalır. TikTok'un Ayarlar ve gizlilik bölümünde, Süre ve esenlik altında günlük bir limit ister.
 Views range	Görüntülenme aralığı
 Minimum	Minimum
 More options	Diğer seçenekler
@@ -719,6 +727,7 @@ Profile share actions	Profil paylaşım eylemleri
 Promotional music	Tanıtım müziği
 Proof	Kanıt
 Post age	Gönderi yaşı
+Pulling down at the top of For You no longer reloads it.	Senin İçin'in en üstünde aşağı çekmek artık akışı yenilemez.
 Putting the settings back to their defaults	Ayarlar varsayılanlarına döndürülüyor
 Quality	Kalite
 Quality, files, subtitles and hand-off	Kalite, dosyalar, altyazılar ve başka uygulamaya aktarma
@@ -804,7 +813,6 @@ Saved	Kaydedildi
 Saved %1$s	%1$s kaydedildi
 Saved %1$s of %2$s photos before the story failed	Hikaye başarısız olmadan önce %1$s / %2$s fotoğraf kaydedildi
 Saved %1$s original photos	%1$s orijinal fotoğraf kaydedildi
-Saved %1$s photos. The rest failed, so try again.	%1$s fotoğraf kaydedildi. Geri kalanı başarısız oldu, yeniden dene.
 Saved one original photo	Bir orijinal fotoğraf kaydedildi
 Saved, override off	Kaydedildi, geçersiz kılma kapalı
 Saved. Restart TikTok to apply this.	Kaydedildi. Bunu uygulamak için TikTok'u yeniden başlat.
@@ -934,8 +942,12 @@ Subtitles	Altyazılar
 System	Sistem
 Hide the streak button in a chat and the reminder message that goes with it.	Sohbetteki seri düğmesini ve onunla birlikte gelen hatırlatma mesajını gizle.
 Tap %1$s again to send	Göndermek için yeniden dokun: %1$s
+Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.	Bir yorumun kalbine %1$d saniye içinde iki kez dokun. Yoruma çift dokunmak da ikinci bir çift dokunma ister. Beğeniyi kaldırmak yine anında olur.
+Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.	Bir hikayenin kalbine %1$d saniye içinde iki kez dokun. Beğeniyi kaldırmak yine anında olur.
+Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.	Bir videonun altındaki çubukta Yeniden yayınla düğmesine %1$d saniye içinde iki kez dokun. Not eklenmiş bir yeniden yayınlama olduğu gibi kalır.
 Tap again to follow	Takip etmek için yeniden dokun
 Tap again to like	Beğenmek için yeniden dokun
+Tap again to repost	Yeniden yayınlamak için yeniden dokun
 Tap again to send	Göndermek için yeniden dokun
 Tap the feed Follow button twice within %1$d seconds.	Akıştaki Takip et düğmesine %1$d saniye içinde iki kez dokun.
 Tap the like heart twice within %1$d seconds. Removing a like stays immediate.	Beğeni kalbine %1$d saniye içinde iki kez dokun. Beğeniyi kaldırmak yine anında olur.
@@ -1193,3 +1205,25 @@ Hide TikTok's short drama episodes and the cards that promote them.	TikTok'un k�
 Mini dramas	Mini diziler
 Swipe left	Sola kaydır
 TikTok default (open the creator's profile)	TikTok varsayılanı (içerik üreticisinin profilini aç)
+Saving %1$s of %2$s	%2$s dosyadan %1$s. kaydediliyor
+Stopping after this file	Bu dosyadan sonra durduruluyor
+Saved %1$s of %2$s, the rest cancelled	%2$s dosyadan %1$s kaydedildi, kalanlar iptal edildi
+Saved %1$s of %2$s, %3$s skipped	%2$s dosyadan %1$s kaydedildi, %3$s atlandı
+Saved %1$s of %2$s, %3$s skipped and the rest cancelled	%2$s dosyadan %1$s kaydedildi, %3$s atlandı ve kalanlar iptal edildi
+None of the photos could be saved. Try again.	Fotoğrafların hiçbiri kaydedilemedi. Tekrar deneyin.
+Saved %1$s of %2$s, the rest need more free space	%2$s dosyadan %1$s kaydedildi, kalanlar için daha fazla boş alan gerekiyor
+Saved %1$s of %2$s, the rest ran out of time	%2$s dosyadan %1$s kaydedildi, kalanlar için süre doldu
+Live photo clip saved to %1$s	Canlı fotoğraf klibi %1$s konumuna kaydedildi
+The live photo's clip couldn't be saved. Try again.	Canlı fotoğrafın klibi kaydedilemedi. Tekrar deneyin.
+Creator exceptions	İçerik üretici istisnaları
+Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds and countries, and seen videos still apply.	Virgülle ayrılmış hesap adları veya kullanıcı kimlikleri. Videoları, yalnızca gönderi türü, etiketleri, yaşı, süresi veya sayılarıyla ilgili bir filtre onları gizleyecekse kalır. Reklamlar, engellenen içerik üreticiler, kelimeler, sesler ve ülkeler ile izlenmiş videolar geçerli olmaya devam eder.
+An exception names one creator, so a pattern can't be one: %1$s	Bir istisna tek bir içerik üreticiyi adlandırır, bu yüzden bir kalıp istisna olamaz: %1$s
+An exception takes a handle or id, not a display name: %1$s	Bir istisna hesap adı veya kimlik alır, görünen ad değil: %1$s
+Also on a block list, so still hidden: %1$s	Bir engelleme listesinde de var, bu yüzden gizli kalır: %1$s
+Find the sound on YouTube Music	Sesi YouTube Music'te bul
+YouTube Music isn't installed	YouTube Music yüklü değil
+This video's sound has no title to look for	Bu videonun sesinin aranacak bir başlığı yok
+YouTube Music couldn't be opened. Open it yourself and search for the sound.	YouTube Music açılamadı. Kendiniz açıp sesi arayın.
+Allow storage for TikTok in Android settings to save the live photo's clip	Canlı fotoğrafın klibini kaydetmek için Android ayarlarında TikTok'a depolama izni verin
+This is the video's own sound, so YouTube Music won't have it	Bu videonun kendi sesi, bu yüzden YouTube Music'te bulunmaz
+Not a handle or id, so ignored: %1$s	Hesap adı veya kimlik değil, bu yüzden yok sayıldı: %1$s

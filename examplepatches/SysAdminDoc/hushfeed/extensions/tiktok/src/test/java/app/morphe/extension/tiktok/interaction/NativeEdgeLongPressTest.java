@@ -99,7 +99,7 @@ public class NativeEdgeLongPressTest {
 
     @Test public void recognizedRemapsReachTheirActualActionsFromBothEdges() {
         ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-        String[] actions = {"nothing", "comments", "original_sound", "copy_link", "copy_sound_link"};
+        String[] actions = {"nothing", "comments", "original_sound", "copy_link", "copy_sound_link", "youtube_music"};
         for (String action : actions) for (float fraction : new float[]{0.1f, 0.9f}) {
             Settings.LONG_PRESS_ACTION.save(action);
             NativeCell cell = cell(fraction);
@@ -121,6 +121,9 @@ public class NativeEdgeLongPressTest {
             if ("copy_sound_link".equals(action)) {
                 assertEquals("https://www.tiktok.com/music/x-73123456789",
                         String.valueOf(clipboard.getPrimaryClip().getItemAt(0).getText()));
+            }
+            if ("youtube_music".equals(action)) {
+                assertEquals("This video's sound has no title to look for", ShadowToast.getTextOfLatestToast());
             }
             cell.dispatch(MotionEvent.ACTION_UP);
             assertEquals(action, 0, cell.nativeReleases);

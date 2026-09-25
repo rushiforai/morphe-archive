@@ -87,6 +87,45 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Publish bundle metadata after release asset
+        if: steps.release.outputs.new_release_published == 'true'
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.new_release_version }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${RELEASE_VERSION:-}" ]]; then
+            echo "::error::semantic-release did not expose the new release version."
+            exit 1
+          fi
+
+          metadata_version="$(jq -r '.version // empty' patches-bundle.json)"
+          if [[ "$metadata_version" != "$RELEASE_VERSION" ]]; then
+            echo "::error::Generated bundle metadata version '$metadata_version' does not match release '$RELEASE_VERSION'."
+            exit 1
+          fi
+
+          # @MorpheApp/changelog prepares patches-bundle.json before @semantic-release/github
+          # uploads the .mpp. Preserve that generated file, move back to the release commit that
+          # semantic-release pushed, and publish the metadata only after the asset exists.
+          cp patches-bundle.json "$RUNNER_TEMP/patches-bundle.json"
+          git fetch origin "$GITHUB_REF_NAME"
+          git checkout -B "$GITHUB_REF_NAME" "origin/$GITHUB_REF_NAME"
+          cp "$RUNNER_TEMP/patches-bundle.json" patches-bundle.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+
+          if git diff --cached --quiet; then
+            echo "Bundle metadata already matches the published release."
+            exit 0
+          fi
+
+          git commit -m "chore(release): publish bundle metadata for v${RELEASE_VERSION} [skip ci]"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'
         uses: actions/attest-build-provenance@v3

@@ -38,7 +38,7 @@
 
 | Application | Package ID | Target Version | Architecture / Variant | Download Source | Complete Guide |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Brave Browser** | `com.brave.browser` | `1.95.104` | `arm64-v8a`<br>`armeabi-v7a` (Monolithic) | [ARM64](https://github.com/brave/brave-browser/releases/download/v1.95.104/Bravemonoarm64.apk) · [ARM32](https://github.com/brave/brave-browser/releases/download/v1.95.104/BraveMonoarm.apk) | [Brave Guide](docs/apps/brave.md) |
+| **Brave Browser** | `com.brave.browser` | `1.96.59` | `arm64-v8a`<br>`armeabi-v7a` (Monolithic) | [ARM64](https://github.com/brave/brave-browser/releases/download/v1.96.59/Bravemonoarm64.apk) · [ARM32](https://github.com/brave/brave-browser/releases/download/v1.96.59/BraveMonoarm.apk) | [Brave Guide](docs/apps/brave.md) |
 | **Gboard Lite** | `com.google.android.inputmethod.latin` | `18.2.4.969776716` | `arm64-v8a`<br>`armeabi-v7a` (nodpi) | [APKMirror](https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-18-2-4-969776716-release/) | [Gboard Lite Guide](docs/apps/gboard.md) |
 | **Hevy** | `com.hevy` | `3.1.14` | `arm64-v8a` (APKM Bundle) | [APKMirror](https://www.apkmirror.com/apk/hevy-gym-workout-tracker/hevy-gym-log-workout-tracker/hevy-gym-log-workout-tracker-3-1-14-release/) | [Hevy Guide](docs/apps/hevy.md) |
 | **NokoPrint** | `com.nokoprint` | `5.28.4` | Universal (nodpi) | [APKPure](https://d.apkpure.com/b/XAPK/com.nokoprint?versionCode=52804) | [NokoPrint Guide](docs/apps/nokoprint.md) |
@@ -91,7 +91,7 @@
 </details>
 
 <details>
-<summary>TikTok&nbsp;&nbsp;•&nbsp;&nbsp;<b>38 patches</b></summary>
+<summary>TikTok&nbsp;&nbsp;•&nbsp;&nbsp;<b>49 patches</b></summary>
 <br>
 
 **Supported versions:**
@@ -101,36 +101,41 @@
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
-| **Always show publish date** | Forces video publish/upload date to remain visible in video author information across all feed types. |  |
-| **Auto-pause first video** | Automatically pauses the first video when opening TikTok, allowing background initialization to complete without playback stutter. |  |
-| **Auto-translate comments** | Automatically translates comments into your preferred language using TikTok's native translation engine. |  |
+| **Always Show Publish Date** | Forces video publish/upload date to remain visible in video author information across all feed types. |  |
+| **Auto-Pause First Video** | Automatically pauses the first video when opening TikTok, allowing the application to finish background initialization and preventing playback lag. |  |
+| **Auto-Translate Comments** | Automatically translates comments into your preferred language using TikTok's native translation engine. |  |
 | **Bypass Mandatory Login** | Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions. |  |
 | **Clean Share URL** | Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links. |  |
 | **Client-Side AI & Behavioral Profiling Governor** | Neutralizes on-device machine learning inference (Pitaya), Tako AI chatbot entry points and icons, and AI smart search suggestion clutter. |  |
-| **Copy comments without username** | Copies only the comment text without prepending the author username. |  |
+| **Copy Comments Without Username** | Copies only the comment text without prepending the author username. |  |
 | **Core Asset De-bloat** | Strips embedded Microblink/FinTech card scanner models, Pitaya AI & ByteNN LLM engines, C2PA origin verification, DLNA cast scanners, and redundant non-Latin fonts to save APK space. |  |
 | **Custom Offline Videos Limit** | Customizes the maximum number of videos available for offline download caching. | • Custom Offline Videos Limit |
+| **Custom Share Sheet** | Customizes and simplifies the native TikTok share sheet by removing third-party app bloat, hiding specified apps or actions, and optionally suppressing the friends/contacts direct message row. | • Simplify Share Sheet<br>• Hide Friends Suggestion Row<br>• Hide Specific Apps<br>• Hide Specific Actions |
 | **Device Privacy Guard** | Neutralizes invasive runtime permissions (contacts sync, location tracking, nearby devices), advertising ID profiling, background clipboard snooping routines, motion sensor profiling, and screenshot/recording detection to protect user data. |  |
 | **Disable Comment Suggested Emojis** | Removes the horizontal bar of suggested quick emojis displayed above the comment input box. |  |
+| **Disable Double Tap to Like** | Disables the double tap gesture to like videos in the feed, preventing accidental likes while scrolling or pausing. Videos can still be liked using the like button. |  |
 | **Disable Profile Photo LIVE Status** | Removes the pulsing LIVE ring and badge from creator avatars in the feed and ensures clicking navigates strictly to the user profile instead of launching the live stream. |  |
 | **Disable Push Notifications** | Neutralizes background push notification tasks and persistent socket wake locks to eliminate background battery drain. |  |
 | **Disable Search History Recording** | Prevents search queries and keywords from being recorded in local history, databases, and analytics stores. |  |
 | **Disable Story Feed Indicators** | Removes the top-center story drop-down indicator pill (e.g. '1 Story') and creator profile photo story rings from feed videos, ensuring avatar photos remain clean. |  |
+| **Disable Watch History Recording** | Prevents viewed videos from being recorded in account watch history, playback duration stores, and local history caches. |  |
 | **Display Refresh Rate Governor** | Forces TikTok to run at peak display refresh rate (120Hz/90Hz/60Hz) and neutralizes video playback framerate downclocking routines. | • Target Refresh Rate |
+| **Enable Voice Comments** | Forces the native voice comment recording button in comment input bars, bypassing regional rollout restrictions and remote server blocks. |  |
 | **Feed Ad Blocker** | Removes sponsored advertisements, brand promotions, and promotional audio from the For You and Following feeds. |  |
 | **Feed Bloat & Distraction Blocker** | Removes non-video clutter and floating ad widgets from the For You, Following, and Friends feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), surveys, and mini-drama paywalls. |  |
 | **Feed Live Stream Blocker** | Removes live stream broadcast cards and live recommendations from the For You and Following feeds. |  |
-| **Fix Google login** | Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature. |  |
-| **Force auto-scroll** | Forces the activation of the native video auto-scroll experiment flag for accounts and regions that lack it due to A/B testing. |  |
-| **Hide Feed Search Bar** | Removes the search suggestion pill and trending bar ('Search · <keyword>') from the bottom of feed videos. |  |
-| **Hide Popular Lives In Search** | Removes the 'LIVE populares' (Popular LIVEs) recommendation card and stream broadcasts from the search intermediate page. |  |
+| **Fix Google Login** | Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature. |  |
+| **Force Auto-Scroll** | Forces the activation of the native video auto-scroll experiment flag for accounts and regions that lack it due to A/B testing. |  |
+| **Hide AI-Generated Content** | Filters and skips videos tagged with native AI-generated metadata, C2PA content credentials, or creator AI disclosure tags across the For You, Following, and Friends feeds. |  |
+| **Hide Feed Search Bar** | Removes the search suggestion pill and trending bar ('Search · <keyword>') from the bottom of feed videos, providing a clean viewing area without search distractions. |  |
+| **Hide Popular Lives In Search** | Removes the Popular LIVEs recommendation card and live stream broadcasts from the search discovery page. |  |
 | **Hide Profile Photo Follow Button** | Hides the plus (+) follow badge on creator profile avatars in the feed and disables its touch interaction. |  |
-| **Hide STEM and Community Tabs** | Removes the STEM and Comunidad (Explore / Topics) tabs from the top navigation feed strip. |  |
-| **Hide Suggested Searches** | Removes the 'Podría interesarte' (You may like / Guess Search) suggested keywords section from the search intermediate page. |  |
+| **Hide STEM and Community Tabs** | Removes the STEM and Topics (Community / Explore) tabs from the top navigation feed strip. |  |
+| **Hide Suggested Searches** | Removes the suggested search keywords section ('You may like' / 'Search suggestions') from the search discovery page. |  |
 | **Hide TikTok Shop & Mall** | Removes product showcase badges, shopping cart tags, and the TikTok Shop / Mall tab from navigation bars and video posts. |  |
 | **Hide Top-Left LIVE Button** | Removes the top-left LIVE broadcast button and tab entry point from the top navigation bar. |  |
 | **In-App Browser Privacy Guard** | Redirects external and third-party web links to the default system browser and neutralizes inline JavaScript tracking, DOM monitoring, and AJAX hooking in residual in-app WebViews. |  |
-| **Instant Launch & Splash Blocker** | Eliminates cold startup delays, real-time splash advertisements, and background TopView preloading (<0.4s launch). |  |
+| **Instant Launch & Splash Blocker** | Eliminates cold startup delays, real-time splash advertisements, and background TopView ad preloading. |  |
 | **Language Pack Purger** | Strips unselected language string bundles from assets/strings#lang_* to save APK space. | • Languages to keep |
 | **Live Stream 3D Gift Optimizer** | Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams. |  |
 | **Live Stream SDK & Minigame De-bloat** | Strips Live link mic SDK (liblink_mic_sdk.so), Lyrax RTC broadcasting engines (liblyrax.so), and live stream interactive minigames to reduce APK size and memory footprint. |  |
@@ -139,7 +144,7 @@
 | **Playback Speed Persistence** | Persists selected video playback speed across all feed videos and application restarts. |  |
 | **Resource & Battery Governor** | Throttles background sensor polling (gyroscope/accelerometer 3D ads) and prevents aggressive video buffer preloading to conserve battery and CPU resources. |  |
 | **SIM Region Selector** | Spoofs the detected SIM and network country ISO code to bypass regional feed restrictions and catalog blocks. | • Spoofed Region ISO Code |
-| **Show seekbar** | Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled. |  |
+| **Show Seekbar** | Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled. |  |
 | **Skip First-Launch Onboarding** | Bypasses the entire first-run introduction funnel (interest pickers, swipe tutorials, language prompts, and consent sheets) directly to the feed. |  |
 | **Studio & Creation De-bloat** | Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, and AR camera face models to significantly reduce APK size. |  |
 | **Unified Telemetry & Tracker Silencer** | Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics. |  |
@@ -149,22 +154,23 @@
 </details>
 
 <details>
-<summary>Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;<b>14 patches</b></summary>
+<summary>Brave Private Web Browser, VPN&nbsp;&nbsp;•&nbsp;&nbsp;<b>15 patches</b></summary>
 <br>
 
 **Supported versions:**
 
-| 1.95.104 |
+| 1.96.59 |
 | :---: |
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | **Block Brave Telemetry** | Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching. |  |
+| **Brave ARM64 BTI Compatibility** | Neutralizes GNU_PROPERTY_AARCH64_FEATURE_1_BTI in libchrome.so to prevent Branch Target Exception SIGILL crashes on ARMv8.5+ devices. |  |
 | **Brave In-Product & Commercial Notification Optimizer** | Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns. |  |
 | **Brave Native Library Extraction Compatibility** | Enforces native library extraction in AndroidManifest.xml to ensure 16 KB page and BTI compatibility across modern ARM64 devices. |  |
 | **Brave Origin** | Unlocks Brave Origin and enables local feature toggle controls. |  |
 | **Brave Startup Performance Optimization** | Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations. |  |
-| **Clean New Tab Page** | Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page. |  |
+| **Clean New Tab Page** | Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page. | • Hide Top Sites & Shortcuts |
 | **Clean Share URL** | Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links. |  |
 | **Disable Background Sync & Periodic Sync** | Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks. |  |
 | **Disable Battery Status API & OS Listener** | Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts. |  |
@@ -190,7 +196,7 @@
 | **Block Hevy Telemetry & Trackers** | Neutralizes Sentry crash reporting, Adjust attribution, Facebook AppEvents, Branch referral tracking, and WearOS background sync. |  |
 | **Hevy Battery Optimization & Background Sync Killer** | Disables background WorkManager alarms, periodic job schedulers, Google Play Billing IPC (~89 MB RAM), and removes largeHeap to force aggressive Garbage Collection. |  |
 | **Hevy Resource Slimmer** | Strips embedded onboarding MP4 tutorial video, heavy IMG.LY photo editor stickers/textures, and compiler junk metadata. |  |
-| **Unlock Pro** | Unlocks local Hevy Pro capabilities (unlimited workout routines, routine folders, advanced graphs, and local analytics) by dynamically enabling Pro getters in Hermes Bytecode (HBC96). |  |
+| **Unlock Pro** | Unlocks local Hevy Pro capabilities (unlimited workout routines, routine folders, advanced graphs, and local analytics) by dynamically enabling Pro getters and suppressing grace period payment warnings in Hermes Bytecode (HBC96). |  |
 
 </details>
 
@@ -234,9 +240,9 @@
 
 | Patch | Description | Options |
 |----------|----------------|-----------|
-| **NokoPrint Ad Activities Slimmer** | Disables over 40 third-party ad mediation activities, internal web browsers, and debuggers registered in AndroidManifest.xml. |  |
+| **NokoPrint Ad Activities Slimmer** | Disables over 100 third-party ad mediation activities, internal web browsers, and debuggers registered in AndroidManifest.xml. |  |
 | **NokoPrint Ad Dispatch Governor** | Neutralizes in-app banner, interstitial, and rewarded ad loaders, preloading schedulers, and refresh handlers. |  |
-| **NokoPrint Asset De-bloat** | Strips embedded secondary Meta Audience Network DEX and redundant web ad-viewer HTML/JS assets to save APK space. |  |
+| **NokoPrint Asset De-bloat** | Strips embedded secondary Meta Audience Network DEX, tracking scripts, ad-viewer HTML/JS templates, RuStore TLS certs, and third-party ad assets to save APK space. |  |
 | **NokoPrint Background Sync Optimizer** | Neutralizes background WorkManager constraint tasks and diagnostic wakelocks. |  |
 | **NokoPrint Block Telemetry & Trackers** | Neutralizes Firebase Analytics and Google Measurement tracking and event dispatching. |  |
 | **NokoPrint Multi-Store Debridger** | Disables orphan billing activities, background services, and permissions for alternative OEM stores (Huawei HMS, Xiaomi, Samsung, CafeBazaar, OneStore). |  |

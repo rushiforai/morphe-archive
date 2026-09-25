@@ -148,6 +148,55 @@ class HoldSpeedAnchorsTest {
     }
 
     @Test
+    fun `47_0_3 speed menu toast handler is the one the reword targets`() {
+        val apk = Fixtures.apks().single { it.name.contains("47.0.3") }
+        val app = load(apk)
+        val basePackage = "Lcom/ss/android/ugc/aweme/share/base/model/BaseSharePackage;"
+        // The speed menu class: the one whose panel method takes a BaseSharePackage and carries
+        // the menu's own gate string, the same anchor PlaybackSpeedMenuFingerprint resolves.
+        val menu = app.values.filter { classDef ->
+            classDef.methods.any {
+                it.parameterTypes == listOf(basePackage) && "is_highlight_fast_speed" in strings(it)
+            }
+        }
+        assertEquals("speed menu classes: ${menu.map { it.type }}", 1, menu.size)
+        val menuClass = menu.single()
+        val floatFields = menuClass.fields.filter { it.type == "F" }
+        assertEquals("one float speed field: ${floatFields.map { it.name }}", 1, floatFields.size)
+        val speedField = floatFields.single()
+        fun Method.readsSpeed() = implementation?.instructions?.any { instruction ->
+            instruction.opcode == Opcode.IGET &&
+                instruction.getReference<com.android.tools.smali.dexlib2.iface.reference.FieldReference>()?.let {
+                    it.definingClass == speedField.definingClass && it.name == speedField.name && it.type == "F"
+                } == true
+        } == true
+        // Of the three (View, BaseSharePackage)V methods the toast handler is the one with the
+        // single format argument (one aput-object) that reads the speed field; the other two are
+        // trivial delegators.
+        val handlers = menuClass.methods.filter { method ->
+            method.parameterTypes == listOf("Landroid/view/View;", basePackage) && method.returnType == "V" &&
+                method.implementation?.instructions?.count { it.opcode == Opcode.APUT_OBJECT } == 1 &&
+                method.readsSpeed()
+        }
+        assertEquals("speed menu toast handlers: ${handlers.map { it.name }}", 1, handlers.size)
+        val handler = handlers.single()
+        val instructions = handler.implementation!!.instructions.toList()
+        val speedReads = instructions.filter { instruction ->
+            instruction.opcode == Opcode.IGET &&
+                instruction.getReference<com.android.tools.smali.dexlib2.iface.reference.FieldReference>()?.name == speedField.name
+        }
+        assertEquals("one speed-field read in the handler", 1, speedReads.size)
+        val speedRegister = (speedReads.single() as OneRegisterInstruction).registerA
+        val aputs = instructions.filter { it.opcode == Opcode.APUT_OBJECT }
+        assertEquals("one format argument in the handler", 1, aputs.size)
+        val labelRegister = (aputs.single() as com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction).registerA
+        assertTrue(
+            "the label and speed registers fit a short call: v$labelRegister, v$speedRegister",
+            labelRegister < 16 && speedRegister < 16,
+        )
+    }
+
+    @Test
     fun `every retained fixture has the gesture's literals read only as floats`() {
         val apks = Fixtures.apks()
         assertTrue("fixtures: ${apks.map { it.name }}", apks.size >= 2)

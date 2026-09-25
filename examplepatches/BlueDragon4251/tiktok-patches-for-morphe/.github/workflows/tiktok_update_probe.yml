@@ -1,0 +1,63 @@
+name: TikTok candidate hook discovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: HTTPS URL of the candidate TikTok APK
+        required: true
+        type: string
+      apk_sha256:
+        description: Exact SHA-256 of that APK
+        required: true
+        type: string
+      baseline_run_id:
+        description: Successful acceptance run whose hook inventory should be compared
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Validate and download candidate APK
+        env:
+          APK_URL: ${{ inputs.apk_url }}
+          APK_SHA256: ${{ inputs.apk_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$APK_URL" == https://* ]]
+          [[ "$APK_SHA256" =~ ^[0-9a-fA-F]{64}$ ]]
+          curl --fail --location --proto '=https' --proto-redir '=https' --retry 3 "$APK_URL" -o candidate.apk
+          printf '%s  candidate.apk\n' "$APK_SHA256" | sha256sum --check
+      - name: Fetch successful acceptance evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASELINE_RUN_ID: ${{ inputs.baseline_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$BASELINE_RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$BASELINE_RUN_ID" > baseline-run.json
+          jq -e '.conclusion == "success" and .name == "TikTok 46.7.3 acceptance"' baseline-run.json
+          gh run download "$BASELINE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name tiktok-46.7.3-acceptance --dir baseline
+      - name: Compare native hook contracts
+        run: |
+          python -m pip install -r scripts/tiktok/requirements.txt
+          python scripts/tiktok/rediscover_hooks.py baseline/tiktok-hook-report.json candidate.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tiktok-candidate-hook-evidence
+          path: |
+            baseline-run.json
+            tiktok-hook-migration.json
+          retention-days: 30

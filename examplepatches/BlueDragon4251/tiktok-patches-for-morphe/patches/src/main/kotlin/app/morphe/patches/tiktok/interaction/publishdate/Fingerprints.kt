@@ -6,7 +6,7 @@
  */
 package app.morphe.patches.tiktok.interaction.publishdate
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 
 internal object VideoAuthorInfoStateFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/feed/assem/videoauthorinfo/VideoAuthorInfoVM;",

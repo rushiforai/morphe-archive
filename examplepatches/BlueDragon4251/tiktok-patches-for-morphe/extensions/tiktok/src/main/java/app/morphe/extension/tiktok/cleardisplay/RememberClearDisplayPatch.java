@@ -26,6 +26,15 @@ public class RememberClearDisplayPatch {
         return state;
     }
 
+    /**
+     * Restores the remembered state without directly linking TikTok's obfuscated event class from
+     * the player bytecode. The event class name is supplied as a String and instantiated reflectively.
+     */
+    public static void restoreClearDisplayState(String eventClassName) {
+        if (!getClearDisplayState()) return;
+        AutomaticClearDisplayController.postRemembered(eventClassName);
+    }
+
     public static void rememberClearDisplayState(boolean newState) {
         AutomaticClearDisplayController.onClearDisplayStateChanged(newState);
 

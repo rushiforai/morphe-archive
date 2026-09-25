@@ -375,9 +375,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new ChoicePreference(context, "Long press", Settings.LONG_PRESS_ACTION,
                     new String[]{"TikTok default (hold to speed up, quick share)", "Do nothing",
                             "Open comments", "Save the original sound", "Copy the video link",
-                            "Copy the sound link"},
+                            "Copy the sound link", "Find the sound on YouTube Music"},
                     new String[]{"default", "nothing", "comments", "original_sound", "copy_link",
-                            "copy_sound_link"}));
+                            "copy_sound_link", "youtube_music"}));
             addPreference(new TogglePreference(context, "Seek from the edges",
                     "Press and hold the left or right third of the screen to jump back or forward. "
                             + "The middle third keeps the Long press action.", Settings.EDGE_SEEK));
@@ -420,6 +420,18 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     L10n.f(context, "Tap the like heart twice within %1$d seconds. Removing a like stays immediate.",
                             TapConfirmation.CONFIRM_WINDOW_SECONDS),
                     Settings.CONFIRM_LIKE));
+            addPreference(new TogglePreference(context, "Confirm before liking a comment",
+                    L10n.f(context, "Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.",
+                            TapConfirmation.CONFIRM_WINDOW_SECONDS),
+                    Settings.CONFIRM_COMMENT_LIKE));
+            addPreference(new TogglePreference(context, "Confirm before liking a story",
+                    L10n.f(context, "Tap a story's heart twice within %1$d seconds. Removing a like stays immediate.",
+                            TapConfirmation.CONFIRM_WINDOW_SECONDS),
+                    Settings.CONFIRM_STORY_LIKE));
+            addPreference(new TogglePreference(context, "Confirm before a quick repost",
+                    L10n.f(context, "Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.",
+                            TapConfirmation.CONFIRM_WINDOW_SECONDS),
+                    Settings.CONFIRM_QUICK_REPOST));
         }
     }
 }

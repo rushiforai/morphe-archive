@@ -1,6 +1,15 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/3014
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.extension.music.jam;
 
-import java.util.*;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Patched to implement YTM's observable-list ABI. Items are genuine native queue models. */
 public final class NativeQueueList extends AbstractList<Object> {

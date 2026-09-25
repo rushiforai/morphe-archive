@@ -14,7 +14,9 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.inbox.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/blockauthor/BlockAuthorPatch;"
@@ -54,6 +56,20 @@ val blockAuthorPatch = bytecodePatch(
             "invoke-static/range { p0 .. p0 }, " +
                 "Lapp/morphe/extension/tiktok/playback/PausePlayback;->" +
                 "install(Landroid/app/Activity;)V",
+        )
+
+        // TikTok's daily screen-time reminder coming up over the feed, for the switch that
+        // leaves the app instead. After the invoke-super: the method opens with a null-context
+        // early return whose branch target the insert must not sit in front of, and past the
+        // super call the slot is really attached.
+        val reminderMethod = DailyScreenTimeReminderFingerprint.method
+        val reminderSuperIndex = reminderMethod.indexOfFirstInstructionOrThrow {
+            opcode == Opcode.INVOKE_SUPER
+        }
+        reminderMethod.addInstruction(
+            reminderSuperIndex + 1,
+            "invoke-static {}, " +
+                "Lapp/morphe/extension/tiktok/wellbeing/RestReminder;->reminderShown()V",
         )
 
         // Track the author of whichever video is currently on screen.

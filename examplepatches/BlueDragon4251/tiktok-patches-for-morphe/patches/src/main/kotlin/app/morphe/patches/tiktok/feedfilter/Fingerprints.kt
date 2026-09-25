@@ -4,45 +4,39 @@
  */
 package app.morphe.patches.tiktok.feedfilter
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
- * Exact TikTok 46.4.3 For You response post-processing path.
+ * TikTok 46.7.3 For You response post-processing path.
  *
- * Do not hook FeedItemList.getItems() globally: that model is also consumed by profile,
- * detail, series and other non-feed surfaces. The `fyp`/`first_feed_duration` evidence
- * uniquely anchors the real For You response path for this target.
+ * The FeedApi class and stable response markers survive the 46.4.3 -> 46.7.3
+ * migration, while the obfuscated method name and request type do not. Keep the
+ * semantic class/return/string anchors and let the fingerprint follow those
+ * obfuscation changes.
  */
 internal object ForYouFeedResponseFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/feed/api/FeedApi;",
-    name = "LIZIZ",
     returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
-    parameters = listOf("LX/12h2;"),
     strings = listOf("fyp", "first_feed_duration"),
 )
 
 /**
- * Exact 46.4.3 cached For You `fetchFeeds` filter.
- *
- * Device testing proved that the cache path can render without passing through
- * FeedApi.LIZIZ(...), which previously let both short videos and ads bypass BlueIT.
+ * Cached For You `fetchFeeds` filter. The owner moved from LX/0MPw in 46.4.3
+ * to LX/04Js in 46.7.3; the method contract and exact cache-filter strings are
+ * stable and are stronger anchors than the obfuscated owner/name.
  */
 internal object ForYouCachedFeedFilterFingerprint : Fingerprint(
-    definingClass = "LX/0MPw;",
-    name = "LIZIZ",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "V",
     parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"),
     strings = listOf("fetchFeeds, filter by is ad", "fetchFeeds, filter by is duplicate"),
 )
 
-/** Exact 46.4.3 cached For You list read (`feed_use_cache_size` / `tryUseCache`). */
+/** Exact cached For You list read (`feed_use_cache_size` / `tryUseCache`). */
 internal object ForYouCachedFeedReadFingerprint : Fingerprint(
-    definingClass = "LX/0MPw;",
-    name = "LJIJJ",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
     parameters = emptyList(),
@@ -50,20 +44,20 @@ internal object ForYouCachedFeedReadFingerprint : Fingerprint(
 )
 
 /**
- * Final exact 46.4.3 Feed0VVManager commit runnable for the For You feed.
+ * Final TikTok 46.7.3 Feed0VVManager commit runnable for the For You feed.
  *
- * This is later than the network/cache hooks. It receives the completed FeedItemList and
- * then runs TikTok's commercial processors (`filter_show_ad`, `filter_installed_ad`,
- * AdSessionPositionHelper/fyp, soft_ads and roi2) immediately before posting to feed UI.
+ * 46.7.3 moved the old synthetic run$1 method to an instance Runnable
+ * (LX/07fn.run()). The complete semantic commit string set is unchanged, so
+ * it remains an exact late-stage FYP/UI handoff anchor without depending on
+ * the obfuscated class name.
  */
 internal object ForYouFinalCommitFingerprint : Fingerprint(
-    definingClass = "LY/ARunnableS0S0303000_29;",
-    name = "run\$1",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    name = "run",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf("LY/ARunnableS0S0303000_29;"),
+    parameters = emptyList(),
     strings = listOf(
-        "Feed0VVManager@569f.commit\$1L",
+        "Feed0VVManager@",
         "full_feed_commit_process_data",
         "homepage_hot",
         "filter_show_ad",
@@ -111,7 +105,7 @@ internal object TakoAiFeedButtonSetVisibleFingerprint : Fingerprint(
 
         references.any {
             it.definingClass == "Lcom/bytedance/assem/arch/reused/ReusedUIAssem;" &&
-                it.name == "LJJIJLIJ" &&
+                it.name == "LJJJ" &&
                 it.returnType == "Landroid/view/View;"
         } && references.any {
             it.definingClass == "Landroid/view/View;" &&

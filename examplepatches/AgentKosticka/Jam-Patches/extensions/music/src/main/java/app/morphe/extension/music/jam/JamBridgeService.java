@@ -1,12 +1,29 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/3014
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.extension.music.jam;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import app.morphe.jam.ipc.*;
-import java.util.*;
-import java.util.concurrent.*;
-import org.json.*;
+import app.morphe.jam.ipc.BridgeProtocol;
+import app.morphe.jam.ipc.IJamBridge;
+import app.morphe.jam.ipc.Trust;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public final class JamBridgeService extends Service {
 

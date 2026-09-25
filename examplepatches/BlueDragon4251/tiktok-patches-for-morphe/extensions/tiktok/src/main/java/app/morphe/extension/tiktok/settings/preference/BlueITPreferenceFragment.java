@@ -52,7 +52,7 @@ public class BlueITPreferenceFragment extends AbstractPreferenceFragment {
     private enum Section {
         FEED_FILTER("Feed filter", "Ads, Shop, livestreams, seen videos, and view limits."),
         FEED_NAVIGATION("Feed navigation", "Feed tabs, bottom tabs, and Tako AI."),
-        INTERFACE("Interface", "Promotions, popups, and publish dates."),
+        INTERFACE("Interface", "Themes, appearance, promotions, popups, and publish dates."),
         COMMENTS("Comments and translation", "Auto translate, quick reactions, and copy options."),
         DOWNLOADS("Downloads", "Path, watermark, and offline videos."),
         REGION("Bypass regional restriction", "SIM info, country, and operator."),
@@ -260,10 +260,13 @@ public class BlueITPreferenceFragment extends AbstractPreferenceFragment {
                     Settings.HIDE_TAKO_AI.get()
             ));
         }
-        if (SettingsStatus.captchaPopupSuppressionEnabled
+        if (SettingsStatus.themeEngineEnabled
+                || SettingsStatus.automaticClearDisplayEnabled
+                || SettingsStatus.captchaPopupSuppressionEnabled
                 || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.alwaysShowPublishDateEnabled) {
             addMenu(screen, Section.INTERFACE, SettingsMenuPreference.Icon.LAYOUT, countEnabled(
+                    SettingsStatus.automaticClearDisplayEnabled && Settings.AUTOMATIC_CLEAR_DISPLAY.get(),
                     SettingsStatus.promotionalBannersEnabled && Settings.HIDE_HOMEPAGE_COIN.get(),
                     SettingsStatus.captchaPopupSuppressionEnabled && Settings.HIDE_CAPTCHA_POPUPS.get(),
                     SettingsStatus.alwaysShowPublishDateEnabled && Settings.ALWAYS_SHOW_PUBLISH_DATE.get()

@@ -1,6 +1,6 @@
 package app.morphe.patches.tiktok.interaction.antirecording
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 
 private fun antiRecordingFingerprint(marker: String) = Fingerprint(
     returnType = "V",

@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.interaction.resume
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 

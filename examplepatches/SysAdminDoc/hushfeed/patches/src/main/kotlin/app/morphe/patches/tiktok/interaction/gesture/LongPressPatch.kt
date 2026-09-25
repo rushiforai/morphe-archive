@@ -197,8 +197,9 @@ private object PlayerProgressFingerprint : Fingerprint(
 val longPressPatch = bytecodePatch(
     name = "Long-press controls",
     description = "Lets a long press on a video keep TikTok's own action, do nothing, open " +
-        "the video's comments, save the original sound, or copy the link to the video or its " +
-        "sound, and can turn a press on the left or right third of the screen into a jump back " +
+        "the video's comments, save the original sound, copy the link to the video or its " +
+        "sound, or look the sound up on YouTube Music, and can turn a press on the left or " +
+        "right third of the screen into a jump back " +
         "or forward. Brings Double-tap controls with it, which supplies the comment control. Switch: Hushfeed settings > Feed screen.",
     default = false,
 ) {

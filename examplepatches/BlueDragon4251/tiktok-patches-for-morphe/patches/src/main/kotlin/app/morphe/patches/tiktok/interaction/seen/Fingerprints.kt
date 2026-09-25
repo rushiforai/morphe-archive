@@ -3,7 +3,7 @@
  */
 package app.morphe.patches.tiktok.interaction.seen
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 
 internal object PlayerProgressFingerprint : Fingerprint(
     returnType = "V",

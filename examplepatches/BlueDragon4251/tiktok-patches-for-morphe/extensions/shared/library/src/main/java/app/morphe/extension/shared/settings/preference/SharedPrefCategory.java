@@ -34,14 +34,12 @@ public class SharedPrefCategory {
     public final SharedPreferences preferences;
 
     /**
-     * Android SharedPreferences keeps a process-local in-memory snapshot and is not safe for
-     * coordinated writes from multiple app processes. TikTok uses multiple processes and the
-     * extension can be initialized outside the main activity process. A stale secondary-process
-     * snapshot can therefore overwrite unrelated newer user settings when it later saves one key.
+     * Android SharedPreferences is already app-private storage. The preference file name
+     * "morphe_prefs" does not make it shared between applications.
      *
-     * Only the main app process may persist the shared Morphe/BlueIT user settings category.
-     * Other categories retain their existing behavior, and secondary processes may still read
-     * settings and update their local Setting values without rewriting the shared settings file.
+     * TikTok uses multiple processes and SharedPreferences keeps process-local snapshots, so only
+     * the main app process may persist the user-settings category. Secondary processes may read
+     * settings and update local Setting values but cannot overwrite the main process snapshot.
      */
     private final boolean persistentWritesAllowed;
 
@@ -111,9 +109,7 @@ public class SharedPrefCategory {
         preferences.edit().clear().commit();
     }
 
-    /**
-     * Removes any preference data type that has the specified key.
-     */
+    /** Removes any preference data type that has the specified key. */
     @SuppressLint("ApplySharedPref") // Must use commit to ensure default value is not saved to preferences.
     public void removeKey(@NonNull String key) {
         if (!canPersist()) return;
@@ -126,37 +122,27 @@ public class SharedPrefCategory {
         preferences.edit().putBoolean(key, value).commit();
     }
 
-    /**
-     * @param value a NULL parameter removes the value from the preferences
-     */
+    /** @param value a NULL parameter removes the value from the preferences */
     public void saveEnumAsString(@NonNull String key, @Nullable Enum<?> value) {
         saveObjectAsString(key, value);
     }
 
-    /**
-     * @param value a NULL parameter removes the value from the preferences
-     */
+    /** @param value a NULL parameter removes the value from the preferences */
     public void saveIntegerString(@NonNull String key, @Nullable Integer value) {
         saveObjectAsString(key, value);
     }
 
-    /**
-     * @param value a NULL parameter removes the value from the preferences
-     */
+    /** @param value a NULL parameter removes the value from the preferences */
     public void saveLongString(@NonNull String key, @Nullable Long value) {
         saveObjectAsString(key, value);
     }
 
-    /**
-     * @param value a NULL parameter removes the value from the preferences
-     */
+    /** @param value a NULL parameter removes the value from the preferences */
     public void saveFloatString(@NonNull String key, @Nullable Float value) {
         saveObjectAsString(key, value);
     }
 
-    /**
-     * @param value a NULL parameter removes the value from the preferences
-     */
+    /** @param value a NULL parameter removes the value from the preferences */
     public void saveString(@NonNull String key, @Nullable String value) {
         saveObjectAsString(key, value);
     }
@@ -167,7 +153,6 @@ public class SharedPrefCategory {
         try {
             return preferences.getString(key, _default);
         } catch (ClassCastException ex) {
-            // Value stored is a completely different type (should never happen).
             removeConflictingPreferenceKeyValue(key);
             return _default;
         }
@@ -180,16 +165,14 @@ public class SharedPrefCategory {
             String enumName = preferences.getString(key, null);
             if (enumName != null) {
                 try {
-                    // noinspection unchecked
+                    //noinspection unchecked
                     return (T) Enum.valueOf(_default.getClass(), enumName);
                 } catch (IllegalArgumentException ex) {
-                    // Info level to allow removing enum values in the future without showing any user errors.
-                    Logger.printInfo(() -> "Using default, and ignoring unknown enum value: "  + enumName);
+                    Logger.printInfo(() -> "Using default, and ignoring unknown enum value: " + enumName);
                     removeKey(key);
                 }
             }
         } catch (ClassCastException ex) {
-            // Value stored is a completely different type (should never happen).
             removeConflictingPreferenceKeyValue(key);
         }
         return _default;
@@ -199,7 +182,6 @@ public class SharedPrefCategory {
         try {
             return preferences.getBoolean(key, _default);
         } catch (ClassCastException ex) {
-            // Value stored is a completely different type (should never happen).
             removeConflictingPreferenceKeyValue(key);
             return _default;
         }
@@ -209,15 +191,11 @@ public class SharedPrefCategory {
     public Integer getIntegerString(@NonNull String key, @NonNull Integer _default) {
         try {
             String value = preferences.getString(key, null);
-            if (value != null) {
-                return Integer.valueOf(value);
-            }
+            if (value != null) return Integer.valueOf(value);
         } catch (ClassCastException | NumberFormatException ex) {
             try {
-                // Old data previously stored as primitive.
                 return preferences.getInt(key, _default);
             } catch (ClassCastException ex2) {
-                // Value stored is a completely different type (should never happen).
                 removeConflictingPreferenceKeyValue(key);
             }
         }
@@ -228,9 +206,7 @@ public class SharedPrefCategory {
     public Long getLongString(@NonNull String key, @NonNull Long _default) {
         try {
             String value = preferences.getString(key, null);
-            if (value != null) {
-                return Long.valueOf(value);
-            }
+            if (value != null) return Long.valueOf(value);
         } catch (ClassCastException | NumberFormatException ex) {
             try {
                 return preferences.getLong(key, _default);
@@ -245,9 +221,7 @@ public class SharedPrefCategory {
     public Float getFloatString(@NonNull String key, @NonNull Float _default) {
         try {
             String value = preferences.getString(key, null);
-            if (value != null) {
-                return Float.valueOf(value);
-            }
+            if (value != null) return Float.valueOf(value);
         } catch (ClassCastException | NumberFormatException ex) {
             try {
                 return preferences.getFloat(key, _default);

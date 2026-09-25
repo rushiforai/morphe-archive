@@ -33,8 +33,32 @@ public final class RedditShowHomeFlairsPatch {
                 builder.compatibleWith(new Compatibility(RedditContentFilterPatch.PACKAGE, "Reddit", null,
                     ApkFileType.APK, null, null,
                     Collections.singletonList(new AppTarget(RedditContentFilterPatch.VERSION, false, null)), false));
-                builder.dependsOn(RedditContentFilterPatch.getRedditContentFilterPatch());
+                // This patch owns the extension and post-data hooks required to render
+                // home-feed flairs. The content-filter patch depends on this patch and
+                // adds only its filtering-specific hooks.
+                builder.extendWith(RedditContentFilterPatch::extensionStream);
                 builder.execute(context -> {
+                    if (!RedditContentFilterPatch.PACKAGE.equals(context.getPackageMetadata().getPackageName())
+                        || !RedditContentFilterPatch.VERSION.equals(context.getPackageMetadata().getVersionName()))
+                        throw RedditContentFilterPatch.unsupported("Expected "
+                            + RedditContentFilterPatch.PACKAGE + " " + RedditContentFilterPatch.VERSION);
+
+                    RedditContentFilterPatch.hookLinkRegistration(RedditContentFilterPatch.findLinkConstructor(
+                        context.mutableClassDefBy(RedditContentFilterPatch.LINK)));
+                    RedditContentFilterPatch.hookPostByIdSource(
+                        context.mutableClassDefBy(RedditContentFilterPatch.POST_BY_ID_SOURCE));
+                    RedditContentFilterPatch.hookLinkSource(
+                        context.mutableClassDefBy(RedditContentFilterPatch.LINK_SOURCE));
+                    RedditContentFilterPatch.hookLinkRepository(
+                        context.mutableClassDefBy(RedditContentFilterPatch.LINK_REPOSITORY));
+                    RedditContentFilterPatch.hookFeedLinkMapper(RedditContentFilterPatch.findFeedLinkMapper(
+                        context.mutableClassDefBy(RedditContentFilterPatch.FEED_LINK_MAPPER), "a"));
+                    RedditContentFilterPatch.hookFeedLinkMapper(RedditContentFilterPatch.findFeedLinkMapper(
+                        context.mutableClassDefBy(RedditContentFilterPatch.FEED_LINK_ALTERNATE_MAPPER), "D"));
+                    RedditContentFilterPatch.hookFeedElementProcessor(
+                        RedditContentFilterPatch.findFeedElementProcessor(
+                            context.mutableClassDefBy(RedditContentFilterPatch.FEED_ELEMENT_PROCESSOR)));
+
                     MutableClass layout = context.mutableClassDefByOrNull(LAYOUT);
                     if (layout == null) throw RedditContentFilterPatch.unsupported("Morphe Layout category is missing");
                     MutableMethod status = null, preferences = null;
@@ -59,22 +83,27 @@ public final class RedditShowHomeFlairsPatch {
 
                     MutableMethod mapper = RedditContentFilterPatch.findFeedSectionMapper(
                         context.mutableClassDefBy(RedditContentFilterPatch.FEED_SECTION_MAPPER));
+                    int sourceRegister = mapper.getImplementation().getRegisterCount() - 1;
+                    mapper.getImplementation().addInstruction(0,
+                        new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, sourceRegister, 1,
+                            new ImmutableMethodReference(RedditContentFilterPatch.EXTENSION,
+                                "inspectFeedSource", Collections.singletonList("Ljava/lang/Object;"), "V")));
                     List<Instruction> instructions = RedditContentFilterPatch.instructions(mapper);
                     int insertion = -1, sectionRegister = -1;
-                    for (int i = 0; i + 2 < instructions.size(); i++) {
+                    int create = -1;
+                    for (int i = 0; i < instructions.size(); i++) {
                         Instruction instruction = instructions.get(i);
-                        if (!(instruction instanceof ReferenceInstruction)
-                            || !((ReferenceInstruction) instruction).getReference().toString()
-                                .contains("->filterFeedSection(")) continue;
-                        Instruction next = instructions.get(i + 1);
-                        if (next.getOpcode() != Opcode.MOVE_RESULT_OBJECT) continue;
-                        int register = ((OneRegisterInstruction) next).getRegisterA();
-                        for (int j = i + 2; j < instructions.size(); j++)
-                            if (instructions.get(j).getOpcode() == Opcode.RETURN_OBJECT
-                                && ((OneRegisterInstruction) instructions.get(j)).getRegisterA() == register) {
-                                insertion = j; sectionRegister = register; break;
-                            }
-                        break;
+                        if (instruction.getOpcode() == Opcode.NEW_INSTANCE
+                            && instruction instanceof ReferenceInstruction
+                            && RedditContentFilterPatch.FEED_POST_SECTION.equals(
+                                ((ReferenceInstruction) instruction).getReference().toString())) {
+                            create = i;
+                            sectionRegister = ((OneRegisterInstruction) instruction).getRegisterA();
+                        } else if (create >= 0 && instruction.getOpcode() == Opcode.RETURN_OBJECT
+                            && ((OneRegisterInstruction) instruction).getRegisterA() == sectionRegister) {
+                            insertion = i;
+                            break;
+                        }
                     }
                     if (insertion < 0) throw RedditContentFilterPatch.unsupported(
                         "Home-feed section return was not found");

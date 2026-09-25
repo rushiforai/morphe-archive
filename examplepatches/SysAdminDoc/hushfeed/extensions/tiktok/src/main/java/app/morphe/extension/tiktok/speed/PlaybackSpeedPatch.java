@@ -53,8 +53,10 @@ public final class PlaybackSpeedPatch {
 
     /** A speed the way the row writes it: 0.5, 1.25, 3. No trailing zero, no locale comma. */
     public static String speedLabel(float speed) {
-        String text = java.math.BigDecimal.valueOf(speed).stripTrailingZeros().toPlainString();
-        return text;
+        // Float.toString gives the shortest decimal that round-trips the float. BigDecimal.valueOf
+        // has no float overload, so it would widen to double first and render 1.1f as the double's
+        // "1.100000023841858": harmless for the hold's fixed values, wrong for a free-text menu speed.
+        return new java.math.BigDecimal(Float.toString(speed)).stripTrailingZeros().toPlainString();
     }
 
     public static synchronized void beginVideo(Aweme aweme) {
@@ -171,13 +173,33 @@ public final class PlaybackSpeedPatch {
      * it ("Back to normal speed") or with more than one is left as TikTok wrote it.
      */
     public static String holdSpeedText(String text) {
-        float chosen = chosenHoldSpeed();
-        if (text == null || Float.isNaN(chosen) || Float.compare(chosen, TIKTOK_HOLD_SPEED) == 0) return text;
+        return rewordSpeedNumber(text, chosenHoldSpeed());
+    }
+
+    /**
+     * TikTok's speed menu toast names the nearest built-in speed for a custom one: choosing 2.5x
+     * plays at 2.5x but the toast reads "Playing at 2x speed", because the click handler picks the
+     * label by exact value and only 0.5, 1.5, 2 and 3 have their own. Every other speed falls to
+     * the "2x" label, whose standalone 2 becomes the chosen speed here, so "2x" reads "2.5x" in the
+     * phone's own format. 1.0 has its own "normal speed" text and never reaches this, and TikTok's
+     * own 0.5, 1.5 and 3 carry a different number, so their label rewords to itself.
+     */
+    public static String menuSpeedText(String label, float speed) {
+        return rewordSpeedNumber(label, speed);
+    }
+
+    /**
+     * The one standalone 2 in TikTok's text becomes {@code speed}. A text with no 2, with more
+     * than one, or a {@code speed} that is TikTok's own 2x or not a speed is left as TikTok wrote
+     * it, whatever the language puts around the number.
+     */
+    private static String rewordSpeedNumber(String text, float speed) {
+        if (text == null || Float.isNaN(speed) || Float.compare(speed, TIKTOK_HOLD_SPEED) == 0) return text;
         Matcher two = STANDALONE_TWO.matcher(text);
         if (!two.find()) return text;
         int at = two.start();
         if (two.find()) return text;
-        return text.substring(0, at) + speedLabel(chosen) + text.substring(at + 1);
+        return text.substring(0, at) + speedLabel(speed) + text.substring(at + 1);
     }
 
     /**

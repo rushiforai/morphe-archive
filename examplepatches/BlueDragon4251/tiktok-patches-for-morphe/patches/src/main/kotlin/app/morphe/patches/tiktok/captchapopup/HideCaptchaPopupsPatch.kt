@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.captchapopup
 
-import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.discovery.TikTokFingerprint as Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -13,6 +13,8 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 
 private const val FEATURE_CONTROLS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/featurecontrols/FeatureControls;"
+private const val CAPTCHA_CALLBACK_DESCRIPTOR = "LX/17qC;"
+private const val LIVE_CAPTCHA_CALLBACK_DESCRIPTOR = "LX/1NRi;"
 
 private object CaptchaPopupFingerprint : Fingerprint(
     definingClass = "/sec/SecApiImpl;",
@@ -21,7 +23,7 @@ private object CaptchaPopupFingerprint : Fingerprint(
     parameters = listOf(
         "Landroid/app/Activity;",
         "Ljava/lang/String;",
-        "LX/0yiJ;",
+        CAPTCHA_CALLBACK_DESCRIPTOR,
         "Landroidx/fragment/app/Fragment;",
     ),
     strings = listOf("popCaptchaV2 - riskInfo ="),
@@ -31,7 +33,7 @@ private object LegacyCaptchaPopupFingerprint : Fingerprint(
     definingClass = "/sec/SecApiImpl;",
     name = "popCaptcha",
     returnType = "V",
-    parameters = listOf("Landroid/app/Activity;", "I", "LX/0yiJ;"),
+    parameters = listOf("Landroid/app/Activity;", "I", CAPTCHA_CALLBACK_DESCRIPTOR),
     strings = listOf("popCaptcha - errorcode = "),
 )
 
@@ -39,7 +41,7 @@ private object OecCaptchaPopupFingerprint : Fingerprint(
     definingClass = "Lcom/tts/oecverify/verify/RiskControlService;",
     name = "execute",
     returnType = "Z",
-    parameters = listOf("LX/0yhh;", "Lcom/tts/oecverify/BdTuringCallback;"),
+    parameters = listOf("LX/16eW;", "Lcom/tts/oecverify/BdTuringCallback;"),
 )
 
 private object LiveHostCaptchaPopupFingerprint : Fingerprint(
@@ -49,7 +51,7 @@ private object LiveHostCaptchaPopupFingerprint : Fingerprint(
     parameters = listOf(
         "Landroid/app/Activity;",
         "Ljava/lang/String;",
-        "LX/1DPS;",
+        LIVE_CAPTCHA_CALLBACK_DESCRIPTOR,
         "Landroidx/fragment/app/Fragment;",
     ),
 )
@@ -76,7 +78,7 @@ val hideCaptchaPopupsPatch = bytecodePatch(
                 move-result v0
                 if-eqz v0, :morphe_show_captcha_popup
                 if-eqz p3, :morphe_hide_captcha_popup_return
-                invoke-virtual {p3}, LX/0yiJ;->LIZJ()V
+                invoke-virtual {p3}, $CAPTCHA_CALLBACK_DESCRIPTOR->LIZJ()V
                 :morphe_hide_captcha_popup_return
                 return-void
                 :morphe_show_captcha_popup
@@ -91,7 +93,7 @@ val hideCaptchaPopupsPatch = bytecodePatch(
                 move-result v0
                 if-eqz v0, :morphe_show_legacy_captcha_popup
                 if-eqz p3, :morphe_hide_legacy_captcha_popup_return
-                invoke-virtual {p3}, LX/0yiJ;->LIZJ()V
+                invoke-virtual {p3}, $CAPTCHA_CALLBACK_DESCRIPTOR->LIZJ()V
                 :morphe_hide_legacy_captcha_popup_return
                 return-void
                 :morphe_show_legacy_captcha_popup
@@ -123,7 +125,7 @@ val hideCaptchaPopupsPatch = bytecodePatch(
                 move-result v0
                 if-eqz v0, :morphe_show_live_captcha_popup
                 if-eqz p3, :morphe_hide_live_captcha_popup_return
-                invoke-interface {p3}, LX/1DPS;->LIZIZ()V
+                invoke-interface {p3}, $LIVE_CAPTCHA_CALLBACK_DESCRIPTOR->LIZJ()V
                 :morphe_hide_live_captcha_popup_return
                 return-void
                 :morphe_show_live_captcha_popup
