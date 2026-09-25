@@ -10,8 +10,11 @@ reachable, the response is valid JSON, and the JSON contains at least one .mpp
 reference. Repos already present (matched by source URL, case-insensitive) are
 skipped so the script is safe to re-run.
 
-Existing customBundles are also pruned when their source URL no longer resolves
-or their bundle JSON has no .mpp reference.
+Existing customBundles are also pruned when their source URL no longer
+resolves, their bundle JSON has no .mpp reference, or the referenced .mpp
+asset itself is gone / corrupt (the asset is probed with a ranged request
+and must be a zip). Transient failures (timeouts, 5xx, rate limits) never
+prune a bundle - only definitively dead ones are removed.
 
 Usage:
     python add_repos_to_bundles.py [REPOS_FILE] [SETTINGS_FILE] [OUTPUT_FILE]
@@ -35,6 +38,7 @@ from pathlib import Path
 BUNDLE_PATH = "patches-bundle.json"
 BRANCHES_TO_TRY = ("main", "master")
 TIMEOUT_SECONDS = 8
+MPP_MIN_BYTES = 1024  # a real .mpp bundle is never this small
 CONFIG_PREFIX = "morphe_archive_config_v"
 CONFIG_PATTERN = re.compile(rf"^{CONFIG_PREFIX}(\d+)\.json$")
 
@@ -122,12 +126,103 @@ def contains_mpp_reference(value):
     return False
 
 
+def find_mpp_reference(value):
+    """Return the first .mpp reference in the manifest, preferring download_url."""
+    if isinstance(value, dict):
+        preferred = value.get("download_url")
+        if isinstance(preferred, str) and is_mpp_reference(preferred):
+            return preferred
+        for item in value.values():
+            found = find_mpp_reference(item)
+            if found:
+                return found
+        return None
+    if isinstance(value, list):
+        for item in value:
+            found = find_mpp_reference(item)
+            if found:
+                return found
+        return None
+    if isinstance(value, str) and is_mpp_reference(value):
+        return value
+    return None
+
+
+def probe_mpp(url, timeout=TIMEOUT_SECONDS):
+    """Check that an .mpp asset actually downloads and looks like a bundle.
+
+    Reads only the first four bytes (HTTP Range) and verifies the zip magic
+    plus a sane content length. Returns (ok, reason, transient); transient
+    failures must not cause a bundle to be pruned.
+    """
+    if not url.startswith(("http://", "https://")):
+        return False, "unsupported .mpp url", False
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "morphe-bundle-importer/1.0",
+            "Range": "bytes=0-3",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            head = resp.read(4)
+            status = resp.status
+            content_range = resp.headers.get("Content-Range", "")
+            content_length = resp.headers.get("Content-Length", "")
+    except urllib.error.HTTPError as e:
+        # 404/410 mean the release asset is gone; 5xx/429 are temporary.
+        transient = e.code == 429 or e.code >= 500
+        return False, f"HTTP {e.code}", transient
+    except urllib.error.URLError as e:
+        return False, f"URL error: {e.reason}", True
+    except (TimeoutError, OSError) as e:
+        return False, str(e), True
+
+    if head != b"PK\x03\x04":
+        return False, "not a zip .mpp", False
+
+    total = None
+    if "/" in content_range:
+        total_str = content_range.rsplit("/", 1)[1]
+        if total_str.isdigit():
+            total = int(total_str)
+    elif status == 200 and content_length.isdigit():
+        total = int(content_length)
+    if total is not None and total < MPP_MIN_BYTES:
+        return False, f"too small ({total} bytes)", False
+    return True, None, False
+
+
+def classify_fetch_error(error):
+    """Mark manifest-fetch errors as transient where removal would be unsafe."""
+    match = re.match(r"^HTTP (\d+)$", error)
+    if match:
+        code = int(match.group(1))
+        if code == 429 or code >= 500:
+            return f"transient: {error}"
+        return error
+    if error == "invalid JSON":
+        return error
+    return f"transient: {error}"
+
+
 def validate_bundle_url(url):
+    """Validate a patches-bundle.json URL and (deep) its .mpp asset.
+
+    Returns (ok, reason). A reason prefixed with "transient: " means the
+    failure is likely temporary (timeout, 5xx, rate limit); callers that
+    prune existing bundles must keep the entry in that case.
+    """
     bundle_json, error = fetch_json(url)
     if error:
-        return False, error
-    if not contains_mpp_reference(bundle_json):
+        return False, classify_fetch_error(error)
+    mpp_url = find_mpp_reference(bundle_json)
+    if not mpp_url:
         return False, "no .mpp reference"
+    ok, reason, transient = probe_mpp(mpp_url)
+    if not ok:
+        return False, f"transient: {reason}" if transient else reason
     return True, None
 
 
@@ -151,8 +246,15 @@ def repo_display_name(repo):
 
 
 def prune_invalid_bundles(bundles):
+    """Split bundles into kept / removed / kept-despite-transient-failure.
+
+    Only definitively dead bundles are removed (missing manifest, invalid
+    JSON, no .mpp reference, dead or corrupt .mpp asset). Transient
+    failures keep the bundle so one flaky run cannot mass-delete entries.
+    """
     kept = []
     removed = []
+    kept_transient = []
 
     for bundle in bundles:
         source = bundle.get("source", "")
@@ -163,10 +265,13 @@ def prune_invalid_bundles(bundles):
         valid, reason = validate_bundle_url(source)
         if valid:
             kept.append(bundle)
+        elif reason and reason.startswith("transient:"):
+            kept.append(bundle)
+            kept_transient.append((source, reason))
         else:
             removed.append((source, reason))
 
-    return kept, removed
+    return kept, removed, kept_transient
 
 
 def find_latest_config_file(root="."):
@@ -220,7 +325,7 @@ def main():
 
     settings = data.setdefault("settings", {})
     bundles = settings.setdefault("customBundles", [])
-    bundles, removed_invalid = prune_invalid_bundles(bundles)
+    bundles, removed_invalid, transient_kept = prune_invalid_bundles(bundles)
     settings["customBundles"] = bundles
 
     existing_sources = {
@@ -287,6 +392,11 @@ def main():
     if removed_invalid:
         print("\nRemoved invalid existing bundles:")
         for source, reason in removed_invalid:
+            print(f"  - {source} ({reason})")
+
+    if transient_kept:
+        print(f"\nKept {len(transient_kept)} bundles despite transient validation failures:")
+        for source, reason in transient_kept:
             print(f"  - {source} ({reason})")
 
     if skipped_invalid_bundle:
