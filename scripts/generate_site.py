@@ -273,12 +273,21 @@ def normalize_compatible_packages(value):
 
 
 def collect_patch_metadata(bundle, icon_cache):
-    data = fetch_json(patches_list_url(bundle["source"]))
+    data = fetch_json(patches_list_url(bundle.get("source", "")))
     patches = data.get("patches", []) if isinstance(data, dict) else []
+    if not isinstance(patches, list):
+        patches = []
     apps = {}
     universal_patches = []
+    patch_count = 0
 
     for patch in patches:
+        # Upstream patches-list.json occasionally ships non-object entries
+        # (bare strings or nulls). Skip them so one malformed bundle cannot
+        # fail the whole Generate Website stage for every other repo.
+        if not isinstance(patch, dict):
+            continue
+        patch_count += 1
         patch_name = patch.get("name") or "Unnamed patch"
         patch_description = patch.get("description") or ""
         compatible_apps = list(normalize_compatible_packages(patch.get("compatiblePackages", []) or []))
@@ -299,7 +308,8 @@ def collect_patch_metadata(bundle, icon_cache):
             app_name = app.get("name") or package_name
             versions = []
             for target in app.get("targets", []) or []:
-                version = target.get("version")
+                # Targets may be plain version strings in some bundles.
+                version = target.get("version") if isinstance(target, dict) else target
                 if version:
                     versions.append(str(version))
             entry = apps.setdefault(
@@ -344,7 +354,7 @@ def collect_patch_metadata(bundle, icon_cache):
         )
 
     return (
-        len(patches),
+        patch_count,
         sorted(normalized_apps, key=lambda item: item["name"].lower()),
         sorted(universal_patches, key=lambda item: item["name"].lower()),
     )
@@ -2003,16 +2013,16 @@ HTML = """<!doctype html>
             "https://api.allorigins.win/get?url=" + encodeURIComponent(statsUrl),
           ];
           const applyStats = (page) => {
-            const overview = page.match(/<th colspan="2">Visitors Overview<\/th>([\s\S]*?)<\/tbody>/);
+            const overview = page.match(/<th colspan="2">Visitors Overview<\\/th>([\\s\\S]*?)<\\/tbody>/);
             if (!overview) return false;
             const fields = { Today: "vsToday", Yesterday: "vsYesterday", All: "vsTotal", Online: "vsOnline" };
-            const cell = /<td>(.*?)<\/td>\s*<td>(.*?)<\/td>/g;
+            const cell = /<td>(.*?)<\\/td>\\s*<td>(.*?)<\\/td>/g;
             let match;
             let updated = false;
             while ((match = cell.exec(overview[1]))) {
               const label = match[1].trim();
               const value = match[2].trim();
-              if (fields[label] && /^\d+$/.test(value)) {
+              if (fields[label] && /^\\d+$/.test(value)) {
                 document.getElementById(fields[label]).textContent = value;
                 updated = true;
               }
