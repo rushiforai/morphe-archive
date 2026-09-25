@@ -1,3 +1,13 @@
+## [1.30.0](https://github.com/legendsciber/morphe-patches/compare/v1.29.0...v1.30.0) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** remove free iap patch ([bc0fc51](https://github.com/legendsciber/morphe-patches/commit/bc0fc51c005cb22e192fbd028bd3611adbfa07d6))
+
+### ✨ New Features
+
+* **hungryshark:** add currency hack patch ([730abe5](https://github.com/legendsciber/morphe-patches/commit/730abe5cecf438af57731ef10555bb4eda00f6d8))
+
 ## [1.29.0](https://github.com/legendsciber/morphe-patches/compare/v1.28.0...v1.29.0) (2026-09-24)
 
 ### 🐛 Bug Fixes

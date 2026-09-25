@@ -1,6 +1,7 @@
 package com.dmoniak.patches.hungryshark
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.dmoniak.patches.hungryshark.util.findMutableMethodOf
@@ -17,7 +18,12 @@ val freeShoppingPatch = bytecodePatch(
 
     execute {
         val logger = Logger.getLogger(this::class.java.name)
-        logger.info("Executing Free Shopping patch for Hungry Shark World...")
+        executeFreeShoppingLogic(logger, "Hungry Shark World")
+    }
+}
+
+fun BytecodePatchContext.executeFreeShoppingLogic(logger: Logger, gameName: String) {
+    logger.info("Executing Free Shopping patch for $gameName...")
 
         var isReadyCount = 0
         var responseCodeCount = 0
@@ -569,5 +575,4 @@ val freeShoppingPatch = bytecodePatch(
             "gbsCompletion=$gbsCompletionCount, verifyPurchase=$verifyCount."
         )
         logger.info("Free Shopping patch execution finished.")
-    }
 }

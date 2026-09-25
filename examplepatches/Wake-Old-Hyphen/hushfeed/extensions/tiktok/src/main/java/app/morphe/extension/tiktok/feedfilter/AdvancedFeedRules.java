@@ -1,0 +1,516 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
+package app.morphe.extension.tiktok.feedfilter;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.settings.Settings;
+import com.ss.android.ugc.aweme.feed.model.Aweme;
+import com.ss.android.ugc.aweme.feed.model.AwemeStatistics;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+public final class AdvancedFeedRules {
+    private AdvancedFeedRules() {}
+
+    /** Test-only observer for proving the feed path does not rebuild unchanged creator lists. */
+    private static volatile Runnable creatorParseTestHook;
+    private static final CreatorRuleCache BLOCKED_CREATOR_CACHE = new CreatorRuleCache();
+    private static final CreatorRuleCache LOCAL_CREATOR_CACHE = new CreatorRuleCache();
+
+    public static final class KeywordFilter implements IFilter {
+        public boolean getEnabled() { return !Settings.BLOCKED_CAPTION_WORDS.get().trim().isEmpty(); }
+        public boolean getFiltered(Aweme item) {
+            String caption = Reflect.string(item, "getDesc", "desc");
+            if (caption == null) return false;
+            // Plain phrases still mean what they always did. The list also takes
+            // "a" & "b" and "a" !& "b", which a phrase on its own cannot say.
+            return KeywordRules.anyMatches(
+                    KeywordRules.cached(Settings.BLOCKED_CAPTION_WORDS.get()), caption);
+        }
+    }
+
+    public static final class CreatorFilter implements IFilter {
+        public boolean getEnabled() {
+            return !Settings.BLOCKED_CREATORS.get().trim().isEmpty()
+                    || !Settings.LOCAL_HIDDEN_CREATORS.get().trim().isEmpty();
+        }
+        public boolean getFiltered(Aweme item) {
+            CreatorIdentity who = CreatorIdentity.of(item);
+            return BLOCKED_CREATOR_CACHE.get(Settings.BLOCKED_CREATORS.get()).matches(
+                    who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname)
+                    || LOCAL_CREATOR_CACHE.get(Settings.LOCAL_HIDDEN_CREATORS.get()).matches(
+                    who.normalizedUid, who.normalizedSecUid, who.normalizedHandle, who.handle, who.nickname);
+        }
+    }
+
+    /**
+     * Whether the block lists name one creator, given only the handle or id typed for it.
+     * The entry is tried as each of the three ids and, for a pattern, as the handle.
+     */
+    static boolean blockListsName(String entry) {
+        String normalized = normalizedCreator(entry);
+        if (normalized.isEmpty()) return false;
+        return BLOCKED_CREATOR_CACHE.get(Settings.BLOCKED_CREATORS.get()).matches(
+                normalized, normalized, normalized, normalized, null)
+                || LOCAL_CREATOR_CACHE.get(Settings.LOCAL_HIDDEN_CREATORS.get()).matches(
+                normalized, normalized, normalized, normalized, null);
+    }
+
+    /** One setting's exact-source snapshot. Blocked and local lists own separate instances. */
+    private static final class CreatorRuleCache {
+        private final Object lock = new Object();
+        private volatile CreatorRules current;
+
+        CreatorRules get(String source) {
+            CreatorRules found = current;
+            if (found != null && Objects.equals(found.source, source)) return found;
+            synchronized (lock) {
+                found = current;
+                if (found == null || !Objects.equals(found.source, source)) {
+                    found = parseCreatorRules(source);
+                    current = found;
+                }
+                return found;
+            }
+        }
+
+        void clear() {
+            synchronized (lock) {
+                current = null;
+            }
+        }
+    }
+
+    /** Immutable exact names and patterns for one creator-list string. */
+    private static final class CreatorRules {
+        final String source;
+        final Set<String> exactNames;
+        final List<Pattern> patterns;
+
+        CreatorRules(String source, Set<String> exactNames, List<Pattern> patterns) {
+            this.source = source;
+            this.exactNames = exactNames;
+            this.patterns = patterns;
+        }
+
+        boolean matches(String uid, String secUid, String normalizedHandle,
+                String handle, String nickname) {
+            if ((!uid.isEmpty() && exactNames.contains(uid))
+                    || (!secUid.isEmpty() && exactNames.contains(secUid))
+                    || (!normalizedHandle.isEmpty() && exactNames.contains(normalizedHandle))) {
+                return true;
+            }
+            for (Pattern pattern : patterns) {
+                if (matchesPattern(pattern, handle) || matchesPattern(pattern, nickname)) return true;
+            }
+            return false;
+        }
+    }
+
+    private static CreatorRules parseCreatorRules(String source) {
+        Runnable hook = creatorParseTestHook;
+        if (hook != null) hook.run();
+        Set<String> exact = new LinkedHashSet<>();
+        List<Pattern> patterns = new ArrayList<>();
+        for (String entry : rawTerms(source)) {
+            if (isPattern(entry)) {
+                Pattern pattern = compiled(entry);
+                if (pattern != null) patterns.add(pattern);
+                continue;
+            }
+            String normalized = normalizedCreator(entry);
+            if (!normalized.isEmpty()) exact.add(normalized);
+        }
+        return new CreatorRules(source, Collections.unmodifiableSet(exact),
+                Collections.unmodifiableList(patterns));
+    }
+
+    /**
+     * A handle or id the way every list and every item is compared: trimmed, one leading @
+     * dropped, lower case. The editor's duplicate check and the feed's match share it, so an
+     * entry the editor refuses as already present is one the feed would have matched.
+     */
+    static String normalizedCreator(String value) {
+        if (value == null) return "";
+        String normalized = value.trim();
+        if (normalized.startsWith("@")) normalized = normalized.substring(1);
+        return normalized.toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean matchesPattern(Pattern pattern, String value) {
+        return value != null && matchesWithinBudget(pattern, value);
+    }
+
+    /** Filters posts whose known publication time is older than the user's age limit. */
+    public static final class PublicationAgeFilter implements IFilter {
+        private static final long DAY_MS = 86_400_000L;
+
+        @Override
+        public boolean getEnabled() {
+            return Settings.MAX_PUBLICATION_AGE_DAYS.get() > 0;
+        }
+
+        @Override
+        public boolean getFiltered(Aweme item) {
+            Object raw = Reflect.property(item, "getCreateTime", "createTime");
+            return olderThan(publicationTimeMillis(raw), System.currentTimeMillis(),
+                    Settings.MAX_PUBLICATION_AGE_DAYS.get());
+        }
+
+        /** Converts TikTok seconds or milliseconds to milliseconds without overflowing. */
+        static long publicationTimeMillis(Object raw) {
+            if (!(raw instanceof Number)) return 0;
+            long timestamp = ((Number) raw).longValue();
+            if (timestamp <= 0) return 0;
+            if (timestamp < 100_000_000_000L) {
+                if (timestamp > Long.MAX_VALUE / 1000L) return Long.MAX_VALUE;
+                return timestamp * 1000L;
+            }
+            return timestamp;
+        }
+
+        /** Uses a strict cutoff so a post exactly at the chosen age remains visible. */
+        static boolean olderThan(long timestampMillis, long nowMillis, long ageDays) {
+            if (timestampMillis <= 0 || ageDays <= 0 || timestampMillis > nowMillis) return false;
+            long ageMillis = ageDays > Long.MAX_VALUE / DAY_MS
+                    ? Long.MAX_VALUE : ageDays * DAY_MS;
+            long cutoff = nowMillis < ageMillis ? Long.MIN_VALUE : nowMillis - ageMillis;
+            return timestampMillis < cutoff;
+        }
+    }
+
+    /**
+     * How many characters a single name may be read for, counting the re-reads backtracking
+     * costs. The two sides are far apart, so the number between them is not delicate:
+     * measured against a 66 character display name, {@code dropship} costs 61 reads,
+     * {@code ^The Very} costs 8, a six-way alternation costs 398, and every ordinary pattern
+     * tried stayed under 500. On the other side, {@code ^(a+)+\1$} against 25 characters
+     * costs 67 million reads and a quarter of a second, and four characters more never
+     * finishes at all.
+     *
+     * <p>Two hundred thousand leaves a pattern somebody would actually write four hundred
+     * times the room it needs, and cuts a runaway off in well under a millisecond. It also
+     * catches the merely expensive: {@code (.*)(.*)(.*)z} costs 2.7 million reads and 19 ms
+     * on that same name, which is not a hang but is still too much to spend per video.
+     */
+    private static final int MATCH_BUDGET = 200_000;
+
+    /** One entry that ran out of budget, so it is only complained about once. */
+    // Declared as the class rather than Map: the toast below depends on putIfAbsent returning
+    // null exactly once, and putIfAbsent on the Map interface is an API 24 default method that
+    // D8 cannot backport, so on Android 6 it would throw from inside the feed filter instead.
+    private static final ConcurrentHashMap<Pattern, Boolean> RUNAWAY = new ConcurrentHashMap<>();
+
+    /**
+     * Whether the pattern matches, giving up rather than hanging the thread it is on.
+     *
+     * <p>{@link Pattern} has no time limit of its own. The name is handed over through a
+     * wrapper that counts the reads and throws once it has had enough, which is the only
+     * place the regex engine can be interrupted from outside.
+     */
+    static boolean matchesWithinBudget(Pattern pattern, String value) {
+        if (Boolean.TRUE.equals(RUNAWAY.get(pattern))) return false;
+        try {
+            return pattern.matcher(new BudgetedText(value, MATCH_BUDGET)).find();
+        } catch (BudgetSpent spent) {
+            if (RUNAWAY.putIfAbsent(pattern, Boolean.TRUE) == null) {
+                Utils.showToastLong(L10n.f(
+                        "A creator pattern is taking too long and was turned off: %1$s",
+                        pattern.pattern()));
+            }
+            return false;
+        }
+    }
+
+    /** Thrown out of the regex engine once a single match has read enough characters. */
+    private static final class BudgetSpent extends RuntimeException {
+        // The four argument constructor that turns the stack trace off is API 24, and this is
+        // thrown out of the regex engine on the feed path. Overriding fillInStackTrace is the
+        // same saving and has been there since API 1.
+        @Override
+        public synchronized Throwable fillInStackTrace() {
+            return this;
+        }
+    }
+
+    /** A name the regex engine may only look at so many times. */
+    private static final class BudgetedText implements CharSequence {
+        private final CharSequence text;
+        private int left;
+
+        BudgetedText(CharSequence text, int budget) {
+            this.text = text;
+            this.left = budget;
+        }
+
+        @Override public int length() {
+            return text.length();
+        }
+
+        @Override public char charAt(int index) {
+            if (--left < 0) throw new BudgetSpent();
+            return text.charAt(index);
+        }
+
+        @Override public CharSequence subSequence(int start, int end) {
+            return new BudgetedText(text.subSequence(start, end), left);
+        }
+
+        @NonNull @Override public String toString() {
+            return text.toString();
+        }
+    }
+
+    /**
+     * What is wrong with a blocked-creator list as typed, or null when nothing is. Named so
+     * the reader can see which entry to fix, since the list is one long comma separated line
+     * and a pattern that will not compile is otherwise only reported at the next feed page.
+     */
+    @Nullable
+    public static String creatorEntryProblem(String list) {
+        if (list == null) return null;
+        String limitProblem = FeedRuleLimits.creatorProblem(list);
+        if (limitProblem != null) return limitProblem;
+        for (String entry : rawTerms(list)) {
+            if (!isPattern(entry)) continue;
+            String source = entry.substring(1, entry.length() - 1);
+            if (source.length() > MAX_PATTERN_LENGTH) {
+                return L10n.f(
+                        "That creator pattern is too long, so it was not added: %1$s",
+                        entry);
+            }
+            try {
+                Pattern.compile(source, Pattern.CASE_INSENSITIVE);
+            } catch (PatternSyntaxException invalid) {
+                return L10n.f("Hushfeed cannot read the creator pattern %1$s", L10n.isolate(entry));
+            }
+        }
+        return null;
+    }
+
+    /** Returns non-empty creator entries in their stored order. */
+    public static List<String> creatorEntries(String value) {
+        List<String> entries = new ArrayList<>();
+        if (value == null) return entries;
+        for (String entry : rawTerms(value)) {
+            String trimmed = entry.trim();
+            if (!trimmed.isEmpty()) entries.add(trimmed);
+        }
+        return entries;
+    }
+
+    /** Joins creator entries in the format used by the settings editor. */
+    public static String joinCreatorEntries(List<String> entries) {
+        StringBuilder joined = new StringBuilder();
+        if (entries == null) return "";
+        for (String entry : entries) {
+            if (entry == null || entry.trim().isEmpty()) continue;
+            if (joined.length() > 0) joined.append(", ");
+            joined.append(entry.trim());
+        }
+        return joined.toString();
+    }
+
+    /** Adds one exact creator entry unless it is already present, ignoring case and @. */
+    public static String addCreatorEntry(String value, String entry) {
+        String candidate = entry == null ? "" : entry.trim();
+        List<String> entries = creatorEntries(value);
+        if (candidate.isEmpty()) return joinCreatorEntries(entries);
+        if (!hasCreatorEntry(entries, candidate)) entries.add(candidate);
+        return joinCreatorEntries(entries);
+    }
+
+    /** Removes one exact creator entry, ignoring case and a leading @. */
+    public static String removeCreatorEntry(String value, String entry) {
+        String candidate = entry == null ? "" : entry.trim();
+        List<String> entries = creatorEntries(value);
+        if (!candidate.isEmpty()) {
+            for (int index = entries.size() - 1; index >= 0; index--) {
+                if (sameCreatorEntry(entries.get(index), candidate)) entries.remove(index);
+            }
+        }
+        return joinCreatorEntries(entries);
+    }
+
+    /** Whether the exact creator entry is already present, ignoring case and a leading @. */
+    public static boolean hasCreatorEntry(String value, String entry) {
+        return hasCreatorEntry(creatorEntries(value), entry);
+    }
+
+    private static boolean hasCreatorEntry(List<String> entries, String entry) {
+        for (String existing : entries) {
+            if (sameCreatorEntry(existing, entry)) return true;
+        }
+        return false;
+    }
+
+    private static boolean sameCreatorEntry(String left, String right) {
+        String a = normalizedCreator(left);
+        return !a.isEmpty() && a.equals(normalizedCreator(right));
+    }
+
+    /** An entry between slashes is a pattern rather than a name to match exactly. */
+    static boolean isPattern(String entry) {
+        return entry.length() > 2 && entry.startsWith("/") && entry.endsWith("/");
+    }
+
+    /** One entry that will not compile, remembered so it is only ever said once. */
+    private static final Pattern INVALID = Pattern.compile("");
+    /**
+     * Every entry seen so far, compiled. Each item on a feed page runs through every entry,
+     * so a cache of one would never hit; and a map keeps the answer and the entry it belongs
+     * to together, which two fields written in sequence do not.
+     */
+    private static final Map<String, Pattern> COMPILED = new ConcurrentHashMap<>();
+
+    /**
+     * How long a creator pattern may be. It is user input and it runs against every name in
+     * every feed page, so a long one with nested quantifiers can take the feed thread with
+     * it. Anything a person types to match a handle fits well inside this, and the list rides
+     * along in a settings backup, which is the way somebody else's pattern could arrive.
+     */
+    private static final int MAX_PATTERN_LENGTH = 200;
+
+    /**
+     * The pattern for one entry, compiled once. A pattern that will not compile is dropped
+     * and said once, because the entry otherwise looks like it is working.
+     */
+    static Pattern compiled(String entry) {
+        Pattern cached = COMPILED.get(entry);
+        if (cached != null) {
+            return cached == INVALID ? null : cached;
+        }
+
+        String source = entry.substring(1, entry.length() - 1);
+        if (source.length() > MAX_PATTERN_LENGTH) {
+            COMPILED.put(entry, INVALID);
+            Utils.showToastLong(L10n.f(
+                    "That creator pattern is too long to use, so it was skipped: %1$s", entry));
+            return null;
+        }
+        Pattern pattern;
+        try {
+            pattern = Pattern.compile(source, Pattern.CASE_INSENSITIVE);
+        } catch (PatternSyntaxException invalid) {
+            COMPILED.put(entry, INVALID);
+            Utils.showToastLong(L10n.f("Hushfeed cannot read the creator pattern %1$s", L10n.isolate(entry)));
+            return null;
+        }
+        COMPILED.put(entry, pattern);
+        return pattern;
+    }
+
+    public static final class PromotionalMusicFilter implements IFilter {
+        public boolean getEnabled() { return Settings.HIDE_PROMOTIONAL_MUSIC.get(); }
+        public boolean getFiltered(Aweme item) { return item.isWithPromotionalMusic(); }
+    }
+
+    public static final class LiveReplayFilter implements IFilter {
+        public boolean getEnabled() { return Settings.HIDE_LIVE_REPLAYS.get(); }
+        public boolean getFiltered(Aweme item) { return item.isLiveReplay(); }
+    }
+
+    /** Last content rule, so fallback candidates have passed every hard block. */
+    public static final class QualityFilter implements IFilter {
+        public boolean getEnabled() {
+            return Settings.MAX_VIDEO_SECONDS.get() > 0 || Settings.MAX_VIEWS_PER_LIKE.get() > 0
+                    || Settings.MAX_VIEWS_PER_COMMENT.get() > 0;
+        }
+        public boolean getFiltered(Aweme item) { return distance(item) > 0; }
+
+        static double distance(Aweme item) {
+            double distance = 0;
+            int seconds = Settings.MAX_VIDEO_SECONDS.get();
+            if (seconds > 0) {
+                Object video = Reflect.property(item, "getVideo", "video");
+                long ms = positive(Reflect.property(video, "getDuration", "videoLength"));
+                if (ms <= 0) ms = positive(Reflect.property(video, "getPilotLength", "pilotLength"));
+                if (ms > 0) distance = Math.max(0, ms / (seconds * 1000.0) - 1);
+            }
+            int maxPerLike = Settings.MAX_VIEWS_PER_LIKE.get();
+            int maxPerComment = Settings.MAX_VIEWS_PER_COMMENT.get();
+            AwemeStatistics stats = (maxPerLike > 0 || maxPerComment > 0) ? item.getStatistics() : null;
+            if (stats != null) {
+                long views = stats.getPlayCount();
+                if (views > 0 && maxPerLike > 0) {
+                    long likes = stats.getDiggCount();
+                    if (likes >= 0) {
+                        double ratio = likes == 0 ? Double.MAX_VALUE : views / (double) likes;
+                        distance = Math.max(distance, ratio / maxPerLike - 1);
+                    }
+                }
+                if (views > 0 && maxPerComment > 0) {
+                    long comments = stats.getCommentCount();
+                    if (comments >= 0) {
+                        double ratio = comments == 0 ? Double.MAX_VALUE : views / (double) comments;
+                        distance = Math.max(distance, ratio / maxPerComment - 1);
+                    }
+                }
+            }
+            return distance;
+        }
+    }
+
+    private static long positive(Object value) {
+        return value instanceof Number ? Math.max(0, ((Number) value).longValue()) : 0;
+    }
+
+    /**
+     * The same entries with their case intact, which a pattern needs: lower casing turns
+     * \D into \d.
+     *
+     * A comma inside a pattern is not a separator, so a fragment that opens a pattern takes
+     * the ones after it until one closes it. A line is as far as that reaches, and a pattern
+     * nothing closes gives its fragments back as they were: a stray slash must not swallow
+     * the names after it.
+     */
+    static String[] rawTerms(String value) {
+        List<String> entries = new ArrayList<>();
+        if (value == null || value.trim().isEmpty()) return new String[0];
+        for (String line : value.trim().split("\\s*\\n\\s*")) {
+            List<String> pending = null;
+            for (String fragment : line.split("\\s*,\\s*")) {
+                if (pending != null) {
+                    pending.add(fragment);
+                    if (fragment.endsWith("/")) {
+                        entries.add(String.join(",", pending));
+                        pending = null;
+                    }
+                    continue;
+                }
+                if (fragment.startsWith("/") && !isPattern(fragment)) {
+                    pending = new ArrayList<>();
+                    pending.add(fragment);
+                    continue;
+                }
+                entries.add(fragment);
+            }
+            if (pending != null) entries.addAll(pending);
+        }
+        return entries.toArray(new String[0]);
+    }
+
+    static void setCreatorParseTestHookForTests(Runnable hook) {
+        creatorParseTestHook = hook;
+        BLOCKED_CREATOR_CACHE.clear();
+        LOCAL_CREATOR_CACHE.clear();
+    }
+}

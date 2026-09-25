@@ -8,6 +8,8 @@ Independent patches for the [Morphe](https://morphe.software/) patcher.
 https://github.com/Santodan/santodan-patches
 ```
 
+Recent NuvioTV additions include an optional remaining-episode counter for Continue Watching and side-by-side installation with the official app.
+
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->

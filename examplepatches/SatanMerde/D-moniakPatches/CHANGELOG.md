@@ -1,3 +1,25 @@
+## [1.6.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.5.0...v1.6.0) (2026-09-25)
+
+### ✨ New Features
+
+* **patches:** disambiguate patch names across games to avoid bundle collision ([9a41e06](https://github.com/SatanMerde/D-moniakPatches/commit/9a41e06258be40dc929f62430b1689719e72adee))
+
+## [1.5.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.4.0...v1.5.0) (2026-09-25)
+
+### ✨ New Features
+
+* **shadowfight:** add Shadow Fight 2 experimental patches ([b7a7ab2](https://github.com/SatanMerde/D-moniakPatches/commit/b7a7ab21660203ed17f771b401fd3e90ce15fa16))
+
+## [1.4.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.3.0...v1.4.0) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* **hungryshark:** import BytecodePatchContext in FreeShoppingPatch ([c2e46f2](https://github.com/SatanMerde/D-moniakPatches/commit/c2e46f24bc18da9f64766fb7d63e43a39b4afb8b))
+
+### ✨ New Features
+
+* **hungryshark:** add Hungry Shark Evolution patches (experimental) ([9e7e24c](https://github.com/SatanMerde/D-moniakPatches/commit/9e7e24c84e3a914a184c8b8cf5955bade692fd34))
+
 ## [1.3.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.2.0...v1.3.0) (2026-09-21)
 
 ### ✨ New Features

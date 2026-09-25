@@ -1,0 +1,133 @@
+{
+  "note": "Where every shipped source file under patches/ and extensions/ came from. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it.",
+  "rules": [
+    {
+      "paths": [
+        "extensions/shared/**",
+        "patches/src/main/kotlin/app/morphe/util/**",
+        "patches/src/main/kotlin/app/morphe/patches/shared/misc/extension/**",
+        "patches/stub/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/hushfeed",
+      "commit": "1f1f81a29ffbe8468a41067b22c05a50283ef9c4",
+      "via": [
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Facebook host and id names in DiagnosticRedactor, Facebook wording in user-facing messages, HushfeedPause renamed HushfacebookPause with its keys and marker file, the extension name BundleVerifier expects. L10n moved from Hushfeed's TikTok extension into the shared library, with the en-XA and ar-XB pseudo-locales, lists joined and sentences capitalized in the text's own language, and the messages the shared settings screen shows read through it (Logger's debug toast stays English, for whoever reads the report). SettingsJson refuses a name given twice with an exception of its own. Changed files carry a 'Modified for Hushfacebook' line."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/shared/compat/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/hushfeed",
+      "commit": "1f1f81a29ffbe8468a41067b22c05a50283ef9c4",
+      "via": [
+        "https://gitlab.com/ReVanced/revanced-patches",
+        "https://github.com/andrewliang25/morphe-patches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Rewritten for Facebook: package, both Meta signer digests, and the 577.0.0.50.72 arm64 target with its version code and floor as andrewliang25/morphe-patches declares it."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/shared/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/suggested/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/externalbrowser/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/resignedtrust/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/**",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/**",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/**",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/**",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/andrewliang25/morphe-patches",
+      "commit": "5db2e57e133aede5297c48b419168cf30fd89953",
+      "via": [
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0",
+      "changes": "Rewritten from the source at that commit, not cherry-picked. Packages, extension descriptors, log tags, injected method names and the cache folder renamed; plain patch names with categories; the two feed guards merged into one shared hook; a settings switch in front of the story, reel, browser and download hooks, and the reel sidebar's Download button and the story menu's Save item asking theirs before they go in, so Pause takes both out; the list register of the story filter computed for static and wide parameters; the borrowed v0 in the reel collection hooks checked; the DASH join ends a track on an empty read and shifts both tracks by one lead-in; the reel handler answers null instead of Facebook's renamed kotlin.Unit; the debug println lines removed. Saves fetch only what MediaUrlPolicy allows, every redirect included, into a cache file first, and reach MediaStore only once the declared type, the first bytes, the length and the 512 MB cap (the two DASH tracks together) all check out; save steps go to the diagnostic report without file names; a save reports its progress to a notification with a Cancel button and stops when cancelled, and lists its pending gallery row until it's settled. Andrew Liang credits FroggoMorphePatches for some ideas and implementations."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/MediaUrlPolicy.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: which addresses a save may fetch (HTTPS on 443, no user name, Meta's media CDNs only, and on a direct route a public or fake-IP answer)."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTranslations.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Generated for Hushfacebook by scripts/gen-l10n.py from its own translation tables in extensions/shared/library/src/main/l10n."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveControl.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveLeftovers.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: a running save's notification with its progress and a Cancel button, and the removal of the work files and pending gallery rows a save left when Android ended the process."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/SettingsBackup.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/hushfeed",
+      "commit": "bcc57ee555f4346c4eb1cbdae9f6ca8a3fa6fef4",
+      "via": [
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Ported from Hushfeed's settings backup and cut down to what Hushfacebook keeps: an exact list of its eight feature switches in place of every setting, with no Feature Gate Lab, reset, undo or journal. An import is read into a snapshot that a preview shows before anything is written, and applied in one preference commit. A file declaring a newer version, a name given twice, a switch that isn't true or false, or more than 64 KB changes nothing, each with its own reason, and names this build doesn't know are counted rather than applied."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/SettingsBackupPreference.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/hushfeed",
+      "commit": "bcc57ee555f4346c4eb1cbdae9f6ca8a3fa6fef4",
+      "via": [
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Ported from Hushfeed's backup rows: Export settings and Import settings on the framework preference page inside Hushfacebook's settings dialog, answered through the page's onActivityResult, with the import's preview dialog kept in the page's saved state so it comes back after the activity is rebuilt. No Reset or Undo rows, and every message read from L10n."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/hook/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/extension/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/settings/**",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/**",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the shared feed hook and filter (the chokepoint and getters follow andrewliang25/morphe-patches, the PROMOTION rule follows FroggoMorphePatches), the extension context hook, the settings switches and status flags, and the launcher-shortcut settings screen built the way Hushfeed's settings are."
+    }
+  ]
+}

@@ -23,38 +23,42 @@ val bypassRewardedAdsPatch = bytecodePatch(
 
     execute {
         val logger = Logger.getLogger(this::class.java.name)
-        logger.info("Executing Bypass Rewarded Ads patch for Hungry Shark World...")
-
-        // 0. Google Unity Mobile Ads (Primary for Hungry Shark World)
-        if (applyGoogleUnityAdsStrategy(logger)) {
-            logger.info("Bypass Rewarded Ads: Google Unity Ads strategy applied.")
-        }
-
-        // 1. AppLovin MAX Unity Bridge
-        if (applyMaxUnityStrategy(logger)) {
-            logger.info("Bypass Rewarded Ads: MAX Unity strategy applied.")
-            return@execute
-        }
-
-        // 2. AppLovin MAX Native SDK (MaxRewardedAd)
-        applyNativeMaxStrategy(logger)
-
-        // 3. IronSource / LevelPlay
-        applyIronSourceAdsStrategy(logger)
-        applyIronSourceAdsWrapperStrategy(logger)
-        if (applyIronSourceBridgeStrategy(logger)) {
-            logger.info("Bypass Rewarded Ads: IronSource bridge strategy applied.")
-            return@execute
-        }
-
-        // 4. Unity Ads
-        applyUnityAdsStrategy(logger)
-
-        // 5. AdMob (GMS) call sites
-        applyAdMobRewardedStrategy(logger)
-
-        logger.info("Bypass Rewarded Ads patch execution finished.")
+        executeBypassRewardedAdsLogic(logger, "Hungry Shark World")
     }
+}
+
+fun BytecodePatchContext.executeBypassRewardedAdsLogic(logger: Logger, gameName: String) {
+    logger.info("Executing Bypass Rewarded Ads patch for $gameName...")
+
+    // 0. Google Unity Mobile Ads (Primary for Hungry Shark games)
+    if (applyGoogleUnityAdsStrategy(logger)) {
+        logger.info("Bypass Rewarded Ads: Google Unity Ads strategy applied.")
+    }
+
+    // 1. AppLovin MAX Unity Bridge
+    if (applyMaxUnityStrategy(logger)) {
+        logger.info("Bypass Rewarded Ads: MAX Unity strategy applied.")
+        return
+    }
+
+    // 2. AppLovin MAX Native SDK (MaxRewardedAd)
+    applyNativeMaxStrategy(logger)
+
+    // 3. IronSource / LevelPlay
+    applyIronSourceAdsStrategy(logger)
+    applyIronSourceAdsWrapperStrategy(logger)
+    if (applyIronSourceBridgeStrategy(logger)) {
+        logger.info("Bypass Rewarded Ads: IronSource bridge strategy applied.")
+        return
+    }
+
+    // 4. Unity Ads
+    applyUnityAdsStrategy(logger)
+
+    // 5. AdMob (GMS) call sites
+    applyAdMobRewardedStrategy(logger)
+
+    logger.info("Bypass Rewarded Ads patch execution finished.")
 }
 
 /**

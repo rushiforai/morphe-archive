@@ -1,0 +1,803 @@
+/*
+ * Copyright 2026 icysymmetra/tiktok-patches-for-morphe contributors
+ * https://github.com/icysymmetra/tiktok-patches-for-morphe
+ */
+package app.morphe.extension.tiktok.featuregatelab;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.security.MessageDigest;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.SettingsJson;
+import app.morphe.extension.tiktok.settings.L10n;
+
+public final class FeatureGateLabStore {
+    public static final String TARGET_VERSION = "47.0.3";
+    public static final String MANAGER_ABMOCK = "abmock";
+    public static final String MANAGER_PLAYER_CONFIG = "player_config";
+    public static final String MANAGER_LIVE = "live";
+    public static final String MANAGER_PIA_ACTIVITY_CENTER = "pia_activity_center";
+    public static final String MANAGER_SETTINGS_MANAGER = "settings_manager";
+    public static final String MANAGER_VE_CONFIG = "ve_config";
+
+    public static final String PREFS_NAME = "morphe_feature_gate_lab";
+    private static final String MASTER_KEY = "master_enabled";
+    private static final String WARNING_ACK_KEY = "warning_acknowledged";
+    private static final String RULE_IDS_KEY = "rule_ids";
+    private static final String STORED_TARGET_VERSION_KEY = "stored_target_version";
+    private static final String MIGRATION_NOTICE_KEY = "migration_notice_pending";
+
+    private FeatureGateLabStore() {
+    }
+
+    public static boolean masterEnabled() {
+        SharedPreferences prefs = prefs();
+        return prefs != null && prefs.getBoolean(MASTER_KEY, false);
+    }
+
+    public static void setMasterEnabled(boolean enabled) {
+        if (!canWrite()) return;
+        SharedPreferences prefs = prefs();
+        if (prefs != null) {
+            prefs.edit().putBoolean(MASTER_KEY, enabled).apply();
+        }
+        FeatureGateLabRuntime.clearTriggered();
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabSession.markRestartNeeded();
+    }
+
+    public static boolean warningAcknowledged() {
+        SharedPreferences prefs = prefs();
+        return prefs != null && prefs.getBoolean(WARNING_ACK_KEY, false);
+    }
+
+    public static void acknowledgeWarning() {
+        if (!canWrite()) return;
+        SharedPreferences prefs = prefs();
+        if (prefs != null) {
+            prefs.edit().putBoolean(WARNING_ACK_KEY, true).apply();
+        }
+    }
+
+    public static boolean consumeMigrationNotice() {
+        SharedPreferences prefs = prefs();
+        if (prefs == null || !prefs.getBoolean(MIGRATION_NOTICE_KEY, false)) {
+            return false;
+        }
+        if (!canWrite()) return false;
+        prefs.edit().putBoolean(MIGRATION_NOTICE_KEY, false).apply();
+        return true;
+    }
+
+    public static Rule rule(String manager, String key, String type) {
+        return loadRule(idFor(manager, key, type));
+    }
+
+    public static List<Rule> rules() {
+        SharedPreferences prefs = prefs();
+        if (prefs == null) {
+            return Collections.emptyList();
+        }
+        List<Rule> result = new ArrayList<>();
+        for (String id : ruleIds(prefs)) {
+            Rule rule = loadRule(id);
+            if (rule != null) {
+                result.add(rule);
+            }
+        }
+        Collections.sort(result, (left, right) -> Long.compare(right.updatedAtMs, left.updatedAtMs));
+        return result;
+    }
+
+    /**
+     * Writes a rule, and answers whether it was written.
+     *
+     * <p>A structured value is checked here as well as in the screen that collects it. This is
+     * the one way into the store that skipped the check, so a structured value saved through it
+     * carried no depth bound of its own and reached the reflective apply on a gate thread
+     * unchecked. Scalars are deliberately not checked: a malformed one is refused at the
+     * boundary, where the test for that behaviour drives it.
+     */
+    public static boolean saveRule(String manager, String key, String type, String value, boolean enabled) {
+        if (!canWrite()) return false;
+        SharedPreferences prefs = prefs();
+        if (prefs == null) {
+            return false;
+        }
+        if ("OBJECT".equals(normalizeType(type))) {
+            ValidationFailure rejected = validateValue(type, value);
+            if (rejected != null) {
+                Logger.printInfo(() -> "Refused a structured Lab rule for " + key
+                        + ": " + rejected.code);
+                return false;
+            }
+        }
+        String id = idFor(manager, key, type);
+        List<String> ids = ruleIds(prefs);
+        if (!ids.contains(id)) {
+            if (ids.size() >= MAX_RULES) {
+                String message = ruleLimitMessage(ids.size() + 1);
+                Logger.printInfo(() -> message);
+                return false;
+            }
+            ids.add(id);
+        }
+        String prefix = "rule." + id + ".";
+        prefs.edit()
+                .putString(RULE_IDS_KEY, join(ids))
+                .putString(prefix + "manager", safe(manager))
+                .putString(prefix + "key", safe(key))
+                .putString(prefix + "type", normalizeType(type))
+                .putString(prefix + "value", safe(value))
+                .putBoolean(prefix + "enabled", enabled)
+                .putLong(prefix + "updated", System.currentTimeMillis())
+                .apply();
+        FeatureGateLabRuntime.resetTriggered(id);
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabSession.markRestartNeeded();
+        return true;
+    }
+
+    public static void deleteRule(String manager, String key, String type) {
+        deleteRuleById(idFor(manager, key, type));
+    }
+
+    public static void resetAllLabData() {
+        if (!canWrite()) return;
+        SettingsManagerObservationRecorder.clear();
+        SharedPreferences prefs = prefs();
+        if (prefs != null) {
+            prefs.edit()
+                    .clear()
+                    .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION)
+                    .commit();
+        }
+        FeatureGateLabRuntime.clearTriggered();
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabSession.markRestartNeeded();
+    }
+
+    public static String exportProfile() throws JSONException {
+        JSONObject root = new JSONObject();
+        root.put("schema", 1);
+        root.put("target", "TikTok global");
+        root.put("tiktok_version", TARGET_VERSION);
+        JSONArray rules = new JSONArray();
+        for (Rule rule : rules()) {
+            JSONObject item = new JSONObject();
+            item.put("manager", rule.manager);
+            item.put("key", rule.key);
+            item.put("type", rule.type);
+            item.put("value", rule.value);
+            item.put("force", rule.enabled);
+            rules.put(item);
+        }
+        root.put("rules", rules);
+        return root.toString(2);
+    }
+
+    public static JSONObject exportSettings() throws JSONException {
+        return new JSONObject(exportProfile()).put("master", masterEnabled())
+                .put("acknowledged", warningAcknowledged());
+    }
+
+    /** Compares durable Lab state while ignoring rule ordering and update timestamps. */
+    public static boolean settingsMatch(JSONObject expected) {
+        try {
+            if (!(expected.get("master") instanceof Boolean)
+                    || !(expected.get("acknowledged") instanceof Boolean)
+                    || expected.getBoolean("master") != masterEnabled()
+                    || expected.getBoolean("acknowledged") != warningAcknowledged()) {
+                return false;
+            }
+            List<Rule> wanted = parseSettings(expected);
+            Map<String, Rule> actual = new HashMap<>();
+            for (Rule rule : rules()) actual.put(rule.id, rule);
+            if (actual.size() != wanted.size()) return false;
+            for (Rule rule : wanted) {
+                Rule candidate = actual.get(rule.id);
+                if (candidate == null || !sameDurableRule(rule, candidate)) return false;
+            }
+            return true;
+        } catch (Exception error) {
+            return false;
+        }
+    }
+
+    private static boolean sameDurableRule(Rule left, Rule right) {
+        return left.id.equals(right.id)
+                && left.manager.equals(right.manager)
+                && left.key.equals(right.key)
+                && left.type.equals(right.type)
+                && left.value.equals(right.value)
+                && left.enabled == right.enabled;
+    }
+
+    /**
+     * The most rules the Lab keeps. Its own import already stopped here; a settings backup, the
+     * undo copy and the journal went through parseSettings with no count at all, so a hand-edited
+     * backup of some 26,000 rules fitted the 2 MB file cap, restored, and then made every later
+     * backup and every Lab undo copy too large to write, which refused Restore, Reset and every
+     * Lab change after it.
+     */
+    public static final int MAX_RULES = 1024;
+
+    /** Refuse an oversized replacement before a journal, undo file or preference editor changes. */
+    static void requireRuleLimit(List<Rule> rules) throws java.io.IOException {
+        if (rules == null) throw new java.io.IOException("Lab rules are missing");
+        if (rules.size() > MAX_RULES) {
+            throw new java.io.IOException(ruleLimitMessage(rules.size()));
+        }
+    }
+
+    static String ruleLimitMessage(int resultingCount) {
+        NumberFormat numbers = NumberFormat.getIntegerInstance(Locale.getDefault());
+        return L10n.f("The Lab keeps at most %1$s rules. This change would make %2$s, so nothing was changed.",
+                numbers.format(MAX_RULES), numbers.format(resultingCount));
+    }
+
+    /** The raw identity count is readable even when the current state is too large to parse. */
+    static int storedRuleCount() {
+        SharedPreferences prefs = prefs();
+        return prefs == null ? 0 : ruleIds(prefs).size();
+    }
+
+    /**
+     * Recovery for a state whose own rule count prevents the ordinary undo snapshot from parsing.
+     * It clears only Feature Gate Lab preferences and observations.
+     */
+    static void clearAllLabDataWithoutParsing() throws java.io.IOException {
+        if (!canWrite()) {
+            throw new java.io.IOException("Feature Gate Lab is writable only from the main process");
+        }
+        SharedPreferences prefs = prefs();
+        if (prefs == null) throw new java.io.IOException("Lab storage unavailable");
+        boolean saved = prefs.edit()
+                .clear()
+                .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION)
+                .commit();
+        if (!saved) throw new java.io.IOException("Could not clear Lab settings");
+        SettingsManagerObservationRecorder.clear();
+        FeatureGateLabRuntime.clearTriggered();
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabSession.markRestartNeeded();
+    }
+
+    /** Decode the entire backup before any setting or rule is changed. */
+    public static List<Rule> parseSettings(JSONObject root) throws JSONException {
+        if (!Integer.valueOf(1).equals(root.get("schema")) || !TARGET_VERSION.equals(root.optString("tiktok_version"))
+                || !(root.get("master") instanceof Boolean)
+                || !(root.get("acknowledged") instanceof Boolean)) {
+            throw new JSONException("Invalid Lab backup or TikTok version");
+        }
+        JSONArray items = root.getJSONArray("rules");
+        if (items.length() > MAX_RULES) {
+            throw new JSONException("Lab backup holds " + items.length() + " rules, past the "
+                    + MAX_RULES + " the Lab keeps");
+        }
+        List<Rule> rules = new ArrayList<>();
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.getJSONObject(i);
+            for (String field : new String[]{"manager", "key", "type", "value"}) {
+                if (!(item.get(field) instanceof String)) throw new JSONException("Invalid Lab " + field);
+            }
+            String manager = item.getString("manager"), key = item.getString("key");
+            String type = normalizeType(item.getString("type")), value = item.getString("value");
+            String id = idFor(manager, key, type);
+            if (key.isEmpty() || !(item.get("force") instanceof Boolean) || !ids.add(id)
+                    || validateValue(type, value) != null) throw new JSONException("Invalid Lab rule: " + key);
+            rules.add(new Rule(id, manager, key, type, value, item.getBoolean("force"), System.currentTimeMillis()));
+        }
+        return rules;
+    }
+
+    /**
+     * Replaces the configuration. Captured observations are retained, and so is what the Lab
+     * recorded about which overrides fired. Call on a worker thread.
+     */
+    public static void replaceSettings(List<Rule> rules, boolean master, boolean acknowledged)
+            throws java.io.IOException {
+        replaceSettings(rules, master, acknowledged, false);
+    }
+
+    /**
+     * As above, where {@code puttingBack} says these rules are the ones that were loaded until a
+     * moment ago.
+     *
+     * <p>What the Lab recorded about which overrides fired describes the rules that were loaded
+     * when they fired, so a change to those rules throws the record away. Putting the previous
+     * rules back is the case where that is wrong, and the store cannot tell on its own: a
+     * SharedPreferences commit that reports failure has already updated the map it reports on,
+     * so the rules it holds after a failed write are the new ones and a rollback looks like a
+     * change. Only the caller knows which it is doing.
+     */
+    public static void replaceSettings(List<Rule> rules, boolean master, boolean acknowledged,
+            boolean puttingBack) throws java.io.IOException {
+        requireRuleLimit(rules);
+        if (!canWrite()) {
+            throw new java.io.IOException("Feature Gate Lab is writable only from the main process");
+        }
+        SharedPreferences prefs = prefs();
+        if (prefs == null) throw new java.io.IOException("Lab storage unavailable");
+        SharedPreferences.Editor editor = prefs.edit();
+        for (String id : ruleIds(prefs)) removeRuleFields(editor, id);
+        List<String> ids = new ArrayList<>();
+        for (Rule rule : rules) {
+            ids.add(rule.id);
+            String prefix = "rule." + rule.id + ".";
+            editor.putString(prefix + "manager", rule.manager).putString(prefix + "key", rule.key)
+                    .putString(prefix + "type", rule.type).putString(prefix + "value", rule.value)
+                    .putBoolean(prefix + "enabled", rule.enabled).putLong(prefix + "updated", rule.updatedAtMs);
+        }
+        boolean saved = editor.putString(RULE_IDS_KEY, join(ids)).putBoolean(MASTER_KEY, master)
+                .putBoolean(WARNING_ACK_KEY, acknowledged).putBoolean(MIGRATION_NOTICE_KEY, false)
+                .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION).commit();
+        if (!saved) throw new java.io.IOException("Could not save Lab settings");
+        if (!puttingBack) FeatureGateLabRuntime.clearTriggered();
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabSession.markRestartNeeded();
+    }
+
+    public static ImportReview reviewProfile(String text, Map<String, FeatureGateCatalog.Entry> catalog) throws JSONException {
+        JSONObject root = new JSONObject(text);
+        String version = root.optString("tiktok_version", "");
+        if (!TARGET_VERSION.equals(version)) {
+            throw new JSONException("Profile targets TikTok " + version + "; this Lab requires " + TARGET_VERSION);
+        }
+
+        JSONArray items = root.optJSONArray("rules");
+        if (items == null) {
+            throw new JSONException("Profile has no rules array");
+        }
+        List<Rule> accepted = new ArrayList<>();
+        List<ImportRejection> rejected = new ArrayList<>();
+        java.util.Set<String> acceptedIds = new java.util.HashSet<>();
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.optJSONObject(i);
+            if (item == null) {
+                rejected.add(ImportRejection.at(
+                        ImportRejectionCode.INVALID_OBJECT, i + 1));
+                continue;
+            }
+            if (!(item.opt("manager") instanceof String)
+                    || !(item.opt("key") instanceof String)
+                    || !(item.opt("type") instanceof String)
+                    || !(item.opt("value") instanceof String)) {
+                rejected.add(ImportRejection.at(
+                        ImportRejectionCode.INVALID_FIELD_TYPE, i + 1));
+                continue;
+            }
+            String manager = item.optString("manager", "");
+            String key = item.optString("key", "");
+            String importedType = item.optString("type", "");
+            String type = normalizeType(importedType);
+            String value = item.optString("value", "");
+            FeatureGateCatalog.Entry entry = catalog.get(manager + "\n" + key);
+            if (entry == null) {
+                rejected.add(ImportRejection.forKey(
+                        ImportRejectionCode.UNKNOWN_KEY, i + 1, key));
+                continue;
+            }
+            if (!entry.userVisible()) {
+                rejected.add(ImportRejection.forKey(
+                        ImportRejectionCode.UNSUPPORTED_BOUNDARY, i + 1, key));
+                continue;
+            }
+            if (!normalizeType(entry.type).equals(type)) {
+                rejected.add(ImportRejection.typeMismatch(
+                        i + 1, key, entry.type, importedType));
+                continue;
+            }
+            ValidationFailure error = validateValue(type, value);
+            if (error != null) {
+                rejected.add(ImportRejection.invalidValue(i + 1, key, error));
+                continue;
+            }
+            String id = idFor(manager, key, type);
+            if (!acceptedIds.add(id)) {
+                rejected.add(ImportRejection.forKey(
+                        ImportRejectionCode.DUPLICATE_RULE, i + 1, key));
+                continue;
+            }
+            accepted.add(new Rule(id, manager, key, type, value, false, System.currentTimeMillis()));
+        }
+        return new ImportReview(accepted, rejected);
+    }
+
+    public static ValidationFailure validateValue(String type, String value) {
+        String normalized = normalizeType(type);
+        if (value == null) {
+            return ValidationFailure.of(ValidationCode.VALUE_MISSING, normalized);
+        }
+        try {
+            switch (normalized) {
+                case "BOOLEAN":
+                    if (!"true".equalsIgnoreCase(value) && !"false".equalsIgnoreCase(value)) {
+                        return ValidationFailure.of(
+                                ValidationCode.EXPECTED_TRUE_OR_FALSE, normalized);
+                    }
+                    return null;
+                case "INT":
+                    Integer.parseInt(value);
+                    return null;
+                case "LONG":
+                    Long.parseLong(value);
+                    return null;
+                case "FLOAT": {
+                    float parsed = Float.parseFloat(value);
+                    return Float.isFinite(parsed) ? null : ValidationFailure.of(
+                            ValidationCode.VALUE_MUST_BE_FINITE, normalized);
+                }
+                case "DOUBLE": {
+                    double parsed = Double.parseDouble(value);
+                    return Double.isFinite(parsed) ? null : ValidationFailure.of(
+                            ValidationCode.VALUE_MUST_BE_FINITE, normalized);
+                }
+                case "STRING":
+                    return value.length() <= MAX_STRING_CHARS ? null : ValidationFailure.of(
+                            ValidationCode.STRING_TOO_LONG, normalized);
+                case "OBJECT": {
+                    if (value.length() > MAX_STRUCTURED_CHARS) {
+                        return ValidationFailure.of(
+                                ValidationCode.STRUCTURED_VALUE_TOO_LARGE, normalized);
+                    }
+                    // Through the bounded reader, not the platform one. This string arrives
+                    // inside a backup file, and the document around it being depth-checked says
+                    // nothing about the string's own contents: the platform parser recurses per
+                    // level, and a deeply nested value here raised StackOverflowError, which is
+                    // an Error and walked past every catch on the restore path.
+                    JSONObject object = SettingsJson.parseObject(value, STRUCTURED_VALUE_LIMITS);
+                    if (object.length() == 0) {
+                        return ValidationFailure.of(
+                                ValidationCode.SELECT_AT_LEAST_ONE_FIELD, normalized);
+                    }
+                    return null;
+                }
+                default:
+                    return ValidationFailure.of(ValidationCode.UNSUPPORTED_TYPE, normalized);
+            }
+        } catch (NumberFormatException exception) {
+            return ValidationFailure.of(ValidationCode.INVALID_NUMBER, normalized);
+        } catch (JSONException | java.io.IOException exception) {
+            return ValidationFailure.of(ValidationCode.INVALID_STRUCTURED_VALUE, normalized);
+        }
+    }
+
+    /**
+     * What a stored structured value may be. The depth is the one that matters: it is the only
+     * bound between a backup file and a stack overflow, and 32 is far past anything a real gate
+     * config uses while staying nowhere near the worker thread's limit. The others are a second
+     * line rather than a restatement of the 64 KB check above: that one counts characters, while
+     * maxBytes counts UTF-8 and maxNodes counts the whole document.
+     */
+    private static final SettingsJson.Limits STRUCTURED_VALUE_LIMITS =
+            new SettingsJson.Limits(32, 16384, 64 * 1024, 4096, 64 * 1024);
+
+    /**
+     * How long a string value and a structured value may be, in characters. The two refusals
+     * the Lab shows format these in, so a change here changes the words.
+     */
+    public static final int MAX_STRING_CHARS = 4096;
+    public static final int MAX_STRUCTURED_CHARS = 64 * 1024;
+
+    public static boolean supportsOverride(String manager, String type) {
+        if (MANAGER_SETTINGS_MANAGER.equals(manager)) {
+            return "OBJECT".equals(normalizeType(type));
+        }
+        if (MANAGER_LIVE.equals(manager) && "OBJECT".equals(normalizeType(type))) {
+            return true;
+        }
+        if (!MANAGER_ABMOCK.equals(manager)
+                && !MANAGER_PLAYER_CONFIG.equals(manager)
+                && !MANAGER_LIVE.equals(manager)
+                && !MANAGER_PIA_ACTIVITY_CENTER.equals(manager)
+                && !MANAGER_VE_CONFIG.equals(manager)) {
+            return false;
+        }
+        switch (normalizeType(type)) {
+            case "BOOLEAN":
+            case "INT":
+            case "LONG":
+            case "FLOAT":
+            case "DOUBLE":
+            case "STRING":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static String idFor(String manager, String key, String type) {
+        return sha256(safe(manager) + "\n" + safe(key) + "\n" + normalizeType(type));
+    }
+
+    public static String normalizeType(String type) {
+        // ROOT, like every other fold in this package: the result is an identity that goes into
+        // idFor and into supportsOverride, and a Turkish phone folds a lowercase `int` to
+        // "İNT" under the default locale, so an imported rule stops matching itself.
+        return safe(type).trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static void deleteRuleById(String id) {
+        if (!canWrite()) return;
+        SharedPreferences prefs = prefs();
+        if (prefs == null) {
+            return;
+        }
+        List<String> ids = ruleIds(prefs);
+        ids.remove(id);
+        SharedPreferences.Editor editor = prefs.edit().putString(RULE_IDS_KEY, join(ids));
+        removeRuleFields(editor, id);
+        editor.apply();
+        FeatureGateLabRuntime.resetTriggered(id);
+        FeatureGateLabRuntime.reloadRules();
+        FeatureGateLabSession.markRestartNeeded();
+    }
+
+    private static void removeRuleFields(SharedPreferences.Editor editor, String id) {
+        String prefix = "rule." + id + ".";
+        editor.remove(prefix + "manager")
+                .remove(prefix + "key")
+                .remove(prefix + "type")
+                .remove(prefix + "value")
+                .remove(prefix + "enabled")
+                .remove(prefix + "updated");
+    }
+
+    private static Rule loadRule(String id) {
+        SharedPreferences prefs = prefs();
+        if (prefs == null) {
+            return null;
+        }
+        String prefix = "rule." + id + ".";
+        String key = prefs.getString(prefix + "key", null);
+        if (key == null) {
+            return null;
+        }
+        return new Rule(
+                id,
+                prefs.getString(prefix + "manager", ""),
+                key,
+                normalizeType(prefs.getString(prefix + "type", "")),
+                prefs.getString(prefix + "value", ""),
+                prefs.getBoolean(prefix + "enabled", false),
+                prefs.getLong(prefix + "updated", 0L)
+        );
+    }
+
+    private static List<String> ruleIds(SharedPreferences prefs) {
+        String raw = prefs.getString(RULE_IDS_KEY, "");
+        List<String> result = new ArrayList<>();
+        if (raw == null || raw.isEmpty()) {
+            return result;
+        }
+        for (String id : raw.split("\\n")) {
+            if (!id.trim().isEmpty() && !result.contains(id.trim())) {
+                result.add(id.trim());
+            }
+        }
+        return result;
+    }
+
+    private static String join(List<String> values) {
+        StringBuilder result = new StringBuilder();
+        for (String value : values) {
+            if (result.length() > 0) {
+                result.append('\n');
+            }
+            result.append(value);
+        }
+        return result.toString();
+    }
+
+    private static SharedPreferences prefs() {
+        Context context = Utils.getContext();
+        if (context == null) {
+            return null;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        ensureTargetVersion(prefs);
+        return prefs;
+    }
+
+    private static synchronized void ensureTargetVersion(SharedPreferences prefs) {
+        String storedVersion = prefs.getString(STORED_TARGET_VERSION_KEY, "");
+        if (TARGET_VERSION.equals(storedVersion) || !Utils.isMainProcess()) {
+            return;
+        }
+
+        List<String> ids = ruleIds(prefs);
+        boolean hadSavedState = prefs.getBoolean(MASTER_KEY, false) || !ids.isEmpty();
+        SharedPreferences.Editor editor = prefs.edit()
+                .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION)
+                .putBoolean(MASTER_KEY, false);
+        for (String id : ids) {
+            editor.putBoolean("rule." + id + ".enabled", false);
+        }
+        if (hadSavedState) {
+            editor.putBoolean(MIGRATION_NOTICE_KEY, true);
+        }
+        editor.apply();
+    }
+
+    static boolean runtimeStorageAvailable() {
+        return Utils.getContext() != null;
+    }
+
+    private static boolean canWrite() {
+        if (Utils.isMainProcess()) return true;
+        Logger.printInfo(() -> "Ignored Feature Gate Lab write from a secondary process");
+        return false;
+    }
+
+    private static String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static String sha256(String value) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes("UTF-8"));
+            StringBuilder result = new StringBuilder();
+            for (byte item : digest) {
+                result.append(String.format("%02x", item));
+            }
+            return result.toString();
+        } catch (Exception ignored) {
+            return Integer.toHexString(value.hashCode());
+        }
+    }
+
+    public enum ValidationCode {
+        VALUE_MISSING,
+        EXPECTED_TRUE_OR_FALSE,
+        INVALID_NUMBER,
+        VALUE_MUST_BE_FINITE,
+        STRING_TOO_LONG,
+        STRUCTURED_VALUE_TOO_LARGE,
+        SELECT_AT_LEAST_ONE_FIELD,
+        UNSUPPORTED_TYPE,
+        INVALID_STRUCTURED_VALUE,
+        INVALID_JSON,
+        EXPECTED_JSON_OBJECT_OR_ARRAY
+    }
+
+    /** A model-layer refusal with no wording tied to the reader's language. */
+    public static final class ValidationFailure {
+        public final ValidationCode code;
+        public final String technicalType;
+
+        private ValidationFailure(ValidationCode code, String technicalType) {
+            this.code = code;
+            this.technicalType = technicalType == null ? "" : technicalType;
+        }
+
+        static ValidationFailure of(ValidationCode code, String technicalType) {
+            return new ValidationFailure(code, technicalType);
+        }
+    }
+
+    public enum ImportRejectionCode {
+        INVALID_OBJECT,
+        INVALID_FIELD_TYPE,
+        UNKNOWN_KEY,
+        UNSUPPORTED_BOUNDARY,
+        TYPE_MISMATCH,
+        INVALID_VALUE,
+        DUPLICATE_RULE
+    }
+
+    /** One rejected import row, retaining exact technical values but no display sentence. */
+    public static final class ImportRejection {
+        public final ImportRejectionCode code;
+        public final int entryNumber;
+        public final String key;
+        public final String expectedType;
+        public final String actualType;
+        public final ValidationFailure validation;
+
+        private ImportRejection(
+                ImportRejectionCode code,
+                int entryNumber,
+                String key,
+                String expectedType,
+                String actualType,
+                ValidationFailure validation
+        ) {
+            this.code = code;
+            this.entryNumber = entryNumber;
+            this.key = key == null ? "" : key;
+            this.expectedType = expectedType == null ? "" : expectedType;
+            this.actualType = actualType == null ? "" : actualType;
+            this.validation = validation;
+        }
+
+        static ImportRejection at(ImportRejectionCode code, int entryNumber) {
+            return new ImportRejection(code, entryNumber, "", "", "", null);
+        }
+
+        static ImportRejection forKey(
+                ImportRejectionCode code,
+                int entryNumber,
+                String key
+        ) {
+            return new ImportRejection(code, entryNumber, key, "", "", null);
+        }
+
+        static ImportRejection typeMismatch(
+                int entryNumber,
+                String key,
+                String expectedType,
+                String actualType
+        ) {
+            return new ImportRejection(
+                    ImportRejectionCode.TYPE_MISMATCH,
+                    entryNumber,
+                    key,
+                    expectedType,
+                    actualType,
+                    null
+            );
+        }
+
+        static ImportRejection invalidValue(
+                int entryNumber,
+                String key,
+                ValidationFailure validation
+        ) {
+            return new ImportRejection(
+                    ImportRejectionCode.INVALID_VALUE,
+                    entryNumber,
+                    key,
+                    "",
+                    "",
+                    validation
+            );
+        }
+    }
+
+    public static final class Rule {
+        public final String id;
+        public final String manager;
+        public final String key;
+        public final String type;
+        public final String value;
+        public final boolean enabled;
+        public final long updatedAtMs;
+
+        Rule(String id, String manager, String key, String type, String value, boolean enabled, long updatedAtMs) {
+            this.id = id;
+            this.manager = manager;
+            this.key = key;
+            this.type = type;
+            this.value = value;
+            this.enabled = enabled;
+            this.updatedAtMs = updatedAtMs;
+        }
+    }
+
+    public static final class ImportReview {
+        public final List<Rule> accepted;
+        public final List<ImportRejection> rejected;
+
+        ImportReview(List<Rule> accepted, List<ImportRejection> rejected) {
+            this.accepted = Collections.unmodifiableList(accepted);
+            this.rejected = Collections.unmodifiableList(rejected);
+        }
+    }
+}

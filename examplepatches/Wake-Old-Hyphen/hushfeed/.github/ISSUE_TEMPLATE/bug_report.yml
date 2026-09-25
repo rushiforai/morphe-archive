@@ -1,0 +1,114 @@
+name: 🐞 Bug report
+description: Something in Hushfeed doesn't work the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Hushfeed bug report
+
+        Thanks for taking the time to report this. Before you start:
+
+        - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/hushfeed/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
+        - **Not sure it's a bug?** Ask in [Discussions](https://github.com/SysAdminDoc/hushfeed/discussions/categories/q-a) instead.
+  - type: input
+    id: versions
+    attributes:
+      label: Hushfeed and TikTok versions
+      description: In TikTok, open Settings and privacy and tap Hushfeed. The card at the top says "Hushfeed is active", with both versions on the line under it. Copy that line here.
+      placeholder: Version 0.58.0 for TikTok 47.0.3
+    validations:
+      required: true
+  - type: dropdown
+    id: manager
+    attributes:
+      label: What did you patch TikTok with?
+      options:
+        - Morphe Manager (the Android app)
+        - morphe-desktop (on a computer)
+        - Universal ReVanced Manager
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: manager_version
+    attributes:
+      label: Its version
+      description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
+      placeholder: Morphe Manager 1.30.0
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version
+      description: Both are in your phone's Settings, under About phone.
+      placeholder: Samsung Galaxy S22, Android 15
+    validations:
+      required: true
+  - type: textarea
+    id: selected_patches
+    attributes:
+      label: Which patches did you select?
+      description: If you kept the manager's own selection, just say so. Otherwise list what you added or removed.
+      placeholder: The default selection, plus Advanced downloads.
+    validations:
+      required: true
+  - type: dropdown
+    id: affected_surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - Feed
+        - Following
+        - Search
+        - Inbox
+        - Profile
+        - Comments
+        - Downloads
+        - Hushfeed settings
+        - Notifications
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: What went wrong?
+      description: What happened, and what did you expect to happen instead? A screenshot or a screen recording helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What did you tap, in order?
+      description: Start from opening TikTok. Include every Hushfeed switch you changed before it went wrong, and say whether it still happens after you close TikTok and open it again.
+      placeholder: |
+        1. Opened TikTok
+        2. Turned on Hide series in Hushfeed settings > Feed filter
+        3. Opened a creator's profile
+        4. The profile showed no videos
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic_report
+    attributes:
+      label: Diagnostic report
+      description: |
+        This file answers most of our questions, so please add it if you can. In TikTok, open Settings and privacy > Hushfeed > Diagnostics > Export diagnostic report and choose Save full report. Then drag the file into this box. It's in your phone's Downloads folder, under Morphe. Copy quick report works too: paste it here.
+        The Diagnostics page is only there if Diagnostic tools was selected when you patched. The report is redacted, but please look it over before you post it.
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Anything else?
+      description: A workaround you found, an older version where it still worked, or anything else that might help.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open and closed bug reports and this isn't one of them.
+          required: true
+        - label: I answered every question above as well as I could.
+          required: true
