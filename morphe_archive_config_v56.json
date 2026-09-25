@@ -1915,14 +1915,6 @@
                 "updatedAt": 1790220034302
             },
             {
-                "name": "telegram-morphe-patches-",
-                "source": "https://raw.githubusercontent.com/cingxcong/telegram-morphe-patches-/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 253,
-                "createdAt": 1790220034379,
-                "updatedAt": 1790220034379
-            },
-            {
                 "name": "morphe-patches",
                 "source": "https://raw.githubusercontent.com/dowjames/morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -1937,14 +1929,6 @@
                 "sortOrder": 255,
                 "createdAt": 1790220035350,
                 "updatedAt": 1790220035350
-            },
-            {
-                "name": "belkart-pay-patches",
-                "source": "https://raw.githubusercontent.com/eweddwg/belkart-pay-patches/master/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 256,
-                "createdAt": 1790220036199,
-                "updatedAt": 1790220036199
             },
             {
                 "name": "pixelcamera-patches",
