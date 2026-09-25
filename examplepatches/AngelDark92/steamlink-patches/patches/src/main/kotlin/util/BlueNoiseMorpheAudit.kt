@@ -22,14 +22,22 @@ object BlueNoiseMorpheAudit {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        require(args.size in 4..5) {
-            "Usage: BlueNoiseMorpheAudit <fixture.apk> <new-output-directory> <8-bit|10-bit> <withOled:true|false> [blue-first|oled-first]"
+        require(args.size in 4..6) {
+            "Usage: BlueNoiseMorpheAudit <fixture.apk> <new-output-directory> <8-bit|10-bit> <withOled:true|false> [blue-first|oled-first] [fovea|background|both-fovea-first|both-background-first]"
         }
         val fixture = File(args[0]).canonicalFile
         val directory = File(args[1]).canonicalFile
         val inputDepth = args[2]
         val withOled = args[3].toBooleanStrict()
         val order = args.getOrElse(4) { "blue-first" }
+        val layerSelection = args.getOrElse(5) { "fovea" }
+        val layers = when (layerSelection) {
+            "fovea" -> listOf(BlueNoiseLayer.FOVEA)
+            "background" -> listOf(BlueNoiseLayer.BACKGROUND)
+            "both-fovea-first" -> listOf(BlueNoiseLayer.FOVEA, BlueNoiseLayer.BACKGROUND)
+            "both-background-first" -> listOf(BlueNoiseLayer.BACKGROUND, BlueNoiseLayer.FOVEA)
+            else -> error("Invalid layer selection: $layerSelection")
+        }
         require(fixture.isFile) { "Missing fixture: $fixture" }
         require(inputDepth in setOf("8-bit", "10-bit")) { "Invalid input depth: $inputDepth" }
         require(order in setOf("blue-first", "oled-first")) { "Invalid selection order: $order" }
@@ -48,7 +56,7 @@ object BlueNoiseMorpheAudit {
                 it.size == sourceScene.size && it.stockHash == sourceHash
             } ?: error("Fixture scene is not one of the 3 exact stock inputs: size=${sourceScene.size}, sha256=$sourceHash")
             record("Fixture: ${fixture.path}; SHA-256=$fixtureHash")
-            record("Case: ${layout.version}/${layout.code}, declared $inputDepth, OLED=$withOled, selection order=$order")
+            record("Case: ${layout.version}/${layout.code}, declared $inputDepth, OLED=$withOled, selection order=$order, layers=$layerSelection")
             record("Evidence boundary: analysis/decoded-fixture APK; actual Morphe DSL finalize and unsigned packaging only. Not pristine APK, Android linking, GPU execution, install, headset or panel proof.")
 
             val mode = if (inputDepth == "8-bit") FoveaMode.INPUT_8BIT else FoveaMode.INPUT_10BIT
@@ -57,14 +65,14 @@ object BlueNoiseMorpheAudit {
                 paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP)
                     .copyInto(expectedBeforeHooks, findVideoShader(expectedBeforeHooks))
             }
-            val expected = applyFovealBlueNoise(
-                setProjectionSwapchainFormat(expectedBeforeHooks, VideoOutputPrecision.SRGB8_HIGHP,
-                    layout.version, layout.code),
-                layout.version, layout.code, mode,
-            )
+            var expected = BlueNoiseResult(setProjectionSwapchainFormat(expectedBeforeHooks,
+                VideoOutputPrecision.SRGB8_HIGHP, layout.version, layout.code), null)
+            layers.forEach { layer -> expected = applyBlueNoiseLayer(expected.scene, layout.version,
+                layout.code, mode, layer, existingHelper = expected.helper) }
             check(expected.helper != null) { "Expected production helper was not prepared" }
 
             fovealBlueNoisePatch.options["inputDepth"] = inputDepth
+            backgroundBlueNoisePatch.options["inputDepth"] = inputDepth
             if (withOled) {
                 oledCalibrationPatch.options["profile"] = "final-balanced"
                 oledCalibrationPatch.options["foveaVdLike10Bit"] = false
@@ -84,7 +92,7 @@ object BlueNoiseMorpheAudit {
             }
             val selection = linkedSetOf<Patch<*>>(metadataGuard)
             if (withOled && order == "oled-first") selection += oledCalibrationPatch
-            selection += fovealBlueNoisePatch
+            layers.forEach { selection += if (it == BlueNoiseLayer.FOVEA) fovealBlueNoisePatch else backgroundBlueNoisePatch }
             if (withOled && order == "blue-first") selection += oledCalibrationPatch
 
             val isolated = File(directory, "isolated-input.apk")

@@ -19,7 +19,7 @@ import java.util.Arrays;
 @SuppressWarnings("unused")
 public final class SettingsTab {
 
-    public static final String TITLE = "lchanc3";
+    public static final String TITLE = "Morphe";
 
     /** Where the app's own tabs end, learned from the array being extended. */
     private static volatile int extraPosition = -1;

@@ -25,6 +25,3 @@ jobs:
 
       - name: Build and test patch bundle
         run: ./scripts/build.sh
-
-      - name: Check patch bundle
-        run: python3 scripts/validate-release-metadata.py

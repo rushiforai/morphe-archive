@@ -1,0 +1,300 @@
+{
+  "date": "2026-09-25",
+  "status": "removed-and-verified",
+  "workspace": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches",
+  "workspace_children": [
+    {
+      "Name": ".agents",
+      "Mode": "d----"
+    },
+    {
+      "Name": ".android-sdk",
+      "Mode": "d----"
+    },
+    {
+      "Name": ".git",
+      "Mode": "d--h-"
+    },
+    {
+      "Name": ".github",
+      "Mode": "d----"
+    },
+    {
+      "Name": ".gradle",
+      "Mode": "d----"
+    },
+    {
+      "Name": ".kotlin",
+      "Mode": "d----"
+    },
+    {
+      "Name": ".venv",
+      "Mode": "d----"
+    },
+    {
+      "Name": ".vscode",
+      "Mode": "d----"
+    },
+    {
+      "Name": "build",
+      "Mode": "d----"
+    },
+    {
+      "Name": "decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712",
+      "Mode": "d----"
+    },
+    {
+      "Name": "decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244",
+      "Mode": "d----"
+    },
+    {
+      "Name": "decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363",
+      "Mode": "d----"
+    },
+    {
+      "Name": "diagnostics",
+      "Mode": "d----"
+    },
+    {
+      "Name": "extensions",
+      "Mode": "d----"
+    },
+    {
+      "Name": "gradle",
+      "Mode": "d----"
+    },
+    {
+      "Name": "Install",
+      "Mode": "d----"
+    },
+    {
+      "Name": "patches",
+      "Mode": "d----"
+    },
+    {
+      "Name": "Resources",
+      "Mode": "d----"
+    },
+    {
+      "Name": "SteamLink-GalaxyXR-Python-Patches-Already-Tried-for_Resolution_issue",
+      "Mode": "d----"
+    },
+    {
+      "Name": "VirtualDesktop",
+      "Mode": "d----"
+    },
+    {
+      "Name": "XR_RESOLUTION_EXPERIMENT_LOGS",
+      "Mode": "d----"
+    },
+    {
+      "Name": ".editorconfig",
+      "Mode": "-a---"
+    },
+    {
+      "Name": ".gitattributes",
+      "Mode": "-a---"
+    },
+    {
+      "Name": ".gitignore",
+      "Mode": "-a---"
+    },
+    {
+      "Name": ".releaserc",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "AGENTS.md",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "CHANGELOG.md",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "DEBUGGING.md",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "gradle.properties",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "GradleBuildCommand.txt",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "gradlew",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "gradlew.bat",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "images.jpg",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "LEGACY_VS_MORPHE_PATCHES.md",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "LICENSE",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "NOTICE",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "package-lock.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "package.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "PATCH_CATALOG.md",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "patches-bundle.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "patches-list-all.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "patches-list-experimental.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "patches-list-stable.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "patches-list.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "README.md",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "settings.gradle.kts",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "skills-lock.json",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "TECHNICAL_REFERENCE.md",
+      "Mode": "-a---"
+    },
+    {
+      "Name": "WORKSPACE_CLEANUP.md",
+      "Mode": "-a---"
+    }
+  ],
+  "nested_git": [
+    "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\.git",
+    "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\controller-velocity-layer\\build-android\\_deps\\openxr_headers-src\\.git",
+    "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\extensions\\controller-velocity-layer\\build-host\\_deps\\openxr_headers-src\\.git"
+  ],
+  "unrelated_inventory_errors": [
+    "Access to the path 'D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\collector-safety-g4f21yh4' is denied."
+  ],
+  "targets": [
+    {
+      "path": "build/background-blue-noise-glsl",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-glsl",
+      "files": 23,
+      "bytes": 42697.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-kotlin",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-kotlin",
+      "files": 176,
+      "bytes": 1460279.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-morphe",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-morphe",
+      "files": 1560,
+      "bytes": 2177564703.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-native",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-native",
+      "files": 3,
+      "bytes": 7088752.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/zig-cache-background",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\zig-cache-background",
+      "files": 2070,
+      "bytes": 93055236.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/zig-local-background",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\zig-local-background",
+      "files": 5,
+      "bytes": 1901976.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-package/dex.zip",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-package\\dex.zip",
+      "files": 1,
+      "bytes": 184242.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-package/patches-list.json",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-package\\patches-list.json",
+      "files": 1,
+      "bytes": 60807.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-package/patches-list-all.json",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-package\\patches-list-all.json",
+      "files": 1,
+      "bytes": 60807.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-package/patches-list-stable.json",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-package\\patches-list-stable.json",
+      "files": 1,
+      "bytes": 54275.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    },
+    {
+      "path": "build/background-blue-noise-package/patches-list-experimental.json",
+      "absolute_path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\background-blue-noise-package\\patches-list-experimental.json",
+      "files": 1,
+      "bytes": 60816.0,
+      "category": "Disposable output from 2026-09-25 background patch validation"
+    }
+  ],
+  "files": 3842.0,
+  "bytes": 2281534590.0,
+  "retained": [
+    "Current local MPP deliverable and canonical source/payloads",
+    "Exact decoded input libraries and fixture APKs",
+    "Compact diagnostic receipts and reproduction scripts",
+    "SDKs and retained compiler/tools",
+    "Pre-existing blue-noise-native-tests tree and all earlier deferred cleanup outputs: outside this new allowlist",
+    "Inaccessible collector-safety-g4f21yh4: unrelated, untouched"
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "boundary": "Offline GLSL syntax/interface checks for both independently selected video layers.\n\nProduction keeps Valve's ES300 uniform-location dialect. Strict ES300 results for\nstock and rewritten sources are reported separately; only diagnostic copies of BOTH\nstages use ES310. This is not Android driver execution, APK, headset, or panel proof.\nThe 5001712 decoded input is an analysis reconstruction.",
+  "input_scope": "Read-only static analysis of actual decoded inputs. No APK packaging, Android loader/GPU execution, headset, or panel proof. 5001712 decoded base is an analysis reconstruction.",
+  "layout_sha256": "9d8e8e3e699f32b23d7cc015765514bbb735c9acbced7aad453218218dbc9411",
+  "rewriter_sha256": "3ea280f424a3bda1c383eae9d43a67f492af8589584758bba0fe6739882ac4e4",
+  "cases": [
+    {
+      "case": "5001712-fovea-production-stock",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5001712-fovea-stock.frag\nERROR: build\\background-blue-noise-glsl\\5001712-fovea-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
+      ]
+    },
+    {
+      "case": "5001712-fovea-production-blue",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5001712-fovea-blue.frag\nERROR: build\\background-blue-noise-glsl\\5001712-fovea-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "60e1e3a2664c836d4ab7523146104afa1dee899439d5ce39f70b144b0091e430"
+      ]
+    },
+    {
+      "case": "5001712-fovea-diagnostic310-link",
+      "kind": "diagnostic-es310",
+      "exit_code": 0,
+      "output": "build\\background-blue-noise-glsl\\5001712-diagnostic310.vert\nbuild\\background-blue-noise-glsl\\5001712-fovea-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "8205648ccf99ac312da7f52a6522c18fbc6f496d8432c73083004d1a8a1fabe4"
+      ]
+    },
+    {
+      "case": "5001712-background-production-stock",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5001712-background-stock.frag\nERROR: build\\background-blue-noise-glsl\\5001712-background-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "871e528249132d814a3e1110ded3ff1a25e3f016bdddd1e16aa67a000d835246"
+      ]
+    },
+    {
+      "case": "5001712-background-production-blue",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5001712-background-blue.frag\nERROR: build\\background-blue-noise-glsl\\5001712-background-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "1d0cd2ea255914f4baf710cfdfb996dd808764251639f30d20af3f46b51c3593"
+      ]
+    },
+    {
+      "case": "5001712-background-diagnostic310-link",
+      "kind": "diagnostic-es310",
+      "exit_code": 0,
+      "output": "build\\background-blue-noise-glsl\\5001712-diagnostic310.vert\nbuild\\background-blue-noise-glsl\\5001712-background-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "5ab554faa2581c701d45d727d2c8721877220039deae4837bc68f7ee640c026c"
+      ]
+    },
+    {
+      "case": "5002244-fovea-production-stock",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002244-fovea-stock.frag\nERROR: build\\background-blue-noise-glsl\\5002244-fovea-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
+      ]
+    },
+    {
+      "case": "5002244-fovea-production-blue",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002244-fovea-blue.frag\nERROR: build\\background-blue-noise-glsl\\5002244-fovea-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "60e1e3a2664c836d4ab7523146104afa1dee899439d5ce39f70b144b0091e430"
+      ]
+    },
+    {
+      "case": "5002244-fovea-diagnostic310-link",
+      "kind": "diagnostic-es310",
+      "exit_code": 0,
+      "output": "build\\background-blue-noise-glsl\\5002244-diagnostic310.vert\nbuild\\background-blue-noise-glsl\\5002244-fovea-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "8205648ccf99ac312da7f52a6522c18fbc6f496d8432c73083004d1a8a1fabe4"
+      ]
+    },
+    {
+      "case": "5002244-background-production-stock",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002244-background-stock.frag\nERROR: build\\background-blue-noise-glsl\\5002244-background-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "871e528249132d814a3e1110ded3ff1a25e3f016bdddd1e16aa67a000d835246"
+      ]
+    },
+    {
+      "case": "5002244-background-production-blue",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002244-background-blue.frag\nERROR: build\\background-blue-noise-glsl\\5002244-background-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "1d0cd2ea255914f4baf710cfdfb996dd808764251639f30d20af3f46b51c3593"
+      ]
+    },
+    {
+      "case": "5002244-background-diagnostic310-link",
+      "kind": "diagnostic-es310",
+      "exit_code": 0,
+      "output": "build\\background-blue-noise-glsl\\5002244-diagnostic310.vert\nbuild\\background-blue-noise-glsl\\5002244-background-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "5ab554faa2581c701d45d727d2c8721877220039deae4837bc68f7ee640c026c"
+      ]
+    },
+    {
+      "case": "5002363-fovea-production-stock",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002363-fovea-stock.frag\nERROR: build\\background-blue-noise-glsl\\5002363-fovea-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "afc0c787384a854c5b02e298f81daae5080327e1480bd182625bb20736858995"
+      ]
+    },
+    {
+      "case": "5002363-fovea-production-blue",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002363-fovea-blue.frag\nERROR: build\\background-blue-noise-glsl\\5002363-fovea-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "60e1e3a2664c836d4ab7523146104afa1dee899439d5ce39f70b144b0091e430"
+      ]
+    },
+    {
+      "case": "5002363-fovea-diagnostic310-link",
+      "kind": "diagnostic-es310",
+      "exit_code": 0,
+      "output": "build\\background-blue-noise-glsl\\5002363-diagnostic310.vert\nbuild\\background-blue-noise-glsl\\5002363-fovea-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "8205648ccf99ac312da7f52a6522c18fbc6f496d8432c73083004d1a8a1fabe4"
+      ]
+    },
+    {
+      "case": "5002363-background-production-stock",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002363-background-stock.frag\nERROR: build\\background-blue-noise-glsl\\5002363-background-stock.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "871e528249132d814a3e1110ded3ff1a25e3f016bdddd1e16aa67a000d835246"
+      ]
+    },
+    {
+      "case": "5002363-background-production-blue",
+      "kind": "strict-production-es300",
+      "exit_code": 2,
+      "output": "build\\background-blue-noise-glsl\\5002363-background-blue.frag\nERROR: build\\background-blue-noise-glsl\\5002363-background-blue.frag:14: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\nERROR: Linking fragment stage: Missing entry point: Each stage requires one entry point\n\n",
+      "source_sha256": [
+        "1d0cd2ea255914f4baf710cfdfb996dd808764251639f30d20af3f46b51c3593"
+      ]
+    },
+    {
+      "case": "5002363-background-diagnostic310-link",
+      "kind": "diagnostic-es310",
+      "exit_code": 0,
+      "output": "build\\background-blue-noise-glsl\\5002363-diagnostic310.vert\nbuild\\background-blue-noise-glsl\\5002363-background-diagnostic310.frag\n",
+      "source_sha256": [
+        "adf79ebeaa4e3037d73c44131cb170a36a02414f6594b8aca0ffcae70a82b06b",
+        "5ab554faa2581c701d45d727d2c8721877220039deae4837bc68f7ee640c026c"
+      ]
+    },
+    {
+      "case": "isolated-core300-quantizer",
+      "kind": "isolated-es300",
+      "exit_code": 0,
+      "output": "build\\background-blue-noise-glsl\\isolated-quantizer300.frag\n",
+      "source_sha256": [
+        "4d7a4ee497845fb7ffee81fbe97360d159de936a0cde5c9aa8ca2de1c7a50e3f"
+      ]
+    }
+  ],
+  "glslang_version": "Glslang Version: 11:16.6.0\nESSL Version: OpenGL ES GLSL 3.20 glslang Khronos. 16.6.0\nGLSL Version: 4.60 glslang Khronos. 16.6.0\nSPIR-V Version 0x00010600, Revision 1\nGLSL.std.450 Version 100, Revision 1\nKhronos Tool ID 8\nSPIR-V Generator Version 11\nGL_KHR_vulkan_glsl version 100\nARB_GL_gl_spirv version 100\n",
+  "diagnostic_checks_passed": true
+}

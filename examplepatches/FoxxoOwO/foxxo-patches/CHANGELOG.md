@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.0.1...v1.1.0) (2026-09-25)
+
+### ✨ New Features
+
+* **instagram:** add chat-only distraction-free patch for Instagram ([4bcec0c](https://github.com/FoxxoOwO/foxxo-patches/commit/4bcec0c1f95f4338c3b570063cf1bc474ccb737d))
+
 ## [1.0.1](https://github.com/FoxxoOwO/foxxo-patches/compare/v1.0.0...v1.0.1) (2026-09-19)
 
 ### 🐛 Bug Fixes

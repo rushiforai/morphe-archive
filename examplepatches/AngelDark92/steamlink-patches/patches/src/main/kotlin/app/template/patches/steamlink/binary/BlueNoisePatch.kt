@@ -10,9 +10,17 @@ import app.template.patches.shared.Constants.EXPERIMENTAL_COMPATIBILITY_NAME
 
 /** Separate, opt-in experiment. No dependency on or behavior changes to OLED/VD-like controls. */
 @Suppress("unused")
-val fovealBlueNoisePatch = rawResourcePatch(
-    name = "Foveal blue-noise dithering (experimental)",
-    description = "Static blue-noise quantization after video colour processing and fade, only on the foveal layer. Accepts 8-bit or 10-bit input and always uses 8-bit sRGB output. Separate from OLED/VD-like processing; headset validation pending. Unknown host shaders pass through unchanged.",
+val fovealBlueNoisePatch = blueNoisePatch(BlueNoiseLayer.FOVEA)
+
+@Suppress("unused")
+val backgroundBlueNoisePatch = blueNoisePatch(BlueNoiseLayer.BACKGROUND)
+
+private fun blueNoisePatch(layer: BlueNoiseLayer) = rawResourcePatch(
+    name = if (layer == BlueNoiseLayer.FOVEA) "Foveal blue-noise dithering (experimental)"
+        else "Background blue-noise dithering (experimental)",
+    description = "Static blue-noise quantization after video colour processing and fade, only on the " +
+        (if (layer == BlueNoiseLayer.FOVEA) "foveal" else "background/base") +
+        " layer. Accepts 8-bit or 10-bit input and always uses 8-bit sRGB output. Select independently or together with the other layer's blue-noise patch. Separate from OLED/VD-like processing; headset validation pending. Unknown host shaders pass through unchanged.",
     default = false,
 ) {
     compatibleWith(*BLUE_NOISE_LAYOUTS.map { layout ->
@@ -50,11 +58,10 @@ val fovealBlueNoisePatch = rawResourcePatch(
             file.readBytes(), VideoOutputPrecision.SRGB8_HIGHP,
             packageMetadata.versionName, packageMetadata.versionCode,
         )
-        val result = applyFovealBlueNoise(formatted, packageMetadata.versionName, packageMetadata.versionCode, mode)
         val destination = get("lib/arm64-v8a/libgxd.so")
-        if (destination.isFile && !isConfiguredBlueNoiseHelper(destination.readBytes())) {
-            throw PatchException("Refusing to overwrite an unrecognized libgxd.so")
-        }
+        val existing = if (destination.isFile) destination.readBytes() else null
+        val result = applyBlueNoiseLayer(formatted, packageMetadata.versionName, packageMetadata.versionCode,
+            mode, layer, existingHelper = existing)
         val helper = result.helper ?: throw PatchException("Blue-noise payload was not prepared")
         destination.parentFile.mkdirs()
         destination.writeBytes(helper)

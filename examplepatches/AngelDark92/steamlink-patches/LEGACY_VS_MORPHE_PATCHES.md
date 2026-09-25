@@ -29,6 +29,11 @@ conversion mutations, and 5002322 still excludes Device identity.
 
 A separate default-off **Foveal blue-noise dithering (experimental)** patch was added on 2026-09-22. It does not replace the historical/VD-like controls below. The [decoded VD comparison](diagnostics/steamlink-blue-noise-ditering/virtualdesktop-verification.md) corrects the earlier fovea-isolation and VD-equivalence claims.
 
+On 2026-09-25, a matching default-off **Background blue-noise dithering (experimental)**
+patch was added. The 2 blue-noise patches can be selected independently or together;
+each only quantizes its named layer. The original tile/formula remain unchanged.
+See [current layer selection and checks](diagnostics/steamlink-background-blue-noise/README.md).
+
 The standalone Video dither patch remains removed. OLED calibration retains the 2 mutually
 exclusive keys `foveaVdLike10Bit` and `foveaVdLike8Bit`. Their current implementation uses the
 same highp SDR foveal processing for either declared input depth: retain Valve decoder color

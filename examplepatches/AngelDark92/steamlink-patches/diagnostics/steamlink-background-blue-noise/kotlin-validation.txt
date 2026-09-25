@@ -1,0 +1,32 @@
+patches\src\main\kotlin\app\template\patches\steamlink\binary\HmdOnlyPatch.kt:121:27: warning: redundant call of conversion method.
+    val insn = 0x14000000.toInt() or (offsetWords and 0x3FFFFFF)
+                          ^^^^^^^
+patches\src\main\kotlin\app\template\patches\steamlink\util\BinaryPatchHelper.kt:27:65: warning: redundant call of conversion method.
+        if (bytes.size < 64 || bytes.readU32LE(0) != 0x464C457F.toInt()) {
+                                                                ^^^^^^^
+patches\src\main\kotlin\app\template\patches\steamlink\util\BinaryPatchHelper.kt:31:45: warning: redundant call of conversion method.
+        val phentsize = bytes.readU16LE(54).toInt()
+                                            ^^^^^^^
+patches\src\main\kotlin\app\template\patches\steamlink\util\BinaryPatchHelper.kt:32:41: warning: redundant call of conversion method.
+        val phnum = bytes.readU16LE(56).toInt()
+                                        ^^^^^^^
+
+Thanks for using JUnit! Support its development at https://junit.org/sponsoring
+
+
+Test run finished after 3527 ms
+[        23 containers found      ]
+[         0 containers skipped    ]
+[        23 containers started    ]
+[         0 containers aborted    ]
+[        23 containers successful ]
+[         0 containers failed     ]
+[       119 tests found           ]
+[         0 tests skipped         ]
+[       119 tests started         ]
+[         0 tests aborted         ]
+[       119 tests successful      ]
+[         0 tests failed          ]
+
+Compiled current production source and ran JUnit using cached dependencies: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\background-blue-noise-kotlin
+This bypasses the unresolved Gradle plugin. It is not a Gradle build or device validation.

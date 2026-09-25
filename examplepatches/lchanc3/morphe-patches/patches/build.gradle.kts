@@ -30,16 +30,21 @@ tasks {
         description = "Apply the built bundle to a JPTT APK, so a patch that stopped " +
             "matching fails here instead of in Morphe Manager"
 
-        dependsOn(build)
+        // buildAndroid rather than build: it writes classes.dex into the jar in
+        // place, so a later build sees the jar changed and rebuilds it without
+        // one -- a bundle that works here and shows no patches on a phone.
+        dependsOn("buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.VerifyAgainstApkKt")
 
         // -Papk=<path>, then $JPTT_APK, then any APK left in the project root.
         // The APK is not in the repository, which is why this is never wired into
-        // `build`: not having one must not break an ordinary build.
-        val apk = (findProperty("apk") as String?)
-            ?: System.getenv("JPTT_APK")
+        // `build`: not having one must not break an ordinary build. A relative
+        // path is taken from the repository root, not from patches/, where the
+        // task runs.
+        val apk = ((findProperty("apk") as String?) ?: System.getenv("JPTT_APK"))
+            ?.let { rootDir.resolve(it).absolutePath }
             ?: rootDir.listFiles { file -> file.extension == "apk" }
                 ?.sortedBy { it.name }
                 ?.firstOrNull()
@@ -54,7 +59,7 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Regenerate patches-list.json from the built bundle"
 
-        dependsOn(build)
+        dependsOn("buildAndroid")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")

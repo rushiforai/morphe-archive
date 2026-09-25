@@ -1,0 +1,43 @@
+{
+  "catalogs": [
+    {
+      "file": "patches-list.json",
+      "channel_preserved": "stable",
+      "added": [],
+      "changed": [],
+      "unrelated_entries_unchanged": true
+    },
+    {
+      "file": "patches-list-all.json",
+      "channel_preserved": "all",
+      "added": [
+        "Background blue-noise dithering (experimental)"
+      ],
+      "changed": [
+        "Foveal blue-noise dithering (experimental)"
+      ],
+      "unrelated_entries_unchanged": true
+    },
+    {
+      "file": "patches-list-stable.json",
+      "channel_preserved": "stable",
+      "added": [],
+      "changed": [],
+      "unrelated_entries_unchanged": true
+    },
+    {
+      "file": "patches-list-experimental.json",
+      "channel_preserved": "experimental",
+      "added": [
+        "Background blue-noise dithering (experimental)"
+      ],
+      "changed": [
+        "Foveal blue-noise dithering (experimental)"
+      ],
+      "unrelated_entries_unchanged": true
+    }
+  ],
+  "original_quantizer_glsl_unchanged": true,
+  "tile_generator_and_numeric_evidence_byte_identical": true,
+  "tile_sha256": "bd714ed8957aa7dd2ba2aada91484e487e17322e68d96ac91be48ba4c59e77f5"
+}

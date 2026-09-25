@@ -253,8 +253,24 @@ public final class PausePlayback {
             Application application = activity.getApplication();
             if (application == null) return;
             installed = true;
+            // The activity that shows the feed. These callbacks come for every activity in the
+            // process, and a screen of TikTok's own that covered the feed (messages, a web page,
+            // Hushfeed's settings) pauses on the way back with the feed's player already stopped.
+            final Class<?> feed = activity.getClass();
             application.registerActivityLifecycleCallbacks(
                     new Application.ActivityLifecycleCallbacks() {
+                        // Before the activity's own lifecycle observers, where TikTok's player
+                        // stops, so the reader's play state is still there to read. Android 9 and
+                        // older have no such callback: there the observers run before any the
+                        // application gets, so Keep paused has nothing true to read and stays out.
+                        @Override public void onActivityPrePaused(Activity paused) {
+                            if (paused.getClass() == feed) KeepPaused.onLeaving(paused);
+                        }
+
+                        @Override public void onActivityPreResumed(Activity resumed) {
+                            if (resumed.getClass() == feed) KeepPaused.onReturning();
+                        }
+
                         @Override public void onActivityResumed(Activity resumed) {
                             onForeground(resumed);
                         }

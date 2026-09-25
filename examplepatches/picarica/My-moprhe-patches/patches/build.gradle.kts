@@ -1,9 +1,9 @@
-group = "dev.bucek.affine"
+group = "dev.bucek.android"
 
 patches {
     about {
-        name = "AFFiNE No-GMS Patches"
-        description = "Removes Play licensing and automatic Google/Firebase startup from AFFiNE"
+        name = "Android No-GMS / No-Play Patches"
+        description = "App-specific patches for running AFFiNE and Stick War: Legacy without mandatory Google services"
         source = "https://github.com/picarica/My-moprhe-patches"
         author = "picarica"
         contact = "https://github.com/picarica/My-moprhe-patches/issues"
@@ -27,9 +27,18 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.register<JavaExec>("generatePatchesList") {
-    description = "Generate patches-list.json from the built MPP"
-    dependsOn("buildAndroid")
-    classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
-    mainClass.set("util.PatchListGeneratorKt")
+tasks {
+    register<JavaExec>("generatePatchesList") {
+        description = "Build patch with patch list"
+
+        dependsOn(build)
+
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
+    }
+
+    // Used by gradle-semantic-release-plugin.
+    publish {
+        dependsOn("generatePatchesList")
+    }
 }

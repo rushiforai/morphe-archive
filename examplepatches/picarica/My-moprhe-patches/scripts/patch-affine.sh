@@ -7,14 +7,14 @@ VERSION=$(sed -n 's/^version = //p' "$ROOT/gradle.properties")
 
 INPUT=${1:-"$AFFINE_ROOT/AFFiNE_0.27.4_APKPure.xapk"}
 OUTPUT=${2:-"$AFFINE_ROOT/AFFiNE_0.27.4_no-gms.apk"}
-MORPHE_JAR="$AFFINE_ROOT/tools/morphe-desktop-1.15.0-all.jar"
-MORPHE_URL="https://github.com/MorpheApp/morphe-desktop/releases/download/v1.15.0/morphe-desktop-1.15.0-all.jar"
+MORPHE_JAR="$AFFINE_ROOT/tools/morphe-desktop-1.17.0-all.jar"
+MORPHE_URL="https://github.com/MorpheApp/morphe-desktop/releases/download/v1.17.0/morphe-desktop-1.17.0-all.jar"
 MPP="$ROOT/patches/build/libs/patches-$VERSION.mpp"
 KEYSTORE="$AFFINE_ROOT/affine-no-gms.keystore"
 REPORT="$AFFINE_ROOT/AFFiNE_0.27.4_no-gms-result.json"
 
 EXPECTED_INPUT_SHA256="daa36b4523e800990249ac8a996e388a09024147be54564b0df5504029525f0a"
-EXPECTED_MORPHE_SHA256="727e3744aa5c0006474590de6f4041bd55edc59f3d6cb9b596e95f7116384506"
+EXPECTED_MORPHE_SHA256="8cf6a9eab4ee9dab146bddc24681897851564f53116baec11f36ba2fa2f589be"
 
 for command in awk chmod mkdir sha256sum; do
     command -v "$command" >/dev/null || {

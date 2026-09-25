@@ -87,7 +87,7 @@ public final class SettingsBackup {
         JSONObject root = new JSONObject(json);
         String format = root.optString("format");
         if (!FORMAT.equals(format)) {
-            throw new IllegalArgumentException("不是這個 app 匯出的設定檔（format=" + format + "）");
+            throw new IllegalArgumentException("此檔案不是本應用程式匯出的設定檔（format=" + format + "）");
         }
 
         JSONArray entries = root.getJSONArray("entries");
@@ -147,7 +147,7 @@ public final class SettingsBackup {
             while ((read = stream.read(chunk)) > 0) {
                 buffer.write(chunk, 0, read);
                 if (buffer.size() > MAX_BYTES) {
-                    throw new IllegalArgumentException("檔案太大，不像是設定檔");
+                    throw new IllegalArgumentException("檔案過大，不是有效的設定檔");
                 }
             }
             return buffer.toString("UTF-8");

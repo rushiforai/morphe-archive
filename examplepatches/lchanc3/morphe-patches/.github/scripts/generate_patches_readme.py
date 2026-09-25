@@ -12,7 +12,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 README = ROOT / "README.md"
 PATCHES_LIST = ROOT / "patches-list.json"
-NOTES = ROOT / ".github" / "notes"
+DOCS = ROOT / "docs"
 
 START = "<!-- PATCHES_START -->"
 END = "<!-- PATCHES_END -->"
@@ -71,12 +71,16 @@ def patches_table(patches):
 
 
 def app_notes(name):
-    """Hand written gotchas for one app, from .github/notes/<app>.md."""
-    path = NOTES / f"{name}.md"
+    """A link to the app's hand written guide, docs/<app>.md, if it has any.
+
+    Linked rather than pulled in, so the README stays a list of patches.
+    """
+    path = DOCS / f"{name}.md"
     if not path.is_file():
         return ""
+    link = path.relative_to(ROOT).as_posix()
     # The table already ends a line, so this starts straight at the text.
-    return path.read_text(encoding="utf-8").strip() + "\n"
+    return f"📖 安裝前必讀、常見問題與功能說明：[{name} 使用說明]({link})\n"
 
 
 def render(data):

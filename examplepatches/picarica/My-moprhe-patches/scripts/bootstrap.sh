@@ -18,7 +18,12 @@ clone_pinned() {
     local actual
     actual=$(git -C "$destination" rev-parse HEAD)
     if [[ "$actual" != "$commit" ]]; then
-        printf 'Unexpected commit in %s\nExpected: %s\nActual:   %s\n' \
+        git -C "$destination" fetch --depth=1 origin "refs/tags/$tag:refs/tags/$tag"
+        git -C "$destination" checkout --detach "$commit"
+        actual=$(git -C "$destination" rev-parse HEAD)
+    fi
+    if [[ "$actual" != "$commit" ]]; then
+        printf 'Unable to pin %s\nExpected: %s\nActual:   %s\n' \
             "$destination" "$commit" "$actual" >&2
         exit 1
     fi
@@ -37,8 +42,8 @@ clone_pinned \
     "$DEPS/morphe-patches-gradle-plugin"
 clone_pinned \
     https://github.com/MorpheApp/morphe-patcher.git \
-    v1.12.0 \
-    ac0d688eaacb7ece80b65ebf719b252f69455783 \
+    v1.14.1 \
+    6f189f9ffb448ae32ceaf6c136c9d84d9a7ed274 \
     "$DEPS/morphe-patcher"
 
 echo "Pinned Morphe build dependencies are ready."

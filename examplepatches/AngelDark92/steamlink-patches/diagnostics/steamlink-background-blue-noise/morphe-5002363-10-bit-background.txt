@@ -1,0 +1,20 @@
+Fixture: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\decoded-fixture-apks\decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363.apk; SHA-256=681008c6e00f48eea64dd0a6534e2e73b390c71626025f86e401d9cc59a281bf
+Case: 2.0.23/5002363, declared 10-bit, OLED=true, selection order=oled-first, layers=background
+Evidence boundary: analysis/decoded-fixture APK; actual Morphe DSL finalize and unsigned packaging only. Not pristine APK, Android linking, GPU execution, install, headset or panel proof.
+Warning: Universal patches must be declared with default false: Blue-noise fixture metadata audit
+Morphe PASS: Blue-noise fixture metadata audit
+Morphe PASS: OLED color calibration
+Morphe PASS: Background blue-noise dithering (experimental)
+PASS: exact scene/helper output; 1 added helper; 113 existing entries byte-identical, including manifest and 1 DEX files; all sRGB8 sites; original fixture unchanged.
+Output: D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL\steamlink-patches\build\background-blue-noise-morphe\5002363-10-bit-background\steamlink-5002363-10-bit-oled-oled-first-unsigned.apk; SHA-256=7e70d955ca2620b588b3cddf8fa1b40b748022f478a3ca37d5678a7d20dba767
+Finalized helper SHA-256=85087027055109de9df114e19c3a042b66cfdf1299a916c8c80a8e13fdfe05f1; scene SHA-256=ed4a83a579997f77337962ab481a956f68023d71468321624b93982e802a32bd
+Sept 25, 2026 11:03:49 AM app.morphe.patcher.patch.ResourcePatchContext decodeResources$morphe_patcher
+INFO: Decoding resources in raw mode
+Sept 25, 2026 11:03:50 AM app.morphe.patcher.Patcher$invoke$1 invokeSuspend
+INFO: Executing patches
+Sept 25, 2026 11:03:50 AM app.morphe.patcher.patch.BytecodePatchContext get
+INFO: Compiling patched dex files (mode: NONE)
+Sept 25, 2026 11:03:50 AM app.morphe.patcher.resource.coder.ArsclibResourceCoder getOtherResourceFiles
+INFO: Moving 3 resource files
+Sept 25, 2026 11:03:50 AM app.morphe.patcher.apk.ApkUtils applyTo
+INFO: Aligning APK

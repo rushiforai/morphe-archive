@@ -271,3 +271,33 @@ Results: all 59 targets absent; 0 missing or altered retained files (with archiv
   compilers, GLSL/R8 tools, and unrelated build children. Reproduction commands are
   in the new diagnostic README. Remove only the listed generated outputs once
   deletion is permitted, after preserving the compact receipts.
+
+### 2026-09-25 — Separate background blue-noise counterpart
+
+- Added a separately selectable background-only blue-noise patch alongside the
+  existing foveal-only patch for exact 2.0.20/5001712, 2.0.22/5002244 and
+  2.0.23/5002363. Both support declared 8-/10-bit input with 8-bit sRGB output.
+  The shared helper was extended; the original quantizer/tile and VD-like OLED
+  options are unchanged. The earlier 50-file preservation requirement describes
+  the prior VD investigation, not this explicitly requested blue-noise extension.
+- Retained compact evidence and reproduction scripts in
+  `diagnostics/steamlink-background-blue-noise/`: 119 Kotlin tests, 16 native
+  double-based tests, 3 exact decoded audits, 13 Morphe fixture cases, diagnostic
+  GLSL and Release/API26 D8 checks passed. Normal Gradle remains blocked by
+  unresolved `app.morphe.patches:1.3.3`. No pristine APK, deployment or runtime
+  visual-quality result is claimed; 5001712 remains an analysis reconstruction.
+- Removed and verified **3,842 files / 2,281,534,590 bytes** from 11 explicit targets:
+  `build/background-blue-noise-{glsl,kotlin,morphe,native}`, the 2 task-specific
+  Zig caches, staging `dex.zip` and 4 staging catalogs. Resolved containment,
+  ancestor/descendant reparse checks and unchanged inventories passed before
+  native PowerShell removal. Exact paths and workspace/nested repository inventory
+  are in `diagnostics/steamlink-background-blue-noise/cleanup.json`.
+- Retained the current local validation MPP at
+  `build/background-blue-noise-package/patches/build/libs/patches-1.18.0-background-blue-noise-local.mpp`,
+  canonical source/payloads, exact decoded inputs/fixture APKs, SDKs, compilers and
+  tool dependencies. The pre-existing native test build and all earlier deferred
+  cleanup targets were outside this new allowlist and remain untouched by cleanup.
+  Inventory could not read unrelated `build/collector-safety-g4f21yh4`; it was
+  excluded and left untouched. No blanket build-tree removal was performed.
+- Regeneration commands are in the new diagnostic README. The retained local MPP
+  is a delivery artifact, not a published Gradle release or signed application.

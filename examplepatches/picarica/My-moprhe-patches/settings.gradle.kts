@@ -1,4 +1,4 @@
-rootProject.name = "affine-no-gms-patches"
+rootProject.name = "android-no-gms-patches"
 
 val localPatcher = file(".build-deps/morphe-patcher")
 if (localPatcher.exists()) {

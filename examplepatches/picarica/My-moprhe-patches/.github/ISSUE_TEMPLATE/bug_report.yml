@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a problem with one of the patches.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues before reporting a problem. Do not attach copyrighted APK files.
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      options:
+        - AFFiNE
+        - Stick War: Legacy
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Original app version and version code
+      placeholder: "For example: 2026.1.983 / 2026001983"
+    validations:
+      required: true
+  - type: input
+    id: manager
+    attributes:
+      label: Morphe Manager version
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem and reproduction steps
+      description: Describe what happened, what you expected, and the exact steps to reproduce it.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Patching report or logs
+      description: Remove private information before posting logs.
+      render: shell
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I used the exact original app version listed as supported.
+          required: true
+        - label: I searched open and closed issues and did not find a duplicate.
+          required: true
+        - label: I did not attach an APK, XAPK, keystore, or other copyrighted/private file.
+          required: true

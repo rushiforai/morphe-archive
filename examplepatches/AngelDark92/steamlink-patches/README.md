@@ -57,6 +57,14 @@ N.D.: Delete the depot folder every time you switch to a new depot or the .apk w
 
 See the [full patch list](TECHNICAL_REFERENCE.md#full-patch-list) before selecting patches manually. Do not assume another build is compatible because it has the same version name.
 
+Optional blue-noise dithering has 2 separate experimental patches:
+**Foveal blue-noise dithering (experimental)** affects only the foveal layer;
+**Background blue-noise dithering (experimental)** affects only the background/base
+layer. Select either or both. Each accepts declared 8-bit or 10-bit input and uses
+8-bit sRGB output. Both are off by default and are not included in recommended
+bundles. If also selecting OLED color calibration, leave both VD-like toggles off.
+Headset quality remains unverified; see the [layer options and validation](diagnostics/steamlink-background-blue-noise/README.md).
+
 ### Patches loaded by each bundle
 
 A bundle is a pure selector: selecting it loads exactly the patches listed below and performs no additional mutation of its own. Patch names match Morphe's patch list. A listed patch remains a no-op on a build where its own layout guard does not match.
@@ -64,40 +72,40 @@ A bundle is a pure selector: selecting it loads exactly the patches listed below
 **Galaxy XR recommended set (2.0.20/5001712)** — 17 patches:
 
 1. Android XR native permission names
-2. Force HMD initialization gates
-3. Force lobby permission-state gate
-4. Force stream XR gates
-5. GXR face bridge (version 5002318 and below)
-6. Galaxy XR high-resolution 3-projection fix
-7. Microphone input preset
-8. OLED color calibration
-9. Unrestricted battery usage
-10. Visual Delay Fix
-11. XR Core Runtime
-12. XR Device Config Baseline
-13. XR Input Routing Config
-14. Startup splash and XR launch mode (before 5002322)
-15. Startup permission requests (before 5002322)
-16. XR Manifest Capability Pack
-17. Device identity
+2. Device identity
+3. Force HMD initialization gates
+4. Force lobby permission-state gate
+5. Force stream XR gates
+6. GXR face bridge (version 5002318 and below)
+7. Galaxy XR high-resolution 3-projection fix
+8. Microphone input preset
+9. OLED color calibration
+10. Startup permission requests (before 5002322)
+11. Startup splash and XR launch mode (before 5002322)
+12. Unrestricted battery usage
+13. Visual Delay Fix
+14. XR Core Runtime
+15. XR Device Config Baseline
+16. XR Input Routing Config
+17. XR Manifest Capability Pack
 
 **Galaxy XR legacy foundation (through 2.0.22/5002244)** — 6 patches:
 
-1. Galaxy XR high-resolution 3-projection fix
-2. GXR tongue bridge (version 5002322 and above)
+1. GXR tongue bridge (version 5002322 and above)
+2. Galaxy XR high-resolution 3-projection fix
 3. Microphone input preset
-4. Unrestricted battery usage
-5. Visual Delay Fix
-6. OLED color calibration
+4. OLED color calibration
+5. Unrestricted battery usage
+6. Visual Delay Fix
 
 **Galaxy XR recommended set (2.0.23/5002363)** — 6 patches:
 
-1. Galaxy XR high-resolution 3-projection fix
-2. GXR tongue bridge (version 5002322 and above)
+1. GXR tongue bridge (version 5002322 and above)
+2. Galaxy XR high-resolution 3-projection fix
 3. Microphone input preset
-4. Unrestricted battery usage
-5. Visual Delay Fix
-6. OLED color calibration
+4. OLED color calibration
+5. Unrestricted battery usage
+6. Visual Delay Fix
 
 ## Optional: USB streaming setup
 

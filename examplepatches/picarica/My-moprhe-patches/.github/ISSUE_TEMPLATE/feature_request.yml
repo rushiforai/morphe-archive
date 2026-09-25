@@ -1,0 +1,39 @@
+name: Feature request
+description: Request a new patch or supported app version.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App and package name
+      placeholder: "For example: AFFiNE / app.affine.pro"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Requested version and version code
+    validations:
+      required: true
+  - type: textarea
+    id: feature
+    attributes:
+      label: Requested behavior
+      description: Explain the exact problem and why a patch is needed.
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Public source page
+      description: Link to a legal public app listing. Do not upload or attach the APK.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched open and closed requests and did not find a duplicate.
+          required: true
+        - label: I did not attach an APK, XAPK, keystore, or private file.
+          required: true

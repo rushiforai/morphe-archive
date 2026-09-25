@@ -12,6 +12,7 @@ internal object Constants {
     const val EXTENSION_FILE_PROVIDER_CLASS = "Lapp/lchanc3/extension/jptt/FileProviderAuthorityPatch;"
     const val EXTENSION_TERMINAL_ESCAPE_CLASS = "Lapp/lchanc3/extension/jptt/TerminalEscapePatch;"
     const val EXTENSION_SEARCH_HISTORY_CLASS = "Lapp/lchanc3/extension/jptt/SearchHistoryLayoutPatch;"
+    const val EXTENSION_SEARCH_HISTORY_ACTIONS_CLASS = "Lapp/lchanc3/extension/jptt/SearchHistoryActionsPatch;"
     const val EXTENSION_IMAGE_LINK_CLASS = "Lapp/lchanc3/extension/jptt/ImageLinkPatch;"
     const val EXTENSION_SETTINGS_TAB_CLASS = "Lapp/lchanc3/extension/jptt/SettingsTab;"
     const val EXTENSION_PATCH_SETTINGS_CLASS = "Lapp/lchanc3/extension/jptt/PatchSettings;"
@@ -22,6 +23,7 @@ internal object Constants {
     const val DB_HELPER_CLASS = "Lcom/joshua/jptt/DBHelper;"
     const val MAIN_ACTIVITY_CLASS = "Lcom/joshua/jptt/MainActivity;"
     const val SETTINGS_PAGER_ADAPTER_CLASS = "Lcom/joshua/jptt/SettingsPagerAdapter;"
+    const val SPLASH_ACTIVITY_CLASS = "Lcom/joshua/jptt/SplashActivity;"
     const val UTIL_CLASS = "Lcom/joshua/jptt/Util;"
     const val JSOCKET_SIMPLE_CLASS = "Lcom/joshua/jptt/JSocketSimple;"
 

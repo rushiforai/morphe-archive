@@ -61,13 +61,13 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
             // Nothing can be added to a screen with no manager, so leave the page
             // empty rather than take the app down with it.
             setPreferenceScreen(screen);
-            toast("設定頁打不開：這個 JPTT 版本的 androidx.preference 跟預期不同");
+            toast("此 JPTT 版本無法開啟設定頁");
             return;
         }
 
         java.util.List<PatchSettings.Setting> options = PatchSettings.registered();
         if (!options.isEmpty()) {
-            PreferenceCategory category = category(context, "Patch 選項");
+            PreferenceCategory category = category(context, "選項");
             screen.addPreference(category);
             for (PatchSettings.Setting setting : options) {
                 Preference preference = number(context, setting);
@@ -76,18 +76,18 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
             }
         }
 
-        PreferenceCategory backup = category(context, "設定備份");
+        PreferenceCategory backup = category(context, "備份");
         screen.addPreference(backup);
 
         backup.addPreference(action(context, "匯出設定",
-                "把目前所有設定存成一個 JSON 檔。不含帳號密碼，那些存在另一個檔案裡。",
+                "將所有設定匯出為 JSON 檔，不包含帳號密碼",
                 preference -> {
                     startExport();
                     return true;
                 }));
 
         backup.addPreference(action(context, "匯入設定",
-                "讀回之前匯出的檔案。檔案裡沒提到的設定會保持原樣，匯入後要重開 app 才會全部生效。",
+                "從匯出的檔案還原設定，重新啟動應用程式生效",
                 preference -> {
                     startImport();
                     return true;
@@ -165,7 +165,7 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
                         context,
                         SettingsBackup.read(context.getContentResolver().openInputStream(uri)));
                 refreshShownValues();
-                toast("已匯入 " + written + " 項設定，請重新啟動 JPTT");
+                toast("已匯入 " + written + " 項設定，重新啟動應用程式生效");
             }
         } catch (Throwable ex) {
             Log.e(JpttContext.LOG_TAG, "Settings backup failed", ex);
@@ -216,8 +216,8 @@ public final class PatchSettingsFragment extends PreferenceFragmentCompat {
 
     private static String summaryOf(PatchSettings.Setting setting) {
         return PatchSettings.value(setting.key)
-                + "　（預設 " + setting.defaultValue
-                + "，可填 " + setting.min + "–" + setting.max + "）\n"
+                + "（預設 " + setting.defaultValue
+                + "，範圍 " + setting.min + "–" + setting.max + "）\n"
                 + setting.summary;
     }
 

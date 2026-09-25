@@ -284,6 +284,9 @@ void reset() {
     std::strcpy(sl_blue_noise::configured_shader_hash, sl_blue_noise::sha256(foveal).c_str());
     std::strcpy(sl_blue_noise::stock_shader_hash, sl_blue_noise::sha256(stock).c_str());
     std::strcpy(sl_blue_noise::fovea_draw_return, "0000000000001234");
+    sl_blue_noise::background_shader_hash[0] = 0;
+    sl_blue_noise::background_stock_hash[0] = 0;
+    sl_blue_noise::background_draw_return[0] = 0;
 }
 EGLContext makeContext(EGLContext share = EGL_NO_CONTEXT) {
     auto context = gxdCreateContext(display, nullptr, share, nullptr);
@@ -294,13 +297,83 @@ void submit(GLuint shader, const std::string& source = foveal) {
     const char* text = source.c_str();
     gxShaderSource(shader, 1, &text, nullptr);
 }
-void prepare(GLuint program = 20, GLuint shader = 10) {
-    submit(shader); gxCompileShader(shader);
+void prepare(GLuint program = 20, GLuint shader = 10, const std::string& source = foveal) {
+    submit(shader, source); gxCompileShader(shader);
     fake::state.programs[program].shaders = {shader};
     gxLinkProgram(program);
     fake::glUseProgram(program);
 }
 void draw() { gxDrawArrays(GL_TRIANGLE_STRIP, 0, 4); }
+
+std::string backgroundSource() {
+    std::string source = foveal;
+    source.replace(source.find("color.a = 0.625;"), std::strlen("color.a = 0.625;"), "color.a = 1.0;");
+    return source;
+}
+void enableBackground() {
+    std::strcpy(sl_blue_noise::background_shader_hash, sl_blue_noise::sha256(backgroundSource()).c_str());
+    std::strcpy(sl_blue_noise::background_stock_hash, sl_blue_noise::sha256(backgroundSource() + "// stock\n").c_str());
+    std::strcpy(sl_blue_noise::background_draw_return, "0000000000005678");
+}
+void layerIsolationAndBoth() {
+    for (unsigned selection = 1; selection <= 3; ++selection) {
+        reset();
+        if (!(selection & 1)) {
+            sl_blue_noise::configured_shader_hash[0] = 0;
+            sl_blue_noise::stock_shader_hash[0] = 0;
+        }
+        if (selection & 2) enableBackground();
+        makeContext(); prepare(); prepare(21, 11, backgroundSource());
+        for (unsigned programLayer = 0; programLayer < 2; ++programLayer) {
+            fake::glUseProgram(20 + programLayer);
+            for (unsigned callerLayer = 0; callerLayer < 2; ++callerLayer) {
+                fake::state.callerOffset = callerLayer ? 0x5678 : 0x1234;
+                const bool expected = (selection & (1u << programLayer)) && programLayer == callerLayer;
+                const auto textures = fake::state.textureBindings;
+                const auto samplers = fake::state.samplers;
+                draw();
+                CHECK(fake::state.draws.back().enabled == int(expected));
+                CHECK(fake::state.draws.back().dither == !expected);
+                CHECK(fake::state.enabled.count(GL_DITHER) == 1);
+                CHECK(fake::state.textureBindings == textures && fake::state.samplers == samplers);
+            }
+        }
+        const auto& base = fake::state.shaders.at(11).source;
+        CHECK(base.find("color.a = 1.0;") != std::string::npos);
+        CHECK((base == backgroundSource()) == !(selection & 2));
+        CHECK((fake::state.shaders.at(10).source == foveal) == !(selection & 1));
+    }
+}
+void ambiguousLayerFallback() {
+    enableBackground();
+    std::string result;
+    CHECK(sl_blue_noise::rewrite(backgroundSource(), result) == sl_blue_noise::Layer::Background);
+    CHECK(sl_blue_noise::rewrite(backgroundSource() + "// stock\n", result) == sl_blue_noise::Layer::Background);
+    std::strcpy(sl_blue_noise::background_shader_hash, sl_blue_noise::sha256(foveal).c_str());
+    CHECK(sl_blue_noise::rewrite(foveal, result) == sl_blue_noise::Layer::None);
+    enableBackground(); makeContext();
+    submit(10); submit(11, backgroundSource()); gxCompileShader(10); gxCompileShader(11);
+    fake::state.programs[20].shaders = {10, 11};
+    gxLinkProgram(20);
+    CHECK(group()->programs.count(20) == 0);
+    CHECK(fake::state.shaders.at(10).source == foveal);
+    CHECK(fake::state.shaders.at(11).source == backgroundSource());
+}
+void backgroundFallback() {
+    for (unsigned failure = 0; failure < 4; ++failure) {
+        reset(); enableBackground(); makeContext();
+        fake::state.failModifiedCompile = failure == 0;
+        fake::state.failModifiedLink = failure == 1;
+        fake::state.failTexture = failure == 2;
+        prepare(21, 11, backgroundSource());
+        fake::state.callerOffset = 0x5678;
+        if (failure == 3) fake::glEnable(GL_FRAMEBUFFER_SRGB_EXT);
+        draw();
+        CHECK(fake::state.draws.back().enabled == 0);
+        CHECK(fake::state.enabled.count(GL_DITHER) == 1);
+        if (failure != 3) CHECK(fake::state.shaders.at(11).source == backgroundSource());
+    }
+}
 
 void hashes() {
     CHECK(sl_blue_noise::sha256("") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
@@ -528,6 +601,9 @@ int main() {
         {"deleted attached shader fallback", deletedAttachedShaderFallback}, {"reload and shader/program reuse", reloadAndIdReuse},
         {"context sharing/deferred destroy/reuse", contextShareAndReuse}, {"EGL failure/terminate lifecycle", contextFailureAndTerminate},
         {"disable switch on shader reload", propertyDisableOnShaderReload},
+        {"fovea/background/both exact draw isolation", layerIsolationAndBoth},
+        {"ambiguous hashes and mixed-layer link fallback", ambiguousLayerFallback},
+        {"background compile/link/resource/framebuffer fallback", backgroundFallback},
     };
     int failures = 0;
     for (const auto& test : tests) {

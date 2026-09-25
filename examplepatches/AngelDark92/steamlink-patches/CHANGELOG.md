@@ -1,3 +1,27 @@
+## [1.19.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.19.0...v1.19.1) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* Revise Galaxy XR patch lists in README.md ([80e217d](https://github.com/AngelDark92/steamlink-patches/commit/80e217d085605c83a6d1f2bbe6e97c322341a86c))
+
+## [1.19.1-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.19.0...v1.19.1-dev.1) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* Revise Galaxy XR patch lists in README.md ([80e217d](https://github.com/AngelDark92/steamlink-patches/commit/80e217d085605c83a6d1f2bbe6e97c322341a86c))
+
+## [1.19.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.18.0...v1.19.0) (2026-09-25)
+
+### ✨ New Features
+
+* new patch for background blue noise dithering both 10 and 8 bit ([190b8ae](https://github.com/AngelDark92/steamlink-patches/commit/190b8ae102c5743d13c728427f2e961c2742b395))
+
+## [1.19.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.18.0...v1.19.0-dev.1) (2026-09-25)
+
+### ✨ New Features
+
+* new patch for background blue noise dithering both 10 and 8 bit ([190b8ae](https://github.com/AngelDark92/steamlink-patches/commit/190b8ae102c5743d13c728427f2e961c2742b395))
+
 ## [1.18.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.17.0...v1.18.0) (2026-09-22)
 
 ### 🐛 Bug Fixes

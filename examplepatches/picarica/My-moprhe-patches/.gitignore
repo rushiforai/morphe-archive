@@ -2,6 +2,12 @@
 .gradle/
 **/build/
 local.properties
+node_modules/
+.idea/
+.vscode/
+*.iml
+*.log
+hs_err_pid*
 *.jks
 *.keystore
 *.p12

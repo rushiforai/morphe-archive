@@ -12,6 +12,9 @@ dependencies {
     // screens already use.
     compileOnly("androidx.preference:preference:1.2.1")
     compileOnly("androidx.fragment:fragment:1.8.5")
+    // The search history menu uses the same AlertDialog as the app, so it looks
+    // the same as the one the 最近搜尋 tab opens. JPTT ships appcompat 1.7.1.
+    compileOnly("androidx.appcompat:appcompat:1.7.1")
 }
 
 configure<ApplicationExtension> {

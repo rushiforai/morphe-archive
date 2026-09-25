@@ -63,6 +63,7 @@ A newer clear replaced that undo. Tap the row again to undo.	Daha yeni bir temiz
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Akıştaki küçük bir etiket, bugünkü bütçenden kalan dakikayı veya video sayısını gösterir, hangisi bitmeye daha yakınsa onu.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Senin İçin açıkken Ana Sayfa'ya ya da Senin İçin sekmesine dokunmak artık akışı yenilemez. İzlediğin video yerinde kalır.
 A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.	Şuraya gönder satırındaki bir kişiye dokunmak onu yalnızca seçer. Aynı kişiye %1$d saniye içinde ikinci kez dokunmak videoyu gönderir.
+A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.	Duraklattığın bir video, uygulamaya döndüğünde yeniden başlamak yerine duraklatılmış kalır. Oynarken bıraktığın bir video her zamanki gibi başlar. Android 10 ve sonrasında çalışır.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Birinin yoruma bıraktığı web adresine, elle kopyalamak yerine dokunulabilir. Yorumun başka bir yerine dokunmak yine eskiden ne yapıyorsa onu yapar.
 AI-generated posts	Yapay zeka ile üretilmiş gönderiler
 About	Hakkında
@@ -411,6 +412,8 @@ Hide bottom tabs TikTok adds later unless you allow them.	TikTok'un sonradan ekl
 Hide the CAPTCHA dialogs raised while you browse or watch LIVE. Login, account verification and any CAPTCHA raised over a follow, like, comment or repost stay visible.	Gezinirken veya CANLI izlerken çıkan CAPTCHA pencerelerini gizle. Giriş, hesap doğrulama ve bir takip, beğeni, yorum veya yeniden yayınlama yüzünden çıkan CAPTCHA'lar görünür kalır.
 Hide buttons in the right column	Sağ sütundaki düğmeleri gizle
 Hide comment polls	Yorum anketlerini gizle
+Show poll results before voting	Oylamadan önce anket sonuçlarını göster
+A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.	Yorum anketi, sen oy vermeden önce her cevabı kaç kişinin seçtiğini gösterir. Bir cevaba dokunmak yine oy verir.
 Hide comment popup ads	Yorumlardaki açılır reklamları gizle
 Hide comments made of an image or a sticker instead of words.	Kelimeler yerine bir görselden veya çıkartmadan oluşan yorumları gizle.
 Hide comments that contain any of the words below, or that come from the accounts below.	Aşağıdaki kelimelerden herhangi birini içeren veya aşağıdaki hesaplardan gelen yorumları gizle.
@@ -530,6 +533,7 @@ Includes all diagnostic events.	Tüm tanılama olaylarını içerir.
 Includes these events: %1$s	Şu olayları içerir: %1$s
 Inserted cards	Araya eklenen kartlar
 Keep a local record of what you have watched and hide those videos when the feed sends them again.	İzlediklerinin yerel bir kaydını tut ve akış o videoları yeniden gönderdiğinde onları gizle.
+Keep a paused video paused	Duraklatılan videoyu duraklatılmış tut
 Keep captions in clear display	Temiz ekranda altyazıları koru
 Keep going	Devam et
 Keep the Favorites tab	Favoriler sekmesini koru
@@ -575,6 +579,12 @@ Location-tagged videos	Konum etiketli videolar
 Lock today's budget	Bugünün bütçesini kilitle
 Logging, hook status and reports	Günlük kaydı, kanca durumu ve raporlar
 Long press	Uzun basma
+Hold speed on Comment	Yorumlar'da basılı tutma hızı
+A long press on Comment plays the video at the hold speed instead of opening the emoji row. It needs Long press on TikTok default and Seek from the edges off.	Yorumlar'a uzun basmak emoji satırını açmak yerine videoyu basılı tutma hızında oynatır. Uzun basma TikTok varsayılanında ve Kenarlardan sar kapalı olmalıdır.
+Hold speed on Share	Paylaş'ta basılı tutma hızı
+A long press on Share plays the video at the hold speed instead of opening the quick share row. It needs Long press on TikTok default and Seek from the edges off.	Paylaş'a uzun basmak hızlı paylaşım satırını açmak yerine videoyu basılı tutma hızında oynatır. Uzun basma TikTok varsayılanında ve Kenarlardan sar kapalı olmalıdır.
+Hold speed on Favorites	Favoriler'de basılı tutma hızı
+A long press on Favorites plays the video at the hold speed instead of offering a new collection. It needs Long press on TikTok default and Seek from the edges off.	Favoriler'e uzun basmak yeni bir koleksiyon önermek yerine videoyu basılı tutma hızında oynatır. Uzun basma TikTok varsayılanında ve Kenarlardan sar kapalı olmalıdır.
 Lowest	En düşük
 Make TikTok yours.	TikTok'u kendine göre ayarla.
 Manager	Manager
@@ -682,6 +692,7 @@ Open the feed once so Hushfeed can see which bottom tabs TikTok loaded.	Hushfeed
 Open the feed once so Hushfeed can see which tabs TikTok loaded.	Hushfeed'in TikTok'un hangi sekmeleri yüklediğini görebilmesi için akışı bir kez aç.
 Open the profile again and try once more	Profili yeniden aç ve bir kez daha dene
 Open the story again and try once more	Hikayeyi yeniden aç ve bir kez daha dene
+Open TikTok on	TikTok'u şu sayfada aç
 Opens github.com in your browser	github.com adresini tarayıcında açar
 Operator code	Operatör kodu
 Operator name	Operatör adı
@@ -874,6 +885,7 @@ Show failures on screen	Hataları ekranda göster
 Show gates	Özellik kapılarını göster
 Show last report	Son raporu göster
 Show search in LIVE	CANLI'da aramayı göster
+Show TikTok's feed buttons	TikTok'un akış düğmelerini göster
 Show the Not interested button	İlgilenmiyorum düğmesini göster
 Show the block button on videos	Videolarda engelle düğmesini göster
 Show the block sound button	Sesi engelle düğmesini göster
@@ -1050,6 +1062,7 @@ TikTok read it	TikTok bunu okudu
 TikTok read it, but the override couldn't be applied. Reset it and save it again.	TikTok bunu okudu ama geçersiz kılma uygulanamadı. Sıfırla ve yeniden kaydet.
 TikTok refused the follow: %1$s	TikTok takibi reddetti: %1$s
 TikTok's own value	TikTok'un kendi değeri
+TikTok's play and pause button and its previous and next buttons appear on the feed. TikTok otherwise shows them only to people who use a screen reader. TikTok's analytics note the row and each press on it.	TikTok'un oynat ve duraklat düğmesi ile önceki ve sonraki düğmeleri akışta görünür. Aksi halde TikTok bunları yalnızca ekran okuyucu kullananlara gösterir. TikTok'un analizleri satırı ve üzerindeki her dokunuşu kaydeder.
 TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	TikTok'un sunucusu, bir hesabı profilindeki Favoriler sekmesini boşaltan bir deneye sokabilir. Sekmeyi ve kayıtlı videolarını koru.
 TikTok's size	TikTok'un boyutu
 Times you can open the feed anyway	Akışı yine de açabileceğin sefer sayısı

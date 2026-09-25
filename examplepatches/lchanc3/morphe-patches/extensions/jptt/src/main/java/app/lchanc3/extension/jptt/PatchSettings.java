@@ -55,28 +55,27 @@ public final class PatchSettings {
     /** Called from the patched JpttApplication.onCreate(). */
     public static void registerImageCacheSize(int defaultMb) {
         register(KEY_IMAGE_CACHE_MB, "圖片快取上限 (MB)",
-                "看過的圖片留在磁碟上的最大容量，捲回去就不用重新下載。改完要重開 app 才生效。",
+                "圖片快取存在手機裡的容量，重新啟動應用程式生效",
                 defaultMb, 40, 8192);
     }
 
     /** Called from the patched JpttApplication.onCreate(). */
     public static void registerPreload(int defaultLimit, int defaultConcurrency) {
-        register(KEY_PRELOAD_LIMIT, "每篇文章預載張數",
-                "開啟文章時先下載幾張圖。超過的照舊等捲到才載。",
+        register(KEY_PRELOAD_LIMIT, "預載圖片張數",
+                "開啟文章時預先下載的圖片數量",
                 defaultLimit, 5, 300);
-        register(KEY_PRELOAD_CONCURRENCY, "同時預載張數",
-                "一次平行下載幾張。Fresco 會把下載中的整張圖放在記憶體裡，調高會拉高尖峰用量；"
-                        + "圖多的文章會被系統殺掉的話就調低。",
+        register(KEY_PRELOAD_CONCURRENCY, "同時下載張數",
+                "同時下載的圖片數量，數值越高載入越快，但記憶體用量越大，若發生閃退請調低",
                 defaultConcurrency, 1, 8);
     }
 
     /** Called from the patched JpttApplication.onCreate(). */
     public static void registerRecentSearches(int defaultBoardCount, int defaultAllCount) {
-        register(KEY_BOARD_KEYWORDS, "最近看板搜尋筆數",
-                "搜尋對話框裡「這個看板」的關鍵字要記幾筆。JPTT 原本是 5 筆。",
+        register(KEY_BOARD_KEYWORDS, "看板搜尋紀錄",
+                "「這個看板」保留的搜尋紀錄筆數，預設為 5 筆",
                 defaultBoardCount, 1, 50);
-        register(KEY_ALL_KEYWORDS, "最近搜尋筆數",
-                "搜尋對話框裡「所有看板」的關鍵字要記幾筆。JPTT 原本是 15 筆。",
+        register(KEY_ALL_KEYWORDS, "全站搜尋紀錄",
+                "「所有看板」保留的搜尋紀錄筆數，預設為 15 筆",
                 defaultAllCount, 1, 100);
     }
 

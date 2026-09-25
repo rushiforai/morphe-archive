@@ -1,0 +1,10 @@
+{
+  "archive": "build/background-blue-noise-package/patches/build/libs/patches-1.18.0-background-blue-noise-local.mpp",
+  "sha256": "fdb7daf9608ba3d5f074aa1551bbf193177b440f8255d373ea4cb7681a8ddf34",
+  "entries": 170,
+  "dex": [
+    "classes.dex"
+  ],
+  "payload_sha256": "5c30791621cc94a3f2f358e9b98e8029bc0765c1a0d44f6d1bc4690b2f45e858",
+  "boundary": "Cached current compile plus Release/API26 D8; not Gradle release or headset validation."
+}

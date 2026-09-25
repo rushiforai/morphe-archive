@@ -45,8 +45,15 @@ struct Api {
 };
 Api& api() { static Api value; return value; }
 void note(const char* text) { __android_log_write(ANDROID_LOG_INFO, "SLBlueNoise", text); }
-struct Shader { std::string original; bool modified = false; };
-struct Program { bool warned = false; };
+struct Shader {
+    std::string original;
+    bool modified = false;
+    sl_blue_noise::Layer layer = sl_blue_noise::Layer::None;
+};
+struct Program {
+    sl_blue_noise::Layer layer = sl_blue_noise::Layer::None;
+    bool warned = false;
+};
 struct Group {
     std::map<GLuint, Shader> shaders;
     std::map<GLuint, Program> programs;
@@ -81,6 +88,7 @@ void original(GLuint id, Shader& shader) {
     a.glShaderSource(id, 1, &text, &length);
     a.glCompileShader(id);
     shader.modified = false;
+    shader.layer = sl_blue_noise::Layer::None;
 }
 void reap(Group& g) {
     for (auto it = g.shaders.begin(); it != g.shaders.end();)
@@ -156,13 +164,17 @@ bool uniformContract(GLuint program) {
     }
     return samplers == 2;
 }
-bool fovealCaller(void* caller) {
+bool layerCaller(void* caller, sl_blue_noise::Layer layer) {
+    const char* configuredReturn = nullptr;
+    if (layer == sl_blue_noise::Layer::Fovea) configuredReturn = sl_blue_noise::fovea_draw_return;
+    else if (layer == sl_blue_noise::Layer::Background) configuredReturn = sl_blue_noise::background_draw_return;
+    else return false;
     Dl_info info{};
     if (!dladdr(caller,&info) || !info.dli_fname || !info.dli_fbase) return false;
     const char* name=std::strrchr(info.dli_fname,'/'); name=name?name+1:info.dli_fname;
     char* end=nullptr;
-    const auto expected=std::strtoull(sl_blue_noise::fovea_draw_return,&end,16);
-    return end==sl_blue_noise::fovea_draw_return+16 && expected!=0 &&
+    const auto expected=std::strtoull(configuredReturn,&end,16);
+    return end==configuredReturn+16 && expected!=0 &&
         std::strcmp(name,"libvrlink_scene.so")==0 &&
         reinterpret_cast<uintptr_t>(caller)-reinterpret_cast<uintptr_t>(info.dli_fbase)==expected;
 }
@@ -197,15 +209,18 @@ EXPORT void gxShaderSource(GLuint shader, GLsizei count, const GLchar* const* st
         source.append(strings[i],n);
     }
     std::string rewritten;
-    if (!sl_blue_noise::rewrite(source,rewritten) || !extension("GL_EXT_sRGB_write_control")) {
+    const auto layer=sl_blue_noise::rewrite(source,rewritten);
+    if (layer == sl_blue_noise::Layer::None || !extension("GL_EXT_sRGB_write_control")) {
         if (source.find("samplerExternalOES") != std::string::npos && g->unknown.size()<32 && g->unknown.insert(sl_blue_noise::sha256(source)).second)
-            note("Video source left unchanged (base/unknown source or missing sRGB write control).");
+            note("Video source left unchanged (unselected/unknown source or missing sRGB write control).");
         a.glShaderSource(shader,count,strings,lengths); return;
     }
     const char* data=rewritten.c_str(); GLint size=static_cast<GLint>(rewritten.size());
     a.glShaderSource(shader,1,&data,&size);
-    g->shaders.emplace(shader,Shader{std::move(source),true});
-    note("Recognized foveal shader: static blue-noise sRGB8 quantization prepared.");
+    g->shaders.emplace(shader,Shader{std::move(source),true,layer});
+    note(layer == sl_blue_noise::Layer::Fovea
+        ? "Recognized foveal shader: static blue-noise sRGB8 quantization prepared."
+        : "Recognized background shader: static blue-noise sRGB8 quantization prepared.");
 }
 EXPORT void gxCompileShader(GLuint shader) {
     auto& a=api(); std::lock_guard<std::mutex> lock(mutex); a.glCompileShader(shader);
@@ -221,16 +236,25 @@ EXPORT void gxLinkProgram(GLuint program) {
     GLint count{}; a.glGetProgramiv(program,GL_ATTACHED_SHADERS,&count);
     std::vector<GLuint> shaders(std::max(0,count)); GLsizei actual{};
     if (count) a.glGetAttachedShaders(program,count,&actual,shaders.data());
-    bool modified=false;
+    bool modified=false, mixedLayers=false;
+    auto layer=sl_blue_noise::Layer::None;
     for (GLsizei i=0; i<actual; ++i) {
-        auto it=g->shaders.find(shaders[i]); modified |= it!=g->shaders.end() && it->second.modified;
+        auto it=g->shaders.find(shaders[i]);
+        if (it!=g->shaders.end() && it->second.modified) {
+            modified=true;
+            if (layer != sl_blue_noise::Layer::None && layer != it->second.layer) mixedLayers=true;
+            layer=it->second.layer;
+        }
     }
     a.glLinkProgram(program); if (!modified) return;
     GLint ok{}; a.glGetProgramiv(program,GL_LINK_STATUS,&ok);
-    if (ok && uniformContract(program) && texture(*g)) {
+    if (ok && !mixedLayers && layer != sl_blue_noise::Layer::None && uniformContract(program) && texture(*g)) {
         GLint previous{}; a.glGetIntegerv(GL_CURRENT_PROGRAM,&previous);
         a.glUseProgram(program); a.glUniform1i(14,1); a.glUniform1i(15,0); a.glUseProgram(previous);
-        g->programs.emplace(program,Program{}); note("Foveal blue-noise program linked; guarded per-draw enable active."); return;
+        g->programs.emplace(program,Program{layer,false});
+        note(layer == sl_blue_noise::Layer::Fovea
+            ? "Foveal blue-noise program linked; guarded per-draw enable active."
+            : "Background blue-noise program linked; guarded per-draw enable active."); return;
     }
     for (GLsizei i=0; i<actual; ++i) {
         auto it=g->shaders.find(shaders[i]); if (it!=g->shaders.end() && it->second.modified) original(shaders[i],it->second);
@@ -255,9 +279,9 @@ EXPORT void gxDrawArrays(GLenum mode, GLint first, GLsizei count) {
     a.glGetUniformiv(id,a.glGetUniformLocation(id,"tex0"),&videoUnit);
     GLint unit=units-1; if (unit==videoUnit) --unit;
     if (unit>=0) a.glUniform1i(14,unit);
-    if (unit<0 || !fovealCaller(caller) || !targetFramebuffer() || !g->texture || !a.glIsTexture(g->texture)) {
+    if (unit<0 || !layerCaller(caller,it->second.layer) || !targetFramebuffer() || !g->texture || !a.glIsTexture(g->texture)) {
         a.glUniform1i(15,0); a.glDrawArrays(mode,first,count);
-        if (!it->second.warned) { note("Foveal draw left undithered: framebuffer/resource precondition failed."); it->second.warned=true; }
+        if (!it->second.warned) { note("Video draw left undithered: layer/framebuffer/resource precondition failed."); it->second.warned=true; }
         return;
     }
     TextureState state(unit); a.glBindTexture(GL_TEXTURE_2D,g->texture);

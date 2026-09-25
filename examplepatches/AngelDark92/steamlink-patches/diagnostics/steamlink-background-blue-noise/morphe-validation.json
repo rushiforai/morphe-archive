@@ -1,0 +1,83 @@
+{
+  "cases": [
+    {
+      "case": "5001712-8-bit-background",
+      "exit_code": 0,
+      "oled": false,
+      "order": "blue-first"
+    },
+    {
+      "case": "5001712-10-bit-background",
+      "exit_code": 0,
+      "oled": true,
+      "order": "oled-first"
+    },
+    {
+      "case": "5001712-10-bit-both-fovea-first",
+      "exit_code": 0,
+      "oled": false,
+      "order": "blue-first"
+    },
+    {
+      "case": "5001712-8-bit-both-background-first",
+      "exit_code": 0,
+      "oled": true,
+      "order": "blue-first"
+    },
+    {
+      "case": "5002244-8-bit-background",
+      "exit_code": 0,
+      "oled": false,
+      "order": "blue-first"
+    },
+    {
+      "case": "5002244-10-bit-background",
+      "exit_code": 0,
+      "oled": true,
+      "order": "oled-first"
+    },
+    {
+      "case": "5002244-10-bit-both-fovea-first",
+      "exit_code": 0,
+      "oled": false,
+      "order": "blue-first"
+    },
+    {
+      "case": "5002244-8-bit-both-background-first",
+      "exit_code": 0,
+      "oled": true,
+      "order": "blue-first"
+    },
+    {
+      "case": "5002363-8-bit-background",
+      "exit_code": 0,
+      "oled": false,
+      "order": "blue-first"
+    },
+    {
+      "case": "5002363-10-bit-background",
+      "exit_code": 0,
+      "oled": true,
+      "order": "oled-first"
+    },
+    {
+      "case": "5002363-10-bit-both-fovea-first",
+      "exit_code": 0,
+      "oled": false,
+      "order": "blue-first"
+    },
+    {
+      "case": "5002363-8-bit-both-background-first",
+      "exit_code": 0,
+      "oled": true,
+      "order": "blue-first"
+    },
+    {
+      "case": "5002363-10-bit-fovea",
+      "exit_code": 0,
+      "oled": false,
+      "order": "blue-first"
+    }
+  ],
+  "boundary": "Actual Morphe fixture APK patching; not pristine APK, installation or runtime proof."
+}

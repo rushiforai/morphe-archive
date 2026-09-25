@@ -31,7 +31,7 @@ val increaseImageCacheSizePatch = bytecodePatch(
         step = 8,
         title = "Image cache size (MB)",
         description = "Starting value for the maximum disk space the image cache may " +
-            "use. Changeable in the app afterwards, under Settings > lchanc3.",
+            "use. Changeable in the app afterwards, under Settings > Morphe.",
     )
 
     execute {

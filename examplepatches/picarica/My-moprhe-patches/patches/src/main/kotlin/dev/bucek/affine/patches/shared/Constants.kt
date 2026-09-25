@@ -6,13 +6,17 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.SupportedAbi
 
 object Constants {
-    const val PACKAGE_NAME = "app.affine.pro"
-    const val VERSION_NAME = "0.27.4"
-    const val VERSION_CODE = 439
+    const val AFFINE_PACKAGE_NAME = "app.affine.pro"
+    const val AFFINE_VERSION_NAME = "0.27.4"
+    const val AFFINE_VERSION_CODE = 439
+
+    const val STICK_WAR_PACKAGE_NAME = "com.maxgames.stickwarlegacy"
+    const val STICK_WAR_VERSION_NAME = "2026.1.983"
+    const val STICK_WAR_VERSION_CODE = 2026001983
 
     val COMPATIBILITY_AFFINE = Compatibility(
         name = "AFFiNE",
-        packageName = PACKAGE_NAME,
+        packageName = AFFINE_PACKAGE_NAME,
         description = "The official Google Play XAPK for AFFiNE 0.27.4 (arm64-v8a).",
         apkFileType = ApkFileType.XAPK_REQUIRED,
         appIconColor = 0x1E96EB,
@@ -24,9 +28,27 @@ object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = VERSION_NAME,
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to VERSION_CODE),
+                version = AFFINE_VERSION_NAME,
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to AFFINE_VERSION_CODE),
                 description = "Google Play release 439; requires its arm64-v8a split.",
+            ),
+        ),
+    )
+
+    val COMPATIBILITY_STICK_WAR = Compatibility(
+        name = "Stick War: Legacy",
+        packageName = STICK_WAR_PACKAGE_NAME,
+        description = "The official Google Play XAPK for Stick War: Legacy 2026.1.983 (arm64-v8a).",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x9A6A38,
+        signatures = setOf(
+            "59bc9becd6fa02f2ff43c6d31aacc93246d8b63e7973494198f15f99e3988666",
+        ),
+        targets = listOf(
+            AppTarget(
+                version = STICK_WAR_VERSION_NAME,
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to STICK_WAR_VERSION_CODE),
+                description = "Google Play release 2026001983; requires its ARM64 and Unity asset-pack splits.",
             ),
         ),
     )

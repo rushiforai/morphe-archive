@@ -1,7 +1,9 @@
 name: Release
 
 # Run manually from the Actions tab: pick a version, get a release Morphe
-# Manager can consume as a patch source.
+# Manager can consume as a patch source. What changed is written from the
+# commits since the previous release, into the release's notes and into
+# CHANGELOG.md, which is where Manager reads it from.
 on:
   workflow_dispatch:
     inputs:
@@ -22,6 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # The whole history and its tags, so the release notes can list the
+          # commits since the previous release.
+          fetch-depth: 0
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -38,9 +44,13 @@ jobs:
           chmod +x gradlew
           ./gradlew buildAndroid generatePatchesList -Pversion="$VERSION" --no-daemon --console=plain
 
+      # Before the release commit below, so that commit is not in its own notes.
+      - name: Write the release notes
+        run: python3 .github/scripts/release_notes.py > "$RUNNER_TEMP/notes.md"
+
       # Morphe Manager reads these two files straight from the repo to show the
       # bundle and its patches before downloading anything.
-      - name: Update bundle metadata and README
+      - name: Update bundle metadata, README and CHANGELOG
         env:
           VERSION: ${{ inputs.version }}
         run: |
@@ -49,6 +59,9 @@ jobs:
 
           # The patches list in README.md is generated from patches-list.json.
           python3 .github/scripts/generate_patches_readme.py
+
+          # Manager shows a bundle's changes from CHANGELOG.md, never from a release.
+          python3 .github/scripts/release_notes.py --changelog "$VERSION"
 
           DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/patches-${VERSION}.mpp"
           jq --arg version "$VERSION" \
@@ -60,7 +73,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add patches-bundle.json patches-list.json README.md
+          git add patches-bundle.json patches-list.json README.md CHANGELOG.md
           git commit -m "chore: release v${VERSION} [skip ci]"
           git push
 
@@ -72,4 +85,4 @@ jobs:
           gh release create "v${VERSION}" \
             "patches/build/libs/patches-${VERSION}.mpp" \
             --title "v${VERSION}" \
-            --notes "JPTT patches v${VERSION}. Add as a patch source in Morphe Manager."
+            --notes-file "$RUNNER_TEMP/notes.md"

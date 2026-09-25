@@ -513,7 +513,30 @@ VD-like toggles off**; the blue-noise finalizer validates and hashes the final c
 prefix. Other/previously dithered prefixes are rejected to avoid stacking dithers.
 This is an independent blue-noise implementation, not a copy of VD's algorithm.
 
-See the [implementation, reproducible checks and remaining runtime gaps](diagnostics/steamlink-blue-noise-ditering/README.md).
+See the [original algorithm](diagnostics/steamlink-blue-noise-ditering/README.md) and
+[current layer selection and validation](diagnostics/steamlink-background-blue-noise/README.md).
+
+### Background blue-noise dithering (`backgroundBlueNoisePatch`, experimental)
+
+**Separate patch; background/base layer only; default off; excluded from recommendation
+bundles and the stable catalog.** Exact bases and options match the foveal patch:
+**2.0.20/5001712**, **2.0.22/5002244**, **2.0.23/5002363**; `inputDepth` defaults to
+`10-bit` and also accepts `8-bit`. Output is always 8-bit sRGB.
+
+Uses the same static 128×128 tile and final quantizer after colour processing/fade,
+preserving opaque alpha. Background means the complete base projection, including
+the part underneath the foveal overlay. Only the exact opaque shader and background
+draw caller are eligible; the foveal program is not dithered by this selection.
+
+Select this patch alone, the foveal patch alone, or both. The shared helper merges
+both configurations independently of selection order, and each program remains
+restricted to its own layer's draw. The existing framebuffer, unknown-shader,
+compile/link/resource fallback, GL-state restoration and OLED compatibility rules
+apply to both. Headset rendering and visual quality remain unverified.
+
+When changing a Morphe selection, start from the original APK. Deselecting a patch
+does not undo modifications already embedded in a previously patched APK. Bundled
+helpers from the older fovea-only implementation are rejected rather than overwritten.
 
 ---
 

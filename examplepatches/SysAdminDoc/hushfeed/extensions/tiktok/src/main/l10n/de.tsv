@@ -66,6 +66,7 @@ A newer clear replaced that undo. Tap the row again to undo.	Ein neueres Lösche
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Ein kleines Label im Feed zeigt die verbleibenden Minuten oder Videos des heutigen Budgets.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Ein Tippen auf Startseite oder auf den Tab „Für dich“, während „Für dich“ angezeigt wird, lädt den Feed nicht mehr neu. Das aktuelle Video bleibt.
 A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.	Ein Tippen auf eine Person in der Zeile „Senden an“ wählt sie nur aus. Ein zweites Tippen auf dieselbe Person innerhalb von %1$d Sekunden sendet das Video.
+A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.	Ein Video, das du pausiert hast, bleibt pausiert, wenn du zur App zurückkehrst, statt wieder zu starten. Eines, das lief, startet wie gewohnt. Das funktioniert ab Android 10.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Eine Webadresse in einem Kommentar lässt sich antippen, statt sie von Hand herauszukopieren. Ein Tippen an anderer Stelle im Kommentar tut weiterhin das, was es vorher tat.
 AI-generated posts	KI-generierte Beiträge
 About	Info
@@ -398,6 +399,8 @@ Hide bottom tabs TikTok adds later unless you allow them.	Untere Tabs ausblenden
 Hide the CAPTCHA dialogs raised while you browse or watch LIVE. Login, account verification and any CAPTCHA raised over a follow, like, comment or repost stay visible.	CAPTCHA-Dialoge ausblenden, die beim Stöbern oder in LIVE kommen. Anmeldung, Kontobestätigung und jedes CAPTCHA, das bei Folgen, Liken, Kommentieren oder Reposten kommt, bleiben sichtbar.
 Hide buttons in the right column	Schaltflächen in der rechten Spalte ausblenden
 Hide comment polls	Kommentarumfragen ausblenden
+Show poll results before voting	Umfrageergebnisse vor dem Abstimmen zeigen
+A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.	Eine Kommentarumfrage zeigt schon vor deiner Stimme, wie viele welche Antwort gewählt haben. Ein Tipp auf eine Antwort stimmt weiterhin ab.
 Hide comment popup ads	Werbe-Popups in Kommentaren ausblenden
 Hide comments made of an image or a sticker instead of words.	Kommentare ausblenden, die aus einem Bild oder Sticker statt aus Worten bestehen.
 Hide comments that contain any of the words below, or that come from the accounts below.	Kommentare ausblenden, die eines der Wörter unten enthalten oder von den Konten unten stammen.
@@ -506,6 +509,7 @@ Includes all diagnostic events.	Enthält alle Diagnoseereignisse.
 Includes these events: %1$s	Enthält diese Ereignisse: %1$s
 Inserted cards	Eingefügte Karten
 Keep a local record of what you have watched and hide those videos when the feed sends them again.	Lokal festhalten, was du gesehen hast, und diese Videos ausblenden, wenn der Feed sie noch einmal schickt.
+Keep a paused video paused	Pausiertes Video pausiert lassen
 Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this.	Zum nächsten Video wechseln, wenn das aktuelle endet. Pausen, offene Dialoge und Bildschirmzeit-Sperren halten dies an. Starte TikTok nach einer Änderung neu.
 Keep captions in clear display	Untertitel in der freien Ansicht behalten
 Keep going	Weitermachen
@@ -552,6 +556,12 @@ Creators hidden on this phone	Auf diesem Gerät ausgeblendete Creator
 Lock today's budget	Heutiges Budget sperren
 Logging, hook status and reports	Protokolle, Hook-Status und Berichte
 Long press	Langes Drücken
+Hold speed on Comment	Halte-Geschwindigkeit auf Kommentare
+A long press on Comment plays the video at the hold speed instead of opening the emoji row. It needs Long press on TikTok default and Seek from the edges off.	Langes Drücken auf Kommentare spielt das Video mit der Halte-Geschwindigkeit ab, statt die Emoji-Leiste zu öffnen. Dafür muss Langes Drücken auf TikTok-Standard stehen und Von den Rändern springen aus sein.
+Hold speed on Share	Halte-Geschwindigkeit auf Teilen
+A long press on Share plays the video at the hold speed instead of opening the quick share row. It needs Long press on TikTok default and Seek from the edges off.	Langes Drücken auf Teilen spielt das Video mit der Halte-Geschwindigkeit ab, statt die Schnell-Teilen-Leiste zu öffnen. Dafür muss Langes Drücken auf TikTok-Standard stehen und Von den Rändern springen aus sein.
+Hold speed on Favorites	Halte-Geschwindigkeit auf Favoriten
+A long press on Favorites plays the video at the hold speed instead of offering a new collection. It needs Long press on TikTok default and Seek from the edges off.	Langes Drücken auf Favoriten spielt das Video mit der Halte-Geschwindigkeit ab, statt eine neue Sammlung anzubieten. Dafür muss Langes Drücken auf TikTok-Standard stehen und Von den Rändern springen aus sein.
 Lowest	Niedrigste
 Make TikTok yours.	Mach TikTok zu deinem TikTok.
 Manager	Manager
@@ -655,6 +665,7 @@ Open the feed once so Hushfeed can see which bottom tabs TikTok loaded.	Öffne d
 Open the feed once so Hushfeed can see which tabs TikTok loaded.	Öffne den TikTok-Startfeed, damit geladene Tabs erkannt werden.
 Open the profile again and try once more	Öffne das Profil erneut und versuche es noch einmal
 Open the story again and try once more	Öffne die Story erneut und versuche es noch einmal
+Open TikTok on	TikTok öffnen mit
 Opens github.com in your browser	Öffnet github.com in deinem Browser
 Operator code	Netzbetreibercode
 Operator name	Name des Netzbetreibers
@@ -839,6 +850,7 @@ Shop posts	Shop-Beiträge
 Show	Anzeigen
 Show @username beside a video instead of the display name the creator chose.	Zeigt @Benutzername neben einem Video statt des Anzeigenamens, den die Person gewählt hat.
 Show search in LIVE	Suche in LIVE anzeigen
+Show TikTok's feed buttons	TikToks Feed-Tasten anzeigen
 Show TikTok's own progress bar on videos where it is normally hidden.	TikToks eigene Fortschrittsleiste bei Videos zeigen, wo sie sonst versteckt ist.
 Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.	TikToks eigenes Sortiermenü bei jedem Beitrag zeigen, mit Beliebt, Neueste, Medien und Ersteller, statt der gekürzten Zeile, die dein Konto bekommen hat. TikTok neu starten, damit das gilt. Es liest den Stil einmal pro Start und merkt ihn sich.
 Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.	Zeige die Suchfunktion im LIVE-Seitenmenü von TikTok an, sofern verfügbar. Dadurch wird kein Suchfeld zu Videokommentaren hinzugefügt.
@@ -1017,6 +1029,7 @@ TikTok read it	TikTok hat ihn gelesen
 TikTok read it, but the override couldn't be applied. Reset it and save it again.	TikTok hat sie gelesen, aber die Überschreibung ließ sich nicht anwenden. Setze sie zurück und speichere sie noch einmal.
 TikTok refused the follow: %1$s	TikTok hat das Folgen abgelehnt: %1$s
 TikTok's own value	TikToks eigener Wert
+TikTok's play and pause button and its previous and next buttons appear on the feed. TikTok otherwise shows them only to people who use a screen reader. TikTok's analytics note the row and each press on it.	TikToks Taste für Wiedergabe und Pause sowie die Tasten für das vorherige und das nächste Video erscheinen im Feed. Sonst zeigt TikTok sie nur Menschen, die einen Screenreader nutzen. TikToks Analyse erfasst die Leiste und jeden Druck darauf.
 TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	TikToks Server kann ein Konto in ein Experiment stecken, das den Favoriten-Tab im Profil leert. Behält den Tab und seine gespeicherten Videos.
 TikTok's size	TikToks Groesse
 Times you can open the feed anyway	Wie oft du den Feed trotzdem öffnen kannst

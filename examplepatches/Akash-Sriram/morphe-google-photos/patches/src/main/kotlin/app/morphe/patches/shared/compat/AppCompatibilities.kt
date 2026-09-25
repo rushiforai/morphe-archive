@@ -12,6 +12,7 @@ internal object AppCompatibilities {
         targets = listOf(
             AppTarget("7.92.0.977185651"),
             AppTarget("7.93.0.982110057"),
+            AppTarget("7.94.0.984908898", isExperimental = true),
         ),
     )
 }

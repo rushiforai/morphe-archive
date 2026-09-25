@@ -3,7 +3,7 @@ group = "software.santodan.patches"
 patches {
     about {
         name = "Santodan Patches"
-        description = "Independent Morphe patches for Reddit, Pillo, and Peafowl"
+        description = "Independent Morphe patches for NuvioTV, Reddit, Pillo, and Peafowl"
         source = "https://github.com/Santodan/santodan-patches"
         author = "Santodan"
         contact = "https://github.com/Santodan"

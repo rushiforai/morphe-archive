@@ -1,0 +1,80 @@
+{
+  "date": "2026-09-25",
+  "files": [
+    {
+      "path": "patches/src/main/cpp/blue_noise/blue_noise.cpp",
+      "size": 17284,
+      "sha256": "bf6ffe437d13bfea801e969324095c3e8f897ade9e28d15cb85eaad037577863"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/blue_noise_128_r8.bin",
+      "size": 16384,
+      "sha256": "bd714ed8957aa7dd2ba2aada91484e487e17322e68d96ac91be48ba4c59e77f5"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/blue_noise_tile.h",
+      "size": 103845,
+      "sha256": "5eea5cc68d618958a5636de34c0104af0d30eb8b0e56beef8839138dc55620bc"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/Build-Native.ps1",
+      "size": 1374,
+      "sha256": "2dfac425a5b62fc34ba83dd80c16e4da133706944a7d167a9705b60dcf259af4"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/generate_noise.py",
+      "size": 14870,
+      "sha256": "d9ebf91677be6f20482bd3cd603b43d01b25c6cb65d2326331853e46bfbef653"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/noise_validation.json",
+      "size": 3309,
+      "sha256": "fc98ca5db2e8fd3865ac1f18a647ac8484e1fc2b167a5d1ea028a99ff485d061"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/sha256.h",
+      "size": 2479,
+      "sha256": "6ff92ce6c47c739e63d6353b461ee6f2c0c9fd23557bf9ae675a7cc729cf4394"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/shader_rewrite.h",
+      "size": 2650,
+      "sha256": "a23697ae2a5e28914958067a76b335b62fccce7108ba6b85a2f4cb61918466c4"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/Test-Native.ps1",
+      "size": 1507,
+      "sha256": "1f73cf7236c693f13e993981a14a45136de069cfff79f32da28bfe157b7417c6"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/native_tests.cpp",
+      "size": 27017,
+      "sha256": "ff11f12e2c95b35fda774ac245f57806ed606dee5700783234ad9ea18abba5bf"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/rewrite_cli.cpp",
+      "size": 747,
+      "sha256": "37af71fd3209c0871f17bfdfc31ae0476bb22f26f4cde51fa7f4656d5de15cc9"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/fakes/dlfcn.h",
+      "size": 322,
+      "sha256": "025dfd38dc3507fb388f48cc769e9feed8d442f3fc7269d169a0d14e82e2a71b"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/fakes/android/log.h",
+      "size": 110,
+      "sha256": "5d04a3bc5d5057e61ab5ab60788ea41b0faec760d2b576fbea26c90b429c9b1a"
+    },
+    {
+      "path": "patches/src/main/cpp/blue_noise/tests/fakes/sys/system_properties.h",
+      "size": 100,
+      "sha256": "d1bfad9a3af16aabf9975a206216531aca280b951a43571df64e20ad4ebd2704"
+    },
+    {
+      "path": "patches/src/main/resources/steamlink/blue-noise/libgxd.so",
+      "size": 413816,
+      "sha256": "f9951b536fa24198799af6778165cbb53951ce0b9d49afa923e4384c9738f602"
+    }
+  ]
+}

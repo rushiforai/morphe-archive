@@ -1,0 +1,73 @@
+{
+  "inspection_date": "2026-09-25",
+  "scope": "Independently rechecked stock decoded native inputs; background/opaque shader and draw route. Mapping evidence, not runtime acceptance.",
+  "offset_units": "Shader locations are file offsets. Function/draw locations are ELF virtual addresses; these sites map identically in the inspected files. Return PC is the instruction after BL, not the call instruction.",
+  "shared_sources": {
+    "prefix_bytes": 1087,
+    "prefix_sha256": "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a",
+    "opaque_suffix_bytes": 29,
+    "opaque_suffix_ascii": "\n\t\t\tcolor.a = 1.0;\n        }\n",
+    "opaque_suffix_sha256": "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c",
+    "stock_complete_opaque_bytes": 1116,
+    "stock_complete_opaque_sha256": "871e528249132d814a3e1110ded3ff1a25e3f016bdddd1e16aa67a000d835246",
+    "masked_suffix_bytes": 296,
+    "masked_suffix_sha256": "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623",
+    "hash_input": "Concatenate prefix and selected suffix bytes, excluding each terminating NUL. Every inspected opaque slot also has a NUL immediately before and after its 29 source bytes."
+  },
+  "bases": [
+    {
+      "version_name": "2.0.20",
+      "version_code": "5001712",
+      "input": "decoded-apk-android-steamlinkvr-release-base-2.0.20-5001712/lib/arm64-v8a/libvrlink_scene.so",
+      "input_provenance": "Analysis reconstruction; not pristine APK packaging proof.",
+      "scene_bytes": 2221072,
+      "scene_sha256": "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495",
+      "prefix_offset": "0x9b4b8",
+      "opaque_suffix_offset": "0x9d23d",
+      "masked_suffix_offset": "0xa6582",
+      "constructor": {"address": "0xf13f4", "bytes": 504, "sha256": "ad5ad5f6a9c52fc1ba17b109b6303e750397a4018b36ac0ebbbea34acabd5464"},
+      "render_specific": {"address": "0xf1af4", "bytes": 616, "sha256": "4c905f1e24f02ea5e0c99bdba69aab311443c14af9a85f03005520985d490e7b"},
+      "background_shader_load": "0xf1c60",
+      "background_draw_call": "0xf1d24",
+      "background_draw_return": "0xf1d28",
+      "foveal_draw_call": "0xf1c44",
+      "foveal_draw_return": "0xf1c48"
+    },
+    {
+      "version_name": "2.0.22",
+      "version_code": "5002244",
+      "input": "decoded-apk-android-steamlinkvr-release-base-2.0.22-5002244/lib/arm64-v8a/libvrlink_scene.so",
+      "input_provenance": "Exact retained decoded native input.",
+      "scene_bytes": 2251920,
+      "scene_sha256": "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12",
+      "prefix_offset": "0x957bc",
+      "opaque_suffix_offset": "0x976e6",
+      "masked_suffix_offset": "0xa11d7",
+      "constructor": {"address": "0xee210", "bytes": 504, "sha256": "57c3655916de003b3d0e9e2703c34f915320e5e330d3bac307f7d56586e158b1"},
+      "render_specific": {"address": "0xee910", "bytes": 616, "sha256": "8ce7ad238e140586f2914445a683d9260f83fe33a61e2e9c2fc53abc3908bdf5"},
+      "background_shader_load": "0xeea7c",
+      "background_draw_call": "0xeeb40",
+      "background_draw_return": "0xeeb44",
+      "foveal_draw_call": "0xeea60",
+      "foveal_draw_return": "0xeea64"
+    },
+    {
+      "version_name": "2.0.23",
+      "version_code": "5002363",
+      "input": "decoded-apk-android-steamlinkvr-release-base-2.0.23-5002363/lib/arm64-v8a/libvrlink_scene.so",
+      "input_provenance": "Exact retained decoded native input.",
+      "scene_bytes": 2292008,
+      "scene_sha256": "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0",
+      "prefix_offset": "0x970a1",
+      "opaque_suffix_offset": "0x99013",
+      "masked_suffix_offset": "0xa31bb",
+      "constructor": {"address": "0xf1350", "bytes": 504, "sha256": "bf4365c4e77b5119f41653f53ca48c0594dd128862991be8e208e1141549e9a4"},
+      "render_specific": {"address": "0xf1a50", "bytes": 616, "sha256": "d3ad75422bac1df96b5a647ef0c4fbdf34facf0800f0164c2eedfdfd0daac4d0"},
+      "background_shader_load": "0xf1bbc",
+      "background_draw_call": "0xf1c80",
+      "background_draw_return": "0xf1c84",
+      "foveal_draw_call": "0xf1ba0",
+      "foveal_draw_return": "0xf1ba4"
+    }
+  ]
+}
