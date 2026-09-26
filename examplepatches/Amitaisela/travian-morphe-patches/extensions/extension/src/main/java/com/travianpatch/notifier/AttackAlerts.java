@@ -191,4 +191,15 @@ final class AttackAlerts {
         }
         return ts > 100_000_000_000L ? ts : ts * 1000L;
     }
+
+    /** When the soonest incoming attack that hasn't landed yet will land (epoch ms), or 0 if none. */
+    static long nextArrivalMs(List<Alert> alerts, long nowMs) {
+        long best = 0;
+        for (Alert a : alerts) {
+            if (a.arrivalMs > nowMs && (best == 0 || a.arrivalMs < best)) {
+                best = a.arrivalMs;
+            }
+        }
+        return best;
+    }
 }

@@ -13,14 +13,14 @@ Recent NuvioTV additions include an optional remaining-episode counter for Conti
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.3.2](https://github.com/Santodan/santodan-patches/releases/tag/v0.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v0.4.1](https://github.com/Santodan/santodan-patches/releases/tag/v0.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.1.0-beta.1 |
+| 1.1.0-beta.2 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -111,7 +111,7 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 
 | App | Package | Supported version | Patch |
 | --- | --- | --- | --- |
-| NuvioTV | `com.nuvio.tv` | `1.1.0-beta.1` | Remaining episodes in Continue Watching; Side-by-side installation |
+| NuvioTV | `com.nuvio.tv` | `1.1.0-beta.2` | Remaining episodes in Continue Watching; Side-by-side installation |
 | Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Show flairs in home feed (Experimental); Start as guest |
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
 | Pillo | `xyz.rtrvr.pillo` | `0.6.19` | Hybrid Lock-Screen Notifications |

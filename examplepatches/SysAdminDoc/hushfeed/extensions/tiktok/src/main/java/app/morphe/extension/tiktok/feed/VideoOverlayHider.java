@@ -21,6 +21,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
+import app.morphe.extension.tiktok.navigation.NavigationTabsFilter;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -254,6 +255,9 @@ public final class VideoOverlayHider {
             if (activity.isFinishing()) {
                 return;
             }
+            // The names above the feed follow their own switch on the strip TikTok's tab filter
+            // hides; this pass is the one thing that runs on every layout, so it carries the ask.
+            NavigationTabsFilter.refreshTopTabStrips();
 
             if (Settings.HIDE_VISUAL_SEARCH.get()) {
                 hide(activity, SEARCH_MODULE_PACKAGE, VISUAL_SEARCH_LAYER_IDS);
@@ -268,7 +272,9 @@ public final class VideoOverlayHider {
             // feed keeps the neighbouring cells inflated too, so the first match is not
             // always the cell on screen: every cell is covered in one walk of the tree,
             // and the walk is skipped while nothing is on and nothing is left to restore.
-            boolean caption = Settings.HIDE_FEED_CAPTION.get();
+            // Caption above comments puts the whole caption at the top of the comments, so the
+            // one over the video goes with it rather than showing twice.
+            boolean caption = Settings.HIDE_FEED_CAPTION.get() || Settings.CAPTION_ABOVE_COMMENTS.get();
             boolean music = Settings.HIDE_FEED_MUSIC.get();
             boolean actionBar = Settings.HIDE_FEED_ACTION_BAR.get();
             boolean surveys = Settings.HIDE_FEED_SURVEYS.get();

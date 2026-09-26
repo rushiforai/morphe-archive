@@ -12,7 +12,7 @@ private const val INSTALLER_PACKAGE_NAME = "com.android.vending"
 @Suppress("unused")
 val hungrySharkInstallerSourceFix = bytecodePatch(
     name = "Hungry Shark Installer Source Fix",
-    description = "Spoofs the installer source as Google Play for every install-source check in the game and its SDKs, so sideloaded installs are treated as store installs and the Google Play Store redirect is fixed.",
+    description = "Spoofs the installer source as Google Play for every install-source check in the game and its SDKs, so sideloaded installs are treated as store installs and installer-based Play Store redirects are bypassed.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_HUNGRYSHARK)

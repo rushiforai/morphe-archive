@@ -54,6 +54,7 @@
       "@semantic-release/git",
       {
         "assets": [
+          ".github/badges/*.json",
           "CHANGELOG.md",
           "gradle.properties",
           "patches-bundle.json",

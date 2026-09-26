@@ -15,12 +15,14 @@ A file named %1$s in %2$s paused Hushfacebook.	File bernama %1$s di %2$s menjeda
 About	Tentang
 Ad cards between the stories people posted.	Kartu iklan di antara cerita yang diposting orang.
 Ad telemetry blocked	Telemetri iklan diblokir
+Adds Download to phone to the menu of a video in the feed or in Watch, below Facebook's own items, and saves at the best quality the player streams. Off or paused, the menu is Facebook's own.	Menambahkan opsi Unduh ke ponsel ke menu video di Kabar Beranda atau Watch, di bawah opsi bawaan Facebook, dan menyimpannya dengan kualitas streaming terbaik dari pemutar. Jika nonaktif atau dijeda, menu hanya menampilkan opsi bawaan Facebook.
 Adds Save to the menu of anyone's story, and saves at the best quality the player streams. Off or paused, only your own stories have Save, and it's Facebook's own.	Menambahkan opsi Simpan ke menu cerita siapa pun dan menyimpannya dengan kualitas streaming terbaik dari pemutar. Jika nonaktif atau dijeda, opsi Simpan hanya ada di cerita Anda sendiri dan memakai fitur simpan bawaan Facebook.
 Ads that arrive inside a page of reels. Banners and mid-rolls stay blocked while the patch is in, whatever this switch or Pause says. So do ads the app adds on its own.	Iklan yang datang di dalam satu kumpulan reel. Banner dan iklan di tengah video tetap diblokir selama tambalan ini terpasang, apa pun status sakelar ini atau Jeda. Begitu juga iklan yang ditambahkan aplikasi dengan sendirinya.
 AMOLED black theme	Tema hitam AMOLED
 Audience Network off	Audience Network nonaktif
 Back	Kembali
 Background ad prefetch blocked	Pramuat iklan di latar belakang diblokir
+Cancel	Batal
 Changing these	Mengubah pilihan ini
 Choose a settings file. You'll see how many switches it changes before anything does.	Pilih file pengaturan. Anda akan melihat berapa sakelar yang diubahnya sebelum ada yang berubah.
 Clear diagnostic data	Hapus data diagnostik
@@ -32,6 +34,7 @@ Couldn't open that file. Nothing was changed.	File itu tidak dapat dibuka. Tidak
 Couldn't open the file picker. Try again.	Pemilih file tidak dapat dibuka. Coba lagi.
 Couldn't put back the diagnostic data. Try again.	Data diagnostik tidak dapat dikembalikan. Coba lagi.
 Couldn't save the settings file. Try again.	File pengaturan tidak dapat disimpan. Coba lagi.
+Couldn't save this video. Play it for a moment, then try again.	Video ini tidak dapat disimpan. Putar sebentar, lalu coba lagi.
 Couldn't start that. Try again in a moment.	Tidak dapat dimulai. Coba lagi dalam beberapa saat.
 Couldn't start the report export. Try again shortly.	Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.
 Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.	Mode gelap memakai warna hitam, bukan abu-abu gelap. Aktifkan mode gelap di Facebook untuk melihatnya.
@@ -42,6 +45,9 @@ Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan k
 Download	Unduh
 Download button on reels	Tombol Unduh di Reels
 Download failed	Unduhan gagal
+Download feed and Watch videos	Unduh video dari Kabar Beranda dan Watch
+Download to phone	Unduh ke ponsel
+Downloads	Unduhan
 Empties the log and the filter counts a report would include.	Mengosongkan log dan hitungan filter yang akan dimasukkan ke laporan.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
 Export diagnostic report	Ekspor laporan diagnostik
@@ -49,14 +55,20 @@ Export settings	Ekspor pengaturan
 Facebook closed three times within a minute of starting, so Hushfacebook paused itself.	Facebook tertutup tiga kali dalam satu menit setelah dibuka, jadi Hushfacebook menjeda dirinya sendiri.
 Facebook doesn't download ads or its ad model in the background.	Facebook tidak mengunduh iklan atau model iklannya di latar belakang.
 Facebook doesn't serve ads to other apps on this phone.	Facebook tidak menayangkan iklan ke aplikasi lain di ponsel ini.
+Facebook's dark mode takes its colours from your wallpaper, and this screen does too. Android 11 has no wallpaper colours, so it gets a fixed blue palette. Turn on dark mode in Facebook to see it.	Mode gelap Facebook memakai warna dari wallpaper Anda, begitu juga layar ini. Android 11 tidak punya warna wallpaper, jadi memakai palet biru tetap. Aktifkan mode gelap di Facebook untuk melihatnya.
 From the next start, every switch above acts as if it were off, and Facebook's own code runs in its place. Debug logging keeps working, and your settings stay as they are.	Setelah Facebook dimulai ulang, semua sakelar di atas dianggap nonaktif, dan kode Facebook sendiri yang berjalan sebagai gantinya. Pencatatan debug tetap berfungsi, dan pengaturan Anda tetap seperti semula.
 Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
+Hide "People you may know"	Sembunyikan “Orang yang Mungkin Anda Kenal”
+Hide "Suggested for you" posts	Sembunyikan postingan “Disarankan untuk Anda”
+Hide AI-detected posts	Sembunyikan postingan yang terdeteksi dibuat dengan AI
 Hide promoted posts	Sembunyikan postingan promosi
+Hide Reels in the feed	Sembunyikan Reels di Kabar Beranda
 Hide sponsored posts	Sembunyikan postingan bersponsor
 Hide sponsored reels	Sembunyikan Reels bersponsor
 Hide sponsored stories	Sembunyikan cerita bersponsor
 Hide suggested and promoted units	Sembunyikan kartu saran dan promosi
+Hide the Stories tray	Sembunyikan deretan Cerita
 How far a photo or video you're saving has got, with a button to cancel it	Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya
 Hushfacebook %1$s on Facebook %2$s	Hushfacebook %1$s di Facebook %2$s
 Hushfacebook is on	Hushfacebook aktif
@@ -71,27 +83,35 @@ Importing settings	Mengimpor pengaturan
 Licenses	Lisensi
 Link expired. Reopen the item and try again	Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi
 Links	Tautan
+Material You theme	Tema Material You
 News feed	Kabar Beranda
 No matching diagnostics found.	Tidak ditemukan diagnostik yang cocok.
 No screenshot watching for ads, and no reports of which apps you install.	Tangkapan layar iklan tidak dipantau, dan aplikasi yang Anda pasang tidak dilaporkan.
 Not saved: that isn't a Facebook photo or video	Tidak disimpan: itu bukan foto atau video Facebook
 Not saved: the file is over 512 MB	Tidak disimpan: file lebih dari 512 MB
+OK	Oke
+One folder name for your saves. Slashes and other characters a folder name can't hold become underscores. Leave it empty to use %1$s.	Satu nama folder untuk semua yang Anda simpan. Garis miring dan karakter lain yang tidak boleh ada di nama folder diubah menjadi garis bawah. Biarkan kosong untuk memakai %1$s.
 Open links in your browser	Buka tautan di browser Anda
 Paid ads in the feed. They're dropped before Facebook adds them, so no gap is left.	Iklan berbayar di Kabar Beranda. Iklannya dibuang sebelum ditambahkan Facebook, jadi tidak meninggalkan ruang kosong.
 Pause Hushfacebook	Jeda Hushfacebook
 Posts Facebook files as promotions rather than as ads.	Postingan yang dikategorikan Facebook sebagai promosi, bukan iklan.
+Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Postingan dari orang dan Halaman yang tidak Anda ikuti serta dari grup tempat Anda belum bergabung, yang diselipkan Facebook ke Kabar Beranda Anda.
+Posts that Facebook's own detection marked as made with AI. A post labeled only by the person who shared it stays. This one starts off because it hasn't been tried on a real feed yet.	Postingan yang ditandai oleh deteksi Facebook sendiri sebagai buatan AI. Postingan yang diberi label AI hanya oleh orang yang membagikannya tetap ditampilkan. Sakelar ini awalnya nonaktif karena belum pernah dicoba di Kabar Beranda sungguhan.
 Profiles and some Settings pages open again on this re-signed build.	Profil dan beberapa halaman Pengaturan dapat dibuka lagi di build yang ditandatangani ulang ini.
 Re-signed build fix	Perbaikan build yang ditandatangani ulang
 Reading the settings file	Membaca file pengaturan
 Reels and Watch	Reels dan Watch
+Remove tracking from shared links	Hapus pelacakan dari tautan yang dibagikan
 Retry	Coba lagi
 Save any story	Simpan cerita apa pun
 Save cancelled	Penyimpanan dibatalkan
+Save folder	Folder simpan
 Save full report	Simpan laporan lengkap
 Saved to %1$s	Disimpan ke %1$s
 Saved to the gallery	Disimpan ke galeri
 Saved. Restart Facebook to apply this change.	Tersimpan. Mulai ulang Facebook untuk menerapkan perubahan ini.
-Saves the switches from the sections above to a file you choose. Pause and Debug logging stay out of it.	Menyimpan sakelar dari bagian-bagian di atas ke file pilihan Anda. Jeda dan Pencatatan debug tidak ikut disimpan.
+Saves the switches and the save folder from the sections above to a file you choose. Pause and Debug logging stay out of it.	Menyimpan sakelar dan folder simpan dari bagian-bagian di atas ke file pilihan Anda. Jeda dan Pencatatan debug tidak ikut disimpan.
+Saves will go to a folder named %1$s.	Semua yang Anda simpan akan masuk ke folder bernama %1$s.
 Saving a photo	Menyimpan foto
 Saving a video	Menyimpan video
 Saving the settings file	Menyimpan file pengaturan
@@ -102,9 +122,11 @@ Settings couldn't refresh completely. Reopen settings and try again.	Pengaturan 
 Settings exported.	Pengaturan diekspor.
 Settings imported. %1$d switch changed.	Pengaturan diimpor. %1$d sakelar berubah.
 Settings imported. %1$d switches changed.	Pengaturan diimpor. %1$d sakelar berubah.
+Settings imported. Saves will go to a folder named %1$s.	Pengaturan diimpor. Semua yang Anda simpan akan masuk ke folder bernama %1$s.
 Source code and issues	Kode sumber dan laporan masalah
 Stays in while paused	Tetap aktif saat dijeda
 Stories	Cerita
+Takes tracking tags such as mibextid off the links you share or copy. A facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.	Menghapus tag pelacakan seperti mibextid dari tautan yang Anda bagikan atau salin. Tautan facebook.com/share/ dibuat khusus untuk satu kali berbagi, jadi Facebook tetap dapat mengaitkannya dengan Anda.
 Tap to turn it back on.	Ketuk untuk mengaktifkan Hushfacebook lagi.
 That file is too large to be a settings file. Nothing was changed.	File itu terlalu besar untuk sebuah file pengaturan. Tidak ada yang diubah.
 That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	File itu bukan teks yang dapat dibaca, jadi mungkin rusak saat ditransfer. Tidak ada yang diubah.
@@ -120,8 +142,12 @@ the background ad prefetch block	pemblokir pramuat iklan di latar belakang
 The diagnostic report couldn't be saved yet. Try again in a moment.	Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.
 The diagnostic report couldn't be saved. Try again.	Laporan diagnostik tidak dapat disimpan. Coba lagi.
 The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan Hushfacebook lagi.
+the Material You theme	tema Material You
 the part of the Reels ad block patched into the app	bagian pemblokir iklan Reels yang ditambalkan ke aplikasi
 the re-signed build fix	perbaikan build yang ditandatangani ulang
+The row of friend suggestions between posts.	Deretan saran pertemanan di antara postingan.
+The row of stories at the top of the feed, Create story included.	Deretan cerita di bagian atas Kabar Beranda, termasuk “Buat cerita”.
+The rows of reels between posts, and the reels Facebook adds where your feed ends.	Deretan Reels di antara postingan, dan Reels yang ditambahkan Facebook di akhir Kabar Beranda Anda.
 The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
 There is no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
 There is no diagnostic data to put back.	Tidak ada data diagnostik yang dapat dikembalikan.
@@ -130,7 +156,10 @@ This phone has no file picker, so there's no way to choose a file here.	Ponsel i
 Try again, or go back to Facebook.	Coba lagi, atau kembali ke Facebook.
 Version	Versi
 Version %1$s for Facebook %2$s	Versi %1$s untuk Facebook %2$s
+Videos go to %1$s and photos to %2$s.	Video disimpan ke %1$s dan foto ke %2$s.
 Web links leave Facebook's in-app browser. Facebook's own pages still open in the app.	Tautan web tidak lagi dibuka di browser dalam aplikasi Facebook. Tautan ke Facebook sendiri tetap dibuka di aplikasi.
 Writes what each patch does to the Android log. Leave it off unless you're reporting a problem.	Mencatat ke log Android apa yang dilakukan setiap tambalan. Biarkan nonaktif kecuali Anda sedang melaporkan masalah.
 You paused Hushfacebook.	Anda menjeda Hushfacebook.
 Your switches already match that file, so nothing will change.	Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.
+Keep feed position on return	Pertahankan posisi beranda saat kembali
+Returning to Facebook within ten minutes keeps your place. Pull to refresh still works.	Jika kembali ke Facebook dalam sepuluh menit, posisi beranda tetap sama. Tarik ke bawah untuk memuat ulang masih berfungsi.

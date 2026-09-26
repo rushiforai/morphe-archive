@@ -10,6 +10,8 @@ import android.content.Context;
 import android.util.AtomicFile;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
+import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
 import app.morphe.extension.shared.settings.SettingsJson;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabStore;
@@ -190,6 +192,10 @@ public final class SettingsBackup {
             Snapshot next, SettingsOperationJournal.Operation operation) throws Exception {
         boolean closed = false;
         try {
+            // A budget change already due is applied before anything is read, so it is part of
+            // what the restore found: the undo copy carries it, and a restore that fails puts it
+            // back rather than the value it replaced, whose record would be gone by then.
+            BudgetChanges.applyDue(SessionBudget.now());
             String previousText = create(false);
             Snapshot previous = parse(previousText);
             Map<String, ?> previousPreferences = new LinkedHashMap<>(
@@ -201,8 +207,13 @@ public final class SettingsBackup {
             // labIncluded instead put the Lab back on every same-version failure: the common
             // one, and the only case this guard exists for.
             boolean[] touchedLab = new boolean[1];
+            BudgetChanges.Split budget;
             try {
-                applyForJournal(next, touchedLab);
+                budget = applyForJournal(next, touchedLab);
+                // Held to the budget, the restore wrote less than its file carries. What it did
+                // write goes on record, or a journal the delete below fails to clear would read as
+                // an interrupted restore, and the next start would put the old settings back.
+                if (budget.heldBack()) operation.recordWritten(create(false));
                 operation.complete();
                 closed = true;
             } catch (Exception error) {
@@ -227,6 +238,9 @@ public final class SettingsBackup {
                         rollbackComplete ? Failure.ROLLED_BACK : Failure.RECOVERY_REQUIRED,
                         rollbackComplete, recoveryAvailable);
             }
+            // Only once the journal is gone. A restore the next start puts back from its journal
+            // must not leave the changes it held back waiting to land the next day.
+            budget.keepWaiting();
         } finally {
             if (!closed) operation.abort();
         }
@@ -333,13 +347,22 @@ public final class SettingsBackup {
      *                   before the write rather than after, because a write that throws part
      *                   way through is exactly the one that needs undoing.
      */
-    static void applyForJournal(Snapshot snapshot, boolean[] touchedLab) throws IOException {
-        applyForJournal(snapshot, touchedLab, false);
+    static BudgetChanges.Split applyForJournal(Snapshot snapshot, boolean[] touchedLab) throws IOException {
+        return applyForJournal(snapshot, touchedLab, false);
     }
 
-    static void applyForJournal(Snapshot snapshot, boolean[] touchedLab, boolean puttingBack)
+    /**
+     * @return what the budget held back, for the caller to record once the change has committed,
+     *         or null when putting back, which writes everything.
+     */
+    static BudgetChanges.Split applyForJournal(Snapshot snapshot, boolean[] touchedLab, boolean puttingBack)
             throws IOException {
-        Setting.saveAll(snapshot.values);
+        // A restore, a reset or an undo is held to the daily budget like the page is: a locked
+        // day keeps its budget, and with loosening set to wait, what loosens it waits. Putting
+        // back what an interrupted change found is none of those, so it writes everything.
+        BudgetChanges.Split budget = puttingBack
+                ? null : BudgetChanges.forRestore(snapshot.values, SessionBudget.now());
+        Setting.saveAll(budget == null ? snapshot.values : budget.apply);
         // A backup from another TikTok build carries no rules that mean anything here, so the
         // Lab is left as it was rather than emptied.
         if (snapshot.labIncluded) {
@@ -347,6 +370,7 @@ public final class SettingsBackup {
             FeatureGateLabStore.replaceSettings(
                     snapshot.rules, snapshot.master, snapshot.acknowledged, puttingBack);
         }
+        return budget;
     }
 
     /** How many included settings that file did not carry, which were left as the device had them. */

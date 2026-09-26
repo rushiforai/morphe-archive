@@ -83,11 +83,23 @@ object BackgroundBlueNoiseDecodedAudit {
         }
         val profiles = listOf<Pair<Float, Float>?>(null, 1f to 1f, 1.06f to 1.12f, 1.20f to 1.45f,
             .5f to 0f, .5f to 3f, 2.5f to 0f, 2.5f to 3f)
-        fun baseline(profile: Pair<Float, Float>?): ByteArray {
+        val fovealGammas = listOf(1f, 1.02f, 1.10f, 1.30f)
+        fun suffix(scene: ByteArray, layer: BlueNoiseLayer): ByteArray {
+            val start = if (layer == BlueNoiseLayer.FOVEA) layout.suffix else background.suffix
+            val size = suffixes.getValue(layer).size
+            return scene.copyOfRange(start, start + size)
+        }
+        fun baseline(profile: Pair<Float, Float>?, fovealGamma: Float = 1f): ByteArray {
+            check(profile != null || fovealGamma == 1f)
             val bytes = stock.copyOf()
             if (profile != null) paddedVideoShader(profile.first, profile.second,
                 VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF).copyInto(bytes, layout.prefix)
-            return setProjectionSwapchainFormat(bytes, VideoOutputPrecision.SRGB8_HIGHP, layout.version, layout.code)
+            val adjusted = applyVdSdrFovea(bytes, layout.version, layout.code, FoveaMode.OFF, fovealGamma)
+            if (fovealGamma == 1f) check(adjusted.contentEquals(bytes)) { "Neutral gamma changed existing bytes" }
+            else check(bytes.indices.all { bytes[it] == adjusted[it] || it in layout.suffix until layout.suffix + 296 }) {
+                "Foveal gamma changed bytes outside masked suffix"
+            }
+            return setProjectionSwapchainFormat(adjusted, VideoOutputPrecision.SRGB8_HIGHP, layout.version, layout.code)
         }
         fun apply(state: BlueNoiseResult, layer: BlueNoiseLayer, mode: FoveaMode): BlueNoiseResult =
             applyBlueNoiseLayer(state.scene, layout.version, layout.code, mode, layer,
@@ -101,7 +113,7 @@ object BackgroundBlueNoiseDecodedAudit {
             check(helper.size == payload.size && isConfiguredBlueNoiseHelper(helper))
             val prefix = scene.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)
             for (layer in BlueNoiseLayer.entries) {
-                val values = if (layer in selected) listOf(blueNoiseHash(prefix + suffixes.getValue(layer)),
+                val values = if (layer in selected) listOf(blueNoiseHash(prefix + suffix(scene, layer)),
                     stockHashes.getValue(layer), drawReturns.getValue(layer).toString(16).padStart(16, '0'))
                     else markers.drop(layer.ordinal * 3).take(3)
                 for (field in 0..2) {
@@ -126,7 +138,10 @@ object BackgroundBlueNoiseDecodedAudit {
             check(prefix.contentEquals(baseline.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE)))
             for (layer in BlueNoiseLayer.entries) {
                 val suffixOffset = if (layer == BlueNoiseLayer.FOVEA) layout.suffix else background.suffix
-                val suffix = suffixes.getValue(layer)
+                val suffix = suffix(baseline, layer)
+                if (layer == BlueNoiseLayer.BACKGROUND) check(suffix.contentEquals(suffixes.getValue(layer))) {
+                    "Background suffix changed with foveal gamma"
+                }
                 check(scene[suffixOffset - 1] == 0.toByte() && scene[suffixOffset + suffix.size] == 0.toByte())
                 check(scene.copyOfRange(suffixOffset, suffixOffset + suffix.size).contentEquals(suffix))
                 val complete = (prefix + suffix).toString(Charsets.US_ASCII)
@@ -158,8 +173,9 @@ object BackgroundBlueNoiseDecodedAudit {
         }
         var cases = 0
         var transitions = 0
-        for (profile in profiles) {
-            val base = baseline(profile)
+        val calibrations = profiles.map { it to 1f } + fovealGammas.drop(1).map { (1.20f to 1.45f) to it }
+        for ((profile, fovealGamma) in calibrations) {
+            val base = baseline(profile, fovealGamma)
             for (fovea in FoveaMode.entries) for (backgroundMode in FoveaMode.entries) {
                 val modes = mapOf(BlueNoiseLayer.FOVEA to fovea, BlueNoiseLayer.BACKGROUND to backgroundMode)
                 val selected = modes.filterValues { it != FoveaMode.OFF }.keys
@@ -194,6 +210,29 @@ object BackgroundBlueNoiseDecodedAudit {
         for (layer in BlueNoiseLayer.entries) {
             val refreshed = apply(BlueNoiseResult(calibratedScene, both.helper), layer, FoveaMode.INPUT_10BIT)
             check(same(refreshed, compose(calibratedBase, FoveaMode.INPUT_10BIT, FoveaMode.INPUT_8BIT)))
+        }
+        var gammaTransitions = 0
+        for (fromGamma in fovealGammas) for (toGamma in fovealGammas) {
+            val from = compose(baseline(1.20f to 1.45f, fromGamma), FoveaMode.INPUT_10BIT, FoveaMode.INPUT_8BIT)
+            val toBase = baseline(1.20f to 1.45f, toGamma)
+            val adjusted = applyVdSdrFovea(from.scene, layout.version, layout.code, FoveaMode.OFF, toGamma)
+            val expected = compose(toBase, FoveaMode.INPUT_10BIT, FoveaMode.INPUT_8BIT)
+            for (layer in BlueNoiseLayer.entries) {
+                val refreshed = apply(BlueNoiseResult(adjusted, from.helper), layer, FoveaMode.INPUT_10BIT)
+                check(same(refreshed, expected)) { "Gamma $fromGamma -> $toGamma left stale layer hashes" }
+                verify(refreshed, toBase, BlueNoiseLayer.entries.toSet())
+                val helper = checkNotNull(refreshed.helper)
+                val previousHelper = checkNotNull(from.helper)
+                for (field in 3..5) check(helper.copyOfRange(offsets[field], offsets[field] + markers[field].length)
+                    .contentEquals(previousHelper.copyOfRange(offsets[field], offsets[field] + markers[field].length))) {
+                    "Gamma adjustment changed background configuration"
+                }
+                if (fromGamma != toGamma) check(!helper.copyOfRange(offsets[0], offsets[0] + markers[0].length)
+                    .contentEquals(previousHelper.copyOfRange(offsets[0], offsets[0] + markers[0].length))) {
+                    "Gamma transition did not refresh the foveal source hash"
+                }
+                gammaTransitions++
+            }
         }
         var rejected = 0
         fun reject(input: ByteArray, helper: ByteArray?, what: String, canonical: ByteArray = payload) {
@@ -238,6 +277,23 @@ object BackgroundBlueNoiseDecodedAudit {
                 reject(baseline(null).apply { this[boundary] = 1 }, null, "suffix boundary@0x${boundary.toString(16)}")
             }
         }
+        for (gamma in fovealGammas.drop(1)) {
+            val adjusted = baseline(1.20f to 1.45f, gamma)
+            val maskedText = suffix(adjusted, BlueNoiseLayer.FOVEA).toString(Charsets.US_ASCII)
+            for (token in listOf("pow(c,", "fFadeAmount", "color.a=")) {
+                val position = maskedText.indexOf(token)
+                check(position >= 0) { "Missing adjusted suffix token: $token" }
+                reject(adjusted.copyOf().apply { this[layout.suffix + position] = '!'.code.toByte() }, null,
+                    "gamma $gamma corrupt $token")
+            }
+            reject(adjusted.copyOf().apply { originalPrefix.copyInto(this, layout.prefix) }, null,
+                "gamma $gamma without calibrated prefix")
+        }
+        val outsideRange = baseline(1.20f to 1.45f, 1.30f)
+        val exponent = suffix(outsideRange, BlueNoiseLayer.FOVEA).toString(Charsets.US_ASCII).indexOf("vec3(1.30)")
+        check(exponent >= 0)
+        "vec3(1.31)".toByteArray(Charsets.US_ASCII).copyInto(outsideRange, layout.suffix + exponent)
+        reject(outsideRange, null, "out-of-range gamma suffix")
         for (layer in BlueNoiseLayer.entries) for (mode in FoveaMode.entries) {
             val unknown = applyBlueNoiseLayer(stock, layout.version, "0000000", mode, layer,
                 payload = byteArrayOf(1), existingHelper = byteArrayOf(2))
@@ -245,7 +301,7 @@ object BackgroundBlueNoiseDecodedAudit {
         }
         check(library.readBytes().contentEquals(stock)) { "Decoded fixture changed" }
         check(blueNoiseHash(bundledBlueNoiseHelper()) == BLUE_NOISE_PAYLOAD_SHA256) { "Canonical payload changed" }
-        println("PASS ${layout.version}/${layout.code}: $cases layer/depth cases across stock + 7 calibrations, $transitions transitions, $rejected atomic rejections; both orders, remove/re-add either layer, full OFF, calibration refresh, exact scene/config diffs, complete sources/alpha, distinct draw PCs, sRGB8, source unchanged")
+        println("PASS ${layout.version}/${layout.code}: $cases layer/depth cases across stock + 7 calibrations and gamma 1.02/1.10/1.30, $transitions layer transitions, $gammaTransitions gamma/hash transitions, $rejected atomic rejections; both orders, remove/re-add either layer, full OFF, neutral byte identity, unchanged background, calibration refresh, exact scene/config diffs, complete sources/alpha, distinct draw PCs, sRGB8, source unchanged")
     }
 
     private fun same(first: BlueNoiseResult, second: BlueNoiseResult): Boolean =

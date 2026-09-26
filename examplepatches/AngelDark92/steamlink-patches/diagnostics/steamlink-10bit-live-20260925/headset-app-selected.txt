@@ -1,0 +1,192 @@
+09-25 17:49:12.507 17301 17326 I AdrenoGLES-0: OpenGL ES Shader Compiler Version: E031.50.02.00
+09-25 17:49:12.531 17301 17301 I DecorView: setWindowBackground: isPopOver=false color=ff000000 d=android.graphics.drawable.ColorDrawable@c140815
+09-25 17:49:12.649 17301 17301 I DecorView: setWindowBackground: isPopOver=false color=ff010101 d=android.graphics.drawable.StateListDrawable@6c82085
+09-25 17:49:13.227 17301 17346 W app_process: no screens available, assuming 24-bit color
+09-25 17:49:21.788 17301 17301 I DecorView: setWindowBackground: isPopOver=false color=ff000000 d=android.graphics.drawable.ColorDrawable@6a52e8e
+09-25 17:49:21.845 17301 17427 I steamlinkvr: [XRQ] Extension XR_FB_color_space is available and was requested
+09-25 17:49:21.845 17301 17427 I steamlinkvr: [XRQ] 	 XR_FB_color_space
+09-25 17:49:23.238 17301 17427 E steamlinkvr: [CheckGL] OpenGL error 1282, INVALID_OPERATION, at /data/src/vrlink/client_android/src/shared/util/glutils.cpp:157 - for glDetachShader( m_program, m_vertexShader )
+09-25 17:49:23.239 17301 17427 E steamlinkvr: [CheckGL] OpenGL error 1282, INVALID_OPERATION, at /data/src/vrlink/client_android/src/shared/util/glutils.cpp:157 - for glDetachShader( m_program, m_vertexShader )
+09-25 17:49:23.259 17301 17427 E steamlinkvr: [CheckGL] OpenGL error 1282, INVALID_OPERATION, at /data/src/vrlink/client_android/src/shared/util/glutils.cpp:157 - for glDetachShader( m_program, m_vertexShader )
+09-25 17:49:23.260 17301 17427 E steamlinkvr: [CheckGL] OpenGL error 1282, INVALID_OPERATION, at /data/src/vrlink/client_android/src/shared/util/glutils.cpp:157 - for glDetachShader( m_program, m_vertexShader )
+09-25 17:49:23.332 17301 17427 I SLBlueNoise: Recognized background shader: static blue-noise sRGB8 quantization prepared.
+09-25 17:49:23.332 17301 17427 I SLBlueNoise: Recognized foveal shader: static blue-noise sRGB8 quantization prepared.
+09-25 17:49:23.333 17301 17427 I SLBlueNoise: Background blue-noise program linked; guarded per-draw enable active.
+09-25 17:49:23.333 17301 17427 E steamlinkvr: [CheckGL] OpenGL error 1282, INVALID_OPERATION, at /data/src/vrlink/client_android/src/shared/util/glutils.cpp:157 - for glDetachShader( m_program, m_vertexShader )
+09-25 17:49:23.333 17301 17427 I SLBlueNoise: Foveal blue-noise program linked; guarded per-draw enable active.
+09-25 17:49:23.333 17301 17427 E steamlinkvr: [CheckGL] OpenGL error 1282, INVALID_OPERATION, at /data/src/vrlink/client_android/src/shared/util/glutils.cpp:157 - for glDetachShader( m_program, m_vertexShader )
+09-25 17:49:23.335 17301 17427 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+09-25 17:49:23.336 17301 17427 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+09-25 17:49:23.336 17301 17427 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+09-25 17:49:23.344 17301 17455 D CCodec  : allocate(c2.qti.hevc.decoder)
+09-25 17:49:23.355 17301 17455 I Codec2Client: Available Codec2 services: "default" "default0" "default2" "software"
+09-25 17:49:23.368 17301 17455 I CCodec  : setting up 'default' as default (vendor) store
+09-25 17:49:23.386 17301 17455 I CCodec  : Created component [c2.qti.hevc.decoder]
+09-25 17:49:23.389 17301 17455 D CCodecConfig: read media type: video/hevc
+09-25 17:49:23.417 17301 17455 D CCodecConfig: ignoring local param raw.size (0xd2001800) as it is already supported
+09-25 17:49:23.417 17301 17455 D CCodecConfig: ignoring local param default.color (0x5200180b) as it is already supported
+09-25 17:49:23.417 17301 17455 D CCodecConfig: ignoring local param raw.hdr-static-info (0xd200180a) as it is already supported
+09-25 17:49:23.418 17301 17455 I CCodecConfig: query failed after returning 18 values (BAD_INDEX)
+09-25 17:49:23.418 17301 17455 D CCodecConfig: c2 config diff is Dict {
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::i32 algo.priority.value = -1
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::float algo.rate.value = 30
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 algo.secure-mode.value = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::float coded.frame-rate.value = 30
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 coded.pl.level = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 coded.pl.profile = 24576
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 coded.vui.color.matrix = 255
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 coded.vui.color.primaries = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 coded.vui.color.range = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 coded.vui.color.transfer = 255
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 default.color.matrix = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 default.color.primaries = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 default.color.range = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 default.color.transfer = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 input.buffers.max-size.value = 8847360
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 input.delay.value = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   string input.media-type.value = "video/hevc"
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 output.delay.value = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   Buffer output.hdr10-plus-info.value = {
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   }
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   string output.media-type.value = "video/raw"
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 raw.color.matrix = 255
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 raw.color.primaries = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 raw.color.range = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::u32 raw.color.transfer = 255
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::float raw.hdr-static-info.mastering.blue.x = 0
+09-25 17:49:23.418 17301 17455 D CCodecConfig:   c2::float raw.hdr-static-info.mastering.blue.y =
+09-25 17:49:23.419 17301 17455 W ColorUtils: expected specified color aspects (0:0:255:255)
+09-25 17:49:23.425 17301 17452 D MediaCodec: flushMediametrics
+09-25 17:49:23.425 17301 17452 I MediaCodec: [c2.qti.hevc.decoder] setting surface generation to 17716225
+09-25 17:49:23.425 17301 17455 D CCodec  : [c2.qti.hevc.decoder] buffers are bound to CCodec for this session
+09-25 17:49:23.427 17301 17455 D CCodecConfig: no c2 equivalents for color-standard
+09-25 17:49:23.427 17301 17455 D CCodecConfig: no c2 equivalents for color-format
+09-25 17:49:23.427 17301 17455 D CCodecConfig: no c2 equivalents for native-window
+09-25 17:49:23.427 17301 17455 D CCodecConfig: no c2 equivalents for flags
+09-25 17:49:23.428 17301 17455 D CCodecConfig: c2 config diff is   c2::i32 algo.priority.value = 0
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::float algo.rate.value = 32767
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 default.color.matrix = 5
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 default.color.primaries = 6
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 default.color.range = 1
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 default.color.transfer = 1
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 raw.max-size.height = 3584
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 raw.max-size.width = 896
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 raw.pixel-format.value = 54
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 raw.size.height = 3584
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 raw.size.width = 896
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::u32 vendor.qti-ext-dec-heif-mode.value = 1
+09-25 17:49:23.428 17301 17455 D CCodecConfig:   c2::i32 vendor.qti-ext-dec-picture-order.enable = 1
+09-25 17:49:23.429 17301 17455 W Codec2Client: query -- param skipped: index = 1107298332.
+09-25 17:49:23.429 17301 17455 D CCodec  : encoding statistics level = 0
+09-25 17:49:23.429 17301 17455 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t feature-secure-playback = 0
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t frame-rate = 30
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t height = 3584
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t max-input-size = 6021120
+09-25 17:49:23.429 17301 17455 D CCodec  :   string mime = "video/hevc"
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t priority = 0
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t profile = 1
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t width = 896
+09-25 17:49:23.429 17301 17455 D CCodec  :   Rect crop(0, 0, 895, 3583)
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t vendor.qti-ext-dec-heif-mode.value = 1
+09-25 17:49:23.429 17301 17455 D CCodec  : }
+09-25 17:49:23.429 17301 17455 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t android._color-format = 54
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t android._video-scaling = 1
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t android._dataspace = 260
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t color-standard = 130817
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t color-range = 2
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t color-transfer = 65791
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t sar-height = 1
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t rotation-degrees = 0
+09-25 17:49:23.429 17301 17455 D CCodec  :   Buffer hdr-static-info = {
+09-25 17:49:23.429 17301 17455 D CCodec  :     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+09-25 17:49:23.429 17301 17455 D CCodec  :     00000010:  00 00 00 00 00 00 00 00  00                       .........
+09-25 17:49:23.429 17301 17455 D CCodec  :   }
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t sar-width = 1
+09-25 17:49:23.429 17301 17455 D CCodec  :   Rect crop(0, 0, 895, 3583)
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t width = 896
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t feature-secure-playback = 0
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t frame-rate = 30
+09-25 17:49:23.429 17301 17455 D CCodec  :   Buffer hdr10-plus-info = {
+09-25 17:49:23.429 17301 17455 D CCodec  :   }
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t height = 3584
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t max-height = 3584
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t max-width = 896
+09-25 17:49:23.429 17301 17455 D CCodec  :   string mime = "video/raw"
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t priority = 0
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t vendor.qti-ext-dec-picture-order.enable = 1
+09-25 17:49:23.429 17301 17455 D CCodec  :   int32_t color-format = 54
+09-25 17:49:23.429 17301 17455 D CCodec  : }
+09-25 17:49:23.429 17301 17455 I CCodecConfig: query failed after returning 20 values (BAD_INDEX)
+09-25 17:49:23.429 17301 17455 D CCodecConfig: c2 config diff is   c2::u32 input.buffers.max-size.value = 6021120
+09-25 17:49:23.442 17301 17455 W Codec2Client: query -- param skipped: index = 1342179345.
+09-25 17:49:23.443 17301 17455 W Codec2Client: query -- param skipped: index = 2415921170.
+09-25 17:49:23.443 17301 17455 W Codec2Client: query -- param skipped: index = 1610614798.
+09-25 17:49:23.443 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] Query input allocators returned 0 params => BAD_INDEX (6)
+09-25 17:49:23.445 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] Created input block pool with allocatorID 16 => poolID 17 - OK (0)
+09-25 17:49:23.445 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] start: max output delay 11
+09-25 17:49:23.446 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] Query output allocators returned 0 params => BAD_INDEX (6)
+09-25 17:49:23.446 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] Query output surface allocator returned 0 params => BAD_INDEX (6)
+09-25 17:49:23.446 17301 17455 I CCodecBufferChannel: [c2.qti.hevc.decoder#624] Created output block pool with allocatorID 18 => poolID 32 - OK
+09-25 17:49:23.446 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] Configured output block pool ids 32 => OK
+09-25 17:49:23.446 17301 17455 D Codec2-OutputBufferQueue: remote graphic buffer migration 0/0
+09-25 17:49:23.447 17301 17455 D Codec2Client: setOutputSurface -- failed to set consumer usage (6/BAD_INDEX)
+09-25 17:49:23.447 17301 17455 D Codec2Client: setOutputSurface -- generation=17716225 consumer usage=0x900
+09-25 17:49:23.451 17301 17455 D Codec2Client: Surface configure completed
+09-25 17:49:23.451 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] start: updating output delay 0
+09-25 17:49:23.469 17301 17427 W steamlinkvr: [XRRenderer] Failed to find requested color space 3
+09-25 17:49:23.572 17301 17499 I AdrenoVK-0: Shader Compiler Version : E031.50.02.00
+09-25 17:49:23.729 17301 17490 W VideoCapabilities: Unsupported mime video/x-mvhevc
+09-25 17:49:23.730 17301 17490 W VideoCapabilities: Unsupported mime video/x-mvhevc
+09-25 17:49:23.730 17301 17490 W VideoCapabilities: Unsupported mime video/x-mvhevc
+09-25 17:49:23.730 17301 17490 W VideoCapabilities: Unsupported mime video/x-mvhevc
+09-25 17:49:23.732 17301 17490 W VideoCapabilities: Unsupported mime video/x-mvhevc
+09-25 17:49:23.732 17301 17490 W VideoCapabilities: Unsupported mime video/x-mvhevc
+09-25 17:49:27.131 17301 17455 D CCodecConfig: c2 config diff is   c2::u32 output.delay.value = 24
+09-25 17:49:27.132 17301 17455 D CCodecBufferChannel: [c2.qti.hevc.decoder#624] onWorkDone: updating output delay 24
+09-25 17:49:27.132 17301 17455 I CCodecBufferChannel: [c2.qti.hevc.decoder#624] onWorkDone: updating max output delay 31
+09-25 17:49:27.132 17301 17455 D Codec2-OutputBufferQueue: set max dequeue count 31 from update
+09-25 17:49:27.139 17301 17455 D CCodecConfig: c2 config diff is   c2::u32 raw.color.matrix = 5
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.color.primaries = 6
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.color.range = 1
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.color.transfer = 4
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.crop.height = 6144
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.crop.left = 0
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.crop.top = 0
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.crop.width = 1536
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.size.height = 6144
+09-25 17:49:27.139 17301 17455 D CCodecConfig:   c2::u32 raw.size.width = 1536
+09-25 17:49:27.139 17301 17455 D CCodecBuffers: [c2.qti.hevc.decoder#624:2D-Output] popFromStashAndRegister: at 0us, output format changed to AMessage(what = 0x00000000) = {
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t android._color-format = 54
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t android._video-scaling = 1
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t android._dataspace = 151388160
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t color-standard = 6
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t color-range = 1
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t color-transfer = 4
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t sar-height = 1
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t rotation-degrees = 0
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   Buffer hdr-static-info = {
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:     00000010:  00 00 00 00 00 00 00 00  00                       .........
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   }
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t sar-width = 1
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   Rect crop(0, 0, 1535, 6143)
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t width = 1536
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t feature-secure-playback = 0
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t frame-rate = 30
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   Buffer hdr10-plus-info = {
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   }
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t height = 6144
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t max-height = 3584
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t max-width = 896
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   string mime = "video/raw"
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t priority = 0
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t vendor.qti-ext-dec-picture-order.enable = 1
+09-25 17:49:27.139 17301 17455 D CCodecBuffers:   int32_t color-format = 54
+09-25 17:49:27.139 17301 17455 D CCodecBuffers: }
+09-25 17:49:27.160 17301 17427 I GXRSurfaceTrigger: {"schema":2,"runId":"pid-17301","source":"openxr","mode":"android_surface_trigger_passthrough_v1","buildId":"android-surface-trigger-5001712-v1.2-20260903","elapsedMs":3949211,"event":"surface_trigger_frame","frame":1,"sourceLayerCount":2,"sourceProjectionCount":2,"sourceViewCount":4,"projections":[{"layerIndex":0,"pointer":12970367455520874312,"viewCount":2,"views":[{"viewIndex":0,"swapchain":12970367463841962544,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536},{"viewIndex":1,"swapchain":12970367463841959968,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536}]},{"layerIndex":1,"pointer":12970367455520874360,"viewCount":2,"views":[{"viewIndex":0,"swapchain":12970367463841965120,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536},{"viewIndex":1,"swapchain":12970367463841988304,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536}]}],"sessionState":5,"outputLayerCount":3,"triggerTerminal":true}
+09-25 17:49:27.269 17301 17505 I steamlinkvr: [XRRenderer] VTE_PROP_COLOR_CONTROL updated
+09-25 17:49:27.269 17301 17505 I steamlinkvr: [XRRenderer] Updating color props
+09-25 17:49:27.270 17301 17427 I GXRSurfaceTrigger: {"schema":2,"runId":"pid-17301","source":"openxr","mode":"android_surface_trigger_passthrough_v1","buildId":"android-surface-trigger-5001712-v1.2-20260903","elapsedMs":3949321,"event":"surface_trigger_frame","frame":2,"sourceLayerCount":2,"sourceProjectionCount":2,"sourceViewCount":4,"projections":[{"layerIndex":0,"pointer":12970367455520874312,"viewCount":2,"views":[{"viewIndex":0,"swapchain":12970367463841962544,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536},{"viewIndex":1,"swapchain":12970367463841959968,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536}]},{"layerIndex":1,"pointer":12970367455520874360,"viewCount":2,"views":[{"viewIndex":0,"swapchain":12970367463841965120,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536},{"viewIndex":1,"swapchain":12970367463841988304,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536}]}],"sessionState":5,"outputLayerCount":3,"triggerTerminal":true}
+09-25 17:49:27.692 17301 17427 I GXRSurfaceTrigger: {"schema":2,"runId":"pid-17301","source":"openxr","mode":"android_surface_trigger_passthrough_v1","buildId":"android-surface-trigger-5001712-v1.2-20260903","elapsedMs":3949743,"event":"surface_trigger_frame","frame":3,"sourceLayerCount":2,"sourceProjectionCount":2,"sourceViewCount":4,"projections":[{"layerIndex":0,"pointer":12970367455520874312,"viewCount":2,"views":[{"viewIndex":0,"swapchain":12970367463841962544,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536},{"viewIndex":1,"swapchain":12970367463841959968,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536}]},{"layerIndex":1,"pointer":12970367455520874360,"viewCount":2,"views":[{"viewIndex":0,"swapchain":12970367463841965120,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536},{"viewIndex":1,"swapchain":12970367463841988304,"format":35907,"swapchainWidth":1536,"swapchainHeight":1536,"arrayIndex":0,"offsetX":0,"offsetY":0,"width":1536,"height":1536}]}],"sessionState":5,"outputLayerCount":3,"triggerTerminal":true}

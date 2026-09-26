@@ -108,7 +108,7 @@ An interrupted settings change couldn't be recovered, so its record was set asid
 An operator code is five or six digits, like 310260	Um código de operadora tem cinco ou seis dígitos, como 310260
 An override changes the value TikTok reads from this gate. It does not rewrite TikTok's cached value or prove the named feature changed.	Uma substituição muda o valor que o TikTok lê deste gate. Ela não reescreve o valor que o TikTok tem em cache nem prova que o recurso citado mudou.
 Animated sticker format	Formato dos stickers animados
-Answer TikTok's location requests with nothing. The region settings change the locale and timezone; this stops the coordinates.	Responde aos pedidos de localização do TikTok com nada. As configurações de região mudam o local e o fuso horário; isto barra as coordenadas.
+Answer TikTok's location requests with nothing. The region settings change the locale and timezone. This switch stops the coordinates.	Responde aos pedidos de localização do TikTok com nada. As configurações de região mudam o local e o fuso horário; isto barra as coordenadas.
 Answer TikTok's reads of your contacts with an empty list. Find Friends and People you may know lose access to your contact list.	Responde às leituras dos seus contatos pelo TikTok com uma lista vazia. Encontrar amigos e Pessoas que você talvez conheça perdem o acesso à sua lista de contatos.
 Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.	Responde à varredura dos apps deste telefone pelo TikTok com uma lista vazia. A verificação de um app específico, que o TikTok também usa para abrir um app que você toca, é deixada em paz.
 App	Aplicativo
@@ -347,6 +347,8 @@ Find a setting by name or description	Ache uma configuração por nome ou descri
 First caller	Primeira chamada
 First rejection:	Primeira rejeição:
 Fit the video to the screen	Ajustar o vídeo à tela
+Fill the screen with the video	Preencher a tela com o vídeo
+Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.	Corta o vídeo até ele cobrir a janela inteira. Em um celular alto a faixa preta que o TikTok deixa embaixo do vídeo some e um pouco de cada lado vai junto.
 Focus	Foco
 Follow probe	Verificação de seguir
 Following	Seguindo
@@ -406,6 +408,8 @@ Hide conversations	Esconder as conversas
 Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still turned on.	Esconder todas as conversas de mensagens diretas. Deixa a caixa de entrada vazia, tirando o que você ainda tiver ligado.
 Hide the save button on the feed	Esconder o botão de salvar do feed
 Hide the search button on the feed	Esconder o botão de busca do feed
+Hide the tab names above the feed	Ocultar os nomes das abas acima do feed
+The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.	Os nomes Seguindo e Para você acima do feed somem. Deslizar entre os feeds e o botão de busca continuam como estão.
 Hide floating promotion badges, coins, and timer banners on the feed.	Esconder os selos promocionais flutuantes, as moedas e os banners com contagem regressiva da página inicial.
 Hide floating promotions	Esconder as promoções flutuantes
 Hide inserted cards	Esconder os cards inseridos
@@ -544,6 +548,10 @@ Limits	Limites
 Link copied	Link copiado
 Links	Links
 Links in comments open	Os links nos comentários abrem
+More opens the comments	Mais abre os comentários
+Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.	Tocar em mais abaixo de um vídeo abre os comentários com a legenda inteira no topo em vez de espalhá-la sobre o vídeo. Tocar na própria legenda faz o mesmo. Posts de fotos mantêm a página do próprio TikTok para isso.
+Caption above comments	Legenda acima dos comentários
+The comment button also opens a video's comments with its caption at the top. The caption over the video goes away while this is on.	O botão de comentários também abre os comentários de um vídeo com a legenda no topo. A legenda sobre o vídeo some enquanto isto estiver ligado.
 Loaded current values. Loading all known gates...	Valores atuais carregados. Carregando todos os gates conhecidos...
 Loaded values are still being read. Try again in a moment.	Os valores carregados ainda estão sendo lidos. Tente novamente em instantes.
 Loaded-value file export failed	A exportação do arquivo de valores carregados falhou
@@ -1030,6 +1038,13 @@ TikTok's play and pause button and its previous and next buttons appear on the f
 TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	O servidor do TikTok pode colocar uma conta em um experimento que esvazia a aba Favoritos do seu perfil. Mantém a aba e os vídeos salvos nela.
 TikTok's size	Tamanho do TikTok
 Times you can open the feed anyway	Vezes que você pode abrir o feed mesmo assim
+Wait a day to loosen the budget	Esperar um dia para afrouxar o limite
+A change that loosens the budget waits until the day starts over and one that tightens it applies at once. A higher budget or no budget loosens it. So do a shorter hold and more times to open the feed anyway. Moving the hour the day starts and turning this off wait too. A restored backup follows the same rule and Start today over is off while this is on.	Uma mudança que afrouxa o limite espera até o dia recomeçar, e uma que o aperta vale na hora. Um limite maior ou nenhum limite o afrouxa. Uma pausa mais curta e mais vezes para abrir o feed mesmo assim também. Mudar a hora em que o dia começa e desligar isto também esperam. Um backup restaurado segue a mesma regra, e Recomeçar o dia de hoje fica indisponível enquanto isto estiver ligado.
+Changes to %1$s at %2$s	Muda para %1$s às %2$s
+Turns off at %1$s	Desliga às %1$s
+That loosens the budget. It waits until %1$s.	Isso afrouxa o limite. Espera até as %1$s.
+Today can't start over while Wait a day to loosen the budget is on. The day starts over at %1$s.	O dia de hoje não pode recomeçar enquanto Esperar um dia para afrouxar o limite estiver ligado. O dia recomeça às %1$s.
+Wait a day to loosen the budget is on, so Hushfeed stays on	Esperar um dia para afrouxar o limite está ligado, então o Hushfeed continua ligado
 Today has moved on, so there is nothing to put back	O dia já andou, então não há nada para trazer de volta
 Today is back where it was	Hoje está como estava
 Today started over. Tap again to put the counts back.	Hoje recomeçou. Toque de novo para trazer as contagens de volta.
@@ -1041,7 +1056,7 @@ Today: %1$d minute	Hoje: %1$d minuto
 Today: %1$d minutes	Hoje: %1$d minutos
 Today: %1$d video	Hoje: %1$d vídeo
 Today: %1$d videos	Hoje: %1$d vídeos
-Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos; anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.	Curingas: {creator}, {date}, {video_id}, {index}. {index} numera as fotos de uma apresentação salva com Baixar as fotos originais; o que for salvo pelo botão do próprio TikTok é numerado pela pasta. A extensão do arquivo é mantida automaticamente.
+Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos. Anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.	Curingas: {creator}, {date}, {video_id}, {index}. {index} numera as fotos de uma apresentação salva com Baixar as fotos originais; o que for salvo pelo botão do próprio TikTok é numerado pela pasta. A extensão do arquivo é mantida automaticamente.
 Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.	Curingas: {creator}, {date}, {video_id}. A extensão do arquivo é mantida automaticamente.
 Tokens: {date}, {media_id}. Works for image and video stickers.	Curingas: {date}, {media_id}. Serve para os stickers de imagem e de vídeo.
 Too many media saves are already running. Try again shortly.	Muitos salvamentos de mídia já estão em andamento. Tente daqui a pouco.

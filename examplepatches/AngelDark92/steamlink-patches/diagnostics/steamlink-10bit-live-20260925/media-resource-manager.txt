@@ -1,0 +1,142 @@
+ResourceManagerService: 0xf7681b90
+  Policies:
+    SupportsMultipleSecureCodecs: 1
+    SupportsSecureWithNonSecureCodec: 1
+  Processes:
+    Pid: 1976
+    Priority: -900
+    Pid: 3224
+    Priority: -800
+    Pid: 3857
+    Priority: <unknown>
+    Pid: 4179
+    Priority: -700
+    Pid: 4954
+    Priority: 200
+    Pid: 8450
+    Priority: <unknown>
+    Pid: 10754
+    Priority: <unknown>
+    Pid: 11382
+    Priority: <unknown>
+    Pid: 12663
+    Priority: <unknown>
+    Pid: 13543
+    Priority: <unknown>
+    Pid: 15824
+    Priority: <unknown>
+    Pid: 16207
+    Priority: <unknown>
+    Pid: 16734
+    Priority: <unknown>
+    Pid: 17301
+    Priority: 0
+      Client:
+        Id: -5476376617652226000
+        Name: c2.qti.hevc.decoder
+        Resources:
+          non-secure-codec/video-codec:[]:1
+          battery/video-codec:[]:1
+  Process Pid override:
+  Events logs (most recent at top):
+    09-25 17:49:27 addResource(pid 17301, uid 10244 clientId -5476376617652226000, resources battery/video-codec:[]:1 )
+    09-25 17:49:23 addMediaInfo(pid 17301, clientId -5476376617652226000, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 17:49:23 addResource(pid 17301, uid 10244 clientId -5476376617652226000, resources graphic-memory/unspecified:[]:0 )
+    09-25 17:49:23 addResource(pid 17301, uid 10244 clientId -5476376617652226000, resources non-secure-codec/video-codec:[]:1 )
+    09-25 17:49:23 reclaimResourcesFromClientsPendingRemoval(pid 17301)
+    09-25 17:48:59 removeResource(pid 16734, uid 10254 clientId -5476376617652278416)
+    09-25 17:48:51 addResource(pid 16734, uid 10254 clientId -5476376617652278416, resources battery/video-codec:[]:1 )
+    09-25 17:48:47 addMediaInfo(pid 16734, clientId -5476376617652278416, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 17:48:47 addResource(pid 16734, uid 10254 clientId -5476376617652278416, resources graphic-memory/unspecified:[]:0 )
+    09-25 17:48:47 addResource(pid 16734, uid 10254 clientId -5476376617652278416, resources non-secure-codec/video-codec:[]:1 )
+    09-25 17:48:47 reclaimResourcesFromClientsPendingRemoval(pid 16734)
+    09-25 17:48:25 removeResource(pid 16734, uid 10254 clientId -5476376617652214624)
+    09-25 17:47:46 addResource(pid 16734, uid 10254 clientId -5476376617652214624, resources battery/video-codec:[]:1 )
+    09-25 17:47:42 addMediaInfo(pid 16734, clientId -5476376617652214624, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 17:47:42 addResource(pid 16734, uid 10254 clientId -5476376617652214624, resources graphic-memory/unspecified:[]:0 )
+    09-25 17:47:42 addResource(pid 16734, uid 10254 clientId -5476376617652214624, resources non-secure-codec/video-codec:[]:1 )
+    09-25 17:47:42 reclaimResourcesFromClientsPendingRemoval(pid 16734)
+    09-25 17:46:52 removeResource(pid 16207, uid 10254 clientId -5476376617652157744)
+    09-25 17:42:04 addResource(pid 16207, uid 10254 clientId -5476376617652157744, resources battery/video-codec:[]:1 )
+    09-25 17:42:00 addMediaInfo(pid 16207, clientId -5476376617652157744, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 17:42:00 addResource(pid 16207, uid 10254 clientId -5476376617652157744, resources graphic-memory/unspecified:[]:0 )
+    09-25 17:42:00 addResource(pid 16207, uid 10254 clientId -5476376617652157744, resources non-secure-codec/video-codec:[]:1 )
+    09-25 17:42:00 reclaimResourcesFromClientsPendingRemoval(pid 16207)
+    09-25 17:41:14 removeResource(pid 15824, uid 10244 clientId -5476376617651995456)
+    09-25 17:40:11 removeResource(pid 1976, uid 1000 clientId 4154319056)
+    09-25 17:39:42 addResource(pid 15824, uid 10244 clientId -5476376617651995456, resources battery/video-codec:[]:1 )
+    09-25 17:39:38 addMediaInfo(pid 15824, clientId -5476376617651995456, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 17:39:38 addResource(pid 15824, uid 10244 clientId -5476376617651995456, resources graphic-memory/unspecified:[]:0 )
+    09-25 17:39:38 addResource(pid 15824, uid 10244 clientId -5476376617651995456, resources non-secure-codec/video-codec:[]:1 )
+    09-25 17:39:38 reclaimResourcesFromClientsPendingRemoval(pid 15824)
+    09-25 17:39:07 addResource(pid 1976, uid 1000 clientId 4154319056, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 17:39:07 reclaimResourcesFromClientsPendingRemoval(pid 1976)
+    09-25 17:22:24 removeResource(pid 1976, uid 1000 clientId 4154264464)
+    09-25 17:22:24 removeResource(pid 1976, uid 1000 clientId 4154225168)
+    09-25 17:10:24 addResource(pid 1976, uid 1000 clientId 4154264464, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 17:10:24 reclaimResourcesFromClientsPendingRemoval(pid 1976)
+    09-25 17:06:07 addResource(pid 1976, uid 1000 clientId 4154225168, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 17:06:07 reclaimResourcesFromClientsPendingRemoval(pid 1976)
+    09-25 17:05:17 removeResource(pid 13543, uid 10254 clientId -5476376617652210736)
+    09-25 17:03:48 addResource(pid 13543, uid 10254 clientId -5476376617652210736, resources battery/video-codec:[]:1 )
+    09-25 17:03:45 addMediaInfo(pid 13543, clientId -5476376617652210736, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 17:03:45 addResource(pid 13543, uid 10254 clientId -5476376617652210736, resources graphic-memory/unspecified:[]:0 )
+    09-25 17:03:45 addResource(pid 13543, uid 10254 clientId -5476376617652210736, resources non-secure-codec/video-codec:[]:1 )
+    09-25 17:03:45 reclaimResourcesFromClientsPendingRemoval(pid 13543)
+    09-25 17:02:53 removeResource(pid 12663, uid 10253 clientId -5476376617652124624)
+    09-25 17:00:06 addResource(pid 12663, uid 10253 clientId -5476376617652124624, resources battery/video-codec:[]:1 )
+    09-25 17:00:02 addMediaInfo(pid 12663, clientId -5476376617652124624, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 17:00:02 addResource(pid 12663, uid 10253 clientId -5476376617652124624, resources graphic-memory/unspecified:[]:0 )
+    09-25 17:00:02 addResource(pid 12663, uid 10253 clientId -5476376617652124624, resources non-secure-codec/video-codec:[]:1 )
+    09-25 17:00:02 reclaimResourcesFromClientsPendingRemoval(pid 12663)
+    09-25 16:58:53 removeResource(pid 11382, uid 10256 clientId 4154230288)
+    09-25 16:58:39 addResource(pid 11382, uid 10256 clientId 4154230288, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:58:39 reclaimResourcesFromClientsPendingRemoval(pid 11382)
+    09-25 16:58:05 removeResource(pid 11382, uid 10256 clientId 4154291664)
+    09-25 16:57:47 addResource(pid 11382, uid 10256 clientId 4154291664, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:57:47 reclaimResourcesFromClientsPendingRemoval(pid 11382)
+    09-25 16:57:07 removeResource(pid 11382, uid 10256 clientId 4154342352)
+    09-25 16:56:52 addResource(pid 11382, uid 10256 clientId 4154342352, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:56:52 reclaimResourcesFromClientsPendingRemoval(pid 11382)
+    09-25 16:56:12 removeResource(pid 10754, uid 10244 clientId -5476376617652148096)
+    09-25 16:51:58 addResource(pid 10754, uid 10244 clientId -5476376617652148096, resources battery/video-codec:[]:1 )
+    09-25 16:51:55 addMediaInfo(pid 10754, clientId -5476376617652148096, resources 896x3584 (fps:30) - sw codec : no, encoder : no componentName = c2.qti.hevc.decoder bitrate = 17000000 ), allocated hw codec count 1
+    09-25 16:51:55 addResource(pid 10754, uid 10244 clientId -5476376617652148096, resources graphic-memory/unspecified:[]:0 )
+    09-25 16:51:54 addResource(pid 10754, uid 10244 clientId -5476376617652148096, resources non-secure-codec/video-codec:[]:1 )
+    09-25 16:51:54 reclaimResourcesFromClientsPendingRemoval(pid 10754)
+    09-25 16:51:34 removeResource(pid 8450, uid 10256 clientId 4154235088)
+    09-25 16:50:34 addResource(pid 8450, uid 10256 clientId 4154235088, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:50:34 reclaimResourcesFromClientsPendingRemoval(pid 8450)
+    09-25 16:50:12 removeResource(pid 8450, uid 10256 clientId 4154260048)
+    09-25 16:50:00 addResource(pid 8450, uid 10256 clientId 4154260048, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:50:00 reclaimResourcesFromClientsPendingRemoval(pid 8450)
+    09-25 16:48:54 removeResource(pid 1976, uid 1000 clientId 4154256784)
+    09-25 16:48:50 addResource(pid 1976, uid 1000 clientId 4154256784, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:48:50 reclaimResourcesFromClientsPendingRemoval(pid 1976)
+    09-25 16:44:10 removeResource(pid 4954, uid 10137 clientId -5476376617652361792)
+    09-25 16:44:10 addResource(pid 4954, uid 10137 clientId -5476376617652361792, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:44:10 reclaimResourcesFromClientsPendingRemoval(pid 4954)
+    09-25 16:44:10 removeResource(pid 4954, uid 10137 clientId -5476376617652335152)
+    09-25 16:44:10 removeResource(pid 4954, uid 10137 clientId -5476376617652299008)
+    09-25 16:44:10 addResource(pid 4954, uid 10137 clientId -5476376617652335152, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:44:10 reclaimResourcesFromClientsPendingRemoval(pid 4954)
+    09-25 16:44:10 addResource(pid 4954, uid 10137 clientId -5476376617652299008, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:44:10 removeResource(pid 4954, uid 10137 clientId -5476376617652291088)
+    09-25 16:44:10 reclaimResourcesFromClientsPendingRemoval(pid 4954)
+    09-25 16:44:10 addResource(pid 4954, uid 10137 clientId -5476376617652291088, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:44:10 reclaimResourcesFromClientsPendingRemoval(pid 4954)
+    09-25 16:44:10 removeResource(pid 4954, uid 10137 clientId -5476376617652365536)
+    09-25 16:44:10 removeResource(pid 4954, uid 10137 clientId -5476376617652327952)
+    09-25 16:44:10 addResource(pid 4954, uid 10137 clientId -5476376617652365536, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:44:10 addResource(pid 4954, uid 10137 clientId -5476376617652327952, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:44:10 reclaimResourcesFromClientsPendingRemoval(pid 4954)
+    09-25 16:44:10 reclaimResourcesFromClientsPendingRemoval(pid 4954)
+    09-25 16:44:08 removeResource(pid 4179, uid 10224 clientId -5476376617652368848)
+    09-25 16:44:08 markClientForPendingRemoval(pid 4179, clientId -5476376617652368848)
+    09-25 16:44:08 addResource(pid 4179, uid 10224 clientId -5476376617652368848, resources non-secure-codec/video-codec:[]:1 )
+    09-25 16:44:08 reclaimResourcesFromClientsPendingRemoval(pid 4179)
+    09-25 16:44:08 removeResource(pid 3857, uid 10137 clientId -5476376617652045424)
+    09-25 16:44:08 removeResource(pid 3857, uid 10137 clientId -5476376617652360352)
+    09-25 16:44:08 addResource(pid 3857, uid 10137 clientId -5476376617652045424, resources non-secure-codec/audio-codec:[]:1 )
+    09-25 16:44:08 addResource(pid 3857, uid 10137 clientId -5476376617652360352, resources non-secure-codec/audio-codec:[]:1 )
+    ...

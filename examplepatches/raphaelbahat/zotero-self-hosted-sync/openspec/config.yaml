@@ -1,0 +1,29 @@
+schema: intent-driven-strict
+
+context: |
+  Morphe Android patch bundle for the Zotero Android app (org.zotero.android).
+  Patches are Kotlin, built with the Morphe patcher DSL (Gradle plugin
+  app.morphe.patches) and packaged as an .mpp bundle; an optional Java extension
+  module supplies runtime code. The patch rewrites the client's hardcoded sync
+  endpoints — API base https://api.zotero.org and streaming wss://stream.zotero.org
+  — to a server domain entered as a patch option, so the app syncs with a
+  self-hosted Zotero server (e.g. altero) instead of zotero.org. The server is not
+  modified; HTTPS is required; login, account approval and attachment upload URLs
+  are server-provided and follow the domain automatically.
+
+rules:
+  proposal:
+    - Must use grill-me skill
+  design:
+    - Must use c4-architecture skill
+  adr:
+    - Must use architectural-decision-records skill
+  specs:
+    - Must use gherkin-authoring skill
+  validate:
+    - Sub-agents are read-only — they validate against live docs and return verdicts; they never edit files
+    - "Access documentation in order: Context7, then jina or exa, then a native web fetch tool (e.g., WebFetch)"
+    - If sub-agent deployment fails or is unavailable, run the validation in the main agent (session) instead
+    - Every verdict must cite a source URL; flag anything without evidence as UNCERTAIN rather than guessing
+    - Do not approve edits yourself — always prompt the user before revising tasks.md or related artifacts
+    - After revision, the change must still pass `openspec validate --strict` and all artifacts must remain coherent with one another

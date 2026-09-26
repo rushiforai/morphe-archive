@@ -71,10 +71,14 @@ public final class GestureActions {
     /** Eligibility callback from the native edge-speedup component before its 300 ms timer. */
     public static boolean allowNativeEdgeSpeedup(float x) {
         if (edgeSeekDelta(x) != 0) return false;
-        String action = Settings.LONG_PRESS_ACTION.get();
-        return !"nothing".equals(action) && !"comments".equals(action)
-                && !"original_sound".equals(action) && !"copy_link".equals(action)
-                && !"copy_sound_link".equals(action) && !"youtube_music".equals(action);
+        return !takesLongPress(Settings.LONG_PRESS_ACTION.get());
+    }
+
+    /** Whether this Long press choice gives the press to an action of Hushfeed's, not TikTok's. */
+    public static boolean takesLongPress(String action) {
+        return "nothing".equals(action) || "comments".equals(action)
+                || "original_sound".equals(action) || "copy_link".equals(action)
+                || "copy_sound_link".equals(action) || "youtube_music".equals(action);
     }
 
     /**
@@ -219,7 +223,7 @@ public final class GestureActions {
         return true;
     }
 
-    static boolean openComments(String videoId) {
+    public static boolean openComments(String videoId) {
         if (videoId == null || videoId.isEmpty()) return false;
         Map.Entry<Object, CommentControl> hidden = null;
         for (Map.Entry<Object, CommentControl> entry : COMMENTS.entrySet()) {

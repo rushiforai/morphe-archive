@@ -15,20 +15,27 @@
  */
 package hx;
 
+import android.net.Uri;
+import android.util.Log;
 import android.util.Xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -41,16 +48,25 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 final class DashFile {
-    interface Cookies {
+    interface CookieProvider {
         String current() throws IOException;
 
         String refresh(String rejected) throws IOException;
     }
 
+    private static final String TAG = "hxreborn/moviebox";
     private static final int PROBE_BYTES = 256;
-    private static final int SIZING_THREADS = 12;
+    private static final int SIZING_THREADS = 48;
+    private static final int UNPACED_PARALLEL_READS = 8;
+    private static final int PACED_PARALLEL_READS = 16;
+    private static final String UNPACED_CDN_HOST = "sacdn.hakunaymatata.com";
+    private static final int UNPACED_READ_CHUNK_BYTES = 256 * 1024;
+    private static final int PACED_READ_CHUNK_BYTES = 48 * 1024;
+    private static final int READ_AHEAD_BYTES = 3 * 1024 * 1024;
     private static final int CONNECT_TIMEOUT_MS = 15000;
     private static final int READ_TIMEOUT_MS = 30000;
+    private static final int CDN_ATTEMPTS = 5;
+    private static final long CDN_RETRY_DELAY_MS = 2000L;
     private static final int COPY_BUFFER_BYTES = 1 << 16;
     private static final int MAX_MANIFEST_DEPTH = 32;
     private static final long MS_PER_SECOND = 1000L;
@@ -62,7 +78,6 @@ final class DashFile {
     private static final long SECONDS_PER_HOUR = 3600L;
     private static final long SECONDS_PER_DAY = 86400L;
 
-    // ISO BMFF field offsets from the box start
     private static final int BOX_HEADER = 8;
     private static final int BOX_TYPE_AT = 4;
     private static final int FULL_BOX_HEADER = 12;
@@ -156,6 +171,33 @@ final class DashFile {
         }
     }
 
+    private static final class ReadGroup {
+        private final Set<HttpURLConnection> open = new HashSet<>();
+        private boolean closed;
+
+        synchronized void add(HttpURLConnection connection) throws InterruptedIOException {
+            if (closed) {
+                connection.disconnect();
+                throw new InterruptedIOException("read cancelled");
+            }
+            open.add(connection);
+        }
+
+        synchronized void remove(HttpURLConnection connection) {
+            open.remove(connection);
+        }
+
+        synchronized boolean isClosed() {
+            return closed;
+        }
+
+        synchronized void close() {
+            closed = true;
+            for (HttpURLConnection connection : open) connection.disconnect();
+            open.clear();
+        }
+    }
+
     private static final class Piece {
         final long offset;
         final long length;
@@ -174,37 +216,42 @@ final class DashFile {
         }
     }
 
-    private final Cookies cookies;
+    private final CookieProvider cookies;
     private final byte[] head;
     private final Piece[] pieces;
+    private final int readChunkBytes;
+    private final int parallelReads;
     final long length;
 
-    private DashFile(Cookies cookies, byte[] head, Piece[] pieces) {
+    private DashFile(CookieProvider cookies, byte[] head, Piece[] pieces, boolean unpaced) {
         this.cookies = cookies;
         this.head = head;
         this.pieces = pieces;
+        this.readChunkBytes = unpaced ? UNPACED_READ_CHUNK_BYTES : PACED_READ_CHUNK_BYTES;
+        this.parallelReads = unpaced ? UNPACED_PARALLEL_READS : PACED_PARALLEL_READS;
         Piece last = pieces[pieces.length - 1];
         this.length = last.offset + last.length;
     }
 
-    static DashFile open(String manifestUrl, int height, Cookies cookies) throws IOException {
-        Manifest manifest = parse(fetch(manifestUrl, cookies), manifestUrl);
+    static DashFile open(String manifestUrl, int height, CookieProvider cookies) throws IOException {
+        Manifest manifest = parse(withRetries(() -> fetch(manifestUrl, cookies)), manifestUrl);
         Representation video = select(manifest.representations, "video", height);
         Representation audio = select(manifest.representations, "audio", Integer.MAX_VALUE);
         if (video == null || audio == null) throw new IOException("manifest lacks a video or audio track");
 
-        List<Segment> videoSegments = segments(video, manifest.presentationSeconds);
-        List<Segment> audioSegments = segments(audio, manifest.presentationSeconds);
+        List<Segment> videoSegments = buildSegments(video, manifest.presentationSeconds);
+        List<Segment> audioSegments = buildSegments(audio, manifest.presentationSeconds);
         size(videoSegments, audioSegments, cookies);
 
-        byte[] videoInit = fetch(initializationUrl(video), cookies);
-        byte[] audioInit = fetch(initializationUrl(audio), cookies);
+        byte[] videoInit = withRetries(() -> fetch(initializationUrl(video), cookies));
+        byte[] audioInit = withRetries(() -> fetch(initializationUrl(audio), cookies));
         int videoId = trackId(videoInit);
         int audioId = videoId + 1;
         long templateTimescale = video.template.timescale;
         long videoTimescale = mediaTimescale(videoInit);
-        long durationMs = 0;
-        for (Segment segment : videoSegments) durationMs += segment.duration * MS_PER_SECOND / templateTimescale;
+        long durationUnits = 0;
+        for (Segment segment : videoSegments) durationUnits += segment.duration;
+        long durationMs = durationUnits * MS_PER_SECOND / templateTimescale;
 
         List<Segment> ordered = new ArrayList<>();
         List<Integer> trackIds = new ArrayList<>();
@@ -243,7 +290,11 @@ final class DashFile {
             pieces[i] = new Piece(offset, ordered.get(i), trackIds.get(i));
             offset += pieces[i].length;
         }
-        return new DashFile(cookies, head, pieces);
+        return new DashFile(cookies, head, pieces, isUnpacedCdn(manifestUrl));
+    }
+
+    static boolean isUnpacedCdn(String manifestUrl) {
+        return UNPACED_CDN_HOST.equals(Uri.parse(manifestUrl).getHost());
     }
 
     void write(OutputStream out, long start, long end) throws IOException {
@@ -253,13 +304,46 @@ final class DashFile {
             out.write(head, (int) at, count);
             at += count;
         }
-        int index = pieceAt(at);
-        while (at <= end && index < pieces.length) {
-            Piece piece = pieces[index++];
-            long from = at - piece.offset;
-            long to = Math.min(end - piece.offset, piece.length - 1);
-            copy(piece, from, to, out);
-            at = piece.offset + to + 1;
+        out.flush();
+        ExecutorService pool = Executors.newFixedThreadPool(parallelReads);
+        ReadGroup reads = new ReadGroup();
+        ArrayDeque<Future<byte[]>> pending = new ArrayDeque<>();
+        int readAheadChunks = Math.max(parallelReads, READ_AHEAD_BYTES / readChunkBytes);
+        try {
+            int index = pieceAt(at);
+            while (true) {
+                while (pending.size() < readAheadChunks && at <= end && index < pieces.length) {
+                    final Piece piece = pieces[index];
+                    final long from = at - piece.offset;
+                    final long to = Math.min(Math.min(end - piece.offset, piece.length - 1), from + readChunkBytes - 1);
+                    pending.add(pool.submit(new Callable<byte[]>() {
+                        @Override
+                        public byte[] call() throws IOException {
+                            return withRetries(() -> readPiece(piece, from, to, reads));
+                        }
+                    }));
+                    at = piece.offset + to + 1;
+                    if (to == piece.length - 1) index++;
+                }
+                Future<byte[]> next = pending.poll();
+                if (next == null) return;
+                out.write(await(next));
+            }
+        } finally {
+            reads.close();
+            pool.shutdownNow();
+        }
+    }
+
+    private static <T> T await(Future<T> task) throws IOException {
+        try {
+            return task.get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            throw cause instanceof IOException ? (IOException) cause : new IOException(cause);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException(e);
         }
     }
 
@@ -274,33 +358,62 @@ final class DashFile {
         return low;
     }
 
-    private void copy(Piece piece, long from, long to, OutputStream out) throws IOException {
-        String range = "bytes=" + (piece.prefixBytes + from) + "-" + (piece.prefixBytes + to);
-        HttpURLConnection connection = connect(piece.url, range, cookies);
-        try {
-            if (connection.getResponseCode() != HttpURLConnection.HTTP_PARTIAL) {
-                throw new IOException("range ignored for " + piece.url);
-            }
-            InputStream in = connection.getInputStream();
-            byte[] buffer = new byte[COPY_BUFFER_BYTES];
-            long position = from;
-            long remaining = to - from + 1;
-            while (remaining > 0) {
-                int count = in.read(buffer, 0, (int) Math.min(buffer.length, remaining));
-                if (count < 0) throw new IOException("segment ended early: " + piece.url);
-                for (int k = 0; k < TRACK_ID_BYTES; k++) {
-                    long index = piece.trackIdOffset + k - position;
-                    if (index >= 0 && index < count) {
-                        buffer[(int) index] = (byte) (piece.trackId >>> (Byte.SIZE * (TRACK_ID_BYTES - 1 - k)));
-                    }
+    private interface CdnRequest<T> {
+        T send() throws IOException;
+    }
+
+    private static <T> T withRetries(CdnRequest<T> request) throws IOException {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return request.send();
+            } catch (IOException failure) {
+                boolean cancelled = failure instanceof InterruptedIOException
+                        && !(failure instanceof SocketTimeoutException);
+                if (attempt == CDN_ATTEMPTS || cancelled) throw failure;
+                Log.w(TAG, "CDN read attempt " + attempt + " of " + CDN_ATTEMPTS + " failed", failure);
+                try {
+                    Thread.sleep(CDN_RETRY_DELAY_MS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException(e);
                 }
-                out.write(buffer, 0, count);
-                position += count;
-                remaining -= count;
             }
-        } finally {
-            connection.disconnect();
         }
+    }
+
+    private byte[] readPiece(Piece piece, long from, long to, ReadGroup reads) throws IOException {
+        long start = piece.prefixBytes + from;
+        long end = piece.prefixBytes + to;
+        byte[] bytes = new byte[(int) (to - from + 1)];
+        HttpURLConnection connection = null;
+        try {
+            connection = connect(piece.url, "bytes=" + start + "-" + end, cookies, reads);
+            String contentRange = connection.getHeaderField("Content-Range");
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_PARTIAL
+                    || contentRange == null || !contentRange.startsWith("bytes " + start + "-" + end + "/")) {
+                throw new IOException("expected bytes " + start + "-" + end + ", got " + contentRange + " for " + piece.url);
+            }
+            try (InputStream in = connection.getInputStream()) {
+                for (int got = 0; got < bytes.length; ) {
+                    int count = in.read(bytes, got, bytes.length - got);
+                    if (count < 0) throw new IOException("segment ended early: " + piece.url);
+                    got += count;
+                }
+            }
+        } catch (IOException e) {
+            if (reads.isClosed()) throw new InterruptedIOException("read cancelled: " + piece.url);
+            if (connection != null) connection.disconnect();
+            throw e;
+        } finally {
+            if (connection != null) reads.remove(connection);
+        }
+        for (int k = 0; k < TRACK_ID_BYTES; k++) {
+            long index = piece.trackIdOffset + k - from;
+            if (index >= 0 && index < bytes.length) {
+                bytes[(int) index] = (byte) (piece.trackId >>> (Byte.SIZE * (TRACK_ID_BYTES - 1 - k)));
+            }
+        }
+        return bytes;
     }
 
     private static Manifest parse(byte[] xml, String manifestUrl) throws IOException {
@@ -325,33 +438,33 @@ final class DashFile {
                     String name = parser.getName();
                     if ("MPD".equals(name)) {
                         manifest.presentationSeconds =
-                                seconds(parser.getAttributeValue(null, "mediaPresentationDuration"));
+                                parseDurationSeconds(parser.getAttributeValue(null, "mediaPresentationDuration"));
                     } else if ("BaseURL".equals(name)) {
                         URL base = new URL(baseUrls[depth - 1]);
                         baseUrls[depth - 1] = new URL(base, parser.nextText().trim()).toString();
                         baseUrls[depth] = baseUrls[depth - 1];
                     } else if ("AdaptationSet".equals(name)) {
-                        setType = contentType(parser);
+                        setType = readContentType(parser);
                         setTemplate = null;
                     } else if ("Representation".equals(name)) {
                         representation = new Representation();
                         representation.id = parser.getAttributeValue(null, "id");
-                        representation.height = intAttribute(parser, "height", 0);
-                        representation.bandwidth = intAttribute(parser, "bandwidth", 0);
-                        String ownType = contentType(parser);
+                        representation.height = parseIntAttribute(parser, "height", 0);
+                        representation.bandwidth = parseIntAttribute(parser, "bandwidth", 0);
+                        String ownType = readContentType(parser);
                         representation.type = ownType != null ? ownType : representation.height > 0 ? "video" : setType;
                     } else if ("SegmentTemplate".equals(name)) {
                         template = new Template();
-                        template.timescale = intAttribute(parser, "timescale", 1);
-                        template.duration = longAttribute(parser, "duration", 0);
+                        template.timescale = parseIntAttribute(parser, "timescale", 1);
+                        template.duration = parseLongAttribute(parser, "duration", 0);
                         template.initialization = parser.getAttributeValue(null, "initialization");
                         template.media = parser.getAttributeValue(null, "media");
-                        template.startNumber = intAttribute(parser, "startNumber", 1);
+                        template.startNumber = parseIntAttribute(parser, "startNumber", 1);
                         if (representation == null) setTemplate = template;
                         else representation.template = template;
                     } else if ("S".equals(name) && template != null) {
-                        template.timeline.add(new Interval(longAttribute(parser, "t", -1),
-                                longAttribute(parser, "d", 0), longAttribute(parser, "r", 0)));
+                        template.timeline.add(new Interval(parseLongAttribute(parser, "t", -1),
+                                parseLongAttribute(parser, "d", 0), parseLongAttribute(parser, "r", 0)));
                     }
                 } else if (event == XmlPullParser.END_TAG) {
                     if ("Representation".equals(parser.getName()) && representation != null) {
@@ -372,7 +485,7 @@ final class DashFile {
         return manifest;
     }
 
-    private static double seconds(String iso8601Duration) {
+    private static double parseDurationSeconds(String iso8601Duration) {
         if (iso8601Duration == null) return 0;
         Matcher matcher = ISO_DURATION.matcher(iso8601Duration);
         if (!matcher.matches()) throw new NumberFormatException("duration " + iso8601Duration);
@@ -384,7 +497,7 @@ final class DashFile {
         return seconds;
     }
 
-    private static String contentType(XmlPullParser parser) {
+    private static String readContentType(XmlPullParser parser) {
         String type = parser.getAttributeValue(null, "contentType");
         if (type != null) return type;
         String mime = parser.getAttributeValue(null, "mimeType");
@@ -412,15 +525,17 @@ final class DashFile {
         return representation.baseUrl + initialization.replace(REPRESENTATION_ID, representation.id);
     }
 
-    private static List<Segment> segments(Representation representation, double presentationSeconds)
+    private static List<Segment> buildSegments(Representation representation, double presentationSeconds)
             throws IOException {
         Template template = representation.template;
         if (template.timescale <= 0) throw new IOException("representation " + representation.id + " has no timescale");
         List<Interval> timeline = template.timeline;
         if (timeline.isEmpty() && template.duration > 0 && presentationSeconds > 0) {
-            long count = (long) Math.ceil(presentationSeconds * template.timescale / template.duration);
+            long total = Math.round(presentationSeconds * template.timescale);
+            long fullSegments = (total - 1) / template.duration;
             timeline = new ArrayList<>();
-            timeline.add(new Interval(0, template.duration, count - 1));
+            if (fullSegments > 0) timeline.add(new Interval(0, template.duration, fullSegments - 1));
+            timeline.add(new Interval(fullSegments * template.duration, total - fullSegments * template.duration, 0));
         }
         if (timeline.isEmpty()) throw new IOException("manifest lacks a segment timeline or segment duration");
         List<Segment> segments = new ArrayList<>();
@@ -433,7 +548,7 @@ final class DashFile {
             if (interval.startTime >= 0) time = interval.startTime;
             for (long repeat = 0; repeat <= interval.repeats; repeat++) {
                 Segment segment = new Segment();
-                segment.url = representation.baseUrl + mediaUrl(template.media, representation.id, number++);
+                segment.url = representation.baseUrl + resolveMediaUrl(template.media, representation.id, number++);
                 segment.startTime = time;
                 segment.duration = interval.duration;
                 time += interval.duration;
@@ -443,7 +558,7 @@ final class DashFile {
         return segments;
     }
 
-    private static String mediaUrl(String media, String representationId, int number) {
+    private static String resolveMediaUrl(String media, String representationId, int number) {
         Matcher matcher = NUMBER.matcher(media.replace(REPRESENTATION_ID, representationId));
         StringBuffer url = new StringBuffer();
         while (matcher.find()) {
@@ -456,7 +571,7 @@ final class DashFile {
         return url.toString();
     }
 
-    private static void size(List<Segment> video, List<Segment> audio, final Cookies cookies) throws IOException {
+    private static void size(List<Segment> video, List<Segment> audio, final CookieProvider cookies) throws IOException {
         List<Segment> all = new ArrayList<>(video);
         all.addAll(audio);
         ExecutorService pool = Executors.newFixedThreadPool(SIZING_THREADS);
@@ -466,25 +581,22 @@ final class DashFile {
                 probes.add(pool.submit(new Callable<Void>() {
                     @Override
                     public Void call() throws IOException {
-                        probe(segment, cookies);
-                        return null;
+                        return withRetries(() -> {
+                            probe(segment, cookies);
+                            return null;
+                        });
                     }
                 }));
             }
-            for (Future<Void> probe : probes) probe.get();
-        } catch (ExecutionException e) {
-            throw new IOException("cannot size segments", e.getCause());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("interrupted while sizing segments", e);
+            for (Future<Void> probe : probes) await(probe);
         } finally {
             pool.shutdownNow();
         }
     }
 
-    private static void probe(Segment segment, Cookies cookies) throws IOException {
-        HttpURLConnection connection = connect(segment.url, "bytes=0-" + (PROBE_BYTES - 1), cookies);
-        try {
+    private static void probe(Segment segment, CookieProvider cookies) throws IOException {
+        HttpURLConnection connection = connect(segment.url, "bytes=0-" + (PROBE_BYTES - 1), cookies, null);
+        try (InputStream in = connection.getInputStream()) {
             String contentRange = connection.getHeaderField("Content-Range");
             int slash = contentRange == null ? -1 : contentRange.indexOf('/');
             segment.byteLength = slash >= 0
@@ -492,7 +604,6 @@ final class DashFile {
                     : connection.getContentLength();
             if (segment.byteLength <= 0) throw new IOException("no size for " + segment.url);
             byte[] prefix = new byte[PROBE_BYTES];
-            InputStream in = connection.getInputStream();
             int got = 0;
             while (got < prefix.length) {
                 int count = in.read(prefix, got, prefix.length - got);
@@ -500,30 +611,28 @@ final class DashFile {
                 got += count;
             }
             int offset = 0;
-            if (got >= BOX_HEADER && "styp".equals(type(prefix, 0))) offset += boxSize(prefix, 0);
-            if (got >= offset + BOX_HEADER && "sidx".equals(type(prefix, offset))) offset += boxSize(prefix, offset);
+            if (got >= BOX_HEADER && "styp".equals(readBoxType(prefix, 0))) offset += boxSize(prefix, 0);
+            if (got >= offset + BOX_HEADER && "sidx".equals(readBoxType(prefix, offset))) offset += boxSize(prefix, offset);
             segment.prefixBytes = offset;
             segment.trackIdOffset = trackIdOffset(prefix, offset, got);
         } catch (NumberFormatException malformed) {
             throw new IOException("unreadable Content-Range for " + segment.url, malformed);
-        } finally {
-            connection.disconnect();
         }
     }
 
     private static int trackIdOffset(byte[] prefix, int moof, int end) throws IOException {
-        if (moof + BOX_HEADER > end || !"moof".equals(type(prefix, moof))) {
+        if (moof + BOX_HEADER > end || !"moof".equals(readBoxType(prefix, moof))) {
             throw new IOException("segment does not start with moof");
         }
         int moofEnd = (int) Math.min((long) moof + boxSize(prefix, moof), end);
         int traf = moof + BOX_HEADER;
         while (traf + BOX_HEADER <= moofEnd) {
             int trafSize = boxSize(prefix, traf);
-            if ("traf".equals(type(prefix, traf))) {
+            if ("traf".equals(readBoxType(prefix, traf))) {
                 int trafEnd = (int) Math.min((long) traf + trafSize, end);
                 int tfhd = traf + BOX_HEADER;
                 while (tfhd + FULL_BOX_HEADER + TRACK_ID_BYTES <= trafEnd) {
-                    if ("tfhd".equals(type(prefix, tfhd))) return tfhd + FULL_BOX_HEADER;
+                    if ("tfhd".equals(readBoxType(prefix, tfhd))) return tfhd + FULL_BOX_HEADER;
                     tfhd += boxSize(prefix, tfhd);
                 }
             }
@@ -532,26 +641,24 @@ final class DashFile {
         throw new IOException("segment lacks a tfhd within " + end + " bytes");
     }
 
-    private static byte[] fetch(String url, Cookies cookies) throws IOException {
-        HttpURLConnection connection = connect(url, null, cookies);
-        try {
-            InputStream in = connection.getInputStream();
+    private static byte[] fetch(String url, CookieProvider cookies) throws IOException {
+        try (InputStream in = connect(url, null, cookies, null).getInputStream()) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buffer = new byte[COPY_BUFFER_BYTES];
             int count;
             while ((count = in.read(buffer)) != -1) out.write(buffer, 0, count);
             return out.toByteArray();
-        } finally {
-            connection.disconnect();
         }
     }
 
-    private static HttpURLConnection connect(String url, String range, Cookies cookies) throws IOException {
+    private static HttpURLConnection connect(String url, String range, CookieProvider cookies, ReadGroup reads)
+            throws IOException {
         String cookie = cookies.current();
-        HttpURLConnection connection = request(url, range, cookie);
+        HttpURLConnection connection = request(url, range, cookie, reads);
         if (connection.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN) {
             connection.disconnect();
-            connection = request(url, range, cookies.refresh(cookie));
+            if (reads != null) reads.remove(connection);
+            connection = request(url, range, cookies.refresh(cookie), reads);
         }
         int code = connection.getResponseCode();
         if (code != HttpURLConnection.HTTP_OK && code != HttpURLConnection.HTTP_PARTIAL) {
@@ -561,12 +668,14 @@ final class DashFile {
         return connection;
     }
 
-    private static HttpURLConnection request(String url, String range, String cookie) throws IOException {
+    private static HttpURLConnection request(String url, String range, String cookie, ReadGroup reads)
+            throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(READ_TIMEOUT_MS);
         connection.setRequestProperty("Cookie", cookie);
         if (range != null) connection.setRequestProperty("Range", range);
+        if (reads != null) reads.add(connection);
         return connection;
     }
 
@@ -652,8 +761,8 @@ final class DashFile {
         int at = from;
         while (at + BOX_HEADER <= end) {
             int size = boxSize(data, at);
-            if ((long) at + size > end) throw new IOException("box " + type(data, at) + " overruns its parent");
-            if (type.equals(type(data, at))) return new Box(at, size);
+            if ((long) at + size > end) throw new IOException("box " + readBoxType(data, at) + " overruns its parent");
+            if (type.equals(readBoxType(data, at))) return new Box(at, size);
             at += size;
         }
         throw new IOException("missing " + type + " box");
@@ -665,7 +774,7 @@ final class DashFile {
         return (int) size;
     }
 
-    private static String type(byte[] data, int at) {
+    private static String readBoxType(byte[] data, int at) {
         return new String(data, at + BOX_TYPE_AT, BOX_TYPE_AT, StandardCharsets.ISO_8859_1);
     }
 
@@ -721,12 +830,12 @@ final class DashFile {
         return out;
     }
 
-    private static int intAttribute(XmlPullParser parser, String name, int fallback) {
+    private static int parseIntAttribute(XmlPullParser parser, String name, int fallback) {
         String value = parser.getAttributeValue(null, name);
         return value == null ? fallback : Integer.parseInt(value);
     }
 
-    private static long longAttribute(XmlPullParser parser, String name, long fallback) {
+    private static long parseLongAttribute(XmlPullParser parser, String name, long fallback) {
         String value = parser.getAttributeValue(null, name);
         return value == null ? fallback : Long.parseLong(value);
     }

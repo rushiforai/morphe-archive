@@ -146,6 +146,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting EDGE_SEEK = new BooleanSetting("edge_seek", FALSE);
     public static final BooleanSetting FIT_VIDEO_TO_SCREEN =
             new BooleanSetting("fit_video_to_screen", FALSE);
+    /** The opposite: crop the video until it covers the window (issue #29). Fit wins when both are on. */
+    public static final BooleanSetting FILL_VIDEO_TO_SCREEN =
+            new BooleanSetting("fill_video_to_screen", FALSE);
     public static final BooleanSetting UNCAP_REFRESH_RATE =
             new BooleanSetting("uncap_refresh_rate", FALSE);
     public static final BooleanSetting HIDE_LAUNCHER_SHORTCUTS =
@@ -345,7 +348,6 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting NO_RESUME_ON_FOREGROUND = new BooleanSetting(
             "no_resume_on_foreground", FALSE, true);
-    /** Leaves a video the reader paused paused when the app comes back. Off by default. */
     /**
      * Keep a paused video paused. It reads the player in the pre-pause callback, which arrived in
      * Android 10, so older versions have nothing to read it by and the row is greyed there.
@@ -393,6 +395,19 @@ public class Settings extends BaseSettings {
      */
     public static final IntegerSetting SESSION_BUDGET_PASSES_PER_DAY = new IntegerSetting(
             "session_budget_passes_per_day", 0).withRange(0, 20);
+    /**
+     * Makes a change that loosens the budget wait until the day starts over, while one that
+     * tightens it applies at once. Off by default. What counts as loosening, and how a restore is
+     * held to it, is in BudgetChanges.
+     */
+    public static final BooleanSetting SESSION_BUDGET_WAIT_TO_LOOSEN = new BooleanSetting(
+            "session_budget_wait_to_loosen", FALSE);
+    /**
+     * The loosening changes waiting for the next day and when they apply. Kept out of backups,
+     * since a backup that carried them would be a way to set tomorrow's budget today.
+     */
+    public static final StringSetting SESSION_BUDGET_PENDING =
+            new StringSetting("session_budget_pending", "", false, false);
     /**
      * Brings the hold in gradually instead of dropping it on the feed. Off by default, and it
      * only has anything to follow when {@link #SESSION_BUDGET_MINUTES} is set: a budget counted
@@ -518,6 +533,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hide_feed_save_button", FALSE, true);
     public static final BooleanSetting KEEP_FAVORITES_TAB =
             new BooleanSetting("keep_favorites_tab", TRUE, true);
+    /** The Following and For You names above the feed; the pager under them keeps swiping (issue #32). */
+    public static final BooleanSetting HIDE_FEED_TAB_STRIP = new BooleanSetting("hide_feed_tab_strip", FALSE);
     public static final BooleanSetting HIDE_FEED_SEARCH_BUTTON =
             new BooleanSetting("hide_feed_search_button", FALSE, true);
     public static final BooleanSetting HIDE_VISUAL_SEARCH = new BooleanSetting("hide_visual_search", FALSE);
@@ -539,6 +556,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
     /** Draws a comment poll's results before the reader votes, from the counts TikTok already sends. */
     public static final BooleanSetting SHOW_POLL_RESULTS = new BooleanSetting("show_poll_results", FALSE);
+    /** Tapping "more" under a video opens its comments with the caption at the top (upstream #156). */
+    public static final BooleanSetting CAPTION_OPENS_COMMENTS = new BooleanSetting("caption_opens_comments", FALSE);
+    /** Every video's comments open with its caption at the top. */
+    public static final BooleanSetting CAPTION_ABOVE_COMMENTS = new BooleanSetting("caption_above_comments", FALSE);
     public static final BooleanSetting HIDE_COMMENT_SEARCH_SUGGESTIONS =
             new BooleanSetting("hide_comment_search_suggestions", FALSE, true);
     public static final BooleanSetting COMPACT_COMMENT_HEADER =

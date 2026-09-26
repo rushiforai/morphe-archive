@@ -34,15 +34,14 @@
  *
  * The native ABI resolver is still substantial because Jam mirrors YTM's native observable queue,
  * item models, gestures and player components. Removing literal obfuscation names does not prove
- * compatibility with uninspected versions. The patch remains opt-in and limited to 9.15.51 until
- * additional APKs and user testing provide evidence for broader support.
+ * compatibility with uninspected versions. Runtime integration remains opt-in. Compatibility is
+ * restricted to the exact APK versions that have passed the local validation gates.
  *
  * ## Compatibility and release gates
  *
- * The supported target remains **YT Music 9.15.51 ARM64**. The supplied 9.34.52, 9.35.54 and
- * 9.36.50 APKs are candidates, not supported targets. Their initial full-patch attempts rejected an
- * ambiguous native menu dispatcher field. This is a compatibility failure, not permission to choose
- * the first field.
+ * YT Music 9.15.51 ARM64 remains the baseline. Versions 9.35.54, 9.36.50 and 9.37.54 are
+ * experimental targets with local patch, SDK DEX verification and APK construction evidence.
+ * Device acceptance for these versions is pending. See docs/experimental-versions.md.
  *
  * Discovery follows `APK -> Fingerprint -> JamQueueAbi/JamUiAbi -> validation -> installation`.
  * Dynamic fingerprints may consume earlier resolved types. Android calls, diagnostics, resources,
@@ -58,10 +57,10 @@
  * evidence. Run it with `-PjamApk` and `-PjamOutput`; omitting the APK skips fixture tests and
  * cannot satisfy release gates.
  *
- * Every additional advertised version needs unique resolution, ABI validation, full patch
- * application, SDK bytecode verification, APK construction, installation and the same two-device
- * smoke matrix as the baseline. Keep `compatibleWith` restricted until all these pass for that
- * exact version.
+ * Every additional experimental version needs unique resolution, ABI validation, full patch
+ * application, SDK bytecode verification and APK construction. Promotion from experimental support
+ * also requires installation and the same two-device smoke matrix as the baseline. Preserve the
+ * experimental target flag until that evidence exists for the exact version.
  *
  * The local Binder bridge advertises additive protocol version 1 and capabilities
  * `queue-revisions`, `stable-item-ids` and `stale-edit-rejection`. Missing envelopes are treated as
@@ -70,7 +69,7 @@
  * to a locally generated capability token. Companion forks may use their own signing keys without
  * modifying the patch.
  *
- * Publish only after baseline device results and exact Companion interoperability pass. Then test
+ * Experimental prereleases may be published after the local gates for user device testing. Test
  * the published prerelease through a clean Morphe Manager setup, including source metadata, patch
  * discovery, dependency resolution, APK building, installation, two-device pairing and reconnect.
  * Local artifacts do not satisfy that consumer gate. Keep the upstream PR draft and its review
@@ -157,7 +156,7 @@ val jamQueueProbePatch =
     bytecodePatch(
         name = "Jam queue sharing",
         description =
-            "Adds a native Jam queue panel and authenticated bridge. Experimental; validated on YTM 9.15.51. Root installation is not supported.",
+            "Adds a native Jam queue panel and authenticated bridge. Newer experimental targets require device testing. Root installation is not supported.",
         default = true,
     ) {
       dependsOn(
@@ -173,7 +172,10 @@ val jamQueueProbePatch =
               packageName = "com.google.android.apps.youtube.music",
               apkFileType = COMPATIBILITY_YOUTUBE_MUSIC.apkFileType,
               signatures = COMPATIBILITY_YOUTUBE_MUSIC.signatures,
-              targets = COMPATIBILITY_YOUTUBE_MUSIC.targets.filter { it.version == "9.15.51" },
+              targets =
+                  COMPATIBILITY_YOUTUBE_MUSIC.targets.filter {
+                    it.version in setOf("9.15.51", "9.35.54", "9.36.50", "9.37.54")
+                  },
           )
       )
 

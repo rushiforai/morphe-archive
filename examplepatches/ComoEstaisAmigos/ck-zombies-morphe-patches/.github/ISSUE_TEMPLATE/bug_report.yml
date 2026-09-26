@@ -1,0 +1,70 @@
+name: 🐞 Bug report
+description: Something in the patched game or in patching it does not work.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you report, please check that:
+
+        - it is not reported already: [open and closed bug reports](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/issues?q=label%3A%22Bug+report%22)
+        - you patched Glu's original v3.1.0 APK, not a repack, and the OBB is in `Android/obb/com.glu.android.zombsniper/`
+  - type: textarea
+    attributes:
+      label: What happens
+      description: |
+        - What you did, what you expected, and what happened instead
+        - Steps to reproduce it, if you can
+        - Screenshots or a video, if they help
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Patched with
+      options:
+        - Morphe Manager
+        - Morphe Desktop
+        - Morphe Desktop with --bytecode-mode=FULL
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Morphe version
+      placeholder: Manager 1.32.0
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Patches applied
+      options:
+        - label: Modern Android compatibility
+        - label: Remove unused permissions
+        - label: Smooth sound
+        - label: Stop requests to dead servers
+        - label: Unlimited currency
+  - type: input
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 6, Android 14
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: verify_apk.py output
+      description: If you can run it, the output of `python scripts/verify_apk.py original.apk patched.apk`.
+      render: shell
+  - type: textarea
+    attributes:
+      label: Logs
+      description: For a crash, the output of `adb logcat -d -b crash,main | grep -E "AndroidRuntime|DEBUG|zombsniper"`.
+      render: shell
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: This is not a duplicate of an open or closed bug report.
+          required: true
+        - label: I patched Glu's original APK, not a repack.
+          required: true

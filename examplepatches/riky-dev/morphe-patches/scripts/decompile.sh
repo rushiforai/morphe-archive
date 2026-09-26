@@ -78,16 +78,23 @@ PY
 )
 
 JADX_ARGS=()
-[[ -n "$JADX_HEAP" ]] && JADX_ARGS+=(-J "-Xmx${JADX_HEAP}")
-[[ -n "$JADX_THREADS" ]] && JADX_ARGS+=(--jobs "$JADX_THREADS")
+# jadx CLI has no -J; heap goes through the launcher via JAVA_OPTS / DEFAULT_JVM_OPTS.
+if [[ -n "$JADX_HEAP" ]]; then
+  export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Xmx${JADX_HEAP}"
+fi
+[[ -n "$JADX_THREADS" ]] && JADX_ARGS+=(--threads-count "$JADX_THREADS")
 [[ "$JADX_NO_RES" == "true" ]] && JADX_ARGS+=(--no-res)
 
 log "Decompiling with jadx: $APK"
+if [[ -n "${JAVA_OPTS:-}" ]]; then
+  log "JAVA_OPTS: $JAVA_OPTS"
+fi
 if [[ ${#JADX_ARGS[@]} -gt 0 ]]; then
   log "jadx options: ${JADX_ARGS[*]}"
 fi
 rm -rf "$JADX_OUT"
-jadx "${JADX_ARGS[@]}" -d "$JADX_OUT" "$APK" >/dev/null
+# Keep jadx errors visible; apktool stays quiet unless it fails.
+jadx "${JADX_ARGS[@]}" -d "$JADX_OUT" "$APK"
 
 log "Decompiling with apktool: $APK"
 rm -rf "$APKTOOL_OUT"

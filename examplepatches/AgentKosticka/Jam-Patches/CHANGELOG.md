@@ -1,3 +1,9 @@
+## [1.0.0-dev.13](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.12...v1.0.0-dev.13) (2026-09-25)
+
+### ✨ New Features
+
+* **Jam:** support experimental Music 9.35.54 through 9.37.54 ([81820e6](https://github.com/AgentKosticka/Jam-Patches/commit/81820e66881ad8b3d7bc50aa397cd75cfe54dd93))
+
 ## [1.0.0-dev.12](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.11...v1.0.0-dev.12) (2026-09-24)
 
 ### 🐛 Bug Fixes

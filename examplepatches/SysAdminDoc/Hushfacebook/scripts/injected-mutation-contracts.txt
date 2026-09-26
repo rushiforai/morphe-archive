@@ -1,5 +1,25 @@
 # Call sites a patched Facebook must have, checked across every dex of the APK by DexDiff.java.
 #   single-call <method reference> in <caller method name>
+#   first-call <method reference> on <class>
+#   first-call <method reference> on-type-named <GraphQL type>
+#   start-call <method reference> holding <string>
 # Two feed guards stacked on addNewEdgeToCollection is the shape that broke builds before, and a
 # guard anywhere else filters nothing.
 single-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideEdge(Ljava/lang/Object;Ljava/lang/Object;)Z in addNewEdgeToCollection
+# Each story-flag stub has to call GraphQLStory's renamed accessor before it returns. A patch that
+# stops filling one leaves the stub answering its marker, and the rule keeps every post.
+first-call Lapp/morphe/extension/facebook/feed/GenAiLabel;->detectedInfo(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
+first-call Lapp/morphe/extension/facebook/feed/RecommendationLabel;->recommendationContext(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
+# The Stories tray patch asks the extension first thing in both of the feed's tray adapters: the
+# classic one, holding its trace name, and the unified one, holding its create-adapter stop name.
+start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z holding NewsFeedAdapterConfiguration.addStoriesAdapter
+start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z holding stories_tray_create_adapter_stop
+# The reels patch fills the showcase stub with the story type accessor of the one class whose
+# getTypeName() answers ShowcaseFeedUnit, a class Redex renames, so the rule names it by that type.
+first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named ShowcaseFeedUnit
+# And it asks the extension first thing in the pre-EOF injector, which holds its adapter's name and
+# adds its own Reels row at the tail of the feed without passing the feed guard.
+start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hidePreEofReels()Z holding PreEofIfuSectionAdapter
+# The background-return gate starts the controller's resume callback, which is distinct from the
+# NewsFeedFragment swipe-refresh callback. A later call would refresh before asking the switch.
+start-call Lapp/morphe/extension/facebook/feed/ReturnRefresh;->skip()Z holding FeedRefreshTriggerController

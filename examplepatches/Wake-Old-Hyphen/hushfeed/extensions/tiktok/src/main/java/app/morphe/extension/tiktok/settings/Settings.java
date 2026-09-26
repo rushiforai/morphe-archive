@@ -18,6 +18,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.offline.CustomOfflineVideosLimitPatch;
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
+import app.morphe.extension.tiktok.interaction.GestureActions;
 import app.morphe.extension.tiktok.navigation.BottomNavigationTabOptions;
 import app.morphe.extension.tiktok.navigation.NavigationTabOptions;
 
@@ -118,6 +119,28 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SAVE_STORY = new BooleanSetting("save_story", FALSE);
     public static final StringSetting DOUBLE_TAP_ACTION = new StringSetting("double_tap_action", "default");
     public static final StringSetting LONG_PRESS_ACTION = new StringSetting("long_press_action", "default");
+    /**
+     * A long press on a side button plays at the hold speed only while TikTok's hold can start
+     * there: the Long press row leaves the press to TikTok, and Seek from the edges isn't seeking
+     * the right third, where the buttons sit. GestureActions.allowNativeEdgeSpeedup decides each
+     * press the same way.
+     */
+    private static final Setting.Availability RAIL_HOLD_POSSIBLE = new Setting.Availability() {
+        @Override
+        public boolean isAvailable() {
+            return !GestureActions.takesLongPress(LONG_PRESS_ACTION.savedValue())
+                    && !(EDGE_SEEK.savedValue() && EDGE_SEEK_SECONDS.savedValue() > 0);
+        }
+    };
+    /** A long press on Comment plays at the hold speed instead of opening the emoji row. */
+    public static final BooleanSetting RAIL_HOLD_COMMENT =
+            new BooleanSetting("rail_hold_comment", FALSE, RAIL_HOLD_POSSIBLE);
+    /** A long press on Share plays at the hold speed instead of opening the quick share row. */
+    public static final BooleanSetting RAIL_HOLD_SHARE =
+            new BooleanSetting("rail_hold_share", FALSE, RAIL_HOLD_POSSIBLE);
+    /** A long press on Favorites plays at the hold speed instead of offering a new collection. */
+    public static final BooleanSetting RAIL_HOLD_FAVORITES =
+            new BooleanSetting("rail_hold_favorites", FALSE, RAIL_HOLD_POSSIBLE);
     /** What a left swipe on a feed video does: TikTok's creator profile, nothing, or the comments. */
     public static final StringSetting SWIPE_LEFT_ACTION = new StringSetting("swipe_left_action", "default");
     public static final BooleanSetting EDGE_SEEK = new BooleanSetting("edge_seek", FALSE);
@@ -236,6 +259,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_TAB_BADGES = new BooleanSetting("hide_tab_badges", FALSE, true);
     public static final BooleanSetting KEEP_FOR_YOU_ON_TAB_TAP = new BooleanSetting("keep_for_you_on_tab_tap", FALSE);
     public static final BooleanSetting KEEP_FOR_YOU_ON_PULL_DOWN = new BooleanSetting("keep_for_you_on_pull_down", FALSE);
+    /** The tab TikTok opens on from its icon: tiktok (its own pick), for_you, following, friends, inbox or profile. */
+    public static final StringSetting START_PAGE = new StringSetting("start_page", "tiktok");
+    /** TikTok's previous, pause and next buttons on the feed, shown without a screen reader. Off by default. */
+    public static final BooleanSetting SHOW_FEED_BUTTONS = new BooleanSetting("show_feed_buttons", FALSE);
     public static final BooleanSetting HIDE_TAKO_AI = new BooleanSetting("hide_tako_ai", FALSE, true);
     public static final BooleanSetting HIDE_BOTTOM_SEARCH_BAR = new BooleanSetting("hide_bottom_search_bar", FALSE, true);
     public static final BooleanSetting COMMENT_BATCH_TRANSLATION = new BooleanSetting("comment_batch_translation", FALSE);
@@ -318,6 +345,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting NO_RESUME_ON_FOREGROUND = new BooleanSetting(
             "no_resume_on_foreground", FALSE, true);
+    /**
+     * Keep a paused video paused. It reads the player in the pre-pause callback, which arrived in
+     * Android 10, so older versions have nothing to read it by and the row is greyed there.
+     */
+    public static final BooleanSetting KEEP_PAUSED_ON_RETURN = new BooleanSetting("keep_paused_on_return", FALSE,
+            new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q;
+                }
+            });
     /**
      * Sends TikTok to the background when TikTok's own daily screen-time reminder comes up,
      * instead of leaving the reminder there to be dismissed. Off by default, read at show
@@ -499,6 +536,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", TRUE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);
+    /** Draws a comment poll's results before the reader votes, from the counts TikTok already sends. */
+    public static final BooleanSetting SHOW_POLL_RESULTS = new BooleanSetting("show_poll_results", FALSE);
+    /** Tapping "more" under a video opens its comments with the caption at the top (upstream #156). */
+    public static final BooleanSetting CAPTION_OPENS_COMMENTS = new BooleanSetting("caption_opens_comments", FALSE);
+    /** Every video's comments open with its caption at the top. */
+    public static final BooleanSetting CAPTION_ABOVE_COMMENTS = new BooleanSetting("caption_above_comments", FALSE);
     public static final BooleanSetting HIDE_COMMENT_SEARCH_SUGGESTIONS =
             new BooleanSetting("hide_comment_search_suggestions", FALSE, true);
     public static final BooleanSetting COMPACT_COMMENT_HEADER =

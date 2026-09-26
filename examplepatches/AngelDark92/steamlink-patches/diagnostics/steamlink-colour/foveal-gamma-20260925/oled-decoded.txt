@@ -1,0 +1,8 @@
+PASS 2.0.20/5001712: 63 variants, 567 transitions, 126 checkbox cases, 21 VD SDR fovea toggle cases, 93 foveal gamma cases (base golden unchanged); exact diff, format instructions, NUL boundary, idempotence; source unchanged
+  sha256=80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495; size=2221072; shader=0x9b4b8; formats=0x10a9c4, 0x10aa34
+PASS 2.0.22/5002244: 63 variants, 567 transitions, 126 checkbox cases, 21 VD SDR fovea toggle cases, 93 foveal gamma cases (base golden unchanged); exact diff, format instructions, NUL boundary, idempotence; source unchanged
+  sha256=4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12; size=2251920; shader=0x957bc; formats=0x10826c, 0x1082dc, 0x10834c
+PASS 2.0.23/5002363: 63 variants, 567 transitions, 126 checkbox cases, 21 VD SDR fovea toggle cases, 93 foveal gamma cases (base golden unchanged); exact diff, format instructions, NUL boundary, idempotence; source unchanged
+  sha256=628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0; size=2292008; shader=0x970a1; formats=0x10c840, 0x10c8b0, 0x10c920
+Summary: 3 PASS, 0 BLOCKED of 3 exact color-supported bases
+Scope: real decoded native bytes + production helpers. Morphe APK packaging, GLSL driver compilation, runtime format acceptance and panel output are not tested.

@@ -104,7 +104,11 @@ internal fun applyBlueNoiseLayer(
     // An OFF patch on a stock route needs no new native feature. Preserve older calibration use.
     if (mode == FoveaMode.OFF && states.none { it } && existingHelper == null) return BlueNoiseResult(bytes.copyOf(), null)
     layout.guards.forEach { guard ->
-        blueNoiseRequire(blueNoiseHash(bytes.copyOfRange(guard.offset, guard.offset + guard.size)) == guard.hash,
+        val actual = bytes.copyOfRange(guard.offset, guard.offset + guard.size)
+        val adjustedFovea = guard.offset == layout.suffix && guard.size == VD_SDR_FOVEA_SUFFIX_SIZE &&
+            isGammaAdjustedFoveaSuffix(actual) && isOledCalibrationShader(
+                bytes.copyOfRange(layout.prefix, layout.prefix + VIDEO_SHADER_SIZE))
+        blueNoiseRequire(blueNoiseHash(actual) == guard.hash || adjustedFovea,
             "Blue-noise native route guard failed at 0x${guard.offset.toString(16)} for $version/$code")
     }
     blueNoiseRequire(findVideoShader(bytes) == layout.prefix, "Blue-noise shader position mismatch")
@@ -148,13 +152,7 @@ internal fun applyBlueNoiseLayer(
 
 private fun validateBlueNoisePrefix(prefix: ByteArray) {
     if (blueNoiseHash(prefix) == "cbf2d90eb70b9769dd64e57da5d76dbc38ab7213dcf7b940c956813a1ddaa99a") return
-    val text = prefix.toString(Charsets.US_ASCII)
-    val gamma = Regex("c=pow\\(clamp\\(c,0\\.,1\\.\\),vec3\\(([0-9]+\\.[0-9]{2})\\)\\);").find(text)
-        ?.groupValues?.get(1)?.toFloatOrNull()
-    val saturation = Regex("c=clamp\\(mix\\(vec3\\(y\\),c,([0-9]+\\.[0-9]{2})\\),0\\.,1\\.\\);").find(text)
-        ?.groupValues?.get(1)?.toFloatOrNull()
-    blueNoiseRequire(gamma != null && saturation != null && gamma in .5f..2.5f && saturation in 0f..3f &&
-        prefix.contentEquals(paddedVideoShader(gamma, saturation, VideoOutputPrecision.SRGB8_HIGHP)),
+    blueNoiseRequire(isOledCalibrationShader(prefix),
         "Blue noise requires the exact stock shader or OLED calibration with both VD-like fovea toggles OFF; unknown or already-dithered shaders are not stacked")
 }
 

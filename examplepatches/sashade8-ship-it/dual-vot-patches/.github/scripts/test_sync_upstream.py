@@ -14,6 +14,48 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev16_arrays_keep_yandex_and_new_icon_choices(self):
+        from xml.etree import ElementTree
+
+        base = "<resources>\n    <string-array name=\"base\"><item>old</item></string-array>\n"
+        dual_names = (
+            "dualvot_yandex_target_language_entries",
+            "dualvot_yandex_target_language_entry_values",
+            "dualvot_yandex_source_language_entries",
+            "dualvot_yandex_source_language_entry_values",
+            "dualvot_yandex_timer_position_entries",
+            "dualvot_yandex_timer_position_entry_values",
+        )
+        icon_names = (
+            "morphe_player_icon_style_entries",
+            "morphe_player_icon_style_entry_values",
+            "morphe_shorts_icon_style_entries",
+            "morphe_shorts_icon_style_entry_values",
+        )
+        arrays = lambda names: "".join(
+            f'    <string-array name="{name}"><item>value</item></string-array>\n'
+            for name in names
+        )
+        base += "</resources>\n"
+        ours = base.replace("</resources>", arrays(dual_names) + "</resources>")
+        theirs = base.replace("</resources>", arrays(icon_names) + "</resources>")
+
+        merged = sync_upstream.merge_dual_yandex_arrays(base, ours, theirs)
+        names = [element.attrib["name"] for element in ElementTree.fromstring(merged)]
+        self.assertEqual(names, ["base", *icon_names, *dual_names])
+        self.assertEqual(
+            sync_upstream.DEV16_ARRAYS_CONFLICT_BLOBS,
+            (
+                "388e6e06134c92b55ca65dff94a2346a508dd6c6",
+                "edb341c8024a71da1629fb2b200d97a5af44c9f2",
+                "983528dfbaa32da29dacc9b104cc95ce27ddbf79",
+            ),
+        )
+        with self.assertRaises(sync_upstream.SyncError):
+            sync_upstream.merge_dual_yandex_arrays(
+                base, ours.replace("old", "changed"), theirs
+            )
+
     def test_player_overlay_conflicts_fail_closed(self):
         player_overlay_path = (
             "extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/"
@@ -53,7 +95,15 @@ class SyncUpstreamTests(unittest.TestCase):
         )
         self.assertIn("final int buttonNumber = getEnabledButtonIndex()", source)
         self.assertIn("chapterTitleContainer.updateMargin(source.getWidth(), effectiveCustomButtons, spacingPercentage)", source)
-        self.assertIn("setTextSize(TypedValue.COMPLEX_UNIT_PX, Dim.dp(14))", source)
+        if "PlayerIcons.styleText(textOverlay);" in source:
+            icons = (
+                root
+                / "extensions/youtube/src/main/java/app/morphe/extension/youtube/videoplayer/PlayerIcons.java"
+            ).read_text(encoding="utf-8")
+            self.assertIn("public static void styleText(TextView text)", icons)
+            self.assertIn("setTextSize(TypedValue.COMPLEX_UNIT_PX, Dim.dp(14))", icons)
+        else:
+            self.assertIn("setTextSize(TypedValue.COMPLEX_UNIT_PX, Dim.dp(14))", source)
 
     def test_dev3_volume_hook_keeps_dual_coordinator(self):
         root = MODULE_PATH.parents[2]

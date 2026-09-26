@@ -1,0 +1,21 @@
+id: vn
+package: com.frontrow.vlog
+display_name: VN
+apk_file_type: APKM
+apkpure_slug: vn-video-editor-maker-app
+analysis_dir: analysis/vn
+
+decompile:
+  jadx_max_heap: 4g
+  jadx_threads: 2
+  jadx_no_res: true
+
+verify:
+  apk: analysis/vn/extract/com.frontrow.vlog.apk
+  smali_assertions:
+    - file: com/frontrow/vlog/service/PremiumServiceImpl.smali
+      pattern: 'const/4 v0, 0x1'
+      label: PremiumServiceImpl.e spoof
+    - file: tf/b.smali
+      pattern: 'const/4 p5, 0x0'
+      label: showGuidanceBanner forced false

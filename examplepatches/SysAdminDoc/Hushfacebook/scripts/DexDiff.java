@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.formats.ArrayPayload;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.android.tools.smali.dexlib2.iface.reference.Reference;
+import com.android.tools.smali.dexlib2.iface.reference.StringReference;
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference;
 
 import java.io.File;
@@ -79,7 +80,11 @@ import java.util.TreeSet;
  * try range or handler off an instruction boundary. A contract file adds
  * rules about the whole APK: the feed filter's guard has exactly one call site, in
  * addNewEdgeToCollection, because two guards stacked on that method is what broke Froggo's
- * builds. The device verifier stays the authority; these catch the known shapes without a phone.
+ * builds; and each extension stub a patch fills in with one of Facebook's renamed accessors calls
+ * it before it returns, so a patch that stopped filling one fails here instead of shipping a stub
+ * that answers its marker forever; and the Stories tray hook comes first in each of the two tray
+ * adapter methods, and the reels hook first in the pre-EOF injector. The device verifier stays the
+ * authority; these catch the known shapes without a phone.
  *
  *   java -cp &lt;cli jar&gt; DexDiff.java &lt;cleanApk&gt; &lt;patchedApk&gt; &lt;reportFile&gt;
  *       &lt;removalAllowlist&gt; [&lt;contracts&gt;]
@@ -122,14 +127,36 @@ public class DexDiff {
         return allowlist;
     }
 
-    /** "single-call &lt;method reference&gt; in &lt;caller method name&gt;": exactly one call site, there. */
-    private static final class Contract {
-        final String callee;
-        final String callerName;
+    /**
+     * One rule about the whole APK.
+     *
+     * <ul>
+     *   <li>"single-call &lt;method reference&gt; in &lt;caller method name&gt;": exactly one call
+     *       site, there.
+     *   <li>"first-call &lt;method reference&gt; on &lt;class&gt;": the method calls a method of
+     *       &lt;class&gt; that takes no arguments before its first return or throw. A stub the
+     *       patch filled does; one still answering its marker doesn't.
+     *   <li>"first-call &lt;method reference&gt; on-type-named &lt;GraphQL type&gt;": the same, where
+     *       the class is the one whose {@code getTypeName()} answers &lt;GraphQL type&gt; as a
+     *       literal. For an accessor on a class Redex renames, which no contract can name, and
+     *       exactly one class may answer the type.
+     *   <li>"start-call &lt;method reference&gt; holding &lt;string&gt;": of the method's call sites,
+     *       exactly one is in a method that loads &lt;string&gt;, and there nothing comes before it
+     *       but plain instructions: no other call, branch, switch, return or throw.
+     * </ul>
+     */
+    /** The kind a first-call rule that names its class by GraphQL type is read into. */
+    private static final String TYPED_FIRST_CALL = "first-call-typed";
 
-        Contract(String callee, String callerName) {
+    private static final class Contract {
+        final String kind;
+        final String callee;
+        final String target;
+
+        Contract(String kind, String callee, String target) {
+            this.kind = kind;
             this.callee = callee;
-            this.callerName = callerName;
+            this.target = target;
         }
     }
 
@@ -143,12 +170,20 @@ public class DexDiff {
             String line = raw.trim();
             if (line.isEmpty() || line.startsWith("#")) continue;
             String[] parts = line.split("\\s+");
-            if (parts.length != 4 || !parts[0].equals("single-call") || !parts[2].equals("in")
-                    || !parts[1].contains("->")) {
+            boolean singleCall = parts.length == 4 && parts[0].equals("single-call") && parts[2].equals("in");
+            boolean firstCall = parts.length == 4 && parts[0].equals("first-call") && parts[2].equals("on")
+                    && parts[3].startsWith("L") && parts[3].endsWith(";");
+            boolean firstCallTyped = parts.length == 4 && parts[0].equals("first-call")
+                    && parts[2].equals("on-type-named") && parts[3].matches("[A-Za-z][A-Za-z0-9_]*");
+            boolean startCall = parts.length == 4 && parts[0].equals("start-call") && parts[2].equals("holding");
+            if ((!singleCall && !firstCall && !firstCallTyped && !startCall) || !parts[1].contains("->")) {
                 throw new IllegalArgumentException("Invalid contract line " + lineNumber
-                        + ": expected single-call <method reference> in <caller method name>");
+                        + ": expected single-call <method reference> in <caller method name>,"
+                        + " first-call <method reference> on <class>,"
+                        + " first-call <method reference> on-type-named <GraphQL type>,"
+                        + " or start-call <method reference> holding <string>");
             }
-            contracts.add(new Contract(parts[1], parts[3]));
+            contracts.add(new Contract(firstCallTyped ? TYPED_FIRST_CALL : parts[0], parts[1], parts[3]));
         }
         return contracts;
     }
@@ -590,7 +625,8 @@ public class DexDiff {
             // Each register as ART's verifier checks it. A test against zero or for equality takes
             // a narrow value or an object, an ordering, a switch or a new array's size takes a
             // narrow value, and a lock, a throw, a cast, a type test, or an array to measure or
-            // fill takes an object. An equality test of an int with an object is left alone.
+            // fill takes an object. An equality test's two registers also have to agree, which
+            // structuralFindings checks as a pair.
             case IF_EQZ: case IF_NEZ:
                 read(reads, ((OneRegisterInstruction) i).getRegisterA(), 'E');
                 return reads;
@@ -684,6 +720,14 @@ public class DexDiff {
                 if (!(payload instanceof SwitchPayload)) {
                     findings.add("branch: " + opcode.name + " at " + at + " points at " + target
                             + ", which is not a switch payload");
+                    continue;
+                }
+                // Each switch reads its own kind of table, and ART checks the table's signature
+                // against the switch ("wrong signature for switch table").
+                Opcode wanted = opcode == Opcode.PACKED_SWITCH ? Opcode.PACKED_SWITCH_PAYLOAD : Opcode.SPARSE_SWITCH_PAYLOAD;
+                if (payload.getOpcode() != wanted) {
+                    findings.add("branch: " + opcode.name + " at " + at + " points at " + target + ", a "
+                            + payload.getOpcode().name + " rather than the " + wanted.name + " it reads");
                     continue;
                 }
                 for (SwitchElement element : ((SwitchPayload) payload).getSwitchElements()) {
@@ -806,6 +850,23 @@ public class DexDiff {
                         + ", as " + describe((char) read[1]));
             }
 
+            // An equality test compares two objects or two narrow values, and a zero may stand
+            // for either. Each register passes the read above on its own, so an int tested
+            // against an object is only caught as a pair; ART refuses it ("args to if-eq/if-ne
+            // must both be references or integral").
+            if (opcode == Opcode.IF_EQ || opcode == Opcode.IF_NE) {
+                int first = ((TwoRegisterInstruction) i).getRegisterA();
+                int second = ((TwoRegisterInstruction) i).getRegisterB();
+                if (first < kinds[k].length && second < kinds[k].length) {
+                    char a = kinds[k][first];
+                    char b = kinds[k][second];
+                    if ((a == 'I' && b == 'L') || (a == 'L' && b == 'I')) {
+                        findings.add("width: " + opcode.name + " at " + at + " compares v" + first + ", which holds "
+                                + describe(a) + ", with v" + second + ", which holds " + describe(b));
+                    }
+                }
+            }
+
             if (!isPlainInvoke(opcode) || !(i instanceof ReferenceInstruction)
                     || !(((ReferenceInstruction) i).getReference() instanceof MethodReference)) continue;
             MethodReference callee = (MethodReference) ((ReferenceInstruction) i).getReference();
@@ -852,6 +913,18 @@ public class DexDiff {
             if (kinds[k - 1] != null && above.getOpcode().canContinue()) {
                 findings.add("branch: the payload at " + layout.addresses.get(k) + " is reached by falling through from "
                         + above.getOpcode().name + " at " + layout.addresses.get(k - 1));
+            }
+        }
+
+        // Flow may not run off the end of the code either. A method whose last return was removed
+        // or nopped leaves its last instruction able to continue into nothing, and ART refuses the
+        // class ("Execution can walk off end of code area").
+        if (!layout.instructions.isEmpty()) {
+            int last = layout.instructions.size() - 1;
+            Instruction end = layout.instructions.get(last);
+            if (kinds[last] != null && !isPayload(end) && end.getOpcode().canContinue()) {
+                findings.add("branch: " + end.getOpcode().name + " at " + layout.addresses.get(last)
+                        + " runs off the end of the code");
             }
         }
         return findings;
@@ -919,7 +992,25 @@ public class DexDiff {
             List<Contract> contracts) throws Exception {
         Map<String, List<String>> out = new TreeMap<>();
         Map<String, List<String>> callSites = new LinkedHashMap<>();
-        for (Contract contract : contracts) callSites.put(contract.callee, new ArrayList<>());
+        // first-call: the method, and the first call it makes on the class before it returns, or
+        // an empty string when it makes none there.
+        Map<String, String> firstCalls = new HashMap<>();
+        Map<String, String> firstCallTargets = new HashMap<>();
+        // first-call on-type-named: the method, and the first call it makes on any class, whose
+        // class is held afterwards to the classes whose getTypeName() answers the type.
+        Map<String, String> typedFirstCallTargets = new HashMap<>();
+        Map<String, Set<String>> typeNamedClasses = new HashMap<>();
+        // start-call: every call site of the method, with whether the call comes first there and
+        // the strings its method loads.
+        Map<String, List<StartSite>> startSites = new LinkedHashMap<>();
+        for (Contract contract : contracts) {
+            if (contract.kind.equals("single-call")) callSites.put(contract.callee, new ArrayList<>());
+            else if (contract.kind.equals("first-call")) firstCallTargets.put(contract.callee, contract.target);
+            else if (contract.kind.equals(TYPED_FIRST_CALL)) {
+                typedFirstCallTargets.put(contract.callee, contract.target);
+                typeNamedClasses.put(contract.target, new TreeSet<>());
+            } else startSites.put(contract.callee, new ArrayList<>());
+        }
         MultiDexContainer<? extends DexFile> container =
                 DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
         for (String entry : container.getDexEntryNames()) {
@@ -930,6 +1021,11 @@ public class DexDiff {
                         List<String> findings = structuralFindings(cd, m);
                         if (!findings.isEmpty()) out.put(s, findings);
                     }
+                    String firstCallOn = firstCallTargets.get(s);
+                    if (firstCallOn != null) firstCalls.put(s, firstCallBeforeReturn(m, firstCallOn));
+                    if (typedFirstCallTargets.containsKey(s)) firstCalls.put(s, firstCallBeforeReturn(m, null));
+                    if (!typeNamedClasses.isEmpty()) recordTypeNamed(cd, m, typeNamedClasses);
+                    if (!startSites.isEmpty()) recordStartSites(s, m, startSites);
                     if (callSites.isEmpty() || m.getImplementation() == null) continue;
                     for (Instruction i : m.getImplementation().getInstructions()) {
                         if (!(i instanceof ReferenceInstruction)) continue;
@@ -943,20 +1039,172 @@ public class DexDiff {
         }
         List<String> contractFindings = new ArrayList<>();
         for (Contract contract : contracts) {
+            if (contract.kind.equals("start-call")) {
+                String rule = "contract start-call " + contract.callee + " holding " + contract.target;
+                List<StartSite> holding = new ArrayList<>();
+                for (StartSite site : startSites.get(contract.callee)) {
+                    if (site.strings.contains(contract.target)) holding.add(site);
+                }
+                if (holding.size() != 1) {
+                    List<String> where = new ArrayList<>();
+                    for (StartSite site : holding) where.add(site.method);
+                    System.out.println("[diff] " + rule + ": " + holding.size() + " call sites in such methods"
+                            + (where.isEmpty() ? "" : ", in " + String.join(", ", where)));
+                    contractFindings.add("contract: " + contract.callee + " has " + holding.size()
+                            + " call sites in methods holding \"" + contract.target + "\", and must have exactly one"
+                            + (where.isEmpty() ? "" : ": " + String.join(", ", where)));
+                } else if (!holding.get(0).first) {
+                    System.out.println("[diff] " + rule + ": not first in " + holding.get(0).method);
+                    contractFindings.add("contract: " + contract.callee + " is called in " + holding.get(0).method
+                            + ", but after a call, branch, switch, return or throw, not first");
+                } else {
+                    System.out.println("[diff] " + rule + ": first in " + holding.get(0).method);
+                }
+                continue;
+            }
+            if (contract.kind.equals("first-call")) {
+                String call = firstCalls.get(contract.callee);
+                String rule = "contract first-call " + contract.callee;
+                if (call == null) {
+                    System.out.println("[diff] " + rule + ": not in the APK");
+                    contractFindings.add("contract: " + contract.callee + " is not in the APK, so nothing calls "
+                            + contract.target + " from it");
+                } else if (call.isEmpty()) {
+                    System.out.println("[diff] " + rule + ": no call on " + contract.target + " before its first return");
+                    contractFindings.add("contract: " + contract.callee + " returns before it calls a method of "
+                            + contract.target + " that takes no arguments, so the patch didn't fill it");
+                } else {
+                    System.out.println("[diff] " + rule + ": calls " + call + " before its first return");
+                }
+                continue;
+            }
+            if (contract.kind.equals(TYPED_FIRST_CALL)) {
+                String call = firstCalls.get(contract.callee);
+                Set<String> named = typeNamedClasses.get(contract.target);
+                String rule = "contract first-call " + contract.callee + " on-type-named " + contract.target;
+                String owner = call == null || call.isEmpty() ? null : call.substring(0, call.indexOf("->"));
+                if (named.size() != 1) {
+                    System.out.println("[diff] " + rule + ": " + named.size() + " classes answer it");
+                    contractFindings.add("contract: " + named.size() + " classes answer getTypeName() with \""
+                            + contract.target + "\", and exactly one must" + (named.isEmpty() ? "" : ": " + String.join(", ", named)));
+                } else if (call == null) {
+                    System.out.println("[diff] " + rule + ": not in the APK");
+                    contractFindings.add("contract: " + contract.callee + " is not in the APK, so nothing calls "
+                            + named.iterator().next() + " from it");
+                } else if (owner == null) {
+                    System.out.println("[diff] " + rule + ": no call before its first return");
+                    contractFindings.add("contract: " + contract.callee + " returns before it calls a method of "
+                            + named.iterator().next() + " that takes no arguments, so the patch didn't fill it");
+                } else if (!named.contains(owner)) {
+                    System.out.println("[diff] " + rule + ": calls " + call + ", not a method of " + named.iterator().next());
+                    contractFindings.add("contract: " + contract.callee + " calls " + call + " first, not a method of "
+                            + named.iterator().next() + ", the class answering \"" + contract.target + "\"");
+                } else {
+                    System.out.println("[diff] " + rule + ": calls " + call + " before its first return");
+                }
+                continue;
+            }
             List<String> sites = callSites.get(contract.callee);
             System.out.println("[diff] contract " + contract.callee + ": " + sites.size() + " call site"
                     + (sites.size() == 1 ? "" : "s") + (sites.isEmpty() ? "" : ", in " + String.join(", ", sites)));
             if (sites.size() != 1) {
                 contractFindings.add("contract: " + contract.callee + " has " + sites.size()
-                        + " call sites, and must have exactly one, in " + contract.callerName
+                        + " call sites, and must have exactly one, in " + contract.target
                         + (sites.isEmpty() ? "" : ": " + String.join(", ", sites)));
-            } else if (!sites.get(0).contains("->" + contract.callerName + "(")) {
+            } else if (!sites.get(0).contains("->" + contract.target + "(")) {
                 contractFindings.add("contract: " + contract.callee + " is called from " + sites.get(0)
-                        + ", not from " + contract.callerName);
+                        + ", not from " + contract.target);
             }
         }
         if (!contractFindings.isEmpty()) out.put("contract", contractFindings);
         return out;
+    }
+
+    /** One call site of a start-call method: where it is, whether it comes first, and what its method loads. */
+    private static final class StartSite {
+        final String method;
+        final boolean first;
+        final Set<String> strings;
+
+        StartSite(String method, boolean first, Set<String> strings) {
+            this.method = method;
+            this.first = first;
+            this.strings = strings;
+        }
+    }
+
+    /**
+     * Records each call [m] makes to a start-call method: whether only plain instructions come
+     * before it, and the strings [m] loads, which the contract picks its method by.
+     */
+    private static void recordStartSites(String s, Method m, Map<String, List<StartSite>> startSites) {
+        if (m.getImplementation() == null) return;
+        List<Instruction> body = new ArrayList<>();
+        for (Instruction i : m.getImplementation().getInstructions()) body.add(i);
+        Set<String> strings = null;
+        boolean plainSoFar = true;
+        for (Instruction i : body) {
+            String name = i.getOpcode().name;
+            if (name.startsWith("invoke") && i instanceof ReferenceInstruction) {
+                List<StartSite> sites = startSites.get(((ReferenceInstruction) i).getReference().toString());
+                if (sites != null) {
+                    if (strings == null) {
+                        strings = new TreeSet<>();
+                        for (Instruction j : body) {
+                            if (j instanceof ReferenceInstruction
+                                    && ((ReferenceInstruction) j).getReference() instanceof StringReference) {
+                                strings.add(((StringReference) ((ReferenceInstruction) j).getReference()).getString());
+                            }
+                        }
+                    }
+                    sites.add(new StartSite(s, plainSoFar, strings));
+                }
+            }
+            if (name.startsWith("invoke") || name.startsWith("return") || name.startsWith("goto")
+                    || name.startsWith("if-") || name.endsWith("-switch") || name.equals("throw")) {
+                plainSoFar = false;
+            }
+        }
+    }
+
+    /**
+     * Adds [cd] to the classes of each type name its {@code getTypeName()} loads as a literal, for
+     * the type names a contract asks about.
+     */
+    private static void recordTypeNamed(ClassDef cd, Method m, Map<String, Set<String>> typeNamedClasses) {
+        if (!m.getName().equals("getTypeName") || !m.getReturnType().equals("Ljava/lang/String;")
+                || !m.getParameterTypes().isEmpty() || m.getImplementation() == null) {
+            return;
+        }
+        for (Instruction i : m.getImplementation().getInstructions()) {
+            if (!(i instanceof ReferenceInstruction)) continue;
+            Reference r = ((ReferenceInstruction) i).getReference();
+            if (!(r instanceof StringReference)) continue;
+            Set<String> classes = typeNamedClasses.get(((StringReference) r).getString());
+            if (classes != null) classes.add(cd.getType());
+        }
+    }
+
+    /**
+     * The first call [m] makes, before any return or throw in its instruction order, to a method of
+     * [owner], or of any class when [owner] is null, that takes no arguments, or an empty string
+     * when there is none. A filled stub makes that call first thing; the stub's own body, left after
+     * it, only answers a marker.
+     */
+    private static String firstCallBeforeReturn(Method m, String owner) {
+        if (m.getImplementation() == null) return "";
+        for (Instruction i : m.getImplementation().getInstructions()) {
+            String name = i.getOpcode().name;
+            if (name.startsWith("return") || name.equals("throw")) return "";
+            if (!(i instanceof ReferenceInstruction) || !name.startsWith("invoke")) continue;
+            Reference r = ((ReferenceInstruction) i).getReference();
+            if (r instanceof MethodReference
+                    && (owner == null || ((MethodReference) r).getDefiningClass().equals(owner))
+                    && ((MethodReference) r).getParameterTypes().isEmpty()) {
+                return r.toString();
+            }
+        }
+        return "";
     }
 
     private static Set<String> dexEntries(File apk) throws Exception {

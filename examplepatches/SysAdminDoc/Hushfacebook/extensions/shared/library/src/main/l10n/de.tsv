@@ -15,12 +15,14 @@ A file named %1$s in %2$s paused Hushfacebook.	Eine Datei namens %1$s in %2$s ha
 About	Info
 Ad cards between the stories people posted.	Werbekarten zwischen den Stories, die Leute gepostet haben.
 Ad telemetry blocked	Werbe-Telemetrie blockiert
+Adds Download to phone to the menu of a video in the feed or in Watch, below Facebook's own items, and saves at the best quality the player streams. Off or paused, the menu is Facebook's own.	Fügt „Aufs Handy herunterladen“ unter Facebooks eigenen Einträgen zum Menü eines Videos im Feed oder in Watch hinzu und speichert das Video in der besten Qualität, die der Player streamt. Ist der Schalter aus oder Hushfacebook pausiert, zeigt das Menü nur Facebooks eigene Einträge.
 Adds Save to the menu of anyone's story, and saves at the best quality the player streams. Off or paused, only your own stories have Save, and it's Facebook's own.	Fügt „Speichern“ zum Menü jeder Story hinzu, egal von wem, und speichert sie in der besten Qualität, die der Player streamt. Ist der Schalter aus oder Hushfacebook pausiert, gibt es „Speichern“ nur bei deinen eigenen Stories, und dort läuft Facebooks eigene Speicherfunktion.
 Ads that arrive inside a page of reels. Banners and mid-rolls stay blocked while the patch is in, whatever this switch or Pause says. So do ads the app adds on its own.	Anzeigen, die in einem Schwung Reels mitkommen. Banner und Werbeunterbrechungen bleiben blockiert, solange der Patch eingebaut ist, unabhängig von diesem Schalter und der Pause. Das gilt auch für Anzeigen, die die App selbst einfügt.
 AMOLED black theme	Schwarzes AMOLED-Design
 Audience Network off	Audience Network aus
 Back	Zurück
 Background ad prefetch blocked	Vorabladen von Werbung im Hintergrund blockiert
+Cancel	Abbrechen
 Changing these	So änderst du sie
 Choose a settings file. You'll see how many switches it changes before anything does.	Wähle eine Einstellungsdatei. Du siehst, wie viele Schalter sie ändert, bevor sich etwas ändert.
 Clear diagnostic data	Diagnosedaten löschen
@@ -32,6 +34,7 @@ Couldn't open that file. Nothing was changed.	Diese Datei ließ sich nicht öffn
 Couldn't open the file picker. Try again.	Die Dateiauswahl ließ sich nicht öffnen. Versuche es noch einmal.
 Couldn't put back the diagnostic data. Try again.	Die Diagnosedaten ließen sich nicht wiederherstellen. Versuche es noch einmal.
 Couldn't save the settings file. Try again.	Die Einstellungsdatei ließ sich nicht speichern. Versuche es noch einmal.
+Couldn't save this video. Play it for a moment, then try again.	Dieses Video ließ sich nicht speichern. Spiel es kurz ab und versuche es dann noch einmal.
 Couldn't start that. Try again in a moment.	Das ließ sich nicht starten. Versuche es gleich noch einmal.
 Couldn't start the report export. Try again shortly.	Der Export des Berichts ließ sich nicht starten. Versuche es gleich noch einmal.
 Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.	Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Facebook den Dunkelmodus ein, um das zu sehen.
@@ -42,6 +45,9 @@ Diagnostic report copied to the clipboard.	Diagnosebericht in die Zwischenablage
 Download	Download
 Download button on reels	Download-Button bei Reels
 Download failed	Download fehlgeschlagen
+Download feed and Watch videos	Videos aus Feed und Watch herunterladen
+Download to phone	Aufs Handy herunterladen
+Downloads	Downloads
 Empties the log and the filter counts a report would include.	Leert das Protokoll und die Filterzähler, die ein Bericht enthalten würde.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Jeder Schalter außer der Debug-Protokollierung verhält sich, als wäre er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.
 Export diagnostic report	Diagnosebericht exportieren
@@ -49,14 +55,20 @@ Export settings	Einstellungen exportieren
 Facebook closed three times within a minute of starting, so Hushfacebook paused itself.	Facebook wurde dreimal innerhalb einer Minute nach dem Start beendet, deshalb hat sich Hushfacebook selbst pausiert.
 Facebook doesn't download ads or its ad model in the background.	Facebook lädt im Hintergrund weder Werbung noch sein Werbemodell herunter.
 Facebook doesn't serve ads to other apps on this phone.	Facebook liefert keine Werbung an andere Apps auf diesem Handy aus.
+Facebook's dark mode takes its colours from your wallpaper, and this screen does too. Android 11 has no wallpaper colours, so it gets a fixed blue palette. Turn on dark mode in Facebook to see it.	Facebooks Dunkelmodus übernimmt die Farben deines Hintergrundbilds, und dieser Bildschirm ebenso. Android 11 hat keine Farben aus dem Hintergrundbild, daher gibt es dort eine feste blaue Palette. Schalte in Facebook den Dunkelmodus ein, um das zu sehen.
 From the next start, every switch above acts as if it were off, and Facebook's own code runs in its place. Debug logging keeps working, and your settings stay as they are.	Ab dem nächsten Start verhält sich jeder Schalter weiter oben, als wäre er aus, und stattdessen läuft Facebooks eigener Code. Die Debug-Protokollierung funktioniert weiter, und deine Einstellungen bleiben, wie sie sind.
 Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut
+Hide "People you may know"	„Personen, die du kennen könntest“ ausblenden
+Hide "Suggested for you" posts	„Vorschläge für dich“ ausblenden
+Hide AI-detected posts	Als KI erkannte Beiträge ausblenden
 Hide promoted posts	Beworbene Beiträge ausblenden
+Hide Reels in the feed	Reels im Feed ausblenden
 Hide sponsored posts	Gesponserte Beiträge ausblenden
 Hide sponsored reels	Gesponserte Reels ausblenden
 Hide sponsored stories	Gesponserte Stories ausblenden
 Hide suggested and promoted units	Vorschlags- und Werbekarten ausblenden
+Hide the Stories tray	Stories-Leiste ausblenden
 How far a photo or video you're saving has got, with a button to cancel it	Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen
 Hushfacebook %1$s on Facebook %2$s	Hushfacebook %1$s auf Facebook %2$s
 Hushfacebook is on	Hushfacebook ist aktiv
@@ -71,27 +83,35 @@ Importing settings	Einstellungen werden importiert
 Licenses	Lizenzen
 Link expired. Reopen the item and try again	Link abgelaufen. Öffne den Inhalt neu und versuche es noch einmal
 Links	Links
+Material You theme	Material-You-Design
 News feed	Newsfeed
 No matching diagnostics found.	Keine passenden Diagnosedaten gefunden.
 No screenshot watching for ads, and no reports of which apps you install.	Keine Screenshot-Erkennung bei Werbung und keine Meldungen darüber, welche Apps du installierst.
 Not saved: that isn't a Facebook photo or video	Nicht gespeichert: Das ist kein Foto oder Video von Facebook
 Not saved: the file is over 512 MB	Nicht gespeichert: Die Datei ist über 512 MB groß
+OK	OK
+One folder name for your saves. Slashes and other characters a folder name can't hold become underscores. Leave it empty to use %1$s.	Ein Ordnername für alles, was du speicherst. Schrägstriche und andere Zeichen, die in einem Ordnernamen nicht stehen dürfen, werden zu Unterstrichen. Lass das Feld leer, um %1$s zu verwenden.
 Open links in your browser	Links in deinem Browser öffnen
 Paid ads in the feed. They're dropped before Facebook adds them, so no gap is left.	Bezahlte Anzeigen im Feed. Diese werden aussortiert, bevor Facebook sie einfügt, sodass keine Lücke bleibt.
 Pause Hushfacebook	Hushfacebook pausieren
 Posts Facebook files as promotions rather than as ads.	Beiträge, die Facebook als beworben statt als Anzeige einstuft.
+Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Beiträge von Personen und Seiten, denen du nicht folgst, und aus Gruppen, denen du nicht beigetreten bist, die Facebook in deinen Feed schiebt.
+Posts that Facebook's own detection marked as made with AI. A post labeled only by the person who shared it stays. This one starts off because it hasn't been tried on a real feed yet.	Beiträge, die Facebooks eigene Erkennung als mit KI erstellt markiert hat. Hat nur die Person, die einen Beitrag geteilt hat, ihn als KI gekennzeichnet, bleibt er sichtbar. Dieser Schalter ist anfangs aus, weil er noch nicht in einem echten Feed ausprobiert wurde.
 Profiles and some Settings pages open again on this re-signed build.	Profile und einige Einstellungsseiten öffnen sich in diesem neu signierten Build wieder.
 Re-signed build fix	Fix für neu signierte Builds
 Reading the settings file	Einstellungsdatei wird gelesen
 Reels and Watch	Reels und Watch
+Remove tracking from shared links	Tracking aus geteilten Links entfernen
 Retry	Erneut versuchen
 Save any story	Jede Story speichern
 Save cancelled	Speichern abgebrochen
+Save folder	Speicherordner
 Save full report	Vollständigen Bericht speichern
 Saved to %1$s	Gespeichert unter %1$s
 Saved to the gallery	In der Galerie gespeichert
 Saved. Restart Facebook to apply this change.	Gespeichert. Starte Facebook neu, um diese Änderung zu übernehmen.
-Saves the switches from the sections above to a file you choose. Pause and Debug logging stay out of it.	Speichert die Schalter aus den Abschnitten weiter oben in einer Datei deiner Wahl. Die Pause und die Debug-Protokollierung sind nicht dabei.
+Saves the switches and the save folder from the sections above to a file you choose. Pause and Debug logging stay out of it.	Speichert die Schalter und den Speicherordner aus den Abschnitten weiter oben in einer Datei deiner Wahl. Die Pause und die Debug-Protokollierung sind nicht dabei.
+Saves will go to a folder named %1$s.	Was du speicherst, landet dann in einem Ordner namens %1$s.
 Saving a photo	Foto wird gespeichert
 Saving a video	Video wird gespeichert
 Saving the settings file	Einstellungsdatei wird gespeichert
@@ -102,9 +122,11 @@ Settings couldn't refresh completely. Reopen settings and try again.	Die Einstel
 Settings exported.	Einstellungen exportiert.
 Settings imported. %1$d switch changed.	Einstellungen importiert. %1$d Schalter wurde geändert.
 Settings imported. %1$d switches changed.	Einstellungen importiert. %1$d Schalter wurden geändert.
+Settings imported. Saves will go to a folder named %1$s.	Einstellungen importiert. Was du speicherst, landet jetzt in einem Ordner namens %1$s.
 Source code and issues	Quellcode und Issues
 Stays in while paused	Bleibt während der Pause aktiv
 Stories	Stories
+Takes tracking tags such as mibextid off the links you share or copy. A facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.	Entfernt Tracking-Tags wie mibextid aus den Links, die du teilst oder kopierst. Ein Link zu facebook.com/share/ wird für ein einzelnes Teilen erstellt, deshalb kann Facebook ihn trotzdem auf dich zurückführen.
 Tap to turn it back on.	Zum Wiedereinschalten tippen.
 That file is too large to be a settings file. Nothing was changed.	Diese Datei ist zu groß für eine Einstellungsdatei. Es wurde nichts geändert.
 That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Diese Datei ist kein lesbarer Text, sie wurde also womöglich bei der Übertragung beschädigt. Es wurde nichts geändert.
@@ -120,8 +142,12 @@ the background ad prefetch block	die Sperre für das Vorabladen von Werbung im H
 The diagnostic report couldn't be saved yet. Try again in a moment.	Der Diagnosebericht ließ sich noch nicht speichern. Versuche es gleich noch einmal.
 The diagnostic report couldn't be saved. Try again.	Der Diagnosebericht ließ sich nicht speichern. Versuche es noch einmal.
 The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.	Die Datei %1$s ließ sich nicht entfernen. Lösche sie aus %2$s, um Hushfacebook wieder einzuschalten.
+the Material You theme	das Material-You-Design
 the part of the Reels ad block patched into the app	der in die App gepatchte Teil der Reels-Werbesperre
 the re-signed build fix	der Fix für neu signierte Builds
+The row of friend suggestions between posts.	Die Reihe mit Freundschaftsvorschlägen zwischen den Beiträgen.
+The row of stories at the top of the feed, Create story included.	Die Reihe mit Stories oben im Feed, „Story erstellen“ eingeschlossen.
+The rows of reels between posts, and the reels Facebook adds where your feed ends.	Die Reihen mit Reels zwischen den Beiträgen und die Reels, die Facebook dort anhängt, wo dein Feed endet.
 The setting couldn't finish updating. Its saved value is shown.	Die Einstellung ließ sich nicht vollständig aktualisieren. Der gespeicherte Wert wird angezeigt.
 There is no diagnostic data to clear.	Es gibt keine Diagnosedaten zum Löschen.
 There is no diagnostic data to put back.	Es gibt keine Diagnosedaten zum Wiederherstellen.
@@ -130,7 +156,10 @@ This phone has no file picker, so there's no way to choose a file here.	Dieses H
 Try again, or go back to Facebook.	Versuche es noch einmal oder kehre zu Facebook zurück.
 Version	Version
 Version %1$s for Facebook %2$s	Version %1$s für Facebook %2$s
+Videos go to %1$s and photos to %2$s.	Videos landen in %1$s und Fotos in %2$s.
 Web links leave Facebook's in-app browser. Facebook's own pages still open in the app.	Weblinks öffnen sich nicht mehr im In-App-Browser von Facebook. Facebooks eigene Seiten öffnen sich weiterhin in der App.
 Writes what each patch does to the Android log. Leave it off unless you're reporting a problem.	Schreibt ins Android-Protokoll, was jeder Patch tut. Lass sie ausgeschaltet, außer du meldest ein Problem.
 You paused Hushfacebook.	Du hast Hushfacebook pausiert.
 Your switches already match that file, so nothing will change.	Deine Schalter entsprechen bereits dieser Datei, es ändert sich also nichts.
+Keep feed position on return	Feedposition beim Zurückkehren beibehalten
+Returning to Facebook within ten minutes keeps your place. Pull to refresh still works.	Wenn du innerhalb von zehn Minuten zu Facebook zurückkehrst, bleibst du an derselben Stelle. Zum Aktualisieren kannst du weiter nach unten ziehen.

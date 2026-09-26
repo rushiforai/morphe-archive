@@ -37,14 +37,8 @@ import kotlin.Unit;
 public final class NuvioRemainingEpisodesPatch {
     public static final String NAME = "NuvioTV - Remaining episodes in Continue Watching";
     static final String PACKAGE = "com.nuvio.tv";
-    static final String VERSION = "1.1.0-beta.1";
+    static final String VERSION = "1.1.0-beta.2";
     static final String EXTENSION = "Lsoftware/santodan/extension/nuvioremaining/NuvioRemainingEpisodes;";
-    static final String NEXT_UP = "Lza/r8;";
-    static final String STATE = "Lza/i3;";
-    static final String HELPERS = "Lza/z4;";
-    static final String CARD_CONTENT = "Lpa/o0;";
-    static final String SETTINGS = "Lfb/r6;";
-    static final int SHOW_UNAIRED_SUB = 0x7f11069e;
 
     private NuvioRemainingEpisodesPatch() {}
 
@@ -54,17 +48,20 @@ public final class NuvioRemainingEpisodesPatch {
             "Adds a disabled-by-default Continue Watching setting that displays aired, unwatched episode counts for every tracking integration.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "NuvioTV", null, ApkFileType.APK,
-                    null, null, Collections.singletonList(new AppTarget(VERSION, false, null)), false));
+                    null, null, Collections.singletonList(
+                        new AppTarget(VERSION, false, null)), false));
                 builder.extendWith(NuvioRemainingEpisodesPatch::extensionStream);
                 builder.execute(context -> {
+                    String version = context.getPackageMetadata().getVersionName();
                     if (!PACKAGE.equals(context.getPackageMetadata().getPackageName())
-                        || !VERSION.equals(context.getPackageMetadata().getVersionName()))
+                        || !VERSION.equals(version))
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
-                    hookNextUpModel(context.mutableClassDefBy(NEXT_UP));
-                    hookHomeState(context.mutableClassDefBy(STATE));
-                    hookEpisodeSets(context.mutableClassDefBy(HELPERS));
-                    hookSettings(context.mutableClassDefBy(SETTINGS));
-                    hookCard(context.mutableClassDefBy(CARD_CONTENT));
+                    String state = "Lza/k3;";
+                    hookNextUpModel(context.mutableClassDefBy("Lza/s8;"));
+                    hookHomeState(context.mutableClassDefBy(state));
+                    hookEpisodeSets(context.mutableClassDefBy("Lza/z4;"), state);
+                    hookSettings(context.mutableClassDefBy("Lfb/t6;"), 0x7f1106a7);
+                    hookCard(context.mutableClassDefBy("Lpa/q0;"), "Lfb/jk;");
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;
@@ -103,19 +100,19 @@ public final class NuvioRemainingEpisodesPatch {
         if (returns != 1) throw unsupported("NextUpInfo constructor layout changed");
     }
 
-    static void hookEpisodeSets(MutableClass owner) {
+    static void hookEpisodeSets(MutableClass owner, String stateType) {
         MutableMethod target = unique(owner, "g", 2);
         if (target.getImplementation().getRegisterCount() != 13)
             throw unsupported("Aired/watched reconciliation register layout changed");
         target.getImplementation().addInstruction(0,
             new BuilderInstruction22c(Opcode.IGET_OBJECT, 0, 11,
-                new ImmutableFieldReference(STATE, "M0", "Ljava/util/Map;")));
+                new ImmutableFieldReference(stateType, "M0", "Ljava/util/Map;")));
         target.getImplementation().addInstruction(1,
             new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, 0, 12, 0, 0, 0,
                 method(EXTENSION, "update", List.of("Ljava/util/Map;", "Ljava/util/Map;"), "V")));
     }
 
-    static void hookSettings(MutableClass owner) {
+    static void hookSettings(MutableClass owner, int showUnairedSub) {
         MutableMethod match = null;
         int insert = -1;
         int composer = -1;
@@ -123,7 +120,7 @@ public final class NuvioRemainingEpisodesPatch {
             List<Instruction> ins = instructions(candidate);
             for (int i = 0; i < ins.size(); i++) {
                 if (!(ins.get(i) instanceof NarrowLiteralInstruction)
-                    || ((NarrowLiteralInstruction) ins.get(i)).getNarrowLiteral() != SHOW_UNAIRED_SUB) continue;
+                    || ((NarrowLiteralInstruction) ins.get(i)).getNarrowLiteral() != showUnairedSub) continue;
                 int localComposer = -1;
                 int localInsert = -1;
                 for (int j = i + 1; j < Math.min(ins.size(), i + 45); j++) {
@@ -143,11 +140,11 @@ public final class NuvioRemainingEpisodesPatch {
                 method(EXTENSION, "renderSettings", Collections.singletonList("Ljava/lang/Object;"), "V")));
     }
 
-    static void hookCard(MutableClass owner) {
+    static void hookCard(MutableClass owner, String imageOwner) {
         MutableMethod target = unique(owner, "invoke", 3);
         List<Instruction> ins = instructions(target);
         int imageCall = -1;
-        for (int i = 0; i < ins.size(); i++) if (calls(ins.get(i), "Lfb/hk;", "H")) {
+        for (int i = 0; i < ins.size(); i++) if (calls(ins.get(i), imageOwner, "H")) {
             if (imageCall >= 0) throw unsupported("Multiple Continue Watching image anchors found");
             imageCall = i;
         }
@@ -156,7 +153,7 @@ public final class NuvioRemainingEpisodesPatch {
         Instruction image = ins.get(imageCall);
         if (!(image instanceof RegisterRangeInstruction))
             throw unsupported("Continue Watching image call is no longer a range invocation");
-        // fb.hk.H's Composer is its twelfth parameter, 11 words after the start
+        // The image helper's Composer is its twelfth parameter, 11 words after the start
         // of this static range invocation. Use Nuvio's actual live Composer
         // register instead of assuming that a lambda parameter still contains it.
         int composer = ((RegisterRangeInstruction) image).getStartRegister() + 11;
@@ -210,7 +207,7 @@ public final class NuvioRemainingEpisodesPatch {
 
     static IllegalStateException unsupported(String reason) {
         return new IllegalStateException("Unsupported NuvioTV bytecode: " + reason
-            + ". No fallback was applied. Use the original NuvioTV 1.1.0-beta.1 APK.");
+            + ". No fallback was applied. Use the original NuvioTV 1.1.0-beta.2 APK.");
     }
 
     static InputStream extensionStream() {

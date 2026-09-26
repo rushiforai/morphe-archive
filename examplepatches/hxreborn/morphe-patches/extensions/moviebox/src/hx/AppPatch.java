@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
@@ -61,7 +62,9 @@ public final class AppPatch {
     private static final String OKHTTP_URL = "okhttp3.HttpUrl";
     private static final String BFF = "wefeed-mobile-bff";
     private static final String PLAY_INFO = BFF + "/subject-api/play-info/v2";
-    private static final String RESOURCE_LIST = BFF + "/subject-api/resource/v2";
+    private static final String RESOURCE_POSITION = BFF + "/subject-api/resource-position/v2";
+    private static final String PLAY_INFO_SEGMENT = "/subject-api/play-info/";
+    private static final String RESOURCE_LIST_SEGMENT = "/subject-api/resource/";
     private static final String USER_PROFILE = BFF + "/user-api/profile";
     private static final String MEMBER_DETAIL = BFF + "/vip/member/detail";
     private static final String[] URL_FIELDS = {"url", "resourceLink", "downloadUrl", "playUrl"};
@@ -194,10 +197,18 @@ public final class AppPatch {
         String apiBase = String.valueOf(baseUrl.get(retrofit));
 
         MovieBoxSource source = new MovieBoxSource(loader, client, apiBase);
-        DashServer server = mainProcess() ? DashServer.bind(source) : null;
+        DashServer server = null;
+        if (isMainProcess()) {
+            try {
+                server = DashServer.bind(source);
+            } catch (IOException e) {
+                Log.e(TAG, "loopback server unavailable, resource lists keep their own links", e);
+            }
+        }
+        boolean routeDownloads = !isMainProcess() || server != null;
         try {
             if (server != null) server.start();
-            Object wrapped = addInterceptor(client, interceptor(loader, source));
+            Object wrapped = addInterceptor(client, interceptor(loader, source, routeDownloads));
             clientField.set(instance, wrapped);
             try {
                 callFactory.set(retrofit, wrapped);
@@ -239,7 +250,7 @@ public final class AppPatch {
         }
     }
 
-    private static boolean mainProcess() {
+    private static boolean isMainProcess() {
         String process = Application.getProcessName();
         return process != null && !process.contains(":");
     }
@@ -288,24 +299,27 @@ public final class AppPatch {
         return builder.getClass().getMethod("build").invoke(builder);
     }
 
-    private static Object interceptor(ClassLoader loader, MovieBoxSource source) throws Exception {
+    private static Object interceptor(ClassLoader loader, MovieBoxSource source, boolean routeDownloads)
+            throws Exception {
         Class<?> interceptorClass = Class.forName(OKHTTP_INTERCEPTOR, false, loader);
-        return Proxy.newProxyInstance(loader, new Class<?>[]{interceptorClass}, new DashInterceptor(loader, source));
+        return Proxy.newProxyInstance(loader, new Class<?>[]{interceptorClass},
+                new DashInterceptor(loader, source, routeDownloads));
     }
 
     private static final class SignedResource {
         private static final String POLICY_KEY = "CloudFront-Policy=";
         private static final String EDGE_KEY = "Edge-Cache-Cookie=";
-        private static final long EXPIRY_MARGIN_MS = 60_000L;
 
         final String cookie;
         final String manifestUrl;
-        final long expiresAtMs;
 
-        private SignedResource(String cookie, String manifestUrl, long expiresAtMs) {
+        private SignedResource(String cookie, String manifestUrl) {
             this.cookie = cookie;
             this.manifestUrl = manifestUrl;
-            this.expiresAtMs = expiresAtMs;
+        }
+
+        boolean isEdgeCache() {
+            return cookie.contains(EDGE_KEY);
         }
 
         static SignedResource fromCookie(String cookie) {
@@ -314,36 +328,29 @@ public final class AppPatch {
         }
 
         private static SignedResource fromCloudFront(String cookie) {
-            String policy = fieldValue(cookie, POLICY_KEY, ';');
+            String policy = extractFieldValue(cookie, POLICY_KEY, ';');
             if (policy == null) return null;
             try {
                 String standard = policy.replace('-', '+').replace('_', '=').replace('~', '/');
                 String json = new String(Base64.decode(standard, Base64.DEFAULT), StandardCharsets.UTF_8);
-                JSONObject statement = new JSONObject(json).getJSONArray("Statement").getJSONObject(0);
-                String resource = statement.getString("Resource");
+                String resource = new JSONObject(json).getJSONArray("Statement").getJSONObject(0).getString("Resource");
                 if (!resource.startsWith("https://") || !resource.endsWith("/*")) return null;
-                long expiresAt = statement.getJSONObject("Condition").getJSONObject("DateLessThan")
-                        .getLong("AWS:EpochTime") * 1000L;
-                String manifestUrl = resource.substring(0, resource.length() - 2) + "/index.mpd";
-                return new SignedResource(cookie, manifestUrl, expiresAt);
+                return new SignedResource(cookie, resource.substring(0, resource.length() - 2) + "/index.mpd");
             } catch (JSONException | IllegalArgumentException malformed) {
                 return null;
             }
         }
 
         private static SignedResource fromEdgeCache(String cookie) {
-            String value = fieldValue(cookie, EDGE_KEY, ';');
+            String value = extractFieldValue(cookie, EDGE_KEY, ';');
             if (value == null) return null;
-            String prefixEncoded = fieldValue(value, "urlprefix=", ':');
-            String expiry = fieldValue(value, "t=", ':');
-            if (prefixEncoded == null || expiry == null) return null;
+            String prefixEncoded = extractFieldValue(value, "urlprefix=", ':');
+            if (prefixEncoded == null) return null;
             try {
                 String urlPrefix = new String(Base64.decode(prefixEncoded, Base64.URL_SAFE), StandardCharsets.UTF_8);
                 if (!urlPrefix.startsWith("https://")) return null;
                 if (!urlPrefix.endsWith("/")) urlPrefix = urlPrefix + "/";
-                long seconds = Long.parseLong(expiry.trim());
-                if (seconds < 0 || seconds > Long.MAX_VALUE / 1000L) return null;
-                return new SignedResource(cookie, urlPrefix + "index.mpd", seconds * 1000L);
+                return new SignedResource(cookie, urlPrefix + "index.mpd");
             } catch (IllegalArgumentException malformed) {
                 return null;
             }
@@ -377,11 +384,7 @@ public final class AppPatch {
             }
         }
 
-        boolean expired() {
-            return System.currentTimeMillis() + EXPIRY_MARGIN_MS >= expiresAtMs;
-        }
-
-        private static String fieldValue(String source, String key, char delimiter) {
+        private static String extractFieldValue(String source, String key, char delimiter) {
             int at = source.indexOf(key);
             if (at < 0) return null;
             int start = at + key.length();
@@ -390,18 +393,31 @@ public final class AppPatch {
         }
     }
 
+    private static final class NoSignedResourceException extends IOException {
+        private static final long serialVersionUID = 1L;
+
+        NoSignedResourceException(String message) {
+            super(message);
+        }
+    }
+
     private static final class MovieBoxSource implements DashServer.Source {
         private static final int FILE_RETENTION = 8;
         private static final int RESOURCE_RETENTION = 32;
         private static final int ORIGIN_PROBE_TIMEOUT_MS = 10000;
         private static final long PLACEHOLDER_SIZE_RATIO = 2;
+        private static final int PLAY_INFO_ATTEMPTS = 5;
+        private static final long PLAY_INFO_RETRY_DELAY_MS = 2000L;
 
         private final ClassLoader loader;
         private final Object client;
         private final String apiBase;
-        private final Map<String, SignedResource> resources = lru(RESOURCE_RETENTION);
-        private final Map<String, Long> originLengths = lru(RESOURCE_RETENTION);
-        private final Map<String, FutureTask<DashFile>> files = lru(FILE_RETENTION);
+        private final Map<String, SignedResource> resources = newLruMap(RESOURCE_RETENTION);
+        private final Map<String, Long> originLengths = newLruMap(RESOURCE_RETENTION);
+        private final Map<String, Boolean> directFiles = newLruMap(RESOURCE_RETENTION);
+        private final Map<String, Boolean> handedOff = newLruMap(RESOURCE_RETENTION);
+        private final Map<String, FutureTask<DashFile>> files = newLruMap(FILE_RETENTION);
+        private final CloudFrontPlayInfoClient cloudFrontPlayInfoClient = new CloudFrontPlayInfoClient();
 
         MovieBoxSource(ClassLoader loader, Object client, String apiBase) {
             this.loader = loader;
@@ -409,7 +425,7 @@ public final class AppPatch {
             this.apiBase = apiBase.endsWith("/") ? apiBase : apiBase + "/";
         }
 
-        SignedResource observePlayInfo(String requestUrl, String body) {
+        SignedResource observePlayInfo(String requestUrl, String body, String apiHost) {
             String key = SignedResource.key(Uri.parse(requestUrl));
             SignedResource resource = SignedResource.fromPlayInfo(body);
             if (resource == null) {
@@ -417,7 +433,8 @@ public final class AppPatch {
                 diagnose(NO_STREAM);
                 return null;
             }
-            Log.i(TAG, "play-info " + key + ": DASH");
+            Log.i(TAG, "play-info " + key + ": DASH on " + Uri.parse(resource.manifestUrl).getHost()
+                    + (apiHost == null ? "" : ", app API host " + apiHost));
             if (key == null) return null;
             synchronized (resources) {
                 resources.put(key, resource);
@@ -427,27 +444,73 @@ public final class AppPatch {
 
         @Override
         public DashFile open(final String subjectId, final int season, final int episode, final int height,
-                             String origin, long originSize) throws IOException {
+                             String origin, long originSize, String resourceId, boolean fromStart) throws IOException {
             String label = SignedResource.key(subjectId, season, episode) + "@" + height;
             if (origin != null && originSize > 0 && originLength(origin) == originSize) {
                 Log.i(TAG, label + ": redirect to origin, size " + originSize + " matches");
                 return null;
             }
+            SignedResource signed;
             try {
-                resource(subjectId, season, episode, null);
-            } catch (IOException noResource) {
+                signed = resource(subjectId, season, episode, null);
+            } catch (NoSignedResourceException noResource) {
                 if (origin == null) throw noResource;
-                if (placeholder(origin, originSize)) {
+                if (isPlaceholder(origin, originSize)) {
                     diagnose(NOT_HOSTED);
-                    throw new DashServer.Unavailable(label + ": origin is a placeholder for " + originSize + " bytes");
+                    throw new DashServer.UnavailableException(label + ": origin is a placeholder for " + originSize + " bytes");
                 }
                 Log.i(TAG, label + ": redirect to origin, " + noResource.getMessage());
                 return null;
             }
+            if (isHandedOff(label, subjectId, signed, resourceId, origin, originSize, fromStart)) {
+                throw new DashServer.UnavailableException(label + ": DASH on " + Uri.parse(signed.manifestUrl).getHost()
+                        + ", leaving the download to the app's direct file");
+            }
             return getOrCreateFile(subjectId, season, episode, height);
         }
 
-        private boolean placeholder(String origin, long originSize) {
+        private boolean isHandedOff(String label, String subjectId, SignedResource signed, String resourceId,
+                                    String origin, long originSize, boolean fromStart) {
+            synchronized (handedOff) {
+                Boolean decided = handedOff.get(label);
+                if (decided != null) return decided;
+            }
+            boolean handOff = fromStart && !DashFile.isUnpacedCdn(signed.manifestUrl)
+                    && hasDirectFile(subjectId, resourceId, origin, originSize);
+            synchronized (handedOff) {
+                Boolean decided = handedOff.get(label);
+                if (decided != null) return decided;
+                handedOff.put(label, handOff);
+                return handOff;
+            }
+        }
+
+        private boolean hasDirectFile(String subjectId, String resourceId, String origin, long originSize) {
+            if (resourceId == null || origin == null || originSize <= 0) return false;
+            synchronized (directFiles) {
+                Boolean known = directFiles.get(resourceId);
+                if (known != null) return known;
+            }
+            try {
+                String body = get(apiBase + RESOURCE_POSITION + "?subjectId=" + subjectId + "&resourceId=" + resourceId
+                        + "&failUrl=" + Uri.encode(origin) + "&failCode=404&resourceNum=0&isVip=true");
+                JSONArray list = new JSONObject(body).getJSONObject("data").optJSONArray("list");
+                String url = list == null || list.length() == 0 ? "" : list.getJSONObject(0).optString("resourceLink", "");
+                long length = url.isEmpty() ? -1 : probeLength(url);
+                boolean available = length == originSize;
+                Log.i(TAG, "direct file " + resourceId + ": " + (url.isEmpty() ? "none"
+                        : Uri.parse(url).getHost() + ", " + length + " of " + originSize + " bytes"));
+                synchronized (directFiles) {
+                    directFiles.put(resourceId, available);
+                }
+                return available;
+            } catch (IOException | JSONException | NumberFormatException e) {
+                Log.w(TAG, "direct file " + resourceId + " not checked", e);
+                return false;
+            }
+        }
+
+        private boolean isPlaceholder(String origin, long originSize) {
             long actual = originLength(origin);
             return originSize > 0 && actual > 0 && actual * PLACEHOLDER_SIZE_RATIO < originSize;
         }
@@ -501,18 +564,14 @@ public final class AppPatch {
                     task = new FutureTask<>(new Callable<DashFile>() {
                         @Override
                         public DashFile call() throws IOException {
-                            final String manifestUrl = resource(subjectId, season, episode, null).manifestUrl;
-                            return DashFile.open(manifestUrl, height, new DashFile.Cookies() {
-                                @Override
-                                public String current() throws IOException {
-                                    return cookieFor(key, manifestUrl, subjectId, season, episode, null);
-                                }
-
-                                @Override
-                                public String refresh(String rejected) throws IOException {
-                                    return cookieFor(key, manifestUrl, subjectId, season, episode, rejected);
-                                }
-                            });
+                            SignedResource signed = resource(subjectId, season, episode, null);
+                            long started = SystemClock.elapsedRealtime();
+                            DashFile file = DashFile.open(signed.manifestUrl, height,
+                                    new PinnedCookies(signed, subjectId, season, episode));
+                            Log.i(TAG, "DASH file " + key + ": " + file.length + " bytes from "
+                                    + Uri.parse(signed.manifestUrl).getHost() + ", ready in "
+                                    + (SystemClock.elapsedRealtime() - started) + " ms");
+                            return file;
                         }
                     });
                     files.put(key, task);
@@ -534,16 +593,36 @@ public final class AppPatch {
             }
         }
 
-        private String cookieFor(String fileKey, String manifestUrl, String subjectId, int season, int episode,
-                                 String rejectedCookie) throws IOException {
-            SignedResource resource = resource(subjectId, season, episode, rejectedCookie);
-            if (!resource.manifestUrl.equals(manifestUrl)) {
-                synchronized (files) {
-                    files.remove(fileKey);
-                }
-                throw new IOException("signed DASH resource moved to " + resource.manifestUrl);
+        private final class PinnedCookies implements DashFile.CookieProvider {
+            private final String manifestUrl;
+            private final String subjectId;
+            private final int season;
+            private final int episode;
+            private String cookie;
+
+            PinnedCookies(SignedResource signed, String subjectId, int season, int episode) {
+                this.manifestUrl = signed.manifestUrl;
+                this.cookie = signed.cookie;
+                this.subjectId = subjectId;
+                this.season = season;
+                this.episode = episode;
             }
-            return resource.cookie;
+
+            @Override
+            public synchronized String current() {
+                return cookie;
+            }
+
+            @Override
+            public synchronized String refresh(String rejected) throws IOException {
+                if (!cookie.equals(rejected)) return cookie;
+                SignedResource fresh = resource(subjectId, season, episode, rejected);
+                if (!fresh.manifestUrl.equals(manifestUrl)) {
+                    throw new IOException("signed DASH resource moved to " + Uri.parse(fresh.manifestUrl).getHost());
+                }
+                cookie = fresh.cookie;
+                return cookie;
+            }
         }
 
         private SignedResource resource(String subjectId, int season, int episode, String rejectedCookie)
@@ -553,12 +632,45 @@ public final class AppPatch {
             synchronized (resources) {
                 cached = resources.get(key);
             }
-            if (cached != null && !cached.expired() && !cached.cookie.equals(rejectedCookie)) return cached;
+            if (cached != null && !cached.cookie.equals(rejectedCookie)) return cached;
             String url = apiBase + PLAY_INFO + "?subjectId=" + subjectId + "&se=" + season + "&ep=" + episode
                     + "&isVip=true";
-            SignedResource fetched = observePlayInfo(url, get(url));
-            if (fetched == null) throw new IOException("play-info has no signed DASH resource for " + key);
+            String body = getPlayInfoWithRetry(url, key);
+            if (isEdgeCachePlayInfo(body)) {
+                String replacement = fetchReplacementPlayInfo("/" + PLAY_INFO + "?subjectId=" + subjectId
+                        + "&se=" + season + "&ep=" + episode + "&isVip=true");
+                if (replacement != null) body = replacement;
+            }
+            SignedResource fetched = observePlayInfo(url, body, null);
+            if (fetched == null) throw new NoSignedResourceException("play-info has no signed DASH resource for " + key);
             return fetched;
+        }
+
+        static boolean isEdgeCachePlayInfo(String playInfo) {
+            SignedResource resource = SignedResource.fromPlayInfo(playInfo);
+            return resource != null && resource.isEdgeCache();
+        }
+
+        String fetchReplacementPlayInfo(String pathAndQuery) {
+            return cloudFrontPlayInfoClient.fetchPlayInfo(pathAndQuery, body -> {
+                SignedResource resource = SignedResource.fromPlayInfo(body);
+                if (resource != null && DashFile.isUnpacedCdn(resource.manifestUrl)) return true;
+                Log.i(TAG, "alternative play-info " + (resource == null
+                        ? "has no signed DASH resource" : "is on " + Uri.parse(resource.manifestUrl).getHost()));
+                return false;
+            });
+        }
+
+        private String getPlayInfoWithRetry(String url, String key) throws IOException {
+            for (int attempt = 1; ; attempt++) {
+                try {
+                    return get(url);
+                } catch (IOException e) {
+                    if (attempt == PLAY_INFO_ATTEMPTS) throw e;
+                    Log.w(TAG, "play-info " + key + " attempt " + attempt + " of " + PLAY_INFO_ATTEMPTS + " failed", e);
+                    SystemClock.sleep(PLAY_INFO_RETRY_DELAY_MS);
+                }
+            }
         }
 
         private String get(String url) throws IOException {
@@ -568,8 +680,14 @@ public final class AppPatch {
                 Object request = builder.getClass().getMethod("build").invoke(builder);
                 Object call = client.getClass().getMethod("newCall", request.getClass()).invoke(client, request);
                 Object response = call.getClass().getMethod("execute").invoke(call);
-                Object body = response.getClass().getMethod("body").invoke(response);
-                return (String) body.getClass().getMethod("string").invoke(body);
+                try {
+                    int code = (Integer) response.getClass().getMethod("code").invoke(response);
+                    if (code < 200 || code >= 300) throw new IOException("HTTP " + code + " for " + url);
+                    Object body = response.getClass().getMethod("body").invoke(response);
+                    return (String) body.getClass().getMethod("string").invoke(body);
+                } finally {
+                    response.getClass().getMethod("close").invoke(response);
+                }
             } catch (InvocationTargetException e) {
                 throw new IOException(e.getCause());
             } catch (ReflectiveOperationException e) {
@@ -577,7 +695,7 @@ public final class AppPatch {
             }
         }
 
-        private static <V> Map<String, V> lru(final int capacity) {
+        private static <V> Map<String, V> newLruMap(final int capacity) {
             return new LinkedHashMap<String, V>(capacity, 0.75f, true) {
                 @Override
                 protected boolean removeEldestEntry(Map.Entry<String, V> eldest) {
@@ -590,10 +708,12 @@ public final class AppPatch {
     private static final class DashInterceptor implements InvocationHandler {
         private final ClassLoader loader;
         private final MovieBoxSource source;
+        private final boolean routeDownloads;
 
-        DashInterceptor(ClassLoader loader, MovieBoxSource source) {
+        DashInterceptor(ClassLoader loader, MovieBoxSource source, boolean routeDownloads) {
             this.loader = loader;
             this.source = source;
+            this.routeDownloads = routeDownloads;
         }
 
         @Override
@@ -604,13 +724,19 @@ public final class AppPatch {
                 if ("hashCode".equals(name)) return System.identityHashCode(proxy);
             }
             if ("equals".equals(name) && args != null && args.length == 1) return proxy == args[0];
-            if (!"intercept".equals(name)) return null;
+            if (args == null || args.length != 1) return null;
 
             try {
                 return intercept(args[0]);
             } catch (InvocationTargetException wrapped) {
-                throw wrapped.getCause() != null ? wrapped.getCause() : wrapped;
+                throw asIoException(wrapped.getCause() != null ? wrapped.getCause() : wrapped);
+            } catch (Throwable failure) {
+                throw asIoException(failure);
             }
+        }
+
+        private static IOException asIoException(Throwable failure) {
+            return failure instanceof IOException ? (IOException) failure : new IOException("MovieBox interceptor failed", failure);
         }
 
         private Object intercept(Object chain) throws Throwable {
@@ -619,8 +745,8 @@ public final class AppPatch {
 
             Object httpUrl = request.getClass().getMethod("url").invoke(request);
             String url = String.valueOf(httpUrl);
-            boolean playInfo = url.contains(PLAY_INFO);
-            boolean resourceList = url.contains(RESOURCE_LIST);
+            boolean playInfo = url.contains(PLAY_INFO_SEGMENT);
+            boolean resourceList = url.contains(RESOURCE_LIST_SEGMENT);
             boolean memberInfo = url.contains(USER_PROFILE) || url.contains(MEMBER_DETAIL);
             if (!playInfo && !resourceList && !memberInfo) return response;
 
@@ -628,25 +754,47 @@ public final class AppPatch {
             if (body == null) return response;
 
             byte[] bytes = (byte[]) body.getClass().getMethod("bytes").invoke(body);
+            byte[] payload;
+            try {
+                payload = rewriteBody(url, response, bytes, playInfo, resourceList);
+            } catch (Throwable failure) {
+                Log.e(TAG, Uri.parse(url).getPath() + " not rewritten", failure);
+                payload = bytes;
+            }
+            return withBody(response, body, payload);
+        }
+
+        private byte[] rewriteBody(String url, Object response, byte[] bytes, boolean playInfo, boolean resourceList)
+                throws ReflectiveOperationException {
             String text = new String(bytes, StandardCharsets.UTF_8);
+            if (playInfo && MovieBoxSource.isEdgeCachePlayInfo(text)) {
+                Uri requested = Uri.parse(url);
+                String replacement = source.fetchReplacementPlayInfo(
+                        requested.getEncodedPath() + "?" + requested.getEncodedQuery());
+                if (replacement != null) {
+                    text = replacement;
+                    bytes = replacement.getBytes(StandardCharsets.UTF_8);
+                }
+            }
             String out;
             if (playInfo) {
-                source.observePlayInfo(url, text);
+                Object sent = response.getClass().getMethod("request").invoke(response);
+                source.observePlayInfo(url, text, Uri.parse(String.valueOf(
+                        sent.getClass().getMethod("url").invoke(sent))).getHost());
                 Uri playInfoUri = Uri.parse(url);
                 out = rewritePlayInfo(text, playInfoUri.getQueryParameter("subjectId"),
-                        queryInt(playInfoUri, "se"), queryInt(playInfoUri, "ep"));
+                        parseQueryInt(playInfoUri, "se"), parseQueryInt(playInfoUri, "ep"));
             } else if (resourceList) {
-                out = rewriteResourceList(text);
+                out = routeDownloads ? rewriteResourceList(text) : text;
             } else {
                 out = rewriteMemberDays(text);
             }
-            byte[] payload = out.equals(text) ? bytes : out.getBytes(StandardCharsets.UTF_8);
-            return withBody(response, body, payload);
+            return out.equals(text) ? bytes : out.getBytes(StandardCharsets.UTF_8);
         }
 
         private Object withBody(Object response, Object body, byte[] payload) throws Throwable {
             Object mediaType = body.getClass().getMethod("contentType").invoke(body);
-            Object newBody = responseBody(mediaType, payload);
+            Object newBody = createResponseBody(mediaType, payload);
 
             Object builder = response.getClass().getMethod("newBuilder").invoke(response);
             Class<?> bodyClass = Class.forName("okhttp3.ResponseBody", false, loader);
@@ -655,7 +803,7 @@ public final class AppPatch {
             return builder.getClass().getMethod("build").invoke(builder);
         }
 
-        private Object responseBody(Object mediaType, byte[] bytes) throws Throwable {
+        private Object createResponseBody(Object mediaType, byte[] bytes) throws Throwable {
             Class<?> bodyClass = Class.forName("okhttp3.ResponseBody", false, loader);
             Class<?> mediaTypeClass = Class.forName("okhttp3.MediaType", false, loader);
             for (Method create : bodyClass.getMethods()) {
@@ -680,6 +828,7 @@ public final class AppPatch {
             changed |= routeProgressiveStreams(root, subjectId, season, episode);
             return changed ? root.toString() : body;
         } catch (JSONException malformed) {
+            Log.w(TAG, "play-info not rewritten: " + malformed.getMessage());
             return body;
         }
     }
@@ -695,15 +844,16 @@ public final class AppPatch {
             JSONObject stream = streams.optJSONObject(i);
             if (stream == null || !stream.optString("signCookie", "").isEmpty()) continue;
             String origin = stream.optString("url", "");
-            int height = maxResolution(stream.optString("resolutions", ""));
+            int height = parseMaxResolution(stream.optString("resolutions", ""));
             if (origin.isEmpty() || height <= 0) continue;
-            stream.put("url", DashServer.url(subjectId, season, episode, height, origin, stream.optLong("size", 0)));
+            stream.put("url", DashServer.buildUrl(subjectId, season, episode, height, origin, stream.optLong("size", 0),
+                    null));
             changed = true;
         }
         return changed;
     }
 
-    private static int maxResolution(String resolutions) {
+    private static int parseMaxResolution(String resolutions) {
         int best = 0;
         for (String part : resolutions.split(",")) {
             try {
@@ -714,7 +864,7 @@ public final class AppPatch {
         return best;
     }
 
-    private static int queryInt(Uri uri, String name) {
+    private static int parseQueryInt(Uri uri, String name) {
         try {
             return Integer.parseInt(uri.getQueryParameter(name));
         } catch (NumberFormatException missing) {
@@ -769,6 +919,7 @@ public final class AppPatch {
             Log.i(TAG, "resource list " + subjectId + ": routed " + routed + " of " + list.length() + " items");
             return routed > 0 ? root.toString() : body;
         } catch (JSONException malformed) {
+            Log.w(TAG, "resource list not rewritten: " + malformed.getMessage());
             return body;
         }
     }
@@ -793,7 +944,9 @@ public final class AppPatch {
                     + " resolution=" + height);
             return false;
         }
-        item.put("resourceLink", DashServer.url(subjectId, season, episode, height, origin, item.optLong("size", 0)));
+        String resourceId = item.optString("resourceId", "");
+        item.put("resourceLink", DashServer.buildUrl(subjectId, season, episode, height, origin, item.optLong("size", 0),
+                resourceId.isEmpty() ? null : resourceId));
         return true;
     }
 
@@ -802,6 +955,7 @@ public final class AppPatch {
             JSONObject root = new JSONObject(body);
             return setMemberDays(root) ? root.toString() : body;
         } catch (JSONException malformed) {
+            Log.w(TAG, "member info not rewritten: " + malformed.getMessage());
             return body;
         }
     }

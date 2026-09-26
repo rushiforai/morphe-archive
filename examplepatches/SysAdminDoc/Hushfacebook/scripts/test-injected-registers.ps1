@@ -5,22 +5,27 @@
 .DESCRIPTION
     BadDexFixture.java writes a clean host, a patched build of it that passes every check, and one
     patched build per check that breaks that check and nothing else: a branch into an instruction,
-    a branch to itself, a switch case into an instruction, a branch or switch case onto a payload
-    (a packed or sparse switch's, or fill-array-data's) or a move-result, flow that falls into a
-    payload or starts at one, an invoke with too few registers, a wide argument split across two
+    a branch to itself, a switch case into an instruction, a switch pointed at the other kind of
+    table, a branch or switch case onto a payload (a packed or sparse switch's, or
+    fill-array-data's) or a move-result, flow that falls into a payload, starts at one or runs off
+    the end of the code, an invoke with too few registers, a wide argument split across two
     registers, the static off-by-one, the upper half of a wide parameter read as an object, a
     narrow constant read as a long and the reverse (the AMOLED sweep's bug on 580), either half of
     a live long overwritten and the other half still read, a broken pair or a narrow constant on
     one arm of a branch or on a loop's back edge, either half of a pair broken on one arm moved
-    where the arms meet, a zero on one arm read as a long, a conflict (an object on one arm, an int
-    on the other) read by each instruction that takes a value or read through a copy, a wide move
-    of a conflict, a long tested against zero, a move-result the patch separated from its invoke,
-    bad try ranges and handlers (a handler at a switch or array payload among them), a
-    move-exception the method's entry reaches, and the one feed guard doubled, moved or missing.
-    The good build carries the joins, copies and reads ART accepts, so a check made stricter still
-    has to pass them. Each bad build has to fail with findings of its own category only, so a check
-    that fires for the wrong reason fails here too. Removed methods and DEX entries, the removal
-    allowlist, and the device tally comparison are held to what they did before.
+    where the arms meet, a zero on one arm read as a long, a conflict (an object on one arm, an
+    int on the other) read by each instruction and in each register that takes a value, or read
+    through a copy, a wide move of a conflict, a long and a lone upper half tested against zero,
+    an int and an object tested for equality in either order, a move-result the patch separated
+    from its invoke, bad try ranges and handlers (a handler at a switch or array payload among
+    them), a move-exception the method's entry reaches, the one feed guard doubled, moved or
+    missing, the reels hook deleted from the pre-EOF injector or put after a branch, and the
+    showcase stub left unfilled, calling another class, or calling a class that isn't the only one
+    answering its type name. The good build carries the joins, copies and reads ART accepts, a zero tested against
+    an object among them, so a check made stricter still has to pass them. Each bad build has to
+    fail with findings of its own category only, so a check that fires for the wrong reason fails
+    here too. Removed methods and DEX entries, the removal allowlist, and the device tally
+    comparison are held to what they did before.
     verify-injected-registers.ps1 also runs end to end with stand-in tools, and its wiring is read
     through the parser (script-wiring.ps1), with the wiring checks themselves tried on copies that
     drop the calls but keep their text, at least one for each rule of what a script can't reach.
@@ -167,6 +172,16 @@ try {
         $Node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
         $Node.Left.Extent.Text -eq '$suites' -and
         $Node.Extent.Text -like "*'scripts/test-injected-registers.ps1'*" }
+    $dexDiffFunction = { param($Node)
+        $Node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $Node.Name -eq 'Invoke-DexDiff' }
+    $contractsArgument = "(Join-Path `$PSScriptRoot 'injected-mutation-contracts.txt')"
+    # The DexDiff call without the contracts, and the old call kept after it between -Open and
+    # -Close: code that can't run for the copies expected to fail, code that can for the rest.
+    $parkOldCall = { param([string]$Open, [string]$Close)
+        # A local copy, so GetNewClosure takes it along with the two parameters.
+        $contracts = $contractsArgument
+        Edit-ScriptNode $verifierText $dexDiffCall { param($Text)
+            $Text.Replace($contracts, '') + "`n    $Open`n    $Text`n    $Close" }.GetNewClosure() }
     $wiringCases = @(
         @{ Name = 'the untouched verifier'; Check = $runsDexDiff; Expect = $true; Text = $verifierText }
         @{ Name = 'the untouched verifier'; Check = $dotSourcesContracts; Expect = $true; Text = $verifierText }
@@ -212,6 +227,20 @@ try {
         @{ Name = 'the contracts helper dot-sourced inside a function the script calls'; Check = $dotSourcesContracts
             Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text)
                 "function Import-Contracts { $Text }`nImport-Contracts" } }
+        # A script block run with & has a scope of its own too, even around a . { } block, while
+        # . { } and ForEach-Object run in the script's.
+        @{ Name = 'the contracts helper dot-sourced inside & { }'; Check = $dotSourcesContracts
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) "& { $Text }" } }
+        @{ Name = 'the contracts helper dot-sourced inside . { } inside & { }'; Check = $dotSourcesContracts
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) "& { . { $Text } }" } }
+        @{ Name = 'the contracts helper dot-sourced inside & { } inside . { }'; Check = $dotSourcesContracts
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) ". { & { $Text } }" } }
+        @{ Name = 'the contracts helper dot-sourced behind if ($false) inside . { }'; Check = $dotSourcesContracts
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) ". { if (`$false) { $Text } }" } }
+        @{ Name = 'the contracts helper dot-sourced inside . { }'; Check = $dotSourcesContracts; Expect = $true
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) ". { $Text }" } }
+        @{ Name = 'the contracts helper dot-sourced inside ForEach-Object { }'; Check = $dotSourcesContracts; Expect = $true
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) "1 | ForEach-Object { $Text }" } }
         @{ Name = 'the DexDiff call behind exit'; Check = $runsDexDiff
             Text = Edit-ScriptNode $verifierText $dexDiffCall { param($Text) "exit 0`n    $Text" } }
         @{ Name = 'the DexDiff call behind throw'; Check = $runsDexDiff
@@ -272,6 +301,111 @@ try {
             Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) "if (1 -gt 2) { $Text }" } }
         @{ Name = 'the suite line behind if (0 -eq 1)'; Check = $gateRunsSuite
             Text = Edit-ScriptNode $prePushSource $suiteLine { param($Text) "if (0 -eq 1) { $Text }" } }
+        # The old call kept where a constant settles that it can't run: an -and or -or one side
+        # settles, the right of an -and or -or the left side settles, a switch clause that can't
+        # match or a default a clause always takes, a foreach over nothing, a catch of a try that
+        # can't throw, and a function defined a second time, whose first body never runs.
+        @{ Name = 'the old DexDiff call kept behind if ($false -and $Serial)'; Check = $runsDexDiff
+            Text = & $parkOldCall 'if ($false -and $Serial) {' '}' }
+        @{ Name = 'the old DexDiff call kept behind if ($Serial -and $false)'; Check = $runsDexDiff
+            Text = & $parkOldCall 'if ($Serial -and $false) {' '}' }
+        @{ Name = 'the old DexDiff call kept behind if (-not ($Serial -or $true))'; Check = $runsDexDiff
+            Text = & $parkOldCall 'if (-not ($Serial -or $true)) {' '}' }
+        @{ Name = 'the old DexDiff call kept behind if ($true -xor $true)'; Check = $runsDexDiff
+            Text = & $parkOldCall 'if ($true -xor $true) {' '}' }
+        @{ Name = 'the old DexDiff call kept behind if (-not ($true -and $true))'; Check = $runsDexDiff
+            Text = & $parkOldCall 'if (-not ($true -and $true)) {' '}' }
+        @{ Name = 'the old DexDiff call kept behind if ($false -or $false)'; Check = $runsDexDiff
+            Text = & $parkOldCall 'if ($false -or $false) {' '}' }
+        @{ Name = 'the old DexDiff call kept on the right of $false -and'; Check = $runsDexDiff
+            Text = & $parkOldCall '$null = $false -and $(' ')' }
+        @{ Name = 'the old DexDiff call kept on the right of $true -or'; Check = $runsDexDiff
+            Text = & $parkOldCall '$null = $true -or $(' ')' }
+        @{ Name = "the old DexDiff call kept in switch ('current') { 'previous' { } }"; Check = $runsDexDiff
+            Text = & $parkOldCall "switch ('current') { 'previous' {" '} }' }
+        @{ Name = 'the old DexDiff call kept in the default of switch (1) { 1 { } }'; Check = $runsDexDiff
+            Text = & $parkOldCall 'switch (1) { 1 { } default {' '} }' }
+        @{ Name = 'the old DexDiff call kept in the default of a switch over @()'; Check = $runsDexDiff
+            Text = & $parkOldCall 'switch (@()) { default {' '} }' }
+        @{ Name = 'the old DexDiff call kept in a foreach over @()'; Check = $runsDexDiff
+            Text = & $parkOldCall 'foreach ($unused in @()) {' '}' }
+        @{ Name = 'the old DexDiff call kept in a foreach over $null'; Check = $runsDexDiff
+            Text = & $parkOldCall 'foreach ($unused in $null) {' '}' }
+        @{ Name = 'the old DexDiff call kept in the catch of an empty try'; Check = $runsDexDiff
+            Text = & $parkOldCall 'try { } catch {' '}' }
+        @{ Name = 'the old DexDiff call kept in the catch of try { return }'; Check = $runsDexDiff
+            Text = & $parkOldCall 'try { return } catch {' '}' }
+        @{ Name = 'Invoke-DexDiff defined again below it, without the contracts'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffFunction { param($Text) "$Text`n`n" + $Text.Replace($contractsArgument, '') } }
+        @{ Name = 'Invoke-DexDiff defined again below it as script:Invoke-DexDiff, without the contracts'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffFunction { param($Text)
+                "$Text`n`n" + $Text.Replace($contractsArgument, '').Replace('function Invoke-DexDiff', 'function script:Invoke-DexDiff') } }
+        @{ Name = 'Invoke-DexDiff set again through ${function:}, without the contracts'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffFunction { param($Text)
+                "$Text`n`n" + $Text.Replace($contractsArgument, '').Replace('function Invoke-DexDiff {', '${function:Invoke-DexDiff} = {') } }
+        @{ Name = 'the DexDiff call after a call to function script:Stop-Now { exit 0 }'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) "function script:Stop-Now { exit 0 }`nStop-Now`n$Text" } }
+        # And where it still runs, so none of those rules reaches code that does.
+        @{ Name = 'the old DexDiff call kept behind if ($true -and $Serial)'; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall 'if ($true -and $Serial) {' '}' }
+        @{ Name = 'the old DexDiff call kept behind if ($false -or $Serial)'; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall 'if ($false -or $Serial) {' '}' }
+        @{ Name = 'the old DexDiff call kept on the right of $Serial -and'; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall '$null = $Serial -and $(' ')' }
+        @{ Name = "the old DexDiff call kept in switch ('current') { 'current' { } }"; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall "switch ('current') { 'current' {" '} }' }
+        @{ Name = 'the old DexDiff call kept in the default of switch (1) { 2 { } }'; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall 'switch (1) { 2 { } default {' '} }' }
+        @{ Name = "the old DexDiff call kept in switch (`$Serial) { 'previous' { } }"; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall "switch (`$Serial) { 'previous' {" '} }' }
+        @{ Name = 'the old DexDiff call kept in a foreach over @(1)'; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall 'foreach ($once in @(1)) {' '}' }
+        @{ Name = 'the old DexDiff call kept in the catch of a try that can throw'; Check = $runsDexDiff; Expect = $true
+            Text = & $parkOldCall 'try { Get-Item -LiteralPath $PatchedApk | Out-Null } catch {' '}' }
+        @{ Name = 'Invoke-DexDiff defined once, as script:Invoke-DexDiff'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffFunction { param($Text)
+                $Text.Replace('function Invoke-DexDiff', 'function script:Invoke-DexDiff') } }
+        # The rules the copies above leave untried: every comparison the parser folds, $null as a
+        # constant, an ending call past the first element of a pipeline, a for with no condition
+        # at all, and the other ways ForEach-Object and Where-Object get written. The copies
+        # expected to pass keep a loop and an if to ending only when they certainly do.
+        foreach ($condition in '1 -ne 1', '0 -ge 1', '2 -lt 1', '1 -le 0', "'a' -ceq 'A'", "'a' -cne 'a'",
+                "'a' -cgt 'b'", "'a' -cge 'b'", "'b' -clt 'a'", "'b' -cle 'a'", '$null') {
+            @{ Name = "the contracts helper dot-sourced behind if ($condition)"; Check = $dotSourcesContracts
+                Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) "if ($condition) { $Text }" } }
+        }
+        @{ Name = 'the DexDiff call after $null | Stop-Now, a function that exits'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) "function Stop-Now { exit 0 }`n`$null | Stop-Now`n$Text" } }
+        @{ Name = 'the DexDiff call after for (;;) { exit 0 }'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) "for (;;) { exit 0 }`n$Text" } }
+        # ForEach-Object and Where-Object run only the blocks they're given to run, and only for
+        # an item: a block handed to -ArgumentList is a value, and @() gives them nothing.
+        @{ Name = 'the old DexDiff call kept in a block handed to ForEach-Object -ArgumentList'; Check = $runsDexDiff
+            Text = & $parkOldCall '$null = @(1) | ForEach-Object -ArgumentList {' '} -Process { }' }
+        @{ Name = 'the old DexDiff call kept in ForEach-Object over @()'; Check = $runsDexDiff
+            Text = & $parkOldCall '$null = @() | ForEach-Object {' '}' }
+        @{ Name = 'the old DexDiff call kept in Where-Object over @()'; Check = $runsDexDiff
+            Text = & $parkOldCall '$null = @() | Where-Object {' '}' }
+        @{ Name = 'the DexDiff function run through ForEach-Object -Process { }'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | ForEach-Object -Process { Invoke-DexDiff }' } }
+        @{ Name = 'the DexDiff function run through ForEach-Object -Begin { }'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | ForEach-Object -Begin { Invoke-DexDiff } -Process { }' } }
+        @{ Name = 'the DexDiff function run through ForEach-Object -End { }'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | ForEach-Object -Process { } -End { Invoke-DexDiff }' } }
+        @{ Name = 'the DexDiff function run through Where-Object -FilterScript { }'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | Where-Object -FilterScript { Invoke-DexDiff }' } }
+        @{ Name = 'the DexDiff function run through ForEach-Object over $null, which is one item'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = $null | ForEach-Object { Invoke-DexDiff }' } }
+        @{ Name = 'the DexDiff function run through ForEach-Object -Process:{ }'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | ForEach-Object -Process:{ Invoke-DexDiff }' } }
+        @{ Name = 'the DexDiff function run through Where-Object'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | Where-Object { Invoke-DexDiff }' } }
+        @{ Name = 'the DexDiff function run through %'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | % { Invoke-DexDiff }' } }
+        @{ Name = 'the DexDiff call after while ($Serial) { exit 0 }'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) "while (`$Serial) { exit 0 }`n$Text" } }
+        @{ Name = "the DexDiff call after if (`$Serial) { 'x' } else { exit 0 }"; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) "if (`$Serial) { 'x' } else { exit 0 }`n$Text" } }
     )
     $wiringFailures = @()
     $copy = Join-Path $wiringCopies 'copy.ps1'
@@ -411,6 +545,26 @@ try {
         "The good build's guard was not reported at its one call site.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match 'structural findings: 0') `
         "The good build did not report its structural count.`n$($good.Output -join "`n")"
+    foreach ($stub in 'GenAiLabel;->detectedInfo', 'RecommendationLabel;->recommendationContext') {
+        Assert-True (($good.Output -join "`n") -match ([regex]::Escape("$stub(Ljava/lang/Object;)Ljava/lang/Object;: calls " +
+            'Lcom/facebook/graphql/model/GraphQLStory;->A0X()Lfixture/Model; before its first return'))) `
+            "The good build's $stub was not reported calling the story's accessor.`n$($good.Output -join "`n")"
+    }
+    foreach ($adapter in @('NewsFeedAdapterConfiguration.addStoriesAdapter: first in Lfixture/Adapters;->addStoriesAdapter(',
+            'stories_tray_create_adapter_stop: first in Lfixture/Adapters;->addUnifiedTray(')) {
+        Assert-True (($good.Output -join "`n") -match [regex]::Escape("hideStoriesTray(I)Z holding $adapter")) `
+            "The good build's tray hook was not reported first in its adapter: $adapter`n$($good.Output -join "`n")"
+    }
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        'hidePreEofReels()Z holding PreEofIfuSectionAdapter: first in Lfixture/PreEof;->injectPreEofIfuEdge$fixture(')) `
+        "The good build's reels hook was not reported first in the pre-EOF injector.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        'ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named ShowcaseFeedUnit: calls ' +
+        'Lfixture/Showcase;->A01()Lfixture/StoryType; before its first return')) `
+        "The good build's showcase stub was not reported calling the showcase unit's accessor.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        'ReturnRefresh;->skip()Z holding FeedRefreshTriggerController: first in Lfixture/ReturnController;->resumeAfterBackground(')) `
+        "The good build's background-return guard was not first in the resume callback.`n$($good.Output -join "`n")"
 
     $bad = [ordered]@{
         'bad-branch' = 'branch'
@@ -422,9 +576,12 @@ try {
         'bad-goto-to-array-payload' = 'branch'
         'bad-switch-to-array-payload' = 'branch'
         'bad-sparse-case-to-payload' = 'branch'
+        'bad-packed-switch-sparse-table' = 'branch'
+        'bad-sparse-switch-packed-table' = 'branch'
         'bad-fallthrough-into-payload' = 'branch'
         'bad-payload-at-entry' = 'branch'
         'bad-branch-to-result' = 'branch'
+        'bad-walk-off-end' = 'branch'
         'bad-goto-to-handler' = 'branch'
         'bad-fallthrough-handler' = 'try'
         'bad-move-exception-entry' = 'try'
@@ -453,6 +610,17 @@ try {
         'bad-conflict-new-array' = 'width'
         'bad-conflict-filled-new-array' = 'width'
         'bad-conflict-fill-array-data' = 'width'
+        'bad-conflict-if-nez' = 'width'
+        'bad-conflict-if-eq' = 'width'
+        'bad-conflict-if-eq-second' = 'width'
+        'bad-conflict-if-gez' = 'width'
+        'bad-conflict-if-lt-second' = 'width'
+        'bad-conflict-sparse-switch' = 'width'
+        'bad-conflict-monitor-exit' = 'width'
+        'bad-conflict-filled-new-array-range' = 'width'
+        'bad-broken-high-if-eqz' = 'width'
+        'bad-if-eq-int-object' = 'width'
+        'bad-if-ne-object-int' = 'width'
         'bad-wide-if-eqz' = 'width'
         'bad-broken-low-move' = 'width'
         'bad-broken-high-move' = 'width'
@@ -469,6 +637,18 @@ try {
         'bad-double-guard' = 'contract'
         'bad-guard-elsewhere' = 'contract'
         'bad-no-guard' = 'contract'
+        'bad-stub-not-filled' = 'contract'
+        'bad-stub-other-class' = 'contract'
+        'bad-stub-call-after-return' = 'contract'
+        'bad-tray-hook-missing' = 'contract'
+        'bad-tray-hook-late' = 'contract'
+        'bad-preeof-hook-missing' = 'contract'
+        'bad-preeof-hook-late' = 'contract'
+        'bad-showcase-stub-not-filled' = 'contract'
+        'bad-showcase-stub-other-class' = 'contract'
+        'bad-showcase-two-classes' = 'contract'
+        'bad-return-refresh-hook-missing' = 'contract'
+        'bad-return-refresh-hook-late' = 'contract'
     }
     $failures = @()
     foreach ($case in $bad.GetEnumerator()) {
@@ -503,6 +683,23 @@ try {
         -Allowlist $emptyAllowlist -Name 'bad-contract' -Contracts $badContract
     Assert-True ($unreadable.ExitCode -ne 0 -and ($unreadable.Output -join "`n") -match 'Invalid contract line 1') `
         "A malformed contract line was accepted.`n$($unreadable.Output -join "`n")"
+    # A first-call rule needs its method, "on" and a class descriptor.
+    foreach ($line in @(
+            'first-call Lapp/morphe/extension/facebook/feed/GenAiLabel;->detectedInfo(Ljava/lang/Object;)Ljava/lang/Object; on GraphQLStory',
+            'first-call Lapp/morphe/extension/facebook/feed/GenAiLabel;->detectedInfo(Ljava/lang/Object;)Ljava/lang/Object; in Lcom/facebook/graphql/model/GraphQLStory;',
+            'first-call detectedInfo on Lcom/facebook/graphql/model/GraphQLStory;',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in addStoriesAdapter',
+            'start-call hideStoriesTray holding stories_tray_create_adapter_stop',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z holding',
+            'first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named Lfixture/Showcase;',
+            'first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named',
+            'first-call storyType on-type-named ShowcaseFeedUnit')) {
+        [System.IO.File]::WriteAllText($badContract, "# a comment line first`n$line`n")
+        $unreadableFirstCall = Invoke-DexDiff -Clean $cleanApk -Patched (Join-Path $caseRoot 'good.apk') `
+            -Allowlist $emptyAllowlist -Name 'bad-first-call-contract' -Contracts $badContract
+        Assert-True ($unreadableFirstCall.ExitCode -ne 0 -and ($unreadableFirstCall.Output -join "`n") -match 'Invalid contract line 2') `
+            "A malformed first-call line was accepted: $line`n$($unreadableFirstCall.Output -join "`n")"
+    }
 
     $removedMethodApk = New-DexApk -Name 'removed-method' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'removed-method') })
     $methodResult = Invoke-DexDiff -Clean $cleanApk -Patched $removedMethodApk `

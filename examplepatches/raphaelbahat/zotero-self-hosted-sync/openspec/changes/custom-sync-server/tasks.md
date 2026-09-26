@@ -1,0 +1,42 @@
+## 1. Reconnaissance and artifact evidence
+
+- [x] 1.1 Run `@apk-recon` on `analysis/zotero/apk/Zotero-for-Android-1.0.0-247-universal.apk` and record package name, version name and code, ABI coverage, protections and APK type in `analysis/zotero/notes/recon.md`.
+- [x] 1.2 Read the APK manifest with `aapt dump badging` and confirm the package is `org.zotero.android` with versionCode 247 (the pinned APK reports `versionName 1.0.0-247`, `targetSdkVersion 35` and `compileSdkVersion 35` — the source tree declares 36), capturing the app-icon colour and target metadata that `Compatibility` needs.
+- [x] 1.3 Disassemble every DEX of the APK into `analysis/zotero/smali/` and identify which DEX files and classes hold the two endpoint constants. The target is multidex (8 DEX files) and a bare `baksmali d <apk>` silently disassembles only `classes.dex`, so loop `baksmali list dex` per entry or decode with `apktool d`.
+- [x] 1.4 Enumerate every `const-string` occurrence of `https://api.zotero.org` and `wss://stream.zotero.org` in the smali, and check whether a `BuildConfig.BASE_API_URL` field initializer is present, recording counts and paths in `analysis/zotero/notes/patch-sites.md`.
+
+## 2. Patch implementation
+
+- [x] 2.1 Remove the template's `example` patch and its `extensions/` example module, keeping `shared/Constants.kt` as the home for compatibility declarations.
+- [x] 2.2 Declare `Compatibility` for Zotero in `shared/Constants.kt`: name `Zotero`, packageName `org.zotero.android`, `ApkFileType.APK`, and the target version 1.0.0 with the version code confirmed in 1.2.
+- [x] 2.3 Add the patch in a new `zotero` package: a `bytecodePatch` with a name and description, a `category("…")` call inside the patch block (it is not a constructor argument), and a `stringOption` for the server address, declared compatible with the Zotero target.
+- [x] 2.4 Implement the API-origin rules for the required `server` option: assume `https://` when the scheme is missing, remove one trailing slash, accept `host` or `https://host[:port]`, and refuse an empty value, a non-HTTPS scheme and any path — each stopping patching by throwing `PatchException` with the reason (the option's `required`/`validator` names the option but not the reason).
+- [x] 2.5 Perform the rewrite inside the patch's `execute` block using the patcher-native path — match with `string(...)` and replace with `replaceInstruction(index, BuilderInstruction21c(Opcode.CONST_STRING, …))` — because the ready-made `replaceStringPatch` lives in `app.morphe:morphe-patches-library` and cannot read an option: replace every `const-string` for `https://api.zotero.org` (bare and trailing-slash forms) with the validated origin, every `wss://stream.zotero.org` with the streaming override when supplied (otherwise `wss://<origin>/stream`), and also replace the `BuildConfig.BASE_API_URL` field value (`MutableField.setInitialValue`) when 1.4 found one. **Dependency decision: none added** — the rewrite is patcher-native and the resource patch uses plain JDK DOM, so `app.morphe:morphe-patches-library` is not required.
+- [x] 2.6 Confirm by inspection that the patch never edits the manifest's `package` attribute (the only renaming path, via `ArsclibResourceCoder`/`PackageRenamingProcessor`), calls no repackaging facility (ADR-0002), and touches no host other than the two endpoint constants.
+- [x] 2.7 Add the optional `streaming` string option: a full WebSocket URL (cleartext or TLS, path allowed); when it is empty, derive `wss://<origin>/stream`. Keep the derivation in one place so the policy is cheap to change.
+- [x] 2.8 Add a `resourcePatch` that, when the supplied streaming URL is cleartext, adds its host to the cleartext `domain-config` in `res/xml/network_security_config.xml`, and confirm the built bundle carries both patches (bytecode + resource).
+- [x] 2.9 Neutralise the app's login-URL append: rewrite the `"&app=1"` literal to an empty string so the server-provided login URL is opened verbatim (absence of the literal is tolerated and recorded, since a future target may stop appending).
+- [x] 2.10 Correct the precondition header (R5): rewrite the misspelled `If-Modified-Since-Version` literal everywhere it appears (the deletion write and the two read paths) to `If-Unmodified-Since-Version`, and fail when the literal is absent. (Verified in the patch: `CustomSyncServerPatch.kt:70–76` holds the rule, rewrites through `rewriteConstString(DELETE_PRECONDITION_HEADER_MISSPELLED, DELETE_PRECONDITION_HEADER)`, and throws a `PatchException` when it finds none. The two literals are the constants in `SyncServerOption.kt`.)
+
+## 3. Bundle and build checks
+
+- [x] 3.1 Build the bundle with `./gradlew buildAndroid` in the toolchain stack and confirm `patches/build/libs/patches-<version>.mpp` is produced.
+- [x] 3.2 List the built bundle with the Morphe CLI (`list-patches --patches <mpp> -pvo` — `--patches` has no short form, `-p` is `--with-packages`, and `-pvo` is packages + versions + options; the CLI's own docs show a contradicting multi-bundle example) and confirm the patch, its description, its default state (`Enabled:`) and the option's key, title, default and type are reported.
+- [x] 3.3 Confirm `patches-list.json` is consistent with the declared compatibility, and that no release is cut from this change.
+
+## 4. Device verification against a self-hosted server
+
+- [x] 4.1 Patch the original APK with the CLI — `patch --patches <mpp> --keystore Morphe.keystore -e "<patch name>" -Oserver=https://<test-host> -Ostreaming=ws://<test-host>/stream -o <out.apk> <input.apk>`. The enable flag is required for the options to apply (`-O` belongs to the enable selection), the input APK is a trailing positional argument, and `-f` means "skip the version compatibility check". Pin the selection so no package-renaming patch can apply, and confirm `aapt dump badging` still reports `package: name='org.zotero.android' versionCode='247'`.
+- [x] 4.2 Install the patched APK on a test device and link an account: the approval page opened must be the server's own page, it must load (the server-provided URL is opened verbatim — no `404` from an appended `&app=1`), and linking must complete with a key issued by that server. (Confirmed on the device: the sign-in flow completed against altero.)
+- [x] 4.3 Synchronise a test library in both directions: a change made in the app must reach the server, and a change made on the server must reach the app. (Confirmed: the desktop client and the patched app synced through altero.)
+- [x] 4.4 Upload and download one attachment and confirm the bytes reach the server and return to the app. (Confirmed: a file was uploaded from the patched app and synced.)
+- [x] 4.5 Confirm the live-update connection is made to the supplied streaming URL (or the derived `wss://<host>/stream` when it is empty) and that a server-side change arrives without a manual sync. (Verified from the device's own OkHttp log: `--> GET http://altero.myhut.live/stream` → `<-- 101 Switching Protocols`, i.e. exactly the supplied streaming URL.)
+- [x] 4.6 Confirm each refusal behaves as specified for the API origin (an empty value, an `http://` origin, an origin with a path) and that a cleartext streaming URL is accepted.
+- [x] 4.7 Confirm no request from the patched app reaches `api.zotero.org` or `stream.zotero.org`, using the server's request log together with a network check on the device. (Verified: the device's OkHttp log for the whole session contains no request to either host — only `altero.myhut.live` — and the patched artifact contains no reference to them, only unreferenced string-pool entries in the original DEX.)
+- [x] 4.8 Confirm the patched APK's `network_security_config.xml` lists the cleartext streaming host, and that a cleartext (`ws://`) streaming connection succeeds on the device. (Verified: the fifth `<domain>` in the patched config is `altero.myhut.live`, and the device's `ws://` streaming connection answered `101 Switching Protocols`.)
+- [x] 4.9 Delete an object from the patched app against the strict server and confirm the deletion succeeds (no `428 Precondition Required`), while a stale precondition still produces the normal `412` re-sync flow. (Confirmed: deletions succeed against altero after the header fix.)
+
+## 5. Specification hygiene
+
+- [x] 5.1 Run `openspec validate custom-sync-server --type change --strict` and fix anything it reports.
+- [x] 5.2 Update the repository README's patch list only through the release workflow; do not hand-edit generated files.

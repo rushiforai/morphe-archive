@@ -97,7 +97,8 @@ R8 常把方法編到只剩剛好夠用的暫存器，同一個方法在 3.8.4 �
 
 - **重用原本指令的暫存器**，例如把呼叫的參數換成另一個已經在暫存器裡的值。
 - **把邏輯放進自己新增的方法**（`ImmutableMethod(...)` 自訂 `registerCount`），原地只留一行
-  呼叫。Reconnect on return 和 Preload article images 都是這樣做的。
+  呼叫。Reconnect on return 和 Preload article images 都是這樣做的。新增的方法用 `newMethod(...)`
+  建：直接 `"...".toInstructions()` 的話，不管有幾個暫存器 `p0` 都會被編成 `v1`。
 - 真的要借暫存器，先呼叫 `requireFreeLocals(method, n)`，讓它在打包時就失敗。
 
 ### extension 要呼叫 app 的東西

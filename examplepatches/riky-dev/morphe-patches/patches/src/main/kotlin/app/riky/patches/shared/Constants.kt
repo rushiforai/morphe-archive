@@ -17,7 +17,7 @@ object Constants {
         // Icon color in Morphe Manager. Usually the same color as the icon background.
         appIconColor = 0x30639B,
         targets = listOf(
-            AppTarget(version = "4.9.15")
+            AppTarget(version = "4.9.16")
         )
     )
 
@@ -43,14 +43,29 @@ object Constants {
         )
     )
 
-    // CapCut (international): https://apkpure.net/capcut-video-editor/com.lemon.lvoverseas
+    // CapCut (international) — clean-slate target 9.0.0 (APKMirror).
+    // Older than 19.x: no CrackingInterceptor/GeoBlock class surface; VIP via
+    // R8-renamed VipSubscribeManager (com.vega.subscribe.r).f().
     val COMPATIBILITY_CAPCUT = Compatibility(
         name = "CapCut",
         packageName = "com.lemon.lvoverseas",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x00C4CC,
         targets = listOf(
-            AppTarget(version = "19.2.0")
+            AppTarget(version = "9.0.0"),
+        )
+    )
+
+    // VN Video Editor: https://apkpure.net/vn-video-editor-maker-app/com.frontrow.vlog
+    // Ported from Paresh Maheshwari's archived paresh-patches (GPL-3.0).
+    val COMPATIBILITY_VN = Compatibility(
+        name = "VN",
+        packageName = "com.frontrow.vlog",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x42484B,
+        targets = listOf(
+            AppTarget(version = "2.12.0"),
+            AppTarget(version = "2.20.0"),
         )
     )
 }

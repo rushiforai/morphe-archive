@@ -19,3 +19,24 @@ pluginManagement {
 plugins {
     id("app.morphe.patches") version "1.3.4"
 }
+
+dependencyResolutionManagement {
+    repositories { 
+        maven {
+            name = "EpxecUniversalLoader"
+
+            url = uri(
+                "https://maven.pkg.github.com/epxec/morphe-universal-loader"
+            )
+
+            credentials {
+                username = providers.gradleProperty("gpr.user").orNull
+                    ?: System.getenv("GITHUB_ACTOR")
+
+                password = providers.gradleProperty("gpr.key").orNull
+                    ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+
+    }
+}

@@ -1,108 +1,25 @@
 id: capcut
 package: com.lemon.lvoverseas
 display_name: CapCut
-apk_file_type: APK          # switch to XAPK/APKM if apkpure serves a split bundle
+apk_file_type: APK
 apkpure_slug: capcut-video-editor
-analysis_dir: analysis/capcut
+# Clean-slate target: CapCut 9.0.0 (APKMirror vc9000800). Isolated from old 19.6 stock.
+analysis_dir: analysis/capcut/legacy/9.0.0
+
+decompile:
+  jadx_max_heap: 4g
+  jadx_threads: 1
+  jadx_no_res: true
 
 verify:
-  apk: analysis/capcut/extract/com.lemon.lvoverseas.apk
+  apk: analysis/capcut/legacy/9.0.0/extract/com.lemon.lvoverseas.apk
   smali_assertions:
-    - file: com/vega/subscribe/SubscribeImpl.smali
-      pattern: 'const/4 v0, 0x1'
-      label: SubscribeImpl isVip spoof
-    - file: com/lemon/editor/proxy/PayVipImpl.smali
-      pattern: 'const/4 v0, 0x1'
-      label: PayVipImpl isVip spoof
-    - file: com/lemon/clipmonetize/biz/userinfoapi/UserInfoServiceServiceImpl.smali
-      pattern: 'SSVIP:Lcom/lemon/lv/clipmonetize/data/VipState;'
-      label: UserInfoService SSVIP spoof
-    - file: com/xt/retouch/account/api/subscribe/SubscribeFacade.smali
-      pattern: 'const/4 v0, 0x1'
-      label: SubscribeFacade subscribed spoof
-    - file: com/lemon/lv/config/WatermarkTrailerConfig.smali
-      pattern: 'const/4 p2, 0x0'
-      label: WatermarkTrailerConfig trailer disabled
-    - file: com/lemon/vega/ug/ui/DiversionPCActivity.smali
-      pattern: 'DiversionPCActivity;->finish\(\)V'
-      label: DiversionPCActivity suppressed
-    - file: com/lemon/vega/ug/ui/NoLoginDiversionPCActivity.smali
-      pattern: 'NoLoginDiversionPCActivity;->finish\(\)V'
-      label: NoLoginDiversionPCActivity suppressed
-    - file: com/lemon/lv/clipmonetize/data/UserSubscribeInfo.smali
-      pattern: 'const/4 v0, 0x1'
-      label: UserSubscribeInfo getFlag spoof
-    - file: com/lemon/lv/clipmonetize/data/UserSubscribeInfo.smali
-      pattern: 'const-string v0, "ssvip"'
-      label: UserSubscribeInfo getLevel spoof
-    - file: com/vega/main/BaseMainActivity$initMainTab$6.smali
-      pattern: 'const v2, 0x7f093824'
-      label: BaseMainActivity initMainTab 6 discover tab hidden
-    - file: com/vega/main/BaseMainActivity$initMainTab$6.smali
-      pattern: 'const v2, 0x7f09384c'
-      label: BaseMainActivity initMainTab 6 template tab hidden
-    - file: com/vega/main/BaseMainActivity$initMainTab$7.smali
-      pattern: 'const v1, 0x7f093842'
-      label: BaseMainActivity initMainTab 7 inbox tab hidden
-    - file: com/vega/main/BaseMainActivity$initMainTab$10.smali
-      pattern: 'ViewExtKt;->d\(Landroid/view/View;Z\)V'
-      label: BaseMainActivity initMainTab 10 invoke view gone
-    - file: com/vega/edit/base/aisound/config/AISoundEffectAb.smali
-      pattern: '\.method public final b\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: AISoundEffectAb AI sounds tab disabled
-    - file: com/vega/main/home/banner/HomeBotBannerFragment.smali
-      pattern: '\.method public final onCreateView\(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;\)Landroid/view/View;[\s\S]+?const/4 v0, 0x0\s+?return-object v0'
-      label: HomeBotBannerFragment suppressed
-    - file: com/vega/main/home/topbar/OverseaHomeTopBannerFragment.smali
-      pattern: '\.method public final onCreateView\(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;\)Landroid/view/View;[\s\S]+?const/4 v0, 0x0\s+?return-object v0'
-      label: OverseaHomeTopBannerFragment suppressed
-    - file: com/bytedance/applog/AppLog.smali
-      pattern: '\.method public static init\(Landroid/content/Context;Lcom/bytedance/applog/InitConfig;\)V[\s\S]+?return-void'
-      label: AppLog init no-op
-    - file: com/lemon/lv/config/ExportHighDefinitionConfig.smali
-      pattern: '\.method public final b\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: ExportHighDefinitionConfig getEnable returns false
-    - file: com/vega/edit/speed/data/SlowMotionSource.smali
-      pattern: '\.method public static a\(\)Ljava/util/List;[\s\S]+?return-object v4'
-      label: SlowMotionSource only returns Frame Blending
-    - file: com/bytedance/helios/sdk/HeliosEnvImpl.smali
-      pattern: '\.method public final e\(Lcom/bytedance/pumbaa/monitor/adapter/MonitorServiceImpl\$init\$1;LX/[\s\S]+?return-void'
-      label: HeliosEnvImpl init no-op (telemetry suppressed)
-    - file: com/vega/subscribe/SubscribeImpl.smali
-      pattern: '\.method public final i\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: SubscribeImpl canFreeTrial returns false
-    - file: com/vega/subscription/widget/ComposeSubscribeActivity.smali
-      pattern: 'ComposeSubscribeActivity;->finish\(\)V'
-      label: ComposeSubscribeActivity suppressed
-    - file: com/vega/edit/utils/SmartCompleteFrameUtil.smali
-      pattern: '\.method public static e\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: Export smart frame interpolation entry hidden
-    - file: com/vega/export/banner/BottomBannerHelper.smali
-      pattern: '\.method public final a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: Export bottom banner carousel disabled
-    - file: com/lemon/lv/config/ExportCampaignEnableConfig.smali
-      pattern: '\.method public final a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: Export campaign promos disabled
-    - file: com/lemon/lv/config/PcGuideBannerOptEntranceAb.smali
-      pattern: '\.method public final a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: Export PcGuide banner opt entrance disabled
-    - file: com/vega/export/banner/BottomBannerHelper.smali
-      pattern: '\.method public final d\(Landroid/view/ViewGroup;Landroid/view/View;Z\)V[\s\S]+?return-void'
-      label: Export bottom banner show no-op
-    - file: com/vega/export/edit/resultpage/respos/ResourcePositionArea$loadResource$1.smali
-      pattern: '\.method public final invokeSuspend\(Ljava/lang/Object;\)Ljava/lang/Object;[\s\S]+?return-object v0'
-      label: Export result page carousel load skipped
-    - file: com/vega/export/edit/resultpage/respos/ResourcePositionArea.smali
-      pattern: 'ViewExtKt;->d\(Landroid/view/View;Z\)V'
-      label: Export banner layout hidden on init
-    - file: com/vega/main/home/bg/HomeBackgroundHelper.smali
-      pattern: '\.method public static a\(\)Z[\s\S]+?const/4 v0, 0x0\s+?return v0'
-      label: Home hero promo backgrounds disabled
-    - file: com/vega/subscriptionapi/swidget/BusinessMarkView.smali
-      pattern: '\.method public j\(Z\)V[\s\S]+?ViewExtKt;->b\(Landroid/view/View;\)V[\s\S]+?return-void'
-      label: BusinessMarkView Pro badge hidden
-
-
-
-
-
+    - file: com/vega/subscribe/r.smali
+      pattern: '\.method public final f\(\)Z[\s\S]+?const/4 v0, 0x1\s+?return v0'
+      label: VipSubscribeManager f() VIP spoof
+    - file: com/vega/subscribe/h.smali
+      pattern: '\.method public a\(\)Z[\s\S]+?const/4 v0, 0x1\s+?return v0'
+      label: SubscribeImpl a() isVip spoof
+    - file: com/lm/components/subscribe/config/UserVipInfo.smali
+      pattern: '\.method public final isVipUser\(\)Z[\s\S]+?const/4 v0, 0x1\s+?return v0'
+      label: UserVipInfo isVipUser spoof

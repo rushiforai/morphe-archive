@@ -66,7 +66,7 @@ fi
 verify_hash "$MORPHE_JAR" "$EXPECTED_MORPHE_SHA256"
 
 run_java java -jar "$MORPHE_JAR" patch \
-    --bytecode-mode=FULL \
+    --bytecode-mode=STRIP_FAST \
     --exclusive \
     --patches="$MPP" \
     --enable="Remove Google Play requirement" \

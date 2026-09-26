@@ -241,10 +241,15 @@ final class SaveControl {
         }
 
         /**
-         * Stops the save. On Android, closing its connection ends a read that's waiting at once
-         * (checked with app_process on the API 36 emulator, 2026-09-25: disconnect() returned in
-         * 0 ms and the read threw "Socket closed" 6 ms later). The notification goes straight
-         * away either way, so the person sees the cancel take.
+         * Stops the save. On Android, closing its connection ends a read that's waiting at once.
+         * Checked with app_process on the API 36 emulator, 2026-09-25, against a server that sent
+         * the headers and then nothing: over plain HTTP disconnect() returned in 0 ms and the read
+         * threw "Socket closed" 6 ms later. Over HTTPS through Conscrypt (TLS 1.3, the path every
+         * save takes) disconnect() ended the read within 1 ms in eight of nine runs and 12.5 ms in
+         * the ninth. Closing the response stream from another thread instead threw "Unbalanced
+         * enter/exit" and left the read waiting out its whole 20 s timeout, which is why the
+         * closer is disconnect() (see Downloader). The notification goes straight away either
+         * way, so the person sees the cancel take.
          */
         void cancel() {
             cancelled = true;
@@ -282,9 +287,9 @@ final class SaveControl {
                     .setShowWhen(false)
                     .setCategory(Notification.CATEGORY_PROGRESS)
                     .setProgress(100, Math.max(0, percent), percent < 0)
-                    // Android's own Cancel, which the phone already has in every language.
+                    // The catalog's Cancel, in the language of the title above it.
                     .addAction(new Notification.Action.Builder((Icon) null,
-                        application.getString(android.R.string.cancel), cancel).build());
+                        L10n.t(application, "Cancel"), cancel).build());
                 String text = progressText(done, total);
                 if (text != null) builder.setContentText(text);
                 manager.notify(TAG, id, builder.build());

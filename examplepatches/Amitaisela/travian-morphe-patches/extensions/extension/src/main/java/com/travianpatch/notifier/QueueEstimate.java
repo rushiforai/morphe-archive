@@ -1,14 +1,15 @@
 package com.travianpatch.notifier;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Simulates running a village's saved build order unattended, to show a total material cost and an
- * approximate finish time. This is a projection, not a promise: it assumes nothing else changes (no
- * manual taps, no attacks, no server lag), and the per-item delay it adds is the average of the
- * configured range, not a real random draw (true randomness can't be pre-computed for an event that
- * hasn't happened yet). Pure logic (no Android APIs) so it can be checked against known values
- * off-device.
+ * Adds up what a village's saved build order will cost, using only the exact per-level costs the game's
+ * own rules table lists. An item the table has no cost for (unknown building type, or a level the table
+ * doesn't list) is counted as unknown, never as free. Build time is not estimated here: the game gives no
+ * per-level time, so no time is shown until one can be worked out from the game's own numbers. Pure logic
+ * (no Android APIs) so it can be checked off-device.
  */
 final class QueueEstimate {
 
@@ -17,107 +18,74 @@ final class QueueEstimate {
 
     static final class Result {
         final BuildQueueAutomation.Resources totalCost;
-        final long estimatedMs;
-        /** False if any queued entry's building type has no BuildingCostTable data (excluded from totals). */
-        final boolean allKnown;
+        /** How many order items have no cost in the game's table (left out of totalCost). */
+        final int unknownCount;
+        /** How many order items ask for a level the village already has or has queued (they cost nothing). */
+        final int alreadyReachedCount;
 
-        Result(BuildQueueAutomation.Resources totalCost, long estimatedMs, boolean allKnown) {
+        Result(BuildQueueAutomation.Resources totalCost, int unknownCount, int alreadyReachedCount) {
             this.totalCost = totalCost;
-            this.estimatedMs = estimatedMs;
-            this.allKnown = allKnown;
+            this.unknownCount = unknownCount;
+            this.alreadyReachedCount = alreadyReachedCount;
         }
     }
 
-    static Result estimate(List<BuildOrderStore.Entry> order, BuildQueueAutomation.Resources currentStock,
-            BuildQueueAutomation.Resources hourlyProduction, AutomationSettings.Config settings,
-            long nowMs, long todayLocalMidnightMs) {
-        long totalLumber = 0, totalClay = 0, totalIron = 0, totalCrop = 0;
-        boolean allKnown = true;
-
-        long lumberStock = currentStock.lumber, clayStock = currentStock.clay,
-                ironStock = currentStock.iron, cropStock = currentStock.crop;
-        long time = nowMs;
-        long avgDelay = (settings.minDelayMs + settings.maxDelayMs) / 2;
-
+    /**
+     * Every level between what the village already has (built or queued) and each item's target is paid
+     * for, in order, so two items for the same building add up the way the game would charge them.
+     * rules or village may be null (not read yet): then every item is unknown.
+     */
+    static Result totalCost(BuildingRules rules, PlayerBuildings.Village village, List<BuildOrderStore.Entry> order) {
+        long lumber = 0, clay = 0, iron = 0, crop = 0;
+        int unknown = 0;
+        int reachedCount = 0;
+        Map<Integer, Integer> reached = new HashMap<Integer, Integer>();
         for (BuildOrderStore.Entry entry : order) {
-            if (!BuildingCostTable.has(entry.buildingTypeId)) {
-                allKnown = false;
+            BuildingRules.Rule rule = rules == null ? null : rules.find(entry.buildingTypeId);
+            if (rule == null || village == null) {
+                unknown++;
                 continue;
             }
-            BuildQueueAutomation.Resources cost = BuildingCostTable.cost(entry.buildingTypeId, entry.targetLevel);
-            totalLumber += cost.lumber;
-            totalClay += cost.clay;
-            totalIron += cost.iron;
-            totalCrop += cost.crop;
-
-            long needLumber = withBuffer(cost.lumber, settings.bufferPercent);
-            long needClay = withBuffer(cost.clay, settings.bufferPercent);
-            long needIron = withBuffer(cost.iron, settings.bufferPercent);
-            long needCrop = withBuffer(cost.crop, settings.bufferPercent);
-
-            long waitMs = Math.max(
-                    Math.max(waitForMs(lumberStock, needLumber, hourlyProduction.lumber),
-                            waitForMs(clayStock, needClay, hourlyProduction.clay)),
-                    Math.max(waitForMs(ironStock, needIron, hourlyProduction.iron),
-                            waitForMs(cropStock, needCrop, hourlyProduction.crop)));
-            time += waitMs;
-            lumberStock += (long) (hourlyProduction.lumber * (waitMs / 3_600_000.0));
-            clayStock += (long) (hourlyProduction.clay * (waitMs / 3_600_000.0));
-            ironStock += (long) (hourlyProduction.iron * (waitMs / 3_600_000.0));
-            cropStock += (long) (hourlyProduction.crop * (waitMs / 3_600_000.0));
-
-            time += avgDelay;
-            time = skipQuietHours(settings.quietHours, time, todayLocalMidnightMs);
-
-            time += Math.round(BuildingCostTable.buildTimeSeconds(
-                    entry.buildingTypeId, entry.targetLevel, settings.serverSpeed) * 1000);
-
-            lumberStock -= cost.lumber;
-            clayStock -= cost.clay;
-            ironStock -= cost.iron;
-            cropStock -= cost.crop;
+            Integer known = reached.get(entry.buildingTypeId);
+            int from = known != null ? known : reachedLevel(village, entry.buildingTypeId);
+            if (entry.targetLevel <= from) {
+                reachedCount++;
+                continue;
+            }
+            long l = 0, c = 0, i = 0, cr = 0;
+            boolean complete = true;
+            for (int level = from + 1; level <= entry.targetLevel; level++) {
+                BuildingRules.Level data = rule.levelData(level);
+                if (data == null) {
+                    complete = false;
+                    break;
+                }
+                l += data.lumber;
+                c += data.clay;
+                i += data.iron;
+                cr += data.crop;
+            }
+            reached.put(entry.buildingTypeId, entry.targetLevel);
+            if (!complete) {
+                unknown++;
+                continue;
+            }
+            lumber += l;
+            clay += c;
+            iron += i;
+            crop += cr;
         }
-
-        return new Result(new BuildQueueAutomation.Resources(totalLumber, totalClay, totalIron, totalCrop),
-                time - nowMs, allKnown);
+        return new Result(new BuildQueueAutomation.Resources(lumber, clay, iron, crop), unknown, reachedCount);
     }
 
-    private static long withBuffer(long cost, int bufferPercent) {
-        return cost + (cost * bufferPercent) / 100;
-    }
-
-    /** How long until stock reaches need, given hourly production; 0 if already there, 0 if it will never arrive. */
-    private static long waitForMs(long stock, long need, long perHour) {
-        if (stock >= need) {
-            return 0;
-        }
-        if (perHour <= 0) {
-            return 0; // can't project an infinite wait; treat as "ready now" rather than never
-        }
-        double hours = (need - stock) / (double) perHour;
-        return Math.round(hours * 3_600_000.0);
-    }
-
-    /** Advances time past any quiet window it currently falls inside; loops in case a boundary lands on another. */
-    private static long skipQuietHours(QuietHours.Config config, long time, long todayLocalMidnightMs) {
-        for (int i = 0; i < 10; i++) {
-            long midnightForTime = todayLocalMidnightMs
-                    + floorDiv(time - todayLocalMidnightMs, 86_400_000L) * 86_400_000L;
-            QuietHours.Window today = QuietHours.windowStartingAt(config, midnightForTime);
-            QuietHours.Window yesterday = QuietHours.windowStartingAt(config, midnightForTime - 86_400_000L);
-            if (time >= today.startMs && time < today.endMs) {
-                time = today.endMs;
-            } else if (time >= yesterday.startMs && time < yesterday.endMs) {
-                time = yesterday.endMs;
-            } else {
-                break;
+    /** The highest level of this building type the village has built or has queued in the game. */
+    static int reachedLevel(PlayerBuildings.Village village, int typeId) {
+        int level = village.levelOf(typeId);
+        for (PlayerBuildings.Pending p : village.pending) {
+            if (p.typeId == typeId && p.aspiredLevel > level) {
+                level = p.aspiredLevel;
             }
         }
-        return time;
-    }
-
-    private static long floorDiv(long x, long y) {
-        long q = x / y;
-        return (x % y != 0 && (x < 0) != (y < 0)) ? q - 1 : q;
+        return level;
     }
 }

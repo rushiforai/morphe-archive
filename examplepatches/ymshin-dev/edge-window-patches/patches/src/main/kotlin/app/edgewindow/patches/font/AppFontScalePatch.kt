@@ -3,13 +3,19 @@ package app.edgewindow.patches.font
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.floatSliderOption
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction31i
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 
 private const val ANDROID_ACTIVITY = "Landroid/app/Activity;"
 private const val ANDROID_CONTEXT = "Landroid/content/Context;"
@@ -45,7 +51,6 @@ val appFontScalePatch = bytecodePatch(
         }
 
         val multiplierBits = java.lang.Float.floatToIntBits(multiplier)
-        val multiplierLiteral = "0x%08x".format(multiplierBits)
 
         val allClasses = mutableListOf<ClassDef>()
         classDefForEach { allClasses += it }
@@ -70,7 +75,8 @@ val appFontScalePatch = bytecodePatch(
             val parentType = classDef.superclass
                 ?: throw PatchException("Activity ${classDef.type} has no superclass")
 
-            val delegateCall = if (original != null && original.implementation != null) {
+            val callOriginalImplementation = original != null && original.implementation != null
+            if (callOriginalImplementation) {
                 val renamedMethod = ImmutableMethod(
                     classDef.type,
                     WRAPPED_METHOD_NAME,
@@ -91,7 +97,6 @@ val appFontScalePatch = bytecodePatch(
                         method.returnType == "V"
                 }
                 activity.methods.add(renamedMethod)
-                "invoke-direct/range { p0 .. p1 }, ${classDef.type}->$WRAPPED_METHOD_NAME($ANDROID_CONTEXT)V"
             } else {
                 // Abstract declarations and Activities without an override still need a
                 // concrete entry point so the framework's base context is wrapped.
@@ -101,7 +106,45 @@ val appFontScalePatch = bytecodePatch(
                         method.parameterTypes[0].toString() == ANDROID_CONTEXT &&
                         method.returnType == "V"
                 }
-                "invoke-super/range { p0 .. p1 }, $parentType->attachBaseContext($ANDROID_CONTEXT)V"
+            }
+
+            val wrapperImplementation = MutableMethodImplementation(3).apply {
+                // Register allocation for an instance method with one Context parameter:
+                // v0 is local, while p0/p1 resolve to v1/v2.
+                addInstruction(BuilderInstruction31i(Opcode.CONST, 0, multiplierBits))
+                addInstruction(
+                    BuilderInstruction35c(
+                        Opcode.INVOKE_STATIC,
+                        3,
+                        1,
+                        2,
+                        0,
+                        0,
+                        0,
+                        ImmutableMethodReference(
+                            FONT_SCALE_HELPER,
+                            "wrap",
+                            listOf(ANDROID_ACTIVITY, ANDROID_CONTEXT, "F"),
+                            ANDROID_CONTEXT,
+                        ),
+                    ),
+                )
+                addInstruction(BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 2))
+                addInstruction(
+                    BuilderInstruction3rc(
+                        if (callOriginalImplementation) Opcode.INVOKE_DIRECT_RANGE
+                        else Opcode.INVOKE_SUPER_RANGE,
+                        2,
+                        1,
+                        ImmutableMethodReference(
+                            if (callOriginalImplementation) classDef.type else parentType,
+                            if (callOriginalImplementation) WRAPPED_METHOD_NAME else "attachBaseContext",
+                            listOf(ANDROID_CONTEXT),
+                            "V",
+                        ),
+                    ),
+                )
+                addInstruction(BuilderInstruction10x(Opcode.RETURN_VOID))
             }
 
             val wrapper = ImmutableMethod(
@@ -112,19 +155,8 @@ val appFontScalePatch = bytecodePatch(
                 AccessFlags.PUBLIC.value or AccessFlags.SYNTHETIC.value,
                 original?.annotations ?: emptySet(),
                 emptySet(),
-                MutableMethodImplementation(3),
-            ).toMutable().apply {
-                addInstructions(
-                    0,
-                    """
-                        const v0, $multiplierLiteral
-                        invoke-static { p0, p1, v0 }, $FONT_SCALE_HELPER->wrap($ANDROID_ACTIVITY;$ANDROID_CONTEXT;F)$ANDROID_CONTEXT
-                        move-result-object p1
-                        $delegateCall
-                        return-void
-                    """.trimIndent(),
-                )
-            }
+                wrapperImplementation,
+            ).toMutable()
 
             activity.methods.add(wrapper)
             hookedActivities++

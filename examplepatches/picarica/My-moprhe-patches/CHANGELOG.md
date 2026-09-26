@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/picarica/My-moprhe-patches/compare/v1.1.0...v1.1.1) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* disable Stick War pre-context PairIP startup ([07d49af](https://github.com/picarica/My-moprhe-patches/commit/07d49afa202baa50c3b78dcb9f65549c6fa7aef0))
+
 ## [1.1.0](https://github.com/picarica/My-moprhe-patches/compare/v1.0.1...v1.1.0) (2026-09-25)
 
 ### ✨ New Features

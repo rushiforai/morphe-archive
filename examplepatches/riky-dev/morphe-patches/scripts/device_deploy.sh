@@ -58,15 +58,16 @@ fi
 
 log "Installing..."
 # Prefer push+pm for large APKs (more reliable than streamed install over flaky USB).
+# MSYS/Git Bash otherwise rewrites /data/... to a Windows path under the Git install.
 REMOTE="/data/local/tmp/${APP_PACKAGE}-patched.apk"
 log "Pushing to $REMOTE ..."
-"${ADB[@]}" push "$APK" "$REMOTE"
+MSYS_NO_PATHCONV=1 "${ADB[@]}" push "$APK" "$REMOTE"
 log "pm install..."
-if ! "${ADB[@]}" shell pm install -r -d "$REMOTE"; then
-  "${ADB[@]}" shell rm -f "$REMOTE" >/dev/null 2>&1 || true
+if ! MSYS_NO_PATHCONV=1 "${ADB[@]}" shell pm install -r -d "$REMOTE"; then
+  MSYS_NO_PATHCONV=1 "${ADB[@]}" shell rm -f "$REMOTE" >/dev/null 2>&1 || true
   die "pm install failed"
 fi
-"${ADB[@]}" shell rm -f "$REMOTE" >/dev/null 2>&1 || true
+MSYS_NO_PATHCONV=1 "${ADB[@]}" shell rm -f "$REMOTE" >/dev/null 2>&1 || true
 
 log "Launching..."
 "${ADB[@]}" shell cmd statusbar collapse >/dev/null 2>&1 || true

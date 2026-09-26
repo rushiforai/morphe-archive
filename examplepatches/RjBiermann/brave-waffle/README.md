@@ -9,9 +9,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.0](https://github.com/RjBiermann/brave-waffle/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.9.0](https://github.com/RjBiermann/brave-waffle/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
-<summary>📦 AIS&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 AIS&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -25,6 +25,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Hide account/PRO nav links](#hide-account-pro-nav-links) | Adds a settings toggle ('Hide account / PRO links') that hides the account and PRO-only entries (Your Account, Get Free PRO, PRO Benefits, PornDB, Global Search, PornTabs) from the mobile navigation drawer. Off by default. |  |
 | [Mod settings page](#mod-settings-page) | Adds an 'AIO Mods' section with runtime toggles to the app's own settings screens (phone settings fragment and TV settings). |  |
 | [Remove TV player error dialog](#remove-tv-player-error-dialog) | Suppress the 'Error occured' popup on playback failures. Toggleable in the settings screens ('Show player errors' on TV). |  |
+| [Remove WebView version nag](#remove-webview-version-nag) | Removes the 'WebView Component' version-update popup shown at startup and in the player. |  |
 | [Remove ads](#remove-ads) | Removes video ad breaks from the standard and popup video players. |  |
 | [Remove news promotions](#remove-news-promotions) | Removes the third-party paysite promotion banner from the startup news page. |  |
 | [Remove search ad tiles](#remove-search-ad-tiles) | Removes the ad-tracker tiles (porn-app.com/nat1, /midad) from site search results. |  |

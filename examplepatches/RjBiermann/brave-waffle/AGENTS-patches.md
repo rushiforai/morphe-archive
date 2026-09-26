@@ -89,10 +89,27 @@ Entry: `AGENTS.md`. Login states: `AGENTS-login.md`. TV: `AGENTS-tv.md`.
   block; re-fetch the Menu (the app clobbers the register) and `findItem(...).setVisible(false)`.
   **Disabled by default** (`default = false`) per user request — enable with `--enable`.
   Keep Player Playlist visible (still needs login/PRO server-side, but user wants it kept).
-- **RemoveNewsPromotionPatch (v1.1.0)**: news page promo stripped via JS injected in
-  shared WebViewClient `Lce0;->onPageFinished` default branch (after first
-  invoke-super): removes the `.accordion-item` matching /Porn Site Promotion/ and
-  injects CSS `.paysiteAd{display:none!important}`. Verified on emulator.
+- **RemoveNewsPromotionPatch (v1.1.0)**: news page promo (server-HTML accordion item
+  in porn-app.com/news) removed 3 ways in `Lce0;`: (1) NEW `shouldInterceptRequest`
+  override (assembled via full smali assembly — `addInstructionsWithLabels` cannot
+  attach try/catch; assembler keeps handlers) fetches the page, cuts the
+  `headingPromotion` accordion item from the HTML before the WebView parses it —
+  zero flash, all WebView versions; JS paths are the fallback. (2) `onPageStarted`
+  pref-gated MutationObserver + CSS net (`#headingPromotion`, `.divtopad`,
+  `.brazzers_video`, `:has()` for Chromium 105+), strips on arm. (3) `onPageFinished`
+  text-match strip. Shared `injectGatedJs` helper (p2 dead after invoke-super =
+  default=true register). **Needs `--bytecode-mode STRIP_SAFE`** — STRIP_FAST drops
+  the try/catch (dexdump `catches: (none)`) and an offline IOException would crash
+  the app. Verified on emulator: banner gone, 0 crashes.
+- **RemoveWebViewVersionNagPatch (v1.8.1)**: server-driven "WebView Component"
+  version popup (required-vs-installed versionCode from server config) shown by the
+  shared `Lue4;->c(Object)` (all 4 callers: NavDrawer1, helper/b, player, TV
+  fragment) AND independently in the Start App button's listener `Lg7;->onClick`
+  case 0xb (button silently dead without this — bit us twice). Both gates: single
+  `if-lez` after a unique anchor replaced with `goto/16` to the same target.
+  "Country Problem" (pref once) and "Android Version Problem" (< API 26, pref once)
+  dialogs deliberately kept. Verified on emulator: popup gone everywhere, Start App
+  proceeds, 0 crashes.
 - **URL obfuscation convention**: the app's domain never appears in plain text in any
   repo — base64-encoded (raw base64 literals in RemoveAdsPatch.kt; `b64:` prefix in
   builder config.toml, decoded in build.sh). New strings: base64 first

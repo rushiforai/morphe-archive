@@ -172,7 +172,9 @@ open class Fingerprint private constructor(
 
         fun clearFingerprints() {
             fingerprintList.forEach { it.get()?.clearMatch() }
-            fingerprintList.clear()
+            // Singleton fingerprints can be reused by later patching sessions in this JVM.
+            // Keep live entries registered so every session releases its cached DEX references.
+            fingerprintList.removeAll { it.get() == null }
         }
     }
 

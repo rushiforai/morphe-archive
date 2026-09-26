@@ -1,0 +1,8 @@
+{
+  "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\patches\\build\\libs\\patches-1.19.0-dev.1-foveal-gamma-local.mpp",
+  "sha256": "584ed5cf0148221c353c3cc7a2fdaf2e5f50d86170816f3f85695bf2ed4bf3d7",
+  "entries": 170,
+  "dex_bytes": 470680,
+  "blue_noise_payload_sha256": "5c30791621cc94a3f2f358e9b98e8029bc0765c1a0d44f6d1bc4690b2f45e858",
+  "scope": "Cached Kotlin/Morphe compile, 124 JUnit tests, D8 Release API26; local bundle, not a Gradle/CI release or installed APK."
+}

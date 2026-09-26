@@ -6,11 +6,11 @@
 
 <p>
   <a href="https://github.com/Akshayykadam/PixelBoard/raw/main/output/PixelBoard.apk">
-    <img src="https://img.shields.io/badge/📥_Direct_Download-v18.0.3_Stable_(79_MB)-00C853?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download PixelBoard Stable APK"/>
+    <img src="https://img.shields.io/badge/📥_Direct_Download-v18.3.1_Stable_(82_MB)-00C853?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download PixelBoard Stable APK"/>
   </a>
   &nbsp;&nbsp;
-  <a href="https://github.com/Akshayykadam/PixelBoard/raw/main/output/PixelBoard-18.3.1.apk">
-    <img src="https://img.shields.io/badge/🧪_Direct_Download-v18.3.1_Beta_(82_MB)-2979FF?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download PixelBoard Beta APK"/>
+  <a href="https://github.com/Akshayykadam/PixelBoard/raw/main/patches/PixelBoard.mpp">
+    <img src="https://img.shields.io/badge/📦_Patch_Bundle-PixelBoard.mpp_(1.4_MB)-2979FF?style=for-the-badge&logo=android&logoColor=white" height="42" alt="Download PixelBoard Patch Bundle"/>
   </a>
 </p>
 
@@ -42,6 +42,7 @@ Traditional voice-to-text transcribes every hesitation literally. PixelBoard unl
 - **Thought Completion**: Seamlessly fixes self corrections on the fly (e.g. *"let's meet at two no, three PM"* &rarr; *"Let's meet at 3:00 PM"*).
 - **Auto-Punctuation & Capitalization**: Adds context-aware periods, commas, and proper noun capitalization without requiring voice commands.
 - **Multilingual Fluidity**: Mix and match languages seamlessly in a single sentence.
+- **Battery-Friendly Lifecycle**: Cleanly releases speech recognition bindings (`GoogleAsrService`) as soon as the keyboard is hidden, eliminating screen-off battery drain.
 
 ### 2. In-Line AI Writing Assistant
 Access Google's Gemini-driven writing suite directly above your keys across any app:
@@ -118,8 +119,8 @@ PixelBoard features a clean, minimal preference screen modeled directly after st
 
 ### Option A: Direct Download on Your Phone (Easiest)
 1. Download directly to your device:
-   - [**PixelBoard Stable (v18.0.3)**](https://github.com/Akshayykadam/PixelBoard/raw/main/output/PixelBoard.apk) — recommended for daily use.
-   - [**PixelBoard Beta (v18.3.1)**](https://github.com/Akshayykadam/PixelBoard/raw/main/output/PixelBoard-18.3.1.apk) — latest features & newer Gboard base.
+   - [**PixelBoard Stable APK (v18.3.1 Base, 82 MB)**](https://github.com/Akshayykadam/PixelBoard/raw/main/output/PixelBoard.apk) — ready-to-install signed APK.
+   - [**PixelBoard Patch Bundle (PixelBoard.mpp, 1.4 MB)**](https://github.com/Akshayykadam/PixelBoard/raw/main/patches/PixelBoard.mpp) — for patching via Morphe Manager.
 2. Tap the downloaded `.apk` in your notification drawer or File Manager (e.g., **Files by Google**).
 3. If prompted, toggle **"Allow from this source"** to permit installation.
 4. Tap **Install**.
@@ -127,11 +128,7 @@ PixelBoard features a clean, minimal preference screen modeled directly after st
 ### Option B: Sideload via ADB (For Developers)
 Connect your Android phone via USB with USB Debugging enabled:
 ```bash
-# Install Stable (v18.0.3)
 adb install -r output/PixelBoard.apk
-
-# Or install Beta (v18.3.1)
-adb install -r output/PixelBoard-18.3.1.apk
 ```
 
 ### Option C: Patch via Morphe Manager (Custom Source & Auto-Updates)
@@ -141,8 +138,8 @@ You can include PixelBoard as a custom patch source directly in **Morphe Manager
    ```text
    https://raw.githubusercontent.com/Akshayykadam/PixelBoard/main/patches-bundle.json
    ```
-   *(or add `Akshayykadam/PixelBoard` directly)*
-3. Pick your stock Gboard APK (`v18.0.3` or `v18.3.1 Beta` `arm64-v8a`), select your patches, and tap **Patch**!
+    *(or add `Akshayykadam/PixelBoard` directly)*
+3. Pick your stock Gboard APK (`v18.3.1` or `v18.0.3` `arm64-v8a`), select your patches, and tap **Patch**!
 
 ### First-Time Setup on Device
 1. On your phone, go to **Settings > System > Languages & input > On-screen keyboard** (or **Manage Keyboards**).
@@ -163,10 +160,9 @@ GBoardMod/
 ├── patches/
 │   └── PixelBoard.mpp         # Pre-bundled offline patch pack (~1.4 MB)
 ├── input/
-│   └── gboard.apk             # Base stock Gboard APK (v18.0.3)
+│   └── gboard.apk             # Base stock Gboard APK (v18.3.1 Release, 81.2 MB)
 ├── output/
-│   ├── PixelBoard.apk         # Ready-to-install signed Stable APK (v18.0.3, 79 MB)
-│   ├── PixelBoard-18.3.1.apk  # Ready-to-install signed Beta APK (v18.3.1, 82 MB)
+│   ├── PixelBoard.apk         # Ready-to-install signed Stable APK (v18.3.1 Base, 82 MB)
 │   ├── gboard-patched.apk     # Patched binary alias
 │   └── patching-result.json   # Patch verification report
 ├── tools/
@@ -228,7 +224,8 @@ apksigner verify --verbose output/PixelBoard.apk
 ## Acknowledgements & Credits
 
 Special thanks and sincere appreciation to:
-- **Jason** (`dev.jason.gboardpatches`) — The pioneering author of the original Gboard patch project whose foundational reverse-engineering research and Smali patch framework made this specialized mod possible.
+- **JasonWu** — The pioneering author of the original Gboard patch project whose foundational reverse-engineering research and Smali patch framework made this specialized mod possible.
+- **Paolo Del Casale** ([@PaoloDelCasale](https://github.com/PaoloDelCasale)) — For the comprehensive BatteryStats investigation and candidate fix resolving background `GoogleAsrService` persistence in Rambler dictation ([Issue #3](https://github.com/Akshayykadam/PixelBoard/issues/3)).
 - **The ReVanced & Open-Source Android Modding Communities** — For the open-source decompilation toolchains, patch compilers, and continuous ecosystem contributions.
 
 ---

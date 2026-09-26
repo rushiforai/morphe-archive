@@ -134,6 +134,15 @@ STREAMING_DATA_REQUEST_STABLE_CLIENT_ORDER_CONFLICT_BLOBS = (
 DUAL_YANDEX_STRINGS_PATH = re.compile(
     r"^patches/src/main/resources/addresources/values(?:-[^/]+)?/youtube/strings\.xml$"
 )
+
+DUAL_YANDEX_ARRAYS_PATH = "patches/src/main/resources/addresources/values/youtube/arrays.xml"
+# Dev16 adds Morphe icon-style arrays after the shared base, next to the
+# existing Dual Yandex arrays. Only this verified three-way shape is accepted.
+DEV16_ARRAYS_CONFLICT_BLOBS = (
+    "388e6e06134c92b55ca65dff94a2346a508dd6c6",
+    "edb341c8024a71da1629fb2b200d97a5af44c9f2",
+    "983528dfbaa32da29dacc9b104cc95ce27ddbf79",
+)
 STRING_RESOURCE_LINE = re.compile(
     r'^\s*<string\s+name="([^"]+)"(?:\s[^>]*)?>.*</string>\s*$'
 )
@@ -340,6 +349,66 @@ def resolve_dual_yandex_string_conflicts() -> None:
         destination = ROOT / path
         destination.write_text(merged, encoding="utf-8", newline="")
         run("git", "add", "--", path)
+
+
+def merge_dual_yandex_arrays(base: str, ours: str, theirs: str) -> str:
+    """Combine the verified, disjoint Yandex and Morphe icon arrays."""
+    closing = "</resources>"
+    if any(value.count(closing) != 1 for value in (base, ours, theirs)):
+        raise SyncError("Unexpected arrays resource structure")
+    base_prefix, base_suffix = base.split(closing)
+    ours_prefix, ours_suffix = ours.split(closing)
+    theirs_prefix, theirs_suffix = theirs.split(closing)
+    if base_suffix != ours_suffix or base_suffix != theirs_suffix:
+        raise SyncError("Arrays resource changed after closing element")
+    if not ours_prefix.startswith(base_prefix) or not theirs_prefix.startswith(base_prefix):
+        raise SyncError("Arrays resource changed outside appended blocks")
+
+    dual_block = ours_prefix[len(base_prefix):]
+    upstream_block = theirs_prefix[len(base_prefix):]
+    names = re.compile(r'<string-array name="([^"]+)"')
+    dual_names = names.findall(dual_block)
+    upstream_names = names.findall(upstream_block)
+    expected_dual = {
+        "dualvot_yandex_target_language_entries",
+        "dualvot_yandex_target_language_entry_values",
+        "dualvot_yandex_source_language_entries",
+        "dualvot_yandex_source_language_entry_values",
+        "dualvot_yandex_timer_position_entries",
+        "dualvot_yandex_timer_position_entry_values",
+    }
+    expected_upstream = {
+        "morphe_player_icon_style_entries",
+        "morphe_player_icon_style_entry_values",
+        "morphe_shorts_icon_style_entries",
+        "morphe_shorts_icon_style_entry_values",
+    }
+    if (set(dual_names) != expected_dual or len(dual_names) != len(expected_dual)
+            or set(upstream_names) != expected_upstream
+            or len(upstream_names) != len(expected_upstream)):
+        raise SyncError("Unexpected Yandex or Morphe arrays")
+    if (dual_block.count("</string-array>") != len(expected_dual)
+            or upstream_block.count("</string-array>") != len(expected_upstream)):
+        raise SyncError("Malformed appended arrays")
+    return theirs_prefix + dual_block + closing + theirs_suffix
+
+
+def resolve_dual_yandex_arrays_conflict() -> None:
+    path = DUAL_YANDEX_ARRAYS_PATH
+    if path not in unresolved_paths():
+        return
+    blobs = tuple(
+        output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3)
+    )
+    if blobs != DEV16_ARRAYS_CONFLICT_BLOBS:
+        return
+    base, ours, theirs = (
+        run("git", "show", f":{stage}:{path}", capture=True).stdout
+        for stage in (1, 2, 3)
+    )
+    merged = merge_dual_yandex_arrays(base, ours, theirs)
+    (ROOT / path).write_text(merged, encoding="utf-8", newline="")
+    run("git", "add", "--", path)
 
 
 def resolve_addon_compatibility_conflicts() -> None:
@@ -748,6 +817,7 @@ def merge_ref(
         run("git", "rm", "-rf", "--ignore-unmatch", "--", path)
 
     resolve_dual_yandex_string_conflicts()
+    resolve_dual_yandex_arrays_conflict()
     resolve_addon_compatibility_conflicts()
     resolve_streaming_data_request_conflict()
 

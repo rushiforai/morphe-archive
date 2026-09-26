@@ -26,6 +26,22 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storiesTray() {
+        return false;
+    }
+
+    public static boolean feedReels() {
+        return false;
+    }
+
+    public static boolean returnRefresh() {
+        return false;
+    }
+
+    public static boolean aiDetectedPosts() {
+        return false;
+    }
+
     public static boolean sponsoredStories() {
         return false;
     }
@@ -50,6 +66,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean sanitizeSharingLinks() {
+        return false;
+    }
+
     public static boolean restoreTrust() {
         return false;
     }
@@ -58,11 +78,19 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean materialYouTheme() {
+        return false;
+    }
+
     public static boolean storyDownload() {
         return false;
     }
 
     public static boolean reelDownload() {
+        return false;
+    }
+
+    public static boolean videoDownload() {
         return false;
     }
 }

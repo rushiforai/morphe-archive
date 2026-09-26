@@ -135,7 +135,7 @@ dependencies {
     implementation("app.morphe:morphe-patcher:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 }
-kotlin { jvmToolchain(17) }
+kotlin { jvmToolchain(21) }
 application { mainClass.set("verify.MainKt") }
 EOF
 
@@ -185,7 +185,17 @@ EOF
 
 log "Applying patches..."
 cd "$WORK"
-"$ROOT_DIR/gradlew" -p "$WORK" run --args="$MPP $APK $WORK/out $APP_PACKAGE" --console=plain
+# Morphe patcher (Java) needs real Windows paths under Git Bash / MSYS.
+win_path() {
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$1"
+  else
+    printf '%s' "$1"
+  fi
+}
+"$ROOT_DIR/gradlew" -p "$WORK" run \
+  --args="$(win_path "$MPP") $(win_path "$APK") $(win_path "$WORK/out") $APP_PACKAGE" \
+  --console=plain
 
 ASSERT_COUNT="$(python3 -c "import json,sys; print(len(json.loads(sys.argv[1])))" "$ASSERTIONS_JSON")"
 PATCHED_DEX_DIR="$WORK/out/tmp/patched/dex"

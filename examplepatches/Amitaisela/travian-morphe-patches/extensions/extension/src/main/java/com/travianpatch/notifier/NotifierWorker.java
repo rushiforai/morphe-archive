@@ -78,18 +78,19 @@ public class NotifierWorker extends Worker {
     static final String KEY_VILLAGES = "known_villages";
     /** Real resource stock/production per village from the last poll; read by the Build order screen. */
     static final String KEY_VILLAGE_RESOURCES = "village_resources";
+    /** The player's tribe, villages, building slots and queue from the last check (ownPlayer JSON text); read by the Build order screen. */
+    static final String KEY_PLAYER_BUILDINGS = "player_buildings_json";
+    /** When the soonest incoming attack lands (epoch ms, 0 = none), saved each check for the action guard. */
+    static final String KEY_NEXT_ATTACK_AT = "next_attack_at";
+    /** When the attack list was last read completely (epoch ms); older or missing pauses automatic actions. */
+    static final String KEY_ATTACKS_KNOWN_AT = "attacks_known_at";
+    private static final String KEY_RULES_CHECKED_AT = "building_rules_checked_at";
     /** "true"/"false" once read, absent until then; read by the Hub screen. */
     static final String KEY_GOLD_CLUB = "gold_club";
     private static final String KEY_GOLD_CLUB_LOGGED_AT = "gold_club_logged_at";
     private static final String KEY_CP_LOGGED_AT = "cp_logged_at";
     private static final String KEY_BUILD_COST_LOGGED_AT = "build_cost_logged_at";
     private static final String KEY_MARKET_LOGGED_AT = "market_logged_at";
-    /** Set the moment the one-off building-data probe starts, so it never runs a second time. */
-    private static final String KEY_BUILDING_PROBE_DONE = "building_probe_done_v2";
-    /** Longest slice of one response that is logged (a full rules table can be hundreds of KB). */
-    private static final int PROBE_MAX_LOGGED_CHARS = 12000;
-    /** Android cuts a log line near 4 KB, so long text is logged in pieces of this size. */
-    private static final int PROBE_LOG_PIECE = 3000;
     private static final int PENDING_FLAGS = PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT;
     private static final String KEY_RETRIES = "retries";
     /** Wait a few seconds past the finish time so the server has processed the completion. */
@@ -103,9 +104,9 @@ public class NotifierWorker extends Worker {
     private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMillis(5);
     /** Don't reuse a cached world token that expires within this margin. */
     private static final long TOKEN_MARGIN_MS = TimeUnit.MINUTES.toMillis(2);
-    private static final String KEY_WORLD_HOST = "world_host";
-    private static final String KEY_WORLD_TOKEN = "world_token";
-    private static final String KEY_WORLD_TOKEN_EXP = "world_token_exp";
+    static final String KEY_WORLD_HOST = "world_host";
+    static final String KEY_WORLD_TOKEN = "world_token";
+    static final String KEY_WORLD_TOKEN_EXP = "world_token_exp";
     private static final String KEY_ANNOUNCED_ATTACKS = "announced_attacks";
     private static final String KEY_REMINDED_ATTACKS = "reminded_attacks";
     private static final String KEY_TRACKED_ARRIVALS = "tracked_arrivals";
@@ -294,7 +295,11 @@ public class NotifierWorker extends Worker {
      * storage like the game's own copy, and never contains a password.
      */
     private String seedCachedWorldToken(SimpleCookieJar jar) {
-        SharedPreferences prefs = statePrefs();
+        return seedWorldToken(statePrefs(), jar);
+    }
+
+    /** Same as the worker's fast path, for screens: puts the cached world token in jar, returns its host or null. */
+    static String seedWorldToken(SharedPreferences prefs, SimpleCookieJar jar) {
         String host = prefs.getString(KEY_WORLD_HOST, null);
         String token = prefs.getString(KEY_WORLD_TOKEN, null);
         long expMs = prefs.getLong(KEY_WORLD_TOKEN_EXP, 0);
@@ -523,6 +528,11 @@ public class NotifierWorker extends Worker {
         statTrainings = stillActive.size() - buildCount;
         statAttacks = withMovements ? attacks.size() : -1;
         statArrivals = withMovements ? arrivals.size() : -1;
+        if (withMovements && movementsComplete) {
+            long nowMs = System.currentTimeMillis();
+            statePrefs().edit().putLong(KEY_NEXT_ATTACK_AT, AttackAlerts.nextArrivalMs(attacks, nowMs))
+                    .putLong(KEY_ATTACKS_KNOWN_AT, nowMs).apply();
+        }
         if (withMovements) {
             announceAttacks(attacks);
             if (movementsComplete) {
@@ -555,42 +565,217 @@ public class NotifierWorker extends Worker {
         return TravianApi.executeJson(http, req);
     }
 
+    /** The object under data.<key> of a GraphQL response, or null if the response has none. */
+    private static JSONObject dataObject(JSONObject response, String key) {
+        JSONObject data = response.optJSONObject("data");
+        return data == null ? null : data.optJSONObject(key);
+    }
+
     /**
-     * One-off, read-only diagnostic: asks the game for its own building data (its rules table and the
-     * first village's buildings) and logs every raw response, so the Build order screen can later be built
-     * on the game's real field names instead of guesses. Runs once per install, after a poll has seen a
-     * village. Nothing is shown on any screen and nothing is changed in the game.
+     * Keeps the game's own building data current: the rules table (downloaded again only when the game's
+     * release version changes) and the player's buildings (every check). Failures leave the last good copy
+     * in place.
      */
-    private void runBuildingProbe(OkHttpClient http, String gameworldHost) {
-        SharedPreferences prefs = statePrefs();
-        List<VillageList.Entry> known = VillageList.fromJson(prefs.getString(KEY_VILLAGES, null));
-        if (!BuildingProbe.shouldRun(prefs.getBoolean(KEY_BUILDING_PROBE_DONE, false), known.size())) {
+    private void refreshBuildingData(OkHttpClient http, String gameworldHost) {
+        refreshBuildingRules(http, gameworldHost);
+        refreshPlayerBuildings(http, gameworldHost);
+    }
+
+    private void refreshBuildingRules(OkHttpClient http, String gameworldHost) {
+        SharedPreferences rulesPrefs = getApplicationContext().getSharedPreferences(BuildingRules.PREFS, Context.MODE_PRIVATE);
+        boolean haveRules = BuildingRules.cacheUsable(rulesPrefs.getString(BuildingRules.KEY_JSON, null),
+                rulesPrefs.getString(BuildingRules.KEY_QUERY, null));
+        long now = System.currentTimeMillis();
+        if (haveRules && now - statePrefs().getLong(KEY_RULES_CHECKED_AT, 0) < TimeUnit.MINUTES.toMillis(30)) {
             return;
         }
-        prefs.edit().putBoolean(KEY_BUILDING_PROBE_DONE, true).apply();
-        List<String> queries = BuildingProbe.queries(known.get(0).id);
+        try {
+            JSONObject versionObject = dataObject(runRootQuery(http, gameworldHost, BuildingRules.VERSION_QUERY), "bootstrapData");
+            if (versionObject == null) {
+                Log.w(TAG, "building rules version not readable");
+                return;
+            }
+            String version = versionObject.optString("releaseVersion", "");
+            if (haveRules && version.equals(rulesPrefs.getString(BuildingRules.KEY_VERSION, ""))) {
+                statePrefs().edit().putLong(KEY_RULES_CHECKED_AT, now).apply();
+                return;
+            }
+            JSONObject rules = dataObject(runRootQuery(http, gameworldHost, BuildingRules.QUERY), "bootstrapData");
+            if (rules == null || BuildingRules.parse(rules.toString()) == null) {
+                Log.w(TAG, "building rules not readable, keeping the old copy");
+                return;
+            }
+            rulesPrefs.edit().putString(BuildingRules.KEY_JSON, rules.toString())
+                    .putString(BuildingRules.KEY_VERSION, version)
+                    .putString(BuildingRules.KEY_QUERY, BuildingRules.QUERY).apply();
+            statePrefs().edit().putLong(KEY_RULES_CHECKED_AT, now).apply();
+            Log.i(TAG, "building rules saved: version " + version + ", " + rules.toString().length() + " chars");
+        } catch (Exception e) {
+            Log.w(TAG, "building rules refresh failed: " + e);
+        }
+    }
+
+    /** True only when this check read the player's buildings successfully (the build queue relies on it). */
+    private boolean buildingsFresh;
+
+    private void refreshPlayerBuildings(OkHttpClient http, String gameworldHost) {
+        buildingsFresh = false;
+        try {
+            JSONObject player = dataObject(runRootQuery(http, gameworldHost, PlayerBuildings.QUERY), "ownPlayer");
+            if (player == null || PlayerBuildings.parse(player.toString()) == null) {
+                Log.w(TAG, "player buildings not readable, keeping the old copy");
+                return;
+            }
+            statePrefs().edit().putString(KEY_PLAYER_BUILDINGS, player.toString()).apply();
+            buildingsFresh = true;
+        } catch (Exception e) {
+            Log.w(TAG, "player buildings refresh failed: " + e);
+        }
+    }
+
+    /**
+     * One-off, read-only diagnostic for the next features (troops, farm lists, crop finder, Gold status):
+     * runs the queries in DataProbe once per install after a poll has seen a village and logs every raw
+     * response. Nothing is shown on any screen and nothing is changed in the game.
+     */
+    private void runDataProbe(OkHttpClient http, String gameworldHost) {
+        SharedPreferences prefs = statePrefs();
+        List<VillageList.Entry> known = VillageList.fromJson(prefs.getString(KEY_VILLAGES, null));
+        if (!DataProbe.shouldRun(prefs.getBoolean(DataProbe.KEY_DONE, false), known.size())) {
+            return;
+        }
+        prefs.edit().putBoolean(DataProbe.KEY_DONE, true).apply();
+        VillageList.Entry village = known.get(0);
+        List<String> queries = new ArrayList<String>(DataProbe.queries(village.id, village.x, village.y));
         for (int n = 1; n <= queries.size(); n++) {
             String query = queries.get(n - 1);
-            Log.i(TAG, "PROBE " + n + "/" + queries.size() + " query: " + query);
+            Log.i(TAG, "DPROBE " + n + " query: " + query);
             try {
-                String response = runRootQuery(http, gameworldHost, query).toString();
-                Log.i(TAG, "PROBE " + n + " response length: " + response.length());
-                List<String> pieces = LogChunks.split(cut(response, PROBE_MAX_LOGGED_CHARS), PROBE_LOG_PIECE);
-                for (int k = 0; k < pieces.size(); k++) {
-                    Log.i(TAG, "PROBE " + n + " part " + (k + 1) + "/" + pieces.size() + ": " + pieces.get(k));
+                JSONObject response = runRootQuery(http, gameworldHost, query);
+                logProbePieces(n, response.toString());
+                JSONObject player = dataObject(response, "ownPlayer");
+                JSONArray lists = player == null ? null : player.optJSONArray("farmLists");
+                if (lists != null && lists.length() > 0 && lists.optJSONObject(0) != null) {
+                    queries.add(DataProbe.farmSlotsQuery(lists.optJSONObject(0).optLong("id")));
                 }
             } catch (Exception e) {
-                Log.i(TAG, "PROBE " + n + " failed: " + e);
+                Log.i(TAG, "DPROBE " + n + " failed: " + e);
             }
         }
-        Log.i(TAG, "PROBE finished");
+        Log.i(TAG, "DPROBE finished");
+    }
+
+    private void logProbePieces(int n, String response) {
+        Log.i(TAG, "DPROBE " + n + " response length: " + response.length());
+        List<String> pieces = DataProbe.split(cut(response, DataProbe.MAX_LOGGED_CHARS), DataProbe.LOG_PIECE);
+        for (int k = 0; k < pieces.size(); k++) {
+            Log.i(TAG, "DPROBE " + n + " part " + (k + 1) + "/" + pieces.size() + ": " + pieces.get(k));
+        }
+    }
+
+    /**
+     * Runs each village's saved build queue: only when Automatic actions is on (Actions screen) and that
+     * village's own switch is on. Decides with BuildQueueStep (game data only), sends through ActionSender
+     * (safety check, attack pause, practice mode, log), and saves the queue's status line for the screen.
+     */
+    private void checkBuildQueues(OkHttpClient http, String gameworldHost) {
+        Context ctx = getApplicationContext();
+        if (!ActionSender.settings(ctx).masterOn) {
+            return;
+        }
+        if (!buildingsFresh) {
+            Log.i(TAG, "build queues skipped: buildings not read in this check");
+            return;
+        }
+        SharedPreferences state = statePrefs();
+        PlayerBuildings player = PlayerBuildings.parse(state.getString(KEY_PLAYER_BUILDINGS, null));
+        BuildingRules rules = BuildingRules.parse(ctx.getSharedPreferences(BuildingRules.PREFS, Context.MODE_PRIVATE)
+                .getString(BuildingRules.KEY_JSON, null));
+        if (player == null || rules == null) {
+            return;
+        }
+        SharedPreferences orders = ctx.getSharedPreferences(BuildOrderStore.PREFS, Context.MODE_PRIVATE);
+        AutomationSettings.Config cfg = AutomationSettings.fromJson(
+                ctx.getSharedPreferences(AutomationSettings.PREFS, Context.MODE_PRIVATE)
+                        .getString(AutomationSettings.KEY, null));
+        List<VillageResources.Entry> stocks = VillageResources.fromJson(state.getString(KEY_VILLAGE_RESOURCES, null));
+        long now = System.currentTimeMillis();
+        java.util.Calendar midnight = java.util.Calendar.getInstance();
+        midnight.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        midnight.set(java.util.Calendar.MINUTE, 0);
+        midnight.set(java.util.Calendar.SECOND, 0);
+        midnight.set(java.util.Calendar.MILLISECOND, 0);
+        boolean quiet = QuietHours.isQuiet(cfg.quietHours, now, midnight.getTimeInMillis());
+        for (PlayerBuildings.Village village : player.villages) {
+            if (!orders.getBoolean(BuildOrderActivity.autoKey(village.id), false)) {
+                continue;
+            }
+            String idleKey = "idle_since_" + village.id;
+            long idleSince = orders.getLong(idleKey, 0);
+            if (!village.pending.isEmpty()) {
+                orders.edit().remove(idleKey).apply();
+            } else if (idleSince == 0) {
+                idleSince = now;
+                orders.edit().putLong(idleKey, now).apply();
+            }
+            List<BuildOrderStore.Entry> queue = BuildOrderStore.fromJson(
+                    orders.getString(BuildOrderStore.key(village.id), null));
+            BuildQueueStep.Outcome out = BuildQueueStep.next(rules, player.tribeId, village,
+                    VillageResources.find(stocks, village.id), queue, cfg, quiet, now, idleSince);
+            String notes = android.text.TextUtils.join("; ", out.notes);
+            orders.edit().putString(BuildOrderStore.key(village.id), BuildOrderStore.toJson(out.queue))
+                    .putString(BuildOrderActivity.notesKey(village.id),
+                            java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(new java.util.Date(now))
+                                    + ": " + (notes.isEmpty() ? "nothing to do" : notes))
+                    .apply();
+            if (out.fire == null) {
+                continue;
+            }
+            String failKey = "fail_" + village.id + "_" + out.fire.slotId + "_" + out.fire.toLevel;
+            int failures = orders.getInt(failKey, 0);
+            long until = orders.getLong(failKey + "_until", 0);
+            String label = GameData.buildingName(out.fire.typeId) + " to " + out.fire.toLevel;
+            if (now < until) {
+                orders.edit().putString(BuildOrderActivity.notesKey(village.id), label + ": the game refused it, trying "
+                        + "again at " + java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+                        .format(new java.util.Date(until))).apply();
+                continue;
+            }
+            try {
+                ActionClient.Result r = ActionSender.send(ctx, http, gameworldHost,
+                        GameActions.build(village.id, out.fire.slotId, out.fire.typeId, label), true);
+                Log.i(TAG, "build queue " + village.id + ": " + label + " -> " + r.outcome);
+                if (r.sessionExpired) {
+                    clearCachedWorldToken();
+                } else if ("FAILED".equals(r.outcome)) {
+                    orders.edit().putInt(failKey, failures + 1)
+                            .putLong(failKey + "_until", now + Backoff.delayMs(failures + 1))
+                            .putString(BuildOrderActivity.notesKey(village.id), label + ": the game said no ("
+                                    + r.describe() + ")").apply();
+                } else if ("SENT".equals(r.outcome)) {
+                    orders.edit().remove(failKey).remove(failKey + "_until").apply();
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "build queue send failed: " + e);
+            }
+        }
     }
 
     private void checkExtras(OkHttpClient http, String gameworldHost) {
         try {
-            runBuildingProbe(http, gameworldHost);
+            runDataProbe(http, gameworldHost);
         } catch (Exception e) {
-            Log.w(TAG, "building probe failed: " + e);
+            Log.w(TAG, "data probe failed: " + e);
+        }
+        try {
+            refreshBuildingData(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "building data refresh failed: " + e);
+        }
+        try {
+            checkBuildQueues(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "build queue check failed: " + e);
         }
         try {
             checkStorage(http, gameworldHost);
@@ -808,6 +993,21 @@ public class NotifierWorker extends Worker {
                     alerted.remove(r.key);
                 }
             }
+            JSONObject res = village.optJSONObject("resources");
+            if (res != null && res.has("netCropProduction")) {
+                String cropKey = "crop:" + village.opt("id");
+                long net = res.optLong("netCropProduction", 0);
+                long cropStock = res.optLong("cropStock", 0);
+                CropWatch.Action action = CropWatch.decide(alerted.contains(cropKey), net, cropStock);
+                if (action == CropWatch.Action.WARN) {
+                    alerted.add(cropKey);
+                    postNotification(NotificationKind.CROP_NEGATIVE, CropWatch.TITLE,
+                            CropWatch.text(village.optString("name", "your village"), net, cropStock),
+                            cropKey.hashCode(), NotificationCompat.PRIORITY_HIGH);
+                } else if (action == CropWatch.Action.CLEAR) {
+                    alerted.remove(cropKey);
+                }
+            }
             if (!fresh.isEmpty()) {
                 String name = village.optString("name", "your village");
                 postNotification(NotificationKind.RESOURCES_FULL, ResourceAlerts.TITLE,
@@ -937,6 +1137,13 @@ public class NotifierWorker extends Worker {
                 reminders++;
             } else {
                 noteWake("attack reminder " + alert.key, alert.arrivalMs - AttackAlerts.REMINDER_WAKE_BEFORE_MS);
+            }
+        }
+        for (AttackWaves.Wave wave : AttackWaves.find(attacks, AttackWaves.WINDOW_MS)) {
+            if (wave.lastMs > now && !announced.containsKey(wave.key)) {
+                postNotification(NotificationKind.ATTACK_WAVE, AttackWaves.title(wave), AttackWaves.describe(wave),
+                        wave.key.hashCode(), NotificationCompat.PRIORITY_MAX);
+                announced.put(wave.key, wave.lastMs);
             }
         }
         pruneOld(announced, now);

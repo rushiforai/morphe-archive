@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-25",
+  "allowlist": [
+    {
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925",
+      "files": 1807,
+      "bytes": 2007371839.0
+    },
+    {
+      "path": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\patches\\build\\libs\\patches-1.19.0-dev.1-5002363-local.mpp",
+      "files": 1,
+      "bytes": 1633871.0
+    }
+  ],
+  "status": "cleanup deferred: automatic approval review rejected deletion with blocked by policy",
+  "bytesReclaimed": 0,
+  "retained": [
+    "patches/build/libs/patches-1.19.0-dev.1-foveal-gamma-local.mpp",
+    "diagnostics/steamlink-colour/foveal-gamma-20260925",
+    "exact decoded inputs and fixture APKs",
+    "existing tools and unrelated work"
+  ],
+  "regeneratedBy": "Compile-CachedAudit.ps1 and audit commands in FOVEAL-GAMMA-2026-09-25.md"
+}

@@ -1,3 +1,17 @@
+## [1.37.7](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.6...v1.37.7) (2026-09-26)
+
+
+### Bug Fixes
+
+* **netflix:** suppress household prompt on both profile-select and playback routes ([45609ef](https://github.com/ajstrick81/morphe-androidtv-patches/commit/45609ef40ca5fecb812f99ef65d5fa4738d60c0a)), closes [#168](https://github.com/ajstrick81/morphe-androidtv-patches/issues/168)
+
+## [1.37.6](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.5...v1.37.6) (2026-09-25)
+
+
+### Bug Fixes
+
+* fail clearly when Morphe Manager stripped the armeabi-v7a libraries ([26d8e2a](https://github.com/ajstrick81/morphe-androidtv-patches/commit/26d8e2aa06a26804530db2eaf4d030d23ea6f388))
+
 ## [1.37.5](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.4...v1.37.5) (2026-09-24)
 
 

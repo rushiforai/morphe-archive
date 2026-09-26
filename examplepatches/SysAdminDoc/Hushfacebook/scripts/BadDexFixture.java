@@ -26,6 +26,7 @@ import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstructio
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31i;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31t;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c;
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutablePackedSwitchPayload;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableSparseSwitchPayload;
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableSwitchElement;
@@ -51,7 +52,14 @@ import java.util.Map;
  *
  * <p>The host stands in for Facebook's feed collection: {@code addNewEdgeToCollection} is where
  * the one feed guard goes, and the bundle's {@code FeedFilter.hideEdge} is the guard, under the
- * same names the contract file holds the real APK to.
+ * same names the contract file holds the real APK to. The bundle's two story-flag stubs are there
+ * under their real names too, filled the way the patches fill them: a call to GraphQLStory's
+ * accessor before anything returns. And a second host class stands in for the feed's two Stories
+ * tray adapter methods, each holding the string the contract picks it by, with the tray patch's
+ * call to {@code FeedFilter.hideStoriesTray} first in the patched builds. The reels patch's two
+ * changes are there as well: a renamed feed unit class answering ShowcaseFeedUnit, whose accessor
+ * the {@code ShowcaseType} stub calls, and a pre-EOF injector holding its adapter's name, with the
+ * call to {@code FeedFilter.hidePreEofReels} first.
  *
  *   java -cp &lt;cli jar&gt; BadDexFixture.java &lt;outDir&gt;
  */
@@ -67,6 +75,29 @@ public class BadDexFixture {
             method(FILTER, "inspect", "V", OBJECT, OBJECT);
     private static final ImmutableMethodReference WIDE = method(FILTER, "wide", "V", "J");
     private static final ImmutableMethodReference RISKY = method(HOST, "risky", "I");
+
+    private static final String GENAI_LABEL = "Lapp/morphe/extension/facebook/feed/GenAiLabel;";
+    private static final String RECOMMENDATION_LABEL = "Lapp/morphe/extension/facebook/feed/RecommendationLabel;";
+    private static final String STORY = "Lcom/facebook/graphql/model/GraphQLStory;";
+    /** What the story's renamed accessor answers, a model class Redex renamed. */
+    private static final String MODEL = "Lfixture/Model;";
+    private static final ImmutableMethodReference STORY_ACCESSOR = method(STORY, "A0X", MODEL);
+
+    private static final String ADAPTERS = "Lfixture/Adapters;";
+    private static final ImmutableMethodReference HIDE_STORIES_TRAY = method(FILTER, "hideStoriesTray", "Z", "I");
+
+    private static final String SHOWCASE_TYPE = "Lapp/morphe/extension/facebook/feed/ShowcaseType;";
+    /** The class whose getTypeName() answers ShowcaseFeedUnit, and its story type accessor. */
+    private static final String SHOWCASE = "Lfixture/Showcase;";
+    private static final String STORY_TYPE = "Lfixture/StoryType;";
+    private static final ImmutableMethodReference SHOWCASE_ACCESSOR = method(SHOWCASE, "A01", STORY_TYPE);
+
+    private static final String PRE_EOF = "Lfixture/PreEof;";
+    private static final ImmutableMethodReference HIDE_PRE_EOF_REELS = method(FILTER, "hidePreEofReels", "Z");
+
+    private static final String RETURN_CONTROLLER = "Lfixture/ReturnController;";
+    private static final String RETURN_REFRESH = "Lapp/morphe/extension/facebook/feed/ReturnRefresh;";
+    private static final ImmutableMethodReference SKIP_RETURN_REFRESH = method(RETURN_REFRESH, "skip", "Z");
 
     private static final ImmutableTypeReference STRING_TYPE = new ImmutableTypeReference("Ljava/lang/String;");
     private static final ImmutableTypeReference INT_ARRAY = new ImmutableTypeReference("[I");
@@ -230,6 +261,27 @@ public class BadDexFixture {
                         new ImmutableSwitchElement(7, 4)))), "I");
     }
 
+    /**
+     * switchHost with [switchOpcode] pointed at [payload], a table of the other kind whose cases
+     * both land where switchHost's do.
+     */
+    private static Method switchWithTable(Opcode switchOpcode, Instruction payload) {
+        return define(HOST, "switchHost", "I", true, body(2,
+                new ImmutableInstruction31t(switchOpcode, 1, 10),         // 0 -> 10
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),        // 3
+                op(Opcode.RETURN, 0),                                      // 4
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 1),        // 5
+                op(Opcode.RETURN, 0),                                      // 6
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 2),        // 7
+                op(Opcode.RETURN, 0),                                      // 8
+                op(Opcode.NOP),                                            // 9, aligns the payload
+                payload), "I");                                            // 10
+    }
+
+    private static List<ImmutableSwitchElement> twoCases() {
+        return Arrays.asList(new ImmutableSwitchElement(0, 5), new ImmutableSwitchElement(1, 7));
+    }
+
     /** tryHost filling an int array, with the handler at its fill-array-data payload at 10. */
     private static Method tryHandlerAtArrayPayload() {
         return define(HOST, "tryHost", "V", true, body(1, Collections.singletonList(tryBlock(0, 3, 10)),
@@ -300,6 +352,109 @@ public class BadDexFixture {
         return new ImmutableClassDef(HOST, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, packedField(HOST), methods);
     }
 
+    /**
+     * One of the feed's two Stories tray adapter methods, static: v0 free, v1 the argument. [prefix]
+     * comes first, then its trace name, then the null it answers when Facebook leaves the tray out.
+     */
+    private static Method trayAdapter(String name, String traceName, List<Instruction> prefix) {
+        List<Instruction> instructions = new ArrayList<>(prefix);
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(traceName)));
+        instructions.add(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0));
+        instructions.add(op(Opcode.RETURN_OBJECT, 0));
+        return define(ADAPTERS, name, OBJECT, true, new ImmutableMethodImplementation(2, instructions, null, null), OBJECT);
+    }
+
+    /** What the tray patch puts first: ask, and return null when told to. The keep path lands at 9. */
+    private static List<Instruction> trayHook(int adapter) {
+        return Arrays.asList(
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, adapter),   // 0
+                invoke(HIDE_STORIES_TRAY, 0),                              // 1
+                op(Opcode.MOVE_RESULT, 0),                                 // 4
+                ifEqz(0, 4),                                               // 5 -> 9
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),        // 7
+                op(Opcode.RETURN_OBJECT, 0));                              // 8
+    }
+
+    private static ClassDef adapters(List<Instruction> legacyPrefix, List<Instruction> unifiedPrefix) {
+        return new ImmutableClassDef(ADAPTERS, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Arrays.asList(
+                        trayAdapter("addStoriesAdapter", "NewsFeedAdapterConfiguration.addStoriesAdapter", legacyPrefix),
+                        trayAdapter("addUnifiedTray", "stories_tray_create_adapter_stop", unifiedPrefix)));
+    }
+
+    private static ClassDef cleanAdapters() {
+        return adapters(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList());
+    }
+
+    /**
+     * A feed unit class Redex renamed: its getTypeName() answers [typeName] as a literal, and its
+     * story type accessor answers the enum. Instance methods: v0 free, v1 this.
+     */
+    private static ClassDef showcaseUnit(String type, String typeName) {
+        return new ImmutableClassDef(type, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(), OBJECT,
+                null, null, null, null, Arrays.asList(
+                        define(type, "getTypeName", "Ljava/lang/String;", false, body(2,
+                                new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference(typeName)),
+                                op(Opcode.RETURN_OBJECT, 0))),
+                        define(type, "A01", STORY_TYPE, false, body(2,
+                                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0)))));
+    }
+
+    private static ClassDef showcaseUnit() {
+        return showcaseUnit(SHOWCASE, "ShowcaseFeedUnit");
+    }
+
+    /**
+     * The pre-EOF injector, an instance method: v0 free, v1 this. [prefix] comes first, then the
+     * adapter name it holds, then its own work, which the fixture leaves as a return.
+     */
+    private static ClassDef preEof(List<Instruction> prefix) {
+        List<Instruction> instructions = new ArrayList<>(prefix);
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0, new ImmutableStringReference("PreEofIfuSectionAdapter")));
+        instructions.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(PRE_EOF, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(PRE_EOF, "injectPreEofIfuEdge$fixture", "V", false,
+                        new ImmutableMethodImplementation(2, instructions, null, null))));
+    }
+
+    /** What the reels patch puts first in the injector: ask, and return when told to. The keep path lands at 7. */
+    private static List<Instruction> preEofHook() {
+        return Arrays.asList(
+                invoke(HIDE_PRE_EOF_REELS),        // 0
+                op(Opcode.MOVE_RESULT, 0),         // 3
+                ifEqz(0, 3),                       // 4 -> 7
+                op(Opcode.RETURN_VOID));           // 6
+    }
+
+    private static ClassDef returnController(List<Instruction> prefix) {
+        List<Instruction> instructions = new ArrayList<>(prefix);
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0,
+                new ImmutableStringReference("FeedRefreshTriggerController")));
+        instructions.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0,
+                new ImmutableStringReference("onRefresh")));
+        instructions.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(RETURN_CONTROLLER, AccessFlags.PUBLIC.getValue(), OBJECT,
+                null, null, null, null, Collections.singletonList(define(RETURN_CONTROLLER,
+                        "resumeAfterBackground", "V", false, new ImmutableMethodImplementation(3,
+                                instructions, null, null), OBJECT)));
+    }
+
+    private static List<Instruction> returnHook() {
+        return Arrays.asList(invoke(SKIP_RETURN_REFRESH), op(Opcode.MOVE_RESULT, 0),
+                ifEqz(0, 3), op(Opcode.RETURN_VOID));
+    }
+
+    private static ClassDef returnRefresh() {
+        return new ImmutableClassDef(RETURN_REFRESH, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                OBJECT, null, null, null, null, Collections.singletonList(define(RETURN_REFRESH,
+                        "skip", "Z", true, body(1,
+                                new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)))));
+    }
+
+    private static ClassDef hookedAdapters() {
+        return adapters(trayHook(0), trayHook(1));
+    }
+
     private static ClassDef cleanHost() {
         return host(feedEdge(CLEAN_FEED_EDGE), staticHost(CLEAN_STATIC_HOST), switchHost(7), tryHost(CLEAN_TRY), true);
     }
@@ -318,13 +473,18 @@ public class BadDexFixture {
      * caught are where paths meet the way ART allows: a zero that is an object on one arm and a
      * zero that is an int on the other, a conflict that is only copied, and a handler that reads
      * what its register held before the instruction that threw. reads gives each instruction the
-     * conflict builds fail a value of the kind ART takes there, so a read made stricter fails too.
+     * conflict builds fail a value of the kind ART takes there, so a read made stricter fails too,
+     * and zeros tests a zero for equality with an object and with an int, which ART allows.
      */
     private static ClassDef filter() {
         List<Method> methods = Arrays.asList(
                 define(FILTER, "hideEdge", "Z", true, body(2,
                         new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)), OBJECT, OBJECT),
                 define(FILTER, "inspect", "V", true, body(2, op(Opcode.RETURN_VOID)), OBJECT, OBJECT),
+                define(FILTER, "hideStoriesTray", "Z", true, body(2,
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0)), "I"),
+                define(FILTER, "hidePreEofReels", "Z", true, body(1,
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0))),
                 define(FILTER, "wide", "V", true, body(2, op(Opcode.RETURN_VOID)), "J"),
                 define(FILTER, "reuse", "V", true, body(1,
                         new ImmutableInstruction10t(Opcode.GOTO, 5),                            // 0 -> 5
@@ -399,7 +559,21 @@ public class BadDexFixture {
                         op(Opcode.THROW, 3),                                                     // 37
                         oneInt(),                                                                // 38
                         new ImmutablePackedSwitchPayload(Collections.singletonList(              // 44
-                                new ImmutableSwitchElement(0, 3)))), OBJECT, "I"));
+                                new ImmutableSwitchElement(0, 3)))), OBJECT, "I"),
+                // A zero tested for equality with the object v1 and with the int v2, each from
+                // either side. A zero stands for either, so none of these pairs is the mismatch
+                // an int and an object are.
+                define(FILTER, "zeros", "V", true, body(3,
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),                       // 0
+                        new ImmutableInstruction22t(Opcode.IF_EQ, 0, 1, 3),                      // 1 -> 4
+                        op(Opcode.NOP),                                                          // 3
+                        new ImmutableInstruction22t(Opcode.IF_NE, 1, 0, 3),                      // 4 -> 7
+                        op(Opcode.NOP),                                                          // 6
+                        new ImmutableInstruction22t(Opcode.IF_EQ, 0, 2, 3),                      // 7 -> 10
+                        op(Opcode.NOP),                                                          // 9
+                        new ImmutableInstruction22t(Opcode.IF_NE, 2, 0, 3),                      // 10 -> 13
+                        op(Opcode.NOP),                                                          // 12
+                        op(Opcode.RETURN_VOID)), OBJECT, "I"));                                  // 13
         return new ImmutableClassDef(FILTER, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
                 OBJECT, null, null, null, packedField(FILTER), methods);
     }
@@ -410,8 +584,66 @@ public class BadDexFixture {
     }
 
     private static List<ClassDef> patched(Method feedEdge, Method staticHost, Method switchHost, Method tryHost) {
-        return Arrays.asList(host(feedEdge, staticHost, switchHost, tryHost, true), filter());
+        return bundle(host(feedEdge, staticHost, switchHost, tryHost, true));
     }
+
+    /** A patched build: [host] and the bundle's own classes, both stubs filled. */
+    private static List<ClassDef> bundle(ClassDef host) {
+        return bundle(host, stub(GENAI_LABEL, "detectedInfo", FILLED_STUB),
+                stub(RECOMMENDATION_LABEL, "recommendationContext", FILLED_STUB));
+    }
+
+    private static List<ClassDef> bundle(ClassDef host, ClassDef genAiLabel, ClassDef recommendationLabel) {
+        return bundle(host, genAiLabel, recommendationLabel, hookedAdapters());
+    }
+
+    private static List<ClassDef> bundle(ClassDef host, ClassDef genAiLabel, ClassDef recommendationLabel,
+            ClassDef adapters) {
+        return bundle(host, genAiLabel, recommendationLabel, adapters,
+                stub(SHOWCASE_TYPE, "storyType", FILLED_SHOWCASE_STUB), preEof(preEofHook()));
+    }
+
+    /** A patched build with the reels patch's two changes passed in too, and the showcase unit. */
+    private static List<ClassDef> bundle(ClassDef host, ClassDef genAiLabel, ClassDef recommendationLabel,
+            ClassDef adapters, ClassDef showcaseType, ClassDef preEof) {
+        return Arrays.asList(host, adapters, filter(), genAiLabel, recommendationLabel, showcaseUnit(), showcaseType,
+                preEof, returnController(returnHook()), returnRefresh());
+    }
+
+    /** A patched build that breaks only the reels patch's changes, as [showcaseType] and [preEof]. */
+    private static List<ClassDef> reelsBundle(ClassDef showcaseType, ClassDef preEof) {
+        return bundle(host(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST), switchHost(7),
+                tryHost(CLEAN_TRY), true), stub(GENAI_LABEL, "detectedInfo", FILLED_STUB),
+                stub(RECOMMENDATION_LABEL, "recommendationContext", FILLED_STUB), hookedAdapters(), showcaseType, preEof);
+    }
+
+    /**
+     * An extension stub, {@code static Object name(Object)}: v0 free, v1 the story. The patch fills
+     * it by putting a call to the story's accessor first.
+     */
+    private static ClassDef stub(String owner, String name, ImmutableMethodImplementation implementation) {
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(), OBJECT,
+                null, null, null, null,
+                Collections.singletonList(define(owner, name, OBJECT, true, implementation, OBJECT)));
+    }
+
+    /** What the patches write: the story cast, its accessor called, its answer returned. */
+    private static final ImmutableMethodImplementation FILLED_STUB = body(2,
+            new ImmutableInstruction21c(Opcode.CHECK_CAST, 1, new ImmutableTypeReference(STORY)),
+            new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, STORY_ACCESSOR),
+            op(Opcode.MOVE_RESULT_OBJECT, 1),
+            op(Opcode.RETURN_OBJECT, 1));
+
+    /** What the reels patch writes: the unit cast to the showcase class, its accessor called. */
+    private static final ImmutableMethodImplementation FILLED_SHOWCASE_STUB = body(2,
+            new ImmutableInstruction21c(Opcode.CHECK_CAST, 1, new ImmutableTypeReference(SHOWCASE)),
+            new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, SHOWCASE_ACCESSOR),
+            op(Opcode.MOVE_RESULT_OBJECT, 1),
+            op(Opcode.RETURN_OBJECT, 1));
+
+    /** The stub as the extension ships it: a marker answered, no call. */
+    private static final ImmutableMethodImplementation UNFILLED_STUB = body(2,
+            new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN_OBJECT, 0));
 
     private static List<ClassDef> good() {
         return patched(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST), switchHost(7), tryHost(CLEAN_TRY));
@@ -456,14 +688,15 @@ public class BadDexFixture {
         if (!out.isDirectory() && !out.mkdirs()) throw new IllegalStateException("Cannot create " + out);
 
         Map<String, List<ClassDef>> dexes = new LinkedHashMap<>();
-        dexes.put("clean", Collections.singletonList(cleanHost()));
+        dexes.put("clean", Arrays.asList(cleanHost(), cleanAdapters(), showcaseUnit(),
+                preEof(Collections.<Instruction>emptyList()), returnController(Collections.<Instruction>emptyList())));
         dexes.put("secondary", Collections.singletonList(secondary()));
         dexes.put("good", good());
         List<ClassDef> goodWithSecondary = new ArrayList<>(good());
         goodWithSecondary.add(secondary());
         dexes.put("good-with-secondary", goodWithSecondary);
-        dexes.put("removed-method", Arrays.asList(host(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
-                switchHost(7), tryHost(CLEAN_TRY), false), filter()));
+        dexes.put("removed-method", bundle(host(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
+                switchHost(7), tryHost(CLEAN_TRY), false)));
 
         // branch: the guard's if-eqz jumps back into the middle of its own invoke.
         dexes.put("bad-branch", withFeedEdge(body(4,
@@ -477,6 +710,10 @@ public class BadDexFixture {
         dexes.put("bad-branch-to-result", withFeedEdge(body(4,
                 invoke(HIDE_EDGE, 2, 3), op(Opcode.MOVE_RESULT, 0), ifEqz(0, -1),
                 op(Opcode.RETURN_VOID), op(Opcode.RETURN_VOID))));
+        // branch: the guard with its last return-void nopped, so the kept path runs off the end.
+        dexes.put("bad-walk-off-end", withFeedEdge(body(4,
+                invoke(HIDE_EDGE, 2, 3), op(Opcode.MOVE_RESULT, 0), ifEqz(0, 3),
+                op(Opcode.RETURN_VOID), op(Opcode.NOP))));
         // branch: the try path jumps onto the handler's move-exception.
         dexes.put("bad-goto-to-handler", withTryHost(tryHost(CLEAN_TRY, new ImmutableInstruction10t(Opcode.GOTO, 1))));
         // try: the try path falls straight into the handler's move-exception.
@@ -535,6 +772,12 @@ public class BadDexFixture {
         // branch: a sparse switch's case sent to its own payload.
         dexes.put("bad-sparse-case-to-payload", patched(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
                 sparseSwitchToOwnPayload(), tryHost(CLEAN_TRY)));
+        // branch: a packed-switch pointed at a sparse-switch table, and a sparse-switch at a
+        // packed-switch table, with every case landing on an instruction.
+        dexes.put("bad-packed-switch-sparse-table", patched(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
+                switchWithTable(Opcode.PACKED_SWITCH, new ImmutableSparseSwitchPayload(twoCases())), tryHost(CLEAN_TRY)));
+        dexes.put("bad-sparse-switch-packed-table", patched(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
+                switchWithTable(Opcode.SPARSE_SWITCH, new ImmutablePackedSwitchPayload(twoCases())), tryHost(CLEAN_TRY)));
         // branch: case 1 sent to the nop that aligns the payload, which falls into the table.
         dexes.put("bad-fallthrough-into-payload", patched(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
                 switchHost(9), tryHost(CLEAN_TRY)));
@@ -605,6 +848,50 @@ public class BadDexFixture {
                 op(Opcode.RETURN_VOID),                                                            // 8
                 op(Opcode.NOP),                                                                    // 9, aligns the payload
                 oneInt()));                                                                        // 10
+        // The same conflict where each of the other readers takes it: the other test against
+        // zero, an equality test in either register, an ordering against zero, the second
+        // register of an ordering, a sparse switch, the unlock, and a range-built array.
+        dexes.put("bad-conflict-if-nez", conflictThen(
+                new ImmutableInstruction21t(Opcode.IF_NEZ, 0, 3), op(Opcode.RETURN_VOID), op(Opcode.RETURN_VOID)));
+        dexes.put("bad-conflict-if-eq", conflictThen(
+                new ImmutableInstruction22t(Opcode.IF_EQ, 0, 3, 3), op(Opcode.RETURN_VOID), op(Opcode.RETURN_VOID)));
+        dexes.put("bad-conflict-if-eq-second", conflictThen(
+                new ImmutableInstruction22t(Opcode.IF_EQ, 3, 0, 3), op(Opcode.RETURN_VOID), op(Opcode.RETURN_VOID)));
+        dexes.put("bad-conflict-if-gez", conflictThen(
+                new ImmutableInstruction21t(Opcode.IF_GEZ, 0, 3), op(Opcode.RETURN_VOID), op(Opcode.RETURN_VOID)));
+        dexes.put("bad-conflict-if-lt-second", conflictThen(new ImmutableInstruction11n(Opcode.CONST_4, 1, 0),
+                new ImmutableInstruction22t(Opcode.IF_LT, 1, 0, 3), op(Opcode.RETURN_VOID), op(Opcode.RETURN_VOID)));
+        dexes.put("bad-conflict-sparse-switch", conflictThen(
+                new ImmutableInstruction31t(Opcode.SPARSE_SWITCH, 0, 5),                           // 5 -> 10
+                op(Opcode.RETURN_VOID),                                                            // 8
+                op(Opcode.NOP),                                                                    // 9, aligns the payload
+                new ImmutableSparseSwitchPayload(Collections.singletonList(                        // 10
+                        new ImmutableSwitchElement(0, 3)))));
+        dexes.put("bad-conflict-monitor-exit", conflictThen(op(Opcode.MONITOR_EXIT, 0), op(Opcode.RETURN_VOID)));
+        dexes.put("bad-conflict-filled-new-array-range", conflictThen(
+                new ImmutableInstruction3rc(Opcode.FILLED_NEW_ARRAY_RANGE, 0, 1, INT_ARRAY), op(Opcode.RETURN_VOID)));
+        // width: the upper half of a long whose lower half was overwritten, tested against zero.
+        dexes.put("bad-broken-high-if-eqz", withStaticHost(body(5,
+                new ImmutableInstruction31i(Opcode.CONST_WIDE_32, 0, BLACK),                       // 0
+                new ImmutableInstruction11n(Opcode.CONST_4, 0, 1),                                 // 3, v1 is left a lone upper half
+                ifEqz(1, 3),                                                                       // 4 -> 7
+                op(Opcode.RETURN_VOID),                                                            // 6
+                op(Opcode.RETURN_VOID))));                                                         // 7
+        // width: an int, risky()'s result, tested for equality with the object argument, and the
+        // same pair the other way round. Each register is something an equality test takes, but
+        // ART wants two objects or two narrow values.
+        dexes.put("bad-if-eq-int-object", withStaticHost(body(5,
+                invoke(RISKY),                                                                     // 0
+                op(Opcode.MOVE_RESULT, 0),                                                         // 3
+                new ImmutableInstruction22t(Opcode.IF_EQ, 0, 2, 3),                                // 4 -> 7
+                op(Opcode.RETURN_VOID),                                                            // 6
+                op(Opcode.RETURN_VOID))));                                                         // 7
+        dexes.put("bad-if-ne-object-int", withStaticHost(body(5,
+                invoke(RISKY),                                                                     // 0
+                op(Opcode.MOVE_RESULT, 0),                                                         // 3
+                new ImmutableInstruction22t(Opcode.IF_NE, 2, 0, 3),                                // 4 -> 7
+                op(Opcode.RETURN_VOID),                                                            // 6
+                op(Opcode.RETURN_VOID))));                                                         // 7
         // width: a long tested against zero, which takes a narrow value or an object.
         dexes.put("bad-wide-if-eqz", withStaticHost(body(5,
                 new ImmutableInstruction31i(Opcode.CONST_WIDE_32, 0, BLACK),                       // 0
@@ -677,6 +964,72 @@ public class BadDexFixture {
         // contract: no guard at all.
         dexes.put("bad-no-guard", patched(feedEdge(CLEAN_FEED_EDGE), staticHost(GOOD_STATIC_HOST),
                 switchHost(7), tryHost(CLEAN_TRY)));
+        ClassDef goodHost = host(feedEdge(GUARDED_FEED_EDGE), staticHost(GOOD_STATIC_HOST), switchHost(7),
+                tryHost(CLEAN_TRY), true);
+        ClassDef filledRecommendation = stub(RECOMMENDATION_LABEL, "recommendationContext", FILLED_STUB);
+        // contract: the GenAI stub left as the extension ships it, answering its marker.
+        dexes.put("bad-stub-not-filled", bundle(goodHost, stub(GENAI_LABEL, "detectedInfo", UNFILLED_STUB),
+                filledRecommendation));
+        // contract: the recommendation stub calling a no-argument method, but not the story's.
+        dexes.put("bad-stub-other-class", bundle(goodHost, stub(GENAI_LABEL, "detectedInfo", FILLED_STUB),
+                stub(RECOMMENDATION_LABEL, "recommendationContext", body(2,
+                        new ImmutableInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0, method(MODEL, "A0X", MODEL)),
+                        op(Opcode.MOVE_RESULT_OBJECT, 1),
+                        op(Opcode.RETURN_OBJECT, 1)))));
+        // contract: the unified tray adapter left without the tray patch's call.
+        ClassDef filledGenAi = stub(GENAI_LABEL, "detectedInfo", FILLED_STUB);
+        dexes.put("bad-tray-hook-missing", bundle(goodHost, filledGenAi, filledRecommendation,
+                adapters(trayHook(0), Collections.<Instruction>emptyList())));
+        // contract: the classic tray adapter's call after a branch, not first.
+        List<Instruction> late = new ArrayList<>();
+        late.add(ifEqz(1, 3));                                            // 0 -> 3
+        late.add(op(Opcode.NOP));                                         // 2
+        late.addAll(trayHook(0));                                         // 3
+        dexes.put("bad-tray-hook-late", bundle(goodHost, filledGenAi, filledRecommendation,
+                adapters(late, trayHook(1))));
+        // contract: the story's accessor called only after the stub has already returned.
+        dexes.put("bad-stub-call-after-return", bundle(goodHost, stub(GENAI_LABEL, "detectedInfo", body(2,
+                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                        op(Opcode.RETURN_OBJECT, 0),
+                        new ImmutableInstruction21c(Opcode.CHECK_CAST, 1, new ImmutableTypeReference(STORY)),
+                        new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, STORY_ACCESSOR),
+                        op(Opcode.MOVE_RESULT_OBJECT, 1),
+                        op(Opcode.RETURN_OBJECT, 1))),
+                filledRecommendation));
+
+        ClassDef filledShowcase = stub(SHOWCASE_TYPE, "storyType", FILLED_SHOWCASE_STUB);
+        // contract: the pre-EOF injector left without the reels patch's call, the hook deleted.
+        dexes.put("bad-preeof-hook-missing", reelsBundle(filledShowcase, preEof(Collections.<Instruction>emptyList())));
+        // contract: the injector's call after a branch, not first.
+        List<Instruction> lateHook = new ArrayList<>();
+        lateHook.add(ifEqz(1, 3));                                        // 0 -> 3
+        lateHook.add(op(Opcode.NOP));                                     // 2
+        lateHook.addAll(preEofHook());                                    // 3
+        dexes.put("bad-preeof-hook-late", reelsBundle(filledShowcase, preEof(lateHook)));
+        // contract: the showcase stub left as the extension ships it, answering its marker.
+        dexes.put("bad-showcase-stub-not-filled", reelsBundle(stub(SHOWCASE_TYPE, "storyType", UNFILLED_STUB),
+                preEof(preEofHook())));
+        // contract: the showcase stub calling a no-argument method of a class that isn't the showcase one.
+        dexes.put("bad-showcase-stub-other-class", reelsBundle(stub(SHOWCASE_TYPE, "storyType", FILLED_STUB),
+                preEof(preEofHook())));
+        // contract: a second class answering the showcase type name, so the stub's class isn't the only one.
+        List<ClassDef> twoShowcases = new ArrayList<>(reelsBundle(filledShowcase, preEof(preEofHook())));
+        twoShowcases.add(showcaseUnit("Lfixture/OtherShowcase;", "ShowcaseFeedUnit"));
+        dexes.put("bad-showcase-two-classes", twoShowcases);
+
+        List<ClassDef> missingReturnHook = new ArrayList<>(good());
+        missingReturnHook.removeIf(cd -> cd.getType().equals(RETURN_CONTROLLER));
+        missingReturnHook.add(returnController(Collections.<Instruction>emptyList()));
+        dexes.put("bad-return-refresh-hook-missing", missingReturnHook);
+
+        List<Instruction> lateReturnHook = new ArrayList<>();
+        lateReturnHook.add(ifEqz(2, 3));
+        lateReturnHook.add(op(Opcode.NOP));
+        lateReturnHook.addAll(returnHook());
+        List<ClassDef> lateReturn = new ArrayList<>(good());
+        lateReturn.removeIf(cd -> cd.getType().equals(RETURN_CONTROLLER));
+        lateReturn.add(returnController(lateReturnHook));
+        dexes.put("bad-return-refresh-hook-late", lateReturn);
 
         for (Map.Entry<String, List<ClassDef>> e : dexes.entrySet()) {
             File dex = new File(out, e.getKey() + ".dex");

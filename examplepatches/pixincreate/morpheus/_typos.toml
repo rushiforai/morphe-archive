@@ -1,0 +1,17 @@
+# The base APKs and the build output are binaries or machine generated data, not
+# prose. Everything else is ours and is checked.
+[files]
+extend-exclude = [
+  "base/**",
+  "build/**",
+  "out/**",
+]
+
+# The vendor and product names this repository is about. "Ather" is the scooter
+# maker, not a misspelling of "other".
+[default.extend-words]
+Ather = "Ather"
+ather = "ather"
+# Smali opcode names and the English ordinal suffix are code, not prose.
+iput = "iput"
+nd = "nd"

@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/RjBiermann/brave-waffle/compare/v1.8.0...v1.9.0) (2026-09-25)
+
+### ✨ New Features
+
+* kill news promo flash and WebView version nag ([a8e4ae4](https://github.com/RjBiermann/brave-waffle/commit/a8e4ae407c09d208d28d7f89e875ce7b85601c89))
+
 ## [1.8.0](https://github.com/RjBiermann/brave-waffle/compare/v1.7.1...v1.8.0) (2026-09-18)
 
 ### ✨ New Features

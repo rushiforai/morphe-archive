@@ -1,0 +1,3 @@
+09-25 17:53:38.953  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 22640/Done 22640|Work-Rate: Q(90.0/s Avg=88.6/s) Done(89.995/s Avg=88.583/s)| Stream: 1000000.00fps 340948.9Mbps
+09-25 17:53:43.954  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 23089/Done 23090|Work-Rate: Q(89.8/s Avg=88.6/s) Done(89.996/s Avg=88.610/s)| Stream: 1000000.00fps 296984.0Mbps
+09-25 17:53:48.954  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 23539/Done 23540|Work-Rate: Q(90.0/s Avg=88.6/s) Done(89.997/s Avg=88.637/s)| Stream: 1000000.00fps 347219.2Mbps

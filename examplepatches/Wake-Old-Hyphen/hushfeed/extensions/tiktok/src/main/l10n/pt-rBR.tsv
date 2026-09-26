@@ -63,6 +63,7 @@ A newer clear replaced that undo. Tap the row again to undo.	Uma limpeza mais re
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Um rótulo pequeno no feed mostra os minutos ou vídeos restantes do orçamento de hoje.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Tocar em Início ou na aba Para você enquanto Para você está aberto não recarrega mais o feed. O vídeo que você está vendo continua.
 A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.	Tocar em alguém na linha Enviar para apenas seleciona a pessoa. Um segundo toque na mesma pessoa dentro de %1$d segundos envia o vídeo.
+A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.	Um vídeo que você pausou continua pausado quando você volta ao app em vez de recomeçar. Um que ficou tocando começa como sempre. Funciona a partir do Android 10.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.	Um endereço da web deixado em um comentário pode ser tocado em vez de copiado na mão. Tocar em qualquer outra parte do comentário continua fazendo o de sempre.
 AI-generated posts	Publicações geradas por IA
 About	Sobre
@@ -395,6 +396,8 @@ Hide bottom tabs TikTok adds later unless you allow them.	Esconder as abas de ba
 Hide the CAPTCHA dialogs raised while you browse or watch LIVE. Login, account verification and any CAPTCHA raised over a follow, like, comment or repost stay visible.	Esconder os CAPTCHAs que aparecem enquanto você navega ou assiste a um LIVE. Os de login, os de verificação de conta e qualquer um que apareça ao seguir, curtir, comentar ou repostar continuam visíveis.
 Hide buttons in the right column	Ocultar botões da coluna da direita
 Hide comment polls	Esconder enquetes nos comentários
+Show poll results before voting	Mostrar resultados das enquetes antes de votar
+A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.	Uma enquete nos comentários mostra quantos escolheram cada resposta antes de você votar. Tocar em uma resposta ainda vota.
 Hide comment popup ads	Esconder os anúncios pop-up dos comentários
 Hide comments made of an image or a sticker instead of words.	Esconder os comentários feitos com imagem ou sticker em vez de palavras.
 Hide comments that contain any of the words below, or that come from the accounts below.	Esconder os comentários que tenham qualquer uma das palavras abaixo, ou que venham das contas abaixo.
@@ -503,6 +506,7 @@ Includes all diagnostic events.	Inclui todos os eventos de diagnóstico.
 Includes these events: %1$s	Inclui estes eventos: %1$s
 Inserted cards	Cards inseridos
 Keep a local record of what you have watched and hide those videos when the feed sends them again.	Guardar no aparelho um registro do que você viu e esconder esses vídeos quando o feed os enviar de novo.
+Keep a paused video paused	Manter pausado um vídeo pausado
 Move to the next video when the current one ends. Pauses, open dialogs and screen-time holds stop it. Restart TikTok after changing this.	Avance para o próximo vídeo quando o atual terminar. Pausas, caixas de diálogo abertas e bloqueios de tempo de tela interrompem o avanço. Reinicie o TikTok depois de mudar esta configuração.
 Keep captions in clear display	Manter as legendas com a tela limpa
 Keep going	Continuar
@@ -540,6 +544,10 @@ Limits	Limites
 Link copied	Link copiado
 Links	Links
 Links in comments open	Os links nos comentários abrem
+More opens the comments	Mais abre os comentários
+Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.	Tocar em mais abaixo de um vídeo abre os comentários com a legenda inteira no topo em vez de espalhá-la sobre o vídeo. Tocar na própria legenda faz o mesmo. Posts de fotos mantêm a página do próprio TikTok para isso.
+Caption above comments	Legenda acima dos comentários
+The comment button also opens a video's comments with its caption at the top.	O botão de comentários também abre os comentários de um vídeo com a legenda no topo.
 Loaded current values. Loading all known gates...	Valores atuais carregados. Carregando todos os gates conhecidos...
 Loaded values are still being read. Try again in a moment.	Os valores carregados ainda estão sendo lidos. Tente novamente em instantes.
 Loaded-value file export failed	A exportação do arquivo de valores carregados falhou
@@ -549,6 +557,12 @@ Creators hidden on this phone	Criadores escondidos neste aparelho
 Lock today's budget	Travar o limite de hoje
 Logging, hook status and reports	Registros, status dos hooks e relatórios
 Long press	Toque longo
+Hold speed on Comment	Velocidade de segurar em Comentários
+A long press on Comment plays the video at the hold speed instead of opening the emoji row. It needs Long press on TikTok default and Seek from the edges off.	Um toque longo em Comentários reproduz o vídeo na velocidade de segurar em vez de abrir a fileira de emojis. Requer Toque longo no Padrão do TikTok e Avançar pelas bordas desligado.
+Hold speed on Share	Velocidade de segurar em Compartilhar
+A long press on Share plays the video at the hold speed instead of opening the quick share row. It needs Long press on TikTok default and Seek from the edges off.	Um toque longo em Compartilhar reproduz o vídeo na velocidade de segurar em vez de abrir a fileira de compartilhamento rápido. Requer Toque longo no Padrão do TikTok e Avançar pelas bordas desligado.
+Hold speed on Favorites	Velocidade de segurar em Favoritos
+A long press on Favorites plays the video at the hold speed instead of offering a new collection. It needs Long press on TikTok default and Seek from the edges off.	Um toque longo em Favoritos reproduz o vídeo na velocidade de segurar em vez de oferecer uma nova coleção. Requer Toque longo no Padrão do TikTok e Avançar pelas bordas desligado.
 Lowest	A mais baixa
 Make TikTok yours.	Deixe o TikTok do seu jeito.
 Manager	Gerenciador
@@ -652,6 +666,7 @@ Open the feed once so Hushfeed can see which bottom tabs TikTok loaded.	Abra o i
 Open the feed once so Hushfeed can see which tabs TikTok loaded.	Abra o feed inicial do TikTok para detectar as abas carregadas.
 Open the profile again and try once more	Abra o perfil de novo e tente mais uma vez
 Open the story again and try once more	Abra o story de novo e tente mais uma vez
+Open TikTok on	Abrir o TikTok em
 Opens github.com in your browser	Abre github.com no seu navegador
 Operator code	Código da operadora
 Operator name	Nome da operadora
@@ -836,6 +851,7 @@ Shop posts	Publicações da loja
 Show	Mostrar
 Show @username beside a video instead of the display name the creator chose.	Mostrar @usuário ao lado do vídeo em vez do nome de exibição que o criador escolheu.
 Show search in LIVE	Mostrar pesquisa no LIVE
+Show TikTok's feed buttons	Mostrar os botões do feed do TikTok
 Show TikTok's own progress bar on videos where it is normally hidden.	Mostrar a barra de progresso do TikTok nos vídeos onde ela normalmente fica escondida.
 Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.	Mostrar a folha de ordenação do TikTok em todas as publicações, com as opções de populares, mais recentes, mídia e criador, em vez da linha reduzida que a sua conta recebeu. Reinicie o TikTok para aplicar. Ele lê o estilo uma vez por execução e guarda.
 Show the search entry inside TikTok's LIVE drawer, where available. This doesn't add a search box to video comments.	Mostre a opção de pesquisa no painel LIVE do TikTok, quando disponível. Isso não adiciona uma caixa de pesquisa aos comentários de vídeos.
@@ -1014,6 +1030,7 @@ TikTok read it	O TikTok leu
 TikTok read it, but the override couldn't be applied. Reset it and save it again.	O TikTok leu, mas a substituição não pôde ser aplicada. Redefina-a e salve de novo.
 TikTok refused the follow: %1$s	O TikTok recusou o seguir: %1$s
 TikTok's own value	Valor do próprio TikTok
+TikTok's play and pause button and its previous and next buttons appear on the feed. TikTok otherwise shows them only to people who use a screen reader. TikTok's analytics note the row and each press on it.	O botão de reproduzir e pausar do TikTok e os botões de anterior e próximo aparecem no feed. Fora isso, o TikTok só os mostra para quem usa um leitor de tela. As análises do TikTok registram a fileira e cada toque nela.
 TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.	O servidor do TikTok pode colocar uma conta em um experimento que esvazia a aba Favoritos do seu perfil. Mantém a aba e os vídeos salvos nela.
 TikTok's size	Tamanho do TikTok
 Times you can open the feed anyway	Vezes que você pode abrir o feed mesmo assim

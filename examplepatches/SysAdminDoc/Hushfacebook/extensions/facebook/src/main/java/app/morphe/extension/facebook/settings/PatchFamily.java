@@ -28,8 +28,8 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
  * only its answer changes, and Debug logging keeps its saved value. An edit made when you patched
  * has no switch to ask: a neutered method or a disabled manifest component stays in until you
  * patch again. The reel sidebar's Download button and the story menu's Save item were edits like
- * that until each asked its switch before it goes in. Some patches are both, so each one says
- * which of its parts stay.
+ * that until each asked its switch before it goes in, and the video menu's item asks its own the
+ * same way. Some patches are both, so each one says which of its parts stay.
  *
  * <p>The settings screen and the diagnostic report read this list, so they can't disagree about
  * it. A family is found in this build by the name of its {@link SettingsStatus} method, the same
@@ -39,7 +39,15 @@ public enum PatchFamily {
     SPONSORED_POSTS(FamilyNames.SPONSORED_POSTS, "sponsoredPosts", null,
             Settings.HIDE_SPONSORED_POSTS, Settings.HIDE_PROMOTED_POSTS),
     SUGGESTED_POSTS(FamilyNames.SUGGESTED_POSTS, "suggestedPosts", null,
-            Settings.HIDE_SUGGESTED_POSTS),
+            Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_SUGGESTED_FOR_YOU, Settings.HIDE_PEOPLE_YOU_MAY_KNOW),
+    STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null,
+            Settings.HIDE_STORIES_TRAY),
+    FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null,
+            Settings.HIDE_FEED_REELS),
+    RETURN_REFRESH(FamilyNames.RETURN_REFRESH, "returnRefresh", null,
+            Settings.BLOCK_RETURN_REFRESH),
+    AI_DETECTED_POSTS(FamilyNames.AI_DETECTED_POSTS, "aiDetectedPosts", null,
+            Settings.HIDE_AI_DETECTED_POSTS),
     SPONSORED_STORIES(FamilyNames.SPONSORED_STORIES, "sponsoredStories", null,
             Settings.HIDE_SPONSORED_STORIES),
     SPONSORED_REELS(FamilyNames.SPONSORED_REELS, "sponsoredReels",
@@ -47,14 +55,19 @@ public enum PatchFamily {
             Settings.HIDE_SPONSORED_REELS),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null,
             Settings.OPEN_LINKS_EXTERNALLY),
+    SANITIZE_SHARING_LINKS(FamilyNames.SANITIZE_SHARING_LINKS, "sanitizeSharingLinks", null,
+            Settings.SANITIZE_SHARING_LINKS),
     STORY_DOWNLOAD(FamilyNames.STORY_DOWNLOAD, "storyDownload", null,
             Settings.DOWNLOAD_STORIES),
     REEL_DOWNLOAD(FamilyNames.REEL_DOWNLOAD, "reelDownload", null,
             Settings.DOWNLOAD_REELS),
+    VIDEO_DOWNLOAD(FamilyNames.VIDEO_DOWNLOAD, "videoDownload", null,
+            Settings.DOWNLOAD_VIDEOS),
     AD_PREFETCH(FamilyNames.AD_PREFETCH, "adPrefetch", "the background ad prefetch block"),
     AD_TELEMETRY(FamilyNames.AD_TELEMETRY, "adTelemetry", "the ad telemetry block"),
     AUDIENCE_NETWORK(FamilyNames.AUDIENCE_NETWORK, "audienceNetwork", "the Audience Network block"),
     AMOLED_THEME(FamilyNames.AMOLED_THEME, "amoledTheme", "the AMOLED black theme"),
+    MATERIAL_YOU_THEME(FamilyNames.MATERIAL_YOU_THEME, "materialYouTheme", "the Material You theme"),
     RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix");
 
     /** The patch's name in Morphe Manager. */

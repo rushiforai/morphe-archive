@@ -6,6 +6,14 @@ Scope: `D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL`, including it
 
 Cleanup is part of completing an experiment or finalizing/applying a patch. Record the outcome, exact base, evidence and runtime limits; remove disposable outputs and superseded local copies; verify retained inputs and tool references. Keep a dated failed/retired record so a failed experiment is not recommended again. Parent and repository `AGENTS.md` enforce this rule.
 
+## Foveal gamma adjustment validation, 2026-09-25
+
+- Added default-neutral foveal gamma on exact 2.0.20/5001712, 2.0.22/5002244 and 2.0.23/5002363. [Validation and reproduction](diagnostics/steamlink-colour/FOVEAL-GAMMA-2026-09-25.md): 124 JUnit tests, 3 decoded OLED/blue-noise bases, 84 shader pairs and 12 Morphe fixture cases passed. Local package includes D8 Release/API26 output; normal Gradle plugin resolution remains blocked. No install or headset efficacy claim.
+- Retained deliverable: `patches/build/libs/patches-1.19.0-dev.1-foveal-gamma-local.mpp` (SHA-256 `584ed5cf0148221c353c3cc7a2fdaf2e5f50d86170816f3f85695bf2ed4bf3d7`). Compact receipts are under `diagnostics/steamlink-colour/foveal-gamma-20260925/`.
+- Disposable allowlist: task-created `build/foveal-gamma-20260925/` (compiler/resources, diagnostic shaders and unsigned fixture-package derivatives), plus intermediate `patches/build/libs/patches-1.19.0-dev.1-5002363-local.mpp`. Inventory: **1,808 files / 2,009,005,710 bytes**. Resolved paths are inside this repository and contain no reparse points.
+- **Cleanup deferred:** automatic approval review rejected deletion with **"blocked by policy"** before execution. **0 bytes reclaimed.** [Exact allowlist](diagnostics/steamlink-colour/foveal-gamma-20260925/cleanup.json). Completion condition: remove these inventoried disposable outputs when policy permits, preserving the final MPP and receipts.
+- Exact decoded inputs, fixture APKs, existing build/tool caches, native payloads and unrelated dirty work were preserved. Adjacent GalaxyXR-Driver and Tools repository status was inspected for ownership; neither was modified by this task.
+
 ## Dropped Steam Link build removal, 2026-09-20
 
 - **User-approved scope:** all compatibility, patch code, tests and catalogs now target exactly **2.0.20/5001712, 2.0.22/5002244, 2.0.23/5002363**. Dropped builds `5001740`, `5002296`, `5002313`, `5002318`, `5002322` were removed from `shared/Constants.kt`, every per-build layout table, the two `galaxyXrRecommended5002318/5002322Patch` bundles, patch descriptions, audit tools and tests. Shared code paths used by the 3 kept builds are preserved (e.g. the tongue-bridge byte arrays, now neutral `MODERN_TONGUE_ORIGINAL`/`MODERN_TONGUE_REPLACEMENT`).

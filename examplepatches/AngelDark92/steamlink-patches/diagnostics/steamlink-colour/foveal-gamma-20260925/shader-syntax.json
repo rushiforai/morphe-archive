@@ -1,0 +1,762 @@
+{
+  "boundary": "Offline structural and diagnostic ES310 stage linking only. Original ES300 has inherited standalone-uniform layout locations rejected by strict glslang. No production shader dialect change or Android GPU execution.",
+  "cases": [
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit-gamma-102.masked.glsl",
+      "sha256": "7c1806b9096e885ca334d3c242337b25df501a8d9de01610f39ba9e9794b2cfe",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit-gamma-110.masked.glsl",
+      "sha256": "8ae3453c7747d5f35f45a5601980dc44a947950ecd65ff147f97e8497cb627fd",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit-gamma-130.masked.glsl",
+      "sha256": "3f2572f841f4b82516fd3f6eccf4d31339b80fe216ed405fd66ca8563565ddfa",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit.masked.glsl",
+      "sha256": "acfea80b2608a61ea940a5baace3a1b7069b01bc827df31299727a5661801c25",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-10bit.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-10bit.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-10bit.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit-gamma-102.masked.glsl",
+      "sha256": "7c1806b9096e885ca334d3c242337b25df501a8d9de01610f39ba9e9794b2cfe",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit-gamma-110.masked.glsl",
+      "sha256": "8ae3453c7747d5f35f45a5601980dc44a947950ecd65ff147f97e8497cb627fd",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit-gamma-130.masked.glsl",
+      "sha256": "3f2572f841f4b82516fd3f6eccf4d31339b80fe216ed405fd66ca8563565ddfa",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit.masked.glsl",
+      "sha256": "acfea80b2608a61ea940a5baace3a1b7069b01bc827df31299727a5661801c25",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-fovea-input-8bit.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-fovea-input-8bit.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-fovea-input-8bit.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-low.masked.glsl",
+      "sha256": "eb52f1d9621ad2c38db815cc38b65707fb89985dc3dc171578fa063055028cd8",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-low.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-low.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-low.opaque.glsl",
+      "sha256": "e534a163522d34ae412aa5b2461ee1c17e900acd2bc5a7129918883f4a995e43",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-low.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-low.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off-gamma-102.masked.glsl",
+      "sha256": "82e5b74da8053f14f4f7ea237c4c759e08cef3db62c73f2acded560ebe7f63ae",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off-gamma-110.masked.glsl",
+      "sha256": "409889f8892f6097f0158e860fe5b6e7ddf869ad4355294c98d64abb35fddbf9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off-gamma-130.masked.glsl",
+      "sha256": "20a8da05173be55134b6eadc73e8d1aea767646e3be5fa54b0e8fe8559149a48",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off.masked.glsl",
+      "sha256": "b4a2337b11d5b0b7bdad237b62b48068c7f6a8b281c488513c20eccbe919d99d",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-off.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-off.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-off.opaque.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-standard.masked.glsl",
+      "sha256": "db65c596f9e6fcf4fc4c8a983406c1db0b26203426e237c0e462439d775028cc",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-standard.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-standard.masked.frag\n"
+    },
+    {
+      "base": "2.0.20/5001712",
+      "shader": "5001712-neutral-standard.opaque.glsl",
+      "sha256": "793bb2c334d7de11b454ef5e076ea94f32609bef1086059894065fe8aee6a1f9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5001712-neutral-standard.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5001712-neutral-standard.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit-gamma-102.masked.glsl",
+      "sha256": "7c1806b9096e885ca334d3c242337b25df501a8d9de01610f39ba9e9794b2cfe",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit-gamma-110.masked.glsl",
+      "sha256": "8ae3453c7747d5f35f45a5601980dc44a947950ecd65ff147f97e8497cb627fd",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit-gamma-130.masked.glsl",
+      "sha256": "3f2572f841f4b82516fd3f6eccf4d31339b80fe216ed405fd66ca8563565ddfa",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit.masked.glsl",
+      "sha256": "acfea80b2608a61ea940a5baace3a1b7069b01bc827df31299727a5661801c25",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-10bit.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-10bit.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-10bit.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit-gamma-102.masked.glsl",
+      "sha256": "7c1806b9096e885ca334d3c242337b25df501a8d9de01610f39ba9e9794b2cfe",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit-gamma-110.masked.glsl",
+      "sha256": "8ae3453c7747d5f35f45a5601980dc44a947950ecd65ff147f97e8497cb627fd",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit-gamma-130.masked.glsl",
+      "sha256": "3f2572f841f4b82516fd3f6eccf4d31339b80fe216ed405fd66ca8563565ddfa",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit.masked.glsl",
+      "sha256": "acfea80b2608a61ea940a5baace3a1b7069b01bc827df31299727a5661801c25",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-fovea-input-8bit.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-fovea-input-8bit.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-fovea-input-8bit.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-low.masked.glsl",
+      "sha256": "eb52f1d9621ad2c38db815cc38b65707fb89985dc3dc171578fa063055028cd8",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-low.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-low.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-low.opaque.glsl",
+      "sha256": "e534a163522d34ae412aa5b2461ee1c17e900acd2bc5a7129918883f4a995e43",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-low.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-low.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off-gamma-102.masked.glsl",
+      "sha256": "82e5b74da8053f14f4f7ea237c4c759e08cef3db62c73f2acded560ebe7f63ae",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off-gamma-110.masked.glsl",
+      "sha256": "409889f8892f6097f0158e860fe5b6e7ddf869ad4355294c98d64abb35fddbf9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off-gamma-130.masked.glsl",
+      "sha256": "20a8da05173be55134b6eadc73e8d1aea767646e3be5fa54b0e8fe8559149a48",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off.masked.glsl",
+      "sha256": "b4a2337b11d5b0b7bdad237b62b48068c7f6a8b281c488513c20eccbe919d99d",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-off.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-off.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-off.opaque.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-standard.masked.glsl",
+      "sha256": "db65c596f9e6fcf4fc4c8a983406c1db0b26203426e237c0e462439d775028cc",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-standard.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-standard.masked.frag\n"
+    },
+    {
+      "base": "2.0.22/5002244",
+      "shader": "5002244-neutral-standard.opaque.glsl",
+      "sha256": "793bb2c334d7de11b454ef5e076ea94f32609bef1086059894065fe8aee6a1f9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002244-neutral-standard.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002244-neutral-standard.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit-gamma-102.masked.glsl",
+      "sha256": "7c1806b9096e885ca334d3c242337b25df501a8d9de01610f39ba9e9794b2cfe",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit-gamma-110.masked.glsl",
+      "sha256": "8ae3453c7747d5f35f45a5601980dc44a947950ecd65ff147f97e8497cb627fd",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit-gamma-130.masked.glsl",
+      "sha256": "3f2572f841f4b82516fd3f6eccf4d31339b80fe216ed405fd66ca8563565ddfa",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit.masked.glsl",
+      "sha256": "acfea80b2608a61ea940a5baace3a1b7069b01bc827df31299727a5661801c25",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-10bit.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-10bit.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-10bit.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit-gamma-102.masked.glsl",
+      "sha256": "7c1806b9096e885ca334d3c242337b25df501a8d9de01610f39ba9e9794b2cfe",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit-gamma-110.masked.glsl",
+      "sha256": "8ae3453c7747d5f35f45a5601980dc44a947950ecd65ff147f97e8497cb627fd",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit-gamma-130.masked.glsl",
+      "sha256": "3f2572f841f4b82516fd3f6eccf4d31339b80fe216ed405fd66ca8563565ddfa",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit.masked.glsl",
+      "sha256": "acfea80b2608a61ea940a5baace3a1b7069b01bc827df31299727a5661801c25",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-fovea-input-8bit.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-fovea-input-8bit.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-fovea-input-8bit.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-low.masked.glsl",
+      "sha256": "eb52f1d9621ad2c38db815cc38b65707fb89985dc3dc171578fa063055028cd8",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-low.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-low.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-low.opaque.glsl",
+      "sha256": "e534a163522d34ae412aa5b2461ee1c17e900acd2bc5a7129918883f4a995e43",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-low.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-low.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off-gamma-102.masked.glsl",
+      "sha256": "82e5b74da8053f14f4f7ea237c4c759e08cef3db62c73f2acded560ebe7f63ae",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off-gamma-102.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off-gamma-102.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off-gamma-102.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off-gamma-102.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off-gamma-102.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off-gamma-110.masked.glsl",
+      "sha256": "409889f8892f6097f0158e860fe5b6e7ddf869ad4355294c98d64abb35fddbf9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off-gamma-110.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off-gamma-110.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off-gamma-110.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off-gamma-110.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off-gamma-110.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off-gamma-130.masked.glsl",
+      "sha256": "20a8da05173be55134b6eadc73e8d1aea767646e3be5fa54b0e8fe8559149a48",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off-gamma-130.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off-gamma-130.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off-gamma-130.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off-gamma-130.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off-gamma-130.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off.masked.glsl",
+      "sha256": "b4a2337b11d5b0b7bdad237b62b48068c7f6a8b281c488513c20eccbe919d99d",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-off.opaque.glsl",
+      "sha256": "2a87325b030baae37c426ae60c25492945bc954bff9dbebcb8e1e89c3af46444",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-off.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-off.opaque.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-standard.masked.glsl",
+      "sha256": "db65c596f9e6fcf4fc4c8a983406c1db0b26203426e237c0e462439d775028cc",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-standard.masked.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-standard.masked.frag\n"
+    },
+    {
+      "base": "2.0.23/5002363",
+      "shader": "5002363-neutral-standard.opaque.glsl",
+      "sha256": "793bb2c334d7de11b454ef5e076ea94f32609bef1086059894065fe8aee6a1f9",
+      "strict_es300_exit": 2,
+      "strict_es300_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl\\5002363-neutral-standard.opaque.glsl\nERROR: 0:7: 'location qualifier on uniform or buffer' : not supported for this version or the enabled extensions \nERROR: 1 compilation errors.  No code generated.\n\n\n",
+      "diagnostic_es310_exit": 0,
+      "diagnostic_es310_output": "D:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363.vert\nD:\\Angelo\\Desktop\\SteamLink-GalaxyXR-Windows-Toolkit-FULL\\steamlink-patches\\build\\foveal-gamma-20260925\\glsl-check\\5002363-neutral-standard.opaque.frag\n"
+    }
+  ],
+  "glslang_version": "Glslang Version: 11:16.6.0\nESSL Version: OpenGL ES GLSL 3.20 glslang Khronos. 16.6.0\nGLSL Version: 4.60 glslang Khronos. 16.6.0\nSPIR-V Version 0x00010600, Revision 1\nGLSL.std.450 Version 100, Revision 1\nKhronos Tool ID 8\nSPIR-V Generator Version 11\nGL_KHR_vulkan_glsl version 100\nARB_GL_gl_spirv version 100\n"
+}

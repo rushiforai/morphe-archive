@@ -4,6 +4,7 @@
  */
 package app.morphe.extension.facebook.settings;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -13,6 +14,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import com.facebook.graphql.model.GraphQLPagesYouMayLikeFeedUnit;
+import com.facebook.graphql.model.GraphQLStory;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +32,12 @@ import app.morphe.extension.facebook.ads.ReelsAdFilter;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
+import app.morphe.extension.facebook.download.VideoMenuItemForTests;
 import app.morphe.extension.facebook.feed.FeedFilter;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
+import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
+import app.morphe.extension.facebook.misc.LinkCleaner;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.PauseForTests;
 
@@ -52,7 +57,10 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class ColdStartHooksTest {
 
     /** Stands in for GraphQLFeedStoryCategory: only the constant names matter to the guard. */
-    enum Category { ORGANIC, SPONSORED }
+    enum Category { ORGANIC, SPONSORED, FB_SHORTS, SHOWCASE }
+
+    /** Stands in for the showcase story type enum: only the constant names matter to the rule. */
+    enum ShowcaseStoryType { SHOWCASE_SHORT_VIDEO }
 
     /** Stands in for the obfuscated ad item base class; the patch passes its binary name. */
     public static class AdBase {
@@ -88,6 +96,15 @@ public class ColdStartHooksTest {
         // public feed guard as the patch calls it. Each has to take Facebook's path.
         assertFalse(FeedGuardForTests.hides(Category.SPONSORED, new Object()));
         assertFalse(FeedGuardForTests.hides(Category.ORGANIC, new GraphQLPagesYouMayLikeFeedUnit()));
+        assertFalse(FeedGuardForTests.hidesRecommended(Category.ORGANIC, new GraphQLStory(),
+                FeedGuardForTests.recommendationContext(true)));
+        assertFalse(FeedGuardForTests.hides(Category.ORGANIC, TypedFeedUnit.peopleYouMayKnow()));
+        assertFalse(FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY));
+        assertFalse(FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY));
+        assertFalse(FeedGuardForTests.hidesReels(Category.FB_SHORTS, new Object()));
+        assertFalse(FeedGuardForTests.hidesShowcaseReels(Category.SHOWCASE, ShowcaseStoryType.SHOWCASE_SHORT_VIDEO));
+        assertFalse(FeedFilter.hidePreEofReels());
+        assertFalse(FeedGuardForTests.hides(Category.ORGANIC, new GraphQLStory(), FeedGuardForTests.detectedInfo(true)));
         assertFalse(FeedFilter.hideEdge(Category.SPONSORED, new Object()));
         assertFalse(FeedFilter.hideSponsoredStories());
         VideoAd reelAd = new VideoAd();
@@ -104,6 +121,10 @@ public class ColdStartHooksTest {
         assertTrue("Facebook's own yes has to stand", MediaDownload.offersSave(true));
         assertFalse(ReelDownload.showsButton());
         assertFalse(PlayerSourcesForTests.recordsAPlayer());
+        assertFalse("a post menu built before the context got the video item", VideoMenuItemForTests.addsAnItem());
+        assertFalse(PlayerSourcesForTests.recordsAVideoPlayer());
+        String shared = "https://www.facebook.com/share/p/1AbCdEf/?mibextid=WC7FNe";
+        assertEquals("a link shared before the context was cleaned", shared, LinkCleaner.sanitizeShared(shared));
 
         // A hook that touched the settings above left them unusable, and this is where a real
         // start would crash. While setContext decides the pause the context is already set, so a

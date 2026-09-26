@@ -107,7 +107,7 @@ Always show the publish date in video author information. Restart TikTok to appl
 "An operator code is five or six digits, like 310260","Kode operator itu lima atau enam angka, misalnya 310260"
 An override changes the value TikTok reads from this gate. It does not rewrite TikTok's cached value or prove the named feature changed.,Penggantian mengubah nilai yang dibaca TikTok dari gate ini. Ini tidak menulis ulang nilai cache TikTok dan tidak membuktikan fitur yang disebut berubah.
 Animated sticker format,Format stiker animasi
-Answer TikTok's location requests with nothing. The region settings change the locale and timezone; this stops the coordinates.,Menjawab permintaan lokasi TikTok dengan kosong. Pengaturan wilayah mengubah lokal dan zona waktu; ini menghentikan koordinatnya.
+Answer TikTok's location requests with nothing. The region settings change the locale and timezone. This switch stops the coordinates.,Menjawab permintaan lokasi TikTok dengan kosong. Pengaturan wilayah mengubah lokal dan zona waktu; ini menghentikan koordinatnya.
 Answer TikTok's reads of your contacts with an empty list. Find Friends and People you may know lose access to your contact list.,Menjawab pembacaan kontak oleh TikTok dengan daftar kosong. Temukan Teman dan Orang yang mungkin kamu kenal kehilangan akses ke daftar kontak kamu.
 "Answer TikTok's scan of the apps on this phone with an empty list. A check for one named app, which TikTok also uses to open an app you tap, is left alone.","Menjawab pemindaian aplikasi di ponsel ini oleh TikTok dengan daftar kosong. Pemeriksaan satu aplikasi tertentu, yang juga dipakai TikTok untuk membuka aplikasi yang kamu ketuk, dibiarkan."
 App,Aplikasi
@@ -346,6 +346,8 @@ Find a setting by name or description,Temukan setelan berdasarkan nama atau desk
 First caller,Pemanggil pertama
 First rejection:,Penolakan pertama:
 Fit the video to the screen,Sesuaikan video dengan layar
+Fill the screen with the video,Penuhi layar dengan video
+Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.,Memotong video sampai menutupi seluruh jendela. Di ponsel yang tinggi garis hitam yang ditinggalkan TikTok di bawah video hilang dan sedikit dari tiap sisi ikut hilang.
 Focus,Fokus
 Follow probe,Uji ikuti
 Following,Mengikuti
@@ -405,6 +407,8 @@ Hide conversations,Sembunyikan percakapan
 Hide every direct message conversation. Leaves the Inbox empty apart from whatever else is still turned on.,Sembunyikan semua percakapan pesan langsung. Kotak Masuk jadi kosong kecuali apa pun yang masih kamu aktifkan.
 Hide the save button on the feed,Sembunyikan tombol simpan di feed
 Hide the search button on the feed,Sembunyikan tombol cari di feed
+Hide the tab names above the feed,Sembunyikan nama tab di atas feed
+The Following and For You names above the feed go away. Swiping between the feeds and the search button stay as they are.,Nama Mengikuti dan Untuk Anda di atas feed hilang. Menggeser antar feed dan tombol pencarian tetap seperti semula.
 "Hide floating promotion badges, coins, and timer banners on the feed.","Sembunyikan lencana promosi mengambang, koin, dan spanduk penghitung waktu di beranda."
 Hide floating promotions,Sembunyikan promosi mengambang
 Hide inserted cards,Sembunyikan kartu sisipan
@@ -544,6 +548,10 @@ Limits,Batas
 Link copied,Tautan disalin
 Links,Tautan
 Links in comments open,Tautan di komentar bisa dibuka
+More opens the comments,Selengkapnya membuka komentar
+Tapping more under a video opens its comments with the whole caption at the top instead of spreading the caption over the video. A tap on the caption itself does the same. Photo posts keep TikTok's own page for this.,Mengetuk selengkapnya di bawah video membuka komentarnya dengan seluruh keterangan di atas alih-alih membentangkan keterangan di atas video. Mengetuk keterangan itu sendiri melakukan hal yang sama. Postingan foto tetap memakai halaman TikTok sendiri untuk ini.
+Caption above comments,Keterangan di atas komentar
+The comment button also opens a video's comments with its caption at the top. The caption over the video goes away while this is on.,Tombol komentar juga membuka komentar video dengan keterangannya di atas. Keterangan di atas video disembunyikan selama ini aktif.
 Loaded current values. Loading all known gates...,Nilai saat ini dimuat. Memuat semua gate yang diketahui...
 Loaded values are still being read. Try again in a moment.,Nilai yang dimuat masih dibaca. Coba lagi sebentar lagi.
 Loaded-value file export failed,Ekspor berkas nilai yang dimuat gagal
@@ -1031,6 +1039,13 @@ TikTok's play and pause button and its previous and next buttons appear on the f
 TikTok's server can put an account into an experiment that empties the Favorites tab on your profile. Keep the tab and its saved videos.,Server TikTok bisa memasukkan akun ke eksperimen yang mengosongkan tab Favorit di profil kamu. Pertahankan tab itu beserta video yang tersimpan.
 TikTok's size,Ukuran TikTok
 Times you can open the feed anyway,Berapa kali kamu bisa tetap membuka feed
+Wait a day to loosen the budget,Tunggu sehari untuk melonggarkan anggaran
+A change that loosens the budget waits until the day starts over and one that tightens it applies at once. A higher budget or no budget loosens it. So do a shorter hold and more times to open the feed anyway. Moving the hour the day starts and turning this off wait too. A restored backup follows the same rule and Start today over is off while this is on.,Perubahan yang melonggarkan anggaran menunggu sampai hari dimulai ulang dan perubahan yang mengetatkannya langsung berlaku. Anggaran yang lebih tinggi atau tanpa anggaran melonggarkannya. Begitu juga penahanan yang lebih singkat dan lebih banyak kesempatan untuk tetap membuka feed. Mengubah jam dimulainya hari dan mematikan ini juga menunggu. Cadangan yang dipulihkan mengikuti aturan yang sama dan Mulai ulang hari ini tidak tersedia selama ini aktif.
+Changes to %1$s at %2$s,Berubah menjadi %1$s pukul %2$s
+Turns off at %1$s,Mati pukul %1$s
+That loosens the budget. It waits until %1$s.,Itu melonggarkan anggaran. Menunggu sampai pukul %1$s.
+Today can't start over while Wait a day to loosen the budget is on. The day starts over at %1$s.,Hari ini tidak bisa dimulai ulang selama Tunggu sehari untuk melonggarkan anggaran aktif. Hari dimulai ulang pukul %1$s.
+"Wait a day to loosen the budget is on, so Hushfeed stays on","Tunggu sehari untuk melonggarkan anggaran aktif, jadi Hushfeed tetap aktif"
 "Today has moved on, so there is nothing to put back","Hari sudah berganti, jadi tidak ada yang bisa dikembalikan"
 Today is back where it was,Hari ini kembali seperti semula
 Today started over. Tap again to put the counts back.,Hari ini dimulai ulang. Ketuk lagi untuk mengembalikan hitungannya.
@@ -1042,7 +1057,7 @@ Today: %1$d minute,Hari ini: %1$d menit
 Today: %1$d minutes,Hari ini: %1$d menit
 Today: %1$d video,Hari ini: %1$d video
 Today: %1$d videos,Hari ini: %1$d video
-"Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos; anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.","Token: {creator}, {date}, {video_id}, {index}. {index} menomori foto dari slideshow yang kamu simpan dengan Unduh foto asli; apa pun yang disimpan lewat tombol TikTok sendiri dinomori oleh foldernya. Ekstensi berkas dipertahankan otomatis."
+"Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos. Anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.","Token: {creator}, {date}, {video_id}, {index}. {index} menomori foto dari slideshow yang kamu simpan dengan Unduh foto asli; apa pun yang disimpan lewat tombol TikTok sendiri dinomori oleh foldernya. Ekstensi berkas dipertahankan otomatis."
 "Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.","Token: {creator}, {date}, {video_id}. Ekstensi berkas dipertahankan otomatis."
 "Tokens: {date}, {media_id}. Works for image and video stickers.","Token: {date}, {media_id}. Berlaku untuk stiker gambar dan video."
 Too many media saves are already running. Try again shortly.,Terlalu banyak penyimpanan media yang sedang berjalan. Coba lagi sebentar.

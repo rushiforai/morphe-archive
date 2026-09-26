@@ -1,0 +1,10 @@
+Fri Sep 25 2026 17:49:25.927 [Info] - Connection active at 5.278669
+Fri Sep 25 2026 17:49:25.980 [Info] - CreateSwapTextureSet: 5328x5760(29) 1
+Fri Sep 25 2026 17:49:26.022 [Info] - SUCCESS: Shader compilation successful for 'built-in shader'
+Fri Sep 25 2026 17:49:26.068 [Info] - SUCCESS: Shader compilation successful for 'built-in shader'
+Fri Sep 25 2026 17:49:26.073 [Info] - SUCCESS: Shader compilation successful for 'built-in shader'
+Fri Sep 25 2026 17:49:26.075 [Info] - SUCCESS: Shader compilation successful for 'built-in shader'
+Fri Sep 25 2026 17:49:26.075 [Info] - Using 10bit mode: 1
+Fri Sep 25 2026 17:49:26.075 [Info] - SVLHMDDriverD3D11::CreateSwapTextureSet() completed.
+Fri Sep 25 2026 17:49:26.075 [Info] - CreateSwapTextureSet: 5328x5760(29) 1
+Fri Sep 25 2026 17:49:26.075 [Info] - SVLHMDDriverD3D11::CreateSwapTextureSet() completed.

@@ -1,0 +1,30 @@
+name: ⭐ Feature request
+description: Something else the patches could fix or change in the game.
+title: "feat: "
+labels: ["Feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you ask, please check that it is not requested already: [open and closed feature requests](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/issues?q=label%3A%22Feature+request%22)
+  - type: textarea
+    attributes:
+      label: What you would like
+      description: |
+        - What the patch should do, in as much detail as you can
+        - Screenshots, videos or links, if they help
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Why
+      description: What is wrong or missing in the game today, and who it affects.
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: This is not a duplicate of an open or closed feature request.
+          required: true

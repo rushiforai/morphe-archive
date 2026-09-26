@@ -384,8 +384,11 @@ try {
     # held to the builds, signers and dependencies the release scripts expect, and the Gradle file
     # that writes the release bundle where common.ps1 reads it. A push that moved only one of them
     # never ran the tests, and the break surfaced on the next unrelated script push instead.
+    # They also end with the marketing asset check, which holds the artwork's sizes and alpha and
+    # the README's hero and links. A push of only artwork or only the README ran no check of them.
     $touchesContracts = $touchesScripts -or @($paths | Where-Object {
-        $_ -eq 'patches-list.json' -or $_ -eq 'patches/build.gradle.kts'
+        $_ -eq 'patches-list.json' -or $_ -eq 'patches/build.gradle.kts' -or
+        $_ -like 'assets/*' -or $_ -like 'concepts/marketing/*' -or $_ -eq 'README.md'
     }).Count -gt 0
     $injectedRegisterVerifierPaths = @(
         'scripts/BadDexFixture.java',
@@ -417,6 +420,33 @@ try {
     )
     $touchesInjectedRegisterDevice = @($paths | Where-Object {
         $_ -in $injectedRegisterDevicePaths
+    }).Count -gt 0
+    $fingerprintCandidatePaths = @(
+        'scripts/FingerprintCandidates.java',
+        'scripts/FingerprintFixture.java',
+        'scripts/fingerprint-calibration.txt',
+        'scripts/fingerprint-candidates.ps1',
+        'scripts/fingerprint-signature.schema.json',
+        'scripts/test-fingerprint-candidates.ps1'
+    )
+    $touchesFingerprintCandidates = @($paths | Where-Object {
+        $_ -in $fingerprintCandidatePaths
+    }).Count -gt 0
+    # The source ledger's rules read NOTICE, provenance.json and the catalog's declared builds, and
+    # hold docs/sources.md to the ledger, so a push of any of them runs the ledger's suite too.
+    $facebookSourcePaths = @(
+        'NOTICE',
+        'docs/sources.md',
+        'patches-list.json',
+        'provenance.json',
+        'scripts/audit-facebook-sources.ps1',
+        'scripts/facebook-sources.ps1',
+        'scripts/patch-target.ps1',
+        'scripts/test-facebook-sources.ps1',
+        'sources/facebook-sources.json'
+    )
+    $touchesFacebookSources = @($paths | Where-Object {
+        $_ -in $facebookSourcePaths
     }).Count -gt 0
     $touchesRelease = @($paths | Where-Object {
         $_ -eq 'patches-bundle.json' -or $_ -eq 'patches-list.json' -or
@@ -450,7 +480,7 @@ try {
         $head = $null
         $dirty = @()
         $gateCommits = @($null)
-    } elseif ($touchesCode -or $touchesRelease -or $touchesScripts) {
+    } elseif ($touchesCode -or $touchesRelease -or $touchesScripts -or $touchesContracts -or $touchesFacebookSources) {
         $head = ([string](Invoke-HookGit @('-C', $Root, 'rev-parse', 'HEAD') | Select-Object -Last 1)).Trim()
         $dirty = @(Invoke-HookGit @('-C', $Root, 'status', '--porcelain', '--untracked-files=all'))
         $gateCommits = @($script:pushedCommits)
@@ -481,12 +511,13 @@ try {
     }
 
     # Script, notice, failure message. The contract tests run for every script change and for the
-    # two files above; the two injected-register suites and the resource table check's run only
-    # when their own files moved. Each one is the pushed commit's copy, run against that commit.
+    # other files above; the two injected-register suites and the resource table check's run only
+    # when their own files moved, and the source ledger's when the ledger or a file its rules read
+    # did. Each one is the pushed commit's copy, run against that commit.
     $suites = @()
     if ($touchesContracts) {
         $contractsNotice = if ($touchesScripts) { 'scripts changed, running their contract tests' } else {
-            'the catalog or the release bundle''s Gradle file changed, running the script contract tests'
+            'the catalog, the release bundle''s Gradle file, the README or the artwork changed, running the script contract tests'
         }
         $suites += , @('scripts/test-script-contracts.ps1', $contractsNotice,
             'The script contract tests did not pass.')
@@ -502,6 +533,14 @@ try {
     if ($touchesInjectedRegisterDevice) {
         $suites += , @('scripts/test-injected-register-device.ps1', 'injected-register device helper changed, running its cleanup fixtures',
             'The injected-register device cleanup fixtures did not pass.')
+    }
+    if ($touchesFingerprintCandidates) {
+        $suites += , @('scripts/test-fingerprint-candidates.ps1', 'fingerprint ranking changed, running its calibration',
+            'The fingerprint ranking calibration did not pass.')
+    }
+    if ($touchesFacebookSources) {
+        $suites += , @('scripts/test-facebook-sources.ps1', 'the Facebook-family source ledger or what it reads changed, running its rules',
+            'The Facebook-family source ledger does not keep its rules.')
     }
     if ($suites.Count -gt 0) {
         $scriptsLock = $null
@@ -721,7 +760,8 @@ try {
         }
     }
 
-    if (-not $touchesScripts -and -not $touchesCode -and -not $touchesRelease) {
+    if (-not $touchesScripts -and -not $touchesCode -and -not $touchesRelease -and -not $touchesContracts -and
+            -not $touchesFacebookSources) {
         Write-Step 'no code or published file changed'
     }
     Write-Step 'ok'

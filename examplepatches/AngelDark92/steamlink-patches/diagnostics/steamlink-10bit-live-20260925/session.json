@@ -1,0 +1,29 @@
+{
+  "capture_start_pc": "2026-09-25T17:52:02+02:00",
+  "capture_end_device": "2026-09-25T17:54:42+0200",
+  "package": "com.valvesoftware.steamlinkvr",
+  "pid": "17301",
+  "model": "SM-I610",
+  "build": "UML2.260301.001.I610UEU2AZF3",
+  "version": "2.0.20",
+  "versionCode": 5001712,
+  "lastUpdateTime": "2026-09-25 16:50:47",
+  "session_start_host": "2026-09-25 17:49:25.927",
+  "decoder_component": "c2.qti.hevc.decoder",
+  "vendor_component": "hevcD_29",
+  "reported_output": "YCBCR_420_P010",
+  "decoded_width": 1536,
+  "decoded_height": 6144,
+  "media_codec_output_color_format": 54,
+  "projection_formats": [
+    35907
+  ],
+  "blue_noise_programs_linked": [
+    "background",
+    "foveal"
+  ],
+  "precision_after_external_texture_import": "unmeasured",
+  "bitstream_sps": "not captured",
+  "sample_low_bits": "not measured",
+  "actions": "Read-only ADB logs, properties and service dumps; no install, configuration change, restart or log clearing."
+}

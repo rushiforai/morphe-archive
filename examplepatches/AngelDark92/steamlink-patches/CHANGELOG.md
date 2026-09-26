@@ -1,3 +1,15 @@
+## [1.20.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.19.1...v1.20.0) (2026-09-25)
+
+### ✨ New Features
+
+* patch to darken the fovea independently ([d40827c](https://github.com/AngelDark92/steamlink-patches/commit/d40827cde8b798c49f3e64bb69f62e4d1de6794d))
+
+## [1.20.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.19.1...v1.20.0-dev.1) (2026-09-25)
+
+### ✨ New Features
+
+* patch to darken the fovea independently ([d40827c](https://github.com/AngelDark92/steamlink-patches/commit/d40827cde8b798c49f3e64bb69f62e4d1de6794d))
+
 ## [1.19.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.19.0...v1.19.1) (2026-09-25)
 
 ### 🐛 Bug Fixes

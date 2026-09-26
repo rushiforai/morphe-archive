@@ -8,7 +8,7 @@ import app.morphe.patches.shared.Constants
 import org.w3c.dom.Element
 
 private val nokoPrintTelemetryResourcePatch = resourcePatch(
-    name = "NokoPrint Telemetry Manifest Purge",
+    name = "Telemetry Manifest Purge",
     description = "Strips advertising and install referrer permissions, and disables Google Firebase/Measurement components in AndroidManifest.xml.",
     default = false,
 ) {
@@ -17,7 +17,7 @@ private val nokoPrintTelemetryResourcePatch = resourcePatch(
     execute {
         val manifestFile = get("AndroidManifest.xml")
         if (!manifestFile.exists()) {
-            println("[NokoPrint Telemetry Manifest Purge] AndroidManifest.xml not found - skipping.")
+            println("[Block Telemetry] AndroidManifest.xml not found - skipping.")
             return@execute
         }
 
@@ -31,9 +31,7 @@ private val nokoPrintTelemetryResourcePatch = resourcePatch(
             "com.google.android.gms.measurement.AppMeasurementService",
             "com.google.android.gms.measurement.AppMeasurementJobService",
             "com.google.android.gms.measurement.AppMeasurementReceiver",
-            "com.google.firebase.provider.FirebaseInitProvider",
             "com.google.firebase.sessions.SessionLifecycleService",
-            "com.google.firebase.components.ComponentDiscoveryService",
         )
 
         var removedPermissions = 0
@@ -70,14 +68,14 @@ private val nokoPrintTelemetryResourcePatch = resourcePatch(
             }
         }
 
-        println("[NokoPrint Telemetry Manifest Purge] Stripped $removedPermissions permissions, disabled $disabledComponents analytics components.")
+        println("[Block Telemetry] Stripped $removedPermissions permissions, disabled $disabledComponents analytics components.")
     }
 }
 
 @Suppress("unused")
 val nokoPrintBlockTelemetryPatch = bytecodePatch(
-    name = "NokoPrint Block Telemetry & Trackers",
-    description = "Neutralizes Firebase Analytics and Google Measurement tracking and event dispatching.",
+    name = "Block Telemetry & Trackers",
+    description = "Neutralizes Firebase Analytics, Google Measurement, TikTok Business SDK, and crashlytics tracking.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_NOKOPRINT)
@@ -163,6 +161,6 @@ val nokoPrintBlockTelemetryPatch = bytecodePatch(
             hookedMethods.add("zzez.zzL")
         }
 
-        println("[NokoPrint Block Telemetry] Neutralized ${hookedMethods.size} telemetry dispatch methods.")
+        println("[Block Telemetry] Neutralized ${hookedMethods.size} telemetry dispatch methods.")
     }
 }

@@ -10,16 +10,17 @@ import app.epxec.patches.wallet.Fingerprints.WalletAddAccountFingerprint
 import app.epxec.patches.wallet.Fingerprints.WalletAddRecordFingerprint
 import app.epxec.patches.wallet.Fingerprints.WalletUsePremiumFeatureFingerprint
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
+import app.epxec.patches.shared.hoodles.microG
 
 @Suppress("unused")
 val enableVipPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Enables Premium features except Bank Sync, Group Sharing, Facebook and Google login.",
+    description = "Enables Premium features except Bank Sync, Group Sharing, Facebook login.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_Wallet)
 
-    dependsOn(changePackageInstallerPatch())
+    dependsOn(changePackageInstallerPatch(), microG)
 
     execute {
 

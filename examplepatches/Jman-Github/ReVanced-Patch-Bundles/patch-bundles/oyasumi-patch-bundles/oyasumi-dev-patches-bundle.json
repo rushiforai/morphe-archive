@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-25T12:20:25",
-  "description": "## [0.2.0-dev.9](https://github.com/dunecache/oyasumi-patches/compare/v0.2.0-dev.8...v0.2.0-dev.9) (2026-09-25)\n\n### \u2728 New Features\n\n* suppress ADM Telegram join prompt ([c820606](https://github.com/dunecache/oyasumi-patches/commit/c8206069185548b87f1d633d0327cbd3ad152fd5))\n",
-  "download_url": "https://github.com/dunecache/oyasumi-patches/releases/download/v0.2.0-dev.9/patches-0.2.0-dev.9.mpp",
+  "created_at": "2026-09-25T21:11:21",
+  "description": "## [0.2.0-dev.15](https://github.com/dunecache/oyasumi-patches/compare/v0.2.0-dev.14...v0.2.0-dev.15) (2026-09-25)\n\n### \ud83d\udc1b Bug Fixes\n\n* surface media menu hook diagnostic on device ([9e42bcb](https://github.com/dunecache/oyasumi-patches/commit/9e42bcb88ef2baf3d05acfc5ee83980664edea30))\n",
+  "download_url": "https://github.com/dunecache/oyasumi-patches/releases/download/v0.2.0-dev.15/patches-0.2.0-dev.15.mpp",
   "signature_download_url": "N/A",
-  "version": "v0.2.0-dev.9"
+  "version": "v0.2.0-dev.15"
 }

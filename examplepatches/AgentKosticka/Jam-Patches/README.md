@@ -1,10 +1,10 @@
 # Jam Patch Source
 
-Optional prerelease patch source for [Jam Layer](https://github.com/AgentKosticka/Jam-Layer), providing Jam queue sharing for YouTube Music **9.15.51 ARM64 only**.
+Optional prerelease patch source for [Jam Layer](https://github.com/AgentKosticka/Jam-Layer), providing Jam queue sharing for YouTube Music **9.15.51 ARM64**, with experimental support for **9.35.54, 9.36.50 and 9.37.54 ARM64**.
 
 This bundle includes the Morphe patch catalog plus the **Jam queue sharing** patch, which is selected by default. Its runtime integration remains disabled until enabled in Player settings and YouTube Music is restarted. Since the bundle includes the upstream catalog, remove the standard Morphe patch source in Morphe Manager before adding this source to avoid duplicate patches.
 
-Add the GitHub source `AgentKosticka/Jam-Patches` in Morphe Manager and enable prereleases. Patch a clean YouTube Music 9.15.51 ARM64 APK, then enable Jam queue sharing in Player settings and restart the app. Install the signed `app-release.apk` from the [latest Jam Layer release](https://github.com/AgentKosticka/Jam-Layer/releases/latest) on the devices you want to pair.
+Add the GitHub source `AgentKosticka/Jam-Patches` in Morphe Manager and enable prereleases. Patch a clean ARM64 APK of one of the listed YouTube Music versions (9.15.51 is the baseline), then enable Jam queue sharing in Player settings and restart the app. Install the signed `app-release.apk` from the [latest Jam Layer release](https://github.com/AgentKosticka/Jam-Layer/releases/latest) on the devices you want to pair.
 
 Development changes land on `dev`; semantic release publishes prerelease `.mpp` bundles for Morphe Manager. The bundle includes all Morphe patches as required by Jam's upstream patch dependencies.
 
@@ -16,12 +16,12 @@ The source baseline is fork commit [`1bb87b1f58ef28f3489f76e03daae3238cade8e9`](
 
 The baseline can be reproduced with `python .github/scripts/sync_fork.py ../morphe-patches 1bb87b1f58ef28f3489f76e03daae3238cade8e9`; then apply the committed Jam overlay and removals recorded in `reviewOverlay`, merging only Jam strings into the Music resources. `source-revision.json` records the review overlay file hashes and paths alongside the source baseline, dependency revisions, and build metadata overlay. Source identity and release metadata remain specific to this repository.
 
-The fork passed Jam regression tests, 9.15.51 patch/build and DEX hierarchy verification, and manual device checks including autoplay, clock updates and LAN discovery. Participant next/previous controls now forward to the host through the authenticated Jam command path and consume the local player click. The new published bundle still requires the clean Morphe Manager source and two-device manual acceptance test. Versions 9.34.52, 9.35.54 and 9.36.50 failed required semantic capability resolution and are not supported.
+The fork passed Jam regression tests, 9.15.51 patch/build and DEX hierarchy verification, and manual device checks including autoplay, clock updates and LAN discovery. Participant next/previous controls now forward to the host through the authenticated Jam command path and consume the local player click. The new published bundle still requires the clean Morphe Manager source and two-device manual acceptance test. Versions 9.35.54, 9.36.50 and 9.37.54 now pass local patch application, SDK DEX verification and APK construction. They remain experimental: device behavior and the published Manager flow still need user testing. Version 9.34.52 remains excluded. See [experimental compatibility and testing](docs/experimental-versions.md) for the changes, validation traces and handoff checklist.
 
 ## Patch catalog
 
 <!-- PATCHES_START -->
-> **[v1.0.0-dev.12](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.12)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
+> **[v1.0.0-dev.13](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.13)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;84 patches</summary>
 <br>
@@ -189,7 +189,7 @@ The fork passed Jam regression tests, 9.15.51 patch/build and DEX hierarchy veri
 | [Hide flyout menu components](#hide-flyout-menu-components) | Adds options to hide individual items from the player and queue flyout menus. |  |
 | [Hide layout components](#hide-layout-components) | Adds options to hide general layout components. |  |
 | [Hide music action buttons](#hide-music-action-buttons) | Adds options to hide action buttons under the player. |  |
-| [Jam queue sharing](#jam-queue-sharing) | Adds a native Jam queue panel and authenticated bridge. Experimental; validated on YTM 9.15.51. Root installation is not supported. |  |
+| [Jam queue sharing](#jam-queue-sharing) | Adds a native Jam queue panel and authenticated bridge. Newer experimental targets require device testing. Root installation is not supported. |  |
 | [Miniplayer previous and next buttons](#miniplayer-previous-and-next-buttons) | Adds options to show previous and next track buttons in the miniplayer. |  |
 | [Navigation bar](#navigation-bar) | Adds options to hide navigation bar, labels and buttons. |  |
 | [Network proxy](#network-proxy) | Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices |  |

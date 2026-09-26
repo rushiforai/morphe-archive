@@ -2,10 +2,14 @@ package app.lchanc3.patches.jptt.shared
 
 import app.lchanc3.patches.jptt.shared.Constants.EXTENSION_CONTEXT_CLASS
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 /**
  * Merges the extension classes into the app and hands them the application
@@ -52,5 +56,41 @@ internal fun requireFreeLocals(method: MutableMethod, count: Int) {
                 "fewer than the $count this patch writes to. It has been compiled down " +
                 "since this patch was written, so the code belongs in a method of its own.",
         )
+    }
+}
+
+/**
+ * A method with no parameters to add to [definingClass], its body compiled from
+ * [smali] against its own [registers].
+ *
+ * Compiled any other way, `p0` does not mean `this`: without a method to go by,
+ * the inline compiler takes `p0` to be `v1` whatever the register count is.
+ */
+internal fun newMethod(
+    definingClass: String,
+    name: String,
+    returnType: String,
+    accessFlags: Int,
+    registers: Int,
+    smali: String,
+): MutableMethod = ImmutableMethod(
+    definingClass,
+    name,
+    emptyList(),
+    returnType,
+    accessFlags,
+    emptySet(),
+    null,
+    ImmutableMethodImplementation(registers, emptyList(), null, null),
+).toMutable().apply { addInstructions(0, smali) }
+
+/**
+ * This string as the inside of a smali string literal, with everything outside
+ * printable ASCII written as a `\uXXXX` escape.
+ */
+internal fun String.toSmaliLiteral() = buildString {
+    this@toSmaliLiteral.forEach { char ->
+        if (char.code in 0x20..0x7e && char != '"' && char != '\\') append(char)
+        else append("\\u%04x".format(char.code))
     }
 }

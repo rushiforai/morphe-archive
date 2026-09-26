@@ -11,8 +11,11 @@ import app.morphe.util.returnEarly
 
 val removePairipProtectionPatch = bytecodePatch {
     compatibleWith(
+        AppCompatibilities.ECHOGRAM,
+        AppCompatibilities.HINDU_CALENDAR,
         AppCompatibilities.QURANIFY,
         AppCompatibilities.RATEGLANCE,
+        AppCompatibilities.VLLO,
     )
 
     execute {

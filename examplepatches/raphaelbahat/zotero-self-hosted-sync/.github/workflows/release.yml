@@ -1,0 +1,79 @@
+name: Release
+
+# A push to main is a release. There is no dev branch and no pull request: semantic-release reads the
+# commit types on main, publishes a version, and commits the version bump back to main with the
+# repository token. That last part is also why nothing loops — a push made with that token starts no
+# workflow of its own.
+#
+# main is deliberately unprotected. A protected main would reject the release commit.
+#
+# semantic-release decides its branch from the *event* ref, not from the branch a job checked out,
+# which is why the action is pinned to main below as well as in .releaserc. That pin is what a run
+# triggered from another branch needs in order to refuse politely rather than publish the wrong
+# version.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      # Semantic release runs its own Gradle build command, and pushes the release commit itself.
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v6
+        id: release
+        with:
+          branches: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest
+        # Build attestations are only available for public repositories (and for organisation-owned
+        # ones). On a private repository this step fails a run whose release is already published, so
+        # it is skipped there and starts working by itself the day the repository is public.
+        if: steps.release.outputs.new_release_published == 'true' && !github.event.repository.private
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # Compile when semantic-release published nothing — a docs or chore commit — so a broken source
+      # tree is never left on main unnoticed.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

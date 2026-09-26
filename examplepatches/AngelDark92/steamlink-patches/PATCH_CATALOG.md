@@ -470,13 +470,19 @@ same **VD-informed SDR foveal processing**, based on VD's HEVC 10-bit PCVR path.
 | `profile` | `final-balanced` | Gamma 1.20, saturation 1.45; applies to the base layer, and also the fovea when both VD options are off |
 | `gamma` | `1.20` | Custom-profile range 0.50–2.50 |
 | `saturation` | `1.45` | Custom-profile range 0.00–3.00 |
-| `foveaVdLike10Bit` | `false` | Declares 10-bit input; highp foveal sampling with Valve color correction, no added gamma/saturation or shader noise |
+| `foveaVdLike10Bit` | `false` | Declares 10-bit input; highp foveal sampling with Valve color correction, bypassing the calibration profile and adding no shader noise |
 | `foveaVdLike8Bit` | `false` | Same foveal processing for declared 8-bit input; cannot recover lost input precision |
+| `fovealGamma` | `1.00` | Extra foveal gamma after the selected RGB processing; range 1.00–1.30, step 0.01. 1.00 preserves existing output; higher values darken only the fovea. Works with either VD option or both off. |
 
 The 2 depth options are mutually exclusive and do not negotiate the host codec.
 Output remains `GL_SRGB8_ALPHA8`. The calibrated common prefix/base program is
 unchanged; only the separately assembled masked suffix receives the SDR override.
-Both off restores the original suffix. The original alpha expression and fade survive.
+Both off with `fovealGamma=1.00` restores the original suffix. The original alpha
+expression and fade survive. Foveal gamma is applied before fade and before optional
+blue-noise quantization; the entire background shader remains unchanged. For a lighter
+foveal region, begin at 1.02 and adjust cautiously: this is manual compensation, not a
+verified fix for the cause of the visible boundary. A positive black-level offset will
+not necessarily be corrected by gamma alone. See [validation](diagnostics/steamlink-colour/FOVEAL-GAMMA-2026-09-25.md).
 Historical RGB10/FP16/noise helpers remain internal for audits, not selectable output modes.
 Leave these options off when selecting the separate blue-noise patch.
 

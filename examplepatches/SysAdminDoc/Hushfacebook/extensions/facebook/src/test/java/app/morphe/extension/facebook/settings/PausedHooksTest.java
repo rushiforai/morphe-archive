@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import com.facebook.graphql.model.GraphQLPagesYouMayLikeFeedUnit;
+import com.facebook.graphql.model.GraphQLStory;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -39,9 +40,13 @@ import app.morphe.extension.facebook.ads.ReelsAdFilter;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
+import app.morphe.extension.facebook.download.VideoMenuItemForTests;
 import app.morphe.extension.facebook.feed.FeedFilter;
+import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
+import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
+import app.morphe.extension.facebook.misc.LinkCleaner;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -63,7 +68,10 @@ public class PausedHooksTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     /** Stands in for GraphQLFeedStoryCategory: only the constant names matter to the guard. */
-    enum Category { ORGANIC, SPONSORED, PROMOTION }
+    enum Category { ORGANIC, SPONSORED, PROMOTION, FB_SHORTS, SHOWCASE }
+
+    /** Stands in for the showcase story type enum: only the constant names matter to the rule. */
+    enum ShowcaseStoryType { SHOWCASE_SHORT_VIDEO }
 
     /** Stands in for the obfuscated ad item base class; the patch passes its binary name. */
     public static class AdBase {
@@ -116,8 +124,29 @@ public class PausedHooksTest {
         probes.put(PatchFamily.SPONSORED_POSTS, Arrays.asList(
                 () -> FeedGuardForTests.hides(Category.SPONSORED, new Object()),
                 () -> FeedGuardForTests.hides(Category.PROMOTION, new Object())));
-        probes.put(PatchFamily.SUGGESTED_POSTS, Collections.singletonList(
-                () -> FeedGuardForTests.hides(Category.ORGANIC, new GraphQLPagesYouMayLikeFeedUnit())));
+        probes.put(PatchFamily.SUGGESTED_POSTS, Arrays.asList(
+                () -> FeedGuardForTests.hides(Category.ORGANIC, new GraphQLPagesYouMayLikeFeedUnit()),
+                // A story Facebook's own recommendation flag marks as suggested for you.
+                () -> FeedGuardForTests.hidesRecommended(Category.ORGANIC, new GraphQLStory(),
+                        FeedGuardForTests.recommendationContext(true)),
+                () -> FeedGuardForTests.hides(Category.ORGANIC, TypedFeedUnit.peopleYouMayKnow())));
+        // Each of the feed's two Stories tray adapters returns nothing.
+        probes.put(PatchFamily.STORIES_TRAY, Arrays.asList(
+                () -> FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY),
+                () -> FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY)));
+        // A row of reels between posts, by its category and by its showcase story type, and the
+        // Reels row the pre-EOF injector builds without passing the edge guard.
+        probes.put(PatchFamily.FEED_REELS, Arrays.asList(
+                () -> FeedGuardForTests.hidesReels(Category.FB_SHORTS, new Object()),
+                () -> FeedGuardForTests.hidesShowcaseReels(Category.SHOWCASE, ShowcaseStoryType.SHOWCASE_SHORT_VIDEO),
+                FeedFilter::hidePreEofReels));
+        probes.put(PatchFamily.RETURN_REFRESH, Collections.singletonList(() -> {
+            ReturnRefresh.uiHidden();
+            return ReturnRefresh.skip();
+        }));
+        // A story Facebook's own detection marked as made with AI.
+        probes.put(PatchFamily.AI_DETECTED_POSTS, Collections.singletonList(
+                () -> FeedGuardForTests.hides(Category.ORGANIC, new GraphQLStory(), FeedGuardForTests.detectedInfo(true))));
         probes.put(PatchFamily.SPONSORED_STORIES, Collections.singletonList(FeedFilter::hideSponsoredStories));
         probes.put(PatchFamily.SPONSORED_REELS, Arrays.asList(
                 () -> {
@@ -150,6 +179,15 @@ public class PausedHooksTest {
                 PlayerSourcesForTests::recordsAPlayer));
         // Every reel's sidebar gets the Download button.
         probes.put(PatchFamily.REEL_DOWNLOAD, Collections.singletonList(ReelDownload::showsButton));
+        // A video post's menu gets Download to phone, and the video recorder keeps a player.
+        probes.put(PatchFamily.VIDEO_DOWNLOAD, Arrays.asList(
+                VideoMenuItemForTests::addsAnItem,
+                PlayerSourcesForTests::recordsAVideoPlayer));
+        // A shared link loses what the app added to it.
+        probes.put(PatchFamily.SANITIZE_SHARING_LINKS, Collections.singletonList(() -> {
+            String shared = "https://www.facebook.com/share/p/1AbCdEf/?mibextid=WC7FNe";
+            return !shared.equals(LinkCleaner.sanitizeShared(shared));
+        }));
         return probes;
     }
 

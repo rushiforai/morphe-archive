@@ -10,8 +10,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
@@ -24,6 +32,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -32,6 +42,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Set;
 
+import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -76,6 +87,18 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     public void onCreate(Bundle savedInstanceState) {
         if (savedInstanceState != null) pendingImport = savedInstanceState.getBundle(PENDING_IMPORT_STATE);
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ListView list = view.findViewById(android.R.id.list);
+        if (list != null) {
+            list.setDivider(null);
+            list.setDividerHeight(0);
+            ScreenColors colors = ScreenColors.shown;
+            list.setBackgroundColor(colors == null ? Color.BLACK : colors.background);
+        }
     }
 
     @Override
@@ -125,7 +148,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
 
         // Every row inflates with the theme of the context it was built with. Facebook's activity
         // theme is light, so its near-black primary text vanished on this screen's black background
-        // on a phone (2026-09-24). The rows get a dark Material theme instead.
+        // on a phone (2026-09-24). The rows get a dark Material theme instead, or with the Material
+        // You theme in the build, the phone's dark or light one in its wallpaper colours.
+        ScreenColors.shown = ScreenColors.forScreen(getContext());
         Context context = themed(getContext());
         PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(context);
         setPreferenceScreen(screen);
@@ -135,7 +160,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         PatchFamily.registerDiagnostics();
         Set<PatchFamily> build = PatchFamily.inThisBuild();
 
-        if (build.contains(PatchFamily.SPONSORED_POSTS) || build.contains(PatchFamily.SUGGESTED_POSTS)) {
+        if (build.contains(PatchFamily.SPONSORED_POSTS) || build.contains(PatchFamily.SUGGESTED_POSTS)
+                || build.contains(PatchFamily.STORIES_TRAY) || build.contains(PatchFamily.FEED_REELS)
+                || build.contains(PatchFamily.RETURN_REFRESH)
+                || build.contains(PatchFamily.AI_DETECTED_POSTS)) {
             PreferenceCategory feed = category(screen, L10n.t("News feed"));
             if (build.contains(PatchFamily.SPONSORED_POSTS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_SPONSORED_POSTS, L10n.t("Hide sponsored posts"),
@@ -147,6 +175,31 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_POSTS,
                         L10n.t("Hide suggested and promoted units"),
                         L10n.t("\"Pages you may like\" and Facebook's own upsell cards. The in-feed surveys go too.")));
+                feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_FOR_YOU,
+                        L10n.t("Hide \"Suggested for you\" posts"),
+                        L10n.t("Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.")));
+                feed.addPreference(toggle(context, Settings.HIDE_PEOPLE_YOU_MAY_KNOW,
+                        L10n.t("Hide \"People you may know\""),
+                        L10n.t("The row of friend suggestions between posts.")));
+            }
+            if (build.contains(PatchFamily.STORIES_TRAY)) {
+                feed.addPreference(toggle(context, Settings.HIDE_STORIES_TRAY, L10n.t("Hide the Stories tray"),
+                        L10n.t("The row of stories at the top of the feed, Create story included.")));
+            }
+            if (build.contains(PatchFamily.FEED_REELS)) {
+                feed.addPreference(toggle(context, Settings.HIDE_FEED_REELS, L10n.t("Hide Reels in the feed"),
+                        L10n.t("The rows of reels between posts, and the reels Facebook adds where your feed ends.")));
+            }
+            if (build.contains(PatchFamily.RETURN_REFRESH)) {
+                feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
+                        L10n.t("Keep feed position on return"),
+                        L10n.t("Returning to Facebook within ten minutes keeps your place. Pull to refresh still works.")));
+            }
+            if (build.contains(PatchFamily.AI_DETECTED_POSTS)) {
+                feed.addPreference(toggle(context, Settings.HIDE_AI_DETECTED_POSTS, L10n.t("Hide AI-detected posts"),
+                        L10n.t("Posts that Facebook's own detection marked as made with AI. A post labeled only by "
+                                + "the person who shared it stays. This one starts off because it hasn't been tried "
+                                + "on a real feed yet.")));
             }
         }
 
@@ -178,15 +231,35 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             }
         }
 
-        if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
+        if (build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.REEL_DOWNLOAD)
+                || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
+            PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
+            if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
+                downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS, L10n.t("Download feed and Watch videos"),
+                        L10n.t("Adds Download to phone to the menu of a video in the feed or in Watch, below "
+                                + "Facebook's own items, and saves at the best quality the player streams. Off or "
+                                + "paused, the menu is Facebook's own.")));
+            }
+            downloads.addPreference(folderRow(context));
+        }
+
+        if (build.contains(PatchFamily.EXTERNAL_BROWSER) || build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
             PreferenceCategory links = category(screen, L10n.t("Links"));
-            links.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY, L10n.t("Open links in your browser"),
-                    L10n.t("Web links leave Facebook's in-app browser. Facebook's own pages still open in the app.")));
+            if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
+                links.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY, L10n.t("Open links in your browser"),
+                        L10n.t("Web links leave Facebook's in-app browser. Facebook's own pages still open in the app.")));
+            }
+            if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
+                links.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
+                        L10n.t("Remove tracking from shared links"),
+                        L10n.t("Takes tracking tags such as mibextid off the links you share or copy. A "
+                                + "facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.")));
+            }
         }
 
         if (build.contains(PatchFamily.AD_PREFETCH) || build.contains(PatchFamily.AD_TELEMETRY)
                 || build.contains(PatchFamily.AUDIENCE_NETWORK) || build.contains(PatchFamily.AMOLED_THEME)
-                || build.contains(PatchFamily.RESTORE_TRUST)) {
+                || build.contains(PatchFamily.MATERIAL_YOU_THEME) || build.contains(PatchFamily.RESTORE_TRUST)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
             if (build.contains(PatchFamily.AD_PREFETCH)) {
                 patched.addPreference(info(context, L10n.t("Background ad prefetch blocked"),
@@ -203,6 +276,12 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             if (build.contains(PatchFamily.AMOLED_THEME)) {
                 patched.addPreference(info(context, L10n.t("AMOLED black theme"),
                         L10n.t("Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.")));
+            }
+            if (build.contains(PatchFamily.MATERIAL_YOU_THEME)) {
+                patched.addPreference(info(context, L10n.t("Material You theme"),
+                        L10n.t("Facebook's dark mode takes its colours from your wallpaper, and this screen does too. "
+                                + "Android 11 has no wallpaper colours, so it gets a fixed blue palette. Turn on dark "
+                                + "mode in Facebook to see it.")));
             }
             if (build.contains(PatchFamily.RESTORE_TRUST)) {
                 patched.addPreference(info(context, L10n.t("Re-signed build fix"),
@@ -222,8 +301,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushfacebook.addPreference(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
                 L10n.t("Export settings"),
-                L10n.t("Saves the switches from the sections above to a file you choose. Pause and Debug logging "
-                        + "stay out of it.")));
+                L10n.t("Saves the switches and the save folder from the sections above to a file you choose. "
+                        + "Pause and Debug logging stay out of it.")));
         hushfacebook.addPreference(new BackupRow(this, context, SettingsBackupPreference.IMPORT,
                 L10n.t("Import settings"),
                 L10n.t("Choose a settings file. You'll see how many switches it changes before anything does.")));
@@ -276,7 +355,31 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     private Preference statusCard(Context context) {
         Preference card = new Row(context);
         card.setPersistent(false);
-        if (!HushfacebookPause.isPaused()) {
+        ScreenColors colors = ScreenColors.shown;
+        boolean paused = HushfacebookPause.isPaused();
+        int fill = paused
+                ? (colors == null ? 0xFF858D9C : colors.switchOff)
+                : (colors == null ? 0xFF1769E0 : colors.accent);
+        int diameter = Math.round(40 * context.getResources().getDisplayMetrics().density);
+        Bitmap mark = Bitmap.createBitmap(diameter, diameter, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(mark);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(fill);
+        canvas.drawCircle(diameter / 2f, diameter / 2f, diameter / 2f, paint);
+        if (!paused) {
+            paint.setColor(colors != null && !colors.light ? colors.background : Color.WHITE);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(diameter / 10f);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeJoin(Paint.Join.ROUND);
+            Path check = new Path();
+            check.moveTo(diameter * .24f, diameter * .52f);
+            check.lineTo(diameter * .43f, diameter * .70f);
+            check.lineTo(diameter * .77f, diameter * .32f);
+            canvas.drawPath(check, paint);
+        }
+        card.setIcon(new BitmapDrawable(context.getResources(), mark));
+        if (!paused) {
             card.setTitle(L10n.t("Hushfacebook is on"));
             card.setSummary(L10n.f("Version %1$s for Facebook %2$s",
                     L10n.isolate(Utils.getPatchesReleaseVersion()), L10n.isolate(Utils.getAppVersionName())));
@@ -330,12 +433,15 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return "Android/data/" + packageName + "/files";
     }
 
-    /** The dark Material theme every row on this screen is built with, over Facebook's own. */
+    /**
+     * The theme every row and dialog on this screen is built with, over Facebook's own: dark
+     * Material, or with the Material You theme in the build, the phone's dark or light setting.
+     */
     static Context themed(Context base) {
-        return new ContextThemeWrapper(base, android.R.style.Theme_Material_NoActionBar);
+        return new ContextThemeWrapper(base, ScreenColors.themeFor(base));
     }
 
-    /** The recovery page draws on the same black page, so it gets the same theme. */
+    /** The recovery page draws on the same page as the rows, so it gets the same theme. */
     @Override
     protected Context pageContext(Activity activity) {
         return themed(activity);
@@ -354,6 +460,40 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         preference.setTitle(title);
         preference.setSummary(summary);
         return preference;
+    }
+
+    /**
+     * The folder every save goes to. What's typed is cleaned before it's kept, so the row, the
+     * setting and the next save all show the one folder name the save will use.
+     */
+    static FolderRow folderRow(Context context) {
+        FolderRow row = new FolderRow(context);
+        row.setKey(Settings.SAVE_FOLDER.key);
+        row.setTitle(L10n.t("Save folder"));
+        row.setDialogTitle(L10n.t("Save folder"));
+        row.setDialogMessage(L10n.f("One folder name for your saves. Slashes and other characters a folder name "
+                + "can't hold become underscores. Leave it empty to use %1$s.", L10n.isolate(SaveFolder.DEFAULT)));
+        EditText field = row.getEditText();
+        field.setSingleLine(true);
+        field.setHint(SaveFolder.DEFAULT);
+        row.setText(Settings.SAVE_FOLDER.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString();
+            String clean = SaveFolder.sanitize(raw);
+            if (clean.equals(raw)) return true;
+            // Keeps the clean name in place of what was typed. The store changes, and the shared
+            // page reads the setting from the row as it does for any change.
+            ((FolderRow) preference).setText(clean);
+            return false;
+        });
+        return row;
+    }
+
+    /** "Videos go to Movies/Clips and photos to Pictures/Clips." for the folder [leaf]. */
+    static String folderSummary(String leaf) {
+        String videos = Environment.DIRECTORY_MOVIES + "/" + leaf;
+        String photos = Environment.DIRECTORY_PICTURES + "/" + leaf;
+        return L10n.f("Videos go to %1$s and photos to %2$s.", L10n.isolate(videos), L10n.isolate(photos));
     }
 
     private static Preference info(Context context, String title, String summary) {
@@ -391,6 +531,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             super.onBindView(view);
             view.setAccessibilityHeading(true);
             showAllText(view);
+            ScreenColors.heading(view);
         }
     }
 
@@ -404,6 +545,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         protected void onBindView(View view) {
             super.onBindView(view);
             showAllText(view);
+            ScreenColors.row(view, this);
             view.setAccessibilityDelegate(isSelectable() ? new RowSemantics(this, Button.class) : null);
         }
     }
@@ -418,7 +560,39 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         protected void onBindView(View view) {
             super.onBindView(view);
             showAllText(view);
+            ScreenColors.row(view, this);
             view.setAccessibilityDelegate(new RowSemantics(this, Switch.class));
+        }
+    }
+
+    /**
+     * The save folder's row. Its summary follows its text, whoever sets it: the person, the shared
+     * page syncing it from the setting, or an import.
+     */
+    static final class FolderRow extends EditTextPreference {
+        FolderRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(folderSummary(SaveFolder.sanitize(text)));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
         }
     }
 
@@ -428,9 +602,15 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         }
 
         @Override
+        protected void onDialogShown(AlertDialog dialog) {
+            ScreenColors.dialog(dialog);
+        }
+
+        @Override
         protected void onBindView(View view) {
             super.onBindView(view);
             showAllText(view);
+            ScreenColors.row(view, this);
             view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
         }
     }
@@ -444,6 +624,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         protected void onBindView(View view) {
             super.onBindView(view);
             showAllText(view);
+            ScreenColors.row(view, this);
             view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
         }
     }
@@ -458,6 +639,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         protected void onBindView(View view) {
             super.onBindView(view);
             showAllText(view);
+            ScreenColors.row(view, this);
             view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
         }
     }
@@ -537,11 +719,13 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         text.setPadding(pad, pad, pad, pad);
         ScrollView scroll = new ScrollView(context);
         scroll.addView(text);
-        new AlertDialog.Builder(context)
+        ScreenColors colors = ScreenColors.shown;
+        if (colors != null) text.setTextColor(colors.summary);
+        ScreenColors.dialog(new AlertDialog.Builder(context)
                 .setTitle(L10n.t("Licenses"))
                 .setView(scroll)
-                .setPositiveButton(android.R.string.ok, null)
-                .show();
+                .setPositiveButton(L10n.t("OK"), null)
+                .show());
     }
 
     @Override

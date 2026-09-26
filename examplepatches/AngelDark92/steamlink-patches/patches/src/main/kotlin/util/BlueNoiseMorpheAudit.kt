@@ -22,8 +22,8 @@ object BlueNoiseMorpheAudit {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        require(args.size in 4..6) {
-            "Usage: BlueNoiseMorpheAudit <fixture.apk> <new-output-directory> <8-bit|10-bit> <withOled:true|false> [blue-first|oled-first] [fovea|background|both-fovea-first|both-background-first]"
+        require(args.size in 4..7) {
+            "Usage: BlueNoiseMorpheAudit <fixture.apk> <new-output-directory> <8-bit|10-bit> <withOled:true|false> [blue-first|oled-first] [fovea|background|both-fovea-first|both-background-first] [fovealGamma:1.00..1.30]"
         }
         val fixture = File(args[0]).canonicalFile
         val directory = File(args[1]).canonicalFile
@@ -31,6 +31,7 @@ object BlueNoiseMorpheAudit {
         val withOled = args[3].toBooleanStrict()
         val order = args.getOrElse(4) { "blue-first" }
         val layerSelection = args.getOrElse(5) { "fovea" }
+        val fovealGamma = args.getOrElse(6) { "1.00" }.toFloat()
         val layers = when (layerSelection) {
             "fovea" -> listOf(BlueNoiseLayer.FOVEA)
             "background" -> listOf(BlueNoiseLayer.BACKGROUND)
@@ -41,6 +42,8 @@ object BlueNoiseMorpheAudit {
         require(fixture.isFile) { "Missing fixture: $fixture" }
         require(inputDepth in setOf("8-bit", "10-bit")) { "Invalid input depth: $inputDepth" }
         require(order in setOf("blue-first", "oled-first")) { "Invalid selection order: $order" }
+        require(fovealGamma.isFinite() && fovealGamma in 1f..1.30f) { "Invalid foveal gamma: $fovealGamma" }
+        require(withOled || fovealGamma == 1f) { "Foveal gamma above 1 requires OLED calibration" }
         require(!directory.exists() || directory.listFiles().isNullOrEmpty()) {
             "Use an absent or empty output directory: $directory"
         }
@@ -56,14 +59,16 @@ object BlueNoiseMorpheAudit {
                 it.size == sourceScene.size && it.stockHash == sourceHash
             } ?: error("Fixture scene is not one of the 3 exact stock inputs: size=${sourceScene.size}, sha256=$sourceHash")
             record("Fixture: ${fixture.path}; SHA-256=$fixtureHash")
-            record("Case: ${layout.version}/${layout.code}, declared $inputDepth, OLED=$withOled, selection order=$order, layers=$layerSelection")
+            record("Case: ${layout.version}/${layout.code}, declared $inputDepth, OLED=$withOled, foveal gamma=$fovealGamma, selection order=$order, layers=$layerSelection")
             record("Evidence boundary: analysis/decoded-fixture APK; actual Morphe DSL finalize and unsigned packaging only. Not pristine APK, Android linking, GPU execution, install, headset or panel proof.")
 
             val mode = if (inputDepth == "8-bit") FoveaMode.INPUT_8BIT else FoveaMode.INPUT_10BIT
-            val expectedBeforeHooks = sourceScene.copyOf()
+            var expectedBeforeHooks = sourceScene.copyOf()
             if (withOled) {
                 paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP)
                     .copyInto(expectedBeforeHooks, findVideoShader(expectedBeforeHooks))
+                expectedBeforeHooks = applyVdSdrFovea(expectedBeforeHooks, layout.version, layout.code,
+                    FoveaMode.OFF, fovealGamma)
             }
             var expected = BlueNoiseResult(setProjectionSwapchainFormat(expectedBeforeHooks,
                 VideoOutputPrecision.SRGB8_HIGHP, layout.version, layout.code), null)
@@ -77,6 +82,7 @@ object BlueNoiseMorpheAudit {
                 oledCalibrationPatch.options["profile"] = "final-balanced"
                 oledCalibrationPatch.options["foveaVdLike10Bit"] = false
                 oledCalibrationPatch.options["foveaVdLike8Bit"] = false
+                oledCalibrationPatch.options["fovealGamma"] = fovealGamma
             }
             // Read the actual APK metadata through the same Morphe resource context as the
             // production patch. Native identity alone is not an exact version-pair check.

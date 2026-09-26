@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -35,14 +36,14 @@ import java.util.regex.Pattern;
 
 final class DashServer implements Runnable {
     interface Source {
-        DashFile open(String subjectId, int season, int episode, int height, String origin, long originSize)
-                throws IOException;
+        DashFile open(String subjectId, int season, int episode, int height, String origin, long originSize,
+                      String resourceId, boolean fromStart) throws IOException;
     }
 
-    static final class Unavailable extends IOException {
+    static final class UnavailableException extends IOException {
         private static final long serialVersionUID = 1L;
 
-        Unavailable(String message) {
+        UnavailableException(String message) {
             super(message);
         }
     }
@@ -63,7 +64,6 @@ final class DashServer implements Runnable {
     private static final int BACKLOG = 16;
     private static final int WORKERS = 8;
     private static final int QUEUED_REQUESTS = 16;
-    private static final long WORKER_KEEP_ALIVE_S = 30L;
     private static final int SOCKET_TIMEOUT_MS = 30000;
     private static final int OUTPUT_BUFFER_BYTES = 1 << 16;
     private static final int MAX_HEAD_BYTES = 8192;
@@ -74,6 +74,7 @@ final class DashServer implements Runnable {
     private static final char DEL = 0x7F;
     private static final String ORIGIN_PARAMETER = "origin";
     private static final String ORIGIN_SIZE_PARAMETER = "size";
+    private static final String RESOURCE_ID_PARAMETER = "resourceId";
     private static final String STATUS_OK = "200 OK";
     private static final String STATUS_PARTIAL = "206 Partial Content";
     private static final String STATUS_FOUND = "302 Found";
@@ -83,7 +84,7 @@ final class DashServer implements Runnable {
 
     private final Source source;
     private final ServerSocket serverSocket;
-    private final ThreadPoolExecutor workers = new ThreadPoolExecutor(WORKERS, WORKERS, WORKER_KEEP_ALIVE_S,
+    private final ThreadPoolExecutor workers = new ThreadPoolExecutor(WORKERS, WORKERS, 0L,
             TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(QUEUED_REQUESTS));
     private boolean started;
 
@@ -96,9 +97,11 @@ final class DashServer implements Runnable {
         return new DashServer(source, new ServerSocket(PORT, BACKLOG, InetAddress.getByAddress(LOOPBACK)));
     }
 
-    static String url(String subjectId, int season, int episode, int height, String origin, long originSize) {
+    static String buildUrl(String subjectId, int season, int episode, int height, String origin, long originSize,
+                           String resourceId) {
         return "http://127.0.0.1:" + PORT + "/dash/" + subjectId + "/" + season + "/" + episode + "/" + height + ".mp4"
-                + "?" + ORIGIN_PARAMETER + "=" + Uri.encode(origin) + "&" + ORIGIN_SIZE_PARAMETER + "=" + originSize;
+                + "?" + ORIGIN_PARAMETER + "=" + Uri.encode(origin) + "&" + ORIGIN_SIZE_PARAMETER + "=" + originSize
+                + (resourceId == null ? "" : "&" + RESOURCE_ID_PARAMETER + "=" + Uri.encode(resourceId));
     }
 
     synchronized void start() {
@@ -125,7 +128,7 @@ final class DashServer implements Runnable {
                 client = serverSocket.accept();
             } catch (IOException e) {
                 if (!serverSocket.isClosed()) Log.e(TAG, "DASH server stopped", e);
-                workers.shutdown();
+                close();
                 return;
             }
             try {
@@ -146,10 +149,12 @@ final class DashServer implements Runnable {
             client.setSoTimeout(SOCKET_TIMEOUT_MS);
             String[] requestHead = readHead(client.getInputStream()).split("\r\n");
             OutputStream out = new BufferedOutputStream(client.getOutputStream(), OUTPUT_BUFFER_BYTES);
-            respond(requestHead[0], rangeHeader(requestHead), out);
+            respond(requestHead[0], findRangeHeader(requestHead), out);
             out.flush();
-        } catch (IOException e) {
-            Log.w(TAG, "DASH request failed", e);
+        } catch (SocketException clientGone) {
+            Log.i(TAG, "DASH request ended by the client: " + clientGone.getMessage());
+        } catch (Throwable failure) {
+            Log.w(TAG, "DASH request failed", failure);
         } finally {
             closeQuietly(client);
         }
@@ -162,21 +167,21 @@ final class DashServer implements Runnable {
             int next = in.read();
             if (next < 0) break;
             head[length++] = (byte) next;
-            if (length >= HEAD_END.length && endsWithHeadEnd(head, length)) {
+            if (length >= HEAD_END.length && isHeadComplete(head, length)) {
                 return new String(head, 0, length - HEAD_END.length, StandardCharsets.ISO_8859_1);
             }
         }
         throw new IOException("request head missing or over " + MAX_HEAD_BYTES + " bytes");
     }
 
-    private static boolean endsWithHeadEnd(byte[] head, int length) {
+    private static boolean isHeadComplete(byte[] head, int length) {
         for (int i = 0; i < HEAD_END.length; i++) {
             if (head[length - HEAD_END.length + i] != HEAD_END[i]) return false;
         }
         return true;
     }
 
-    private static String rangeHeader(String[] requestHead) {
+    private static String findRangeHeader(String[] requestHead) {
         for (int i = 1; i < requestHead.length; i++) {
             if (requestHead[i].regionMatches(true, 0, RANGE_HEADER, 0, RANGE_HEADER.length())) {
                 return requestHead[i].substring(RANGE_HEADER.length()).trim();
@@ -194,14 +199,18 @@ final class DashServer implements Runnable {
             writeEmpty(out, STATUS_NOT_FOUND, null);
             return;
         }
-        String origin = validOrigin(target.getQueryParameter(ORIGIN_PARAMETER));
+        String origin = parseValidOrigin(target.getQueryParameter(ORIGIN_PARAMETER));
         long originSize = parseSize(target.getQueryParameter(ORIGIN_SIZE_PARAMETER));
+        Matcher requested = rangeHeader == null ? null : RANGE.matcher(rangeHeader);
+        boolean partial = requested != null && requested.matches();
+        boolean fromStart = !partial || Long.parseLong(requested.group(1)) == 0;
 
         DashFile file;
         try {
             file = source.open(path.group(1), Integer.parseInt(path.group(2)),
-                    Integer.parseInt(path.group(3)), Integer.parseInt(path.group(4)), origin, originSize);
-        } catch (Unavailable gone) {
+                    Integer.parseInt(path.group(3)), Integer.parseInt(path.group(4)), origin, originSize,
+                    target.getQueryParameter(RESOURCE_ID_PARAMETER), fromStart);
+        } catch (UnavailableException gone) {
             Log.i(TAG, "unavailable " + request[1] + ": " + gone.getMessage());
             writeEmpty(out, STATUS_NOT_FOUND, null);
             return;
@@ -214,16 +223,14 @@ final class DashServer implements Runnable {
             if (origin == null) {
                 writeEmpty(out, STATUS_NOT_FOUND, null);
             } else {
-                StringBuilder sb = header(STATUS_FOUND).append("Location: ").append(origin).append("\r\n")
+                StringBuilder sb = buildStatusHeader(STATUS_FOUND).append("Location: ").append(origin).append("\r\n")
                         .append("Content-Length: 0\r\n\r\n");
                 out.write(sb.toString().getBytes(StandardCharsets.ISO_8859_1));
             }
             return;
         }
 
-        Matcher requested = rangeHeader == null ? null : RANGE.matcher(rangeHeader);
-        boolean partial = requested != null && requested.matches();
-        Range range = partial ? requestedRange(requested, file.length) : new Range(0, file.length - 1);
+        Range range = partial ? parseRequestedRange(requested, file.length) : new Range(0, file.length - 1);
         if (range.start > range.end) {
             writeEmpty(out, STATUS_UNSATISFIABLE, "bytes */" + file.length);
             return;
@@ -232,7 +239,7 @@ final class DashServer implements Runnable {
         if (!headOnly) file.write(out, range.start, range.end);
     }
 
-    private static String validOrigin(String origin) {
+    private static String parseValidOrigin(String origin) {
         if (origin == null || !(origin.startsWith("http://") || origin.startsWith("https://"))) return null;
         for (int i = 0; i < origin.length(); i++) {
             char c = origin.charAt(i);
@@ -250,7 +257,7 @@ final class DashServer implements Runnable {
         }
     }
 
-    private static Range requestedRange(Matcher requested, long length) {
+    private static Range parseRequestedRange(Matcher requested, long length) {
         long start = Long.parseLong(requested.group(1));
         String last = requested.group(2);
         long end = last.isEmpty() ? length - 1 : Math.min(length - 1, Long.parseLong(last));
@@ -258,7 +265,7 @@ final class DashServer implements Runnable {
     }
 
     private static void writeHeaders(OutputStream out, Range range, long length, boolean partial) throws IOException {
-        StringBuilder sb = header(partial ? STATUS_PARTIAL : STATUS_OK)
+        StringBuilder sb = buildStatusHeader(partial ? STATUS_PARTIAL : STATUS_OK)
                 .append("Content-Length: ").append(range.end - range.start + 1).append("\r\n");
         if (partial) {
             sb.append("Content-Range: bytes ").append(range.start).append('-').append(range.end)
@@ -268,12 +275,12 @@ final class DashServer implements Runnable {
     }
 
     private static void writeEmpty(OutputStream out, String status, String contentRange) throws IOException {
-        StringBuilder sb = header(status).append("Content-Length: 0\r\n");
+        StringBuilder sb = buildStatusHeader(status).append("Content-Length: 0\r\n");
         if (contentRange != null) sb.append("Content-Range: ").append(contentRange).append("\r\n");
         out.write(sb.append("\r\n").toString().getBytes(StandardCharsets.ISO_8859_1));
     }
 
-    private static StringBuilder header(String status) {
+    private static StringBuilder buildStatusHeader(String status) {
         return new StringBuilder("HTTP/1.1 ").append(status).append("\r\n")
                 .append("Connection: close\r\nAccept-Ranges: bytes\r\nContent-Type: video/mp4\r\n");
     }

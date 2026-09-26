@@ -1,0 +1,134 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patcher
+ *
+ * Original forked code:
+ * https://github.com/LisoUseInAIKyrios/revanced-patcher
+ */
+
+package app.morphe.patcher.patch
+
+import app.morphe.patcher.InternalApi
+import app.morphe.patcher.PackageMetadata
+import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.PatcherResult
+import app.morphe.patcher.resource.ResourceMode
+import app.morphe.patcher.resource.coder.ArsclibResourceCoder
+import app.morphe.patcher.resource.coder.ResourceCoder
+import app.morphe.patcher.util.Document
+import java.io.Closeable
+import java.io.InputStream
+import java.util.logging.Logger
+
+
+/**
+ * A context for patches containing the current state of resources.
+ */
+class ResourcePatchContext internal constructor(
+    private val config: PatcherConfig,
+) : PatchContext<PatcherResult.PatchedResources>, Closeable {
+    private val logger = Logger.getLogger(ResourcePatchContext::class.java.name)
+
+    override val fileWorkspace = config.fileWorkspace
+
+    private val resourceCoder: ResourceCoder = ArsclibResourceCoder(config.apkFiles, config.apkFile, config.keepArchitectures)
+
+    val packageMetadata = resourceCoder.getPackageMetadata()
+
+    /**
+     * Read a document from an [InputStream].
+     */
+    @Suppress("unused")
+    fun document(inputStream: InputStream) = Document(inputStream)
+
+    /**
+     * Read and write documents in the [PatcherConfig.apkFiles].
+     */
+    @Suppress("unused")
+    fun document(path: String) = Document(resourceCoder.getFile(path))
+    @Suppress("unused")
+    fun document(path: String, packageName: String) = Document(resourceCoder.getFile(path, packageName))
+
+    /**
+     * Decode resources of [PatcherConfig.apkFile].
+     *
+     * @param mode The [ResourceMode] to use.
+     */
+    internal fun decodeResources(mode: ResourceMode): PackageMetadata {
+        config.initializeTemporaryFilesDirectories()
+        if (mode == ResourceMode.FULL) {
+            logger.info("Decoding all resources")
+            return resourceCoder.decodeResources()
+        } else {
+            logger.info("Decoding resources in raw mode")
+            return resourceCoder.decodeRaw()
+        }
+    }
+
+    /**
+     * Compile resources in [PatcherConfig.apkFiles].
+     *
+     * @return The [PatcherResult.PatchedResources].
+     */
+    @InternalApi
+    override fun get(): PatcherResult.PatchedResources {
+        val resourcesApkFile = if (config.resourceMode == ResourceMode.FULL) {
+            logger.info("Compiling modified resources")
+            resourceCoder.encodeResources(config.patchedFiles)
+        } else {
+            null
+        }
+
+        // FIXME: All of this stuff is handled by arsclib using metadata files. Clean this up.
+        return PatcherResult.PatchedResources(
+            resourcesApkFile,
+            resourceCoder.getOtherResourceFiles(config.patchedFiles, config.resourceMode),
+            resourceCoder.getUncompressedFiles(config.resourceMode),
+            resourceCoder.getDeletedFiles(config.resourceMode),
+        )
+    }
+
+    /**
+     * Get a file from [PatcherConfig.apkFiles].
+     *
+     * @param path The path of the file.
+     * @param copy Whether to copy the file from [PatcherConfig.apkFile] if it does not exist yet in [PatcherConfig.apkFiles].
+     */
+    operator fun get(
+        path: String,
+        copy: Boolean = true,
+    ) = resourceCoder.getFile(path, copy = copy)
+
+    /**
+     * List the entries of the APK being patched, without staging them to the working directory.
+     *
+     * Use this to discover what an APK contains, rather than walking the working directory: not
+     * every entry is staged there, and native libraries in particular are left in the archive.
+     * Names are archive names, so they can be passed straight to [get].
+     *
+     * The listing describes the input APK, so it does not reflect files a patch has since added,
+     * changed or deleted.
+     *
+     * @param prefix Restricts the listing to entries starting with it, e.g. `lib/`.
+     */
+    fun listApkEntries(prefix: String = "") = resourceCoder.listApkEntries(prefix)
+
+    /**
+     * Mark a file for deletion when the APK is rebuilt.
+     *
+     * The name is either a decoded resource path such as `res/drawable/icon.png`, or any other
+     * entry of the APK being patched as returned by [listApkEntries], such as
+     * `lib/x86/libfoo.so` or `assets/data.bin`. Archive entries are excluded from the rebuilt APK
+     * whether or not they were staged to the working directory, so this works for native
+     * libraries too. A directory name, such as `lib/x86/`, deletes everything below it. Deleting a
+     * name that matches nothing is a no-op. A file deleted and then recreated with [get] keeps the
+     * recreated content. The manifest and `resources.arsc` cannot be deleted.
+     *
+     * @param name The name of the file to delete.
+     * @param packageName The package name a decoded resource exists in. Defaults to the package name of the APK.
+     */
+    @Suppress("unused")
+    fun delete(name: String, packageName: String? = null) = resourceCoder.deleteFile(name, packageName)
+
+    override fun close() = resourceCoder.close()
+}

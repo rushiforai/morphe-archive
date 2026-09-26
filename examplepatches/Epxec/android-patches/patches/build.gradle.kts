@@ -1,3 +1,22 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+kotlin {
+    jvmToolchain(21)
+
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
 group = "app.epxec.patches"
 
 patches {
@@ -18,6 +37,7 @@ patches {
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 
 dependencies {
+    implementation("app.epxec:morphe-universal-loader:0.1.4")
     implementation(libs.morphe.patches.library)
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)

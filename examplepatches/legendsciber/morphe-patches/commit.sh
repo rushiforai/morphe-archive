@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix(shadowfight): v22b - raise safe pointer lower bound to 0x1000000, fix crash"
+MSG="feat(subwaysurfers): add currency hack patch"
 
 cd "$DIR"
 

@@ -1,3 +1,67 @@
+## [1.11.0](https://github.com/Epxec/android-patches/compare/v1.10.0...v1.11.0) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* compiler issue on mobile phone ([156dafb](https://github.com/Epxec/android-patches/commit/156dafb75c7ed7f1118f3fec7a109e7e8c5d9b97))
+* format BLAZEFTL URL for better readability ([c0e324f](https://github.com/Epxec/android-patches/commit/c0e324f58abd96800c8b532134969d9114f08cf1))
+* improper kotlin files ([8945551](https://github.com/Epxec/android-patches/commit/894555170fa8a3554db5af3feb55fa88f935fa99))
+* update morphe-universal-loader version to 0.1.2 ([4f72889](https://github.com/Epxec/android-patches/commit/4f7288911c85270ab2a472a253ee6d86db11fa15))
+* update morphe-universal-loader version to 0.1.3 ([0eec76f](https://github.com/Epxec/android-patches/commit/0eec76f1f92d76bc23f80df6364dcaa032598820))
+* update morphe-universal-loader version to 0.1.4 ([195b5ef](https://github.com/Epxec/android-patches/commit/195b5efee9ee76ade0eaf9e991fef121667f3809))
+* wallet google login ([a743393](https://github.com/Epxec/android-patches/commit/a743393ce951a26a8e8ab886f22668ad3d9b5834))
+
+### ✨ New Features
+
+* better universal patch reference ([2e5c1cb](https://github.com/Epxec/android-patches/commit/2e5c1cbfb6d927c99a2e7d5a1892671c0c087996))
+* todaii google login ([5f0ff95](https://github.com/Epxec/android-patches/commit/5f0ff955338527fb02ac170fbce13d32f97d29e4))
+
+## [1.11.0-dev.7](https://github.com/Epxec/android-patches/compare/v1.11.0-dev.6...v1.11.0-dev.7) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* wallet google login ([a743393](https://github.com/Epxec/android-patches/commit/a743393ce951a26a8e8ab886f22668ad3d9b5834))
+
+## [1.11.0-dev.6](https://github.com/Epxec/android-patches/compare/v1.11.0-dev.5...v1.11.0-dev.6) (2026-09-25)
+
+### ✨ New Features
+
+* todaii google login ([5f0ff95](https://github.com/Epxec/android-patches/commit/5f0ff955338527fb02ac170fbce13d32f97d29e4))
+
+## [1.11.0-dev.5](https://github.com/Epxec/android-patches/compare/v1.11.0-dev.4...v1.11.0-dev.5) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* update morphe-universal-loader version to 0.1.4 ([195b5ef](https://github.com/Epxec/android-patches/commit/195b5efee9ee76ade0eaf9e991fef121667f3809))
+
+## [1.11.0-dev.4](https://github.com/Epxec/android-patches/compare/v1.11.0-dev.3...v1.11.0-dev.4) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* update morphe-universal-loader version to 0.1.2 ([4f72889](https://github.com/Epxec/android-patches/commit/4f7288911c85270ab2a472a253ee6d86db11fa15))
+* update morphe-universal-loader version to 0.1.3 ([0eec76f](https://github.com/Epxec/android-patches/commit/0eec76f1f92d76bc23f80df6364dcaa032598820))
+
+## [1.11.0-dev.3](https://github.com/Epxec/android-patches/compare/v1.11.0-dev.2...v1.11.0-dev.3) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* compiler issue on mobile phone ([156dafb](https://github.com/Epxec/android-patches/commit/156dafb75c7ed7f1118f3fec7a109e7e8c5d9b97))
+
+## [1.11.0-dev.2](https://github.com/Epxec/android-patches/compare/v1.11.0-dev.1...v1.11.0-dev.2) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* format BLAZEFTL URL for better readability ([c0e324f](https://github.com/Epxec/android-patches/commit/c0e324f58abd96800c8b532134969d9114f08cf1))
+
+## [1.11.0-dev.1](https://github.com/Epxec/android-patches/compare/v1.10.0...v1.11.0-dev.1) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* improper kotlin files ([8945551](https://github.com/Epxec/android-patches/commit/894555170fa8a3554db5af3feb55fa88f935fa99))
+
+### ✨ New Features
+
+* better universal patch reference ([2e5c1cb](https://github.com/Epxec/android-patches/commit/2e5c1cbfb6d927c99a2e7d5a1892671c0c087996))
+
 ## [1.10.0](https://github.com/Epxec/android-patches/compare/v1.9.0...v1.10.0) (2026-09-24)
 
 ### ✨ New Features

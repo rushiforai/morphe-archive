@@ -17,7 +17,8 @@ public final class NuvioSideBySideCompatibility {
             ApkFileType.APK,
             null,
             null,
-            Collections.singletonList(new AppTarget("1.1.0-beta.1", false, null)),
+            Collections.singletonList(
+                new AppTarget("1.1.0-beta.2", false, null)),
             false
         );
     }

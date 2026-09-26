@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: shellcheck
+        run: shellcheck scripts/*.sh
+
+  extension:
+    name: Extension sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Compile the extension with the newest installed platform
+        run: |
+          set -euo pipefail
+          ANDROID_JAR=$(ls -1 "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
+          echo "using $ANDROID_JAR"
+          mkdir -p /tmp/classes
+          javac -encoding UTF-8 -source 11 -target 11 -nowarn \
+            -classpath "$ANDROID_JAR" \
+            -d /tmp/classes \
+            extensions/ather/src/main/java/app/morphe/ather/*.java \
+            extensions/ather/stub/src/main/java/com/ather/maps/a0.java \
+            extensions/nothingx/src/main/java/app/morphe/extension/nothingx/patches/*.java
+      - name: Package the extension with d8
+        run: |
+          set -euo pipefail
+          ANDROID_JAR=$(ls -1 "$ANDROID_HOME"/platforms/*/android.jar | sort -V | tail -1)
+          D8=$(ls -1 "$ANDROID_HOME"/build-tools/*/d8 | sort -V | tail -1)
+          echo "using $D8"
+          mkdir -p /tmp/dex
+          "$D8" --release --min-api 26 --lib "$ANDROID_JAR" --output /tmp/dex \
+            $(find /tmp/classes -name '*.class')
+          ls -l /tmp/dex/classes.dex
+
+  patch-set:
+    name: Patch set
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Every patch that calls the extension ships it
+        run: |
+          set -euo pipefail
+          # A patch that injects a call to an extension class must declare the
+          # extension, otherwise the patched app crashes with NoClassDefFoundError.
+          missing=0
+          for f in $(find patches/src/main/kotlin/app/morphe/patches -name '*.kt'); do
+            if { grep -q "Lapp/morphe/ather/" "$f" || grep -q "Lapp/morphe/extension/" "$f"; } && ! grep -q 'extendWith("extensions/' "$f"; then
+              echo "no extendWith: $f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+          echo "every patch that calls the extension declares it"
+
+  spelling:
+    name: Spelling
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: crate-ci/typos@v1.50.2
+
+  markdown:
+    name: Markdown
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: "**/*.md"
+
+  patches:
+    name: Patch bundle
+    if: github.repository == 'pixincreate/morpheus'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up JDK
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: "25"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4.0.4
+        with:
+          packages: "platform-tools platforms;android-37.0 build-tools;37.0.0"
+      - name: Configure Gradle credentials for GitHub Packages
+        shell: bash
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GPR_USER" ] || [ -z "$GPR_KEY" ]; then
+            echo "::error::GPR_USER and GPR_KEY are required to resolve the Morphe Gradle plugin"
+            exit 1
+          fi
+          mkdir -p "$HOME/.gradle"
+          {
+            printf 'gpr.user=%s\n' "$GPR_USER"
+            printf 'gpr.key=%s\n' "$GPR_KEY"
+          } >> "$HOME/.gradle/gradle.properties"
+      - name: Build the patch bundle
+        run: ./gradlew :patches:build --console=plain

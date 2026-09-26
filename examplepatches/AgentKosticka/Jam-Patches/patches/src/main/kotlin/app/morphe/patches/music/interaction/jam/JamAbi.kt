@@ -166,7 +166,7 @@ internal fun BytecodePatchContext.resolveJamQueueAbi(): JamQueueAbi {
   val remove = queueRemovalFingerprint(manager.type, displays).matchSingle().originalMethod
   val item = resolveItem(manager, remove, command)
   val callback = resolveCallback(enqueue, manager.type)
-  val menu = resolveMenu(manager, command)
+  val menu = resolveMenu(manager, enqueue, command)
   val selection = resolveSelection(item.type, item.persistentId)
   val mutation = resolveMutation(manager, remove, displays.primary, item.type)
 
@@ -542,13 +542,28 @@ private fun BytecodePatchContext.resolveCallback(
   )
 }
 
-private fun BytecodePatchContext.resolveMenu(manager: ClassDef, command: ProtoAbi): QueueMenuAbi {
+private fun BytecodePatchContext.resolveMenu(
+    manager: ClassDef,
+    enqueue: Method,
+    command: ProtoAbi,
+): QueueMenuAbi {
   val dispatch =
       queueMenuDispatcherFingerprint(manager.fields.map { it.type }.toSet(), command.type)
           .matchSingle()
           .originalMethod
+  // Class merging can give unrelated manager fields the same type. Use the native enqueue path.
   val dispatcher =
-      manager.fields.filter { it.type == dispatch.definingClass }.singleOrNull()
+      enqueue
+          .findInstructionIndicesReversed(
+              fieldAccess(
+                  definingClass = manager.type,
+                  type = dispatch.definingClass,
+                  opcode = Opcode.IGET_OBJECT,
+              )
+          )
+          .map { enqueue.getInstruction(it).getReference<FieldReference>()!! }
+          .distinct()
+          .singleOrNull()
           ?: error("Missing or ambiguous â€“ Jam native menu dispatcher field")
   val dispatcherClass = classDefBy(dispatcher.type)
   val mappers =

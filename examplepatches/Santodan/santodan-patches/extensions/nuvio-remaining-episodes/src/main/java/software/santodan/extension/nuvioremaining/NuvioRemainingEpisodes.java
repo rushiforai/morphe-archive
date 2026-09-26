@@ -86,6 +86,7 @@ public final class NuvioRemainingEpisodes {
 
     public static void renderSettings(Object composer) {
         try {
+            Log.d(TAG, "renderSettings reached composer=" + composer.getClass().getName());
             ClassLoader loader = composer.getClass().getClassLoader();
             Class<?> function0 = Class.forName("kotlin.jvm.functions.Function0", false, loader);
             Object state = enabledState(loader);
@@ -103,7 +104,9 @@ public final class NuvioRemainingEpisodes {
             Class<?> settings = Class.forName("fb.h3", false, loader);
             Method row = findStatic(settings, "t", 7);
             row.invoke(null, "Show remaining episodes", "Show aired, unwatched episode counts for Local, Trakt, Simkl, and other tracking sources.", stateValue(state), toggle, noop, composer, 24576);
-        } catch (Throwable ignored) {
+            Log.d(TAG, "renderSettings row rendered");
+        } catch (Throwable error) {
+            Log.e(TAG, "settings row rendering failed", error);
             // Keep the host settings screen usable if its Compose implementation changes.
         }
     }
@@ -170,7 +173,7 @@ public final class NuvioRemainingEpisodes {
         Object modifier = staticField(modifierOwner, "b").get(null);
         modifier = findStatic(Class.forName("e0.b", false, loader), "u", 2)
             .invoke(null, modifier, Float.valueOf(horizontal));
-        Object shape = staticField(Class.forName("pa.f1", false, loader), "a").get(null);
+        Object shape = staticField(Class.forName("pa.g1", false, loader), "a").get(null);
         modifier = findStatic(Class.forName("a2.j", false, loader), "b", 2)
             .invoke(null, modifier, shape);
         Object rectangle = staticField(Class.forName("d2.g0", false, loader), "b").get(null);

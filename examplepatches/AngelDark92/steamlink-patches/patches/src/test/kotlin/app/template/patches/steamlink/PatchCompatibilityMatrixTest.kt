@@ -109,6 +109,7 @@ class PatchCompatibilityMatrixTest {
         assertEquals("final-balanced", oledCalibrationPatch.options["profile"].default)
         assertEquals(false, oledCalibrationPatch.options["foveaVdLike10Bit"].default)
         assertEquals(false, oledCalibrationPatch.options["foveaVdLike8Bit"].default)
+        assertEquals(1.00f, oledCalibrationPatch.options["fovealGamma"].default)
         assertFalse(deviceIdentityPatch in galaxyXrRecommended5002363Patch.dependencyClosure())
         assertTrue(deviceIdentityPatch.supports("2.0.23", 5002363))
         assertFalse(deviceIdentityPatch.supports("2.0.22", 5002322))

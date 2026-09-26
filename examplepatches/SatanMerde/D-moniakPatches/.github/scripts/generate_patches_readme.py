@@ -213,9 +213,39 @@ expanded = (
 
 generated  = build_content(expanded=expanded)
 
-# Replace template links if present
-readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
-readme = readme.replace("https://github.com/xyz-user/xyz-patches", f"https://github.com/{repo_full}")
+total_apps = len(by_pkg)
+total_unique = len(data.get("patches", []))
+
+# Update badge counters in README if present
+readme = re.sub(
+    r'(https://img\.shields\.io/badge/Patches-)\d+(-[0-9a-fA-F]+)',
+    rf'\g<1>{total_unique}\g<2>',
+    readme
+)
+readme = re.sub(
+    r'(https://img\.shields\.io/badge/Apps(?:_Support%C3%A9es)?-)\d+(-[0-9a-fA-F]+)',
+    rf'\g<1>{total_apps}\g<2>',
+    readme
+)
+
+# Export endpoint JSONs for Shields.io dynamic badge endpoints
+try:
+    badges_dir = Path(".github/badges")
+    badges_dir.mkdir(parents=True, exist_ok=True)
+    (badges_dir / "apps.json").write_text(json.dumps({
+        "schemaVersion": 1,
+        "label": "Apps",
+        "message": str(total_apps),
+        "color": "00C853"
+    }, indent=2), encoding="utf-8")
+    (badges_dir / "patches.json").write_text(json.dumps({
+        "schemaVersion": 1,
+        "label": "Patches",
+        "message": str(total_unique),
+        "color": "8A2BE2"
+    }, indent=2), encoding="utf-8")
+except Exception:
+    pass
 
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
@@ -224,4 +254,7 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+try:
+    print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, {total_apps} apps, expanded={expanded})")
+except UnicodeEncodeError:
+    print(f"[OK] Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, {total_apps} apps, expanded={expanded})")

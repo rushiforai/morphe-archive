@@ -1,0 +1,180 @@
+name: Release
+
+# Tag a commit with v<version>, for example v0.1.0, to publish the Morphe patch
+# bundle as a GitHub release with a SHA-256 checksum. Create these repository
+# secrets before the first release:
+#   GPR_USER  GitHub username that can read the MorpheApp/registry GitHub Packages feed
+#   GPR_KEY   personal access token for GPR_USER with the read:packages scope
+#
+# This repository has no CHANGELOG.md, so the release notes come from the
+# GitHub-generated commit list.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: release-preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4.0.4
+        with:
+          packages: "platform-tools platforms;android-37.0 build-tools;37.0.0"
+
+      - name: Configure Gradle credentials for GitHub Packages
+        shell: bash
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GPR_USER" ] || [ -z "$GPR_KEY" ]; then
+            echo "::error::GPR_USER and GPR_KEY are required to resolve the Morphe Gradle plugin"
+            exit 1
+          fi
+          mkdir -p "$HOME/.gradle"
+          {
+            printf 'gpr.user=%s\n' "$GPR_USER"
+            printf 'gpr.key=%s\n' "$GPR_KEY"
+          } >> "$HOME/.gradle/gradle.properties"
+
+      - name: Verify the tag matches the project version
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#v}"
+          project_version="$(sed -n 's/^version *= *//p' gradle.properties)"
+          if [ "$tag_version" != "$project_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match version $project_version in gradle.properties"
+            exit 1
+          fi
+          echo "tag and project version agree: $project_version"
+
+  release:
+    name: release
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4.0.4
+        with:
+          packages: "platform-tools platforms;android-37.0 build-tools;37.0.0"
+
+      - name: Configure Gradle credentials for GitHub Packages
+        shell: bash
+        env:
+          GPR_USER: ${{ secrets.GPR_USER }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GPR_USER" ] || [ -z "$GPR_KEY" ]; then
+            echo "::error::GPR_USER and GPR_KEY are required to resolve the Morphe Gradle plugin"
+            exit 1
+          fi
+          mkdir -p "$HOME/.gradle"
+          {
+            printf 'gpr.user=%s\n' "$GPR_USER"
+            printf 'gpr.key=%s\n' "$GPR_KEY"
+          } >> "$HOME/.gradle/gradle.properties"
+
+      - name: Build the patch bundle
+        id: bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew :patches:buildAndroid --console=plain
+          version="$(sed -n 's/^version *= *//p' gradle.properties)"
+          mpp="patches/build/libs/patches-$version.mpp"
+          if [ ! -f "$mpp" ]; then
+            echo "::error::Expected patch bundle $mpp was not produced"
+            exit 1
+          fi
+          if ! jar tf "$mpp" | grep -q '^classes\.dex$'; then
+            echo "::error::$mpp has no classes.dex, so the Manager cannot load it. Build with :patches:buildAndroid."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "built $mpp"
+
+      - name: Generate the SHA-256 checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          mpp="patches/build/libs/patches-${{ steps.bundle.outputs.version }}.mpp"
+          shasum -a 256 "$mpp" > "$mpp.sha256"
+          cat "$mpp.sha256"
+
+      - name: Create the release
+        uses: softprops/action-gh-release@v3.0.2
+        with:
+          name: "Morpheus ${{ github.ref_name }}"
+          files: |
+            patches/build/libs/patches-${{ steps.bundle.outputs.version }}.mpp
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Refresh the bundle metadata
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.bundle.outputs.version }}"
+          branch="${{ github.event.repository.default_branch }}"
+
+          git fetch origin "$branch"
+          git checkout -B "$branch" "origin/$branch"
+
+          branch_version="$(sed -n 's/^version *= *//p' gradle.properties)"
+          if [ "$branch_version" != "$version" ]; then
+            echo "::error::$branch carries version $branch_version, expected $version"
+            exit 1
+          fi
+
+          ./gradlew :patches:generatePatchesList --console=plain
+          bash scripts/generate-bundle-json.sh "$version" "$GITHUB_REPOSITORY"
+
+          git add patches-bundle.json patches-list.json
+          if git diff --cached --quiet; then
+            echo "Bundle metadata is already current for v$version"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: refresh the bundle metadata for v$version [skip ci]"
+          git push origin "$branch"

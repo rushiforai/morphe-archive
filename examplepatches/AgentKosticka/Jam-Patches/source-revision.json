@@ -1825,6 +1825,20 @@
       "patches/src/main/kotlin/app/morphe/patches/music/interaction/jam/README.md"
     ]
   },
+  "experimentalCompatibilityOverlay": {
+    "versions": [
+      "9.35.54",
+      "9.36.50",
+      "9.37.54"
+    ],
+    "baseline": "9.15.51",
+    "documentation": "docs/experimental-versions.md",
+    "deviceValidation": "Pending user testing for experimental versions",
+    "patcherChanges": [
+      "Retain live fingerprints in the weak registry across sessions",
+      "Clear fingerprint matches when closing a session without serialization"
+    ]
+  },
   "buildOverlay": "patches/build.gradle.kts retains Jam-Patches source identity; all other tasks come from fork",
   "dependencyOverlays": {
     "morphe-patches-gradle-plugin": "SettingsPlugin.kt defaults absent GitHub credentials to empty strings for public composite builds"

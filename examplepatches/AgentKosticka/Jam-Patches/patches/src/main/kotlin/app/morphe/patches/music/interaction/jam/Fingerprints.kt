@@ -156,15 +156,15 @@ internal fun queueItemSelectionFingerprint(itemType: String, persistentId: Metho
             ),
     )
 
-/** Finds the Watch-page entry point that reads the current-item source. */
+/** The watch page restores the current item when its Android lifecycle starts. */
 internal object CurrentPlaybackItemSourceFingerprint :
     Fingerprint(
         classFingerprint = WatchPageStateFingerprint,
+        name = "onStart",
         returnType = "V",
         parameters = emptyList(),
         filters =
             listOf(
-                methodCall(name = "requireActivity", parameters = emptyList()),
                 methodCall(parameters = emptyList(), returnType = OPTIONAL),
                 methodCall(
                     definingClass = OPTIONAL,
@@ -184,14 +184,26 @@ internal fun timeBarOwnerFingerprint(timeBarType: String) =
             )
     )
 
+/** Constructor signatures retain the control relationship when merged fields become Object. */
+internal fun seekForwarderConstructorFingerprint(ownerType: String, controlTypes: Set<String>) =
+    Fingerprint(
+        definingClass = ownerType,
+        name = "<init>",
+        custom = { method, _ -> method.parameterTypes.any { it.toString() in controlTypes } },
+    )
+
 /** Finds the seek callback that forwards a position and native seek context. */
-internal fun seekForwarderFingerprint(controlTypes: Set<String>) =
+internal fun BytecodePatchContext.seekForwarderFingerprint(controlTypes: Set<String>) =
     Fingerprint(
         returnType = "V",
         parameters = listOf("J", "L"),
         filters = listOf(methodCall(parameters = listOf("J", "L"), returnType = "V")),
         custom = { method, classDef ->
-          classDef.fields.any { it.type in controlTypes } &&
+          val holdsControls = classDef.fields.any { it.type in controlTypes }
+          val receivesControls =
+              seekForwarderConstructorFingerprint(classDef.type, controlTypes)
+                  .matchAllOrNull(classDef) != null
+          (holdsControls || receivesControls) &&
               method.indexOfFirstInstruction(
                   methodCall(
                       parameters = method.parameterTypes.map { it.toString() },
@@ -228,7 +240,11 @@ internal fun playbackButtonClickFingerprint(controlsType: String) =
         name = "onClick",
         returnType = "V",
         parameters = listOf(VIEW),
-        custom = { _, classDef -> classDef.fields.any { it.type == controlsType } },
+        custom = { method, classDef ->
+          // Merged listeners store their target as Object and cast it in the click branch.
+          classDef.fields.any { it.type == controlsType } ||
+              method.indexOfFirstInstruction(checkCast(controlsType)) >= 0
+        },
     )
 
 /** Finds an observable queue lane's listener-set mutation implementation. */
@@ -253,21 +269,27 @@ internal fun thumbnailEntryUsageFingerprint(artworkList: FieldReference) =
     Fingerprint(filters = listOf(fieldAccess(reference = artworkList)))
 
 /** Finds the watch-page current-item menu entry point. */
-internal fun nowPlayingMenuEntryFingerprint(currentType: String, currentAccessor: MethodReference) =
+internal fun nowPlayingMenuEntryFingerprint(
+    watchPageType: String,
+    currentType: String,
+    currentAccessor: MethodReference,
+) =
     Fingerprint(
-        classFingerprint = WatchPageStateFingerprint,
         returnType = "V",
-        parameters = emptyList(),
         filters =
             listOf(
                 methodCall(name = "requireActivity", parameters = emptyList()),
                 fieldAccess(
-                    definingClass = "this",
+                    definingClass = watchPageType,
                     type = currentType,
                     opcode = Opcode.IGET_OBJECT,
                 ),
                 methodCall(reference = currentAccessor),
                 methodCall("Lj$/util/Optional;->isPresent()Z"),
+                methodCall(
+                    parameters = listOf("L", VIEW, "L", "L"),
+                    returnType = "V",
+                ),
             ),
     )
 
@@ -884,5 +906,21 @@ internal fun autoplaySectionRefreshFingerprint(ownerType: String) =
                 methodCall(name = "isEmpty", parameters = emptyList(), returnType = "Z"),
                 methodCall(parameters = listOf("I"), returnType = "V"),
                 methodCall(name = "clear", parameters = emptyList(), returnType = "V"),
+            ),
+    )
+
+/** Locate header creation itself; feature-flag branches may precede this block. */
+internal fun autoplayHeaderCreationFingerprint(header: FieldReference) =
+    Fingerprint(
+        filters =
+            listOf(
+                fieldAccess(reference = header, opcode = Opcode.IGET_OBJECT),
+                methodCall(
+                    name = "isEmpty",
+                    parameters = emptyList(),
+                    returnType = "Z",
+                    location = MatchAfterImmediately(),
+                ),
+                methodCall(name = "add", parameters = listOf("I", OBJECT), returnType = "V"),
             ),
     )

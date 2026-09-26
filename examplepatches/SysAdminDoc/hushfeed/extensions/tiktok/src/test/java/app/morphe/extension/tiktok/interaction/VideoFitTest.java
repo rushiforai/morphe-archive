@@ -118,6 +118,216 @@ public class VideoFitTest {
         assertEquals(1, VideoFit.fitHeight(100000, 1, 1080, 2400));
     }
 
+    @Test public void fillingTakesTheLargerScaleAndCoversTheWindow() {
+        // A 9:16 video TikTok laid out at the width of a 20:9 phone, leaving a strip below.
+        assertEquals(1350, VideoFit.fillWidth(1080, 1920, 1080, 2400));
+        assertEquals(2400, VideoFit.fillHeight(1080, 1920, 1080, 2400));
+        // A wide video on a tall window: the height touches and most of the width hangs over.
+        assertEquals(4267, VideoFit.fillWidth(1920, 1080, 1080, 2400));
+        assertEquals(2400, VideoFit.fillHeight(1920, 1080, 1080, 2400));
+        // A tall video on a squarer window: the width touches.
+        assertEquals(1200, VideoFit.fillWidth(1440, 2560, 1200, 900));
+        assertEquals(2133, VideoFit.fillHeight(1440, 2560, 1200, 900));
+        // Exactly the window's shape: nothing is added.
+        assertEquals(1080, VideoFit.fillWidth(2160, 4800, 1080, 2400));
+        assertEquals(2400, VideoFit.fillHeight(2160, 4800, 1080, 2400));
+
+        // Fit wants a video that overflows; fill wants one that leaves a gap; each leaves the rest.
+        assertTrue(VideoFit.wants(VideoFit.Mode.FIT, 1440, 2560, 1200, 900));
+        assertFalse(VideoFit.wants(VideoFit.Mode.FIT, 1080, 1920, 1080, 2400));
+        assertTrue(VideoFit.wants(VideoFit.Mode.FILL, 1080, 1920, 1080, 2400));
+        assertFalse(VideoFit.wants(VideoFit.Mode.FILL, 1440, 2560, 1200, 900));
+        assertFalse(VideoFit.wants(VideoFit.Mode.FILL, 1080, 2400, 1080, 2400));
+        assertFalse(VideoFit.wants(VideoFit.Mode.LEAVE_ALONE, 1080, 1920, 1080, 2400));
+
+        assertEquals(new float[]{-135f, 0f}[0], VideoFit.offsets(1350, 2400, 1080, 2400)[0], 0f);
+        assertEquals(0f, VideoFit.offsets(1350, 2400, 1080, 2400)[1], 0f);
+    }
+
+    @Test public void theFillSwitchCropsAVideoThatLeavesAStripAndFitWinsWhenBothAreOn() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout container = new FrameLayout(activity);
+            View video = new View(activity);
+            container.addView(video);
+            container.layout(0, 0, 1080, 2400);
+            video.setLayoutParams(new FrameLayout.LayoutParams(1080, 1920));
+            Object operator = new Object();
+            Result strip = new Result(1080, 1920, 0f, 0f, operator);
+            try {
+                Settings.FILL_VIDEO_TO_SCREEN.save(true);
+                Object filled = VideoFit.fitted(video, strip);
+                assertNotSame(strip, filled);
+                Result copy = (Result) filled;
+                assertEquals(1350, copy.getWidth());
+                assertEquals(2400, copy.getHeight());
+                // A frame centres its children once told to, so the offsets stay at nothing.
+                assertEquals(Float.valueOf(0f), copy.getTranslateX());
+                assertEquals(Float.valueOf(0f), copy.getTranslateY());
+                assertSame(operator, copy.getResultOperator());
+                assertEquals(android.view.Gravity.CENTER,
+                        ((FrameLayout.LayoutParams) video.getLayoutParams()).gravity);
+
+                // A video that already covers the window is TikTok's own result, untouched.
+                Result covers = new Result(1350, 2400);
+                assertSame(covers, VideoFit.fitted(video, covers));
+                Result cropped = new Result(1440, 2560);
+                assertSame(cropped, VideoFit.fitted(video, cropped));
+
+                // Both on: the whole video inside the window, as the page keeps them apart anyway.
+                Settings.FIT_VIDEO_TO_SCREEN.save(true);
+                assertSame(strip, VideoFit.fitted(video, strip));
+                Result fitted = (Result) VideoFit.fitted(video, cropped);
+                assertEquals(1080, fitted.getWidth());
+                assertEquals(1920, fitted.getHeight());
+
+                // The story cell's path: the width first, the height and the two offsets after.
+                Settings.FIT_VIDEO_TO_SCREEN.save(false);
+                assertEquals(1350, VideoFit.fitWidthFor(strip, video));
+                assertEquals(2400, VideoFit.fittedHeightFor(strip));
+                assertEquals(Float.valueOf(0f), VideoFit.fittedTranslation(strip, Float.valueOf(9f)));
+                assertEquals(Float.valueOf(0f), VideoFit.fittedTranslation(strip, Float.valueOf(9f)));
+                // The decision is spent after the second offset.
+                assertEquals(Float.valueOf(9f), VideoFit.fittedTranslation(strip, Float.valueOf(9f)));
+
+                // A container that cannot centre its children gets the crop centred by the offsets:
+                // half the overhang each way, across first, then down.
+                android.widget.LinearLayout plain = new android.widget.LinearLayout(activity);
+                View inPlain = new View(activity);
+                plain.addView(inPlain);
+                plain.layout(0, 0, 1080, 2400);
+                inPlain.setLayoutParams(new android.widget.LinearLayout.LayoutParams(1080, 1920));
+                Result again = new Result(1080, 1920);
+                assertEquals(1350, VideoFit.fitWidthFor(again, inPlain));
+                assertEquals(2400, VideoFit.fittedHeightFor(again));
+                assertEquals(Float.valueOf(-135f), VideoFit.fittedTranslation(again, Float.valueOf(9f)));
+                assertEquals(Float.valueOf(0f), VideoFit.fittedTranslation(again, Float.valueOf(9f)));
+                Result feedAgain = new Result(1080, 1920, 0f, 0f, operator);
+                Result feedCopy = (Result) VideoFit.fitted(inPlain, feedAgain);
+                assertEquals(Float.valueOf(-135f), feedCopy.getTranslateX());
+                assertEquals(Float.valueOf(0f), feedCopy.getTranslateY());
+            } finally {
+                Settings.FILL_VIDEO_TO_SCREEN.save(false);
+                Settings.FIT_VIDEO_TO_SCREEN.save(false);
+            }
+        }
+    }
+
+    /**
+     * TikTok reuses a cell's video view, layout parameters and all, for the next video, and lays
+     * its own result out with offsets that assume its own gravity. A view this code centred for
+     * one video has to get that gravity back when the next result is left alone, or TikTok's
+     * offsets land on top of the centring and a video it cropped shows an edge, not the middle.
+     */
+    @Test public void aResultLeftAloneGetsTheViewsOwnGravityBack() {
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout container = new FrameLayout(activity);
+            View video = new View(activity);
+            container.addView(video);
+            container.layout(0, 0, 1080, 2400);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(1080, 1920);
+            params.gravity = android.view.Gravity.TOP | android.view.Gravity.START;
+            video.setLayoutParams(params);
+            int own = params.gravity;
+            try {
+                Settings.FILL_VIDEO_TO_SCREEN.save(true);
+                Result strip = new Result(1080, 1920, 0f, 0f, null);
+                assertNotSame("the strip was not filled, so this checks nothing", strip, VideoFit.fitted(video, strip));
+                assertEquals(android.view.Gravity.CENTER, gravityOf(video));
+
+                // The next video in the cell already covers the window, cropped by TikTok and
+                // placed by its own offsets.
+                Result covers = new Result(1350, 2400, -135f, 0f, null);
+                assertSame(covers, VideoFit.fitted(video, covers));
+                assertEquals("TikTok's offsets would land on top of the centring", own, gravityOf(video));
+
+                // Filled again, then the switch goes off: TikTok's result and its gravity both.
+                VideoFit.fitted(video, new Result(1080, 1920, 0f, 0f, null));
+                assertEquals(android.view.Gravity.CENTER, gravityOf(video));
+                Settings.FILL_VIDEO_TO_SCREEN.save(false);
+                Result untouched = new Result(1080, 1920, 0f, 0f, null);
+                assertSame(untouched, VideoFit.fitted(video, untouched));
+                assertEquals("turning the switch off left the centring behind", own, gravityOf(video));
+
+                // The story cell's path does the same.
+                Settings.FILL_VIDEO_TO_SCREEN.save(true);
+                assertEquals(1350, VideoFit.fitWidthFor(new Result(1080, 1920), video));
+                assertEquals(android.view.Gravity.CENTER, gravityOf(video));
+                assertEquals(VideoFit.LEAVE, VideoFit.fitWidthFor(new Result(1350, 2400), video));
+                assertEquals(own, gravityOf(video));
+
+                // Layout parameters TikTok replaced after the centring are TikTok's, and stay.
+                VideoFit.fitted(video, new Result(1080, 1920, 0f, 0f, null));
+                FrameLayout.LayoutParams replaced = new FrameLayout.LayoutParams(1350, 2400);
+                replaced.gravity = android.view.Gravity.BOTTOM;
+                video.setLayoutParams(replaced);
+                assertSame(covers, VideoFit.fitted(video, covers));
+                assertEquals("a gravity TikTok set after the centring was overwritten",
+                        android.view.Gravity.BOTTOM, gravityOf(video));
+
+                // A gravity TikTok set itself is TikTok's, and stays.
+                View centred = new View(activity);
+                container.addView(centred);
+                FrameLayout.LayoutParams itsOwn = new FrameLayout.LayoutParams(1080, 1920);
+                itsOwn.gravity = android.view.Gravity.CENTER;
+                centred.setLayoutParams(itsOwn);
+                VideoFit.fitted(centred, new Result(1080, 1920, 0f, 0f, null));
+                assertSame(covers, VideoFit.fitted(centred, covers));
+                assertEquals(android.view.Gravity.CENTER, gravityOf(centred));
+            } finally {
+                Settings.FILL_VIDEO_TO_SCREEN.save(false);
+            }
+        }
+    }
+
+    private static int gravityOf(View view) {
+        return ((FrameLayout.LayoutParams) view.getLayoutParams()).gravity;
+    }
+
+    @Test public void thePageKeepsFitAndFillApart() {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            boolean was = SettingsStatus.videoFitEnabled;
+            SettingsStatus.videoFitEnabled = true;
+            try {
+                PreferenceScreen screen = activity.getPreferenceManager().createPreferenceScreen(activity);
+                activity.setPreferenceScreen(screen);
+                new PlaybackPreferenceCategory(activity, screen);
+                android.preference.TwoStatePreference fit =
+                        (android.preference.TwoStatePreference) screen.findPreference(Settings.FIT_VIDEO_TO_SCREEN.key);
+                android.preference.TwoStatePreference fill =
+                        (android.preference.TwoStatePreference) screen.findPreference(Settings.FILL_VIDEO_TO_SCREEN.key);
+                assertNotNull("the fit row is missing", fit);
+                assertNotNull("the fill row is missing", fill);
+
+                Settings.FIT_VIDEO_TO_SCREEN.save(true);
+                fit.setChecked(true);
+                assertTrue(fill.getOnPreferenceChangeListener().onPreferenceChange(fill, true));
+                assertFalse("fit stayed on beside fill", Settings.FIT_VIDEO_TO_SCREEN.get());
+                assertFalse(fit.isChecked());
+
+                Settings.FILL_VIDEO_TO_SCREEN.save(true);
+                fill.setChecked(true);
+                assertTrue(fit.getOnPreferenceChangeListener().onPreferenceChange(fit, true));
+                assertFalse("fill stayed on beside fit", Settings.FILL_VIDEO_TO_SCREEN.get());
+                assertFalse(fill.isChecked());
+
+                // Turning one off leaves the other as it is.
+                Settings.FIT_VIDEO_TO_SCREEN.save(true);
+                assertTrue(fill.getOnPreferenceChangeListener().onPreferenceChange(fill, false));
+                assertTrue(Settings.FIT_VIDEO_TO_SCREEN.get());
+            } finally {
+                SettingsStatus.videoFitEnabled = was;
+                Settings.FILL_VIDEO_TO_SCREEN.save(false);
+                Settings.FIT_VIDEO_TO_SCREEN.save(false);
+            }
+        }
+    }
+
     @Test public void theSwitchDecidesAndAnythingUnreadableIsLeftToTikTok() {
         try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
             var activity = controller.get();

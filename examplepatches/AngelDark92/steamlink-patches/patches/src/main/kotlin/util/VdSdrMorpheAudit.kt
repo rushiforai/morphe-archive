@@ -21,14 +21,16 @@ object VdSdrMorpheAudit {
 
     @JvmStatic
     fun main(args: Array<String>) {
-        require(args.size == 3) {
-            "Usage: VdSdrMorpheAudit <fixture.apk> <new-output-directory> <8-bit|10-bit>"
+        require(args.size in 3..4) {
+            "Usage: VdSdrMorpheAudit <fixture.apk> <new-output-directory> <off|8-bit|10-bit> [foveal-gamma]"
         }
         val fixture = File(args[0]).canonicalFile
         val directory = File(args[1]).canonicalFile
         val inputDepth = args[2]
+        val fovealGamma = args.getOrNull(3)?.toFloat() ?: 1f
         require(fixture.isFile) { "Missing fixture: $fixture" }
-        require(inputDepth in setOf("8-bit", "10-bit")) { "Invalid input depth: $inputDepth" }
+        require(inputDepth in setOf("off", "8-bit", "10-bit")) { "Invalid input depth: $inputDepth" }
+        require(fovealGamma.isFinite() && fovealGamma in 1f..1.30f)
         require(!directory.exists() || directory.listFiles().isNullOrEmpty()) {
             "Use an absent or empty output directory: $directory"
         }
@@ -47,20 +49,25 @@ object VdSdrMorpheAudit {
                 Base("2.0.23", "5002363", 2292008, "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"),
             ).single { it.size == sourceScene.size && it.hash == sourceHash }
             record("Fixture: ${fixture.path}; SHA-256=$fixtureHash")
-            record("Case: ${layout.version}/${layout.code}, declared $inputDepth, VD SDR foveal option")
+            record("Case: ${layout.version}/${layout.code}, declared $inputDepth, foveal gamma $fovealGamma")
             record("Evidence boundary: analysis/decoded-fixture APK; actual Morphe DSL finalize and unsigned packaging only. Not pristine APK, Android linking, GPU execution, install, headset or panel proof.")
 
-            val mode = if (inputDepth == "8-bit") FoveaMode.INPUT_8BIT else FoveaMode.INPUT_10BIT
+            val mode = when (inputDepth) {
+                "8-bit" -> FoveaMode.INPUT_8BIT
+                "10-bit" -> FoveaMode.INPUT_10BIT
+                else -> FoveaMode.OFF
+            }
             val calibrated = sourceScene.copyOf().apply {
                 paddedVideoShader(1.20f, 1.45f, VideoOutputPrecision.SRGB8_HIGHP)
                     .copyInto(this, findVideoShader(this))
             }
             val expected = applyVdSdrFovea(setProjectionSwapchainFormat(calibrated,
                 VideoOutputPrecision.SRGB8_HIGHP, layout.version, layout.code),
-                layout.version, layout.code, mode)
+                layout.version, layout.code, mode, fovealGamma)
             oledCalibrationPatch.options["profile"] = "final-balanced"
             oledCalibrationPatch.options["foveaVdLike10Bit"] = inputDepth == "10-bit"
             oledCalibrationPatch.options["foveaVdLike8Bit"] = inputDepth == "8-bit"
+            oledCalibrationPatch.options["fovealGamma"] = fovealGamma
             // Read the actual APK metadata through the same Morphe resource context as the
             // production patch. Native identity alone is not an exact version-pair check.
             val metadataGuard = rawResourcePatch(name = "VD SDR fixture metadata audit") {

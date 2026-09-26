@@ -37,6 +37,7 @@ fi
 
 python3 - "$TMP/decoded" <<'PY'
 import pathlib
+import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
@@ -58,6 +59,10 @@ attach = method(
     locate("com/pairip/application/Application.smali"),
     ".method protected attachBaseContext(Landroid/content/Context;)V",
 )
+startup = method(
+    locate("com/pairip/StartupLauncher.smali"),
+    ".method public static declared-synchronized launch()V",
+)
 
 checks = {
     "Stick War package retained": 'package="com.maxgames.stickwarlegacy"' in manifest,
@@ -71,6 +76,9 @@ checks = {
     "Play asset extraction retained": "com.google.android.play.core.assetpacks.AssetPackExtractionService" in manifest,
     "PairIP VM context retained": "Lcom/pairip/VMRunner;->setContext" in attach,
     "Android application startup retained": "Lcom/pairip/application/Application;->attachBaseContext" in attach,
+    "PairIP pre-context startup program disabled": re.search(
+        r"\.locals \d+\s+return-void", startup
+    ) is not None,
     "PairIP signature launch check removed": "Lcom/pairip/SignatureCheck;->verifyIntegrity" not in attach,
     "PairIP Play license launch check removed": "Lcom/pairip/licensecheck/LicenseClient;->checkLicense" not in attach,
 }
@@ -93,6 +101,32 @@ def sha256(data):
     return hashlib.sha256(data).hexdigest()
 
 with zipfile.ZipFile(xapk_path) as xapk, zipfile.ZipFile(apk_path) as patched:
+    base_name = "com.maxgames.stickwarlegacy.apk"
+    with zipfile.ZipFile(io.BytesIO(xapk.read(base_name))) as base:
+        original_base_assets = {
+            name: sha256(base.read(name))
+            for name in base.namelist()
+            if name.startswith("assets/") and not name.endswith("/")
+        }
+
+    missing_base_assets = []
+    changed_base_assets = []
+    for name, expected in sorted(original_base_assets.items()):
+        try:
+            actual = sha256(patched.read(name))
+        except KeyError:
+            missing_base_assets.append(name)
+            continue
+        if actual != expected:
+            changed_base_assets.append(name)
+
+    if missing_base_assets or changed_base_assets:
+        raise SystemExit(
+            "Base asset verification failed; "
+            f"missing={missing_base_assets}, changed={changed_base_assets}"
+        )
+    print(f"PASS: all {len(original_base_assets)} base APK assets are unchanged")
+
     original_native = {}
     for split_name in xapk.namelist():
         if not split_name.endswith(".apk"):

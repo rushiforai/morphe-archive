@@ -14,7 +14,15 @@ Portions of the build tooling, release workflow, and patch bundle layout
 originate from that template. This modified version adds app-specific patches
 and agent-oriented development scripts.
 
-Modified: August 2026
+VN Video Editor patches were adapted from Paresh Maheshwari's archived
+paresh-patches project (GPL-3.0), with permission for community continuation:
+
+https://gitlab.com/Paresh-Maheshwari/paresh-patches
+
+Copyright (C) Paresh Maheshwari
+Copyright (C) 2026 riky-dev (adaptation into this bundle)
+
+Modified: September 2026
 
 7c. Project Name Restriction
 ----------------------------

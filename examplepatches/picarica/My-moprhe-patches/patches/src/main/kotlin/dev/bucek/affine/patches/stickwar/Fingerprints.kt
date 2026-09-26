@@ -9,3 +9,11 @@ internal object PairIpApplicationAttachFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;"),
 )
+
+/** Encrypted PairIP startup program invoked before Application.attachBaseContext(). */
+internal object PairIpStartupLauncherFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/StartupLauncher;",
+    name = "launch",
+    returnType = "V",
+    parameters = emptyList(),
+)

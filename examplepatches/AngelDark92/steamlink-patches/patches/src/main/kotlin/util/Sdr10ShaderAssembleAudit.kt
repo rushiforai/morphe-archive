@@ -135,18 +135,20 @@ object Sdr10ShaderAssembleAudit {
                 Triple("fovea-input-8bit", VideoDitherMode.OFF, FoveaMode.INPUT_8BIT),
                 Triple("fovea-input-10bit", VideoDitherMode.OFF, FoveaMode.INPUT_10BIT),
             )
-            for ((label, dither, mode) in cases) {
+            for ((label, dither, mode) in cases) for (gamma in
+                if (dither == VideoDitherMode.OFF) listOf(1f, 1.02f, 1.10f, 1.30f) else listOf(1f)) {
+                val caseLabel = if (gamma == 1f) label else "$label-gamma-${(gamma * 100).toInt()}"
                 val common = paddedVideoShader(1f, 1f, VideoOutputPrecision.SRGB8_HIGHP, dither)
                 val configured = stock.copyOf().apply { common.copyInto(this, shaderPos) }
-                val modified = applyVdSdrFovea(configured, base.version, base.code, mode)
+                val modified = applyVdSdrFovea(configured, base.version, base.code, mode, gamma)
                 val opaque = common.toString(Charsets.US_ASCII) + opaqueSuffix
                 val mask = common.toString(Charsets.US_ASCII) + modified.copyOfRange(
                     suffixOffset, suffixOffset + maskSuffix.length).toString(Charsets.US_ASCII)
-                checkAssembled(opaque, stockInterface, "${base.code}/${label}/opaque")
-                checkAssembled(mask, stockInterface, "${base.code}/${label}/masked")
-                File(output, "${base.code}-neutral-${label}.opaque.glsl").writeText(opaque)
-                File(output, "${base.code}-neutral-${label}.masked.glsl").writeText(mask)
-                rows += "${base.code}/${label}: opaque=${opaque.length}B masked=${mask.length}B"
+                checkAssembled(opaque, stockInterface, "${base.code}/${caseLabel}/opaque")
+                checkAssembled(mask, stockInterface, "${base.code}/${caseLabel}/masked")
+                File(output, "${base.code}-neutral-${caseLabel}.opaque.glsl").writeText(opaque)
+                File(output, "${base.code}-neutral-${caseLabel}.masked.glsl").writeText(mask)
+                rows += "${base.code}/${caseLabel}: opaque=${opaque.length}B masked=${mask.length}B"
             }
             passed++
             lines += "PASS ${base.version}/${base.code}: shader=0x${shaderPos.toString(16)}; opaqueSuffix=${opaqueSuffix.length}B; maskSuffix=${maskSuffix.length}B"

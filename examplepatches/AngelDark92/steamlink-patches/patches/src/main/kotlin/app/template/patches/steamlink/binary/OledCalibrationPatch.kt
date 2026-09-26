@@ -226,6 +226,16 @@ internal fun paddedVideoShader(
     }
 }
 
+internal fun isOledCalibrationShader(prefix: ByteArray): Boolean {
+    val text = prefix.toString(Charsets.US_ASCII)
+    val gamma = Regex("c=pow\\(clamp\\(c,0\\.,1\\.\\),vec3\\(([0-9]+\\.[0-9]{2})\\)\\);").find(text)
+        ?.groupValues?.get(1)?.toFloatOrNull() ?: return false
+    val saturation = Regex("c=clamp\\(mix\\(vec3\\(y\\),c,([0-9]+\\.[0-9]{2})\\),0\\.,1\\.\\);").find(text)
+        ?.groupValues?.get(1)?.toFloatOrNull() ?: return false
+    return gamma in .5f..2.5f && saturation in 0f..3f &&
+        prefix.contentEquals(paddedVideoShader(gamma, saturation, VideoOutputPrecision.SRGB8_HIGHP))
+}
+
 private fun ByteArray.indicesOfSubarray(pattern: ByteArray): List<Int> {
     if (pattern.isEmpty() || size < pattern.size) return emptyList()
     val matches = mutableListOf<Int>()
@@ -332,7 +342,7 @@ internal fun setProjectionSwapchainFormat(
 @Suppress("unused")
 val oledCalibrationPatch = rawResourcePatch(
     name = "OLED color calibration",
-    description = "OLED calibration with optional VD-informed SDR foveal processing for 8-bit or 10-bit input, always with 8-bit sRGB output. The VD options remove added gamma/saturation and arithmetic noise from the foveal shader while retaining Valve's decoder colour correction. Exact builds 5001712, 5002244, and 5002363; decoder precision and banding improvement require runtime verification.",
+    description = "OLED calibration with optional VD-informed SDR foveal processing and a separate foveal gamma adjustment, always with 8-bit sRGB output. The VD options bypass the calibration profile on the fovea while retaining Valve's decoder colour correction. Foveal gamma can darken that layer in any mode. Exact builds 5001712, 5002244, and 5002363; visible improvement requires headset verification.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK.toTypedArray())
@@ -377,7 +387,7 @@ val oledCalibrationPatch = rawResourcePatch(
         key = "foveaVdLike10Bit",
         default = false,
         title = "Fovea VD-Like Input 10 bit",
-        description = "VD-informed SDR processing for declared 10-bit input: use highp sampling, retain Valve's decoder colour correction, bypass added gamma/saturation on the foveal layer, and add no shader noise. Output is 8-bit sRGB. Does not negotiate host depth or reproduce VD's raw-YUV decoder import. Mutually exclusive with the 8-bit option and separate blue-noise patch.",
+        description = "VD-informed SDR processing for declared 10-bit input: use highp sampling, retain Valve's decoder colour correction, bypass the calibration profile on the foveal layer, and add no shader noise. The separate foveal gamma adjustment still applies. Output is 8-bit sRGB. Does not negotiate host depth or reproduce VD's raw-YUV decoder import. Mutually exclusive with the 8-bit option and separate blue-noise patch.",
         required = true,
     )
 
@@ -385,7 +395,18 @@ val oledCalibrationPatch = rawResourcePatch(
         key = "foveaVdLike8Bit",
         default = false,
         title = "Fovea VD-Like Input 8 bit",
-        description = "Uses the same VD-informed SDR foveal processing for declared 8-bit input, retaining Valve's decoder colour correction with no added gamma/saturation or shader noise. Output is 8-bit sRGB. Cannot recover precision already lost in the source. Mutually exclusive with the 10-bit option and separate blue-noise patch; does not negotiate host depth.",
+        description = "Uses the same VD-informed SDR foveal processing for declared 8-bit input, retaining Valve's decoder colour correction while bypassing the calibration profile and adding no shader noise. The separate foveal gamma adjustment still applies. Output is 8-bit sRGB. Cannot recover precision already lost in the source. Mutually exclusive with the 10-bit option and separate blue-noise patch; does not negotiate host depth.",
+        required = true,
+    )
+
+    val fovealGamma = floatSliderOption(
+        key = "fovealGamma",
+        min = 1.00f,
+        max = 1.30f,
+        default = 1.00f,
+        step = 0.01f,
+        title = "Foveal gamma adjustment",
+        description = "Additional gamma on the foveal layer only, after its colour processing. 1.00 leaves it unchanged; higher values darken shadows and midtones. Try 1.02 first for a lighter foveal region. Works with either VD option or both off, before fade and optional blue-noise dithering. Background calibration and edge blending stay unchanged; this is manual compensation, not a verified seam fix.",
         required = true,
     )
 
@@ -425,7 +446,7 @@ val oledCalibrationPatch = rawResourcePatch(
             applyVdSdrFovea(
                 setProjectionSwapchainFormat(shaderPatched, precision,
                     packageMetadata.versionName, packageMetadata.versionCode),
-                packageMetadata.versionName, packageMetadata.versionCode, foveaMode,
+                packageMetadata.versionName, packageMetadata.versionCode, foveaMode, fovealGamma.value!!,
             ),
         )
     }

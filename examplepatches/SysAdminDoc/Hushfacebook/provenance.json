@@ -1,5 +1,5 @@
 {
-  "note": "Where every shipped source file under patches/ and extensions/ came from. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it.",
+  "note": "Where every shipped source file under patches/ and extensions/ came from. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. A Facebook-family repository named here also has to be allowed by sources/facebook-sources.json: one files are ported from has to be adopted there, with this rule's commit, and one a rule credits has to be adopted or a candidate. scripts/test-facebook-sources.ps1 checks that side.",
   "rules": [
     {
       "paths": [
@@ -55,7 +55,7 @@
         "https://github.com/SapitoSucio/FroggoMorphePatches"
       ],
       "license": "GPL-3.0",
-      "changes": "Rewritten from the source at that commit, not cherry-picked. Packages, extension descriptors, log tags, injected method names and the cache folder renamed; plain patch names with categories; the two feed guards merged into one shared hook; a settings switch in front of the story, reel, browser and download hooks, and the reel sidebar's Download button and the story menu's Save item asking theirs before they go in, so Pause takes both out; the list register of the story filter computed for static and wide parameters; the borrowed v0 in the reel collection hooks checked; the DASH join ends a track on an empty read and shifts both tracks by one lead-in; the reel handler answers null instead of Facebook's renamed kotlin.Unit; the debug println lines removed. Saves fetch only what MediaUrlPolicy allows, every redirect included, into a cache file first, and reach MediaStore only once the declared type, the first bytes, the length and the 512 MB cap (the two DASH tracks together) all check out; save steps go to the diagnostic report without file names; a save reports its progress to a notification with a Cancel button and stops when cancelled, and lists its pending gallery row until it's settled. Andrew Liang credits FroggoMorphePatches for some ideas and implementations."
+      "changes": "Rewritten from the source at that commit, not cherry-picked. Packages, extension descriptors, log tags, injected method names and the cache folder renamed; plain patch names with categories; the two feed guards merged into one shared hook; a settings switch in front of the story, reel, browser and download hooks, and the reel sidebar's Download button and the story menu's Save item asking theirs before they go in, so Pause takes both out; the player-source recorder shared with Download any video through a call and a switch of each patch's own; the save folder read per file from the settings; the list register of the story filter computed for static and wide parameters; the borrowed v0 in the reel collection hooks checked; the DASH join ends a track on an empty read and shifts both tracks by one lead-in; the reel handler answers null instead of Facebook's renamed kotlin.Unit; the debug println lines removed. Saves fetch only what MediaUrlPolicy allows, every redirect included, into a cache file first, and reach MediaStore only once the declared type, the first bytes, the length and the 512 MB cap (the two DASH tracks together) all check out; save steps go to the diagnostic report without file names; a save reports its progress to a notification with a Cancel button and stops when cancelled, and lists its pending gallery row until it's settled. Andrew Liang credits FroggoMorphePatches for some ideas and implementations."
     },
     {
       "paths": [
@@ -65,6 +65,52 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: which addresses a save may fetch (HTTPS on 443, no user name, Meta's media CDNs only, and on a direct route a public or fake-IP answer)."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveFolder.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/VideoMenuItem.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/video/DownloadVideoPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/video/Fingerprints.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Download to phone in the menu of a feed or Watch video, added after Facebook fills the menu so its own Save and Download rows stay as they are, found in Facebook 577 and 580 through the video feed menu's log tag, the kept GraphQL models and the hashes of their field names; and the save folder, one sanitized folder name under Movies and Pictures."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/LinkCleaner.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/sharelinks/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the tracking keys Facebook adds to shared and opened links, taken out offline with everything else in the link left as written, and the hooks on the methods of Facebook 577 and 580 that add them."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/GenAiLabel.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/aidetected/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "via": [
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the rule that hides feed posts Facebook's own detection marked as made with AI. The idea follows the Facebook 573 AI filter of FroggoMorphePatches, which ArunTS96/FroggoMorphePatches and mben25/morphe-patches carry too. No code of it is here: that filter writes down 573's obfuscated names, while this finds GraphQLStory's accessor in 577 and 580 by the schema keys it loads, holds it to the flag Facebook's own GenAiTransparencyPlugin reads, and reads the flag through kept members."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/MaterialYouTheme.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/TonePalette.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/MaterialYouThemePatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Material You theme. Dark-mode colours move to the wallpaper palette (Android 12 and newer) or to a fixed tonal palette of Facebook's blue (Android 11) at the same lightness, through the four colour routes the AMOLED patch uses and after it. The colour tokens and dark surfaces it recolours were read off Facebook's own light and dark themes in the 577 and 580 builds, not taken from another patch source."
     },
     {
       "paths": [
@@ -96,7 +142,7 @@
         "https://github.com/icysymmetra/tiktok-patches-for-morphe"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Ported from Hushfeed's settings backup and cut down to what Hushfacebook keeps: an exact list of its eight feature switches in place of every setting, with no Feature Gate Lab, reset, undo or journal. An import is read into a snapshot that a preview shows before anything is written, and applied in one preference commit. A file declaring a newer version, a name given twice, a switch that isn't true or false, or more than 64 KB changes nothing, each with its own reason, and names this build doesn't know are counted rather than applied."
+      "changes": "Ported from Hushfeed's settings backup and cut down to what Hushfacebook keeps: an exact list of its feature switches and the save folder in place of every setting, with no Feature Gate Lab, reset, undo or journal. An import is read into a snapshot that a preview shows before anything is written, and applied in one preference commit. A file declaring a newer version, a name given twice, a switch that isn't true or false, a folder that isn't one clean folder name, or more than 64 KB changes nothing, each with its own reason, and names this build doesn't know are counted rather than applied."
     },
     {
       "paths": [
@@ -114,6 +160,12 @@
     {
       "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/hook/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/FeedTypeNames.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/StoryModels.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/Recommendations.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/storiestray/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/reels/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/refresh/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/extension/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/settings/**",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/**",

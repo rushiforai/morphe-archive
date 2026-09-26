@@ -1,3 +1,12 @@
+# [1.2.9](https://github.com/lchanc3/morphe-patches/compare/v1.2.8...v1.2.9) (2026-09-26)
+
+### 新功能
+
+* **JPTT:** Add Stop on login ban
+* **JPTT:** Wait until you leave an article to reconnect
+* **JPTT:** Add Play GIFs
+
+
 # [1.2.8](https://github.com/lchanc3/morphe-patches/compare/v1.2.7...v1.2.8) (2026-09-25)
 
 ### 新功能

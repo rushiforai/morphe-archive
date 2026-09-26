@@ -1,3 +1,21 @@
+## [1.9.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.8.0...v1.9.0) (2026-09-25)
+
+### ✨ New Features
+
+* **patches:** add tailored gameplay patches and support for Beach Buggy Racing, Robbery Bob, and Vector 2 ([3b26e16](https://github.com/SatanMerde/D-moniakPatches/commit/3b26e16e2eb7f3cc9a77f8c1f70b59efc6727553))
+
+## [1.8.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.7.0...v1.8.0) (2026-09-25)
+
+### ✨ New Features
+
+* **patches:** tailor patches and descriptions specifically per application ([0db1353](https://github.com/SatanMerde/D-moniakPatches/commit/0db13538b0ed54b12dc5ee370d6eeeb1561b18b2))
+
+## [1.7.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.6.0...v1.7.0) (2026-09-25)
+
+### ✨ New Features
+
+* **shadowfight:** add full Shadow Fight saga support (2, 2 SE, 3, Shades, 4 Arena) ([5798c4e](https://github.com/SatanMerde/D-moniakPatches/commit/5798c4e8767a82ef1652ff9f505ad71f8d8dafbb))
+
 ## [1.6.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.5.0...v1.6.0) (2026-09-25)
 
 ### ✨ New Features

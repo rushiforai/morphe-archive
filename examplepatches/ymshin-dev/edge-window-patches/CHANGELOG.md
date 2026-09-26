@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/ymshin-dev/edge-window-patches/compare/v1.1.0...v1.1.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* generate font scale hook without inline smali ([1910496](https://github.com/ymshin-dev/edge-window-patches/commit/19104963f0f2bf43808053c420151c291043e0c5))
+
 ## [1.1.0](https://github.com/ymshin-dev/edge-window-patches/compare/v1.0.3...v1.1.0) (2026-09-25)
 
 ### ✨ New Features

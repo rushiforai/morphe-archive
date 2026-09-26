@@ -1,0 +1,45 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [main, 'agent/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Validate release configuration
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node --input-type=module -e 'import fs from "node:fs"; const c = JSON.parse(fs.readFileSync(".releaserc")); for (const p of c.plugins) await import(Array.isArray(p) ? p[0] : p);'
+      - name: Check, test, and build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git diff --check
+          ./gradlew :patches:check :patches:buildAndroid --no-daemon --console=plain
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chessable-patches
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: patches/build/reports/tests/

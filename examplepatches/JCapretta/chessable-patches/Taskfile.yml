@@ -1,0 +1,16 @@
+version: '3'
+
+tasks:
+  verify:
+    desc: Validate whitespace, test the patch engine, and build the Morphe bundle
+    cmds:
+      - git diff --check
+      - ./gradlew :patches:check :patches:buildAndroid --console=plain
+  build:
+    desc: Build the importable Morphe patch bundle
+    cmds:
+      - ./gradlew :patches:buildAndroid --console=plain
+  release:
+    desc: Verify and publish the exact acceptance-tested main commit locally
+    cmds:
+      - python3 scripts/release.py

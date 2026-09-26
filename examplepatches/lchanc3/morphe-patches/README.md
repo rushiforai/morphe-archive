@@ -19,10 +19,10 @@
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.8](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.8)**&nbsp;&nbsp;•&nbsp;&nbsp;12 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
+> **[v1.2.9](https://github.com/lchanc3/morphe-patches/releases/tag/v1.2.9)**&nbsp;&nbsp;•&nbsp;&nbsp;14 patches&nbsp;&nbsp;•&nbsp;&nbsp;1 app
 
 <details open>
-<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<summary>📦 JPTT&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
 
 **Supported versions:**
 
@@ -38,10 +38,12 @@
 | **Increase image cache size** | Raises the image cache limit so images you have already seen are not downloaded again when you scroll back. | `cacheSizeMb` |
 | **More recent searches** | Shows more of your recent search keywords in the article search dialog. | `boardKeywordCount`<br>`allKeywordCount` |
 | **Patch settings** | Adds a tab to JPTT's own settings where the options these patches add can be changed without patching the app again, and where every setting can be exported to a file and read back. |  |
+| **Play GIFs** | Plays animated GIFs and WebPs in articles, which the app shows as their first frame. Needs Android 9 or later; the full size viewer still shows the first frame. |  |
 | **Preload article images** | Downloads an article's images as soon as you open it instead of when you scroll to each one. Respects the app's own image loading settings. | `preloadLimit`<br>`concurrency` |
-| **Reconnect on return** | Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds and does not even run while the app is in the background. |  |
+| **Reconnect on return** | Reconnects the moment you come back to the app, instead of leaving you on a countdown that grows to eight seconds. While an article is open it waits until you leave it or do something that needs PTT, so opening links does not log you in again every time. |  |
 | **Remove ads** | Stops the banner, the rows inside articles and lists, and the ad the app falls back to when it thinks AdMob is blocked. No ad is requested at all, so nothing is downloaded and nothing is reported. |  |
 | **Search history actions** | Long press a recent search keyword in the article search dialog to delete it, clear the history, or add a home screen shortcut that opens the board with that search. Shortcuts made from the 最近搜尋 tab open the search too. |  |
+| **Stop on login ban** | Shows PTT's message and stops when it temporarily bans the account from logging in, instead of sitting at 連線中 until the app is closed. |  |
 | **Wrap recent searches** | Lays the recent search keywords out over several lines instead of one line you have to scroll sideways. |  |
 
 📖 安裝前必讀、常見問題與功能說明：[JPTT 使用說明](docs/JPTT.md)

@@ -169,8 +169,24 @@ object OledDecodedCompatibilityAudit {
             }
             foveaCases++
         }
+        // Audit the entire public foveal-gamma slider against every real native input.
+        // All complete opaque programs and all executable bytes must remain unchanged.
+        var gammaCases = 0
+        val calibrated = apply(stock, VideoOutputPrecision.SRGB8_HIGHP, VideoDitherMode.OFF, 1.20f to 1.45f)
+        for (mode in FoveaMode.entries) for (step in 100..130) {
+            val gamma = step / 100f
+            val output = applyVdSdrFovea(calibrated, base.version, base.code, mode, gamma)
+            check(calibrated.indices.all { calibrated[it] == output[it] || it in suffix until suffix + 296 })
+            check(output[suffix - 1] == 0.toByte() && output[suffix + 296] == 0.toByte())
+            check(output.contentEquals(applyVdSdrFovea(output, base.version, base.code, mode, gamma)))
+            check(calibrated.contentEquals(applyVdSdrFovea(output, base.version, base.code, FoveaMode.OFF)))
+            val nextMode = if (mode == FoveaMode.OFF) FoveaMode.INPUT_10BIT else FoveaMode.OFF
+            check(applyVdSdrFovea(output, base.version, base.code, nextMode, 1.02f)
+                .contentEquals(applyVdSdrFovea(calibrated, base.version, base.code, nextMode, 1.02f)))
+            gammaCases++
+        }
         check(library.readBytes().sha256() == base.hash) { "Source modified" }
-        println("PASS ${base.version}/${base.code}: $variants variants, $transitions transitions, $checkboxCases checkbox cases, $foveaCases VD SDR fovea toggle cases (base golden unchanged); exact diff, format instructions, NUL boundary, idempotence; source unchanged")
+        println("PASS ${base.version}/${base.code}: $variants variants, $transitions transitions, $checkboxCases checkbox cases, $foveaCases VD SDR fovea toggle cases, $gammaCases foveal gamma cases (base golden unchanged); exact diff, format instructions, NUL boundary, idempotence; source unchanged")
         println("  sha256=${base.hash}; size=${stock.size}; shader=0x${shader.toString(16)}; formats=${base.offsets.joinToString { "0x${it.toString(16)}" }}")
     }
 

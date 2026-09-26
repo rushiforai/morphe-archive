@@ -5,9 +5,9 @@ otherwise require Google services to launch:
 
 - **AFFiNE 0.27.4 — `Remove Google requirements`:** removes Google Play's PairIP
   license gate and prevents AFFiNE's Firebase/GMS telemetry paths from initializing.
-- **Stick War: Legacy 2026.1.983 — `Remove Google Play requirement`:** removes the
-  mandatory PairIP signature and Play-license launch checks while preserving the
-  instrumented runtime and optional Google-backed features.
+- **Stick War: Legacy 2026.1.983 — `Remove Google Play requirement`:** disables the
+  mandatory PairIP startup, signature, and Play-license gates while preserving the
+  instrumented runtime and optional integrations.
 
 These are app- and version-specific patches, not a universal GMS compatibility layer.
 
@@ -29,7 +29,7 @@ already-patched APK as input.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/picarica/My-moprhe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.1](https://github.com/picarica/My-moprhe-patches/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Stick War: Legacy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -42,7 +42,7 @@ already-patched APK as input.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Remove Google Play requirement](#remove-google-play-requirement) | Removes Stick War: Legacy's mandatory Google Play PairIP launch checks while preserving the PairIP runtime, Unity asset packs, Play Games, billing, ads, and Firebase integrations. |  |
+| [Remove Google Play requirement](#remove-google-play-requirement) | Disables Stick War: Legacy's mandatory PairIP startup, signature, and Google Play license gates while preserving its instrumented runtime, Unity asset packs, and optional integrations. |  |
 
 </details>
 
@@ -104,8 +104,10 @@ unmatched bytecode. Do not force them onto different app releases.
 
 - Keeps `com.pairip.application.Application`, `VMRunner.setContext()`, PairIP's
   instrumented Java call sites, and `libpairipcore.so` intact.
-- Neutralizes only the PairIP wrapper's signature check and mandatory Google Play
-  license check before normal Unity startup.
+- Makes PairIP's encrypted pre-context startup program inert, including launches from
+  AndroidX's `AppComponentFactory` and PairIP's application wrapper.
+- Neutralizes the wrapper's signature check and mandatory Google Play license check
+  before normal Unity startup.
 - Removes only PairIP's now-unused `LicenseActivity` and
   `com.android.vending.CHECK_LICENSE` manifest permission.
 - Preserves the Unity player and all supplied install-time asset packs.
@@ -192,6 +194,10 @@ Stick War: Legacy:
 The scripts download and verify Morphe Desktop `1.17.0` if needed, build the patch
 bundle, apply only the app's matching patch, sign the standalone result with a
 dedicated local key, and run static verification.
+
+The Stick War script explicitly uses Morphe Desktop's default `STRIP_FAST` bytecode
+mode so its end-to-end result matches Manager behavior and leaves unmodified classes
+in their original DEX files.
 
 Default outputs are written beside this repository:
 

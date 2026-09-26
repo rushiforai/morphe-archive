@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.30.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.30.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.31.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.31.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details open>
 <summary>📦 Aphelion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -102,7 +102,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Hungry Shark Currency Hack](#hungry-shark-currency-hack) | Coins and gems are always set to 2,147,483,647 whenever they are earned, spent, purchased, or loaded from a save. |  |
-| [Hungry Shark Installer Source Fix](#hungry-shark-installer-source-fix) | Spoofs the installer source as Google Play for every install-source check in the game and its SDKs, so sideloaded installs are treated as store installs and the Google Play Store redirect is fixed. |  |
+| [Hungry Shark Installer Source Fix](#hungry-shark-installer-source-fix) | Spoofs the installer source as Google Play for every install-source check in the game and its SDKs, so sideloaded installs are treated as store installs and installer-based Play Store redirects are bypassed. |  |
 
 </details>
 
@@ -150,6 +150,21 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 | [Soccer Star Ad Removal](#soccer-star-ad-removal) | Disables ads completely: EnableAD always returns false, interstitials and banners are no-ops, Adjust purchase verification is skipped. |  |
 | [Soccer Star Instant Rewarded](#soccer-star-instant-rewarded) | Rewarded and interstitial ad flows always report loaded and grant the success callback immediately without playing an ad, including offline. |  |
 | [Soccer Star VIP Unlock](#soccer-star-vip-unlock) | Unlocks VIP subscription permanently: ownership keys always report active and unsubscribe can never clear the flag. |  |
+
+</details>
+
+<details open>
+<summary>📦 Subway Surfers&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.69.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Subway Surfers Currency Hack](#subway-surfers-currency-hack) | Coins and keys always report 2,147,483,647 and every purchase is always affordable. |  |
 
 </details>
 

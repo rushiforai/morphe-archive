@@ -33,6 +33,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -59,7 +60,9 @@ public class HushfacebookPreferenceFragmentTest {
     @After
     public void restore() {
         PatchFamily.inBuildForTests = null;
+        ScreenColors.shown = null;
         PauseForTests.resume();
+        Settings.SAVE_FOLDER.resetToDefault();
     }
 
     @Test
@@ -168,6 +171,51 @@ public class HushfacebookPreferenceFragmentTest {
         }
     }
 
+    /**
+     * The save folder's row keeps the one clean folder name a save would use, whatever is typed
+     * into it, and says where videos and photos go. It's there with any download in the build.
+     */
+    @Test
+    public void theFolderRowKeepsOneCleanNameAndSaysWhereSavesGo() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.STORY_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment.FolderRow folder = null;
+            for (Preference row : rowsOf(controller)) {
+                if (row instanceof HushfacebookPreferenceFragment.FolderRow) folder = (HushfacebookPreferenceFragment.FolderRow) row;
+            }
+            assertNotNull("no folder row with a download in the build", folder);
+            assertEquals(Settings.SAVE_FOLDER.key, folder.getKey());
+            assertEquals("Videos go to " + L10n.isolate("Movies/Facebook") + " and photos to "
+                    + L10n.isolate("Pictures/Facebook") + ".", String.valueOf(folder.getSummary()));
+
+            // What's typed reaches the row's check the way the dialog's OK sends it.
+            Preference.OnPreferenceChangeListener ok = folder.getOnPreferenceChangeListener();
+            assertFalse("a path was kept as typed", ok.onPreferenceChange(folder, "../My/Clips"));
+            ShadowLooper.idleMainLooper();
+            assertEquals("My_Clips", folder.getText());
+            assertEquals("My_Clips", Settings.SAVE_FOLDER.savedValue());
+            assertEquals(HushfacebookPreferenceFragment.folderSummary("My_Clips"), String.valueOf(folder.getSummary()));
+
+            assertTrue("a clean name was changed", ok.onPreferenceChange(folder, "Clips"));
+            folder.setText("Clips");
+            ShadowLooper.idleMainLooper();
+            assertEquals("Clips", Settings.SAVE_FOLDER.savedValue());
+
+            assertFalse("an empty name was kept", ok.onPreferenceChange(folder, "  "));
+            ShadowLooper.idleMainLooper();
+            assertEquals("Facebook", folder.getText());
+            assertEquals("Facebook", Settings.SAVE_FOLDER.savedValue());
+        }
+
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            for (Preference row : rowsOf(controller)) {
+                assertFalse("a folder row with no download in the build",
+                        row instanceof HushfacebookPreferenceFragment.FolderRow);
+            }
+        }
+    }
+
     private static List<Preference> rowsOf(ActivityController<Activity> controller) {
         HushfacebookPreferenceFragment fragment = new HushfacebookPreferenceFragment();
         controller.get().getFragmentManager().beginTransaction()
@@ -190,8 +238,18 @@ public class HushfacebookPreferenceFragmentTest {
             try {
                 ColorStateList primary = styled.getColorStateList(0);
                 assertTrue("no primary text color for " + title, primary != null);
-                assertTrue("\"" + title + "\" is drawn dark on the black page",
-                        Color.luminance(primary.getDefaultColor()) > 0.5f);
+                ScreenColors page = ScreenColors.shown;
+                if (page == null) {
+                    assertTrue("\"" + title + "\" is drawn dark on the black page",
+                            Color.luminance(primary.getDefaultColor()) > 0.5f);
+                } else {
+                    // The Material You theme's page is the palette's, dark or light as the phone
+                    // is. The theme's own text, before a row paints it, still has to read on it.
+                    int blended = blend(primary.getDefaultColor(), page.background);
+                    assertTrue("\"" + title + "\" is " + Integer.toHexString(blended) + " on the page's "
+                                    + Integer.toHexString(page.background),
+                            ScreenColorsTest.contrast(blended, page.background) >= ScreenColorsTest.TEXT);
+                }
             } finally {
                 styled.recycle();
             }
@@ -207,5 +265,17 @@ public class HushfacebookPreferenceFragmentTest {
                 rows.add(preference);
             }
         }
+    }
+
+    /** A translucent text colour as it lands on an opaque background. */
+    private static int blend(int color, int background) {
+        int alpha = color >>> 24;
+        int[] out = new int[3];
+        for (int shift = 16, i = 0; i < 3; shift -= 8, i++) {
+            int top = (color >> shift) & 0xFF;
+            int bottom = (background >> shift) & 0xFF;
+            out[i] = (top * alpha + bottom * (255 - alpha) + 127) / 255;
+        }
+        return 0xFF000000 | (out[0] << 16) | (out[1] << 8) | out[2];
     }
 }

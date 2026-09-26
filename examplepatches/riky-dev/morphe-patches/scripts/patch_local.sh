@@ -102,7 +102,7 @@ java -jar "$MORPHE_JAR" patch \
   "${EXTRA[@]+"${EXTRA[@]}"}"
 
 # Morphe Desktop writes under <stem>/<stem>-Morphe-*.apk (or *-patched.apk).
-FOUND="$(find "$OUT_DIR" -type f \( -name '*-Morphe-*.apk' -o -name '*-patched.apk' \) ! -name "${APP_PACKAGE}-patched.apk" | sort | tail -1 || true)"
+FOUND="$(find "$OUT_DIR" -type f \( -name '*-Morphe-*.apk' -o -name '*-patched.apk' -o -name '*-patches-*.apk' \) ! -name "${APP_PACKAGE}-patched.apk" | sort | tail -1 || true)"
 if [[ -n "$FOUND" && -f "$FOUND" ]]; then
   cp -f "$FOUND" "$OUT_APK"
 fi

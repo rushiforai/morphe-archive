@@ -1,0 +1,255 @@
+--------- beginning of main
+09-25 17:45:15.684  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 17220/Done 17221|Work-Rate: Q(89.8/s Avg=88.1/s) Done(89.998/s Avg=88.057/s)| Stream: 1000000.00fps 427363.8Mbps
+09-25 17:45:15.684  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:20.684  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 17670/Done 17671|Work-Rate: Q(90.0/s Avg=88.1/s) Done(89.997/s Avg=88.106/s)| Stream: 1000000.00fps 368934.6Mbps
+09-25 17:45:20.684  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:25.685  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 18120/Done 18121|Work-Rate: Q(90.0/s Avg=88.1/s) Done(89.992/s Avg=88.151/s)| Stream: 1000000.00fps 379390.2Mbps
+09-25 17:45:25.685  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:30.686  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(1) i/p-done(0) Works: Q: 18570/Done 18570|Work-Rate: Q(90.0/s Avg=88.2/s) Done(89.781/s Avg=88.190/s)| Stream: 1000000.00fps 391297.5Mbps
+09-25 17:45:30.686  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:35.686  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(1) i/p-done(0) Works: Q: 19020/Done 19020|Work-Rate: Q(90.0/s Avg=88.2/s) Done(89.988/s Avg=88.232/s)| Stream: 1000000.00fps 400123.6Mbps
+09-25 17:45:35.687  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:40.687  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 19470/Done 19471|Work-Rate: Q(90.0/s Avg=88.3/s) Done(90.183/s Avg=88.276/s)| Stream: 1000000.00fps 394821.2Mbps
+09-25 17:45:40.687  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:45.687  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 19920/Done 19921|Work-Rate: Q(90.0/s Avg=88.3/s) Done(89.996/s Avg=88.314/s)| Stream: 1000000.00fps 393910.0Mbps
+09-25 17:45:45.687  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:50.688  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 20370/Done 20371|Work-Rate: Q(90.0/s Avg=88.3/s) Done(89.994/s Avg=88.351/s)| Stream: 1000000.00fps 403250.6Mbps
+09-25 17:45:50.688  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:45:55.688  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 20820/Done 20821|Work-Rate: Q(90.0/s Avg=88.4/s) Done(89.991/s Avg=88.385/s)| Stream: 1000000.00fps 420887.5Mbps
+09-25 17:45:55.688  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:00.688  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 21270/Done 21271|Work-Rate: Q(90.0/s Avg=88.4/s) Done(89.997/s Avg=88.419/s)| Stream: 1000000.00fps 428887.5Mbps
+09-25 17:46:00.688  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:05.689  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 21720/Done 21721|Work-Rate: Q(90.0/s Avg=88.4/s) Done(89.997/s Avg=88.451/s)| Stream: 1000000.00fps 434138.7Mbps
+09-25 17:46:05.689  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:10.689  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 22170/Done 22171|Work-Rate: Q(90.0/s Avg=88.5/s) Done(89.997/s Avg=88.482/s)| Stream: 1000000.00fps 395560.1Mbps
+09-25 17:46:10.689  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:15.689  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 22620/Done 22621|Work-Rate: Q(90.0/s Avg=88.5/s) Done(89.997/s Avg=88.512/s)| Stream: 1000000.00fps 417721.3Mbps
+09-25 17:46:15.689  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:20.689  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 23070/Done 23071|Work-Rate: Q(90.0/s Avg=88.5/s) Done(89.997/s Avg=88.540/s)| Stream: 1000000.00fps 388257.7Mbps
+09-25 17:46:20.689  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:25.689  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 23520/Done 23521|Work-Rate: Q(90.0/s Avg=88.6/s) Done(89.997/s Avg=88.567/s)| Stream: 1000000.00fps 401706.2Mbps
+09-25 17:46:25.689  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:30.689  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 23970/Done 23971|Work-Rate: Q(90.0/s Avg=88.6/s) Done(89.997/s Avg=88.594/s)| Stream: 1000000.00fps 403984.1Mbps
+09-25 17:46:30.689  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:35.690  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 24420/Done 24421|Work-Rate: Q(90.0/s Avg=88.6/s) Done(89.997/s Avg=88.619/s)| Stream: 1000000.00fps 418723.0Mbps
+09-25 17:46:35.690  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:40.690  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 24870/Done 24871|Work-Rate: Q(90.0/s Avg=88.6/s) Done(89.997/s Avg=88.644/s)| Stream: 1000000.00fps 384181.4Mbps
+09-25 17:46:40.690  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:45.690  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 25320/Done 25321|Work-Rate: Q(90.0/s Avg=88.7/s) Done(89.997/s Avg=88.668/s)| Stream: 1000000.00fps 386007.0Mbps
+09-25 17:46:45.690  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:50.690  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(1) i/p-done(0) Works: Q: 25771/Done 25771|Work-Rate: Q(90.2/s Avg=88.7/s) Done(89.994/s Avg=88.690/s)| Stream: 1000000.00fps 380441.9Mbps
+09-25 17:46:50.690  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:52.408  1251 16390 I QC2V4l2Driver: [hevcD_26] Closed device driver with fd: 8
+09-25 17:46:52.408  1251 16390 I QC2V4l2Driver: [hevcD_26] Closed media device with fd: -1
+09-25 17:46:52.417  1251 16390 I QC2Comp : [hevcD_26] Stats: Pending(0) i/p-done(0) Works: Q: 25916/Done 25917|Work-Rate: Q(84.0/s Avg=88.7/s) Done(84.546/s Avg=88.666/s)| Stream: 1000000.00fps 388370.0Mbps
+09-25 17:46:52.417  1251 16390 I QC2Comp : [hevcD_26] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-25: 28 bufs 0.438 MB] [2D-26: 29 bufs 783.000 MB] | Total: 806.406 MB
+09-25 17:46:52.417  1251 16390 I QC2Comp : [hevcD_26][STOPPED] NOTE: handleReleaseCodec returning: 0 (OK=0)
+09-25 17:46:52.417  1251  1251 I QC2Comp : [hevcD_26] NOTE: Release returning: 0 (OK=0)
+09-25 17:46:52.423  1251  1522 I QC2Comp : [hevcD_26] Deallocated component c2.qti.hevc.decoder [id=26]
+09-25 17:47:42.399 16734 16883 I Codec2Client: Available Codec2 services: "default" "default0" "default2" "software"
+09-25 17:47:42.426  1251  1251 I QC2Comp : [c2.qti.hevc.decoder] PreProcessingPipelining 0
+09-25 17:47:42.427  1251  1251 I QC2Comp : Create: Allocated component[27] for name c2.qti.hevc.decoder : [64 bit]
+09-25 17:47:42.427  1251  1251 I QC2Comp : Create Latency:1.24 ms
+09-25 17:47:42.479 16734 16883 W Codec2Client: query -- param skipped: index = 1107298332.
+09-25 17:47:42.490  1251 16916 I QC2V4l2Driver: [hevcD_27] Device /dev/video32 opened with fd: 8
+09-25 17:47:42.491  1251 16916 W QC2V4l2Codec: [hevcD_27] unknown/unsupported param default.color index = 0x5200180B
+09-25 17:47:42.491  1251 16916 W QC2V4l2Codec: [hevcD_27] unknown/unsupported param raw.max-size index = 0x52002003
+09-25 17:47:42.491  1251 16916 E QC2V4l2Driver: [hevcD_27] Failed to set: V4L2_CID_MPEG_VIDEO_DEC_DISPLAY_DELAY_ENABLE (10029966) val 1
+09-25 17:47:42.491  1251 16916 E QC2V4l2Driver: [hevcD_27] Set picture order failed
+09-25 17:47:42.491  1251 16916 E QC2V4l2Codec: [hevcD_27] Failed to set Picture Order configs
+09-25 17:47:42.491  1251 16916 E QC2V4l2Driver: [hevcD_27] Failed to set: V4L2_CID_MPEG_VIDC_LOWLATENCY_REQUEST (10035203) val 1
+09-25 17:47:42.491  1251 16916 E QC2V4l2Driver: [hevcD_27] Failed to set LowLatencyMode 
+09-25 17:47:42.491  1251 16916 E QC2V4l2Codec: [hevcD_27] Failed to set LowLatencyMode
+09-25 17:47:42.491  1251 16916 W QC2V4l2Codec: [hevcD_27] unknown/unsupported param input.buffers.max-size index = 0xC200081E
+09-25 17:47:42.491  1251 16916 E QC2V4l2Driver: [hevcD_27] Failed to enable extradata HDRHist
+09-25 17:47:42.495 16734 16883 W Codec2Client: query -- param skipped: index = 1342179345.
+09-25 17:47:42.495 16734 16883 W Codec2Client: query -- param skipped: index = 2415921170.
+09-25 17:47:42.495 16734 16883 W Codec2Client: query -- param skipped: index = 1610614798.
+09-25 17:47:42.498 16734 16883 D Codec2Client: setOutputSurface -- failed to set consumer usage (6/BAD_INDEX)
+09-25 17:47:42.498 16734 16883 D Codec2Client: setOutputSurface -- generation=17135617 consumer usage=0x900
+09-25 17:47:42.525 16734 16883 D Codec2Client: Surface configure completed
+09-25 17:47:42.994  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(0) i/p-done(0) Works: Q: 0/Done 0|Work-Rate: Q(0.0/s Avg=0.0/s) Done(0.000/s Avg=0.000/s)| Stream: 30.00fps 0.0Kbps
+09-25 17:47:42.994  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  | Total: 0.000 MB
+09-25 17:47:46.058  1251 16916 I QC2Comp : [hevcD_27] Output Format at frame 0: YCBCR_420_P010 1536x6144
+09-25 17:47:46.069  1251 16916 W QC2V4l2Codec: [hevcD_27] Ignore resolution setting when o/p port is streaming
+09-25 17:47:46.069  1251 16916 W QC2V4l2Codec: [hevcD_27] unknown/unsupported param raw.max-size index = 0x52002003
+09-25 17:47:46.069  1251 16916 W QC2V4l2Codec: [hevcD_27] unknown/unsupported param input.buffers.max-size index = 0xC200081E
+09-25 17:47:47.995  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(0) i/p-done(0) Works: Q: 178/Done 179|Work-Rate: Q(35.6/s Avg=32.0/s) Done(35.799/s Avg=32.151/s)| Stream: 1000000.00fps 365488.3Mbps
+09-25 17:47:47.995  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 27 bufs 729.000 MB] | Total: 752.375 MB
+09-25 17:47:52.995  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(1) i/p-done(0) Works: Q: 627/Done 627|Work-Rate: Q(89.8/s Avg=59.3/s) Done(89.589/s Avg=59.330/s)| Stream: 1000000.00fps 364537.9Mbps
+09-25 17:47:52.995  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 27 bufs 729.000 MB] | Total: 752.375 MB
+09-25 17:47:57.996  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(0) i/p-done(0) Works: Q: 1077/Done 1078|Work-Rate: Q(90.0/s Avg=69.2/s) Done(90.171/s Avg=69.237/s)| Stream: 1000000.00fps 335952.8Mbps
+09-25 17:47:57.997  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 27 bufs 729.000 MB] | Total: 752.375 MB
+09-25 17:48:02.997  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(1) i/p-done(0) Works: Q: 1519/Done 1519|Work-Rate: Q(88.4/s Avg=73.8/s) Done(88.194/s Avg=73.845/s)| Stream: 1000000.00fps 848515.1Mbps
+09-25 17:48:02.997  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 27 bufs 729.000 MB] | Total: 752.375 MB
+09-25 17:48:07.997  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(1) i/p-done(0) Works: Q: 1969/Done 1969|Work-Rate: Q(90.0/s Avg=77.0/s) Done(89.996/s Avg=77.003/s)| Stream: 1000000.00fps 929264.6Mbps
+09-25 17:48:07.997  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 27 bufs 729.000 MB] | Total: 752.375 MB
+09-25 17:48:12.997  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(0) i/p-done(0) Works: Q: 2414/Done 2415|Work-Rate: Q(89.0/s Avg=79.0/s) Done(89.195/s Avg=78.998/s)| Stream: 1000000.00fps 392306.8Mbps
+09-25 17:48:12.997  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 28 bufs 756.000 MB] | Total: 779.375 MB
+09-25 17:48:17.998  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(1) i/p-done(0) Works: Q: 2865/Done 2865|Work-Rate: Q(90.2/s Avg=80.5/s) Done(89.984/s Avg=80.542/s)| Stream: 1000000.00fps 183346.3Mbps
+09-25 17:48:17.998  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 28 bufs 756.000 MB] | Total: 779.375 MB
+09-25 17:48:22.998  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(0) i/p-done(0) Works: Q: 3313/Done 3314|Work-Rate: Q(89.6/s Avg=81.7/s) Done(89.796/s Avg=81.683/s)| Stream: 1000000.00fps 735241.5Mbps
+09-25 17:48:22.998  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 28 bufs 756.000 MB] | Total: 779.375 MB
+09-25 17:48:25.014  1251 16916 I QC2V4l2Driver: [hevcD_27] Closed device driver with fd: 8
+09-25 17:48:25.014  1251 16916 I QC2V4l2Driver: [hevcD_27] Closed media device with fd: -1
+09-25 17:48:25.024  1251 16916 I QC2Comp : [hevcD_27] Stats: Pending(0) i/p-done(0) Works: Q: 3470/Done 3471|Work-Rate: Q(77.5/s Avg=81.5/s) Done(77.502/s Avg=81.484/s)| Stream: 1000000.00fps 1009222.9Mbps
+09-25 17:48:25.024  1251 16916 I QC2Comp : [hevcD_27] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-27: 26 bufs 0.406 MB] [2D-28: 28 bufs 756.000 MB] | Total: 779.375 MB
+09-25 17:48:25.024  1251 16916 I QC2Comp : [hevcD_27][STOPPED] NOTE: handleReleaseCodec returning: 0 (OK=0)
+09-25 17:48:25.024  1251  1522 I QC2Comp : [hevcD_27] NOTE: Release returning: 0 (OK=0)
+09-25 17:48:25.027  1251  1251 I QC2Comp : [hevcD_27] Deallocated component c2.qti.hevc.decoder [id=27]
+09-25 17:48:47.855  1251  1251 I QC2Comp : [c2.qti.hevc.decoder] PreProcessingPipelining 0
+09-25 17:48:47.857  1251  1251 I QC2Comp : Create: Allocated component[28] for name c2.qti.hevc.decoder : [64 bit]
+09-25 17:48:47.857  1251  1251 I QC2Comp : Create Latency:1.30 ms
+09-25 17:48:47.903 16734 17186 W Codec2Client: query -- param skipped: index = 1107298332.
+09-25 17:48:47.911  1251 17188 I QC2V4l2Driver: [hevcD_28] Device /dev/video32 opened with fd: 8
+09-25 17:48:47.912  1251 17188 W QC2V4l2Codec: [hevcD_28] unknown/unsupported param default.color index = 0x5200180B
+09-25 17:48:47.912  1251 17188 W QC2V4l2Codec: [hevcD_28] unknown/unsupported param raw.max-size index = 0x52002003
+09-25 17:48:47.912  1251 17188 E QC2V4l2Driver: [hevcD_28] Failed to set: V4L2_CID_MPEG_VIDEO_DEC_DISPLAY_DELAY_ENABLE (10029966) val 1
+09-25 17:48:47.912  1251 17188 E QC2V4l2Driver: [hevcD_28] Set picture order failed
+09-25 17:48:47.912  1251 17188 E QC2V4l2Codec: [hevcD_28] Failed to set Picture Order configs
+09-25 17:48:47.912  1251 17188 E QC2V4l2Driver: [hevcD_28] Failed to set: V4L2_CID_MPEG_VIDC_LOWLATENCY_REQUEST (10035203) val 1
+09-25 17:48:47.912  1251 17188 E QC2V4l2Driver: [hevcD_28] Failed to set LowLatencyMode 
+09-25 17:48:47.912  1251 17188 E QC2V4l2Codec: [hevcD_28] Failed to set LowLatencyMode
+09-25 17:48:47.912  1251 17188 W QC2V4l2Codec: [hevcD_28] unknown/unsupported param input.buffers.max-size index = 0xC200081E
+09-25 17:48:47.912  1251 17188 E QC2V4l2Driver: [hevcD_28] Failed to enable extradata HDRHist
+09-25 17:48:47.917 16734 17186 W Codec2Client: query -- param skipped: index = 1342179345.
+09-25 17:48:47.917 16734 17186 W Codec2Client: query -- param skipped: index = 2415921170.
+09-25 17:48:47.917 16734 17186 W Codec2Client: query -- param skipped: index = 1610614798.
+09-25 17:48:47.918 16734 17186 D Codec2Client: setOutputSurface -- failed to set consumer usage (6/BAD_INDEX)
+09-25 17:48:47.918 16734 17186 D Codec2Client: setOutputSurface -- generation=17135618 consumer usage=0x900
+09-25 17:48:47.921 16734 17186 D Codec2Client: Surface configure completed
+09-25 17:48:48.416  1251 17188 I QC2Comp : [hevcD_28] Stats: Pending(0) i/p-done(0) Works: Q: 0/Done 0|Work-Rate: Q(0.0/s Avg=0.0/s) Done(0.000/s Avg=0.000/s)| Stream: 30.00fps 0.0Kbps
+09-25 17:48:48.416  1251 17188 I QC2Comp : [hevcD_28] Mem-usage:  | Total: 0.000 MB
+09-25 17:48:51.305  1251 17188 I QC2Comp : [hevcD_28] Output Format at frame 0: YCBCR_420_P010 1536x6144
+09-25 17:48:51.312  1251 17188 W QC2V4l2Codec: [hevcD_28] Ignore resolution setting when o/p port is streaming
+09-25 17:48:51.312  1251 17188 W QC2V4l2Codec: [hevcD_28] unknown/unsupported param raw.max-size index = 0x52002003
+09-25 17:48:51.312  1251 17188 W QC2V4l2Codec: [hevcD_28] unknown/unsupported param input.buffers.max-size index = 0xC200081E
+09-25 17:48:53.416  1251 17188 I QC2Comp : [hevcD_28] Stats: Pending(0) i/p-done(0) Works: Q: 193/Done 194|Work-Rate: Q(38.6/s Avg=34.7/s) Done(38.797/s Avg=34.893/s)| Stream: 1000000.00fps 168289.2Mbps
+09-25 17:48:53.417  1251 17188 I QC2Comp : [hevcD_28] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-29: 26 bufs 0.406 MB] [2D-30: 28 bufs 756.000 MB] | Total: 779.375 MB
+09-25 17:48:58.417  1251 17188 I QC2Comp : [hevcD_28] Stats: Pending(1) i/p-done(0) Works: Q: 642/Done 642|Work-Rate: Q(89.8/s Avg=60.8/s) Done(89.585/s Avg=60.791/s)| Stream: 1000000.00fps 400145.4Mbps
+09-25 17:48:58.417  1251 17188 I QC2Comp : [hevcD_28] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-29: 26 bufs 0.406 MB] [2D-30: 28 bufs 756.000 MB] | Total: 779.375 MB
+09-25 17:48:59.293  1251 17188 I QC2V4l2Driver: [hevcD_28] Closed device driver with fd: 8
+09-25 17:48:59.293  1251 17188 I QC2V4l2Driver: [hevcD_28] Closed media device with fd: -1
+09-25 17:48:59.302  1251 17188 I QC2Comp : [hevcD_28] Stats: Pending(0) i/p-done(0) Works: Q: 718/Done 719|Work-Rate: Q(85.9/s Avg=62.7/s) Done(87.055/s Avg=62.821/s)| Stream: 1000000.00fps 508741.1Mbps
+09-25 17:48:59.302  1251 17188 I QC2Comp : [hevcD_28] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-29: 26 bufs 0.406 MB] [2D-30: 30 bufs 810.000 MB] | Total: 833.375 MB
+09-25 17:48:59.302  1251 17188 I QC2Comp : [hevcD_28][STOPPED] NOTE: handleReleaseCodec returning: 0 (OK=0)
+09-25 17:48:59.302  1251  4110 I QC2Comp : [hevcD_28] NOTE: Release returning: 0 (OK=0)
+09-25 17:48:59.309  1251  1522 I QC2Comp : [hevcD_28] Deallocated component c2.qti.hevc.decoder [id=28]
+09-25 17:49:23.355 17301 17455 I Codec2Client: Available Codec2 services: "default" "default0" "default2" "software"
+09-25 17:49:23.373  1251  4110 I QC2Comp : [c2.qti.hevc.decoder] PreProcessingPipelining 0
+09-25 17:49:23.375  1251  4110 I QC2Comp : Create: Allocated component[29] for name c2.qti.hevc.decoder : [64 bit]
+09-25 17:49:23.375  1251  4110 I QC2Comp : Create Latency:1.57 ms
+09-25 17:49:23.429 17301 17455 W Codec2Client: query -- param skipped: index = 1107298332.
+09-25 17:49:23.434  1251 17479 I QC2V4l2Driver: [hevcD_29] Device /dev/video32 opened with fd: 8
+09-25 17:49:23.434  1251 17479 W QC2V4l2Codec: [hevcD_29] unknown/unsupported param default.color index = 0x5200180B
+09-25 17:49:23.434  1251 17479 W QC2V4l2Codec: [hevcD_29] unknown/unsupported param raw.max-size index = 0x52002003
+09-25 17:49:23.434  1251 17479 E QC2V4l2Driver: [hevcD_29] Failed to set: V4L2_CID_MPEG_VIDEO_DEC_DISPLAY_DELAY_ENABLE (10029966) val 1
+09-25 17:49:23.434  1251 17479 E QC2V4l2Driver: [hevcD_29] Set picture order failed
+09-25 17:49:23.434  1251 17479 E QC2V4l2Codec: [hevcD_29] Failed to set Picture Order configs
+09-25 17:49:23.434  1251 17479 E QC2V4l2Driver: [hevcD_29] Failed to set: V4L2_CID_MPEG_VIDC_LOWLATENCY_REQUEST (10035203) val 1
+09-25 17:49:23.434  1251 17479 E QC2V4l2Driver: [hevcD_29] Failed to set LowLatencyMode 
+09-25 17:49:23.434  1251 17479 E QC2V4l2Codec: [hevcD_29] Failed to set LowLatencyMode
+09-25 17:49:23.434  1251 17479 W QC2V4l2Codec: [hevcD_29] unknown/unsupported param input.buffers.max-size index = 0xC200081E
+09-25 17:49:23.435  1251 17479 E QC2V4l2Driver: [hevcD_29] Failed to enable extradata HDRHist
+09-25 17:49:23.442 17301 17455 W Codec2Client: query -- param skipped: index = 1342179345.
+09-25 17:49:23.443 17301 17455 W Codec2Client: query -- param skipped: index = 2415921170.
+09-25 17:49:23.443 17301 17455 W Codec2Client: query -- param skipped: index = 1610614798.
+09-25 17:49:23.447 17301 17455 D Codec2Client: setOutputSurface -- failed to set consumer usage (6/BAD_INDEX)
+09-25 17:49:23.447 17301 17455 D Codec2Client: setOutputSurface -- generation=17716225 consumer usage=0x900
+09-25 17:49:23.451 17301 17455 D Codec2Client: Surface configure completed
+09-25 17:49:23.942  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 0/Done 0|Work-Rate: Q(0.0/s Avg=0.0/s) Done(0.000/s Avg=0.000/s)| Stream: 30.00fps 0.0Kbps
+09-25 17:49:23.942  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  | Total: 0.000 MB
+09-25 17:49:27.138  1251 17479 I QC2Comp : [hevcD_29] Output Format at frame 0: YCBCR_420_P010 1536x6144
+09-25 17:49:27.249  1251 17479 W QC2V4l2Codec: [hevcD_29] Ignore resolution setting when o/p port is streaming
+09-25 17:49:27.249  1251 17479 W QC2V4l2Codec: [hevcD_29] unknown/unsupported param raw.max-size index = 0x52002003
+09-25 17:49:27.249  1251 17479 W QC2V4l2Codec: [hevcD_29] unknown/unsupported param input.buffers.max-size index = 0xC200081E
+09-25 17:49:28.942  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 155/Done 155|Work-Rate: Q(31.0/s Avg=27.8/s) Done(30.998/s Avg=27.839/s)| Stream: 1000000.00fps 1711589.2Mbps
+09-25 17:49:28.943  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 26 bufs 0.406 MB] [2D-32: 27 bufs 729.000 MB] | Total: 752.375 MB
+09-25 17:49:33.943  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 595/Done 596|Work-Rate: Q(88.0/s Avg=56.3/s) Done(88.193/s Avg=56.396/s)| Stream: 1000000.00fps 326266.7Mbps
+09-25 17:49:33.943  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:49:38.943  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 1044/Done 1045|Work-Rate: Q(89.8/s Avg=67.1/s) Done(89.797/s Avg=67.124/s)| Stream: 1000000.00fps 970263.9Mbps
+09-25 17:49:38.943  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:49:43.943  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 1494/Done 1494|Work-Rate: Q(90.0/s Avg=72.6/s) Done(89.798/s Avg=72.636/s)| Stream: 1000000.00fps 332952.2Mbps
+09-25 17:49:43.943  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:49:48.943  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 1943/Done 1944|Work-Rate: Q(89.8/s Avg=76.0/s) Done(89.997/s Avg=76.031/s)| Stream: 1000000.00fps 354526.0Mbps
+09-25 17:49:48.943  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:49:53.943  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 2393/Done 2394|Work-Rate: Q(90.0/s Avg=78.3/s) Done(89.997/s Avg=78.315/s)| Stream: 1000000.00fps 345176.7Mbps
+09-25 17:49:53.943  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:49:58.944  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 2843/Done 2844|Work-Rate: Q(90.0/s Avg=79.9/s) Done(89.997/s Avg=79.958/s)| Stream: 1000000.00fps 373421.8Mbps
+09-25 17:49:58.944  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:03.944  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 3292/Done 3292|Work-Rate: Q(89.8/s Avg=81.1/s) Done(89.597/s Avg=81.146/s)| Stream: 1000000.00fps 2892849.5Mbps
+09-25 17:50:03.944  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:08.944  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 3743/Done 3743|Work-Rate: Q(90.2/s Avg=82.1/s) Done(90.196/s Avg=82.139/s)| Stream: 1000000.00fps 252822.9Mbps
+09-25 17:50:08.944  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:13.944  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 4192/Done 4193|Work-Rate: Q(89.8/s Avg=82.9/s) Done(89.997/s Avg=82.916/s)| Stream: 1000000.00fps 261569.4Mbps
+09-25 17:50:13.944  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:18.945  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 4642/Done 4643|Work-Rate: Q(90.0/s Avg=83.5/s) Done(89.995/s Avg=83.553/s)| Stream: 1000000.00fps 287617.3Mbps
+09-25 17:50:18.945  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:23.945  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 5092/Done 5093|Work-Rate: Q(90.0/s Avg=84.1/s) Done(89.997/s Avg=84.085/s)| Stream: 1000000.00fps 297693.5Mbps
+09-25 17:50:23.945  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:28.945  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 5542/Done 5543|Work-Rate: Q(90.0/s Avg=84.5/s) Done(89.994/s Avg=84.535/s)| Stream: 1000000.00fps 295497.3Mbps
+09-25 17:50:28.945  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:33.945  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 5992/Done 5993|Work-Rate: Q(90.0/s Avg=84.9/s) Done(89.997/s Avg=84.922/s)| Stream: 1000000.00fps 310466.2Mbps
+09-25 17:50:33.945  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:38.946  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 6442/Done 6443|Work-Rate: Q(90.0/s Avg=85.2/s) Done(89.995/s Avg=85.258/s)| Stream: 1000000.00fps 281030.9Mbps
+09-25 17:50:38.946  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:43.946  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 6892/Done 6893|Work-Rate: Q(90.0/s Avg=85.5/s) Done(89.996/s Avg=85.552/s)| Stream: 1000000.00fps 313734.9Mbps
+09-25 17:50:43.946  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:48.946  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 7342/Done 7343|Work-Rate: Q(90.0/s Avg=85.8/s) Done(89.996/s Avg=85.812/s)| Stream: 1000000.00fps 292594.9Mbps
+09-25 17:50:48.946  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:53.946  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 7792/Done 7793|Work-Rate: Q(90.0/s Avg=86.0/s) Done(89.996/s Avg=86.043/s)| Stream: 1000000.00fps 335936.4Mbps
+09-25 17:50:53.946  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:50:58.946  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 8242/Done 8243|Work-Rate: Q(90.0/s Avg=86.2/s) Done(89.994/s Avg=86.249/s)| Stream: 1000000.00fps 250882.8Mbps
+09-25 17:50:58.947  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:03.947  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 8692/Done 8693|Work-Rate: Q(90.0/s Avg=86.4/s) Done(89.997/s Avg=86.436/s)| Stream: 1000000.00fps 316488.0Mbps
+09-25 17:51:03.947  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:08.947  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 9142/Done 9143|Work-Rate: Q(90.0/s Avg=86.6/s) Done(89.996/s Avg=86.604/s)| Stream: 1000000.00fps 291009.1Mbps
+09-25 17:51:08.947  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:13.947  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 9592/Done 9593|Work-Rate: Q(90.0/s Avg=86.7/s) Done(89.995/s Avg=86.758/s)| Stream: 1000000.00fps 264944.9Mbps
+09-25 17:51:13.947  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:18.947  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 10042/Done 10043|Work-Rate: Q(90.0/s Avg=86.9/s) Done(89.996/s Avg=86.898/s)| Stream: 1000000.00fps 302167.6Mbps
+09-25 17:51:18.947  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:23.948  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 10492/Done 10493|Work-Rate: Q(90.0/s Avg=87.0/s) Done(89.995/s Avg=87.026/s)| Stream: 1000000.00fps 291733.9Mbps
+09-25 17:51:23.948  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:28.948  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 10942/Done 10943|Work-Rate: Q(90.0/s Avg=87.1/s) Done(89.996/s Avg=87.144/s)| Stream: 1000000.00fps 260042.5Mbps
+09-25 17:51:28.948  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:33.948  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 11392/Done 11393|Work-Rate: Q(90.0/s Avg=87.2/s) Done(89.997/s Avg=87.254/s)| Stream: 1000000.00fps 333023.1Mbps
+09-25 17:51:33.948  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:38.948  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 11843/Done 11843|Work-Rate: Q(90.2/s Avg=87.4/s) Done(89.997/s Avg=87.355/s)| Stream: 1000000.00fps 296005.2Mbps
+09-25 17:51:38.948  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:43.948  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 12293/Done 12293|Work-Rate: Q(90.0/s Avg=87.4/s) Done(89.996/s Avg=87.449/s)| Stream: 1000000.00fps 324788.8Mbps
+09-25 17:51:43.948  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:48.949  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 12743/Done 12743|Work-Rate: Q(90.0/s Avg=87.5/s) Done(89.996/s Avg=87.536/s)| Stream: 1000000.00fps 326164.2Mbps
+09-25 17:51:48.949  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:53.949  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 13193/Done 13193|Work-Rate: Q(90.0/s Avg=87.6/s) Done(89.998/s Avg=87.618/s)| Stream: 1000000.00fps 319266.2Mbps
+09-25 17:51:53.949  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:51:58.949  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 13643/Done 13643|Work-Rate: Q(90.0/s Avg=87.7/s) Done(89.997/s Avg=87.695/s)| Stream: 1000000.00fps 291433.1Mbps
+09-25 17:51:58.949  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:03.949  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 14093/Done 14093|Work-Rate: Q(90.0/s Avg=87.8/s) Done(89.997/s Avg=87.766/s)| Stream: 1000000.00fps 306227.6Mbps
+09-25 17:52:03.949  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:08.949  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 14543/Done 14543|Work-Rate: Q(90.0/s Avg=87.8/s) Done(89.996/s Avg=87.834/s)| Stream: 1000000.00fps 338644.8Mbps
+09-25 17:52:08.949  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:13.949  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 14993/Done 14993|Work-Rate: Q(90.0/s Avg=87.9/s) Done(89.997/s Avg=87.897/s)| Stream: 1000000.00fps 306482.6Mbps
+09-25 17:52:13.949  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:18.949  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 15443/Done 15444|Work-Rate: Q(90.0/s Avg=88.0/s) Done(90.198/s Avg=87.963/s)| Stream: 1000000.00fps 321309.8Mbps
+09-25 17:52:18.949  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:23.950  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(0) i/p-done(0) Works: Q: 15893/Done 15894|Work-Rate: Q(90.0/s Avg=88.0/s) Done(89.997/s Avg=88.019/s)| Stream: 1000000.00fps 311811.2Mbps
+09-25 17:52:23.950  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:28.950  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 16343/Done 16343|Work-Rate: Q(90.0/s Avg=88.1/s) Done(89.796/s Avg=88.067/s)| Stream: 1000000.00fps 294605.8Mbps
+09-25 17:52:28.950  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:33.950  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 16792/Done 16792|Work-Rate: Q(89.8/s Avg=88.1/s) Done(89.796/s Avg=88.112/s)| Stream: 1000000.00fps 2209767.0Mbps
+09-25 17:52:33.950  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:38.950  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 17242/Done 17242|Work-Rate: Q(90.0/s Avg=88.2/s) Done(89.997/s Avg=88.160/s)| Stream: 1000000.00fps 310961.0Mbps
+09-25 17:52:38.950  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:43.950  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 17692/Done 17692|Work-Rate: Q(90.0/s Avg=88.2/s) Done(89.997/s Avg=88.206/s)| Stream: 1000000.00fps 279523.6Mbps
+09-25 17:52:43.951  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:48.951  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 18142/Done 18142|Work-Rate: Q(90.0/s Avg=88.2/s) Done(89.996/s Avg=88.250/s)| Stream: 1000000.00fps 310930.5Mbps
+09-25 17:52:48.951  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:53.951  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 18592/Done 18592|Work-Rate: Q(90.0/s Avg=88.3/s) Done(89.997/s Avg=88.291/s)| Stream: 1000000.00fps 395704.0Mbps
+09-25 17:52:53.951  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:52:58.951  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 19042/Done 19042|Work-Rate: Q(90.0/s Avg=88.3/s) Done(89.995/s Avg=88.331/s)| Stream: 1000000.00fps 364270.9Mbps
+09-25 17:52:58.951  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:53:03.951  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 19492/Done 19492|Work-Rate: Q(90.0/s Avg=88.4/s) Done(89.997/s Avg=88.368/s)| Stream: 1000000.00fps 353110.2Mbps
+09-25 17:53:03.951  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB
+09-25 17:53:08.951  1251 17479 I QC2Comp : [hevcD_29] Stats: Pending(1) i/p-done(0) Works: Q: 19942/Done 19942|Work-Rate: Q(90.0/s Avg=88.4/s) Done(89.997/s Avg=88.405/s)| Stream: 1000000.00fps 333242.2Mbps
+09-25 17:53:08.951  1251 17479 I QC2Comp : [hevcD_29] Mem-usage:  [In-1D: 4 bufs 22.969 MB] [1D-31: 27 bufs 0.422 MB] [2D-32: 28 bufs 756.000 MB] | Total: 779.391 MB

@@ -82,6 +82,17 @@ internal object AppCompatibilities {
         ),
     )
 
+    val ECHOGRAM = Compatibility(
+        name = "Echogram",
+        packageName = "com.liori.echogram",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x191E31,
+        signatures = setOf(
+            "331fa00a81a7f2e70aeaec25ee709aa4f1f17062d61e7aa6048f14abc47f0d1a",
+        ),
+        targets = listOf(AppTarget(version = "1.0.7.0", versionCode = 138, minSdk = 32)),
+    )
+
     val ETSY = Compatibility(
         name = "Etsy",
         packageName = "com.etsy.android",
@@ -104,6 +115,17 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x2196F3,
         targets = listOf(AppTarget(version = "2.2.221", versionCode = 221, minSdk = 24)),
+    )
+
+    val HINDU_CALENDAR = Compatibility(
+        name = "Hindu Calendar",
+        packageName = "com.alokmandavgane.hinducalendar",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0xF89532,
+        signatures = setOf(
+            "1dc3da6664982c69c3c7326282beaf0c6f153daa7da36bd7ec4cd4313e664651",
+        ),
+        targets = listOf(AppTarget(version = "9.3.0", versionCode = 156, minSdk = 28)),
     )
 
     val KICK = Compatibility(
@@ -307,12 +329,28 @@ internal object AppCompatibilities {
         ),
     )
 
+    val TERABOX = Compatibility(
+        name = "TeraBox",
+        packageName = "com.dubox.drive",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x226DF6,
+        targets = listOf(AppTarget(version = "4.26.0", versionCode = 698, minSdk = 23)),
+    )
+
     val TRAINLINE = Compatibility(
         name = "Trainline",
         packageName = "com.thetrainline",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x00A88F,
         targets = listOf(AppTarget(version = "407.0.0.178994", versionCode = 1278994, minSdk = 26)),
+    )
+
+    val VLLO = Compatibility(
+        name = "VLLO",
+        packageName = "com.darinsoft.vimo",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0xF02050,
+        targets = listOf(AppTarget(version = "13.7.4", versionCode = 130704, minSdk = 32)),
     )
 
     val VPNIFY = Compatibility(

@@ -3,7 +3,7 @@ group = "com.kveld9.morphe"
 patches {
     about {
         name = "kveld9 Patches"
-        description = "Morphe patches for Brave Browser, Vivaldi Browser, and Gboard Lite: telemetry blocking, UI de-bloating, resource slimming, and performance optimizations."
+        description = "Morphe patches for Brave Browser, Gboard Lite, Hevy, TikTok, NokoPrint, and Xiaomi Earbuds: telemetry blocking, UI de-bloating, resource slimming, and performance optimizations."
         source = "https://github.com/kveld9/kveld-morphe-patches"
         author = "kveld9"
         contact = "https://github.com/kveld9/kveld-morphe-patches/issues"
@@ -63,10 +63,14 @@ tasks {
         if (project.hasProperty("patch")) {
             systemProperty("patchName", project.property("patch").toString())
         }
+        if (project.hasProperty("maxVersionCode")) {
+            systemProperty("maxVersionCode", project.property("maxVersionCode").toString())
+        }
         System.getProperty("targetApp")?.let { systemProperty("targetApp", it) }
         System.getProperty("targetApk")?.let { systemProperty("targetApk", it) }
         System.getProperty("outputApk")?.let { systemProperty("outputApk", it) }
         System.getProperty("patchName")?.let { systemProperty("patchName", it) }
+        System.getProperty("maxVersionCode")?.let { systemProperty("maxVersionCode", it) }
     }
 
     jar {
