@@ -2161,6 +2161,126 @@
                 "sortOrder": 286,
                 "createdAt": 1790348744860,
                 "updatedAt": 1790348744860
+            },
+            {
+                "name": "ck-zombies-morphe-patches",
+                "source": "https://raw.githubusercontent.com/ComoEstaisAmigos/ck-zombies-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 287,
+                "createdAt": 1790394325661,
+                "updatedAt": 1790394325661
+            },
+            {
+                "name": "chessable-patches",
+                "source": "https://raw.githubusercontent.com/JCapretta/chessable-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 288,
+                "createdAt": 1790394326920,
+                "updatedAt": 1790394326920
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Plyrs1/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 289,
+                "createdAt": 1790394328855,
+                "updatedAt": 1790394328855
+            },
+            {
+                "name": "sbs-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Supperelias2/sbs-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 290,
+                "createdAt": 1790394329468,
+                "updatedAt": 1790394329468
+            },
+            {
+                "name": "sbs-tv-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Supperelias2/sbs-tv-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 291,
+                "createdAt": 1790394329842,
+                "updatedAt": 1790394329842
+            },
+            {
+                "name": "redgifs-audio-patch",
+                "source": "https://raw.githubusercontent.com/ekazrahul100-web/redgifs-audio-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 292,
+                "createdAt": 1790394333357,
+                "updatedAt": 1790394333357
+            },
+            {
+                "name": "3jPatch_Morphe",
+                "source": "https://raw.githubusercontent.com/jjjusf16-sys/3jPatch_Morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 293,
+                "createdAt": 1790394335369,
+                "updatedAt": 1790394335369
+            },
+            {
+                "name": "mahirsn-patches",
+                "source": "https://raw.githubusercontent.com/mahirsn/mahirsn-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 294,
+                "createdAt": 1790394335936,
+                "updatedAt": 1790394335936
+            },
+            {
+                "name": "MightyMichs-Patches",
+                "source": "https://raw.githubusercontent.com/mich111discord/MightyMichs-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 295,
+                "createdAt": 1790394336291,
+                "updatedAt": 1790394336291
+            },
+            {
+                "name": "telegram-morphe-patches-",
+                "source": "https://raw.githubusercontent.com/newuser7171/telegram-morphe-patches-/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 296,
+                "createdAt": 1790394336972,
+                "updatedAt": 1790394336972
+            },
+            {
+                "name": "365score-patches",
+                "source": "https://raw.githubusercontent.com/non7043/365score-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 297,
+                "createdAt": 1790394337341,
+                "updatedAt": 1790394337341
+            },
+            {
+                "name": "morphe-patches-template",
+                "source": "https://raw.githubusercontent.com/ns1207/morphe-patches-template/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 298,
+                "createdAt": 1790394337653,
+                "updatedAt": 1790394337653
+            },
+            {
+                "name": "morpheus",
+                "source": "https://raw.githubusercontent.com/pixincreate/morpheus/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 299,
+                "createdAt": 1790394338501,
+                "updatedAt": 1790394338501
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/rahaaatul/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 300,
+                "createdAt": 1790394338993,
+                "updatedAt": 1790394338993
+            },
+            {
+                "name": "zotero-self-hosted-sync",
+                "source": "https://raw.githubusercontent.com/raphaelbahat/zotero-self-hosted-sync/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 301,
+                "createdAt": 1790394339630,
+                "updatedAt": 1790394339630
             }
         ]
     }
