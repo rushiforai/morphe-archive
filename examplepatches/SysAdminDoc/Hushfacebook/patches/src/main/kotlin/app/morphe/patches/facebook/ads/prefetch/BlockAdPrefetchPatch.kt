@@ -7,15 +7,18 @@
  */
 package app.morphe.patches.facebook.ads.prefetch
 
-import app.morphe.patches.facebook.shared.neuterVoidMethods
+import app.morphe.patches.facebook.shared.neuterOrReason
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.handleTargets
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 
+private const val PATCH = "Block background ad prefetch"
+
 /** Background ad fetchers. Each keeps its real `com.facebook` name; each void method enqueues. */
-private val AD_PREFETCH_SCHEDULERS = listOf(
+internal val AD_PREFETCH_SCHEDULERS = listOf(
     // News feed ads channel — the periodic WorkManager prefetch and its emerging-surface twin.
     "Lcom/facebook/feed/push/adschannelbackgroundprefetch/FeedAdsChannelBackgroundPrefetchInitializerAppJob;",
     "Lcom/facebook/feed/push/adschannelemergingsurfaceprefetch/FeedAdsChannelEmergingSurfacePrefetchInitializerAppJob;",
@@ -48,13 +51,11 @@ val blockAdPrefetchPatch = bytecodePatch(
     //
     // WorkManager persists its schedule, so a device that already ran an unpatched build keeps
     // work enqueued before patching until its app data is cleared.
+    //
+    // Each scheduler stands alone, so a build that renamed some still gets the others blocked, and
+    // the patch log names each one left running. None found stops the patch.
     execute {
-        val neutered = AD_PREFETCH_SCHEDULERS.sumOf { neuterVoidMethods(it) }
-
-        check(neutered > 0) {
-            "No ad prefetch schedulers found; the com.facebook.feed.push / videohome.prefetching " +
-                "packages were renamed or removed"
-        }
+        handleTargets(PATCH, "ad prefetch schedulers", AD_PREFETCH_SCHEDULERS) { neuterOrReason(it) }
 
         enableStatus("adPrefetch")
     }

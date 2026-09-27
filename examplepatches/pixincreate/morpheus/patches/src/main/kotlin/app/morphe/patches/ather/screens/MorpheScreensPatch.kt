@@ -6,6 +6,7 @@
 package app.morphe.patches.ather.screens
 
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patches.ather.account.morpheSettingsRowPatch
 import org.w3c.dom.Element
 
 private const val EXTENSION_PACKAGE = "app.morphe.ather"
@@ -34,6 +35,9 @@ val morpheScreensPatch = resourcePatch(
     description = "Registers the Morphe settings, history and ride screens, the background ride service and its boot receiver in the app manifest.",
 ) {
     compatibleWith("com.athermobileapp")
+    // The manifest entries point at extension classes. A resource patch cannot mount an
+    // extension itself, so depend on a bytecode patch that ships extensions/ather.mpe.
+    dependsOn(morpheSettingsRowPatch)
 
     execute {
         document("AndroidManifest.xml").use { document ->

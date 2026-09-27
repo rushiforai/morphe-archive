@@ -1,0 +1,85 @@
+# Nai64ExtraPatches_Options.yaml
+# PRIORITY RULE: Hushfeed wins. Any Nai64 patch overlapping a Hushfeed patch
+# is disabled below so Hushfeed owns that surface (avoids double-hooking the
+# same Android methods, which would fail Nai64's fingerprints at patch time).
+# Anything not listed here is disabled by default anyway.
+
+patches:
+  # ============ ENABLED: surfaces Hushfeed does NOT cover ============
+  - name: "Disable Root Checks"
+    enabled: true
+
+  - name: "Spoof SIM Serial Number"
+    enabled: true
+    options:
+      simSerial: "8931084206518391742"
+
+  - name: "Limit Ad Tracking"
+    enabled: true
+
+  - name: "Spoof Tracking IDs"
+    enabled: true
+    # defaults already = zeroed App Set ID / Firebase ID, scope = app
+
+  - name: "Disable Crash Reporters"
+    enabled: true
+
+  - name: "Remove Ad Services Entries"
+    enabled: true
+
+  - name: "Strip Exif Location"
+    enabled: true
+    # default already = stripExifLocation: true
+
+  - name: "Spoof Play Store Install Source"
+    enabled: true
+
+  - name: "Spoof Subscriber ID"
+    enabled: true
+    options:
+      subscriberId: "204081234567890"
+
+  - name: "Spoof Phone Number"
+    enabled: true
+    options:
+      phoneNumber: ""
+
+  - name: "Spoof Voice Mail"
+    enabled: true
+
+  - name: "Hide Roaming Status"
+    enabled: true
+
+  - name: "Disable Firebase Auto-Init"
+    enabled: true
+
+  - name: "Disable Firebase Performance"
+    enabled: true
+
+  - name: "Disable Remote Config Fetch"
+    enabled: true
+
+  - name: "Bypass VPN Detection"
+    enabled: true
+
+  # ============ DISABLED: Hushfeed owns these surfaces ============
+  - name: "Empty Clipboard Report"
+    enabled: false   # owned by Hushfeed: Device privacy guard
+  - name: "Hide Clipboard"
+    enabled: false   # owned by Hushfeed: Device privacy guard
+  - name: "Hide Clipboard Description"
+    enabled: false   # owned by Hushfeed: Device privacy guard
+  - name: "Spoof SIM Country"
+    enabled: false   # owned by Hushfeed: SIM spoof
+  - name: "Spoof SIM Operator"
+    enabled: false   # owned by Hushfeed: SIM spoof
+  - name: "Spoof SIM Operator Name"
+    enabled: false   # owned by Hushfeed: SIM spoof
+  - name: "Spoof Time Zone"
+    enabled: false   # owned by Hushfeed: Region spoof
+  - name: "Spoof Locale"
+    enabled: false   # owned by Hushfeed: Region spoof
+  - name: "Spoof Last Known Location"
+    enabled: false   # owned by Hushfeed: Location access governor
+  - name: "Disable Telemetry"
+    enabled: false   # owned by Hushfeed: Disable telemetry

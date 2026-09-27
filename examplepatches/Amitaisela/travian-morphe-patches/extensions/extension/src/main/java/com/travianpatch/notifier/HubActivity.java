@@ -8,37 +8,60 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Gravity;
 import android.view.View;
+import android.view.WindowInsets;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * "Travian Tools": the home screen (the second launcher icon). Shows how the background checks are
- * doing and links to the tool screens. Every time it is opened it runs a check, so the status is
- * fresh. Plain programmatic views, so it needs no layout resources added to the game's APK.
+ * "Travian Tools" (the second launcher icon): one screen with six tabs at the bottom - Village (what is
+ * building, auto-build, the queue and what can be built), Alerts, Activity (what the app did, recent
+ * notifications), Oases (hero raid targets, empty oases), Silver (auction house) and Settings. A one-line status sits at the top.
+ * Opening it runs a check when the last one is old. Plain programmatic views, so it needs no layout resources added to the game's APK.
  */
 public class HubActivity extends Activity {
 
+    /** Intent extra: which tab to open (0 Village, 1 Alerts, 2 Activity, 3 Oases, 4 Silver, 5 Settings). */
+    static final String EXTRA_TAB = "tab";
+    static final int TAB_VILLAGE = 0;
+    static final int TAB_ALERTS = 1;
+    static final int TAB_ACTIVITY = 2;
+    static final int TAB_OASES = 3;
+    static final int TAB_SILVER = 4;
+    static final int TAB_SETTINGS = 5;
+
     private static final long REFRESH_MS = 1000L;
-    /** A check newer than this is fresh enough; opening the screen again doesn't start another. */
     private static final long FRESH_MS = 15_000L;
-    /** Show "checking now" for at most this long after asking for a check. */
     private static final long CHECKING_MS = 30_000L;
 
+    /** One tab's content. build() makes the views; tick() runs every second while it is shown. */
+    interface Tab {
+        View build();
+
+        void tick();
+    }
+
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private TextView notificationsView;
-    private TextView lastCheckView;
-    private TextView watchingView;
-    private TextView goldClubView;
+    private TextView statusView;
+    private FrameLayout content;
+    private FrameLayout tabBarHolder;
+    private ScrollView scroll;
+    private int current = TAB_VILLAGE;
+    private Tab[] tabs;
     private long checkRequestedMs = 0;
-    /** True when a check couldn't be started because the game has never been opened on this install. */
     private boolean gameNeverOpened = false;
 
     private final Runnable refresh = new Runnable() {
         @Override
         public void run() {
-            refreshLive();
+            refreshStatus();
+            if (tabs != null) {
+                tabs[current].tick();
+            }
             handler.postDelayed(this, REFRESH_MS);
         }
     };
@@ -47,13 +70,24 @@ public class HubActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         NotifierBootstrap.ensureChannels(this); // this screen can be opened before the game ever was
-        setContentView(buildContent());
+        tabs = new Tab[]{new VillageTab(this), new AlertsTab(this), new ActivityTab(this), new OasisTab(this),
+                new SilverTab(this), new SettingsTab(this)};
+        current = getIntent().getIntExtra(EXTRA_TAB, TAB_VILLAGE);
+        setContentView(buildFrame());
+        showTab(current);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        showTab(intent.getIntExtra(EXTRA_TAB, current));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         checkIfStale();
+        showTab(current);
         refresh.run();
     }
 
@@ -63,70 +97,87 @@ public class HubActivity extends Activity {
         handler.removeCallbacks(refresh);
     }
 
-    private View buildContent() {
-        LinearLayout column = UiKit.column(this);
-        column.addView(UiKit.title(this, "Travian Tools"));
-        column.addView(UiKit.muted(this, "Helpers for your Travian game"));
+    private View buildFrame() {
+        final LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(UiKit.background(this));
 
-        column.addView(UiKit.section(this, "Status"));
-        LinearLayout status = UiKit.card(this);
-        notificationsView = UiKit.body(this, "");
-        lastCheckView = UiKit.body(this, "");
-        watchingView = UiKit.body(this, "");
-        goldClubView = UiKit.body(this, "");
-        lastCheckView.setPadding(0, UiKit.dp(this, 6), 0, 0);
-        watchingView.setPadding(0, UiKit.dp(this, 6), 0, 0);
-        goldClubView.setPadding(0, UiKit.dp(this, 6), 0, 0);
-        status.addView(notificationsView);
-        status.addView(lastCheckView);
-        status.addView(watchingView);
-        status.addView(goldClubView);
-        column.addView(status, UiKit.cardParams(this));
-        column.addView(UiKit.primaryButton(this, "Open Travian", new View.OnClickListener() {
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.VERTICAL);
+        final int pad = UiKit.dp(this, 16);
+        header.setPadding(pad, UiKit.dp(this, 10), pad, UiKit.dp(this, 6));
+        LinearLayout titleRow = new LinearLayout(this);
+        titleRow.setOrientation(LinearLayout.HORIZONTAL);
+        titleRow.setGravity(Gravity.CENTER_VERTICAL);
+        titleRow.addView(UiKit.text(this, "Travian Tools", 22, true, UiKit.textColor(this)),
+                new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        titleRow.addView(UiKit.pill(this, "Open game", true, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openGame();
             }
         }));
+        header.addView(titleRow);
+        statusView = UiKit.muted(this, "");
+        statusView.setPadding(0, UiKit.dp(this, 4), 0, 0);
+        header.addView(statusView);
+        root.addView(header);
 
-        column.addView(UiKit.section(this, "Tools"));
-        column.addView(UiKit.menuRow(this, "Notifications", "Choose which alerts you get", new View.OnClickListener() {
+        content = new FrameLayout(this);
+        root.addView(content, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+        tabBarHolder = new FrameLayout(this);
+        root.addView(tabBarHolder);
+
+        root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             @Override
-            public void onClick(View v) {
-                startActivity(new Intent(HubActivity.this, NotificationSettingsActivity.class));
+            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                root.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
+                        insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
+                return insets;
             }
-        }), UiKit.cardParams(this));
-        column.addView(UiKit.menuRow(this, "Queues", "What is building and training", new View.OnClickListener() {
+        });
+        UiKit.styleBarsLater(this, root);
+        return root;
+    }
+
+    /** Shows a tab (rebuilding its views from the latest saved data). */
+    void showTab(int index) {
+        if (index < 0 || index >= tabs.length) {
+            index = TAB_VILLAGE;
+        }
+        boolean same = index == current && scroll != null;
+        int keepY = same ? scroll.getScrollY() : 0;
+        current = index;
+        content.removeAllViews();
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
+        int pad = UiKit.dp(this, 16);
+        column.setPadding(pad, UiKit.dp(this, 4), pad, pad);
+        column.addView(tabs[index].build());
+        scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        scroll.addView(column);
+        content.addView(scroll);
+        final int y = keepY;
+        scroll.post(new Runnable() {
             @Override
-            public void onClick(View v) {
-                startActivity(new Intent(HubActivity.this, QueuesActivity.class));
+            public void run() {
+                scroll.scrollTo(0, y);
             }
-        }), UiKit.cardParams(this));
-        column.addView(UiKit.menuRow(this, "Build order", "Set what each village builds next", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(HubActivity.this, BuildOrderActivity.class));
-            }
-        }), UiKit.cardParams(this));
-        column.addView(UiKit.menuRow(this, "Actions", "Automatic actions, practice mode and the log", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(HubActivity.this, ActionsActivity.class));
-            }
-        }), UiKit.cardParams(this));
-        column.addView(UiKit.menuRow(this, "Automation settings", "Buffer, delay and quiet hours", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(HubActivity.this, AutomationSettingsActivity.class));
-            }
-        }), UiKit.cardParams(this));
-        column.addView(UiKit.menuRow(this, "Recent notifications", "What was sent lately", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(HubActivity.this, RecentActivity.class));
-            }
-        }), UiKit.cardParams(this));
-        return UiKit.page(this, column);
+        });
+        tabBarHolder.removeAllViews();
+        tabBarHolder.addView(UiKit.tabBar(this, new String[]{"🏠", "🔔", "📜", "🌴", "💰", "⚙"},
+                new String[]{"Village", "Alerts", "Activity", "Oases", "Silver", "Settings"}, current, new UiKit.OnPick() {
+                    @Override
+                    public void picked(int i) {
+                        showTab(i);
+                    }
+                }));
+    }
+
+    /** Redraws the current tab (after a change that alters what it shows). */
+    void redraw() {
+        showTab(current);
     }
 
     private AlertStatus loadStatus() {
@@ -134,7 +185,6 @@ public class HubActivity extends Activity {
         return AlertStatus.fromJson(state.getString(NotifierWorker.KEY_STATUS, null));
     }
 
-    /** Runs a check when the last one is old, unless one was just asked for. */
     private void checkIfStale() {
         long now = System.currentTimeMillis();
         if (now - loadStatus().lastCheckMs > FRESH_MS && now - checkRequestedMs > FRESH_MS) {
@@ -146,28 +196,32 @@ public class HubActivity extends Activity {
         }
     }
 
-    /** Updates the status lines; called every second while the screen is open. */
-    private void refreshLive() {
+    /** The one status line at the top: last check, attacks, and anything that needs attention. */
+    private void refreshStatus() {
         long now = System.currentTimeMillis();
         AlertStatus status = loadStatus();
-        boolean checking = checkRequestedMs > status.lastCheckMs && now - checkRequestedMs < CHECKING_MS;
-        notificationsView.setText(notificationsLine());
-        if (gameNeverOpened && status.lastCheckMs == 0) {
-            lastCheckView.setText("Open the game once to start the background checks.");
-        } else {
-            lastCheckView.setText(checking ? "Last check: checking now…" : status.lastCheckLine(now));
-        }
-        watchingView.setText(status.watchingLine());
-        SharedPreferences state = getSharedPreferences(NotifierWorker.STATE_PREFS, Context.MODE_PRIVATE);
-        String goldClub = state.getString(NotifierWorker.KEY_GOLD_CLUB, null);
-        goldClubView.setText(AccountTier.goldClubLine(goldClub == null ? null : Boolean.valueOf(goldClub)));
-    }
-
-    private String notificationsLine() {
+        StringBuilder sb = new StringBuilder();
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        boolean allowed = nm != null && nm.areNotificationsEnabled();
-        return allowed ? "Android notifications: allowed"
-                : "Android notifications: BLOCKED for this app. Turn them on in Android settings or nothing will show.";
+        if (nm != null && !nm.areNotificationsEnabled()) {
+            sb.append("⚠ Notifications are blocked for this app in Android settings. ");
+        }
+        if (gameNeverOpened && status.lastCheckMs == 0) {
+            sb.append("Open the game once to start the checks.");
+        } else if (checkRequestedMs > status.lastCheckMs && now - checkRequestedMs < CHECKING_MS) {
+            sb.append("● checking now…");
+        } else if (status.lastCheckMs > 0) {
+            sb.append("● checked ").append(AlertStatus.duration(now - status.lastCheckMs)).append(" ago");
+            if (status.attacks > 0) {
+                sb.append("  ·  ⚔ ").append(status.attacks).append(status.attacks == 1 ? " attack" : " attacks")
+                        .append(" incoming");
+            }
+            if (status.note != null && !status.note.startsWith("OK") && status.note.length() > 0) {
+                sb.append("  ·  ").append(status.note);
+            }
+        } else {
+            sb.append("Not checked yet.");
+        }
+        statusView.setText(sb.toString());
     }
 
     private void openGame() {

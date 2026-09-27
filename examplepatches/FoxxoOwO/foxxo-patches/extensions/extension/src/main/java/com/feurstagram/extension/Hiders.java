@@ -1,7 +1,10 @@
 package com.feurstagram.extension;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -9,51 +12,172 @@ import android.widget.HorizontalScrollView;
 
 /**
  * UI-level hiders and the landing-page redirect, all installed on the main
- * tab bar. Each is a persistent global-layout listener that resolves its
- * target by resource name (with a clone fallback) so it survives Instagram
- * version bumps that reshuffle hex resource ids.
+ * tab bar and the activity window. Each is a persistent global-layout listener
+ * that resolves its target by resource name (with a clone fallback) so it
+ * survives Instagram version bumps that reshuffle hex resource ids.
  */
 public final class Hiders {
 
     private Hiders() {}
 
-    /** Install every UI hider and the landing redirect on the tab-bar root. */
+    private static boolean sRedirectDone = false;
+    private static int sDirectAttempts = 0;
+
+    /** Install every UI hider and the landing redirect on the tab-bar root and window. */
     public static void installAll(ViewGroup root) {
         if (root == null) return;
-        ViewTreeObserver observer = root.getViewTreeObserver();
+        Activity activity = Settings.getActivityContext(root) instanceof Activity
+                ? (Activity) Settings.getActivityContext(root) : null;
+        View decorView = (activity != null && activity.getWindow() != null)
+                ? activity.getWindow().getDecorView()
+                : root.getRootView();
+
+        // 1. Kick off immediate direct redirect runnable
+        attemptOpenDirect(root);
+
+        // 2. Attach global layout listeners to decorView and root
+        attachListeners(root, decorView);
+        if (decorView != root) {
+            attachListeners(root, root);
+        }
+
+        // Keep swipes off the pages whose tab was hidden.
+        HiddenTabSwipeSkipper.install(root);
+    }
+
+    private static void attachListeners(ViewGroup root, View host) {
+        if (host == null) return;
+        ViewTreeObserver observer = host.getViewTreeObserver();
+        if (observer == null || !observer.isAlive()) return;
+
         // Notes tray, Instants entry-points.
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "block_notes", "cf_hub_recycler_view"));
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "block_instants",
                 "creation_entrypoint", "direct_quick_snap_consumption_preview"));
+
         // Notifications ("heart") button in the feed header.
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "block_notifications",
                 true, false, "action_bar_buttons_container_right", "notification"));
-        // Bottom-navigation icons: in chat-only mode, only Direct is shown by default.
+
+        // Bottom-navigation icons: by default in chat-only mode, only Direct and Profile are shown.
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "nav_show_home", false, true, null, "feed_tab"));
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "nav_show_search", false, true, null, "search_tab"));
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "nav_show_reels", false, true, null, "clips_tab"));
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "nav_show_create", false, true, null, "creation_tab"));
         observer.addOnGlobalLayoutListener(new VisibilityHider(root, "nav_show_direct", true, true, null, "direct_tab"));
-        observer.addOnGlobalLayoutListener(new VisibilityHider(root, "nav_show_profile", false, true, null, "profile_tab"));
+        observer.addOnGlobalLayoutListener(new VisibilityHider(root, "nav_show_profile", true, true, null, "profile_tab"));
+
+        // Explicit bottom-navigation tabs hider ensuring Home, Reels, and Discover are removed.
+        observer.addOnGlobalLayoutListener(new BottomTabsHider(root));
+
         // If bottom tabs are hidden, hide the bottom bar container entirely.
         observer.addOnGlobalLayoutListener(new TabBarHider(root));
+
         // Direct Inbox root handler: hide back button, handle Back press, and title long-press.
         observer.addOnGlobalLayoutListener(new DirectInboxHandler(root));
+
+        // Profile tab long-press to open settings.
+        observer.addOnGlobalLayoutListener(new ProfileTabWatcher(root));
+
         // "Friends" tab in the Reels viewer header.
         observer.addOnGlobalLayoutListener(new FriendsLaneHider(root));
+
         // Cold-start landing-page redirect.
         observer.addOnGlobalLayoutListener(new LandingWatcher(root));
-        // Keep swipes off the pages whose tab was hidden.
-        HiddenTabSwipeSkipper.install(root);
     }
 
     static int resolveId(Context context, String name) {
+        if (context == null) return 0;
         Resources resources = context.getResources();
         int id = resources.getIdentifier(name, "id", context.getPackageName());
         if (id == 0) {
             id = resources.getIdentifier(name, "id", "com.instagram.android");
         }
         return id;
+    }
+
+    /**
+     * Attempts to open Direct Messages on launch by simulating click on inbox button,
+     * or dispatching the direct deep link intent.
+     */
+    public static void attemptOpenDirect(View root) {
+        if (sRedirectDone || root == null) return;
+        Context context = root.getContext();
+        if (context == null) return;
+
+        Activity activity = Settings.getActivityContext(root) instanceof Activity
+                ? (Activity) Settings.getActivityContext(root) : null;
+        if (activity == null && context instanceof Activity) {
+            activity = (Activity) context;
+        }
+
+        // Check if intent already has specific destination (external shared post, etc.)
+        if (activity != null && activity.getIntent() != null) {
+            Intent startIntent = activity.getIntent();
+            android.net.Uri data = startIntent.getData();
+            if (data != null && data.toString().contains("direct")) {
+                sRedirectDone = true;
+                return;
+            }
+            if (data != null && Intent.ACTION_VIEW.equals(startIntent.getAction())) {
+                sRedirectDone = true;
+                return;
+            }
+        }
+
+        View searchRoot = (activity != null && activity.getWindow() != null)
+                ? activity.getWindow().getDecorView()
+                : root.getRootView();
+        if (searchRoot == null) searchRoot = root;
+
+        // If Direct Inbox is already visible, mark done
+        int inboxBarId = resolveId(context, "direct_inbox_action_bar");
+        if (inboxBarId != 0) {
+            View bar = searchRoot.findViewById(inboxBarId);
+            if (bar != null && bar.getVisibility() == View.VISIBLE) {
+                sRedirectDone = true;
+                return;
+            }
+        }
+
+        // Try direct tab or action bar inbox button
+        View view = null;
+        int directTabId = resolveId(context, "direct_tab");
+        if (directTabId != 0) view = searchRoot.findViewById(directTabId);
+        if (view == null) {
+            int inboxBtnId = resolveId(context, "action_bar_inbox_button");
+            if (inboxBtnId != 0) view = searchRoot.findViewById(inboxBtnId);
+        }
+        if (view == null) {
+            int directBtnId = resolveId(context, "direct_button");
+            if (directBtnId != 0) view = searchRoot.findViewById(directBtnId);
+        }
+
+        if (view != null && view.isShown()) {
+            boolean clicked = view.performClick();
+            if (clicked) {
+                sRedirectDone = true;
+                return;
+            }
+        }
+
+        sDirectAttempts++;
+        if (sDirectAttempts < 15) {
+            root.postDelayed(() -> attemptOpenDirect(root), 50);
+        } else {
+            // Fallback: deep-link intent
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("instagram://direct"));
+                intent.setPackage(context.getPackageName());
+                if (activity != null) {
+                    activity.startActivity(intent);
+                } else {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    context.startActivity(intent);
+                }
+            } catch (Throwable ignored) {}
+            sRedirectDone = true;
+        }
     }
 
     /**
@@ -73,13 +197,6 @@ public final class Hiders {
             this(root, key, true, false, null, names);
         }
 
-        /**
-         * @param defaultValue value used when the preference is unset
-         * @param invert       when true the preference means "shown" rather than
-         *                     "hidden" (used for the nav_show_* toggles)
-         * @param scope        optional container resource name to search within,
-         *                     so a view id reused elsewhere is only touched inside it
-         */
         VisibilityHider(ViewGroup root, String key, boolean defaultValue, boolean invert,
                         String scope, String... names) {
             this.root = root;
@@ -94,22 +211,20 @@ public final class Hiders {
         public void onGlobalLayout() {
             Context context = root.getContext();
             if (context == null) return;
-            // Search the whole window, not just the tab bar: some targets (the
-            // Instants "+" overlay and the Notes tray) live in the DM-inbox
-            // subtree, which is a sibling of the tab bar, not a descendant. The
-            // tab bar's ViewTreeObserver still fires for those layout passes.
-            View searchRoot = root.getRootView();
+            Activity activity = Settings.getActivityContext(root) instanceof Activity
+                    ? (Activity) Settings.getActivityContext(root) : null;
+            View searchRoot = (activity != null && activity.getWindow() != null)
+                    ? activity.getWindow().getDecorView()
+                    : root.getRootView();
             if (searchRoot == null) searchRoot = root;
-            // Optionally narrow the search to a named container, so a view id that
-            // is reused elsewhere in the window is only touched inside that subtree.
             if (scope != null) {
                 int scopeId = resolveId(context, scope);
                 View scopeView = scopeId == 0 ? null : searchRoot.findViewById(scopeId);
-                if (scopeView == null) return; // container not on this screen; leave everything alone
+                if (scopeView == null) return;
                 searchRoot = scopeView;
             }
             boolean pref = Config.getBlocked(key, defaultValue);
-            boolean hidden = invert ? !pref : pref; // invert: pref true = shown
+            boolean hidden = invert ? !pref : pref;
             int visibility = hidden ? View.GONE : View.VISIBLE;
             for (String name : names) {
                 int id = resolveId(context, name);
@@ -121,21 +236,54 @@ public final class Hiders {
     }
 
     /**
-     * Hides the "Friends" tab — the friend lane, shown as a label plus a facepile
-     * of avatars next to "Reels" — from the Reels viewer's top action bar.
-     *
-     * Instagram only gates it on a server flag
-     * ({@code friends_lane_floating_pogs_entrypoint_enabled}) reachable from an
-     * internal developer menu, so there is nothing to intercept: the entry point
-     * is removed from the view tree instead.
-     *
-     * The tabs carry no per-tab resource id, so they are addressed by position:
-     * {@code clips_viewer_action_bar} holds {@code action_bar_tab_layout}, a
-     * horizontal scroller wrapping a single row with one child per tab, Reels
-     * first and any lane appended after it. Everything past the first tab is
-     * hidden, so a second lane would go with it. The search is scoped to the
-     * clips action bar because {@code action_bar_tab_layout} is a generic id
-     * reused by other tabbed surfaces.
+     * Unconditionally removes Home, Reels, Discover/Search, and Create tabs from the bottom menu.
+     */
+    static final class BottomTabsHider implements ViewTreeObserver.OnGlobalLayoutListener {
+        private final ViewGroup root;
+
+        BottomTabsHider(ViewGroup root) {
+            this.root = root;
+        }
+
+        @Override
+        public void onGlobalLayout() {
+            Context context = root.getContext();
+            if (context == null) return;
+            Activity activity = Settings.getActivityContext(root) instanceof Activity
+                    ? (Activity) Settings.getActivityContext(root) : null;
+            View searchRoot = (activity != null && activity.getWindow() != null)
+                    ? activity.getWindow().getDecorView()
+                    : root.getRootView();
+            if (searchRoot == null) searchRoot = root;
+
+            int feedTabId = resolveId(context, "feed_tab");
+            int searchTabId = resolveId(context, "search_tab");
+            int clipsTabId = resolveId(context, "clips_tab");
+            int createTabId = resolveId(context, "creation_tab");
+
+            hideView(searchRoot, feedTabId);
+            hideView(searchRoot, searchTabId);
+            hideView(searchRoot, clipsTabId);
+            hideView(searchRoot, createTabId);
+
+            hideView(root, feedTabId);
+            hideView(root, searchTabId);
+            hideView(root, clipsTabId);
+            hideView(root, createTabId);
+        }
+
+        private static void hideView(View container, int id) {
+            if (container != null && id != 0) {
+                View v = container.findViewById(id);
+                if (v != null && v.getVisibility() != View.GONE) {
+                    v.setVisibility(View.GONE);
+                }
+            }
+        }
+    }
+
+    /**
+     * Hides the "Friends" tab from the Reels viewer top action bar.
      */
     static final class FriendsLaneHider implements ViewTreeObserver.OnGlobalLayoutListener {
         private final ViewGroup root;
@@ -154,7 +302,7 @@ public final class Hiders {
             int barId = resolveId(context, "clips_viewer_action_bar");
             if (barId == 0) return;
             View bar = searchRoot.findViewById(barId);
-            if (bar == null) return; // not on the Reels surface right now
+            if (bar == null) return;
 
             int tabsId = resolveId(context, "action_bar_tab_layout");
             if (tabsId == 0) return;
@@ -162,7 +310,6 @@ public final class Hiders {
             if (!(tabs instanceof ViewGroup)) return;
 
             ViewGroup strip = (ViewGroup) tabs;
-            // Step through the scroller to the row that actually holds the tabs.
             if (strip instanceof HorizontalScrollView && strip.getChildCount() == 1
                     && strip.getChildAt(0) instanceof ViewGroup) {
                 strip = (ViewGroup) strip.getChildAt(0);
@@ -225,7 +372,11 @@ public final class Hiders {
         public void onGlobalLayout() {
             Context context = root.getContext();
             if (context == null) return;
-            View searchRoot = root.getRootView();
+            Activity activity = Settings.getActivityContext(root) instanceof Activity
+                    ? (Activity) Settings.getActivityContext(root) : null;
+            View searchRoot = (activity != null && activity.getWindow() != null)
+                    ? activity.getWindow().getDecorView()
+                    : root.getRootView();
             if (searchRoot == null) searchRoot = root;
 
             int barId = resolveId(context, "direct_inbox_action_bar");
@@ -233,7 +384,7 @@ public final class Hiders {
             View bar = searchRoot.findViewById(barId);
             if (bar == null || bar.getVisibility() != View.VISIBLE) return;
 
-            // In direct inbox: hide back button so back cannot drop to empty feed
+            // Hide back button in Direct Inbox root so back does not fall through
             int backId = resolveId(context, "action_bar_button_back");
             if (backId != 0) {
                 View backBtn = bar.findViewById(backId);
@@ -248,9 +399,9 @@ public final class Hiders {
             View titleView = titleId == 0 ? bar : bar.findViewById(titleId);
             if (titleView != null) {
                 titleView.setOnLongClickListener(v -> {
-                    Context activity = Settings.getActivityContext(v);
-                    if (activity != null) {
-                        Settings.show(activity);
+                    Context act = Settings.getActivityContext(v);
+                    if (act != null) {
+                        Settings.show(act);
                         return true;
                     }
                     return false;
@@ -262,8 +413,8 @@ public final class Hiders {
             bar.setOnKeyListener((v, keyCode, event) -> {
                 if (keyCode == android.view.KeyEvent.KEYCODE_BACK && event.getAction() == android.view.KeyEvent.ACTION_UP) {
                     Context act = Settings.getActivityContext(v);
-                    if (act instanceof android.app.Activity) {
-                        ((android.app.Activity) act).moveTaskToBack(true);
+                    if (act instanceof Activity) {
+                        ((Activity) act).moveTaskToBack(true);
                         return true;
                     }
                 }
@@ -273,14 +424,47 @@ public final class Hiders {
     }
 
     /**
-     * Redirects to the chosen landing surface (direct/search/profile) once per
-     * tab-bar build, then detaches. "home" needs no redirect.
+     * Enables opening Settings via long-press on the profile tab.
+     */
+    static final class ProfileTabWatcher implements ViewTreeObserver.OnGlobalLayoutListener {
+        private final ViewGroup root;
+        private boolean hooked = false;
+
+        ProfileTabWatcher(ViewGroup root) {
+            this.root = root;
+        }
+
+        @Override
+        public void onGlobalLayout() {
+            if (hooked || root == null) return;
+            Context context = root.getContext();
+            if (context == null) return;
+            int profileId = resolveId(context, "profile_tab");
+            if (profileId == 0) return;
+            View profileTab = root.findViewById(profileId);
+            if (profileTab == null) {
+                View searchRoot = root.getRootView();
+                if (searchRoot != null) profileTab = searchRoot.findViewById(profileId);
+            }
+            if (profileTab != null) {
+                profileTab.setOnLongClickListener(v -> {
+                    Context act = Settings.getActivityContext(v);
+                    if (act != null) {
+                        Settings.show(act);
+                        return true;
+                    }
+                    return false;
+                });
+                hooked = true;
+            }
+        }
+    }
+
+    /**
+     * Redirects to the chosen landing surface on launch.
      */
     static final class LandingWatcher implements ViewTreeObserver.OnGlobalLayoutListener {
-        private static final int MAX_ATTEMPTS = 50;
         private ViewGroup container;
-        private boolean done;
-        private int attempts;
 
         LandingWatcher(ViewGroup container) {
             this.container = container;
@@ -288,60 +472,20 @@ public final class Hiders {
 
         @Override
         public void onGlobalLayout() {
-            ViewGroup root = container;
-            if (root == null) return;
-            if (done) {
+            if (sRedirectDone || container == null) {
                 detach();
                 return;
             }
-
-            Context context = root.getContext();
-            if (context == null) return;
-
-            String landing = Config.getLandingPage();
-            View view = null;
-            if ("direct".equals(landing)) {
-                int directTabId = resolveId(context, "direct_tab");
-                if (directTabId != 0) {
-                    view = root.getRootView().findViewById(directTabId);
-                }
-                if (view == null) {
-                    int inboxBtnId = resolveId(context, "action_bar_inbox_button");
-                    if (inboxBtnId != 0) {
-                        view = root.getRootView().findViewById(inboxBtnId);
-                    }
-                }
-                if (view == null) {
-                    int directBtnId = resolveId(context, "direct_button");
-                    if (directBtnId != 0) {
-                        view = root.getRootView().findViewById(directBtnId);
-                    }
-                }
-            } else if ("search".equals(landing)) {
-                int id = resolveId(context, "search_tab");
-                if (id != 0) view = root.getRootView().findViewById(id);
-            } else if ("profile".equals(landing)) {
-                int id = resolveId(context, "profile_tab");
-                if (id != 0) view = root.getRootView().findViewById(id);
-            } else {
-                detach(); // "home" or unknown: nothing to do
-                return;
+            attemptOpenDirect(container);
+            if (sRedirectDone) {
+                detach();
             }
-
-            if (view == null) {
-                if (++attempts >= MAX_ATTEMPTS) detach();
-                return; // not laid out yet; retry up to the bound
-            }
-
-            view.performClick();
-            done = true;
-            detach();
         }
 
         private void detach() {
-            ViewGroup root = container;
-            if (root != null) {
-                root.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            ViewGroup r = container;
+            if (r != null) {
+                r.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 container = null;
             }
         }

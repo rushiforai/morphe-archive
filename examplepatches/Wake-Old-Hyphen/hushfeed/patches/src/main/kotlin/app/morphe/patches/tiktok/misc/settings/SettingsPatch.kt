@@ -210,7 +210,7 @@ val settingsPatch = bytecodePatch(
     category("Settings")
     dependsOn(sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // First, before any other write: TikTok's own crash recovery would delete what this

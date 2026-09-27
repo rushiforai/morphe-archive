@@ -1,3 +1,14 @@
+## [1.3.5](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.3.4...v1.3.5) (2026-09-27)
+
+### Bug Fixes
+
+* Set caption size controls and stored values to 8–15 sp, with 13 sp as the default.
+* Label saved diagnostic exports with the actual release version, 1.3.5.
+
+### Source Recovery
+
+* Restore a nearby R2.12 Java source snapshot and exact assembleable Smali source, with a verified round-trip rebuild.
+
 ## [1.3.4](https://github.com/YYDarlinker/morphe-ai-caption-translator/compare/v1.3.3...v1.3.4) (2026-09-18)
 
 ### 🐛 Bug Fixes

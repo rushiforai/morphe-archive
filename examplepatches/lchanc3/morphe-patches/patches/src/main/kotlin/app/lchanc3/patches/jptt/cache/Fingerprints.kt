@@ -24,3 +24,10 @@ internal object DiskCacheConfigBuilderFingerprint : Fingerprint(
         ),
     ),
 )
+
+/** Fresco's sizes for its cache of encoded images, asked for again every few minutes. */
+internal object EncodedMemoryCacheParamsFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/imagepipeline/cache/DefaultEncodedMemoryCacheParamsSupplier;",
+    name = "get",
+    returnType = "Lcom/facebook/imagepipeline/cache/MemoryCacheParams;",
+)

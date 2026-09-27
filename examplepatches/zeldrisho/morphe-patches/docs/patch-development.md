@@ -3,7 +3,7 @@
 How patches in this repo are structured, written, built, and tested.
 See the [reverse engineering workflow](reverse-engineering.md) (finding targets),
 the fingerprint reference below,
-[bypass patterns](bypass-patterns.md) (per-SDK techniques), and
+[target selection](#target-selection), and
 [repository structure](development.md#repository-structure) (module layout).
 
 ## Patch types
@@ -126,7 +126,9 @@ resourcePatch {
 
 Extension methods called from patched bytecode must be `public static`; mark them
 `@SuppressWarnings("unused")` since nothing references them at compile time.
-Settings are best read once at class-load time (`static final`) for performance.
+Settings are best read once at class-load time (`static final`) when immutable;
+settings that users can change at runtime must be refreshed at the documented
+lifecycle boundary instead.
 
 Extension modules are 1:1 with target apps: each extension serves one target app. Keep each extension dex minimal and
 never reference another app's classes from injected smali — cross-app class
@@ -139,14 +141,18 @@ Extensions run inside someone else's app on versions you never tested — a layo
 change must degrade to a no-op, never a crash. Follow these rules (proven pattern:
 a backup-screen launcher that surfaces a hidden activity via an injected row):
 
-- Resolve everything by **name at runtime** (`Class.forName`,
-  `Resources.getIdentifier`) — never hardcode resource IDs or reference obfuscated
-  app classes directly, so the code survives R8 renames.
+- Resolve resources by **name at runtime** (`Resources.getIdentifier`), but do not
+  assume runtime reflection survives obfuscation: validate the expected class,
+  method signature, and return type before use. Prefer inline smali or an
+  app-specific compile-only stub when the ABI is known and must be explicit.
 - Hook early entry points (e.g. `onCreate`) but defer view work with
   `decorView.post(...)` so the layout exists when you touch it.
 - Dedupe injected views with a tag (`findViewWithTag`) so repeat calls are safe.
-- Wrap **every** call in `try/catch (Throwable)` — including the posted `Runnable`
-  body — so any drift silently skips the feature instead of crashing the host.
+- Catch only around the smallest host-boundary operation that may drift, such as
+  class/resource lookup or a posted view update. Catch `Exception` (or a narrowly
+  documented linkage/reflection error), return a safe no-op, and emit only a
+  bounded non-sensitive diagnostic. Do not blanket-catch `Throwable` or hide
+  programmer errors, thread cancellation, or fatal VM conditions.
 - Clone the sibling's `LayoutParams` and match the host widget type (e.g. reuse the
   app's own row class) so injected UI looks native.
 - Keep the app's own machinery unmodified; only add the entry point (e.g. open the
@@ -185,7 +191,11 @@ Apply the `.mpp` via the terminal ([CLI patching](cli.md)) against the **downloa
 (see [toolchain storage and source conventions](toolchain.md#6-storage-and-path-conventions)
 and [original APK source](toolchain.md#7-original-apk-source)) matching the supported
 the target version and `ApkFileType.APKS` compatibility declaration (never an
-extracted `base.apk`), then `adb install -r` the output.
+extracted `base.apk`), then install the output with
+`android install --apks=<path-to-verified.apk> --device="$SERIAL"` (or use
+`android run --apks=<path-to-verified.apk> --device="$SERIAL"` to install and
+launch). For UI debugging, prefer `android layout --device="$SERIAL" --full`
+and `android screen capture --device="$SERIAL" --output=<path>`.
 To debug one patch in isolation, apply
 only it (`patch --exclusive -e "Name"`, see [CLI patching](cli.md#canonical-flows-this-repo)) before the full suite —
 a fingerprint failure elsewhere won't mask your result that way.
@@ -201,7 +211,7 @@ Generated-file ownership is defined in the [release rules](release.md#rules).
 | `Failed to match the fingerprint` | Code moved / signature changed | Re-verify smali ([fingerprint debugging](bytecode-reference.md#fingerprint-debugging)) |
 | Patched app crashes on launch | Wrong register / wide-type (`J`/`D`) shift | `adb logcat`, recount registers from smali |
 | "Not compatible" / install fails | Split APK (`requiredSplitTypes`) | Pass the downloaded `.apkm` bundle through; keep `ApkFileType.APKS` in sync with what Morphe accepts |
-| Google login / Drive broken | Signature mismatch after re-signing | Expected; not fixable without an account-spoof patch |
+| Google login / Drive broken | Signature/provider authorization mismatch after re-signing | External provider boundary; record as blocked, do not spoof account state |
 | Server-gated features still locked | Server-side validation (credits, cloud) | Not bypassable client-side — document as limitation |
 | Gradle auth failure | Missing registry credentials | `gpr.user`/`gpr.key` (or `GITHUB_ACTOR`/`GITHUB_TOKEN`), see [toolchain setup](toolchain.md#4-repository-dependencies) |
 
@@ -326,7 +336,7 @@ execute {
 }
 ```
 
-For per-billing-system and per-ad-SDK starting points, see [bypass patterns](bypass-patterns.md).
+For search directions and patch-surface guidance, see [Target selection](#target-selection).
 For confirming a target runs before freezing the fingerprint, see
 [dynamic confirmation](reverse-engineering.md#dynamic-confirmation-for-runtime-gates)
 (Frida log → smali quote → fingerprint).
@@ -369,3 +379,27 @@ the installed patcher exposes `app.morphe.patcher.*` and
 ## Debugging match failures
 
 See [bytecode reference](bytecode-reference.md#fingerprint-debugging) for the full workflow and validation procedure.
+
+## Target selection
+
+Run `scripts/hunt_signals.py <decompiled-or-smali-dir>` to triage protections,
+billing, ads, and networking. Its patterns are authoritative. SDK class names
+can help locate code, but app wrappers and runtime behavior must be verified for
+the pinned version.
+
+| Goal | Candidate area | Important constraint |
+| --- | --- | --- |
+| Entitlement or purchase behavior | Billing SDK result, local preference, remote-config gate | Client changes cannot grant server-side entitlement or defeat server attestation. |
+| Ad reduction | SDK load/show/init paths and mediation adapters | Preserve non-ad content and feed behavior; test controls and refresh. |
+| Integrity or environment checks | License, signature, root, pinning, emulator/debug checks | Confirm runtime gates dynamically when needed; avoid disabling unrelated checks. |
+| Analytics/privacy | Manifest metadata, receivers/services, event dispatch | Prefer narrow opt-outs; preserve unrelated functionality. |
+| Complex runtime behavior | App-specific extension | Keep injection small and fail safely at host-app boundaries. |
+
+These are search directions, not recipes or compatibility evidence. Choose a
+narrow patch surface: manifest/resource changes for flags and values, inline
+smali for simple changes, and extensions for complex runtime behavior. Confirm
+which implementation runs before changing TLS, root, or signature checks. See
+[dynamic confirmation](reverse-engineering.md#dynamic-confirmation-for-runtime-gates).
+Describe limitations and risks honestly; keep risky patches opt-in and validate
+on-device. Server-controlled features and provider authorization remain external
+boundaries.

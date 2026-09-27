@@ -17,6 +17,10 @@ final class ActionGuard {
             java.util.regex.Pattern.compile("/units/(research|improve)"),
             java.util.regex.Pattern.compile("/farm-list/send"),
             java.util.regex.Pattern.compile("/village/change-current"),
+            java.util.regex.Pattern.compile("/village/[0-9]{1,12}/celebrations/start"),
+            java.util.regex.Pattern.compile("/troop/send"),
+            java.util.regex.Pattern.compile("/hero/auction/bid"),
+            java.util.regex.Pattern.compile("/hero/auction/sell-item"),
     };
     static final long DEDUPE_MS = 60_000L;
 
@@ -27,7 +31,13 @@ final class ActionGuard {
         boolean dryRun;
         long nowMs;
         long nextAttackLandingMs;
+        /** The user's "pause when an attack lands soon" switch; off means attacks never pause automation. */
+        boolean attackPauseOn;
         int attackPauseMinutes;
+        /** Troop escape: it exists to act while an attack is coming, so the attack pause doesn't stop it. */
+        boolean passesAttackPause;
+        /** Inside the user's quiet hours (Auto-build timing): every automatic action waits, escape included. */
+        boolean quietNow;
         String dedupeKey;
         Map<String, Long> recentKeys;
     }
@@ -52,7 +62,10 @@ final class ActionGuard {
         if (in.automated && !in.masterOn) {
             return new Verdict(false, "automation is off");
         }
-        if (in.automated && in.nextAttackLandingMs > 0
+        if (in.automated && in.quietNow) {
+            return new Verdict(false, "quiet hours (Settings → Auto-build timing)");
+        }
+        if (in.automated && !in.passesAttackPause && in.attackPauseOn && in.nextAttackLandingMs > 0
                 && in.nextAttackLandingMs - in.nowMs < in.attackPauseMinutes * 60_000L) {
             return new Verdict(false, "paused: an attack lands soon");
         }

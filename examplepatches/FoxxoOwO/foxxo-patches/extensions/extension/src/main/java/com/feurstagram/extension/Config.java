@@ -176,9 +176,11 @@ public final class Config {
             "nav_show_direct", "nav_show_profile",
     };
 
-    /** In chat-only mode, only Direct is shown by default. */
+    /** In chat-only mode, Direct and Profile are shown by default. */
     public static boolean navDefault(String key) {
-        return "nav_show_direct".equals(key);
+        if ("nav_show_direct".equals(key)) return true;
+        if ("nav_show_profile".equals(key)) return true;
+        return false;
     }
 
     /** Whether the bottom-bar icon for a {@code nav_show_*} key is currently shown. */

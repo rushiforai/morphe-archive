@@ -44,7 +44,7 @@ val allowScreenCapturePatch = bytecodePatch(
 ) {
     category("Downloads")
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     execute {
         val signatures = mapOf(
             "Landroid/view/Window;->addFlags(I)V" to "addFlags(Landroid/view/Window;I)V",

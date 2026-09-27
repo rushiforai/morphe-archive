@@ -83,7 +83,7 @@ public final class SettingsHeaderPreference extends Preference {
     private View createMasterHeader() {
         LinearLayout header = createHeader(getContext(), heading, backAction);
         TextView subtitle = SettingsUi.text(getContext(), L10n.t(getContext(), "Make TikTok yours."),
-                14, SettingsUi.textSecondary(), 0);
+                15, SettingsUi.textSecondary(), 0);
         LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(-1, -2);
         subtitleParams.topMargin = SettingsUi.dp(getContext(), 12);
         subtitleParams.setMarginStart(SettingsUi.dp(getContext(), 8));
@@ -116,6 +116,8 @@ public final class SettingsHeaderPreference extends Preference {
         toolbar.setGravity(Gravity.CENTER_VERTICAL);
         ImageView back = new ImageView(context);
         back.setContentDescription(L10n.t(context, "Back"));
+        // An ImageView with a click listener is read as an image; this says it is a button.
+        SettingsUi.markAsButton(back);
         back.setImageDrawable(new BackDrawable(context));
         back.setOnClickListener(view -> { if (onBack != null) onBack.run(); });
         back.setFocusable(true);
@@ -124,7 +126,7 @@ public final class SettingsHeaderPreference extends Preference {
         // moving by keyboard or d-pad sees: the ripple's own focus tint is fainter still.
         back.setBackground(new android.graphics.drawable.RippleDrawable(
                 android.content.res.ColorStateList.valueOf(SettingsUi.rippleTint()),
-                SettingsUi.focusRing(context, 6),
+                SettingsUi.focusRing(context, SettingsUi.RADIUS_CONTROL),
                 SettingsUi.roundedSurface(context, SettingsUi.RADIUS_CONTROL, false)));
         toolbar.addView(back, new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48)));
         TextView brand = SettingsUi.text(context, BRAND_MARK, 12, SettingsUi.accent(), 1);
@@ -147,7 +149,7 @@ public final class SettingsHeaderPreference extends Preference {
 
     private View createCaption() {
         Context context = getContext();
-        TextView caption = SettingsUi.text(context, detail, 14, SettingsUi.textSecondary(), 0);
+        TextView caption = SettingsUi.text(context, detail, 15, SettingsUi.textSecondary(), 0);
         caption.setLineSpacing(SettingsUi.dp(context, 3), 1f);
         caption.setPadding(SettingsUi.dp(context, 8), SettingsUi.dp(context, 12),
                 SettingsUi.dp(context, 8), SettingsUi.dp(context, 32));

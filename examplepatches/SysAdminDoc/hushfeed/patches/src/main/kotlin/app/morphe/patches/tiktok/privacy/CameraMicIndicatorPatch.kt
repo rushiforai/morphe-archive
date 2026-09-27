@@ -9,6 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.misc.extension.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
@@ -45,17 +46,25 @@ private val MIC_STOP = setOf(
 @Suppress("unused")
 val cameraMicIndicatorPatch = bytecodePatch(
     name = "Camera and microphone indicator",
-    description = "Shows a small dot in the top corner while TikTok has the camera open or is recording sound. Green for the camera, orange for the microphone, both when both. It goes when the access ends. Switch: Hushfeed settings > Privacy.",
+    description = "Shows a small mark in the top corner while TikTok has the camera open or is recording sound. A green square for the camera, an orange diamond for the microphone, both when both. It goes when the access ends. Switch: Hushfeed settings > Privacy.",
     default = false,
 ) {
     category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableCameraMicIndicator()V",
+        )
+        // The screen in front has to be followed before the first camera opens: TikTok's cameras
+        // are scenes inside an activity that has already resumed by then, and a mark placed on the
+        // main activity instead sat hidden underneath it (the S25, 2026-09-26). A range invoke, so
+        // the parameter register's number never has to fit a 4-bit operand.
+        MainActivityOnCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p0 }, $EXTENSION->install(Landroid/app/Activity;)V",
         )
 
         val opens = invokeSitesOf(CAMERA_OPEN, static = true)

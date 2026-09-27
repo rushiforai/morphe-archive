@@ -17,13 +17,30 @@ RECON → DECOMPILE → HUNT → WRITE → TEST
 | Write | How to bypass it? | `Fingerprints.kt` + `*Patch.kt` under `patches/src/main/kotlin/com/zeldrisho/patches/<app>/` |
 | Test | Does it match? | `./gradlew buildAndroid`, then apply the `.mpp` in Morphe |
 
-Analysis work lives in this repo's **gitignored `analysis/` scratch workspace**.
-Use the canonical `analysis/<app>/<version>/` layout documented in
-[analysis.md](analysis.md), with `apk/`, `decoded/`, `decompiled/`, `smali/`,
-`mapping/`, `notes/`, and `runs/` used for their respective artifact types.
-Never commit analysis inputs or outputs. In the commands below, `<analysis>`
-means this repository's `analysis/<app>/<version>/` directory (use its absolute
-path or run relative paths from the repo root).
+## Analysis workspace
+
+Analysis lives in the gitignored `analysis/<app>/<version>/` workspace. Keep APKs
+in `apk/`, JADX output in `decompiled/`, standalone smali in `smali/`, recovered
+names in `mapping/`, evidence in `notes/`, and disposable experiments in
+`runs/<run-name>/`. Apktool's complete project belongs in `decoded/` (usually
+`decoded/base/`); its `smali*` directories are not a separate top-level workspace.
+Keep split inputs together. Record version code, ABI, source URL, and SHA-256 in
+`notes/recon.md`; never commit analysis inputs or outputs or put secrets, account
+data, or tokens in notes or logs. `<analysis>` below refers to this workspace.
+
+To preview deletion of the entire workspace:
+
+```bash
+python3 scripts/clean_analysis.py --analysis --dry-run
+```
+
+Only remove it after preserving needed evidence:
+
+```bash
+python3 scripts/clean_analysis.py --analysis
+```
+
+Cleanup removes the whole directory, including notes and runs.
 
 ## Tools
 
@@ -128,7 +145,7 @@ python3 scripts/hunt_signals.py <analysis>/decompiled [--files]
 `scripts/hunt_signals.py` is the canonical pattern list. The buckets below
 summarize intent only; read the script for exact expressions. When a pattern
 changes, update the script first, then the recipe that motivated the change in
-[bypass patterns](bypass-patterns.md).
+[target-selection guidance](patch-development.md#target-selection).
 
 - **BuildConfig sweep** (usually not obfuscated — base URLs, flavors, keys):
   search `BuildConfig.java` files for base URLs, flavors, and API keys.
@@ -173,42 +190,10 @@ invariants rather than copying framework infrastructure.
    substantial portions. Remote catalogs, settings, recording, and diagnostics
    infrastructure require separate scope decisions, not automatic adoption.
 
-Apply these principles when investigating any app's local-data patch:
-
-- **Execution context changes feasibility, not portability.** An injected
-  extension runs with the host app's permissions and can access its own app data
-  without ADB. This does not grant access to another installation's sandbox or
-  make encrypted files portable across devices, accounts, or reinstalls.
-- **Prefer native machinery.** Find existing backup/import/phone-transfer flows
-  before designing a replacement. Verify entry points, prerequisites, callers,
-  and restore ordering in smali and on-device; a hidden screen alone does not
-  establish a working local export. New UI needs explicit scope approval under
-  the [standing rules](development.md#operating-rules).
-- **Separate media from messages.** External-file copies do not establish chat
-  recovery or attachment associations. Trace databases, attachment references,
-  consistent snapshot handling (including SQLite WAL), and key lifecycle.
-  Android Keystore or device/account-bound keys can prevent raw-copy restoration;
-  in-process file access alone is insufficient evidence.
-- **Account for the first migration.** A re-signed APK normally cannot update
-  over stock. An in-app patch cannot recover stock private data after uninstall;
-  initial migration needs a supported stock export/backup route. Distinguish
-  stock-to-patched, patched-to-patched, and cross-device recovery claims.
-- **Design for recovery before convenience.** Export through a user-selected
-  document destination outside app-owned storage so uninstall does not remove
-  the backup. Preserve source data and recovery copies; validate archive paths,
-  integrity, account/schema compatibility, and storage capacity before writes.
-  Use bounded extraction and recoverable staging rather than wiping live data.
-  Treat archives as sensitive; keep chat contents, credentials, and keys out of
-  logs and committed analysis.
-- **Prove a round trip.** Test with disposable data: same-device reinstall,
-  cross-device recovery if claimed, media-to-message associations, incompatible
-  accounts/versions, corrupt archives, and interrupted transfers. Archive size,
-  successful extraction, and app launch are not restoration proof. Do not change
-  the existing [reinstall order](validation.md#re-patch-and-install) based only on
-  an external utility's instructions.
-
-Keep app-specific symbols and experimental results in gitignored `analysis/`;
-keep outstanding scope decisions in [the plan](plan.md), not a session transcript.
+For local-data features, use the [Zalo roadmap](plan.md#local-backupexport) for
+feasibility and recovery requirements. Keep app-specific symbols and experimental
+results in gitignored `analysis/`; do not treat private-file access as proof of
+portable backup or restore.
 
 ### Recover Kotlin names for obfuscated Kotlin apps
 
@@ -223,7 +208,7 @@ python3 scripts/recover_kotlin_names.py <analysis>/decompiled <analysis>/mapping
 ```
 
 Use the mapping to *find* classes (never to *match* — fingerprints still anchor on
-SDK calls/strings/opcodes per the the fingerprint reference in [patch development](patch-development.md)).
+SDK calls/strings/opcodes per the fingerprint reference in [patch development](patch-development.md)).
 `jadx --deobf` alone is not equivalent: it invents synthetic names instead of
 recovering the originals.
 
@@ -309,7 +294,7 @@ Never trust JADX or third-party opcode tables alone — they can mis-decompile o
 misdescribe obfuscated code. The [Android bytecode specification](https://source.android.com/docs/core/runtime/dalvik-bytecode)
 is authoritative for instruction formats and register limits. For every candidate:
 
-1. Find the smali file across **all** DEX dirs: `find <analysis>/smali -name '<ClassName>.smali'`.
+1. Find the smali file across **all** DEX dirs: `fd --hidden --no-ignore --type f --name '<ClassName>.smali' <analysis>/smali`.
 2. Read the exact method: `rg -B 2 -A 50 '\.method.*<methodName>' <file>`.
 3. Record: access flags, return type (the descriptor after `)` in the method header),
    full parameter descriptors, register count, invoke sequence **in order**, and which
@@ -317,31 +302,16 @@ is authoritative for instruction formats and register limits. For every candidat
 4. If Java and smali disagree, **trust smali**.
 5. Write the finding down (`<analysis>/notes/<topic>.md`) with the smali evidence
    quoted, plus a fingerprint strategy (which stable strings/calls to match on —
-   see the the fingerprint reference in [patch development](patch-development.md)). Unverified findings are not ready for patch-writing.
+   see the fingerprint reference in [patch development](patch-development.md)). Unverified findings are not ready for patch-writing.
 
-## Write the patch
+## Write and test the patch
 
-Covered in the the fingerprint reference in [patch development](patch-development.md) and
-[patch development](patch-development.md). The handoff from hunting is:
-
-- Fully qualified class + exact smali method signature ([smali verification](#smali-verification-is-mandatory), mandatory).
-- Ordered instruction sequence (invoke calls / const-strings).
-- Dynamic confirmation for runtime gates (Frida log of class/method/args,
-  [dynamic confirmation](#dynamic-confirmation-for-runtime-gates)); static-only is
-  acceptable for pure static gates, draft status otherwise.
-- Suggested bypass (`addInstructions` override, instruction replacement, etc.).
-
-## Test the patch
-
-```bash
-./gradlew buildAndroid
-```
-
-Check the patch is registered (`list-patches` in the Morphe CLI against
-`patches/build/libs/patches-*.mpp`), apply to the **downloaded split bundle**
-(never an extracted `base.apk`), install via `adb install -r`. If a fingerprint fails to
-match, go back to the hunt step and re-verify smali — the app version probably
-moved the code.
+The handoff from hunting is the exact smali method signature, ordered instruction
+evidence, and a narrow proposed change. Record dynamic confirmation for runtime
+gates; static evidence may suffice for purely static gates. Follow
+[patch development](patch-development.md) for implementation and
+[validation](validation.md) for build, patch, install, and device checks. A
+fingerprint mismatch means return to the smali hunt; do not weaken it blindly.
 
 
 # Native patching

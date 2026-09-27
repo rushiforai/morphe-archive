@@ -1,7 +1,6 @@
 package app.morphe.patches.tiktok.interaction.downloads
 
 import app.morphe.Fixtures
-import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
@@ -34,7 +33,7 @@ class CommentLivePhotoAnchorsTest {
     fun `every retained fixture saves a comment photo through one routine the clip hook can sit in`() {
         val apks = Fixtures.apks()
         assertTrue("fixtures: ${apks.map { it.name }}", apks.size >= 2)
-        val target = checkNotNull(AppCompatibilities.tiktok4703().single().targets.single().version)
+        val declared = Fixtures.declaredVersions()
         apks.forEach { apk ->
             val app = load(apk)
             val holders = app.values.flatMap { def -> def.methods.filter { it.holdsPolicy() }.map { def to it } }
@@ -58,9 +57,9 @@ class CommentLivePhotoAnchorsTest {
                     reference.definingClass == "Ljava/lang/Integer;" && reference.name == "intValue"
                 } == true
             }
-            val declaredTarget = apk.name.contains("_$target-") || apk.name == "tiktok-$target.apk"
+            val declaredTarget = Fixtures.versionOf(apk) in declared
             if (indexCall < 0) {
-                assertTrue("${apk.name}: the declared $target target unboxes the tapped photo's index before the comment", !declaredTarget)
+                assertTrue("${apk.name}: a declared target unboxes the tapped photo's index before the comment", !declaredTarget)
                 println("${apk.name}: saves the first photo with no index (the one-argument call)")
             } else {
                 assertEquals("${apk.name}: the index lands in a register", Opcode.MOVE_RESULT, instructions[indexCall + 1].opcode)

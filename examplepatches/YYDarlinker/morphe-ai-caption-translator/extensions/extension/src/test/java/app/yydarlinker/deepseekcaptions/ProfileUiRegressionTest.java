@@ -38,6 +38,33 @@ public class ProfileUiRegressionTest {
     private void click(String key){TextView row=label(tree(),text(key));assertNotNull(key,row);row.performClick();idle();}
     private ApiProfilesPreference open(){ApiProfilesPreference p=new ApiProfilesPreference(a);p.showProfiles();idle();return p;}
 
+    @Test public void modelPopupOwnsRoundedSurfaceAndNeutralSelectionWithoutNativeChoiceTint()throws Exception{
+        DeepSeekModelPreference model=new DeepSeekModelPreference(a);
+        model.setKey(DeepSeekModelPreference.KEY_MODEL);model.setTitle("模型");
+        LinearLayout host=new LinearLayout(a);a.setContentView(host);
+        View view=model.getView(null,host);host.addView(view);
+        host.measure(View.MeasureSpec.makeMeasureSpec(CaptionSettingsStyle.dp(a,360),View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(CaptionSettingsStyle.dp(a,600),View.MeasureSpec.AT_MOST));
+        host.layout(0,0,host.getMeasuredWidth(),host.getMeasuredHeight());idle();
+        java.lang.reflect.Method show=DeepSeekModelPreference.class.getDeclaredMethod("showModels",List.class,boolean.class);
+        show.setAccessible(true);show.invoke(model,Arrays.asList(DeepSeekConfig.DEFAULT_MODEL,"qwen3.8-flash"),true);
+        java.lang.reflect.Field pickerField=DeepSeekModelPreference.class.getDeclaredField("choices");
+        pickerField.setAccessible(true);TextView picker=(TextView)pickerField.get(model);
+        assertTrue(picker.performClick());idle();
+        java.lang.reflect.Field popupField=DeepSeekModelPreference.class.getDeclaredField("modelMenu");
+        popupField.setAccessible(true);PopupWindow popup=(PopupWindow)popupField.get(model);
+        assertNotNull(popup);assertTrue(popup.isShowing());assertTrue(popup.getContentView().getClipToOutline());
+        ScrollView scroll=(ScrollView)((LinearLayout)popup.getContentView()).getChildAt(0);
+        LinearLayout rows=(LinearLayout)scroll.getChildAt(0);
+        TextView selected=(TextView)rows.getChildAt(1);
+        assertFalse(selected.isSelected());
+        android.graphics.drawable.RippleDrawable background=(android.graphics.drawable.RippleDrawable)selected.getBackground();
+        int fill=((android.graphics.drawable.ColorDrawable)background.getDrawable(0)).getColor();
+        assertEquals(CaptionSettingsStyle.tint(CaptionSettingsStyle.primary(a),20),fill);
+        rows.getChildAt(2).performClick();idle();
+        assertEquals("qwen3.8-flash",DeepSeekConfig.load(a).model);
+        assertFalse(popup.isShowing());
+    }
     @Test public void mainPageHasOnlyNativeTitleAndCurrentNameNoEditorOrSpinner(){
         ApiProfilesPreference p=new ApiProfilesPreference(a);View row=p.getView(null,new LinearLayout(a));
         assertNull(first(row,EditText.class));assertNull(first(row,Spinner.class));
@@ -88,7 +115,7 @@ public class ProfileUiRegressionTest {
         String b=ApiProfiles.create(a,"B","https://b.example");
         a.getSharedPreferences("deepseek_caption_secret",0).edit().putString("api_key_ciphertext","A").putString("api_key_ciphertext_"+b,"B").apply();
         ApiProfiles.delete(a,"default");
-        assertEquals(b,ApiProfiles.active(a));assertTrue(DeepSeekConfig.enabled(a));assertEquals(20,DeepSeekConfig.load(a).captionTextSize);
+        assertEquals(b,ApiProfiles.active(a));assertTrue(DeepSeekConfig.enabled(a));assertEquals(15,DeepSeekConfig.load(a).captionTextSize);
         assertFalse(DeepSeekConfig.flyoutMenuEnabled(a));assertFalse(ApiProfiles.values(a,"default").contains("prompt"));
         assertFalse(ApiProfiles.list(a.getApplicationContext()).containsKey("default"));assertTrue(SecureApiKey.hasSavedValue(a));
     }

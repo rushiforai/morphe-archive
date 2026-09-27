@@ -17,7 +17,7 @@ val p2pRelayBlockerPatch = rawResourcePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val nativeFiles = listOf(
@@ -45,7 +45,7 @@ val coreAssetDebloatPatch = rawResourcePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // Only libraries nothing else in the APK links against. An emptied .so that another
@@ -96,7 +96,7 @@ val languagePackPurgerPatch = rawResourcePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     val targetLocales by stringOption(
         key = "locales",
         title = "Languages to keep",
@@ -117,7 +117,7 @@ val studioCreationDebloatPatch = rawResourcePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val nativeFiles = listOf(
@@ -149,7 +149,7 @@ val liveStreamSuiteOptimizerPatch = rawResourcePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(liveGiftEffectOptimizerPatch)
 
     execute {
@@ -322,6 +322,31 @@ private val liveCastFiles4703 = listOf(
     file("lib/armeabi-v7a/libdex_df_live_cast.so", "99da027c27858b6500bcf439b61bf640b2a537638266eaf134eeb90f8bf3fb30"),
 )
 
+// 47.1.3 (APKMirror's universal APK, byte for byte the one APKCombo and Uptodown carry, read on
+// 2026-09-26): the same 53 paths as 47.0.3, 39 of them byte-identical. Both ABIs of the two client
+// AI libraries, the Pitaya, live cast, camera, P2P relay and link mic libraries were rebuilt; the
+// rest are 47.0.3's. Its split bundle holds the universal APK's bytes and lacks the same
+// armeabi-v7a libraries 47.0.3's does.
+private val pitayaFiles4713 = listOf(
+    file("lib/arm64-v8a/libPitayaBdComponent.so", "ae7cf15f60167939497dabfd2c0149d94d3b2b2ae8045a309287066ffcad4edd"),
+    file("lib/arm64-v8a/libPitayaTTPPolicy.so", "644c79287cb465a2bbba9f43887eca694f0c9561e46830154c0a57473c1d3694"),
+    file("lib/arm64-v8a/libTTNativeML.so", "3ee1f54531db56564834e2aa9ef39e8da71c176be8650569275e2038098ee35a"),
+    file("lib/arm64-v8a/libclient_ai_impl_df_jni.so", "172bf1435f5e9adf5c62fbd8b200b50f601d9eff8a0d41f1ee341c3cfcaa1f35"),
+    file("lib/arm64-v8a/libclient_ai_impl_jni.so", "91904bb583c8a6b54ab61532c183aa1eb80d2728f260d6fa5d6a742e0fa5a231"),
+    file("lib/arm64-v8a/libdex_df_pitaya.so", "130069845d833c61e1f471cf44d9e43bdb9138a02f4ad8fe038052f531de6f57"),
+    file("lib/armeabi-v7a/libPitayaBdComponent.so", "5e2bf11472c65f754cf05cc9386309d1be8d85f66e797bc416a0ef12c28bdb18"),
+    file("lib/armeabi-v7a/libPitayaTTPPolicy.so", "2cc41a8339a8ac6c4cd64e96c0cc70e1b0e90d96d761a41dd6a1219511ac2e83"),
+    file("lib/armeabi-v7a/libTTNativeML.so", "48ab30a6114c2ce2fda2aa6222eff2313c0128dc8962175c1bb1cdfa61fbfeac"),
+    file("lib/armeabi-v7a/libclient_ai_impl_df_jni.so", "67c0d516d8a3c0351b567c473a5ba4c3cae64a300cf742e56ab8d95cfbb3d686"),
+    file("lib/armeabi-v7a/libclient_ai_impl_jni.so", "2d116999bed9f52094b099eccae4c64847661b8052ce4bbf5af43887e754ea49"),
+    file("lib/armeabi-v7a/libdex_df_pitaya.so", "130069845d833c61e1f471cf44d9e43bdb9138a02f4ad8fe038052f531de6f57"),
+)
+
+private val liveCastFiles4713 = listOf(
+    file("lib/arm64-v8a/libdex_df_live_cast.so", "27d8fda3e735303adf18e9b092f633b65cf72349f0e2f7d00d52de2b26c29787"),
+    file("lib/armeabi-v7a/libdex_df_live_cast.so", "27d8fda3e735303adf18e9b092f633b65cf72349f0e2f7d00d52de2b26c29787"),
+)
+
 // APKMirror also sells 46.2.3 and 47.0.3 as split bundles (tiktok-46-2-3-2 and tiktok-47-0-3-2,
 // "arm64-v8a + armeabi-v7a", 120-640dpi). Morphe Manager and the desktop CLI merge every split in
 // one, and every file the merged APK shares with the universal APK is byte-identical: all of the
@@ -348,6 +373,11 @@ private val coreAssets4623 = ResourceProfile(
 private val coreAssets4703 = ResourceProfile(
     "TikTok 47.0.3",
     microblinkFiles + c2paArm64Files + c2paArmeabiFiles + pitayaFiles4703 + monitorFiles4703 + liveCastFiles4703,
+)
+
+private val coreAssets4713 = ResourceProfile(
+    "TikTok 47.1.3",
+    microblinkFiles + c2paArm64Files + c2paArmeabiFiles + pitayaFiles4713 + monitorFiles4703 + liveCastFiles4713,
 )
 
 internal val coreAssetProfiles = listOf(
@@ -378,6 +408,17 @@ internal val coreAssetProfiles = listOf(
     coreAssets4703,
     bundleOf(
         coreAssets4703,
+        "lib/armeabi-v7a/libtt_c2pa_sdk_d.so",
+        "lib/armeabi-v7a/libPitayaBdComponent.so",
+        "lib/armeabi-v7a/libPitayaTTPPolicy.so",
+        "lib/armeabi-v7a/libTTNativeML.so",
+        "lib/armeabi-v7a/libclient_ai_impl_df_jni.so",
+        "lib/armeabi-v7a/libdex_df_pitaya.so",
+        "lib/armeabi-v7a/libdex_df_live_cast.so",
+    ),
+    coreAssets4713,
+    bundleOf(
+        coreAssets4713,
         "lib/armeabi-v7a/libtt_c2pa_sdk_d.so",
         "lib/armeabi-v7a/libPitayaBdComponent.so",
         "lib/armeabi-v7a/libPitayaTTPPolicy.so",
@@ -425,6 +466,18 @@ private val studioAssets4703 = ResourceProfile(
         ),
 )
 
+private val studioAssets4713 = ResourceProfile(
+    "TikTok 47.1.3",
+    studioArm64Files +
+        file("lib/arm64-v8a/libdex_df_camera_biz.so", "f25512fb3d8a0a0a5f5fbfff4b132d015104d807df637980cb232c9349ee67b8") +
+        listOf(
+            file("lib/armeabi-v7a/libEffectCreatorJni.so", "d3ae58712413c2d1d06dcf508eb7850452f58c93b9befd57867cd029421c9482"),
+            file("lib/armeabi-v7a/libdex_df_camera_biz.so", "f25512fb3d8a0a0a5f5fbfff4b132d015104d807df637980cb232c9349ee67b8"),
+            file("lib/armeabi-v7a/libeffect_plugin.so", "f89bd50e941392fee2e47d031711fdce3520dae7f3e531da59dd0afbbec9d91c"),
+            file("lib/armeabi-v7a/libttvesdk_plugin.so", "42ab2be66f2b02622f52062fc3ff1b4862f44f0098faecfac3996afe3e7cf1f9"),
+        ),
+)
+
 internal val studioAssetProfiles = listOf(
     studioAssets4623,
     bundleOf(studioAssets4623, *studioArmV7Files.map { it.path }.toTypedArray()),
@@ -446,6 +499,14 @@ internal val studioAssetProfiles = listOf(
     studioAssets4703,
     bundleOf(
         studioAssets4703,
+        "lib/armeabi-v7a/libEffectCreatorJni.so",
+        "lib/armeabi-v7a/libdex_df_camera_biz.so",
+        "lib/armeabi-v7a/libeffect_plugin.so",
+        "lib/armeabi-v7a/libttvesdk_plugin.so",
+    ),
+    studioAssets4713,
+    bundleOf(
+        studioAssets4713,
         "lib/armeabi-v7a/libEffectCreatorJni.so",
         "lib/armeabi-v7a/libdex_df_camera_biz.so",
         "lib/armeabi-v7a/libeffect_plugin.so",
@@ -503,6 +564,16 @@ internal val liveAssetProfiles = listOf(
             file("lib/armeabi-v7a/liblink_mic_sdk.so", "705c951bac3fba5eca0b7fc58d509559bee588228c0c838f23733e63322680de"),
         ),
     ),
+    ResourceProfile(
+        "TikTok 47.1.3",
+        listOf(
+            file("assets/native_runtime_server/game/scripts/ttmg-core.js.zip", "897d0f54569ea8c34b31652943f9abd7f89a842357078ea9bc78ca47fa0c8a14"),
+            file("assets/offline/tiktok_live_tt_live_lynx_match_component_container/mainV12/template.js", "d648b3e0ad779a0dde442ca381212661ea97eeddc255dbb92003aab5f4514460"),
+            file("assets/offline/tiktok_live_tt_live_lynx_match_component_container/match_invitee_v3/template.js", "8e84ec297249a771c9c9d56438f6c509d2a0f438c759ee65e212ab14ef7cb3eb"),
+            file("lib/arm64-v8a/liblink_mic_sdk.so", "5403e0fff6e1dcfd9088db4e770bf1cdffbef2906062bf13f0120ffdc7f3d6e3"),
+            file("lib/armeabi-v7a/liblink_mic_sdk.so", "501d2d72247cba87d38871d2488e7dbd79f7c71acc575fbd0cef5146711e3a98"),
+        ),
+    ),
 )
 
 private val p2pRelay4623 = ResourceProfile(
@@ -521,6 +592,16 @@ private val p2pRelay4703 = ResourceProfile(
         file("lib/arm64-v8a/libavmdlp2pv2.so", "07ae036846b87cd4ac49db1558740eb031f9930db86e507d08fefacd6baa640d"),
         file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
         file("lib/armeabi-v7a/libavmdlp2pv2.so", "14a614103ba671d9045f4d8d7e7b5f270c732fc5e55e49154da7b19b4a21ad99"),
+        file("lib/armeabi-v7a/libp2plivevdp.so", "dd8a626f8b0efe36a883096923bed56ecb457e9408b26262c844442901dc1d09"),
+    ),
+)
+
+private val p2pRelay4713 = ResourceProfile(
+    "TikTok 47.1.3",
+    listOf(
+        file("lib/arm64-v8a/libavmdlp2pv2.so", "caf93bb834c9b4efb483dd47182c44ec5094c0a024f202049eec0aba92dbe43b"),
+        file("lib/arm64-v8a/libp2plivevdp.so", "ed35b032fac7c169860d3f37bc3be1933df9bddc8ac6785413f9608945946337"),
+        file("lib/armeabi-v7a/libavmdlp2pv2.so", "d1945d14b66511c8f8c29a6ed2d7523884ef41a730585e1badc5228c577570bc"),
         file("lib/armeabi-v7a/libp2plivevdp.so", "dd8a626f8b0efe36a883096923bed56ecb457e9408b26262c844442901dc1d09"),
     ),
 )
@@ -556,6 +637,8 @@ internal val p2pRelayProfiles = listOf(
     ),
     p2pRelay4703,
     bundleOf(p2pRelay4703, "lib/armeabi-v7a/libavmdlp2pv2.so", "lib/armeabi-v7a/libp2plivevdp.so"),
+    p2pRelay4713,
+    bundleOf(p2pRelay4713, "lib/armeabi-v7a/libavmdlp2pv2.so", "lib/armeabi-v7a/libp2plivevdp.so"),
 )
 
 internal val languageInventories = listOf(
@@ -575,6 +658,8 @@ internal val languageInventories = listOf(
             "8bea806dfa98e0f0bf00362acf9f7afd065c77a90541e8a3bbb61b368898bab8",
             // 47.0.3: the same path inventory changed content again.
             "1835bf4b3ccfe982927139bf660eacb49312db0b0ed90984057724e2c69af8b4",
+            // 47.1.3: the same 207 files in the same 64 directories, new strings once more.
+            "f1e693f4041fba07ba1f505edd8baded98afe23acd461180bae56d2f470e330c",
         ),
     ),
     // The 46.2.3 split bundle: 25 language splits, 102 files, each byte-identical to the
@@ -595,6 +680,10 @@ internal val languageInventories = listOf(
             "ms", "nl", "pl", "pt", "ru", "sv", "th", "tr", "uk", "vi", "zh",
         ),
         pathManifestSha256 = "1b372a3b46779664920ebc1031ca38eb787dce81da9089a5867723290041dcac",
-        contentManifestSha256 = setOf("c63014c1817dbf52c825607f1ac32e34ef1bc04ff542caeb241b9d6c94200efb"),
+        contentManifestSha256 = setOf(
+            "c63014c1817dbf52c825607f1ac32e34ef1bc04ff542caeb241b9d6c94200efb",
+            // The 47.1.3 split bundle: the same 27 splits and 106 paths, new strings.
+            "0ab88b2fcfade0948a2e5e76ed0fb4777afce74699a3e53c064d54e673f95a3c",
+        ),
     ),
 )

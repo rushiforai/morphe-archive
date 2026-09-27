@@ -121,6 +121,9 @@ public final class Haiagaru {
     private static final String CHMATE_COPIPE_NG_AR_KEY = "copipeNgAR";
     private static final String CHMATE_COPIPE_NG2_KEY = "copipeNg2";
     private static final String CHMATE_ARASHI_NG_KEY = "arashiNg";
+    private static final String NG_REGISTRATION_LIMIT_KEY = "ngRegistrationLimit";
+    private static final int DEFAULT_NG_REGISTRATION_LIMIT = 300;
+    private static final int MAX_NG_REGISTRATION_LIMIT = 100_000;
     /** ChMate's own bounded post-history store (postDataList.json). */
     private static final String CHMATE_POST_DATA_LIST_COUNT_KEY = "postDataListCount";
     private static final int DEFAULT_CHMATE_POST_DATA_LIST_COUNT = 100;
@@ -1086,6 +1089,17 @@ public final class Haiagaru {
     public static boolean isCellularNetworkRefreshEnabled() {
         SharedPreferences preferences = preferencesOrNull();
         return preferences == null || preferences.getBoolean("refreshCellularNetwork", true);
+    }
+
+    /**
+     * Returns the maximum number of locally persisted NG entries for each
+     * ChMate NG category. Zero means unlimited; the stock value is 300.
+     */
+    public static int getNgRegistrationLimit() {
+        SharedPreferences preferences = preferencesOrNull();
+        if (preferences == null) return DEFAULT_NG_REGISTRATION_LIMIT;
+        int value = preferences.getInt(NG_REGISTRATION_LIMIT_KEY, DEFAULT_NG_REGISTRATION_LIMIT);
+        return value <= 0 ? Integer.MAX_VALUE : Math.min(value, MAX_NG_REGISTRATION_LIMIT);
     }
 
     private static final class CellularNetworkLease {
@@ -2376,6 +2390,28 @@ public final class Haiagaru {
         postDataListCountDescription.setTextSize(13);
         layout.addView(postDataListCountDescription, rowParams(activity));
 
+        EditText ngRegistrationLimit = addTextField(
+                layout,
+                activity,
+                text("NG登録上限（ワード・ID・名前など、0で無制限）",
+                        "NG registration limit (words, IDs, names; 0 is unlimited)"),
+                Integer.toString(preferences.getInt(
+                        NG_REGISTRATION_LIMIT_KEY,
+                        DEFAULT_NG_REGISTRATION_LIMIT
+                ))
+        );
+        TextView ngRegistrationLimitDescription = new TextView(activity);
+        ngRegistrationLimitDescription.setText(text(
+                "NGワード・NG ID・NG名前など、各NG保存カテゴリの上限です。"
+                        + "上限を下げても既存項目はその場で削除せず、次回保存時に古い項目から整理します。"
+                        + "1〜100000、または0（無制限）を指定できます。",
+                "Sets the per-category limit for NG words, IDs, names, and similar entries. "
+                        + "Lowering the value does not delete existing entries immediately; older entries "
+                        + "are trimmed on the next save. Choose 1 to 100000, or 0 for unlimited."
+        ));
+        ngRegistrationLimitDescription.setTextSize(13);
+        layout.addView(ngRegistrationLimitDescription, rowParams(activity));
+
         boolean legacyPlusSupportedValue = false;
         Switch abbrevSingleIdValue = null;
         Switch copipeNg2Value = null;
@@ -2540,6 +2576,16 @@ public final class Haiagaru {
                             .putBoolean("automaticDat", automaticDat.isChecked())
                             .putBoolean("refreshCellularNetwork", refreshCellularNetwork.isChecked())
                             .putBoolean("bypassPostPreflight", bypassPostPreflight.isChecked())
+                            .putInt(
+                                    NG_REGISTRATION_LIMIT_KEY,
+                                    parseNgRegistrationLimit(
+                                            value(ngRegistrationLimit),
+                                            preferences.getInt(
+                                                    NG_REGISTRATION_LIMIT_KEY,
+                                                    DEFAULT_NG_REGISTRATION_LIMIT
+                                            )
+                                    )
+                            )
                             .commit();
                     if (archiveRouteTemplates != null) {
                         preferences.edit()
@@ -3168,6 +3214,15 @@ public final class Haiagaru {
         } catch (RuntimeException ignored) {
         }
         return Math.max(0, Math.min(fallback, MAX_CHMATE_POST_DATA_LIST_COUNT));
+    }
+
+    private static int parseNgRegistrationLimit(String rawValue, int fallback) {
+        try {
+            int value = Integer.parseInt(rawValue.trim());
+            if (value >= 0 && value <= MAX_NG_REGISTRATION_LIMIT) return value;
+        } catch (RuntimeException ignored) {
+        }
+        return Math.max(0, Math.min(fallback, MAX_NG_REGISTRATION_LIMIT));
     }
 
     private static String text(String japanese, String english) {

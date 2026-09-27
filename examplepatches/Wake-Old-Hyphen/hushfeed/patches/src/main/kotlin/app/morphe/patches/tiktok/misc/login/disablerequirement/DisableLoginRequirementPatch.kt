@@ -15,7 +15,7 @@ val disableLoginRequirementPatch = bytecodePatch(
     default = true,
 ) {
     category("Settings")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         listOf(

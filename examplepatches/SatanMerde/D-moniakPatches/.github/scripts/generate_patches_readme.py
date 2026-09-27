@@ -150,8 +150,9 @@ def build_content(expanded=False):
         f"{total} patches total"
     ]
 
-    # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
+    # One spoiler per app, sorted alphabetically by app display name
+    sorted_apps = sorted(by_pkg.items(), key=lambda item: item[1]["name"].lower())
+    for pkg, entry in sorted_apps:
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
         lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))

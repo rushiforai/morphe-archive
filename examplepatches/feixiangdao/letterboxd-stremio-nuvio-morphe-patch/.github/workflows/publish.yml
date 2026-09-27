@@ -1,0 +1,108 @@
+name: Publish patch source
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version without the leading v
+        required: true
+        default: "0.1.1"
+  push:
+    paths:
+      - ".github/release-trigger"
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_VERSION: ${{ inputs.version || '0.1.1' }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.5.0"
+
+      - name: Set version
+        run: sed -i "s/^version=.*/version=${RELEASE_VERSION}/" gradle.properties
+
+      - name: Generate patch metadata
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle :patches:generatePatchesList --stacktrace
+
+      - name: Build Android patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle :patches:buildAndroid --stacktrace
+
+      - name: Verify Android bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
+          test -n "$SOURCE"
+          unzip -l "$SOURCE" | grep -Ei '\.dex$'
+
+      - name: Prepare release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_VERSION}"
+          SOURCE="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
+          test -n "$SOURCE"
+          ASSET="patches-${VERSION}.mpp"
+          cp "$SOURCE" "$ASSET"
+
+          cat > patches-bundle.json <<EOF
+          {
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S)",
+            "description": "Letterboxd Player Bridge ${VERSION}: separate Stremio and Nuvio buttons.",
+            "download_url": "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/${ASSET}",
+            "signature_download_url": "",
+            "page_url": "https://github.com/${{ github.repository }}/releases/tag/v${VERSION}",
+            "version": "v${VERSION}"
+          }
+          EOF
+
+      - name: Commit source metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add gradle.properties patches-list.json patches-bundle.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish v${VERSION}"
+            git push origin HEAD:main
+          fi
+          git tag -f "v${VERSION}"
+          git push origin "v${VERSION}" --force
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${RELEASE_VERSION}"
+          gh release delete "v${VERSION}" --yes || true
+          gh release create "v${VERSION}" "patches-${VERSION}.mpp" \
+            --title "v${VERSION}" --generate-notes

@@ -164,4 +164,16 @@ internal object UncertifiedDeviceActivityOnCreateFingerprint : Fingerprint(
     parameters = listOf("Landroid/os/Bundle;"),
 )
 
+/**
+ * Matches `CurrentLocationMixin.b(boolean)` — updates FAB icon tint based on whether current location is active.
+ */
+internal object CurrentLocationMixinUpdateTintFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Z"),
+    custom = { method, classDef ->
+        classDef.hasMethodReferencingString("CurrentLocationMixin") &&
+            method.name == "b"
+    },
+)
+
 

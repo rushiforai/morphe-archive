@@ -12,15 +12,19 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.handleTargets
 import app.morphe.patches.shared.compat.AppCompatibilities
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import app.morphe.patches.facebook.misc.settings.settingsPatch
+
+private const val PATCH = "Disable Audience Network"
 
 /**
  * The bridge through which the Facebook app serves ads to *other* apps: an app embedding the
  * Audience Network SDK binds to the installed Facebook app to fetch and render its ads.
  */
-private val AUDIENCE_NETWORK_COMPONENTS = setOf(
+internal val AUDIENCE_NETWORK_COMPONENTS = listOf(
     "com.facebook.ads.internal.ipc.AudienceNetworkRemoteService",
     "com.facebook.ads.internal.ipc.AudienceNetworkRemoteActivity",
     "com.facebook.ads.internal.ipc.AudienceNetworkExportedActivity",
@@ -36,26 +40,31 @@ private val COMPONENT_TAGS = setOf("activity", "activity-alias", "service", "rec
  */
 private val disableAudienceNetworkResourcePatch = resourcePatch {
     execute {
-        document("AndroidManifest.xml").use { document ->
-            var disabled = 0
+        document("AndroidManifest.xml").use { document -> disableAudienceNetwork(document) }
+    }
+}
 
-            COMPONENT_TAGS.forEach { tag ->
-                val nodes = document.getElementsByTagName(tag)
-                for (index in 0 until nodes.length) {
-                    val element = nodes.item(index) as? Element ?: continue
-                    if (element.getAttribute("android:name") !in AUDIENCE_NETWORK_COMPONENTS) {
-                        continue
-                    }
+/**
+ * Disables each Audience Network component the manifest declares. Each one is a way in on its
+ * own, so a build that renamed some still gets the others shut, and the patch log names each one
+ * left open. None found stops the patch.
+ */
+internal fun disableAudienceNetwork(manifest: Document) {
+    val disabled = mutableSetOf<String>()
+    COMPONENT_TAGS.forEach { tag ->
+        val nodes = manifest.getElementsByTagName(tag)
+        for (index in 0 until nodes.length) {
+            val element = nodes.item(index) as? Element ?: continue
+            val name = element.getAttribute("android:name")
+            if (name !in AUDIENCE_NETWORK_COMPONENTS) continue
 
-                    element.setAttribute("android:enabled", "false")
-                    disabled++
-                }
-            }
-
-            check(disabled > 0) {
-                "No Audience Network components found in the manifest; they were renamed or removed"
-            }
+            element.setAttribute("android:enabled", "false")
+            disabled += name
         }
+    }
+
+    handleTargets(PATCH, "Audience Network components", AUDIENCE_NETWORK_COMPONENTS) { name ->
+        if (name in disabled) null else "$name isn't in the manifest"
     }
 }
 

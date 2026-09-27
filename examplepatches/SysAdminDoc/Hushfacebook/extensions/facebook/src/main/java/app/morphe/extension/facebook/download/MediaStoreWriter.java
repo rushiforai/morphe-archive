@@ -10,6 +10,7 @@ package app.morphe.extension.facebook.download;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -17,8 +18,10 @@ import android.provider.MediaStore;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -46,13 +49,26 @@ final class MediaStoreWriter implements Downloader.Sink {
     private final Context context;
     private final boolean video;
 
+    /** What the save knows of the post, for the file name's tokens. Never null. */
+    private final PostDetails details;
+
     private Uri item;
     private OutputStream stream;
     private String location;
 
     MediaStoreWriter(Context applicationContext, boolean video) {
+        this(applicationContext, video, PostDetails.NONE);
+    }
+
+    /** A writer knowing the video's id on Facebook, or null, and nothing else of the post. */
+    MediaStoreWriter(Context applicationContext, boolean video, String videoId) {
+        this(applicationContext, video, PostDetails.of(videoId));
+    }
+
+    MediaStoreWriter(Context applicationContext, boolean video, PostDetails details) {
         this.context = applicationContext;
         this.video = video;
+        this.details = details == null ? PostDetails.NONE : details;
     }
 
     /**
@@ -72,16 +88,16 @@ final class MediaStoreWriter implements Downloader.Sink {
         // setting can't turn this into a path of the setting's choosing.
         location = directory + "/" + SaveFolder.leaf();
 
+        Uri collection = video
+            ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
         ContentValues values = new ContentValues();
-        values.put(MediaStore.MediaColumns.DISPLAY_NAME, name(mime));
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, name(mime, collection));
         values.put(MediaStore.MediaColumns.MIME_TYPE, mime);
         // No leading slash. MediaStore checks this against its own directory names.
         values.put(MediaStore.MediaColumns.RELATIVE_PATH, location);
         values.put(MediaStore.MediaColumns.IS_PENDING, 1);
-
-        Uri collection = video
-            ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
         ContentResolver resolver = context.getContentResolver();
         item = resolver.insert(collection, values);
@@ -102,34 +118,42 @@ final class MediaStoreWriter implements Downloader.Sink {
 
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.IS_PENDING, 0);
-        context.getContentResolver().update(item, values, null, null);
+        if (context.getContentResolver().update(item, values, null, null) != 1) {
+            throw new IOException("the gallery did not publish the pending entry");
+        }
         SaveLeftovers.settled(context, item);
     }
 
     @Override
     public void abandon() {
-        close();
+        try {
+            close();
+        } catch (Throwable ignored) {
+            // A failed close must not keep the pending row from being removed.
+        }
 
         if (item == null) return;
         Uri row = item;
         item = null;
 
         try {
-            context.getContentResolver().delete(row, null, null);
-            SaveLeftovers.settled(context, row);
+            if (context.getContentResolver().delete(row, null, null) > 0) {
+                SaveLeftovers.settled(context, row);
+            } else {
+                Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE,
+                        () -> "the gallery did not remove the unfinished entry", null);
+            }
         } catch (Throwable t) {
             // Left on the list, so the first save of the next process tries again.
             Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "could not remove the unfinished entry", t);
         }
     }
 
-    private void close() {
+    private void close() throws IOException {
         if (stream == null) return;
 
         try {
             stream.close();
-        } catch (Throwable ignored) {
-            // The bytes are already written or already lost.
         } finally {
             stream = null;
         }
@@ -153,18 +177,81 @@ final class MediaStoreWriter implements Downloader.Sink {
         return video ? "video/mp4" : "image/jpeg";
     }
 
-    private String name(String mime) {
+    private String name(String mime, Uri collection) {
         String suffix = EXTENSIONS.get(mime);
         if (suffix == null) suffix = video ? ".mp4" : ".jpg";
 
-        // Facebook's own naming, so that files from this patch and from Facebook sit together.
-        String prefix = video ? "FB_VID_" : "FB_IMG_";
+        Date now = new Date();
+        if (video) {
+            // The person's template, read here, per file, and cleaned where it's read. As it
+            // ships it's Facebook's own FB_VID_ name.
+            String template = FileNameTemplate.current();
+            reportMissingTokens(template);
+            String name = FileNameTemplate.videoName(template, now, details) + suffix;
+            if (!inSaveFolder(collection, name)) return name;
+            // MediaStore would number it, up to (31), and then refuse the save.
+            String taken = FileNameTemplate.takenVideoName(template, now, details);
+            if (taken == null) return name;
+            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE,
+                    () -> "the file name was already in the save folder, so the time of the save went on the end");
+            return taken + suffix;
+        }
 
+        // Facebook's own naming, so that files from this patch and from Facebook sit together.
         // The locale has to be fixed. Under a Thai or an Arabic locale the default calendar
         // writes Buddhist years or Eastern Arabic digits into the file name.
-        String stamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        return FileNameTemplate.PHOTO_PREFIX + new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(now) + suffix;
+    }
 
-        return prefix + stamp + suffix;
+    /**
+     * What {@link #inSaveFolder} asks MediaStore: a file of one name in one folder. MediaStore keeps
+     * a folder with a slash on the end, so both spellings are asked for. Package-private so a test
+     * gallery can answer exactly this and nothing else.
+     */
+    static final String SAME_NAME_IN_FOLDER = MediaStore.MediaColumns.DISPLAY_NAME + " = ? AND ("
+            + MediaStore.MediaColumns.RELATIVE_PATH + " = ? OR " + MediaStore.MediaColumns.RELATIVE_PATH + " = ?)";
+
+    /**
+     * Whether a file named [displayName] is already in the save folder of [collection]. Only
+     * published files count, as MediaStore leaves pending and trashed ones out of a query unless
+     * asked: their files carry other names until they're published. A file this app can't see, or a
+     * lookup MediaStore refuses, counts as not there, and MediaStore's own numbering still keeps the
+     * save. The report gets the kind of failure only, never the name, which can hold the poster's.
+     */
+    private boolean inSaveFolder(Uri collection, String displayName) {
+        try (Cursor cursor = context.getContentResolver().query(collection,
+                new String[] { MediaStore.MediaColumns._ID }, SAME_NAME_IN_FOLDER,
+                new String[] { displayName, location + "/", location }, null)) {
+            return cursor != null && cursor.moveToFirst();
+        } catch (Throwable t) {
+            String kind = t.getClass().getSimpleName();
+            Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE,
+                    () -> "could not look for the file name in the save folder (" + kind + ")");
+            return false;
+        }
+    }
+
+    /**
+     * One line in the report when [template] asks for something this save doesn't know, saying
+     * what the name does about it: left out when the name still tells saves apart, and the date
+     * and time on the end when it wouldn't, since MediaStore refuses a name once it has numbered
+     * it 31 times. Never the id or the poster's name: the report is pasted into public issues.
+     */
+    private void reportMissingTokens(String template) {
+        List<String> missing = new ArrayList<>();
+        if (FileNameTemplate.usesVideoId(template) && !details.hasVideoId()) missing.add("the video id");
+        if (FileNameTemplate.usesOwner(template) && !details.hasOwner()) missing.add("the poster");
+        if (FileNameTemplate.usesPosted(template) && !details.hasPosted()) missing.add("the post date");
+        if (missing.isEmpty()) return;
+
+        boolean apart = FileNameTemplate.keepsApart(template, details.hasVideoId(), details.hasOwner(), details.hasPosted());
+        String asked = missing.size() == 1 ? missing.get(0)
+            : String.join(", ", missing.subList(0, missing.size() - 1)) + " and " + missing.get(missing.size() - 1);
+        String has = missing.size() == 1 ? "none" : missing.size() == 2 ? "neither" : "none of them";
+        String instead = !apart ? "the date and time go on the end"
+            : missing.size() == 1 ? "it's left out" : "they're left out";
+        final String line = "the file name asks for " + asked + " and this save has " + has + ", so " + instead;
+        Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> line);
     }
 
     /**

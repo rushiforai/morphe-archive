@@ -1,3 +1,84 @@
+## [1.26.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.25.1...v1.26.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** home-screen widget ([faa7776](https://github.com/Amitaisela/travian-morphe-patches/commit/faa7776bb14ef41327506f737f2aac5826de5604))
+
+## [1.25.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.25.0...v1.25.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** retry an automatic silver bid the guard held back ([d1f4e4c](https://github.com/Amitaisela/travian-morphe-patches/commit/d1f4e4c4e6a8391d2f149826187abfa52156483a))
+
+## [1.25.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.24.0...v1.25.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** quiet hours stop every automatic action ([4e6348d](https://github.com/Amitaisela/travian-morphe-patches/commit/4e6348de8ec03f366ecc812c23d71ea460b92ca6))
+* **Travian: Legends:** troop escape to an empty oasis before an attack (off by default) ([71b95a2](https://github.com/Amitaisela/travian-morphe-patches/commit/71b95a28899e7f8f785c624f2a68f215decb957c))
+
+## [1.24.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.23.1...v1.24.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** send the hero to an oasis for real ([ed413c4](https://github.com/Amitaisela/travian-morphe-patches/commit/ed413c4cb319bf0b214d1f33ce91112b5d2f0bef))
+
+## [1.23.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.23.0...v1.23.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** ask for the troop send token with PUT, like the game ([955960d](https://github.com/Amitaisela/travian-morphe-patches/commit/955960d7a6e8a90a1d67ec12da790d9993fe56fc))
+
+## [1.23.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.22.1...v1.23.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** Silver tab with auction alerts, sell advisor and deal finder ([07c9586](https://github.com/Amitaisela/travian-morphe-patches/commit/07c95865586b51aafee8df1a15b7af47def4f4d7))
+
+## [1.22.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.22.0...v1.22.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** send troops exactly like the game's rally point ([5e0fac1](https://github.com/Amitaisela/travian-morphe-patches/commit/5e0fac1bf6ec15340af8cdc15da16c929c5a90a8))
+
+## [1.22.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.21.0...v1.22.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** Oases tab and the game's two-step troop send (test step) ([5cd3970](https://github.com/Amitaisela/travian-morphe-patches/commit/5cd3970bef568d4a3a1c8de7e01057f8added22d))
+
+## [1.21.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.20.1...v1.21.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** read-only data check for celebrations, oases, merchants and hero ([ca96877](https://github.com/Amitaisela/travian-morphe-patches/commit/ca9687772c507e3973dc69d6a6d27b79b1885fb9))
+* **Travian: Legends:** start town hall celebrations automatically (off by default) ([021dfae](https://github.com/Amitaisela/travian-morphe-patches/commit/021dfaeca72c2f8d09bc69281075d635135e328f))
+
+## [1.20.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.20.0...v1.20.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** show that a tapped build is on its way and log every outcome ([8b3ab6c](https://github.com/Amitaisela/travian-morphe-patches/commit/8b3ab6c4029b6ed7eedf86e1d99f3d4f4ec6692b))
+
+## [1.20.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.19.0...v1.20.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** real village map and step-by-step game actions ([a38c6e9](https://github.com/Amitaisela/travian-morphe-patches/commit/a38c6e9ec96f9aed128a6846ac9f024d8730a0de))
+
+## [1.19.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.18.0...v1.19.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** next-build times, Roman double build, walls, search and village map ([8ac65bb](https://github.com/Amitaisela/travian-morphe-patches/commit/8ac65bb560e2072019329f1d089f7c217a517999))
+
+## [1.18.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.17.0...v1.18.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Travian: Legends:** queue a specific building slot and say what is missing ([9e01120](https://github.com/Amitaisela/travian-morphe-patches/commit/9e011205e8a46eac57ccf03646b9e76aa376372e))
+* **Travian: Legends:** redesign Travian Tools into one screen with tabs ([e32a303](https://github.com/Amitaisela/travian-morphe-patches/commit/e32a30328f15166ed9ebe860f522a4b7f9526b80))
+
 ## [1.17.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.16.2...v1.17.0) (2026-09-25)
 
 ### 🐛 Bug Fixes

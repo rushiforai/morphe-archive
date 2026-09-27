@@ -11,6 +11,10 @@ final class CaptionQualityTrace {
             JSONArray old=new JSONArray(p.getString("records","[]")),next=new JSONArray();
             JSONObject item=new JSONObject().put("at",System.currentTimeMillis()).put("request",request)
                     .put("settings",redact(metadata,key,700));
+            JSONObject full=new JSONObject(item.toString());
+            if(source!=null)full.put("source",redact(source.toString(),key,128000));
+            if(response!=null&&!response.isEmpty())full.put("response",redact(response,key,128000));
+            CaptionDiagnosticArchive.append(context,"quality",full.toString());
             if(source!=null)item.put("source",redact(source.toString(),key,12000));
             if(response!=null&&!response.isEmpty())item.put("response",redact(response,key,12000));
             if(item.toString().length()>MAX_CHARS){
@@ -18,6 +22,7 @@ final class CaptionQualityTrace {
                 if(item.has("response"))item.put("response",redact(item.optString("response"),key,2400));
                 item.put("truncated",true);
             }
+
             next.put(item);int chars=item.toString().length();
             for(int i=0;i<old.length()&&next.length()<MAX_RECORDS;i++){
                 JSONObject entry=old.optJSONObject(i);if(entry==null)continue;

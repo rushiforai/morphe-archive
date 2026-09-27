@@ -909,6 +909,38 @@ internal fun autoplaySectionRefreshFingerprint(ownerType: String) =
             ),
     )
 
+/** The native icon renderer owns play/pause accessibility text and drawable transitions. */
+internal fun playbackIconFingerprint(ownerTypes: Set<String>) =
+    Fingerprint(
+        returnType = "V",
+        parameters = listOf("L"),
+        filters = listOf(
+            resourceLiteral(ResourceType.STRING, "accessibility_play"),
+            resourceLiteral(ResourceType.STRING, "accessibility_pause"),
+            resourceLiteral(ResourceType.STRING, "accessibility_replay"),
+        ),
+        custom = { _, owner -> owner.type in ownerTypes },
+    )
+
+internal fun playbackIconModelConstructorFingerprint(modelType: String) =
+    Fingerprint(
+        definingClass = modelType,
+        name = "<init>",
+        parameters = listOf("L", "Z"),
+        strings = listOf("controls can be in the buffering state only if in PLAYING or PAUSED video state"),
+    )
+
+/** Enum names survive obfuscation; the following store identifies the native state singleton. */
+internal fun playbackIconStateFingerprint(stateType: String, stateName: String) =
+    Fingerprint(
+        definingClass = stateType,
+        name = "<clinit>",
+        filters = listOf(
+            string(stateName),
+            fieldAccess(definingClass = stateType, type = stateType, opcode = Opcode.SPUT_OBJECT),
+        ),
+    )
+
 /** Locate header creation itself; feature-flag branches may precede this block. */
 internal fun autoplayHeaderCreationFingerprint(header: FieldReference) =
     Fingerprint(

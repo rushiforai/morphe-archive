@@ -67,8 +67,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
+import app.morphe.extension.facebook.download.DownloadQuality;
+import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.WorkerPoolForTests;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -91,10 +94,16 @@ public class SettingsBackupTest {
 
     /**
      * Switches in {@link Settings} that are meant to stay out of a settings file, each with the
-     * reason. None today. A switch that shows up in neither this nor the list fails the test
-     * below, so it's a decision someone makes rather than one that happens.
+     * reason. A switch that shows up in neither this nor the list fails the test below, so it's a
+     * decision someone makes rather than one that happens. Keyed by the switch's key as text: a
+     * static that loads Settings here would load it before the rule sets a context, and that
+     * poisons the sandbox for every class after this one (SettingsContextRule).
      */
-    private static final Map<String, String> STAYS_OUT = Collections.emptyMap();
+    private static final Map<String, String> STAYS_OUT = Collections.singletonMap(
+            "hushfacebook_check_releases",
+            "It puts the phone online, and the import preview gives only a count of the switches it "
+                    + "changes, so a file someone shared could turn it on unseen. It's switched on from the "
+                    + "phone's own screen.");
 
     /** Hushfacebook's own state and its diagnostics. None of them is ever in a file. */
     private static List<Setting<?>> neverInAFile() {
@@ -122,6 +131,9 @@ public class SettingsBackupTest {
         ShadowLooper.idleMainLooper();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
         Settings.SAVE_FOLDER.resetToDefault();
+        Settings.DOWNLOAD_QUALITY.resetToDefault();
+        Settings.FILENAME_TEMPLATE.resetToDefault();
+        Settings.START_TAB.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
@@ -149,15 +161,21 @@ public class SettingsBackupTest {
         assertTrue("STAYS_OUT names a switch Settings no longer has", switches.containsAll(STAYS_OUT.keySet()));
         assertEquals("the list names a switch twice", SettingsBackup.ALLOWLIST.size(),
                 new HashSet<>(SettingsBackup.ALLOWLIST).size());
-        // A file carries true or false, and one folder name it checks as a folder name. Any other
-        // setting in Settings needs a format that can carry it before it can be decided on.
+        // A file carries true or false, one folder name it checks as a folder name and one quality
+        // it checks against the ones this build offers. Any other setting in Settings needs a
+        // format that can carry it before it can be decided on.
         List<Setting<?>> notSwitches = new ArrayList<>();
         for (Setting<?> setting : declaredSettings(Settings.class)) {
             if (!(setting instanceof BooleanSetting)) notSwitches.add(setting);
         }
         assertEquals("a setting in Settings that isn't a switch has no format in a settings file",
-                Collections.singletonList(SettingsBackup.FOLDER), notSwitches);
+                SettingsBackup.VALUES, notSwitches);
+        assertEquals(Arrays.<Setting<?>>asList(Settings.SAVE_FOLDER, Settings.DOWNLOAD_QUALITY, Settings.FILENAME_TEMPLATE,
+                Settings.START_TAB), SettingsBackup.VALUES);
         assertEquals(Settings.SAVE_FOLDER, SettingsBackup.FOLDER);
+        assertEquals(Settings.DOWNLOAD_QUALITY, SettingsBackup.QUALITY);
+        assertEquals(Settings.FILENAME_TEMPLATE, SettingsBackup.FILE_NAME);
+        assertEquals(Settings.START_TAB, SettingsBackup.START);
     }
 
     @Test
@@ -183,6 +201,9 @@ public class SettingsBackupTest {
         Settings.DOWNLOAD_REELS.save(false);
         // Stored as it came, and written as the folder the saves really use.
         Settings.SAVE_FOLDER.save("../My/Clips");
+        Settings.DOWNLOAD_QUALITY.save(DownloadQuality.P480);
+        Settings.FILENAME_TEMPLATE.save("../{video_id}");
+        Settings.START_TAB.save(StartTab.FRIENDS);
         BaseSettings.PAUSED.save(true);
         BaseSettings.DEBUG.save(true);
         BaseSettings.DEBUG_LOG_FILTERS.save("downloads");
@@ -199,7 +220,7 @@ public class SettingsBackupTest {
         assertEquals(1, root.get("schema"));
         JSONObject switches = root.getJSONObject("settings");
         Set<String> carried = keys(SettingsBackup.ALLOWLIST);
-        carried.add(SettingsBackup.FOLDER.key);
+        carried.addAll(keys(SettingsBackup.VALUES));
         assertEquals(carried, names(switches));
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) {
             // Saved, not what a paused Facebook is answered: paused, every switch answers false.
@@ -207,8 +228,13 @@ public class SettingsBackupTest {
             assertEquals(setting.key, setting.savedValue(), switches.get(setting.key));
         }
         assertEquals("My_Clips", switches.get(SettingsBackup.FOLDER.key));
+        // Saved, not what a paused Facebook is answered: paused, the quality answers the best.
+        assertEquals("480p", switches.get(SettingsBackup.QUALITY.key));
+        assertEquals("{video_id}", switches.get(SettingsBackup.FILE_NAME.key));
+        // Saved, not what a paused Facebook is answered: paused, it opens where it chooses.
+        assertEquals("friends", switches.get(SettingsBackup.START.key));
         for (Setting<?> setting : Setting.allLoadedSettings()) {
-            if (SettingsBackup.ALLOWLIST.contains(setting) || setting == SettingsBackup.FOLDER) continue;
+            if (SettingsBackup.ALLOWLIST.contains(setting) || SettingsBackup.VALUES.contains(setting)) continue;
             assertFalse(setting.key + " is in the file", text.contains(setting.key));
         }
         for (String leak : new String[]{"sentinel", "c_user", "100012345678901", "secret-session",
@@ -539,6 +565,248 @@ public class SettingsBackupTest {
         }
     }
 
+    /**
+     * The quality goes out as its file value and comes back only as one this build offers: any
+     * other value, or one that isn't text, refuses the whole file.
+     */
+    @Test
+    public void theQualityRoundTripsAndComesBackOnlyAsOneThisBuildOffers() throws Exception {
+        for (DownloadQuality quality
+                : DownloadQuality.values()) {
+            Settings.DOWNLOAD_QUALITY.save(quality);
+            String file = SettingsBackup.create();
+            assertEquals(quality.fileValue, new JSONObject(file).getJSONObject("settings").get(SettingsBackup.QUALITY.key));
+            Settings.DOWNLOAD_QUALITY.save(quality == DownloadQuality.P720
+                    ? DownloadQuality.SMALLEST
+                    : DownloadQuality.P720);
+
+            SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+            assertEquals(quality, snapshot.quality);
+            assertEquals(quality, snapshot.qualityChange());
+            assertEquals(0, snapshot.switchChanges());
+            assertEquals(Collections.singletonMap(SettingsBackup.QUALITY, quality), snapshot.changes());
+            assertEquals(1, SettingsBackup.apply(snapshot));
+            assertEquals(quality, Settings.DOWNLOAD_QUALITY.savedValue());
+            assertEquals("a file read back is the file", file, SettingsBackup.create());
+            assertEquals("the same quality again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        }
+
+        Settings.DOWNLOAD_QUALITY.save(DownloadQuality.P480);
+        String file = SettingsBackup.create();
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"BEST", "P480", "Best", "720", "720P", "1440p", " 480p", "", 480, true,
+                JSONObject.NULL, new JSONObject(), new org.json.JSONArray()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.QUALITY.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the quality " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        // A file from before the quality was carried leaves it alone.
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.quality);
+        assertNull(older.qualityChange());
+        SettingsBackup.apply(older);
+        assertEquals(DownloadQuality.P480, Settings.DOWNLOAD_QUALITY.savedValue());
+    }
+
+    /**
+     * The file name goes out as the template the saves use and comes back only as one: a value the
+     * sanitizer would change, or that isn't text, refuses the whole file, so a file can't name a
+     * path, a photo's name, an extension or one name for every video. A character this phone
+     * doesn't know yet counts as an ordinary one.
+     */
+    @Test
+    public void theFileNameRoundTripsAndComesBackOnlyAsOneCleanName() throws Exception {
+        Settings.FILENAME_TEMPLATE.save("Reel {video_id}");
+        String file = SettingsBackup.create();
+        Settings.FILENAME_TEMPLATE.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("Reel {video_id}", snapshot.fileName);
+        assertEquals("Reel {video_id}", snapshot.fileNameChange());
+        assertEquals(Collections.singletonMap(SettingsBackup.FILE_NAME, "Reel {video_id}"), snapshot.changes());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals("Reel {video_id}", Settings.FILENAME_TEMPLATE.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals("the same name again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+
+        // Stored past the row as a name with no token, it goes out as the one the saves use.
+        Settings.FILENAME_TEMPLATE.save("Clip.mp4");
+        assertEquals("Clip_{date}", new JSONObject(SettingsBackup.create()).getJSONObject("settings")
+                .get(SettingsBackup.FILE_NAME.key));
+        Settings.FILENAME_TEMPLATE.save("Reel {video_id}");
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"../{date}", "My/{date}", "a\\b", ".{date}", "{date}.", " {date}", "",
+                "a\u200Bb", "a\nb", repeat('a', 51), "Clip", "{date}.mp4", "FB_IMG_{date}", ".nomedia",
+                5, true, JSONObject.NULL, new JSONObject()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.FILE_NAME.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the name " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        String unknown = new String(Character.toChars(0x50000));
+        JSONObject newer = new JSONObject(file);
+        newer.getJSONObject("settings").put(SettingsBackup.FILE_NAME.key, "Clip " + unknown + " {date}");
+        assertEquals("Clip {date}", SettingsBackup.parse(newer.toString()).fileName);
+
+        // A file from before the name was carried leaves it alone.
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.fileName);
+        assertNull(older.fileNameChange());
+        SettingsBackup.apply(older);
+        assertEquals("Reel {video_id}", Settings.FILENAME_TEMPLATE.savedValue());
+
+        // A preview kept across a rebuild keeps its name, and only a clean one comes back.
+        Bundle state = SettingsBackup.parse(file).toBundle();
+        assertEquals("Reel {video_id}", SettingsBackup.Snapshot.fromBundle(state).fileName);
+        state.putString("file_name", "../{date}");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).fileName);
+        state.putInt("file_name", 5);
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).fileName);
+    }
+
+    /** A file that renames saved videos says so, before and after, beside what else it changes. */
+    @Test
+    public void importOfAFileNameSaysWhatVideosWillBeNamed() throws Exception {
+        JSONObject file = new JSONObject(fileWith(Settings.DOWNLOAD_REELS, false));
+        file.getJSONObject("settings").put(SettingsBackup.FILE_NAME.key, "{date}_{video_id}")
+                .put(SettingsBackup.QUALITY.key, "720p");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
+            AlertDialog preview = shownPreview();
+            String quality = "Videos will save at " + app.morphe.extension.shared.L10n.isolate("720p")
+                    + " or the closest quality below it. A video with nothing that low will save at the closest "
+                    + "quality above.";
+            String name = "Saved videos will be named " + app.morphe.extension.shared.L10n.isolate("{date}_{video_id}") + ".";
+            assertEquals("1 switch will change.\n\n" + quality + "\n\n" + name,
+                    String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported. 1 switch changed. " + quality + " " + name, ShadowToast.getTextOfLatestToast());
+            assertEquals("{date}_{video_id}", Settings.FILENAME_TEMPLATE.savedValue());
+            assertEquals("the name row still shows the old name",
+                    HushfacebookPreferenceFragment.fileNameSummary("{date}_{video_id}"),
+                    String.valueOf(page.findPreference(Settings.FILENAME_TEMPLATE.key).getSummary()));
+        }
+        assertEquals("Settings imported. " + "Saved videos will be named "
+                        + app.morphe.extension.shared.L10n.isolate("Clip") + ".",
+                SettingsBackupPreference.importedMessage(0, null, null, "Clip"));
+    }
+
+    /** A preview kept across a rebuild keeps its quality, and only one this build offers comes back. */
+    @Test
+    public void aWaitingImportKeepsItsQualityOnlyWhileItIsOne() throws Exception {
+        Settings.DOWNLOAD_QUALITY.save(DownloadQuality.SMALLEST);
+        Bundle state = SettingsBackup.parse(SettingsBackup.create()).toBundle();
+        assertEquals(DownloadQuality.SMALLEST,
+                SettingsBackup.Snapshot.fromBundle(state).quality);
+
+        state.putString("quality", "SMALLEST");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).quality);
+        state.putInt("quality", 360);
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).quality);
+    }
+
+    /**
+     * The tab Facebook opens on goes out as its file value and comes back only as one this build
+     * offers: any other value, or one that isn't text, refuses the whole file.
+     */
+    @Test
+    public void theStartTabRoundTripsAndComesBackOnlyAsOneThisBuildOffers() throws Exception {
+        for (StartTab tab : StartTab.values()) {
+            Settings.START_TAB.save(tab);
+            String file = SettingsBackup.create();
+            assertEquals(tab.fileValue, new JSONObject(file).getJSONObject("settings").get(SettingsBackup.START.key));
+            Settings.START_TAB.save(tab == StartTab.HOME ? StartTab.MENU : StartTab.HOME);
+
+            SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+            assertEquals(tab, snapshot.start);
+            assertEquals(tab, snapshot.startChange());
+            assertEquals(0, snapshot.switchChanges());
+            assertEquals(Collections.singletonMap(SettingsBackup.START, tab), snapshot.changes());
+            assertEquals(1, SettingsBackup.apply(snapshot));
+            assertEquals(tab, Settings.START_TAB.savedValue());
+            assertEquals("a file read back is the file", file, SettingsBackup.create());
+            assertEquals("the same tab again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        }
+
+        Settings.START_TAB.save(StartTab.FRIENDS);
+        String file = SettingsBackup.create();
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"FRIENDS", "Friends", "friend", " friends", "", 772219799489960L, true,
+                JSONObject.NULL, new JSONObject(), new org.json.JSONArray()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.START.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the start tab " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        // A file from before the tab was carried leaves it alone.
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.start);
+        assertNull(older.startChange());
+        SettingsBackup.apply(older);
+        assertEquals(StartTab.FRIENDS, Settings.START_TAB.savedValue());
+
+        // A preview kept across a rebuild keeps its tab, and only one this build offers comes back.
+        Bundle state = SettingsBackup.parse(file).toBundle();
+        assertEquals(StartTab.FRIENDS, SettingsBackup.Snapshot.fromBundle(state).start);
+        state.putString("start_tab", "FRIENDS");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).start);
+        state.putInt("start_tab", 3);
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).start);
+    }
+
+    /** A file that changes the start tab says where Facebook will open, before and after. */
+    @Test
+    public void importOfAStartTabSaysWhereFacebookWillOpen() throws Exception {
+        JSONObject file = new JSONObject(fileWith(Settings.DOWNLOAD_REELS, false));
+        file.getJSONObject("settings").put(SettingsBackup.START.key, "notifications")
+                .put(SettingsBackup.QUALITY.key, "720p");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
+            AlertDialog preview = shownPreview();
+            String start = "Facebook will open on Notifications.";
+            String quality = "Videos will save at " + app.morphe.extension.shared.L10n.isolate("720p")
+                    + " or the closest quality below it. A video with nothing that low will save at the closest "
+                    + "quality above.";
+            assertEquals("1 switch will change.\n\n" + start + "\n\n" + quality,
+                    String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported. 1 switch changed. " + start + " " + quality,
+                    ShadowToast.getTextOfLatestToast());
+            assertEquals(StartTab.NOTIFICATIONS, Settings.START_TAB.savedValue());
+            assertEquals("the start tab row still shows the old tab",
+                    HushfacebookPreferenceFragment.startTabSummary(StartTab.NOTIFICATIONS),
+                    String.valueOf(page.findPreference(Settings.START_TAB.key).getSummary()));
+        }
+        assertEquals("Settings imported. Facebook will open on Home.",
+                SettingsBackupPreference.importedMessage(0, null, null, null, StartTab.HOME));
+    }
+
     /** A preview kept across a rebuild keeps its folder, and only a clean one comes back. */
     @Test
     public void aWaitingImportKeepsItsFolderOnlyWhileItIsClean() throws Exception {
@@ -756,6 +1024,63 @@ public class SettingsBackupTest {
             assertFalse(Settings.DOWNLOAD_REELS.savedValue());
             assertEquals("Clips", Settings.SAVE_FOLDER.savedValue());
         }
+    }
+
+    /**
+     * A file that moves the quality says what videos will save at, before and after, beside the
+     * switches and the folder it changes, and the row shows the new quality.
+     */
+    @Test
+    public void importOfAQualitySaysWhatVideosWillSaveAt() throws Exception {
+        JSONObject file = new JSONObject(SettingsBackup.create());
+        file.getJSONObject("settings").put(SettingsBackup.QUALITY.key, "480p");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
+            AlertDialog preview = shownPreview();
+            String quality = "Videos will save at " + app.morphe.extension.shared.L10n.isolate("480p")
+                    + " or the closest quality below it. A video with nothing that low will save at the closest "
+                    + "quality above.";
+            assertEquals(quality, String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported. " + quality, ShadowToast.getTextOfLatestToast());
+            assertEquals(DownloadQuality.P480, Settings.DOWNLOAD_QUALITY.savedValue());
+            assertEquals("the quality row still shows the old quality",
+                    HushfacebookPreferenceFragment.qualitySummary(DownloadQuality.P480),
+                    String.valueOf(page.findPreference(Settings.DOWNLOAD_QUALITY.key).getSummary()));
+        }
+
+        file = new JSONObject(fileWith(Settings.DOWNLOAD_REELS, false));
+        file.getJSONObject("settings").put(SettingsBackup.QUALITY.key, "smallest")
+                .put(SettingsBackup.FOLDER.key, "Clips");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
+            AlertDialog preview = shownPreview();
+            String quality = "Videos will save at their lowest quality, for the smallest files.";
+            String folder = "Saves will go to a folder named " + app.morphe.extension.shared.L10n.isolate("Clips") + ".";
+            assertEquals("1 switch will change.\n\n" + quality + "\n\n" + folder,
+                    String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported. 1 switch changed. " + quality + " " + folder,
+                    ShadowToast.getTextOfLatestToast());
+            assertEquals(DownloadQuality.SMALLEST,
+                    Settings.DOWNLOAD_QUALITY.savedValue());
+            assertEquals("Clips", Settings.SAVE_FOLDER.savedValue());
+            assertFalse(Settings.DOWNLOAD_REELS.savedValue());
+        }
+        // Back to the best: that has a sentence of its own, and a quality with a folder drops the
+        // folder's own toast for the sentences.
+        assertEquals("Videos will save at the best quality.",
+                SettingsBackupPreference.qualitySentence(DownloadQuality.BEST));
+        assertEquals("Settings imported. Videos will save at the best quality. Saves will go to a folder named "
+                        + app.morphe.extension.shared.L10n.isolate("Clips") + ".",
+                SettingsBackupPreference.importedMessage(0, "Clips",
+                        DownloadQuality.BEST, null));
     }
 
     @Test
@@ -988,7 +1313,14 @@ public class SettingsBackupTest {
         }
     }
 
-    /** A full worker queue runs nothing, says so, and leaves the rows usable for another try. */
+    /**
+     * A full worker queue runs nothing, says so, and leaves the rows usable for another try.
+     *
+     * <p>The pool is one static executor for every test in the JVM, and a worker left finishing
+     * something else when the fill stops hands its slot to the read (the full suite saw that on
+     * 2026-09-26, with the pool drained first). WorkerPoolForTests holds it full until every worker
+     * holds a filler.
+     */
     @Test
     public void aFullWorkerQueueLeavesTheRowsUsable() throws Exception {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -1000,39 +1332,14 @@ public class SettingsBackupTest {
             shadowOf(RuntimeEnvironment.getApplication().getContentResolver()).registerInputStream(uri, input);
             ShadowActivity.IntentForResult started = tap(activity, page, IMPORT_ROW);
 
-            CountDownLatch release = new CountDownLatch(1);
-            // The tasks filling the queue, until each has run: the queue is full until they have.
-            AtomicInteger filling = new AtomicInteger();
-            try {
-                while (true) {
-                    filling.incrementAndGet();
-                    boolean accepted = Utils.runOnBackgroundThread(() -> {
-                        try {
-                            release.await(10, TimeUnit.SECONDS);
-                        } catch (InterruptedException interrupted) {
-                            Thread.currentThread().interrupt();
-                        } finally {
-                            filling.decrementAndGet();
-                        }
-                    });
-                    if (!accepted) {
-                        filling.decrementAndGet();
-                        break;
-                    }
-                    assertTrue("the worker queue never filled", filling.get() < 1000);
-                }
+            try (WorkerPoolForTests full = WorkerPoolForTests.fill()) {
                 shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
                 ShadowLooper.idleMainLooper();
                 assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
                 assertEquals("the file was read anyway", bytes.length, input.available());
                 assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
                 assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
-            } finally {
-                release.countDown();
-                long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
-                while (filling.get() > 0 && System.nanoTime() < deadline) Thread.sleep(10);
             }
-            assertEquals("the tasks filling the queue never finished", 0, filling.get());
             settle();
             // And it works once the queue has room.
             deliver(activity, tap(activity, page, IMPORT_ROW), fileWith(Settings.HIDE_SPONSORED_POSTS, false));

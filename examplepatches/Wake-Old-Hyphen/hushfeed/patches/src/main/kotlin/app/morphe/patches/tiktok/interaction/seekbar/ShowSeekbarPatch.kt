@@ -67,13 +67,13 @@ internal fun MutableMethod.hookSeekbarTypeRefresh() {
 @Suppress("unused")
 val showSeekbarPatch = bytecodePatch(
     name = "Show the progress bar",
-    description = "Shows TikTok's native video seekbar where it would normally be hidden. Switch: Hushfeed settings > App.",
+    description = "Shows TikTok's native video seekbar where it would normally be hidden, including when one of TikTok's experiments takes it off every video but paid content. Switch: Hushfeed settings > App.",
     default = true,
 ) {
     category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // Checked before the first write: the predicate's injection writes v0 and then falls
@@ -113,6 +113,14 @@ val showSeekbarPatch = bytecodePatch(
             )
             hookSeekbarTypeRefresh()
         }
+
+        // TikTok's reasons for keeping the bar off a video run before the show type is asked.
+        // Two of them are experiments; both are found from their log line and answered here.
+        val gates = SeekbarGateLogFingerprint.method
+        val inverse = gates.gateBefore(INVERSE_EXPERIMENT_LOG)
+        val drag = gates.gateBefore(CANNOT_DRAG_LOG)
+        mutableClassDefBy(inverse.definingClass).methods.named(inverse).answerInverseExperiment()
+        mutableClassDefBy(drag.definingClass).methods.named(drag).answerDraggable()
     }
 }
 
@@ -124,7 +132,7 @@ val showSeekbarThumbnailPatch = bytecodePatch(
 ) {
     category("Playback")
     dependsOn(sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

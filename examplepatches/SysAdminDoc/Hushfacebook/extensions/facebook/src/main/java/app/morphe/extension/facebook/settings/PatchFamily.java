@@ -47,28 +47,46 @@ public enum PatchFamily {
     RETURN_REFRESH(FamilyNames.RETURN_REFRESH, "returnRefresh", null,
             Settings.BLOCK_RETURN_REFRESH),
     AI_DETECTED_POSTS(FamilyNames.AI_DETECTED_POSTS, "aiDetectedPosts", null,
-            Settings.HIDE_AI_DETECTED_POSTS),
+            Settings.HIDE_AI_DETECTED_POSTS, Settings.HIDE_AI_DETECTED_REELS),
     SPONSORED_STORIES(FamilyNames.SPONSORED_STORIES, "sponsoredStories", null,
             Settings.HIDE_SPONSORED_STORIES),
+    STORY_AUTO_ADVANCE(FamilyNames.STORY_AUTO_ADVANCE, "storyAutoAdvance", null,
+            Settings.BLOCK_STORY_AUTO_ADVANCE),
     SPONSORED_REELS(FamilyNames.SPONSORED_REELS, "sponsoredReels",
             "the part of the Reels ad block patched into the app",
             Settings.HIDE_SPONSORED_REELS),
+    REEL_DECLUTTER(FamilyNames.REEL_DECLUTTER, "reelDeclutter", null,
+            Settings.HIDE_REEL_CHIPS, Settings.HIDE_REEL_FOLLOW_BUTTON, Settings.HIDE_REEL_SOCIAL_FOOTER),
+    REEL_WATCH_HISTORY(FamilyNames.REEL_WATCH_HISTORY, "reelWatchHistory", null,
+            Settings.DONT_SEND_REEL_WATCH_HISTORY),
+    SYSTEM_FONT(FamilyNames.SYSTEM_FONT, "systemFont", null,
+            Settings.USE_SYSTEM_FONT),
+    SYSTEM_EMOJI(FamilyNames.SYSTEM_EMOJI, "systemEmoji", null,
+            Settings.USE_SYSTEM_EMOJI),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "externalBrowser", null,
             Settings.OPEN_LINKS_EXTERNALLY),
     SANITIZE_SHARING_LINKS(FamilyNames.SANITIZE_SHARING_LINKS, "sanitizeSharingLinks", null,
             Settings.SANITIZE_SHARING_LINKS),
+    UPDATE_PROMPTS(FamilyNames.UPDATE_PROMPTS, "updatePrompts", null,
+            Settings.STOP_UPDATE_PROMPTS),
     STORY_DOWNLOAD(FamilyNames.STORY_DOWNLOAD, "storyDownload", null,
             Settings.DOWNLOAD_STORIES),
     REEL_DOWNLOAD(FamilyNames.REEL_DOWNLOAD, "reelDownload", null,
             Settings.DOWNLOAD_REELS),
     VIDEO_DOWNLOAD(FamilyNames.VIDEO_DOWNLOAD, "videoDownload", null,
             Settings.DOWNLOAD_VIDEOS),
-    AD_PREFETCH(FamilyNames.AD_PREFETCH, "adPrefetch", "the background ad prefetch block"),
-    AD_TELEMETRY(FamilyNames.AD_TELEMETRY, "adTelemetry", "the ad telemetry block"),
+    START_TAB(FamilyNames.START_TAB, "startTab", null,
+            Settings.OPEN_ON_CHOSEN_TAB),
+    AD_PREFETCH(FamilyNames.AD_PREFETCH, "adPrefetch", "the block on downloading ads in the background"),
+    AD_TELEMETRY(FamilyNames.AD_TELEMETRY, "adTelemetry", "the block on reports of ad screenshots and app installs"),
     AUDIENCE_NETWORK(FamilyNames.AUDIENCE_NETWORK, "audienceNetwork", "the Audience Network block"),
-    AMOLED_THEME(FamilyNames.AMOLED_THEME, "amoledTheme", "the AMOLED black theme"),
-    MATERIAL_YOU_THEME(FamilyNames.MATERIAL_YOU_THEME, "materialYouTheme", "the Material You theme"),
-    RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix");
+    AMOLED_THEME(FamilyNames.AMOLED_THEME, "amoledTheme", "the black background in dark mode"),
+    MATERIAL_YOU_THEME(FamilyNames.MATERIAL_YOU_THEME, "materialYouTheme", "the recoloured dark mode"),
+    RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix"),
+    // A manifest can't be switched at run time: the permissions are renamed in the APK, and Facebook's
+    // code has to keep using the names this install holds whether or not Hushfacebook is paused.
+    INSTALL_BESIDE_META_APPS(FamilyNames.INSTALL_BESIDE_META_APPS, "installBesideMetaApps",
+            "the rename of the shared permissions");
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -78,7 +96,10 @@ public enum PatchFamily {
 
     /**
      * What of this patch stays in while Hushfacebook is paused, or null when nothing does. One
-     * thing, never a plural: alone on the screen it's followed by "It was set when you patched".
+     * thing, never a plural: alone on the screen it's followed by its patch's name in brackets and
+     * "It was set when you patched".
+     * It says what stays in, not what the patch is called. The name follows it in brackets, so an
+     * item that was the name read it twice: "the AMOLED black theme (AMOLED black theme)".
      * The English is also a key of {@link L10n}: the screen shows it translated, and the report
      * keeps it in English.
      */
@@ -87,6 +108,13 @@ public enum PatchFamily {
 
     /** The switches Pause turns off for this patch. Empty when it has none. */
     public final List<BooleanSetting> switches;
+
+    /**
+     * The switches of the settings entry itself, which no family owns: every build with this screen
+     * carries them. Today that's the release check. Pause turns them off like a family's switches,
+     * so the screen draws them above the Pause row with the rest.
+     */
+    static final List<BooleanSetting> ENTRY_SWITCHES = Collections.singletonList(Settings.CHECK_FOR_RELEASES);
 
     /** The families a test says this build carries, instead of asking {@link SettingsStatus}. */
     @Nullable
@@ -125,19 +153,25 @@ public enum PatchFamily {
      * What of these families stays in while Hushfacebook is paused, as a sentence in the phone's
      * language, or null when a pause turns every one of them off. The list leads the sentence, so
      * its first letter is raised the way that language does it.
+     *
+     * <p>Each item is followed by its patch's name in brackets, the name Morphe Manager lists it
+     * under, which stays English there. "The part of the Reels ad block patched into the app" is
+     * found in Manager as Hide sponsored reels, and nothing in the item's own words said so.
      */
     @Nullable
     static String staysWhilePausedSummary(Set<PatchFamily> inBuild) {
         List<String> parts = new ArrayList<>();
         for (PatchFamily family : values()) {
-            if (inBuild.contains(family) && family.staysWhilePaused != null) parts.add(L10n.t(family.staysWhilePaused));
+            if (inBuild.contains(family) && family.staysWhilePaused != null) {
+                parts.add(L10n.t(family.staysWhilePaused) + " (" + L10n.isolate(family.patchName) + ")");
+            }
         }
         if (parts.isEmpty()) return null;
         return L10n.capitalize(L10n.quantity(parts.size(),
                 "%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
-                        + "without the patch it comes from.",
+                        + "and leave out that patch.",
                 "%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch "
-                        + "again without the patch it comes from.",
+                        + "again and leave out the patch in brackets after it.",
                 L10n.join(parts)));
     }
 

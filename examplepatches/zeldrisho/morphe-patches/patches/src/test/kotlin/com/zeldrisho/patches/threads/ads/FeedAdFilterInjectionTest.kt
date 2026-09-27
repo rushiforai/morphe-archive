@@ -1,16 +1,13 @@
 package com.zeldrisho.patches.threads.ads
 
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
+import com.zeldrisho.patches.testing.syntheticMutableMethod
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -19,10 +16,11 @@ import kotlin.test.assertEquals
  * asserts the emitted instructions, not just the generated smali strings.
  */
 class FeedAdFilterInjectionTest {
-    private fun targetMethod(registerCount: Int) = ImmutableMethod(
-        "Lcom/test/FeedCache;",
-        "merge",
-        listOf(
+    /** Builds a synthetic feed-merge method with the requested register frame and a NOP body. */
+    private fun targetMethod(registerCount: Int) = syntheticMutableMethod(
+        definingClass = "Lcom/test/FeedCache;",
+        name = "merge",
+        parameters = listOf(
             "LX/Param;",
             "Ljava/lang/Integer;",
             "Ljava/lang/String;",
@@ -31,18 +29,32 @@ class FeedAdFilterInjectionTest {
             "LX/Continuation;",
             "Lkotlin/jvm/functions/Function3;",
             "Z",
-        ).map { ImmutableMethodParameter(it, emptySet(), null) },
-        "Ljava/lang/Object;",
-        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
-        emptySet(),
-        emptySet(),
-        ImmutableMethodImplementation(
-            registerCount,
-            listOf(ImmutableInstruction10x(Opcode.NOP)),
-            emptyList(),
-            emptyList(),
         ),
-    ).toMutable()
+        returnType = "Ljava/lang/Object;",
+        accessFlags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+        registerCount = registerCount,
+        instructions = listOf(ImmutableInstruction10x(Opcode.NOP)),
+    )
+
+    /** Builds a feed-merge signature without bytecode to exercise the injection guard. */
+    private fun targetMethodWithoutImplementation() = syntheticMutableMethod(
+        definingClass = "Lcom/test/FeedCache;",
+        name = "merge",
+        parameters = listOf(
+            "LX/Param;",
+            "Ljava/lang/Integer;",
+            "Ljava/lang/String;",
+            "Ljava/lang/String;",
+            "Ljava/util/List;",
+            "LX/Continuation;",
+            "Lkotlin/jvm/functions/Function3;",
+            "Z",
+        ),
+        returnType = "Ljava/lang/Object;",
+        accessFlags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+        registerCount = 46,
+        instructions = null,
+    )
 
     private fun injectedOpcodes(registerCount: Int): List<Opcode> {
         val method = targetMethod(registerCount)
@@ -97,6 +109,14 @@ class FeedAdFilterInjectionTest {
         val opcodes = injectedOpcodes(260)
         assertEquals(Opcode.MOVE_OBJECT_FROM16, opcodes[0])
         assertEquals(Opcode.MOVE_OBJECT_16, opcodes[3])
+    }
+
+    /** Verifies that feed-filter injection rejects methods without a bytecode implementation. */
+    @Test fun missingImplementationFailsBeforeInjection() {
+        val error = kotlin.test.assertFailsWith<IllegalStateException> {
+            injectFeedAdFilter(targetMethodWithoutImplementation())
+        }
+        kotlin.test.assertEquals("BarcelonaFeedCache merge method has no implementation", error.message)
     }
 
     @Test fun hookCallsFilterAdsAndPreservesList() {

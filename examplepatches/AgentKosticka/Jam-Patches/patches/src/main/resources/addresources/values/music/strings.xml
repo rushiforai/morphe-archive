@@ -15,6 +15,7 @@ Second \"item\" text"</string>
 
 -->
 <resources>
+    <string name="morphe_music_jam_update_host_controls">Update the host’s Jam patch to use pause and resume.</string>
     <string name="morphe_music_jam_probe_title">Jam queue sharing</string>
     <string name="morphe_music_jam_probe_summary">Host or join a nearby Jam and edit its queue through Jam Layer.</string>
     <string name="morphe_music_jam_enabled_title">Enable Jam queue sharing</string>
@@ -72,6 +73,9 @@ Second \"item\" text"</string>
     <string name="morphe_music_jam_edits_locked">Edits locked</string>
     <string name="morphe_music_jam_connected_aware">Connected via Wi-Fi Aware</string>
     <string name="morphe_music_jam_connected_wifi">Connected via Wi-Fi</string>
+    <string name="morphe_music_jam_connected_bluetooth">Connected via Bluetooth</string>
+    <string name="morphe_music_jam_unsupported">Unsupported during Jam</string>
+    <string name="morphe_music_jam_cancelled">Joining cancelled</string>
     <string name="morphe_music_jam_reconnecting_host">Reconnecting to your host…</string>
     <string name="morphe_music_jam_share_prompt">Share a queue. Let everyone add songs.</string>
     <string name="morphe_music_jam_invite_people">Invite people</string>

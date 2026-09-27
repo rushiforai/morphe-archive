@@ -48,9 +48,9 @@ val filterZaloPromoNotificationsPatch = bytecodePatch(
  * Replaces the `goto :goto_4` immediately following the arm's channel `sget`
  * with `return-void`, dropping the notification before it is built.
  */
-internal fun dropChannelArm(match: Match) {
+internal fun dropChannelArm(match: Match, method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod = match.method) {
     val (_, gotoIndex) = armJumpIndexes(match)
-    match.method.replaceInstruction(gotoIndex, "return-void")
+    method.replaceInstruction(gotoIndex, "return-void")
 }
 
 /**

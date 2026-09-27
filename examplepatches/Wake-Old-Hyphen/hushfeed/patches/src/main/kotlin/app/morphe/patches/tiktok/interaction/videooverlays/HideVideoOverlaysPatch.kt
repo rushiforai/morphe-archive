@@ -53,7 +53,7 @@ val hideVideoOverlaysPatch = bytecodePatch(
     category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val status = SettingsStatusLoadFingerprint.method

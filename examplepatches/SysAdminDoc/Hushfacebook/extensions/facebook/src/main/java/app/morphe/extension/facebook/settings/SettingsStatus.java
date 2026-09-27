@@ -46,7 +46,27 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyAutoAdvance() {
+        return false;
+    }
+
     public static boolean sponsoredReels() {
+        return false;
+    }
+
+    public static boolean reelDeclutter() {
+        return false;
+    }
+
+    public static boolean reelWatchHistory() {
+        return false;
+    }
+
+    public static boolean systemFont() {
+        return false;
+    }
+
+    public static boolean systemEmoji() {
         return false;
     }
 
@@ -70,7 +90,15 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean updatePrompts() {
+        return false;
+    }
+
     public static boolean restoreTrust() {
+        return false;
+    }
+
+    public static boolean installBesideMetaApps() {
         return false;
     }
 
@@ -91,6 +119,10 @@ public final class SettingsStatus {
     }
 
     public static boolean videoDownload() {
+        return false;
+    }
+
+    public static boolean startTab() {
         return false;
     }
 }

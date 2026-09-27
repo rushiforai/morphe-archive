@@ -43,7 +43,7 @@ val subtitleToolsPatch = bytecodePatch(
     default = false,
 ) {
     category("Playback")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, sharedExtensionPatch, advancedDownloadsPatch, blockAuthorPatch)
     execute {
         val rendererConstructor = CaptionViewFingerprint.method.implementation!!.instructions.mapNotNull {

@@ -28,6 +28,7 @@ private const val BOTTOM_NAVIGATION_SPACE = "Lcom/avito/android/bottom_navigatio
 private const val MORPHE_SETTINGS_CLASS = "Lapp/avito/morphe/MorpheSettings;"
 private const val ADVERT_DETAILS = "Lcom/avito/android/remote/model/AdvertDetails;"
 private const val CREDIT_BROKER_PRODUCT = "Lcom/avito/android/remote/model/credit_broker/CreditBrokerProduct;"
+private const val ADVERT_BADGE_BAR = "Lcom/avito/android/remote/model/advert_badge_bar/AdvertBadgeBar;"
 private const val ICE_BREAKERS = "Lcom/avito/android/remote/model/IceBreakers;"
 private const val INTEGER = "Ljava/lang/Integer;"
 private const val FAVORITES_ADAPTER_PACKAGE = "Lcom/avito/android/user_favorites/adapter/"
@@ -39,6 +40,8 @@ private const val SERP_CONSTRUCTOR_ADVERT_ITEM =
 private const val BOXED_BOOLEAN = "Ljava/lang/Boolean;"
 
 private val AVI_TAB_NAMES = setOf("AI_ASSISTANT", "AI_ASSISTANT_SELLER")
+private const val PROFILE_PRO_REWARD_ENTRY_POINT_PACKAGE =
+    "Lcom/avito/android/profile/pro/impl/screen/item/reward_entry_point/"
 private val PROFILE_PRO_OUTPUT_ITEM_TYPES = setOf(
     "Lcom/avito/android/profile/pro/impl/screen/item/group/row/ProfileProGroupRowItem;",
     "Lcom/avito/android/profile/pro/impl/screen/item/widget_group/widget/ProfileProWidgetItem;",
@@ -84,6 +87,19 @@ private fun Method.profileProOutputItemTypes(): Set<String> {
         .filterTo(mutableSetOf()) { it in PROFILE_PRO_OUTPUT_ITEM_TYPES }
 }
 
+/**
+ * The Profile Pro rewards entry point converter: turns the profile tab's rewards
+ * widget into a single `ProfileProRewardEntryPointItem` (the "Портал призов"
+ * banner) and returns it as a `List`.
+ */
+private fun Method.isProfileRewardEntryPointConverter() = returnType == "Ljava/util/List;" &&
+    parameterTypes.size == 1 &&
+    implementation?.instructions?.any { instruction ->
+        instruction.opcode == Opcode.NEW_INSTANCE &&
+            ((instruction as? ReferenceInstruction)?.reference as? TypeReference)
+                ?.type?.startsWith(PROFILE_PRO_REWARD_ENTRY_POINT_PACKAGE) == true
+    } == true
+
 private fun ClassDef.hasPublicReservedGetter() = methods.any { method ->
     method.name == "getReserved" &&
         method.parameterTypes.isEmpty() &&
@@ -97,8 +113,8 @@ private fun ClassDef.hasPublicReservedGetter() = methods.any { method ->
  *
  *  - **Force home categories into a single row.**
  *  - **Hide the "Подписки" tab** on the Избранное (Favorites) screen.
- *  - **Hide the installments (Рассрочка)** surfaces and the **"Спросите у
- *    продавца"** block on offer pages.
+ *  - **Hide the installments (Рассрочка)** surfaces (credit block, buy-bar row and
+ *    badge-bar badge) and the **"Спросите у продавца"** block on offer pages.
  *  - **Expand descriptions by default** so the full text shows without tapping
  *    "Читать далее".
  *  - **Hide the recommendations block** at the bottom of offer pages.
@@ -107,7 +123,8 @@ private fun ClassDef.hasPublicReservedGetter() = methods.any { method ->
  *    onboarding carousel.
  *  - **Hide reserved offers** from search and home feeds.
  *  - **Hide “Знак добра” banners** in search results.
- *  - **Hide the “Портал призов” raffle promo** on the profile page.
+ *  - **Hide the “Портал призов” raffle promo** on the profile page (profile rows
+ *    and the header rewards banner).
  *  - **Hide the referral-program entry point** on the profile page.
  *  - **Hide the Avito Pro entry point** on the profile page.
  *
@@ -438,6 +455,38 @@ val uiTweaksPatch = bytecodePatch(
             profilePromoConvertersPatched++
             profileOutputItemTypesPatched += outputItemTypes
         }
+
+        // The profile header can also carry the prize portal as a standalone
+        // rewards entry point banner (its own widget and converter). Return no
+        // items for it while the raffle toggle is on.
+        var rewardEntryPointConvertersPatched = 0
+        classDefForEach { classDef ->
+            if (!classDef.type.startsWith("Lcom/avito/android/profile/pro/impl/converters/")) {
+                return@classDefForEach
+            }
+            val converterMethod = classDef.methods.singleOrNull { method ->
+                method.isProfileRewardEntryPointConverter()
+            } ?: return@classDefForEach
+            val method = mutableClassDefBy(classDef).methods.single {
+                it.name == converterMethod.name && it.parameterTypes == converterMethod.parameterTypes
+            }
+            method.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static {}, $MORPHE_SETTINGS_CLASS->hideProfileRewardEntryPoint()Z
+                    move-result v0
+                    if-eqz v0, :stock
+                    invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;
+                    move-result-object v0
+                    return-object v0
+                """,
+                ExternalLabel("stock", method.getInstruction(0)),
+            )
+            rewardEntryPointConvertersPatched++
+        }
+        if (rewardEntryPointConvertersPatched == 0) {
+            throw PatchException("UI tweaks: profile rewards entry point converter not found")
+        }
         val missingProfileOutputItemTypes = PROFILE_PRO_OUTPUT_ITEM_TYPES - profileOutputItemTypesPatched
         if (missingProfileOutputItemTypes.isNotEmpty()) {
             throw PatchException(
@@ -465,7 +514,8 @@ val uiTweaksPatch = bytecodePatch(
                 order = 40,
             )
             println(
-                "UI tweaks: gated $profilePromoConvertersPatched profile promo converter(s)" +
+                "UI tweaks: gated $profilePromoConvertersPatched profile promo converter(s) and " +
+                    "$rewardEntryPointConvertersPatched rewards entry point converter(s)" +
                     if (missingProfileOutputItemTypes.isEmpty()) {
                         "."
                     } else {
@@ -640,6 +690,42 @@ val uiTweaksPatch = bytecodePatch(
             summary = "Убрать рассрочку со страниц объявлений",
             order = 20,
         )
+
+        // Рассрочка can also come as a badge in the offer page's badge bar
+        // ("Можно купить в рассрочку"). Drop installment badges from
+        // AdvertBadgeBar.getBadges() under the same toggle.
+        val badgesGetter = mutableClassDefByOrNull(ADVERT_BADGE_BAR)
+            ?.methods
+            ?.firstOrNull { method ->
+                method.name == "getBadges" &&
+                    method.parameterTypes.isEmpty() &&
+                    method.returnType == "Ljava/util/List;" &&
+                    method.implementation != null
+            }
+            ?: throw PatchException("UI tweaks: AdvertBadgeBar.getBadges not found")
+        val badgesReturns = badgesGetter.instructionsOrNull
+            ?.toList().orEmpty()
+            .mapIndexedNotNull { index, instruction ->
+                if (instruction.opcode == Opcode.RETURN_OBJECT) {
+                    index to (instruction as OneRegisterInstruction).registerA
+                } else {
+                    null
+                }
+            }
+            .reversed()
+        if (badgesReturns.isEmpty()) {
+            throw PatchException("UI tweaks: AdvertBadgeBar.getBadges has no object return")
+        }
+        badgesReturns.forEach { (returnIndex, register) ->
+            badgesGetter.addInstructions(
+                returnIndex,
+                """
+                    invoke-static/range {v$register .. v$register}, $MORPHE_SETTINGS_CLASS->withoutInstallmentBadges(Ljava/util/List;)Ljava/util/List;
+                    move-result-object v$register
+                """,
+            )
+        }
+        println("UI tweaks: gated AdvertBadgeBar.getBadges installment badges (${badgesReturns.size} returns).")
 
         // "Спросите у продавца" (icebreakers): the suggested-questions block.
         gateAdvertDetailsGetter(

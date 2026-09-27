@@ -17,6 +17,7 @@ import patches.universal.manifest.applicationOrNull
 import patches.universal.manifest.ensureThemeItem
 
 private const val ICON_NAME = "ic_nai64_custom"
+private const val ICON_FG_NAME = "ic_nai64_custom_fg"
 
 private val ICON_DENSITIES = listOf(
     "drawable-mdpi" to 48,
@@ -70,6 +71,12 @@ val customAppIconPatch = resourcePatch(
         key = "iconFlipV",
         description = "Mirror icon vertically.",
     )
+    val background by stringOption(
+        title = "Background color",
+        default = "#00000000",
+        key = "iconBackground",
+        description = "Background layer of the adaptive icon as #RRGGBB or #AARRGGBB (default transparent).",
+    )
 
     execute {
         val logger = Logger.getLogger(this::class.java.name)
@@ -110,7 +117,7 @@ val customAppIconPatch = resourcePatch(
         for ((dir, size) in ICON_DENSITIES) {
             val outDir = get("res/$dir", true)
             outDir.mkdirs()
-            val outFile = File(outDir, "$ICON_NAME.png")
+            val outFile = File(outDir, "$ICON_FG_NAME.png")
             val scaled = try {
                 scaleDecodedImage(processed, size, logger)
             } catch (e: Exception) {
@@ -132,17 +139,48 @@ val customAppIconPatch = resourcePatch(
         tryRecycle(decoded)
         if (processed !== decoded) tryRecycle(processed)
 
+        // Adaptive icon (Android 8+): without layers, shape-aware launchers
+        // fall back to letterboxing the PNG (rounded square with padding).
+        // Foreground = the custom artwork, background = chosen color, and
+        // the same artwork as monochrome layer for themed icons.
+        val bgColor = (background ?: "").trim().takeIf { it.matches(Regex("#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?")) } ?: "#00000000"
+        // Solid-color background as PNGs: the resource compiler rejects
+        // newly added res/values XML files ("Undefined entry name"), so a
+        // color resource is not an option. PNG drops work fine.
+        val bgArgb = try {
+            val hex = bgColor.removePrefix("#")
+            val full = if (hex.length == 6) "FF$hex" else hex
+            full.toLong(16).toInt()
+        } catch (_: Exception) { 0 }
+        for ((dir, size) in ICON_DENSITIES) {
+            val outDir = get("res/$dir", true)
+            outDir.mkdirs()
+            val solid = solidPng(size, bgArgb, logger)
+            if (solid != null) {
+                FileOutputStream(File(outDir, "${ICON_NAME}_bg.png")).use { it.write(solid) }
+            }
+        }
+        val adaptiveDir = get("res/mipmap-anydpi-v26", true)
+        adaptiveDir.mkdirs()
+        val adaptiveXml = """<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/${ICON_NAME}_bg" />
+    <foreground android:drawable="@drawable/$ICON_FG_NAME" />
+    <monochrome android:drawable="@drawable/$ICON_FG_NAME" />
+</adaptive-icon>
+"""
+        File(adaptiveDir, "$ICON_NAME.xml").writeText(adaptiveXml)
+        logger.info("Wrote adaptive icon (background=$bgColor)")
+
         var replaced = 0
         document("AndroidManifest.xml").use { manifest ->
             val application = manifest.documentElement.applicationOrNull()
 
             fun Element.replaceIcons() {
-                setAttributeNS(NS_ANDROID, "android:icon", "@drawable/$ICON_NAME")
+                setAttributeNS(NS_ANDROID, "android:icon", "@mipmap/$ICON_NAME")
                 replaced++
-                if (hasAttributeNS(NS_ANDROID, "roundIcon")) {
-                    setAttributeNS(NS_ANDROID, "android:roundIcon", "@drawable/$ICON_NAME")
-                    replaced++
-                }
+                setAttributeNS(NS_ANDROID, "android:roundIcon", "@mipmap/$ICON_NAME")
+                replaced++
             }
 
             application?.replaceIcons()
@@ -414,6 +452,55 @@ private fun hsvToRgb(h: Float, s: Float, v: Float): Int {
     val g = ((g1 + m) * 255).toInt().coerceIn(0, 255)
     val b = ((b1 + m) * 255).toInt().coerceIn(0, 255)
     return (r shl 16) or (g shl 8) or b
+}
+
+private fun solidPng(size: Int, argb: Int, logger: Logger): ByteArray? {
+    // Solid-color PNG via reflection (Android bitmaps on device-patcher,
+    // AWT BufferedImage on desktop), mirroring the helpers below.
+    try {
+        Class.forName("android.graphics.Bitmap")
+        val bitmapClass = Class.forName("android.graphics.Bitmap")
+        val configClass = Class.forName("android.graphics.Bitmap\$Config")
+        val createBitmap = bitmapClass.getMethod("createBitmap", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, configClass)
+        val configArgb8888 = configClass.getField("ARGB_8888").get(null)
+        val out = createBitmap.invoke(null, size, size, configArgb8888)
+        val canvasClass = Class.forName("android.graphics.Canvas")
+        val canvas = canvasClass.getConstructor(bitmapClass).newInstance(out)
+        val drawColor = canvasClass.getMethod("drawColor", Int::class.javaPrimitiveType)
+        drawColor.invoke(canvas, argb)
+        val streamClass = Class.forName("java.io.ByteArrayOutputStream")
+        val stream = streamClass.getConstructor().newInstance()
+        val compress = bitmapClass.getMethod("compress", Class.forName("android.graphics.Bitmap\$CompressFormat"), Int::class.javaPrimitiveType, Class.forName("java.io.OutputStream"))
+        val formatPng = Class.forName("android.graphics.Bitmap\$CompressFormat").getField("PNG").get(null)
+        compress.invoke(out, formatPng, 100, stream)
+        return streamClass.getMethod("toByteArray").invoke(stream) as ByteArray
+    } catch (_: ClassNotFoundException) {
+    } catch (e: Exception) {
+        logger.info("Android solid PNG failed: ${e.message}")
+    }
+    return try {
+        val outClass = Class.forName("java.awt.image.BufferedImage")
+        val out = outClass.getConstructor(Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+            .newInstance(size, size, 2) // TYPE_INT_ARGB = 2
+        val g = outClass.getMethod("createGraphics").invoke(out)
+        // NB: look methods up on java.awt.Graphics, NOT g.javaClass: the
+        // runtime class (sun.java2d.*) is not exported to unnamed modules.
+        val graphicsClass = Class.forName("java.awt.Graphics")
+        val colorClass = Class.forName("java.awt.Color")
+        val color = colorClass.getConstructor(Int::class.javaPrimitiveType, Boolean::class.javaPrimitiveType).newInstance(argb, true)
+        graphicsClass.getMethod("setColor", colorClass).invoke(g, color)
+        graphicsClass.getMethod("fillRect", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+            .invoke(g, 0, 0, size, size)
+        graphicsClass.getMethod("dispose").invoke(g)
+        val imageIoClass = Class.forName("javax.imageio.ImageIO")
+        val baos = Class.forName("java.io.ByteArrayOutputStream").getConstructor().newInstance()
+        imageIoClass.getMethod("write", Class.forName("java.awt.image.RenderedImage"), String::class.java, Class.forName("java.io.OutputStream"))
+            .invoke(null, out, "png", baos)
+        Class.forName("java.io.ByteArrayOutputStream").getMethod("toByteArray").invoke(baos) as ByteArray
+    } catch (e: Exception) {
+        logger.warning("Solid PNG failed: ${e.message}")
+        null
+    }
 }
 
 private fun scaleDecodedImage(src: Any, size: Int, logger: Logger): ByteArray? {

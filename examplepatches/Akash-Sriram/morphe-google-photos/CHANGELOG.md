@@ -1,3 +1,47 @@
+## [1.12.2](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.12.1...v1.12.2) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Flags:** prevent empty search state when categories are collapsed without query ([0db0ccb](https://github.com/Akash-Sriram/morphe-google-photos/commit/0db0ccb7a738c76a6e7b008eb43ebc96d0b8f4b5))
+
+## [1.12.1](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.12.0...v1.12.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Flags:** collapse categories by default and align scrollbar outside UI ([0ab74a6](https://github.com/Akash-Sriram/morphe-google-photos/commit/0ab74a6f90e9356da078502a682ac79faec96716)), closes [#22](https://github.com/Akash-Sriram/morphe-google-photos/issues/22) [#24](https://github.com/Akash-Sriram/morphe-google-photos/issues/24) [#22](https://github.com/Akash-Sriram/morphe-google-photos/issues/22) [#24](https://github.com/Akash-Sriram/morphe-google-photos/issues/24)
+
+## [1.12.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.11.0...v1.12.0) (2026-09-26)
+
+### ✨ New Features
+
+* **Google Photos - Flags:** add collapsible headers and fix preset dialog styling ([9802906](https://github.com/Akash-Sriram/morphe-google-photos/commit/980290640016559a0852fac18095421deb555b81))
+
+## [1.11.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.10.1...v1.11.0) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Flags:** fix curated flag default state, active counter, and deduplicate custom overrides ([bf07950](https://github.com/Akash-Sriram/morphe-google-photos/commit/bf07950d9b75bebc4b76f5a72e3275783a9e8407))
+* **Google Photos - Flags:** strip inline comments/quotes and add self-healing sanitization for contaminated flag values ([8f67cc4](https://github.com/Akash-Sriram/morphe-google-photos/commit/8f67cc44f5b2876fa446901f99bda82127a6eb57))
+* **Google Photos - Maps:** synchronize photo carousel and fix current location FAB toggle in Map Explore ([dadcbed](https://github.com/Akash-Sriram/morphe-google-photos/commit/dadcbed7e9f8cc982049000c187b68a66c4817c4))
+
+### ✨ New Features
+
+* **Google Photos - Compat:** add 7.94.0.984908898 to experimental support ([a4ff34f](https://github.com/Akash-Sriram/morphe-google-photos/commit/a4ff34f3747c2e2aeca5d818b702229330417b50))
+* **Google Photos - Diagnostics:** add in-app session log manager, crash reporting, and 1-tap sharing tool ([508aaba](https://github.com/Akash-Sriram/morphe-google-photos/commit/508aaba09e3c0200bbbf97e0458933d770296ed6))
+* **Google Photos - Flags:** add complete 8 Creator Tab tools profile merged with user flags ([b0a9f60](https://github.com/Akash-Sriram/morphe-google-photos/commit/b0a9f607d2e32a93b6a2245f850e36d2f5ccaf7a))
+* **Google Photos - Flags:** feed all 362 curated Morphe flags as default preset ([f25b284](https://github.com/Akash-Sriram/morphe-google-photos/commit/f25b284df9db2c7710009653b62377b5ba90b9f7))
+* **Google Photos - Flags:** implement tool-centric group headers with Enable All batch toggles and trigger badges ([d9ae58e](https://github.com/Akash-Sriram/morphe-google-photos/commit/d9ae58ee82490ab41bd478115b6468fcb9619e9f))
+* **Google Photos - Flags:** keep empty slate clean, move load presets to 3-dot menu as placeholder ([13e3f54](https://github.com/Akash-Sriram/morphe-google-photos/commit/13e3f542c14c5a29f5782f05426be8b576ea1bf4))
+* **Google Photos - Flags:** only display configured flags, showing clean empty slate upon clearing ([1c94e7c](https://github.com/Akash-Sriram/morphe-google-photos/commit/1c94e7cbeaa5963f6c2826320c7c2ac55f95f458))
+* **Google Photos - Flags:** redesign Flag Manager with single view, SAF file picker, and bulk paste ([e87d422](https://github.com/Akash-Sriram/morphe-google-photos/commit/e87d422d8247385f84cdfbef26ee3af5f400f19c))
+* **Google Photos - Flags:** support all flag types and wire dynamic OneGoogle protobuf bridge ([355cde3](https://github.com/Akash-Sriram/morphe-google-photos/commit/355cde3a89576d9af4d04209eb8b1c6789c2f864))
+* **Google Photos:** add Google One Bento Badge patch to restore genuine Pro badge on MicroG ([483c41f](https://github.com/Akash-Sriram/morphe-google-photos/commit/483c41f319669bb86476ef007720ef7881f99875))
+* **Google Photos - Morphe:** strip preloaded flags, load 568 flags from morphe_photos_flags.txt ([2139ad4](https://github.com/Akash-Sriram/morphe-google-photos/commit/2139ad48fdf32443f6294155c6285d61a7ffcb95))
+
+### 🔧 Improvements
+
+* **Google Photos - Flags:** optimize Flag Manager for 1k+ flags with virtualized ListView, debounced search, and async stream import ([1f287b0](https://github.com/Akash-Sriram/morphe-google-photos/commit/1f287b058578ee752bfe9f3703bc89f18b7ce230))
+
 ## [1.10.1](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.10.0...v1.10.1) (2026-09-23)
 
 ### 🚀 Updated App Support

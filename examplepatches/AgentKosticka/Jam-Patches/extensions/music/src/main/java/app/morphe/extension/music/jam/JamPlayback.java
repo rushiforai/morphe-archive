@@ -89,11 +89,7 @@ public final class JamPlayback {
   }
 
   private static boolean participant() {
-    JSONObject session = JamUi.latest.optJSONObject("session");
-    return (
-      JamMirror.active() ||
-      (session != null && "Participant".equals(session.optString("role")))
-    );
+    return JamUi.participant();
   }
 
   public static boolean offer(
@@ -106,6 +102,10 @@ public final class JamPlayback {
       return offerPlayback(owner, endpoint, map, bytes);
     } catch (Exception error) {
       Logger.printInfo(() -> "Could not inspect Jam playback command", error);
+      if (participant() && QueueCommand.isPlayback(bytes)) {
+        JamUi.unsupported();
+        return true;
+      }
       return false;
     }
   }
@@ -118,7 +118,14 @@ public final class JamPlayback {
   ) {
     capture(owner);
     String video = QueueCommand.watchVideo(bytes);
-    if (video == null || !participant()) return false;
+    if (!participant()) return false;
+    if (video == null) {
+      if (QueueCommand.isPlayback(bytes)) {
+        JamUi.unsupported();
+        return true;
+      }
+      return false;
+    }
     Utils.runOnMainThread(() ->
       choices(video, null, () -> owner.patch_jamDispatch(endpoint, map), false)
     );
@@ -153,33 +160,73 @@ public final class JamPlayback {
       return playButtonSafely(view);
     } catch (Exception error) {
       Logger.printInfo(() -> "Could not handle Jam player control", error);
-      return false;
+      // A failed remote command must not fall through to the participant's audio player.
+      return participant();
     }
   }
 
   private static boolean playButtonSafely(View view) {
     if (!participant()) return false;
-    String name = "";
-    try {
-      name = view.getResources().getResourceEntryName(view.getId());
-    } catch (android.content.res.Resources.NotFoundException ignored) {
-      // Some native controls have IDs without a resource entry name.
-    }
+    String name = buttonName(view);
     if (
       "player_control_next_button".equals(name) ||
-      "player_control_previous_button".equals(name)
+      "player_control_previous_button".equals(name) ||
+      "mini_player_next_button".equals(name) ||
+      "mini_player_previous_button".equals(name)
     ) {
-      String operation = "player_control_next_button".equals(name)
+      String operation = name.endsWith("next_button")
         ? "SKIP_NEXT"
         : "SKIP_PREVIOUS";
       JamUi.edit(view.getContext(), JamUi.command(operation));
       return true;
     }
-    if (!name.contains("play_pause_replay")) return false;
-    Object item = JamMirror.now();
-    if (item != null) queueTap(item);
-    else Utils.showToastLong(str("morphe_music_jam_waiting_host_queue"));
+    if (!isPlayPauseButton(view)) return false;
+    Boolean playing = JamClock.hostPlaying();
+    if (playing == null) {
+      Utils.showToastLong(str("morphe_music_jam_waiting_host_queue"));
+      return true;
+    }
+    if (!JamClock.canControlHostPlayback()) {
+      Utils.showToastLong(str("morphe_music_jam_update_host_controls"));
+      return true;
+    }
+    try {
+      Object item = JamMirror.now();
+      if (item == null) {
+        Utils.showToastLong(str("morphe_music_jam_waiting_host_queue"));
+        return true;
+      }
+      YtmBridge.QueueAccess access = YtmBridge.access();
+      // PLAY retains queue selection semantics unless an explicit desired state is supplied.
+      // The existing Companion forwards these fields unchanged.
+      JSONObject command = JamUi.command("PLAY")
+        .put("videoId", access.patch_jamVideoId(item))
+        .put("item", Long.toString(access.patch_jamItemId(item)))
+        .put("playing", !playing);
+      JamUi.edit(view.getContext(), command);
+    } catch (Exception error) {
+      Logger.printInfo(() -> "Could not send Jam playback state", error);
+      Utils.showToastLong(str("morphe_music_jam_waiting_host_queue"));
+    }
     return true;
+  }
+
+  static boolean isPlayPauseButton(View view) {
+    String name = buttonName(view);
+    return (
+      "player_control_play_pause_replay_button".equals(name) ||
+      "mini_player_play_pause_replay_button".equals(name)
+    );
+  }
+
+  private static String buttonName(View view) {
+    if (view == null) return "";
+    try {
+      return view.getResources().getResourceEntryName(view.getId());
+    } catch (android.content.res.Resources.NotFoundException ignored) {
+      // Some native controls have IDs without a resource entry name.
+    }
+    return "";
   }
 
   private static Router hostRouter() {

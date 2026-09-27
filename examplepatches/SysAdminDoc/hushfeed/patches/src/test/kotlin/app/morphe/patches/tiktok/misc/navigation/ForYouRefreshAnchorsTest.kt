@@ -185,17 +185,19 @@ class ForYouRefreshAnchorsTest {
 
     /** The home pager passes each tap's trigger by name, so the switch knows a tap from a pull. */
     @Test
-    fun `on 47_0_3 the home pager hands the refresh both taps and a pull`() {
-        val build = Build(Fixtures.apks().single { it.name.contains("47.0.3") })
-        val refresh = build.methods.single { (classDef, method) -> ForYouRefreshFingerprint.takes(method, classDef) }.second
-        val trigger = refresh.parameterTypes.single().toString()
-        val pager = build.byType.getValue("Lcom/ss/android/ugc/aweme/main/assems/mainfragment/HomeViewPagerAssem;")
-        val handed = pager.methods.filter { it.calls(refresh) }.flatMap { method ->
-            method.implementation!!.instructions.mapNotNull { instruction ->
-                ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { it.definingClass == trigger }?.name
-            }
-        }.toSet()
-        assertEquals(triggers.toSet(), handed)
+    fun `on each declared build the home pager hands the refresh both taps and a pull`() {
+        Fixtures.forEachDeclared { apk ->
+            val build = Build(apk)
+            val refresh = build.methods.single { (classDef, method) -> ForYouRefreshFingerprint.takes(method, classDef) }.second
+            val trigger = refresh.parameterTypes.single().toString()
+            val pager = build.byType.getValue("Lcom/ss/android/ugc/aweme/main/assems/mainfragment/HomeViewPagerAssem;")
+            val handed = pager.methods.filter { it.calls(refresh) }.flatMap { method ->
+                method.implementation!!.instructions.mapNotNull { instruction ->
+                    ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { it.definingClass == trigger }?.name
+                }
+            }.toSet()
+            assertEquals(triggers.toSet(), handed)
+        }
     }
 
     @Test

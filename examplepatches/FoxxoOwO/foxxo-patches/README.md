@@ -15,7 +15,7 @@ Or add manually in Morphe Manager:
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/FoxxoOwO/foxxo-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.2.0](https://github.com/FoxxoOwO/foxxo-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
@@ -55,33 +55,33 @@ Or add manually in Morphe Manager:
 
 ---
 
-## 🌿 AI Plant Doctor (me.jodoin.aiplantdoctor)
+## 🌿 AI Plant Doctor (`me.jodoin.aiplantdoctor`)
 
-### Co patch dělá
-Patch odemyká všechny premium funkce aplikace **AI Plant Doctor** (`me.jodoin.aiplantdoctor v3.1.0_antisplit`) tím, že přesměruje Google Play Billing komunikaci. Aplikace si vždy myslí, že uživatel má aktivní roční předplatné (`me.jodoin.aiplantdoctor.premium_annual`).
+### What the patch does
+Unlocks all premium features of the **AI Plant Doctor** app (`me.jodoin.aiplantdoctor v3.1.0_antisplit`) by intercepting Google Play Billing communication. The app always detects an active annual subscription (`me.jodoin.aiplantdoctor.premium_annual`).
 
-### Odemčené funkce
-- Neomezená diagnostika rostlin (AI Plant Doctor)
-- Přístup k asistentovi Budsy
-- Detekce škůdců a chorob bez limitu
-- Personalizované plány péče
-- Pokročilá analýza zdraví rostlin
-- AI diagnózy a Day pass funkce
+### Unlocked features
+- Unlimited plant diagnosis (AI Plant Doctor)
+- Full access to the Budsy assistant
+- Unlimited pest and disease detection
+- Personalized care plans
+- Advanced plant health analysis
+- AI diagnostics and Day Pass features
 
-### Jak patch funguje
-Aplikace je postavena na Flutteru. Logika předplatného běží v Dart kódu (`libapp.so`), který získává stav předplatného přes Pigeon IPC bridge z Java pluginu `in_app_purchase_android`.
-Patch zachytí volání `queryPurchasesAsync` v Java vrstvě a vrátí fake odpověď s aktivním předplatným `me.jodoin.aiplantdoctor.premium_annual`, čímž zcela obejde reálný Google Play BillingClient.
+### How it works
+The app is built with Flutter. The subscription check logic resides in Dart code (`libapp.so`), which obtains the purchase state across the Pigeon IPC bridge from the Java `in_app_purchase_android` plugin.
+The patch intercepts the `queryPurchasesAsync` call at the Java layer and injects a mocked response containing an active `me.jodoin.aiplantdoctor.premium_annual` purchase, completely bypassing Google Play BillingClient.
 
 ## 📸 Instagram Direct / Chat-Only (`com.instagram.android`)
 
-### Co patch dělá
-Přetváří Instagram na čistě chatovací aplikaci (Messenger pro Instagram) bez rušivých prvků:
-- **Přímo do zpráv:** Aplikace po spuštění automaticky přejde rovnou do Direct Messages (inboxu).
-- **Odstranění feedu a rušivých prvků:** Zablokován hlavní kanál příspěvků, příběhy (Stories), Explore/objevování a doporučený kanál Reels.
-- **Skrytí navigační lišty:** Skryty nepotřebné taby (Home, Explore, Reels, Create, Profile).
-- **Chování jako messenger:** Tlačítko Zpět v kořenovém Direct inboxu minimalizuje aplikaci na plochu telefonu namísto návratu do prázdného feedu.
-- **Přehrávání médií ze zpráv:** Konkrétní příspěvky a Reels zaslané v chatu zůstávají plně funkční a přehratelné (díky bypassu kontroly certifikátů podpisů).
-- **Nastavení:** Dlouhým podržením na záhlaví Direct inboxu lze otevřít podrobné nastavení.
+### What the patch does
+Transforms Instagram into a distraction-free, dedicated messenger (Messenger for Instagram):
+- **Direct launch into DMs:** The app automatically launches directly into Direct Messages (inbox) upon startup.
+- **Feed and distraction removal:** Blocks the main home feed, Stories, Explore/search, and recommended Reels feed.
+- **Clean bottom navigation:** Hides Home, Explore, Reels, and Creation tabs from the bottom bar, leaving only Direct and Profile.
+- **Messenger-like back navigation:** Pressing Back in the main Direct inbox moves the app to the background / home screen instead of returning to an empty feed.
+- **In-chat media playback:** Posts and Reels shared in direct messages remain fully viewable and playable (via signature check bypass).
+- **Settings:** Long-press the Direct inbox title bar or the Profile tab to open Feurstagram settings.
 
 ---
 

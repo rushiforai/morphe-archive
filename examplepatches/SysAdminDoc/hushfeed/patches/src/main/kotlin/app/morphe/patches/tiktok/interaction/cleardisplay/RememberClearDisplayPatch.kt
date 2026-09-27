@@ -30,7 +30,7 @@ val rememberClearDisplayPatch = bytecodePatch(
 ) {
     category("Playback")
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     execute {
         // Entering clear display by itself must not look to TikTok like the reader asked for
         // it, so the events its own code sends are stopped. Two of the three were written as bare

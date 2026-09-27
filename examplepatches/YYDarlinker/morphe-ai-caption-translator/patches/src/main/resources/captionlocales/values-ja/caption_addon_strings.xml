@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"暗号化して保存済み。入力すると置き換わります"</string>
     <string name="cap_model_hint" formatted="false">"モデルを選択するか ID を入力"</string>
     <string name="cap_preview_hint" formatted="false">"画像をタップして向きを変更。スタイルは即時反映"</string>
-    <string name="cap_size_hint" formatted="false">"相対サイズ 12～22。動画の大きさに合わせて調整"</string>
+    <string name="cap_size_hint" formatted="false">"相対サイズ 8～15。動画の大きさに合わせて調整"</string>
     <string name="cap_opacity_hint" formatted="false">"0% は透明、100% は不透明。指を離すと保存"</string>
     <string name="cap_diagnostic_hint" formatted="false">"展開して診断記録を確認・コピー"</string>
     <string name="cap_use_youtube" formatted="false">"YouTube を使用"</string>

@@ -11,10 +11,12 @@ import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.IntegerSetting;
+import app.morphe.extension.tiktok.SettingsRegistryRule;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -28,6 +30,8 @@ import org.robolectric.shadows.ShadowToast;
 @Config(sdk = 28)
 public class NumberInputPreferenceTest {
     public static final class TestActivity extends PreferenceActivity {}
+
+    @Rule public final SettingsRegistryRule settingsRegistry = new SettingsRegistryRule();
 
     /** Reaches the row's own dialog close, which is protected and one package over. */
     static final class Row extends NumberInputPreference {
@@ -125,7 +129,8 @@ public class NumberInputPreferenceTest {
             String singular,
             String plural
     ) {
-        String range = "0 " + rangeJoiner + " 10";
+        // The range carries the unit, in the form the upper end takes.
+        String range = "0 " + rangeJoiner + " 10 " + plural;
         IntegerSetting setting = new IntegerSetting("unit_test_" + singularKey.replace("%1$s ", "").replace(' ', '_'), 3).withRange(0, 10);
         NumberInputPreference preference = new NumberInputPreference(
                 context, "Title", "Summary", setting, singularKey, pluralKey);
@@ -160,7 +165,7 @@ public class NumberInputPreferenceTest {
             preference.save();
             assertEquals("Kept to 600, the nearest value this row allows",
                     ShadowToast.getTextOfLatestToast());
-            assertEquals("Summary\n0 to 600\nCurrent: 600 minutes",
+            assertEquals("Summary\n0 to 600 minutes\nCurrent: 600 minutes",
                     preference.getSummary().toString());
 
             // Nothing is said for a number the row accepts.
@@ -168,7 +173,7 @@ public class NumberInputPreferenceTest {
             preference.getEditText().setText("45");
             preference.save();
             assertNull(ShadowToast.getTextOfLatestToast());
-            assertEquals("Summary\n0 to 600\nCurrent: 45 minutes",
+            assertEquals("Summary\n0 to 600 minutes\nCurrent: 45 minutes",
                     preference.getSummary().toString());
 
             // An empty box keeps the last stored value, 45 here, rather than falling to the
@@ -179,7 +184,7 @@ public class NumberInputPreferenceTest {
             assertNull("the inline failure was duplicated in a toast",
                     ShadowToast.getTextOfLatestToast());
             assertEquals("Enter a number.", preference.getEditText().getError().toString());
-            assertEquals("Summary\n0 to 600\nCurrent: 45 minutes",
+            assertEquals("Summary\n0 to 600 minutes\nCurrent: 45 minutes",
                     preference.getSummary().toString());
         }
     }
@@ -207,7 +212,7 @@ public class NumberInputPreferenceTest {
                     dialog.isShowing());
             assertEquals("Enter a number.",
                     inlineError(preference.getEditText()).getText().toString());
-            assertEquals("Summary\n0 to 600\nCurrent: 30 minutes",
+            assertEquals("Summary\n0 to 600 minutes\nCurrent: 30 minutes",
                     preference.getSummary().toString());
             dialog.dismiss();
         }
@@ -236,13 +241,13 @@ public class NumberInputPreferenceTest {
             // typing a number does not save it, and the page is built from what is saved.
             setting.save(200);
             row.setValue("200");
-            assertEquals("Summary\n0 to 2000\nCurrent: 200 videos\nToday: 57 videos",
+            assertEquals("Summary\n0 to 2,000 videos\nCurrent: 200 videos\nToday: 57 videos",
                     row.getSummary().toString());
 
             // Off, and there is no budget for the day to be measured against.
             setting.save(0);
             row.setValue("0");
-            assertEquals("Summary\n0 to 2000\nCurrent: 0 videos", row.getSummary().toString());
+            assertEquals("Summary\n0 to 2,000 videos\nCurrent: 0 videos", row.getSummary().toString());
         }
     }
 
@@ -255,7 +260,7 @@ public class NumberInputPreferenceTest {
                     context, "Title", "Summary", setting, "%1$s video", "%1$s videos");
 
             row.setValue("4");
-            assertEquals("Summary\n0 to 10\nCurrent: 4 videos", row.getSummary().toString());
+            assertEquals("Summary\n0 to 10 videos\nCurrent: 4 videos", row.getSummary().toString());
         }
     }
 
@@ -268,15 +273,15 @@ public class NumberInputPreferenceTest {
                     context, "Title", "Summary", setting, "%1$s video", "%1$s videos");
 
             preference.setValue("0");
-            assertEquals("Summary\n0 to 10\nCurrent: 0 videos", preference.getSummary().toString());
+            assertEquals("Summary\n0 to 10 videos\nCurrent: 0 videos", preference.getSummary().toString());
 
             // Seven rows say in their own wording that zero turns the setting off, and then read
             // "Current: 0 videos" underneath, which is a limit of none rather than no limit.
             preference.zeroMeansOff();
-            assertEquals("Summary\n0 to 10\nCurrent: Off", preference.getSummary().toString());
+            assertEquals("Summary\n0 to 10 videos\nCurrent: Off", preference.getSummary().toString());
 
             preference.setValue("4");
-            assertEquals("Summary\n0 to 10\nCurrent: 4 videos", preference.getSummary().toString());
+            assertEquals("Summary\n0 to 10 videos\nCurrent: 4 videos", preference.getSummary().toString());
         }
     }
 }

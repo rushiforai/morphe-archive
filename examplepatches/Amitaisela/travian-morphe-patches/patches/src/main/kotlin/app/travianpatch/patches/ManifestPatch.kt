@@ -20,8 +20,8 @@ import app.morphe.patcher.patch.resourcePatch
  */
 val manifestPatch = resourcePatch(
     name = "Travian notifier manifest entry",
-    description = "Adds the permission needed to ask for a battery optimization exemption, and the " +
-        "Travian Tools screens.",
+    description = "Adds the permission needed to ask for a battery optimization exemption, the " +
+        "Travian Tools screens and its home-screen widget.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TRAVIAN_LEGENDS)
@@ -57,6 +57,12 @@ val manifestPatch = resourcePatch(
         // resources so no copy of the game's artwork is shipped here. Both folders already exist.
         get("res/drawable-anydpi/travian_tools_bell.xml").writeText(BELL_BADGE)
         get("res/mipmap-anydpi/travian_tools_icon.xml").writeText(TOOLS_ICON)
+
+        // The home-screen widget (ToolsWidget looks these up by name). "layout", "xml" and "drawable"
+        // already exist in the game's resources.
+        get("res/layout/travian_tools_widget.xml").writeText(WIDGET_LAYOUT)
+        get("res/drawable/travian_tools_widget_bg.xml").writeText(WIDGET_BACKGROUND)
+        get("res/xml/travian_tools_widget_info.xml").writeText(WIDGET_INFO)
     }
 }
 
@@ -87,36 +93,17 @@ private val TOOLS_ACTIVITIES = """
             android:label="Travian Tools"
             android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
             android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
-        <activity
-            android:name="com.travianpatch.notifier.QueuesActivity"
+        <receiver
+            android:name="com.travianpatch.notifier.ToolsWidget"
             android:exported="false"
-            android:label="Travian Tools"
-            android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
-            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
-        <activity
-            android:name="com.travianpatch.notifier.BuildOrderActivity"
-            android:exported="false"
-            android:label="Travian Tools"
-            android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
-            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
-        <activity
-            android:name="com.travianpatch.notifier.AutomationSettingsActivity"
-            android:exported="false"
-            android:label="Travian Tools"
-            android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
-            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
-        <activity
-            android:name="com.travianpatch.notifier.ActionsActivity"
-            android:exported="false"
-            android:label="Travian Tools"
-            android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
-            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
-        <activity
-            android:name="com.travianpatch.notifier.RecentActivity"
-            android:exported="false"
-            android:label="Travian Tools"
-            android:taskAffinity="com.traviangames.travianlegendsmobile.tools"
-            android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"/>
+            android:label="Travian Tools">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/travian_tools_widget_info"/>
+        </receiver>
     """.trimIndent() + "\n"
 
 /**
@@ -166,4 +153,77 @@ private val BELL_BADGE = """
                 android:pathData="M12,18.6m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0"/>
         </group>
     </vector>
+""".trimIndent() + "\n"
+
+/** The widget: four lines of text on a dark rounded card; the whole card opens Travian Tools. */
+private val WIDGET_LAYOUT = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/tt_widget_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:background="@drawable/travian_tools_widget_bg">
+        <TextView
+            android:id="@+id/tt_widget_attack"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="⚔ …"/>
+        <TextView
+            android:id="@+id/tt_widget_queue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="13sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="🔨 …"/>
+        <TextView
+            android:id="@+id/tt_widget_storage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#FFFFFFFF"
+            android:textSize="13sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="📦 …"/>
+        <TextView
+            android:id="@+id/tt_widget_checked"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="#B3FFFFFF"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:text="Travian Tools"/>
+    </LinearLayout>
+""".trimIndent() + "\n"
+
+private val WIDGET_BACKGROUND = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+        <solid android:color="#E6202A36"/>
+        <corners android:radius="18dp"/>
+    </shape>
+""".trimIndent() + "\n"
+
+/** No periodic updates from the system: the background check redraws the widget after every run. */
+private val WIDGET_INFO = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+        android:minWidth="250dp"
+        android:minHeight="110dp"
+        android:updatePeriodMillis="0"
+        android:initialLayout="@layout/travian_tools_widget"
+        android:resizeMode="horizontal|vertical"
+        android:widgetCategory="home_screen"/>
 """.trimIndent() + "\n"

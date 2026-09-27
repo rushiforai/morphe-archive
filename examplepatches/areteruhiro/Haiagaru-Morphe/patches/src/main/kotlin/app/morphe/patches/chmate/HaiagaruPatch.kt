@@ -7,6 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
@@ -34,6 +35,45 @@ import java.net.URI
 import java.util.Locale
 
 private const val EXTENSION = "Lapp/morphe/extension/chmate/Haiagaru;"
+
+/**
+ * ChMate stores ordinary NG entries and shared NG-ID entries with separate
+ * counters.  All supported builds used the same hard-coded 300-entry cap in
+ * the NGWord save routine.  Replace those two literals with the Haiagaru
+ * setting while keeping the surrounding retention and timestamp logic intact.
+ */
+private fun BytecodePatchContext.patchNgRegistrationLimit() {
+    val ngWord = mutableClassDefBy("Ljp/syoboi/a2chMate/ng/NGWord;")
+    val candidates = ngWord.methods.filter { method ->
+        method.returnType == "V"
+            && method.parameters.map(CharSequence::toString).singleOrNull() ==
+                "Ljava/util/ArrayList;"
+            && method.implementation?.instructions?.count { instruction ->
+                instruction.opcode == Opcode.CONST_16
+                    && (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 300
+            } == 1
+    }
+    check(candidates.size == 1) {
+        "Unable to identify ChMate NGWord save routine (found ${candidates.size})"
+    }
+    val saveMethod = candidates.single()
+    val limitConstants = saveMethod.implementation!!.instructions.mapIndexedNotNull { index, instruction ->
+        if (instruction.opcode == Opcode.CONST_16
+            && (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 300) {
+            index to (instruction as OneRegisterInstruction).registerA
+        } else {
+            null
+        }
+    }
+    check(limitConstants.size == 1) { "ChMate NGWord save limit anchor changed" }
+    limitConstants.asReversed().forEach { (index, register) ->
+        saveMethod.replaceInstruction(
+            index,
+            "invoke-static {}, $EXTENSION->getNgRegistrationLimit()I"
+        )
+        saveMethod.addInstructionsWithLabels(index + 1, "move-result v$register")
+    }
+}
 
 internal val chMateCompatibility = Compatibility(
     name = "ChMate",
@@ -292,6 +332,8 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
     execute {
         val profile = profileFor(packageMetadata.versionName)
+
+        patchNgRegistrationLimit()
 
         // ChMate 226/241 remove the device-info footer with a greedy regular
         // expression before deciding whether the user wrote any other text.

@@ -13,6 +13,11 @@
     it lost. Facebook ships as a split bundle, and merging it into one APK drops the split
     descriptor bundletool wrote (xml/splits0): that loss passes and is reported, and any other
     lost xml resource still fails.
+
+    A real split bundle too, built by aapt2 and merged by the CLI's own merger through
+    Get-MergedApk and MergeSplits.java: a resource only the split carries is in the merge, a table
+    that lost it fails against the merge while base.apk would only have called it added, a plain
+    APK comes back as it is, and a bundle the merger can't read is refused.
 #>
 [CmdletBinding()]
 param(
@@ -368,6 +373,71 @@ try {
     Assert-True ($lostXml.ExitCode -eq 1) "A table that lost xml/feed_prefs passed as a split descriptor.`n$($lostXml.Output)"
     Assert-True ($lostXml.Output -match [regex]::Escape("FAIL $($splitIdOf['xml/feed_prefs']) xml/feed_prefs: not in the patched table")) `
         "The lost xml resource's failure did not name its id.`n$($lostXml.Output)"
+
+    # A real split bundle, merged by the CLI's own merger through Get-MergedApk and MergeSplits.java.
+    # aapt2 puts every xxhdpi value in a config split, so dimen/tray_height, which has no other
+    # value, is in the split alone. Held to base.apk, the merge's copy of it is only "added" and
+    # never compared, which is how 7,588 of 580's resources went unchecked once the CLI stopped
+    # leaving its merge behind; held to the merge, a table that lost it fails by name.
+    $bundleDir = Join-Path $caseRoot 'bundle'
+    New-Item -ItemType Directory -Force -Path (Join-Path $bundleDir 'res/values'), (Join-Path $bundleDir 'res/values-xxhdpi'),
+        (Join-Path $bundleDir 'out') | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $bundleDir 'res/values/dimens.xml'),
+        '<resources><dimen name="gap">4dp</dimen></resources>', [System.Text.UTF8Encoding]::new($false))
+    [System.IO.File]::WriteAllText((Join-Path $bundleDir 'res/values-xxhdpi/dimens.xml'),
+        '<resources><dimen name="gap">6dp</dimen><dimen name="tray_height">96dp</dimen></resources>',
+        [System.Text.UTF8Encoding]::new($false))
+    $bundleManifest = Join-Path $bundleDir 'AndroidManifest.xml'
+    # The package by name: $package holds the other-package case's result by now.
+    [System.IO.File]::WriteAllText($bundleManifest, ('<manifest xmlns:android="http://schemas.android.com/apk/res/android" ' +
+        'package="com.facebook.katana"><application /></manifest>'), [System.Text.UTF8Encoding]::new($false))
+    $bundleCompiled = Join-Path $bundleDir 'compiled.zip'
+    Invoke-Checked -Program $Aapt2 -Arguments @('compile', '--dir', (Join-Path $bundleDir 'res'), '-o', $bundleCompiled) `
+        -Description 'aapt2 compile for the split bundle'
+    $baseApk = Join-Path $bundleDir 'out/base.apk'
+    $splitApk = Join-Path $bundleDir 'out/split_config.xxhdpi.apk'
+    # aapt2 separates a split's path from its configurations with the platform's path separator.
+    Invoke-Checked -Program $Aapt2 -Arguments @('link', '-o', $baseApk, '-I', $androidJar, '--manifest', $bundleManifest,
+        '--package-id', '0x7f', '--allow-reserved-package-id', '--split', ($splitApk + [System.IO.Path]::PathSeparator + 'xxhdpi'),
+        $bundleCompiled) -Description 'aapt2 link for the split bundle'
+    $bundle = Join-Path $bundleDir 'facebook-split.apkm'
+    $archive = [System.IO.Compression.ZipFile]::Open($bundle, [System.IO.Compression.ZipArchiveMode]::Create)
+    try {
+        foreach ($apk in $baseApk, $splitApk) {
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $apk, (Split-Path -Leaf $apk)) | Out-Null
+        }
+    } finally { $archive.Dispose() }
+    $mergedApk = Get-MergedApk -Apk $bundle -Destination (Join-Path $bundleDir 'merged/stock-merged.apk') -Java $Java -DesktopJar $DesktopJar
+    Assert-True ($mergedApk -eq (Join-Path $bundleDir 'merged/stock-merged.apk') -and (Test-Path -LiteralPath $mergedApk -PathType Leaf)) `
+        "The split bundle was not merged into the APK asked for: $mergedApk"
+    $blind = Invoke-Check -Stock $baseApk -Patched $mergedApk -Name 'base-stock'
+    Assert-True ($blind.ExitCode -eq 0 -and $blind.Output -match 'added resources: 1\s+0x7f\w{6} dimen/tray_height') `
+        "The merge does not carry the split's own resource, or base.apk compared it after all.`n$($blind.Output)"
+    $caught = Invoke-Check -Stock $mergedApk -Patched $baseApk -Name 'merged-stock'
+    Assert-True ($caught.ExitCode -eq 1 -and $caught.Output -match 'FAIL 0x7f\w{6} dimen/tray_height: not in the patched table') `
+        "A table that lost the split's resource passed against the merge.`n$($caught.Output)"
+    $whole = Invoke-Check -Stock $mergedApk -Patched $mergedApk -Name 'merged-whole'
+    Assert-True ($whole.ExitCode -eq 0) "The merge failed against itself.`n$($whole.Output)"
+    # A plain APK is patched as it is, so it comes back untouched and no JDK is started for it. A
+    # bundle the merger can't read throws with what it said, and leaves nothing to fall back to.
+    Assert-True ((Get-MergedApk -Apk $baseApk -Destination (Join-Path $bundleDir 'never.apk') -Java (Join-Path $bundleDir 'no-java.exe') `
+            -DesktopJar $DesktopJar) -eq $baseApk -and -not (Test-Path -LiteralPath (Join-Path $bundleDir 'never.apk'))) `
+        'A plain APK was merged, or copied, instead of being handed back as it is.'
+    $empty = Join-Path $bundleDir 'empty.apkm'
+    $archive = [System.IO.Compression.ZipFile]::Open($empty, [System.IO.Compression.ZipArchiveMode]::Create)
+    try {
+        $writer = New-Object System.IO.StreamWriter($archive.CreateEntry('info.json').Open())
+        try { $writer.Write('{}') } finally { $writer.Dispose() }
+    } finally { $archive.Dispose() }
+    $refused = $null
+    try {
+        Get-MergedApk -Apk $empty -Destination (Join-Path $bundleDir 'merged/empty-merged.apk') -Java $Java -DesktopJar $DesktopJar | Out-Null
+    } catch {
+        $refused = $_.Exception.Message
+    }
+    Assert-True ($refused -like '*Could not merge empty.apkm into one APK (exit 1)*No `*.apk files found*' -and
+        -not (Test-Path -LiteralPath (Join-Path $bundleDir 'merged/empty-merged.apk'))) `
+        "A bundle holding no APK was not refused by the merge: $refused"
 } finally {
     if ($caseRoot.StartsWith($requiredPrefix, [System.StringComparison]::OrdinalIgnoreCase) -and `
         (Test-Path -LiteralPath $caseRoot)) {

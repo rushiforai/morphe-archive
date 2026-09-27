@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -49,27 +50,42 @@ public final class FeedAdFilter {
   private FeedAdFilter() {}
 
   /**
-   * Returns {@code items} minus ad units (same instance if nothing removed, so immutable inputs are
-   * safe). Ad detection: direct {@code DED()/DGK()} (X/1qQ ad headers on 434, X/2xO on 445), else
-   * the unit's media {@code A05() -> Media.DED()/DGK()}, else thread-carried media ({@code A02() ->
+   * Returns {@code items} minus ad units. A null input stays null, and the original list instance
+   * is returned when no ad is removed or scanning throws, so immutable inputs are safe. Ad
+   * detection: direct {@code DED()/DGK()} (X/1qQ ad headers on 434, X/2xO on 445), else the unit's
+   * media {@code A05() -> Media.DED()/DGK()}, else thread-carried media ({@code A02() ->
    * ThreadIntf.Ckh()/Cnd() -> ThreadItem.CDh()/CIV() -> Media.DED()/DGK()}).
    */
   public static List<?> filterAds(List<?> items) {
     if (items == null || items.isEmpty()) {
       return items;
     }
-    ArrayList<Object> out = new ArrayList<>(items.size());
+    // Keep the common all-organic path allocation-free. Once the first ad is
+    // found, copy the retained prefix and continue into a new mutable result.
+    ArrayList<Object> out = null;
     try {
-      for (Object o : items) {
-        if (o == null || !isAdUnit(o)) {
-          out.add(o);
+      Iterator<?> iterator = items.iterator();
+      int index = 0;
+      while (iterator.hasNext()) {
+        Object item = iterator.next();
+        if (isAdUnit(item)) {
+          if (out == null) {
+            out = new ArrayList<>(items.size() - 1);
+            Iterator<?> prefixIterator = items.iterator();
+            for (int prefix = 0; prefix < index; prefix++) {
+              out.add(prefixIterator.next());
+            }
+          }
+        } else if (out != null) {
+          out.add(item);
         }
+        index++;
       }
     } catch (Throwable ignored) {
       // Any failure -> return the original untouched.
       return items;
     }
-    return out.size() == items.size() ? items : out;
+    return out == null ? items : out;
   }
 
   /**

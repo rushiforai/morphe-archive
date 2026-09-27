@@ -55,7 +55,7 @@
         "https://github.com/SapitoSucio/FroggoMorphePatches"
       ],
       "license": "GPL-3.0",
-      "changes": "Rewritten from the source at that commit, not cherry-picked. Packages, extension descriptors, log tags, injected method names and the cache folder renamed; plain patch names with categories; the two feed guards merged into one shared hook; a settings switch in front of the story, reel, browser and download hooks, and the reel sidebar's Download button and the story menu's Save item asking theirs before they go in, so Pause takes both out; the player-source recorder shared with Download any video through a call and a switch of each patch's own; the save folder read per file from the settings; the list register of the story filter computed for static and wide parameters; the borrowed v0 in the reel collection hooks checked; the DASH join ends a track on an empty read and shifts both tracks by one lead-in; the reel handler answers null instead of Facebook's renamed kotlin.Unit; the debug println lines removed. Saves fetch only what MediaUrlPolicy allows, every redirect included, into a cache file first, and reach MediaStore only once the declared type, the first bytes, the length and the 512 MB cap (the two DASH tracks together) all check out; save steps go to the diagnostic report without file names; a save reports its progress to a notification with a Cancel button and stops when cancelled, and lists its pending gallery row until it's settled. Andrew Liang credits FroggoMorphePatches for some ideas and implementations."
+      "changes": "Rewritten from the source at that commit, not cherry-picked. Packages, extension descriptors, log tags, injected method names and the cache folder renamed; plain patch names with categories; the two feed guards merged into one shared hook; a settings switch in front of the story, reel, browser and download hooks, and the reel sidebar's Download button and the story menu's Save item asking theirs before they go in, so Pause takes both out; the player-source recorder shared with Download any video through a call and a switch of each patch's own; the save folder read per file from the settings; the DASH track and the single file picked for the download quality read per save, by the track's own FBQualityLabel; a video named from the file name template, with the id the story's recorded player, the post or the reel's player params (their toString) gives; the list register of the story filter computed for static and wide parameters; the borrowed v0 in the reel collection hooks checked; the DASH join ends a track on an empty read and shifts both tracks by one lead-in; the reel handler answers null instead of Facebook's renamed kotlin.Unit; the debug println lines removed. Saves fetch only what MediaUrlPolicy allows, every redirect included, into a cache file first, and reach MediaStore only once the declared type, the first bytes, the length and the 512 MB cap (the two DASH tracks together) all check out; save steps go to the diagnostic report without file names; a save reports its progress to a notification with a Cancel button and stops when cancelled, and lists its pending gallery row until it's settled. Andrew Liang credits FroggoMorphePatches for some ideas and implementations."
     },
     {
       "paths": [
@@ -68,6 +68,9 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/DownloadQuality.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/FileNameTemplate.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PostDetails.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveFolder.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/VideoMenuItem.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/video/DownloadVideoPatch.kt",
@@ -76,7 +79,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: Download to phone in the menu of a feed or Watch video, added after Facebook fills the menu so its own Save and Download rows stay as they are, found in Facebook 577 and 580 through the video feed menu's log tag, the kept GraphQL models and the hashes of their field names; and the save folder, one sanitized folder name under Movies and Pictures."
+      "changes": "Written for Hushfacebook: Download to phone in the menu of a feed or Watch video, added after Facebook fills the menu so its own Save and Download rows stay as they are, found in Facebook 577 and 580 through the video feed menu's log tag, the kept GraphQL models and the hashes of their field names; the save folder, one sanitized folder name under Movies and Pictures; the download quality, the ceiling a save holds the DASH track and the single file to, falling back to the nearest above it; and the video file name, a template with {date}, {video_id}, {owner} and {posted} cleaned like the folder name, kept off the photo prefix, a typed extension and one name for every save, and bounded in bytes, with the poster and the post day read off every model's kept TreeJNI accessors by the hash of the field's GraphQL name, from the reel's story, which the reel sidebar hands its assembly call, the story card's own tree, found by the card's kept getTimestamp, and the post and media a video's menu holds."
     },
     {
       "paths": [
@@ -179,7 +182,88 @@
         "https://github.com/SapitoSucio/FroggoMorphePatches"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the shared feed hook and filter (the chokepoint and getters follow andrewliang25/morphe-patches, the PROMOTION rule follows FroggoMorphePatches), the extension context hook, the settings switches and status flags, and the launcher-shortcut settings screen built the way Hushfeed's settings are."
+      "changes": "Written for Hushfacebook: the shared feed hook and filter (the chokepoint and getters follow andrewliang25/morphe-patches, the PROMOTION rule follows FroggoMorphePatches), the extension context hook, the settings switches and status flags, and the launcher-shortcut settings screen built the way Hushfeed's settings are. The screen's opt-in release check, which asks api.github.com for the latest Hushfacebook release, was written here too."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoryAdvance.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/autoadvance/BlockStoryAutoAdvancePatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: a Story progress-completion guard on Facebook 577 and 580 that leaves manual navigation alone."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Reels viewer clean-up, which drops the chips under a reel by their GraphQL type, answers Facebook's own Follow check and its config for removing the Following button, and skips the footer's hot comment and friends' reaction queries, each behind its own switch, with the hooks found in Facebook 577 and 580 by kept literals and Redex names."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/updates/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/updates/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the switch on Facebook's own update prompts. Facebook 577 and 580 carry no installer of their own, so the patch fails the two QuickPromotion filters that ask Meta App Manager about updates, skips the push handler that has the manager look for one, and fails the chat promotion filter aimed at versions below a ceiling, each found by its shape and the literals it keeps."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/font/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/font/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the system font swap. It stands at the exit of the typeface repository's resolver, found in Facebook 577 and 580 by the refusal it throws for a family with no source, and at the exit of the variable-font builders the kept com.meta.foa.typefacebuilder.ApiUtils makes, and answers the phone's default font at the same weight and slant for Meta's interface families only, by the enum constant names Redex keeps."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/ReelWatchHistory.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/watchhistory/DontSendReelWatchHistoryPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/watchhistory/SeenStateSend.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the switch on the batches of watched reels Facebook's Reels viewer sends as FbShortsSeenStateMutation. The patch finds the batcher's flush in Facebook 577 and 580 by the mutation's name, its video_ids input and the Redex name of the runnable it hands its executor, and puts the extension in place of that hand-over. The extension holds a batch back while the switch is on and sends anything it doesn't recognise as Facebook handed it over."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/coexist/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/coexist/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the rename that lets Meta's own apps install beside a re-signed Facebook. It renames the two signature permissions Facebook shares with Messenger, Lite, Business Suite and Workplace, com.facebook.permission.prod.FB_APP_COMMUNICATION and com.facebook.receiver.permission.ACCESS, to app.hushfacebook. names in every place the manifest names them, and hands every literal Facebook's code loads for them to an extension that answers the name the install holds. Messenger-Z's notes on the collision were read for the behavior only; no code came from them."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/emoji/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/emoji/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the switch to the phone's emoji font. It asks the extension first thing in Facebook's emoji typeface provider, found in Facebook 577 and 580 by the end-to-end system emoji flag and the log tag it keeps, and hands back the phone's default typeface while the switch is on, so the spans and pickers that draw emoji with Meta's downloaded font draw the phone's emoji font instead."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/**",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/navigation/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the tab Facebook opens on. The patch checks that Facebook 577 and 580 still pick the main screen's start tab from an intent's target_tab_id, by the one method that answers a tab id from that extra, and puts the extension first in the onCreate the main screen inherits. For a start from the launcher icon with nothing to restore, the extension hands the screen a copy of its intent asking for the chosen tab's id, the id each kept TabTag subclass hands TabTag, and leaves links, notifications, shortcuts and restored screens alone."
     }
   ]
 }

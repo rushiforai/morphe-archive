@@ -1,6 +1,6 @@
 # 🎵 TikTok: Complete Patch, Architecture & Configuration Guide
 
-Comprehensive technical, architectural, and configuration guide for **TikTok** (supporting both Global `com.zhiliaoapp.musically` and Asia `com.ss.android.ugc.trill`), pinned to target version **`47.0.3`**.
+Comprehensive technical, architectural, and configuration guide for **TikTok** (supporting both Global `com.zhiliaoapp.musically` and Asia `com.ss.android.ugc.trill`), pinned to target version **`47.1.3`**.
 
 ---
 
@@ -10,10 +10,10 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | :--- | :--- |
 | **Target Application** | TikTok |
 | **Package Names** | `com.zhiliaoapp.musically` (Global) · `com.ss.android.ugc.trill` (Asia) |
-| **Supported Target Version** | **`47.0.3`** |
+| **Supported Target Version** | **`47.1.3`** |
 | **Target File Format** | Standalone APK (`APK` - **nodpi**) |
 | **Recommended Architecture** | `arm64-v8a` |
-| **Official Download Source** | [APKMirror: Global (musical.ly)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-0-3-release/) · [APKMirror: Asia (trill)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-47-0-3-2-release/) |
+| **Official Download Source** | [APKMirror: Global (musical.ly)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-3-release/) · [APKMirror: Asia (trill)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-47-1-3-2-release/) |
 
 > [!IMPORTANT]
 > Always download the standalone `nodpi` APK variant for `arm64-v8a`. Do not use split APK bundles (`bundle` / `apkm`).
@@ -41,7 +41,7 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | **Usability** | **Hide Community Tab** | `bytecodePatch` | Removes the Community (Explore) tab from the top navigation feed strip. |
 | **Usability** | **Hide Profile Photo Follow Button** | `bytecodePatch` | Hides the plus (+) follow badge on creator profile avatars in the feed and disables its touch interaction. |
 | **Usability** | **Disable Profile Photo LIVE Status** | `bytecodePatch` | Removes pulsing LIVE ring/badge from creator avatars in feed and forces clicks directly to user profile. |
-| **Usability** | **Disable Story Feed Indicators** | `bytecodePatch` | Removes the top-center story drop-down indicator pill (e.g. '1 Story') and creator profile photo story rings from feed videos, ensuring avatar photos remain clean. |
+| **Usability** | **Disable Story Feed Indicators** | `bytecodePatch` | Removes creator profile photo story rings from feed videos, ensuring avatar photos remain clean without blue story rings. |
 | **Usability** | **Force Auto-Scroll** | `bytecodePatch` | Forces the activation of the native video auto-scroll experiment flag for accounts and regions that lack it due to A/B testing. |
 | **Usability** | **Hide Feed Search Bar** | `bytecodePatch` | Removes the search suggestion pill and trending bar ('Search · <keyword>') from the bottom of feed videos. |
 | **Usability** | **Hide Popular Lives In Search** | `bytecodePatch` | Removes the Popular LIVEs recommendation card and live stream broadcasts from the search discovery page. |
@@ -194,7 +194,7 @@ The **`Custom Offline Videos Limit`** patch customizes the maximum video caching
 
 | Option | Key | Type | Default | Supported Values | Description |
 | :--- | :--- | :--- | :---: | :--- | :--- |
-| **Custom Offline Videos Limit** | `customLimit` | Integer | `200` | Any integer `1` to `50000` | Maximum number of offline videos that can be cached for offline playback. |
+| **Custom Offline Videos Limit** | `customLimit` | Integer | `1000` | Any integer `1` to `50000` | Maximum number of offline videos that can be cached for offline playback. |
 
 ### 5. Custom Share Sheet
 
@@ -299,13 +299,10 @@ The **`Custom Share Sheet`** patch cleans and customizes TikTok's native sharing
 - **Internal Experiment Flag Enforcement**: Hooks `PersonalizedEmojiExperiment.LIZ()Z` -> returns `true` (`hideExposeEmoji`), suppressing emoji resource preloading, layout spacing allocation, and telemetry events.
 
 ### 11. Disable Story Feed Indicators (`disableStoryFeedIndicatorsPatch`)
-- Removes the top-center story drop-down indicator pill (e.g. "1 Story ▼") and creator profile photo story rings from feed videos, ensuring avatar photos remain permanently clean.
-- **Root Aweme Story Model Neutralization**: Hooks `Aweme.getUserStory()Lcom/ss/android/ugc/aweme/feed/model/story/UserStory;` -> returns `null`, `Aweme.getIsTikTokStory()Z` -> returns `false`, and `Aweme.getStory()Lcom/ss/android/ugc/aweme/feed/model/story/Story;` -> returns `null`, stripping all story attributes at the feed video data root.
+- Removes creator profile photo story rings from feed videos, ensuring avatar photos remain permanently clean without blue story rings while preserving the top story indicator pill.
 - **User Story Status Neutralization**: Hooks `User.getStoryStatus()I` -> returns `0`, preventing feed wrappers from detecting active author stories.
 - **Feed Avatar Story Ring & Click Neutralization**: Stubs `FeedAvatarSocialPublishAssem.onViewCreated(View)V`, `FeedAvatarSocialPublishAssem.onBind(Object)V`, and `FeedAvatarSocialPublishAssem.tr(VideoItemParams)V` with `return-void` to prevent inflating/animating the cyan story ring and remove the `CLICK_TAG_FEED_AVATAR_SOCIAL` click interceptor, keeping the avatar clean and routing taps strictly to the creator profile.
 - **Social Publish Distributor**: Hooks `SocPubDistributeServiceImpl.LJII(User)Z` -> returns `false`.
-- **Feed Story Tag Trigger & Predicate Neutralization**: Dynamically locates and hooks the story tag visibility evaluator (`LX/0AZy;->LIZ(Context, Aweme, String)Z`) -> returns `false`, and forces `FeedStoryTagTrigger.Kr()Z` and `FeedStoryTagTriggerV2.Kr()Z` to return `false`.
-- **Story Tag Assem & Canvas Neutralization**: Stubs `FeedStoryTagAssem.Sr(VideoItemParams)V`, `FeedStoryTagAssem.onBind(Object)V`, `FeedStoryTagAssemV2.Sr(VideoItemParams)V`, `FeedStoryTagAssemV2.onBind(Object)V`, and `StoryTag.onDraw(Canvas)V` with `return-void`.
 
 ### 12. Hide Feed Search Bar (`hideFeedSearchBarPatch`)
 - Removes the search suggestion pill and trending bar (e.g. "Search · <keyword> >") displayed directly above the bottom navigation bar on feed videos, eliminating search clutter and distraction.

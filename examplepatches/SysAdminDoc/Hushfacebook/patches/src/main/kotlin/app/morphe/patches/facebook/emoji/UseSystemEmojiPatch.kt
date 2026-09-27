@@ -1,0 +1,80 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ */
+package app.morphe.patches.facebook.emoji
+
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.requireLocals
+import app.morphe.patches.facebook.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.findMutableMethodOf
+
+internal const val PATCH = "Use the phone's emoji"
+private const val EXTENSION_ROOT = "Lapp/morphe/extension/"
+internal const val SYSTEM_EMOJI_TYPEFACE = "$EXTENSION_PACKAGE/emoji/SystemEmoji;->typeface()$TYPEFACE"
+
+/**
+ * Facebook draws the emoji in its text with Meta's own emoji font, which it downloads and hands out
+ * from one provider (see EmojiTypeface.kt). The provider asks the extension first thing and
+ * answers with what it gets: the phone's default typeface while the switch is on, whose font
+ * fallback ends in the phone's emoji font. Anything else, the switch off, a pause, settings not
+ * ready yet or a failure in the extension, comes back as null and the provider's own code runs.
+ *
+ * Reactions and stickers are pictures of their own, not text in a typeface, so nothing here
+ * reaches them. Neither does androidx EmojiCompat, which Facebook starts with Google's downloadable
+ * Noto font and which only fills in an emoji the phone's font doesn't have.
+ */
+@Suppress("unused")
+val useSystemEmojiPatch = bytecodePatch(
+    // The README table check reads this literal; PATCH carries the same text for the messages.
+    name = "Use the phone's emoji",
+    description = "Draws emoji with your phone's own emoji font instead of Meta's, so the ones in posts and " +
+        "comments look like the ones on your keyboard. Reactions and stickers stay as they are. Restart " +
+        "Facebook after changing the switch.",
+    default = false,
+) {
+    category("Interface")
+    dependsOn(settingsPatch)
+    compatibleWith(*AppCompatibilities.facebook())
+
+    execute {
+        val providers = classDefByStrings(FORCE_SYSTEM_EMOJI_FONT, StringComparisonType.EQUALS)
+            .filterNot { it.type.startsWith(EXTENSION_ROOT) }
+            .flatMap { owner -> owner.methods.filter(::isEmojiTypefaceProvider) }
+        val provider = providers.singleOrNull() ?: throw PatchException(
+            "$PATCH: expected one emoji typeface provider, an instance method taking nothing and answering a " +
+                "Typeface that holds \"$FORCE_SYSTEM_EMOJI_FONT\" and \"$EMOJI_TYPEFACE_PROVIDER\", " +
+                "found ${providers.size}",
+        )
+        mutableClassDefBy(provider.definingClass).findMutableMethodOf(provider).answerPhoneEmojiFirst()
+        enableStatus("systemEmoji")
+    }
+}
+
+/**
+ * Asks the extension before the provider's own first instruction and returns its typeface when
+ * it has one. A null answer branches to that first instruction, so none of Facebook's code is
+ * skipped. The answer goes through v0: at index 0 no local holds anything yet.
+ */
+internal fun MutableMethod.answerPhoneEmojiFirst() {
+    requireLocals(PATCH, 1)
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { }, $SYSTEM_EMOJI_TYPEFACE
+            move-result-object v0
+            if-eqz v0, :meta
+            return-object v0
+        """,
+        ExternalLabel("meta", getInstruction(0)),
+    )
+}

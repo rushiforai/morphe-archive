@@ -46,10 +46,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -70,7 +68,7 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 @SuppressWarnings({"deprecation", "SetTextI18n"})
 public final class FeatureGateLabFragment extends Fragment {
     private static final String[] VIEW_LABELS = {"Seen", "All", "Overridden"};
-    private static final String[] FILTER_LABELS = {"All", "Boolean", "Enabled", "Disabled", "Not seen"};
+    private static final String[] FILTER_LABELS = {"All", "On or off", "Enabled", "Disabled", "Not seen"};
 
     /**
      * The five filter choices in the reader's language.
@@ -258,7 +256,7 @@ public final class FeatureGateLabFragment extends Fragment {
         controls.addView(masterRow, FeatureGateLabUi.matchWrap());
 
         View warning = SettingsUi.inlineNotice(context,
-                L10n.t(context, "A forced value applies to this copy of TikTok whichever account is signed in. It cannot get past a check the server makes."),
+                L10n.t(context, "A forced value applies to this copy of TikTok whichever account is signed in. It can't get past a check the server makes."),
                 SettingsUi.attentionColor());
         LinearLayout.LayoutParams warningParams = FeatureGateLabUi.matchWrap();
         int noticeMargin = FeatureGateLabUi.dp(context, SettingsUi.NOTICE_MARGIN);
@@ -270,7 +268,7 @@ public final class FeatureGateLabFragment extends Fragment {
         searchRow.setGravity(Gravity.CENTER_VERTICAL);
         searchRow.setPaddingRelative(FeatureGateLabUi.dp(context, 8), 0, 0, 0);
         searchRow.setTag("feature_gate_search_row");
-        searchRow.setBackground(SettingsUi.focusableSurface(context, 6, false));
+        searchRow.setBackground(SettingsUi.focusableSurface(context, SettingsUi.RADIUS_CONTROL, false));
         // The focus lands on the field inside, never on the row, and a group only carries its
         // children's states when told to. Without this the accent border above never showed.
         searchRow.setAddStatesFromChildren(true);
@@ -413,7 +411,7 @@ public final class FeatureGateLabFragment extends Fragment {
         resultRow.setOrientation(LinearLayout.HORIZONTAL);
         resultRow.setGravity(Gravity.CENTER_VERTICAL);
         count = SettingsUi.resultCount(context, "feature_gate_result_count");
-        count.setText(L10n.t(context, "Loading gates..."));
+        count.setText(L10n.t(context, "Loading gates…"));
         count.setGravity(Gravity.CENTER_VERTICAL);
         resultRow.addView(count, new LinearLayout.LayoutParams(0, FeatureGateLabUi.dp(context, 44), 1f));
         filterButton = FeatureGateLabUi.text(context, "", 14, SettingsUi.textPrimary(), Typeface.BOLD);
@@ -427,7 +425,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 FeatureGateLabUi.dp(context, 12),
                 0
         );
-        filterButton.setBackground(SettingsUi.focusableSurface(context, 6, false));
+        filterButton.setBackground(SettingsUi.focusableSurface(context, SettingsUi.RADIUS_CONTROL, false));
         filterButton.setFocusable(true);
         filterButton.setOnClickListener(view -> showFilterPicker());
         resultRow.addView(filterButton, new LinearLayout.LayoutParams(
@@ -642,8 +640,8 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void load(boolean refresh) {
         count.setText(L10n.t(getContext(), refresh
-                ? "Refreshing current TikTok cache..."
-                : "Loading local catalog and current TikTok cache..."));
+                ? "Refreshing current TikTok cache…"
+                : "Loading local catalog and current TikTok cache…"));
         FeatureGateCatalog.loadAsync(refresh, new FeatureGateCatalog.Callback() {
             @Override
             public void onLoaded(FeatureGateCatalog.Snapshot loaded) {
@@ -651,7 +649,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 snapshot = loaded;
                 if (!loaded.catalogComplete) {
                     count.setText(L10n.t(getContext(),
-                            "Loaded current values. Loading all known gates..."));
+                            "Loaded current values. Loading all known gates…"));
                 }
                 // The message is chosen in rebuild now, from whether a search or only the
                 // filter emptied the list. Setting it here as well meant a list narrowed by the
@@ -888,7 +886,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private void onViewSelected(int position) {
         selectedView = position;
         // The tab used to rewrite the filter and the filter used to rewrite the tab, so
-        // choosing "Boolean" moved the reader to a different tab and tapping "Overrides" put
+        // choosing "On or off" moved the reader to a different tab and tapping "Overrides" put
         // the filter quietly back to All, with nothing on screen saying why either happened.
         // Only one pairing is really a contradiction, and this is the one place it is settled.
         if (!filterAppliesToView(selectedFilter, selectedView)) selectedFilter = FILTER_ALL;
@@ -1116,13 +1114,13 @@ public final class FeatureGateLabFragment extends Fragment {
             // Both forms take (written, total); the one form leaves the first unused.
             if (value) {
                 return L10n.quantity(context, written,
-                        "Forced 1 gate of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
-                        "Forced %1$d gates of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
+                        "Forced 1 gate of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
+                        "Forced %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
                         written, total);
             }
             return L10n.quantity(context, written,
-                    "Turned off 1 gate of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
-                    "Turned off %1$d gates of %2$d. The rest do not take a true or false value. Restart TikTok to apply this.",
+                    "Turned off 1 gate of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
+                    "Turned off %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.",
                     written, total);
         });
         if (started) {
@@ -1218,7 +1216,11 @@ public final class FeatureGateLabFragment extends Fragment {
             }
         };
 
+        // Titled and with a Cancel, like every other menu in settings. It had neither, so it
+        // was a list floating over the page with only a tap outside to leave it.
         AlertDialog menu = new AlertDialog.Builder(getActivity())
+                .setTitle(L10n.t(getContext(), "Feature Gate Lab"))
+                .setNegativeButton(L10n.t(getContext(), "Cancel"), null)
                 .setAdapter(items, (dialog, which) -> {
                     switch (which) {
                         case 0: load(true); break;
@@ -1248,7 +1250,8 @@ public final class FeatureGateLabFragment extends Fragment {
                         "Loaded values are still being read. Try again in a moment."));
                 return;
             }
-            String timestamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date());
+            // The stamp every other export takes, UTC, so the Lab's file sorts beside them.
+            String timestamp = app.morphe.extension.shared.settings.preference.LogBufferManager.fileTimestamp();
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
                     .addCategory(Intent.CATEGORY_OPENABLE)
                     .setType("application/gzip")
@@ -1319,7 +1322,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 // used to be reported as invalid or too large, the same as a corrupt one.
                 postToast(throwable instanceof ImportRefused
                         ? throwable.getMessage()
-                        : L10n.t(Utils.getContext(), "That file is not a loaded-values export, or it is larger than the Lab accepts"));
+                        : L10n.t(Utils.getContext(), "That file isn't a loaded-values export, or it's larger than the Lab accepts"));
             }
         });
     }
@@ -1675,7 +1678,7 @@ public final class FeatureGateLabFragment extends Fragment {
             // the reader has to tap a third time before the requested change is submitted.
             syncMasterSwitch();
             postToast(L10n.t(Utils.getContext(),
-                    "Couldn't start the Lab change. Try again shortly."));
+                    "Couldn't start the Lab change. Try again in a moment."));
             return false;
         }
         return true;

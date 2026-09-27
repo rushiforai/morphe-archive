@@ -46,7 +46,7 @@ val disableZaloAdsPatch = bytecodePatch(
         val skip = network.instructionMatches.firstOrNull {
             it.instruction.opcode == Opcode.IF_NEZ
         } ?: error("GoogleAdsNetworkGate: IF_NEZ skip-branch not found")
-        network.method.replaceInstruction(skip.index, "nop")
+        neutralizeNetworkSkipBranch(network.method, skip.index)
 
         val latRead = AdtimaLatRead.matchAll(1..1).single().method
         forceLimitAdTracking(latRead)
@@ -78,6 +78,11 @@ val disableZaloSponsoredPatch = bytecodePatch(
             zeroConfigResult(match.method, match.instructionMatches.map { it.index })
         }
     }
+}
+
+/** Replaces the selected network skip branch with a NOP, leaving neighboring instructions intact. */
+internal fun neutralizeNetworkSkipBranch(method: MutableMethod, instructionIndex: Int) {
+    method.replaceInstruction(instructionIndex, "nop")
 }
 
 /** Wipes a boolean gate and returns false; clears try-blocks to keep ART verification happy. */

@@ -68,7 +68,9 @@ class LaunchCrashKeepListTest {
     @Test
     fun `every fixture's keep-list is the one its shared_prefs walker reads`() {
         val apks = Fixtures.apks()
-        assertTrue("the declared 47.0.3 fixture is missing", apks.any { it.name.contains("47.0.3") })
+        Fixtures.declaredVersions().forEach { version ->
+            assertTrue("the declared $version fixture is missing", apks.any { Fixtures.versionOf(it) == version })
+        }
         for (apk in apks) {
             val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
             // The patch's own fingerprint picks the initialiser, so a string it gains that a build

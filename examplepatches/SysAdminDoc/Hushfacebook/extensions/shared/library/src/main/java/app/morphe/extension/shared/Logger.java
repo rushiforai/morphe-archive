@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.function.BooleanSupplier;
 
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -103,11 +104,10 @@ public class Logger {
      * Appends the log message, stack trace (if enabled), and exception (if present) to logBuffer
      * with class name but without 'morphe:' prefix.
      *
-     * @param logLevel          The log level.
-     * @param message           Log message object.
-     * @param ex                Optional exception.
-     * @param includeStackTrace If the current stack should be included.
-     * @param showToast         If a toast is to be shown.
+     * @param logLevel The log level.
+     * @param message  Log message object.
+     * @param ex       Optional exception.
+     * @param mayToast If the line may be shown as a toast, which the settings then decide.
      */
     private static void logInternal(
             LogLevel logLevel,
@@ -115,12 +115,11 @@ public class Logger {
             @Nullable String explicitSource,
             LogMessage message,
             @Nullable Throwable ex,
-            boolean includeStackTrace,
-            boolean showToast
+            boolean mayToast
     ) {
-        // It's very important that no Settings are used in this method,
-        // as this code is used when a context is not set and thus referencing
-        // a setting will crash the app.
+        // It's very important that no Settings are used in this method outside the two decisions
+        // below, as this code is used when a context is not set and thus referencing a setting will
+        // crash the app. Both decisions check for the context first and can't throw.
         //
         // The message is built by the caller's lambda, and that lambda reads whatever the caller
         // was in the middle of: a host object's fields, a list's size, a nullable name. Every
@@ -141,6 +140,10 @@ public class Logger {
                 messageString = "Could not build the log message.";
             }
         }
+        // Asked here for every caller, where a failure can't escape: see settingsSayYes(). Callers
+        // used to ask before this method was entered, outside any guard.
+        boolean includeStackTrace = includeStackTrace();
+        boolean showToast = mayToast && shouldShowErrorToast();
         try {
             logBuilt(logLevel, category, explicitSource, message, messageString, ex, includeStackTrace, showToast);
         } catch (Throwable failure) {
@@ -213,10 +216,27 @@ public class Logger {
         }
     }
 
+    /**
+     * Whether the logging switches [switches] reads are on, asked while a line is being logged.
+     *
+     * <p>A switch can be unreadable then. A stored value of the wrong type is reported from inside
+     * BaseSettings' own class setup, before the switches declared after it are assigned, and read
+     * unguarded, the NullPointerException left that setup. BaseSettings then stayed broken for the
+     * rest of the process, and setContext threw out of Facebook's start. An unreadable switch
+     * counts as off, and the line itself is logged all the same.
+     */
+    private static boolean settingsSayYes(BooleanSupplier switches) {
+        try {
+            return switches.getAsBoolean();
+        } catch (Throwable unreadable) {
+            return false;
+        }
+    }
+
     private static boolean shouldLogDebug() {
         // If the app is still starting up and the context is not yet set,
         // then allow debug logging regardless what the debug setting actually is.
-        return Utils.context == null || DEBUG.get();
+        return Utils.context == null || settingsSayYes(() -> DEBUG.get());
     }
 
     /**
@@ -233,11 +253,11 @@ public class Logger {
      * asks for, and a hook that stopped binding still says so in Hook status.
      */
     private static boolean shouldShowErrorToast() {
-        return Utils.context != null && DEBUG.get() && DEBUG_TOAST_ON_ERROR.get();
+        return Utils.context != null && settingsSayYes(() -> DEBUG.get() && DEBUG_TOAST_ON_ERROR.get());
     }
 
     private static boolean includeStackTrace() {
-        return Utils.context != null && DEBUG_STACKTRACE.get();
+        return Utils.context != null && settingsSayYes(() -> DEBUG_STACKTRACE.get());
     }
 
     /**
@@ -260,7 +280,7 @@ public class Logger {
      */
     public static void printDebug(LogMessage message, @Nullable Exception ex) {
         if (shouldLogDebug()) {
-            logInternal(LogLevel.DEBUG, null, null, message, ex, includeStackTrace(), false);
+            logInternal(LogLevel.DEBUG, null, null, message, ex, false);
         }
     }
 
@@ -275,7 +295,7 @@ public class Logger {
      * Logs information messages using the outer class name of the code calling this method.
      */
     public static void printInfo(LogMessage message, @Nullable Exception ex) {
-        logInternal(LogLevel.INFO, null, null, message, ex, includeStackTrace(), false);
+        logInternal(LogLevel.INFO, null, null, message, ex, false);
     }
 
     /**
@@ -296,8 +316,7 @@ public class Logger {
      * @param ex               exception (optional)
      */
     public static void printException(LogMessage message, @Nullable Throwable ex) {
-        logInternal(LogLevel.ERROR, DiagnosticCategory.PATCH_ERRORS, null, message, ex,
-                includeStackTrace(), shouldShowErrorToast());
+        logInternal(LogLevel.ERROR, DiagnosticCategory.PATCH_ERRORS, null, message, ex, true);
     }
 
     public static void diagnosticDebug(
@@ -306,7 +325,7 @@ public class Logger {
             LogMessage message
     ) {
         if (shouldLogDebug()) {
-            logInternal(LogLevel.DEBUG, category, source, message, null, includeStackTrace(), false);
+            logInternal(LogLevel.DEBUG, category, source, message, null, false);
         }
     }
 
@@ -315,7 +334,7 @@ public class Logger {
             String source,
             LogMessage message
     ) {
-        logInternal(LogLevel.INFO, category, source, message, null, includeStackTrace(), false);
+        logInternal(LogLevel.INFO, category, source, message, null, false);
     }
 
     public static void diagnosticError(
@@ -324,8 +343,7 @@ public class Logger {
             LogMessage message,
             @Nullable Throwable throwable
     ) {
-        logInternal(LogLevel.ERROR, category, source, message, throwable,
-                includeStackTrace(), shouldShowErrorToast());
+        logInternal(LogLevel.ERROR, category, source, message, throwable, true);
     }
 
     private static DiagnosticCategory legacyCategory(String source, LogLevel level) {

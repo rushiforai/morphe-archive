@@ -80,6 +80,16 @@ public final class LogBufferManager {
         return set == null ? fallback : set.toString();
     }
 
+    /**
+     * What an export with nothing in it says, with the way to get something in it: a report is
+     * empty until a hook logs, and most of what hooks log waits for Debug logging. It's a long
+     * toast, since it carries steps.
+     */
+    private static String nothingToReport() {
+        return L10n.t("There's nothing to report yet. Turn on Debug logging, repeat what went wrong, "
+                + "then export again.");
+    }
+
     private static final int BUFFER_MAX_CHARS = 250_000;
     private static final int BUFFER_MAX_SIZE = 10_000;
     private static final int CLIPBOARD_MAX_CHARS = 60_000;
@@ -163,21 +173,46 @@ public final class LogBufferManager {
         }
     }
 
+    /**
+     * Copy quick report. The report is built on a worker and only the copy comes back to the main
+     * thread: building it runs the redaction's seven patterns over every buffered event, up to
+     * 250,000 characters, and on the main thread that held up the tap that asked for it.
+     */
     public static void exportToClipboard() {
+        boolean started = Utils.runOnBackgroundThread(() -> {
+            String exportText;
+            try {
+                exportText = clipboardText(CLIPBOARD_MAX_CHARS);
+            } catch (Exception ex) {
+                clipboardFailed(ex);
+                return;
+            }
+            Utils.runOnMainThread(() -> copyToClipboard(exportText));
+        });
+        if (!started) {
+            Utils.showToastLong(say(couldNotStartMessage, L10n.t("Couldn't start the report export. Try again shortly.")));
+        }
+    }
+
+    /** Puts a built report on the clipboard, on the main thread. */
+    private static void copyToClipboard(String exportText) {
         try {
-            String exportText = clipboardText(CLIPBOARD_MAX_CHARS);
             if (exportText.isEmpty()) {
-                Utils.showToastShort(say(nothingToExportMessage, L10n.t("No matching diagnostics found.")));
+                Utils.showToastLong(say(nothingToExportMessage, nothingToReport()));
                 return;
             }
             Utils.setClipboard(exportText);
             Utils.showToastShort(say(copiedMessage, L10n.t("Diagnostic report copied to the clipboard.")));
         } catch (Exception ex) {
-            // The exception's own text stays in the log. It can carry a path or a signed URL,
-            // and a reader on a phone cannot act on it from a toast.
-            Utils.showToastLong(say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")));
-            Logger.printException(() -> "Failed to export diagnostics", ex);
+            clipboardFailed(ex);
         }
+    }
+
+    private static void clipboardFailed(Exception ex) {
+        // The exception's own text stays in the log. It can carry a path or a signed URL,
+        // and a reader on a phone cannot act on it from a toast.
+        Utils.showToastLong(say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")));
+        Logger.printException(() -> "Failed to export diagnostics", ex);
     }
 
     public static void exportToFile() {
@@ -197,7 +232,7 @@ public final class LogBufferManager {
                 try {
                     String exportText = buildExportText();
                     if (exportText.isEmpty()) {
-                        Utils.showToastShort(say(nothingToExportMessage, L10n.t("No matching diagnostics found.")));
+                        Utils.showToastLong(say(nothingToExportMessage, nothingToReport()));
                     } else {
                         String saved = writeToFile(app, exportText);
                         Utils.showToastLong(String.format(say(savedToMessage, L10n.t("Full report saved to %1$s")), L10n.isolate(saved)));
@@ -736,7 +771,7 @@ public final class LogBufferManager {
         }
         Utils.showToastShort(restorable
                 ? say(clearedMessage, L10n.t("Diagnostic data cleared. Tap again to put it back."))
-                : say(nothingToClearMessage, L10n.t("There is no diagnostic data to clear.")));
+                : say(nothingToClearMessage, L10n.t("There's no diagnostic data to clear.")));
     }
 
     /** True while the clear row's next tap can restore what its previous tap removed. */
@@ -774,7 +809,7 @@ public final class LogBufferManager {
             Utils.showToastShort(say(restoredMessage, L10n.t("Diagnostic data put back.")));
         } else if (result == UndoResult.NOTHING_TO_RESTORE) {
             Utils.showToastShort(say(nothingToRestoreMessage,
-                    L10n.t("There is no diagnostic data to put back.")));
+                    L10n.t("There's no diagnostic data to put back.")));
         } else {
             Utils.showToastLong(say(restoreFailedMessage,
                     L10n.t("Couldn't put back the diagnostic data. Try again.")));

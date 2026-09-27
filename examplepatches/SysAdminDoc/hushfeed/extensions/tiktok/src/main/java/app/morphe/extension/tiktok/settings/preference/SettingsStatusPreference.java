@@ -11,7 +11,9 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.preference.Preference;
 import android.view.Gravity;
 import android.view.View;
@@ -96,7 +98,7 @@ public final class SettingsStatusPreference extends Preference {
             case MARKER_FILE:
                 return L10n.t(context, "A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.");
             default:
-                return L10n.t(context, "TikTok runs as if it were not patched. Your settings stay as they are.");
+                return L10n.t(context, "TikTok runs as if it weren't patched. Your settings stay as they are.");
         }
     }
 
@@ -117,7 +119,13 @@ public final class SettingsStatusPreference extends Preference {
                 SettingsUi.dp(context, 14),
                 SettingsUi.dp(context, 12),
                 SettingsUi.dp(context, 14));
-        card.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CARD, true));
+        GradientDrawable cardBackground = SettingsUi.borderedSurface(
+                context, SettingsUi.RADIUS_CARD, true);
+        if (!HushfeedPause.isPaused() && SettingsUi.isDarkMode()) {
+            cardBackground.setColor(SettingsUi.DARK_STATUS_SURFACE);
+            cardBackground.setStroke(SettingsUi.dp(context, 1), SettingsUi.DARK_STATUS_BORDER);
+        }
+        card.setBackground(cardBackground);
 
         LinearLayout information = new LinearLayout(context);
         information.setOrientation(LinearLayout.HORIZONTAL);
@@ -132,10 +140,17 @@ public final class SettingsStatusPreference extends Preference {
         LinearLayout labels = new LinearLayout(context);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.setGravity(Gravity.CENTER_VERTICAL);
-        labels.setFocusable(true);
+        // Grouped so a screen reader says the title and status together. Keyboard focus is
+        // another matter: the group does nothing when chosen and drew nothing when focused, so
+        // from API 28 it is a screen reader stop only.
+        if (android.os.Build.VERSION.SDK_INT >= 28) {
+            labels.setScreenReaderFocusable(true);
+        } else {
+            labels.setFocusable(true);
+        }
 
         TextView title = SettingsUi.text(
-                context, String.valueOf(getTitle()), 17, SettingsUi.textPrimary(),
+                context, String.valueOf(getTitle()), 18, SettingsUi.textPrimary(),
                 android.graphics.Typeface.BOLD);
         title.setTag(TITLE_TAG);
         title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -170,10 +185,14 @@ public final class SettingsStatusPreference extends Preference {
             action.setContentDescription(label);
             action.setPadding(SettingsUi.dp(context, 10), 0, SettingsUi.dp(context, 10), 0);
             SettingsUi.styleTextAction(action, true);
+            GradientDrawable actionBackground = SettingsUi.borderedSurface(
+                    context, SettingsUi.RADIUS_CONTROL, false);
+            if (!HushfeedPause.isPaused() && SettingsUi.isDarkMode()) {
+                actionBackground.setColor(SettingsUi.DARK_STATUS_SURFACE);
+                actionBackground.setStroke(SettingsUi.dp(context, 1), SettingsUi.accent());
+            }
             action.setBackground(SettingsUi.pressAndFocusOver(
-                    context,
-                    SettingsUi.RADIUS_CONTROL,
-                    SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CONTROL, false)));
+                    context, SettingsUi.RADIUS_CONTROL, actionBackground));
             action.setOnClickListener(view -> cardAction.run());
             LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(
                     stack ? -1 : -2,
@@ -223,7 +242,11 @@ public final class SettingsStatusPreference extends Preference {
         private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint bar = new Paint(Paint.ANTI_ALIAS_FLAG);
 
+        /** The mark's corner, the card radius: the owner's scale has no circles for a backdrop. */
+        private final float corner;
+
         PausedDrawable(Context context) {
+            corner = SettingsUi.dp(context, SettingsUi.RADIUS_CARD);
             fill.setColor(SettingsUi.badgeFill());
             fill.setStyle(Paint.Style.FILL);
             bar.setColor(SettingsUi.badgeText());
@@ -236,7 +259,8 @@ public final class SettingsStatusPreference extends Preference {
             float cx = getBounds().exactCenterX();
             float cy = getBounds().exactCenterY();
             float radius = Math.min(getBounds().width(), getBounds().height()) * 0.38f;
-            canvas.drawCircle(cx, cy, radius, fill);
+            canvas.drawRoundRect(new RectF(cx - radius, cy - radius, cx + radius, cy + radius),
+                    corner, corner, fill);
             float half = radius * 0.4f;
             canvas.drawLine(cx - radius * 0.22f, cy - half, cx - radius * 0.22f, cy + half, bar);
             canvas.drawLine(cx + radius * 0.22f, cy - half, cx + radius * 0.22f, cy + half, bar);
@@ -260,7 +284,10 @@ public final class SettingsStatusPreference extends Preference {
         private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint check = new Paint(Paint.ANTI_ALIAS_FLAG);
 
+        private final float corner;
+
         ActiveDrawable(Context context) {
+            corner = SettingsUi.dp(context, SettingsUi.RADIUS_CARD);
             fill.setColor(SettingsUi.badgeFill());
             fill.setStyle(Paint.Style.FILL);
             check.setColor(SettingsUi.badgeText());
@@ -274,7 +301,8 @@ public final class SettingsStatusPreference extends Preference {
             float cx = getBounds().exactCenterX();
             float cy = getBounds().exactCenterY();
             float radius = Math.min(getBounds().width(), getBounds().height()) * 0.38f;
-            canvas.drawCircle(cx, cy, radius, fill);
+            canvas.drawRoundRect(new RectF(cx - radius, cy - radius, cx + radius, cy + radius),
+                    corner, corner, fill);
             canvas.drawLine(cx - radius * 0.48f, cy,
                     cx - radius * 0.12f, cy + radius * 0.34f, check);
             canvas.drawLine(cx - radius * 0.12f, cy + radius * 0.34f,

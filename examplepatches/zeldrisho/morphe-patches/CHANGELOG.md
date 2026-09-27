@@ -4,6 +4,32 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 
 ## Unreleased
 
+## [1.6.3](https://github.com/zeldrisho/morphe-patches/compare/v1.6.2...v1.6.3) (2026-09-27)
+
+### 🐛 Bug Fixes
+* **Zalo - Prefer original photo quality:** Corrects instruction targeting so the original-quality photo flag is set on the outgoing media model, fixing image sending on Zalo `26.08.01`.
+
+## [1.6.2](https://github.com/zeldrisho/morphe-patches/compare/v1.6.1...v1.6.2) (2026-09-26)
+
+### 🐛 Bug Fixes
+* **Zalo - Enable Google Drive photo backup:** Fixes a patching error on Zalo `26.08.01`.
+
+## [1.6.1](https://github.com/zeldrisho/morphe-patches/compare/v1.6.0...v1.6.1) (2026-09-26)
+
+### 🔧 Improvements
+* **Zalo - Enable Google Drive photo backup:** Makes the patch opt-in while its startup verifier issue is investigated.
+
+## [1.6.0](https://github.com/zeldrisho/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-22)
+
+### 🐛 Bug Fixes
+* **Zalo - microG Drive support:** Declares MicroG-RE package visibility so Android package filtering does not hide the installed provider.
+* **Zalo - microG Drive support:** Corrects the installation prompt's download link to the official Morphe MicroG page.
+* **Zalo - microG Drive support:** Cancels the previous pending Drive refresh when another account is selected for the same backup view.
+
+### ✨ New Features
+* **Zalo - Suppress outbound seen status:** Disables the dedicated outbound seen-status packet path by default for `26.08.01`; message delivery and incoming status rendering are not modified.
+* **Zalo - Enable Google Drive photo backup:** Restores Zalo's existing Google Drive photo-backup option for `26.08.01`; Google authorization, server retention, encryption, and media exclusions remain unchanged.
+
 ## [1.5.0](https://github.com/zeldrisho/morphe-patches/compare/v1.4.0...v1.5.0) (2026-09-17)
 
 ### ✨ New Features

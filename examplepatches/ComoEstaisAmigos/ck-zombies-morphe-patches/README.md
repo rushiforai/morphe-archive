@@ -12,8 +12,8 @@ https://morphe.software/add-source?github=ComoEstaisAmigos/ck-zombies-morphe-pat
 You need three things:
 
 - **Glu's original APK, v3.1.0.** It is the one signed by `CN=Glu Mobile`, certificate SHA-1
-  `5f206863fdfd884ee45873b7688828880d221301`. Every patch but "Smooth sound" first checks both
-  of its native libraries by hash, and fails if either is not Glu's, as in a modified repack or
+  `5f206863fdfd884ee45873b7688828880d221301`. The patches that change its native libraries
+  first check both of them by hash, and fail if either is not Glu's, as in a modified repack or
   an already patched build.
 - **The game's OBB**, `main.310.com.glu.android.zombsniper.obb` (460 MB), in
   `Android/obb/com.glu.android.zombsniper/`. The APK does not contain it and the game does not
@@ -28,9 +28,9 @@ You need three things:
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.1.0](https://github.com/ComoEstaisAmigos/ck-zombies-morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
-<summary>📦 CK Zombies&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 CK Zombies&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -41,9 +41,10 @@ You need three things:
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | Modern Android compatibility | Fixes the crash at launch on current Android and targets API 25 so that Android 14 and later install the game normally. The game is 32-bit only, so the device must still run 32-bit apps. |  |
+| Play intro once | Plays the intro video on the first launch after installing, and skips it after that. |  |
 | Remove unused permissions | Removes permissions the game no longer needs, such as phone and accounts, along with the dead services that needed them. |  |
 | Smooth sound | Removes the stutter while firing, caused by the game building a new audio player for every sound. |  |
-| Stop requests to dead servers | Removes the 30 second wait on the loading screen and stops the game from contacting Tapjoy, OpenFeint and Glu's dead servers. |  |
+| Stop requests to dead servers | Removes the 30 second wait on the loading screen and the daily offline message, and stops the game from contacting Tapjoy, OpenFeint and Glu's dead servers. |  |
 | Unlimited currency | A fresh install starts with 999,999,999 Glu credits and 999,999,999 Cash. If you install the patched app as an update, your current balance stays as it is. |  |
 
 </details>

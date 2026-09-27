@@ -16,6 +16,15 @@ private const val SETTINGS_CLASS = "Lcom/feurstagram/extension/Settings;"
 private fun fieldType(instruction: Any?): String? =
     ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.type
 
+private fun hasTabBarIdLiteral(method: com.android.tools.smali.dexlib2.iface.Method): Boolean {
+    val instructions = method.implementation?.instructions ?: return false
+    for (ins in instructions) {
+        if (ins is com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction && ins.narrowLiteral == 0x7f0b3fd3) return true
+        if (ins is com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction && ins.wideLiteral == 0x7f0b3fd3L) return true
+    }
+    return false
+}
+
 // The main tab-bar binder is an obfuscated class whose constructor takes the
 // tab-bar root View, pulls the tab_bar ViewGroup child out of it and stashes it
 // in a field, alongside a sibling View field. We match that shape rather than
@@ -25,6 +34,7 @@ internal object TabBarBinderFingerprint : Fingerprint(
     parameters = listOf("Landroid/view/View;"),
     custom = { method, classDef ->
         classDef.type.startsWith("LX/") &&
+            (classDef.fields.any { it.type.contains("HomecomingEscapeHatchView") } || hasTabBarIdLiteral(method)) &&
             method.implementation?.instructions?.let { instructions ->
                 var hasViewGroupField = false
                 var hasViewField = false

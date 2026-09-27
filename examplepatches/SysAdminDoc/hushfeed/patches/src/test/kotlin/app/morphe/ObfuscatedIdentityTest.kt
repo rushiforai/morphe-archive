@@ -44,6 +44,16 @@ class ObfuscatedIdentityTest {
         )
     }
 
+    /** A view id written for one build (`"47.0.3:g6r"`) is still that build's made-up name. */
+    @Test
+    fun `short resource names written for one build are inventoried`() {
+        assertEquals(
+            setOf("g6r", "g85", "i_l"),
+            identitiesIn("""LIKE_IDS = {"47.0.3:g6r", "47.1.3:g85", "47.1.3:i_l"};""", extensionTree = true),
+        )
+        assertEquals(setOf("a5u"), identitiesIn("""val x = "47.1.3:a5u"""", extensionTree = false))
+    }
+
     @Test
     fun `no name one build made up is written down that the record does not already hold`() {
         val found = scan()
@@ -75,7 +85,7 @@ class ObfuscatedIdentityTest {
         val anchored = text.lineSequence().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
             .flatMap { line ->
                 val fields = line.split('|')
-                fields[2].split(',').map { "$EXTENSION/${fields[0]}|$it" }
+                fields[2].split(',').map { "$EXTENSION/${fields[0]}|${it.substringAfter(':')}" }
             }.toSet()
         val viewIds = recorded().filter { it.startsWith("$EXTENSION/") }.filterNot { line ->
             val name = line.substringAfter('|')
@@ -154,14 +164,17 @@ class ObfuscatedIdentityTest {
         /** A short name held against a member's: `name == "XN"`, `it.name == "bq"`. */
         val SHORT_MEMBER_COMPARED = Regex("""name\s*==\s*"([A-Za-z][A-Za-z0-9]{0,2})"""")
 
-        /** A shortened resource entry name of the letter-digit kind: `"a3y"`, `"o1k"`, `"ht9"`. */
-        val SHORT_RESOURCE = Regex(""""([a-z][0-9][a-z0-9]{1,2}|[a-z]{2}[0-9])"""")
+        /**
+         * A shortened resource entry name of the letter-digit kind: `"a3y"`, `"o1k"`, `"ht9"`, also
+         * when it is written for one build, `"47.1.3:a5u"`.
+         */
+        val SHORT_RESOURCE = Regex(""""(?:\d+(?:\.\d+)+:)?([a-z][0-9][a-z0-9]{1,2}|[a-z]{2}[0-9])"""")
 
         /** A line that looks a view or resource up by name, in the extension. */
         val RESOURCE_LOOKUP = Regex("""_IDS?\b|RESOURCE_NAME|getIdentifier\(|\.resolve\(|IDS\b|viewId\(|idOf\(""")
 
-        /** A two or three character name on such a line: `"kzj"`, `"fb"`, `"p_5"`. */
-        val RESOURCE_NAME = Regex(""""([a-z][a-z0-9_]{1,2})"""")
+        /** A two or three character name on such a line: `"kzj"`, `"fb"`, `"p_5"`, `"47.1.3:i_l"`. */
+        val RESOURCE_NAME = Regex(""""(?:\d+(?:\.\d+)+:)?([a-z][a-z0-9_]{1,2})"""")
 
         /**
          * Names that match a shape above and are nobody's invention: framework and interface

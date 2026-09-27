@@ -26,42 +26,42 @@ private const val EXTENSION = "Lapp/morphe/extension/tiktok/seekbar/SeekbarPatch
 
 class ShowSeekbarRefreshTest {
     @Test
-    fun `47 0 3 show type setter keeps the native equality contract`() {
-        val apks = Fixtures.apks().filter { it.name.contains("47.0.3") }
-        assertEquals("one retained 47.0.3 fixture", 1, apks.size)
-        val container = DexFileFactory.loadDexContainer(apks.single(), Opcodes.getDefault())
-        val methods = container.dexEntryNames.flatMap { entry ->
-            container.getEntry(entry)!!.dexFile.classes.flatMap { classDef ->
-                classDef.methods.filter { method ->
-                    method.returnType == "V" &&
-                        method.parameterTypes.map(CharSequence::toString) == listOf("I") &&
-                        method.implementation?.instructions?.any { instruction ->
-                            (instruction as? ReferenceInstruction)?.reference.let { reference ->
-                                reference is StringReference &&
-                                    reference.string == "seekbar show type change, change to:"
-                            }
-                        } == true
+    fun `each declared build's show type setter keeps the native equality contract`() {
+        Fixtures.forEachDeclared { apk ->
+            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val methods = container.dexEntryNames.flatMap { entry ->
+                container.getEntry(entry)!!.dexFile.classes.flatMap { classDef ->
+                    classDef.methods.filter { method ->
+                        method.returnType == "V" &&
+                            method.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+                            method.implementation?.instructions?.any { instruction ->
+                                (instruction as? ReferenceInstruction)?.reference.let { reference ->
+                                    reference is StringReference &&
+                                        reference.string == "seekbar show type change, change to:"
+                                }
+                            } == true
+                    }
                 }
             }
+            assertEquals("unique show-type setter", 1, methods.size)
+            val method = MutableMethod(methods.single())
+            val typeRegister = method.implementation!!.registerCount - 1
+            method.addInstructions(
+                0,
+                """
+                    invoke-static/range {v$typeRegister .. v$typeRegister}, $EXTENSION->overrideSeekbarShowType(I)I
+                    move-result v$typeRegister
+                """,
+            )
+
+            method.hookSeekbarTypeRefresh()
+
+            assertEquals(1, method.implementation!!.instructions.count { instruction ->
+                instruction.getReference<MethodReference>()?.let { target ->
+                    target.definingClass == EXTENSION && target.name == "forceSeekbarRefresh"
+                } == true
+            })
         }
-        assertEquals("unique 47.0.3 show-type setter", 1, methods.size)
-        val method = MutableMethod(methods.single())
-        val typeRegister = method.implementation!!.registerCount - 1
-        method.addInstructions(
-            0,
-            """
-                invoke-static/range {v$typeRegister .. v$typeRegister}, $EXTENSION->overrideSeekbarShowType(I)I
-                move-result v$typeRegister
-            """,
-        )
-
-        method.hookSeekbarTypeRefresh()
-
-        assertEquals(1, method.implementation!!.instructions.count { instruction ->
-            instruction.getReference<MethodReference>()?.let { target ->
-                target.definingClass == EXTENSION && target.name == "forceSeekbarRefresh"
-            } == true
-        })
     }
 
     @Test

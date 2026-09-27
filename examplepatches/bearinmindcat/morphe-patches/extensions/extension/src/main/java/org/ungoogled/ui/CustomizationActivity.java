@@ -126,6 +126,28 @@ public final class CustomizationActivity extends Activity {
             });
         }
 
+        if (Shapes.powerSavingPatched()) {
+            Switch power = new Switch(this);
+            power.setChecked(PowerSaving.allPhones(this));
+            body.addView(toggleRow("Power saving mode", "Enables the power saving mode from pixels for all devices", power));
+            power.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
+                PowerSaving.setAllPhones(this, on);
+                // Maps asks whether to offer the feature when it starts
+                restartSoon(b);
+            });
+        }
+
+        if (Shapes.highRefreshPatched()) {
+            Switch hz = new Switch(this);
+            hz.setChecked(Shapes.highRefreshEnabled(this));
+            body.addView(toggleRow("120 refresh rate", null, hz));
+            hz.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
+                Shapes.setHighRefreshEnabled(this, on);
+                // the window's rate is set when Maps starts
+                restartSoon(b);
+            });
+        }
+
         if (Shapes.hideAdsPatched()) {
             Switch ads = new Switch(this);
             ads.setChecked(Shapes.hideAdsEnabled(this));
@@ -154,6 +176,14 @@ public final class CustomizationActivity extends Activity {
                 Shapes.setHideTabsEnabled(this, on);
                 restartSoon(b);
             });
+        }
+
+        if (Shapes.hideDirectoryPatched()) {
+            Switch directory = new Switch(this);
+            directory.setChecked(Shapes.hideDirectoryEnabled(this));
+            body.addView(toggleRow("Hide suggestions", null, directory));
+            // read each time a place sheet opens, so no restart
+            directory.setOnCheckedChangeListener((CompoundButton b, boolean on) -> Shapes.setHideDirectoryEnabled(this, on));
         }
 
         if (Shapes.betterOfflinePatched()) {

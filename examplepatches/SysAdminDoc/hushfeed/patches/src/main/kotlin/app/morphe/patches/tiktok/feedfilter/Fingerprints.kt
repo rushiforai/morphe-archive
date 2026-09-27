@@ -191,13 +191,51 @@ internal fun Method.countColdStartFeedItemListStores(): Int =
             "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
     } ?: 0
 
+/**
+ * The golden hit-cache method: three of the four stores on 47.0.3, where it also runs the cold
+ * start, and one of five on 47.1.3, where the cold start moved into a method of its own.
+ */
 internal object ColdStartGoldenCacheFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Z",
     parameters = emptyList(),
     strings = listOf("processGoldenVideoHitCache hitCache , time cost "),
-    custom = { method, _ -> method.countColdStartFeedItemListStores() in 3..4 },
+    custom = { method, _ -> method.countColdStartFeedItemListStores() in 1..4 },
 )
+
+/** The call descriptor of a cold-start cache method, as an invoke site names it. */
+internal fun Method.coldStartCall(): String =
+    "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+/**
+ * The methods that call both the golden and the offline cache method, those two aside: the cold
+ * start's orchestrator on 47.1.3 (X/04iE.LJI there). None on 47.0.3, where the golden method
+ * calls the offline one itself. [calls] lists each candidate's static call targets.
+ */
+internal fun <M : Method> coldStartOrchestrators(golden: Method, offline: Method, calls: Map<M, Set<String>>): List<M> {
+    val wanted = setOf(golden.coldStartCall(), offline.coldStartCall())
+    return calls.filter { (method, targets) ->
+        targets.containsAll(wanted) && method.coldStartCall() !in wanted
+    }.keys.toList()
+}
+
+/**
+ * Whether the golden method runs the cold start's parse itself, three of the stores on 47.0.3 and
+ * the 46.x builds, or has one store and leaves the parse to an orchestrator (47.1.3). Only then is
+ * an orchestrator looked for: on 46.2.3 a feed method with eight stores of its own calls both
+ * cache methods too, and it is not the cold start.
+ */
+internal fun Method.goldenRunsTheColdStart(): Boolean = countColdStartFeedItemListStores() >= 3
+
+/**
+ * The cold start's FeedItemList stores: four when the golden method orchestrates (47.0.3), five
+ * with an orchestrator of its own (47.1.3), which the golden method's own store joins.
+ */
+internal fun expectedColdStartStores(orchestrators: Int): Int? = when (orchestrators) {
+    0 -> 4
+    1 -> 5
+    else -> null
+}
 
 internal object ColdStartOfflineCacheFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),

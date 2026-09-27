@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"محفوظ مشفّرًا؛ أدخل مفتاحًا لاستبداله"</string>
     <string name="cap_model_hint" formatted="false">"اختر نموذجًا أو أدخل معرّفه"</string>
     <string name="cap_preview_hint" formatted="false">"اضغط على الصورة لتغيير الاتجاه؛ معاينة فورية"</string>
-    <string name="cap_size_hint" formatted="false">"حجم نسبي 12–22 يتناسب مع الفيديو"</string>
+    <string name="cap_size_hint" formatted="false">"حجم نسبي 8–15 يتناسب مع الفيديو"</string>
     <string name="cap_opacity_hint" formatted="false">"0% شفاف، 100% معتم؛ يُحفظ عند الإفلات"</string>
     <string name="cap_diagnostic_hint" formatted="false">"وسّع لعرض سجلات التشخيص ونسخها"</string>
     <string name="cap_use_youtube" formatted="false">"استخدام YouTube"</string>

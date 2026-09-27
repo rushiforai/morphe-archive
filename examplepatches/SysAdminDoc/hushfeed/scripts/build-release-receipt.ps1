@@ -89,6 +89,15 @@ $bundleManifest = Get-BundleManifestFacts -BundlePath $Bundle
 $bundleSize = (Get-Item -LiteralPath $Bundle).Length
 $bundleHash = Get-Sha256Hex -Path $Bundle
 
+# Refused before an hour of patching rather than by the validator afterwards. The build stamps
+# a bundle with its commit's time, and a tree with uncommitted changes with zero, so any other
+# stamp is a bundle this commit didn't build.
+if ([long]$bundleManifest.timestamp -ne $commitTimestamp * 1000) {
+    throw ("$Bundle is stamped $($bundleManifest.timestamp), not with this commit's time " +
+        "($($commitTimestamp * 1000)): it was built from another commit or from a tree with " +
+        "uncommitted changes. Build it again from a clean tree at $commit.")
+}
+
 # Refused here rather than reported, because a receipt that records the mismatch would be a
 # document saying its own subject cannot be rebuilt from the source it names.
 $dirty = @(& git -C $Root status --porcelain)
@@ -205,10 +214,10 @@ foreach ($apk in $Fixture) {
         $temp = Resolve-WithinRoot -Path (Join-Path $runDir 'tmp') -Root $workRoot
         $resultPath = Resolve-WithinRoot -Path (Join-Path $runDir 'result.json') -Root $workRoot
 
-        # The bundle declares one compatible version. A fixture past it is patched under -f,
-        # which is the whole point of keeping the newer builds around, and the receipt says so
-        # rather than letting a forced run read like a declared-compatible one.
-        $forced = $stock.versionName -ne $expectedTarget.PackageVersion
+        # The bundle declares its compatible versions. A fixture of any other build is patched
+        # under -f, which is the whole point of keeping the other builds around, and the receipt
+        # says so rather than letting a forced run read like a declared-compatible one.
+        $forced = $stock.versionName -cnotin @($expectedTarget.PackageVersions)
 
         $enable = @()
         foreach ($name in $patchNames) { $enable += '-e'; $enable += $name }
@@ -216,11 +225,14 @@ foreach ($apk in $Fixture) {
             '-o', $out, '-t', $temp, '-r', $resultPath)
         if ($forced) { $arguments += '-f' }
         $arguments = $arguments + $enable + @($apk)
-        & $Java '-jar' $DesktopJar @arguments 2>&1 | Out-Null
+        # Kept, not dropped: the 0.60.0 run stopped on 46.2.3 with no result report and no word
+        # on why, and the same step applied all 94 patches the next morning.
+        $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
         $cliExitCode = $LASTEXITCODE
 
         if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
-            throw "The desktop CLI wrote no result report for $label (exit $cliExitCode)."
+            throw ("The desktop CLI wrote no result report for $label (exit $cliExitCode). " +
+                "What it printed last:`n$(Get-CliOutputTail -Output $cliOutput)")
         }
         $report = Get-Content -LiteralPath $resultPath -Raw | ConvertFrom-Json
         $validation = Test-PatchingReport -Report $report -ExpectedNames $patchNames `
@@ -228,7 +240,10 @@ foreach ($apk in $Fixture) {
             -ExpectedPackageName $expectedTarget.PackageName `
             -ExpectedPackageVersion $stock.versionName
         if (-not $validation.Valid) { throw "$label did not patch cleanly: $($validation.Reason)" }
-        if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode on $label." }
+        if ($cliExitCode -ne 0) {
+            throw ("The desktop CLI exited with $cliExitCode on $label. " +
+                "What it printed last:`n$(Get-CliOutputTail -Output $cliOutput)")
+        }
 
         $patched = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
         $delta = Get-ManifestDelta -Stock $stock -Patched $patched
@@ -295,7 +310,7 @@ $check = Test-ReleaseReceipt -Receipt ($receipt | ConvertTo-Json -Depth 12 | Con
     -ExpectedPatcherVersion $patcherMatch.Groups[1].Value `
     -ExpectedManagerFloor $floorMatch.Groups[1].Value `
     -ExpectedPackageName $expectedTarget.PackageName `
-    -ExpectedPackageVersion $expectedTarget.PackageVersion -BundlePath $Bundle `
+    -ExpectedPackageVersions @($expectedTarget.PackageVersions) -BundlePath $Bundle `
     -ApprovedManifestDelta $approved
 if (-not $check.Valid) { throw "The receipt this run produced does not pass validation: $($check.Reason)" }
 

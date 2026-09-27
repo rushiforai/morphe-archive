@@ -74,6 +74,17 @@ final class QuietHours {
         return within(today, nowMs) || within(yesterday, nowMs);
     }
 
+    /** isQuiet for this phone's own time zone (local midnight worked out from nowMs). */
+    static boolean isQuietNow(Config config, long nowMs) {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        c.setTimeInMillis(nowMs);
+        c.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        c.set(java.util.Calendar.MINUTE, 0);
+        c.set(java.util.Calendar.SECOND, 0);
+        c.set(java.util.Calendar.MILLISECOND, 0);
+        return isQuiet(config, nowMs, c.getTimeInMillis());
+    }
+
     private static boolean within(Window w, long nowMs) {
         return nowMs >= w.startMs && nowMs < w.endMs;
     }

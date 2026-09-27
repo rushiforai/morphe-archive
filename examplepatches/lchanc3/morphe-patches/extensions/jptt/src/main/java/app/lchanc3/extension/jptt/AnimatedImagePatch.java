@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SharedMemory;
+import android.system.ErrnoException;
 import android.util.Log;
 import android.util.Size;
 import android.view.View;
@@ -45,7 +47,8 @@ import java.util.concurrent.ThreadFactory;
  * Fresco's still frame in place and swaps in the platform's own
  * {@link AnimatedImageDrawable}, which needs Android 9.
  *
- * <p>The bytes are the ones Fresco has already downloaded and cached. The
+ * <p>The bytes are the ones Fresco has already downloaded and cached, copied
+ * into shared memory for the platform decoder to read from. The
  * drawable goes into the view's own drawee hierarchy, so it is scaled and
  * cropped exactly like the still frame was, and it is taken out again the
  * same way: Fresco resets the hierarchy when the view is recycled, and calls
@@ -54,8 +57,11 @@ import java.util.concurrent.ThreadFactory;
 @SuppressWarnings("unused")
 public final class AnimatedImagePatch {
 
-    /** Bigger than any GIF worth playing inline, small enough not to exhaust the heap. */
-    private static final int MAX_BYTES = 32 * 1024 * 1024;
+    /**
+     * Bigger than the 50MB GIFs imgur hands out, small enough that one article
+     * of them does not get the app killed. They are held off the Java heap.
+     */
+    private static final int MAX_BYTES = 64 * 1024 * 1024;
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
 
@@ -175,18 +181,14 @@ public final class AnimatedImagePatch {
             return null;
         }
 
-        byte[] bytes = new byte[size];
-        int read = 0;
-        while (read < size) {
-            int count = buffer.read(read, bytes, read, size - read);
-            if (count <= 0) {
-                return null;
-            }
-            read += count;
+        ByteBuffer bytes = copyToSharedMemory(buffer, size);
+        if (bytes == null) {
+            return null;
         }
 
-        // The drawable keeps reading from this buffer, one frame at a time.
-        ImageDecoder.Source source = ImageDecoder.createSource(ByteBuffer.wrap(bytes));
+        // The drawable keeps reading from this buffer, one frame at a time, and
+        // holds on to it until it is itself collected.
+        ImageDecoder.Source source = ImageDecoder.createSource(bytes);
         Drawable drawable = ImageDecoder.decodeDrawable(source, new ImageDecoder.OnHeaderDecodedListener() {
             @Override
             public void onHeaderDecoded(ImageDecoder decoder, ImageDecoder.ImageInfo info, ImageDecoder.Source src) {
@@ -210,6 +212,35 @@ public final class AnimatedImagePatch {
             return null;
         }
         return drawable;
+    }
+
+    /**
+     * The file, copied into anonymous shared memory: off the Java heap, so a
+     * big GIF does not run the app out of it, and never written to disk. The
+     * mapping outlives the file descriptor and is unmapped once the buffer is
+     * collected. Null when Fresco's buffer came up short.
+     */
+    @TargetApi(Build.VERSION_CODES.P)
+    private static ByteBuffer copyToSharedMemory(PooledByteBuffer buffer, int size) throws ErrnoException {
+        SharedMemory memory = SharedMemory.create("jptt-animated-image", size);
+        try {
+            ByteBuffer mapped = memory.mapReadWrite();
+            byte[] chunk = new byte[64 * 1024];
+            int read = 0;
+            while (read < size) {
+                int count = buffer.read(read, chunk, 0, Math.min(chunk.length, size - read));
+                if (count <= 0) {
+                    SharedMemory.unmap(mapped);
+                    return null;
+                }
+                mapped.put(chunk, 0, count);
+                read += count;
+            }
+            mapped.flip();
+            return mapped;
+        } finally {
+            memory.close();
+        }
     }
 
     /**

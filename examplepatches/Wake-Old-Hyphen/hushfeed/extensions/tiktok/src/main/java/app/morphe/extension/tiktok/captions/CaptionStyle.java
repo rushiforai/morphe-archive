@@ -44,10 +44,13 @@ public final class CaptionStyle {
      * TuxTextView subclass) and the view that draws its layout, but the strip went from dfn to
      * dlk and the text from dfu to dlr. On 47.0.3 dfu names nothing at all and dfn an icon in
      * another layout, so both settings did nothing on the target. Read off the renderer's render
-     * method, which loads dlr, and CLACaptionAssemV2, which loads dlk.
+     * method, which loads dlr, and CLACaptionAssemV2, which loads dlk. 47.1.3 renamed them again,
+     * the text dmb and the strip dm5, so each has a name per build.
      */
-    private static final String TEXT_ID = "dlr";
-    private static final String BACKGROUND_ID = "dlk";
+    private static final String[] TEXT_IDS = {"47.0.3:dlr", "47.1.3:dmb"};
+    private static final String[] BACKGROUND_IDS = {"47.0.3:dlk", "47.1.3:dm5"};
+    private static final String TEXT = String.join("|", TEXT_IDS);
+    private static final String BACKGROUND = String.join("|", BACKGROUND_IDS);
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
     /**
@@ -126,7 +129,7 @@ public final class CaptionStyle {
     }
 
     static void apply(View root) {
-        int textId = identifier(root, TEXT_ID);
+        int textId = identifier(root, TEXT_IDS);
         TextView text = textId == 0 ? null : root.findViewById(textId);
         if (text != null) {
             if (size() > 0) {
@@ -136,7 +139,7 @@ public final class CaptionStyle {
                 text.setTextSize(TypedValue.COMPLEX_UNIT_SP, size());
             } else if (SIZES.containsKey(text)) text.setTextSize(TypedValue.COMPLEX_UNIT_PX, SIZES.remove(text));
         }
-        int backgroundId = identifier(root, BACKGROUND_ID);
+        int backgroundId = identifier(root, BACKGROUND_IDS);
         View background = backgroundId == 0 ? null : root.findViewById(backgroundId);
         noteLookup(root, text != null, background != null, textId != 0, backgroundId != 0);
         if (background == null) return;
@@ -182,8 +185,8 @@ public final class CaptionStyle {
      */
     private static void noteLookup(View root, boolean foundText, boolean foundBackground,
                                    boolean textResolved, boolean backgroundResolved) {
-        if (foundText) FOUND.add(TEXT_ID);
-        if (foundBackground) FOUND.add(BACKGROUND_ID);
+        if (foundText) FOUND.add(TEXT);
+        if (foundBackground) FOUND.add(BACKGROUND);
         // Either one being found says this container really is a caption container, which is
         // what makes the other one's absence worth counting rather than a bail-out. Counting
         // the pair as one thing instead made a build where exactly one id had moved
@@ -191,8 +194,8 @@ public final class CaptionStyle {
         // every render and the broken one never reached the threshold.
         boolean aCaptionContainer = foundText || foundBackground;
         if (!aCaptionContainer && !hasChildren(root)) return;
-        note(TEXT_ID, textResolved, foundText, aCaptionContainer);
-        note(BACKGROUND_ID, backgroundResolved, foundBackground, aCaptionContainer);
+        note(TEXT, textResolved, foundText, aCaptionContainer);
+        note(BACKGROUND, backgroundResolved, foundBackground, aCaptionContainer);
     }
 
     private static void note(String name, boolean resolved, boolean found,
@@ -229,13 +232,18 @@ public final class CaptionStyle {
         FOUND.clear();
     }
 
-    /** Resolves a caption view id, saying so once when this build does not have it. */
-    private static int identifier(View view, String name) {
-        int id = RESOURCE_IDS.resolve(
-                view == null ? null : view.getResources(), APP_PACKAGE, name, false);
-        if (id == 0) HookStatus.missingViewId("captions", name);
-        else HookStatus.bound("captions", name);
-        return id;
+    /** Resolves a caption view id by this build's name, saying so once when this build has none. */
+    private static int identifier(View view, String[] names) {
+        for (String name : names) {
+            int id = RESOURCE_IDS.resolve(
+                    view == null ? null : view.getResources(), APP_PACKAGE, name, false);
+            if (id != 0) {
+                HookStatus.bound("captions", name);
+                return id;
+            }
+        }
+        HookStatus.missingViewId("captions", String.join("|", names));
+        return 0;
     }
 
     static int backgroundColor() {

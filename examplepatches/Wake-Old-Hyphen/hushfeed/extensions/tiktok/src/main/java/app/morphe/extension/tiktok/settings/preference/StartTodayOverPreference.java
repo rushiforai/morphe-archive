@@ -9,6 +9,8 @@ import android.preference.Preference;
 
 import app.morphe.extension.shared.settings.preference.ImmediateAction;
 import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 
@@ -44,6 +46,14 @@ public final class StartTodayOverPreference extends Preference implements Immedi
                 undoClear(context);
                 return true;
             }
+            // Starting today over hands back a spent budget, which loosens it, and the day
+            // starting over is the very thing a loosening would wait for.
+            if (Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.savedValue()) {
+                SettingsActionBanner.showNotice(context, L10n.f(context,
+                        "Today can't start over while Wait a day to loosen the budget is on. The day starts over at %1$s.",
+                        SessionLockOverlay.timeLabel(BudgetChanges.nextDayAt())));
+                return true;
+            }
             if (!SessionBudget.clear()) {
                 SettingsActionBanner.showNotice(context, L10n.f(context,
                         "Today's budget is locked. The day starts over at %1$s.",
@@ -64,6 +74,6 @@ public final class StartTodayOverPreference extends Preference implements Immedi
         setSummary(L10n.t(context, CLEAR_SUMMARY));
         SettingsActionBanner.showNotice(context, L10n.t(context, back
                 ? "Today is back where it was"
-                : "Today has moved on, so there is nothing to put back"));
+                : "Today has moved on, so there's nothing to put back"));
     }
 }

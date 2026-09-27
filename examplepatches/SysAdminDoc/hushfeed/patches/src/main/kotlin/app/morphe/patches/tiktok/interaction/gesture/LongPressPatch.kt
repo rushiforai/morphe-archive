@@ -205,7 +205,7 @@ val longPressPatch = bytecodePatch(
     default = false,
 ) {
     category("Interaction")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, blockAuthorPatch, doubleTapPatch)
 
     execute {

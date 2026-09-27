@@ -1,8 +1,17 @@
-#
-# https://help.github.com/articles/dealing-with-line-endings/
-#
-# Linux start script should use lf
-/gradlew        text eol=lf
+# Normalize text files to LF across platforms.
+*               text=auto eol=lf
 
-# These are Windows script files and should use crlf
-*.bat           text eol=crlf
+# These are Windows script files and should use CRLF.
+*.bat            text eol=crlf
+*.cmd            text eol=crlf
+
+# Linux start script should use LF.
+/gradlew         text eol=lf
+
+# Binary files are not subject to text normalization.
+*.jar            binary
+*.png            binary
+*.apk            binary
+*.apkm           binary
+
+.github/workflows/*.lock.yml linguist-generated=true

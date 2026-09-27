@@ -26,7 +26,7 @@ final class TokenCostAudit {
     private static JSONObject memoryState;
     private static long generation;
     private static String activeVideoId = "";
-    private static String activeCore = "semantic_ledger_v2";
+    private static String activeCore = "event_rebuild_r2";
     private static long lastVideoTimeMs = -1L;
     private static long lastWatchPersistRealtimeMs;
 
@@ -42,7 +42,7 @@ final class TokenCostAudit {
 
     static void onCoreSelected(Context context, String rawCore) {
         if (context != null) install(context);
-        String core = normalizeCore(rawCore);
+        String core = "event_rebuild_r2";
         synchronized (LOCK) {
             stateLocked();
             boolean changed = !core.equals(activeCore);
@@ -153,7 +153,7 @@ final class TokenCostAudit {
                     config == null ? "" : config.model,
                     config == null ? "" : config.baseUrl,
                     detailBucket,
-                    "contextual_unit_v1"
+                    detailBucket != null && detailBucket.startsWith("event-rebuild-") ? "event_rebuild_r2" : "contextual_unit_v1"
             );
             noteModelLocked(request.model);
             incrementLogicalRequestLocked(request);
@@ -470,8 +470,8 @@ final class TokenCostAudit {
             String model = session.optString("model", "").trim();
             if (!model.isEmpty()) out.append("\n当前模型：").append(model);
             out.append("\n当前 Core：").append(
-                    "contextual_unit_v1".equals(session.optString("active_core", ""))
-                            ? "Anchored AI Captions"
+                    "event_rebuild_r2".equals(session.optString("active_core", ""))
+                            ? "Event rebuild R2"
                             : "历史核心"
             );
             out.append("\nAPI：").append(format(value(totalAll, "attempts"))).append(" 次尝试")
@@ -480,7 +480,7 @@ final class TokenCostAudit {
                     .append(" · 内部重试 ").append(format(value(totalAll, "internal_retries"))).append(" 次");
             appendFailureBreakdown(out, totalAll);
             long accepted=value(totalAll,"accepted_caption_units"),rejected=value(totalAll,"rejected_caption_units");
-            if(accepted+rejected>0)out.append("\n").append(CaptionStrings.settings(context,"quality_outcome"))
+            if(accepted+rejected>0)out.append("\n").append("结构及确定性规则校验：接受 / 拒绝（非语义验收）")
                     .append(": ").append(accepted).append(" / ").append(rejected)
                     .append(" (").append(value(totalAll,"quality_rejected_units")).append(")");
             out.append("\nTokens：").append(format(totalTokens))
@@ -567,6 +567,7 @@ final class TokenCostAudit {
                 }
             }
 
+            appendBucketLine(out, state, "core_event_rebuild_r2", "Core·Event rebuild R2");
             long viewed = value(session, "viewed_ms");
             long sessionTokens = value(sessionAll, "total_tokens");
             out.append("\n当前视频：已计观看 ").append(seconds1(viewed / 1000d)).append(" 秒")
@@ -596,9 +597,9 @@ final class TokenCostAudit {
             long targetChars = value(metrics, "unit_target_chars");
             long contextChars = value(metrics, "unit_context_chars");
             if (targetUnits > 0L) {
-                out.append("\n固定单元批次：目标 ").append(format(targetUnits))
-                        .append(" units · 只读上下文 ").append(format(contextUnits))
-                        .append(" units · context/target unit-count ratio ")
+                out.append("\n请求块累计：目标 ").append(format(targetUnits))
+                        .append(" blocks · 只读上下文 ").append(format(contextUnits))
+                        .append(" sections · 上下文段/请求块计数比 ")
                         .append(String.format(Locale.US, "%.2fx", contextUnits / (double) targetUnits));
                 if (targetChars > 0L) {
                     out.append(" · 字符暴露比 ")
@@ -607,13 +608,14 @@ final class TokenCostAudit {
             }
             long cacheLookups = value(metrics, "unit_cache_lookups");
             if (cacheLookups > 0L) {
-                out.append("\n固定单元磁盘缓存：lookup ").append(format(cacheLookups))
-                        .append(" · 命中 units ").append(format(value(metrics, "unit_cache_hit_units")))
+                out.append("\n请求块磁盘缓存：lookup ").append(format(cacheLookups))
+                        .append(" · 命中 blocks ").append(format(value(metrics, "unit_cache_hit_units")))
                         .append(" · 未命中 units ").append(format(value(metrics, "unit_cache_miss_units")))
-                        .append(" · 当前 unit 命中 ").append(format(value(metrics, "unit_cache_current_hits")));
+                        .append(" · 当前 block 命中 ").append(format(value(metrics, "unit_cache_current_hits")));
             }
             appendCoreRate(out, session, metrics, "semantic_ledger_v2", "历史核心");
-            appendCoreRate(out, session, metrics, "contextual_unit_v1", "Anchored AI Captions");
+            appendCoreRate(out, session, metrics, "contextual_unit_v1", "历史兼容核心");
+            appendCoreRate(out, session, metrics, "event_rebuild_r2", "Event rebuild R2");
             long requestBytes = value(sessionAll, "request_bytes");
             long sessionAttempts = value(sessionAll, "attempts");
             if (sessionAttempts > 0L) {
@@ -865,7 +867,7 @@ final class TokenCostAudit {
 
     private static String normalizeCore(String raw) {
         String value = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT);
-        return "contextual_unit_v1".equals(value) ? value : "semantic_ledger_v2";
+        return "event_rebuild_r2".equals(value) || "contextual_unit_v1".equals(value) ? value : "semantic_ledger_v2";
     }
 
     private static String coreBucket(String core) {

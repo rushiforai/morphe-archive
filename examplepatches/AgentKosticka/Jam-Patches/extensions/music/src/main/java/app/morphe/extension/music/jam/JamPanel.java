@@ -47,8 +47,8 @@ final class JamPanel {
   static String status(JSONObject view) {
     JSONObject s = view.optJSONObject("session");
     String r = role(view);
-    if (JamUi.pending > 0) return str("morphe_music_jam_updating");
     if ("Joining".equals(r)) return str("morphe_music_jam_finding_host");
+    if (JamUi.pending > 0) return str("morphe_music_jam_updating");
     if ("Host".equals(r)) {
       int n = s.optInt("peers");
       return (
@@ -75,7 +75,9 @@ final class JamPanel {
         ? str("morphe_music_jam_connected_aware")
         : "LAN".equals(t)
           ? str("morphe_music_jam_connected_wifi")
-          : str("morphe_music_jam_reconnecting_host");
+          : "BLE".equals(t)
+            ? str("morphe_music_jam_connected_bluetooth")
+            : str("morphe_music_jam_reconnecting_host");
     }
     return s == null && view.has("error")
       ? view.optString("error")
@@ -90,6 +92,7 @@ final class JamPanel {
       "Joining".equals(r) ||
       ("Participant".equals(r) &&
         !"Aware".equals(s.optString("transport")) &&
+        !"BLE".equals(s.optString("transport")) &&
         !"LAN".equals(s.optString("transport")))
     );
   }

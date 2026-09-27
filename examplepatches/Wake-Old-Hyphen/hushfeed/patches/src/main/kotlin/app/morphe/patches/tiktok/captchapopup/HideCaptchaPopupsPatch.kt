@@ -114,7 +114,7 @@ val hideCaptchaPopupsPatch = bytecodePatch(
 ) {
     category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch, captchaRequestRecorderPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

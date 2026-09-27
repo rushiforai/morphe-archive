@@ -17,7 +17,8 @@ public final class ResourceIdCache {
 
     /**
      * Resolves an id by name and package. A zero result is cached unless the package may load
-     * after the first lookup.
+     * after the first lookup. A name written for one build ({@link BuildNames}) resolves on that
+     * build alone and is zero on any other.
      */
     public synchronized int resolve(
             Resources resources,
@@ -31,9 +32,15 @@ public final class ResourceIdCache {
             return cached;
         }
 
+        String entry = BuildNames.entryName(name);
+        if (entry == null) {
+            // Another build's name. Before the running build can be read, that isn't known yet.
+            if (BuildNames.runningBuild() != null) ids.put(key, 0);
+            return 0;
+        }
         int id;
         try {
-            id = resources == null ? 0 : resources.getIdentifier(name, "id", packageName);
+            id = resources == null ? 0 : resources.getIdentifier(entry, "id", packageName);
         } catch (Throwable ignored) {
             id = 0;
         }

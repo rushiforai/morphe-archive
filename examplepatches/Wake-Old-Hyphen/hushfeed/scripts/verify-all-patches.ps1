@@ -75,27 +75,29 @@ if ($names.Count -eq 0 -or @($names | Where-Object { [string]::IsNullOrWhiteSpac
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 Write-Host "[verify] $($names.Count) patches from $(Split-Path -Leaf $Bundle)"
 
-# The version the result is held to. The catalog's, unless -Force names a build past it, in
-# which case it is whatever the stock APK says it is, read the same way the receipt reads it.
-$expectedVersion = $expectedTarget.PackageVersion
-$forced = $false
-if ($Force) {
-    . (Join-Path $PSScriptRoot 'release-receipt.ps1')
-    $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
-    $stock = Get-ApkManifestFacts -Apk $Apk -Aapt2 $Aapt2
-    if ($stock.package -ne $expectedTarget.PackageName) {
-        throw "$(Split-Path -Leaf $Apk) is $($stock.package), not the catalog's target $($expectedTarget.PackageName)."
-    }
-    if ([string]::IsNullOrWhiteSpace($stock.versionName)) {
-        throw "$(Split-Path -Leaf $Apk) carries no versionName, so there is nothing to hold the result to."
-    }
-    $expectedVersion = $stock.versionName
-    $forced = $stock.versionName -ne $expectedTarget.PackageVersion
-    if ($forced) {
-        Write-Host "[verify] forcing the bundle onto $($stock.package) $($stock.versionName); it declares $($expectedTarget.PackageVersion)"
-    } else {
-        Write-Host "[verify] $($stock.package) $($stock.versionName) is the declared target, so nothing is forced"
-    }
+# The version the result is held to: whatever the stock APK says it is, read the same way the
+# receipt reads it. The catalog declares more than one build, so the APK names which one this is.
+# A build it doesn't declare is patched only under -Force.
+. (Join-Path $PSScriptRoot 'release-receipt.ps1')
+$Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
+$stock = Get-ApkManifestFacts -Apk $Apk -Aapt2 $Aapt2
+if ($stock.package -ne $expectedTarget.PackageName) {
+    throw "$(Split-Path -Leaf $Apk) is $($stock.package), not the catalog's target $($expectedTarget.PackageName)."
+}
+if ([string]::IsNullOrWhiteSpace($stock.versionName)) {
+    throw "$(Split-Path -Leaf $Apk) carries no versionName, so there is nothing to hold the result to."
+}
+$expectedVersion = $stock.versionName
+$declaredText = Format-VersionList -Versions @($expectedTarget.PackageVersions)
+$forced = $stock.versionName -cnotin @($expectedTarget.PackageVersions)
+if ($forced -and -not $Force) {
+    throw ("$(Split-Path -Leaf $Apk) is $($stock.package) $($stock.versionName); the bundle declares " +
+        "$declaredText. Pass -Force to patch it anyway.")
+}
+if ($forced) {
+    Write-Host "[verify] forcing the bundle onto $($stock.package) $($stock.versionName); it declares $declaredText"
+} else {
+    Write-Host "[verify] $($stock.package) $($stock.versionName) is a declared target, so nothing is forced"
 }
 
 New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null

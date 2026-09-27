@@ -28,6 +28,7 @@ https://github.com/areteruhiro/Haiagaru
   * 荒らし省略
 * 191 dev／226 dev／241／243 devのエッヂ板でスレタイ末尾に記者IDを表示（初期値ON、Haiagaru設定から切り替え）
 * 端末内JavaScriptで複雑なNG条件を作れる「高度なNGルール」
+* NGワード・NG ID・NG名前などの登録上限をHaiagaru設定から変更（0で無制限、4対応版共通）
 
 
 ### エッヂの記者ID表示
@@ -118,7 +119,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 
 [MorpheへHaiagaruを追加](https://morphe.software/add-source?github=areteruhiro/Haiagaru-Morphe&name=Haiagaru)
 
-通常版は正式Release `1.4.0`、プレリリース版は `1.4.10` から取得します。
+通常版は正式Release `1.4.0`、プレリリース版は `1.4.11` から取得します。
 配布物はAndroid拡張を内包したMPPです。
 
 現在の公式版（1.4.0）を取得するパッチソースです。
@@ -127,7 +128,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle.json
 ```
 
-プレリリース版（1.4.10）を取得するパッチソースです。
+プレリリース版（1.4.11）を取得するパッチソースです。
 
 ```text
 https://raw.githubusercontent.com/areteruhiro/Haiagaru-Morphe/master/patches-bundle-pre.json
@@ -139,8 +140,15 @@ URV Manager / Morphe Managerが更新を検出できるようにJSON上の配布
 
 ## 更新履歴
 
+### 1.4.11（プレリリース）
+
+- 既読のEdgeスレッドで履歴を削除しなくても、NGThreadから記者IDを登録できるよう修正
+- スレッド番号に加えて履歴タイトルの記者ID情報も保存し、NGThread操作時に復元
+- ChMate 0.8.10.191 dev / 0.8.10.226 dev / 0.8.10.241 / 0.8.10.243 devに共通対応
+
 ### 1.4.10（プレリリース）
 
+- NGワード・NG ID・NG名前などの保存上限を、Haiagaru設定から0（無制限）〜100000件で指定できるように変更
 - ChMateの「本文内の5chスレURLにスレ立て日を表示」でURLを板名・日付へ置換する削除範囲を補正
 - `hニュー速(嫌儲)/2026-09-14 23:29:15` のようにURL先頭の`h`が残る表示を修正
 - 1.4.9までのBEアイコン、投稿、Talk、広告、URL補正を継承

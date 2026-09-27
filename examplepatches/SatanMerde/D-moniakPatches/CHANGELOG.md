@@ -1,3 +1,165 @@
+## [1.33.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.32.0...v1.33.0) (2026-09-26)
+
+### ✨ New Features
+
+* add practical feature patches for Bitwarden, Claude AI, Euria AI, VPN.lat, hide.me VPN, DeepL ([325b78d](https://github.com/SatanMerde/D-moniakPatches/commit/325b78d900564cc54b0368d6200c182d1ce44d34))
+
+## [1.32.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.31.0...v1.32.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for VPN.lat, hide.me VPN, Claude AI, Euria AI, Bitwarden, DeepL ([4f0ad64](https://github.com/SatanMerde/D-moniakPatches/commit/4f0ad64cab7dab330df6c2ae2d8724dfd8d5f315))
+
+## [1.31.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.30.0...v1.31.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for useful apps (CamScanner, Flightradar24, PictureThis, AllTrails, Windy) ([9fc0274](https://github.com/SatanMerde/D-moniakPatches/commit/9fc02743f3778affa1ddee9bfd286f05b6735dff))
+
+## [1.30.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.29.0...v1.30.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for useful apps (Stellarium Mobile, World Map Quiz, Photomath, Memrise, Peak) ([1b2cb1b](https://github.com/SatanMerde/D-moniakPatches/commit/1b2cb1b872d5a8ad2ad305bf7cea7ff17063b938))
+
+## [1.29.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.3...v1.29.0) (2026-09-26)
+
+### ✨ New Features
+
+* add patch suites for 10 mythical mobile games (Subway Surfers, PvZ, Temple Run 2, Fruit Ninja, etc.) ([71f9e31](https://github.com/SatanMerde/D-moniakPatches/commit/71f9e31a5f6f25464bb95077c35de54ccb3c44c8))
+
+## [1.28.3](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.2...v1.28.3) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **movix:** switch to evaluateJavascript and inject via setInjectedJavaScriptBeforeContentLoaded ([7ad7820](https://github.com/SatanMerde/D-moniakPatches/commit/7ad7820d81f717521ebf743b7a0a7e281e2158f8))
+
+## [1.28.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.1...v1.28.2) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **movix:** completely eliminate 'Une pub et c\'est parti' modal via VIP storage locking, fetch mock and Radix dialog killer ([9af40e5](https://github.com/SatanMerde/D-moniakPatches/commit/9af40e5dde1c41cceb2a7254005b916f8c52dfb4))
+
+## [1.28.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.28.0...v1.28.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **movix:** implement real React Native WebView bytecode hooks for Movix ad blocking and feature unlock ([e99f6c8](https://github.com/SatanMerde/D-moniakPatches/commit/e99f6c8048178023ddabd9e37af3c614b1bc0649))
+
+## [1.28.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.27.0...v1.28.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Brave Browser, Firefox, Twitch and VLC patch suites (170 patches, 53 apps) ([8d83b4d](https://github.com/SatanMerde/D-moniakPatches/commit/8d83b4dacf3126762707764ca0239f984f0f80a3))
+
+## [1.27.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.26.0...v1.27.0) (2026-09-26)
+
+### ✨ New Features
+
+* expand Canva, Movix and Google Drive suites to 158 patches total ([5f55355](https://github.com/SatanMerde/D-moniakPatches/commit/5f55355c85423641c8164b872fb1bdd2d2ed941a))
+
+## [1.26.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.25.0...v1.26.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Canva, Movix and Google Drive patch suites (145 patches, 49 apps) ([97ba158](https://github.com/SatanMerde/D-moniakPatches/commit/97ba15809ceedc83f2d15ecf9ba833d35be635f5))
+
+## [1.25.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.24.0...v1.25.0) (2026-09-26)
+
+### ✨ New Features
+
+* add cloud storage suite (MEGA, TeraBox, Proton Drive, Nextcloud) ([0204163](https://github.com/SatanMerde/D-moniakPatches/commit/0204163be3118d347336d7bda064777d01ff2312))
+
+## [1.24.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.23.0...v1.24.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Pro and Premium feature unlocks for Telegram, Snapchat, Signal, Session, and SimpleX ([3c9b5d3](https://github.com/SatanMerde/D-moniakPatches/commit/3c9b5d354dd7a78e05aed37035807e6920360aa6))
+
+## [1.23.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.22.0...v1.23.0) (2026-09-26)
+
+### ✨ New Features
+
+* expand patches for Telegram, Signal, Snapchat, ChatGPT, Perplexity, Gemini, Maps, and Google Phone ([350cff0](https://github.com/SatanMerde/D-moniakPatches/commit/350cff0e819fd283ef6d92e6c4bd298f9ed9d0c2))
+
+## [1.22.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.21.0...v1.22.0) (2026-09-26)
+
+### ✨ New Features
+
+* add messaging apps suite (Telegram, Signal, Session, SimpleX, Snapchat) ([b3f17a2](https://github.com/SatanMerde/D-moniakPatches/commit/b3f17a2caee026ff90176eefef00d973a5c43358))
+
+## [1.21.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.20.0...v1.21.0) (2026-09-26)
+
+### ✨ New Features
+
+* add AI apps suite (ChatGPT, Perplexity, Google Gemini) and expand Google Photos patches ([649c5d9](https://github.com/SatanMerde/D-moniakPatches/commit/649c5d98953ed31435f0161b210f92284f5c8238))
+
+## [1.20.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.19.0...v1.20.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Google Phone, Google Maps, and Google Photos base apps suite ([17e4aef](https://github.com/SatanMerde/D-moniakPatches/commit/17e4aef2a906e0824723a0efe6fedd9318639c7c))
+
+## [1.19.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.18.0...v1.19.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Tuta Mail suite and expand Proton VPN patches suite ([6040fbb](https://github.com/SatanMerde/D-moniakPatches/commit/6040fbbb1ea0c8a1d9135ca0d2de4ed7745a029e))
+
+## [1.18.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.17.0...v1.18.0) (2026-09-26)
+
+### ✨ New Features
+
+* add advanced Proton VPN, Proton Mail, and Proton Pass patches suite ([21f6335](https://github.com/SatanMerde/D-moniakPatches/commit/21f6335c02825e9fedbe866516755537d60434c6))
+
+## [1.17.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.16.0...v1.17.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Proton VPN, Turbo VPN, and Windscribe patches suite ([475083e](https://github.com/SatanMerde/D-moniakPatches/commit/475083e667c13ad8ed7b3a8ab61cfc14d502f94c))
+
+## [1.16.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.15.0...v1.16.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Hill Climb Racing, Jetpack Joyride, Alto's Adventure, and Speedtest patches suite ([071e03a](https://github.com/SatanMerde/D-moniakPatches/commit/071e03ae5a6ec1247d7be66b6f07547d89e7e441))
+
+## [1.15.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.14.0...v1.15.0) (2026-09-26)
+
+### ✨ New Features
+
+* add 6 universal patches for AMOLED, rotation, screen on, 120Hz, haptics, and webview debugging ([0e0373f](https://github.com/SatanMerde/D-moniakPatches/commit/0e0373fc15d542e630bd209379d92e2a430f790a))
+
+## [1.14.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.13.0...v1.14.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Shazam, Strava, Truecaller, and MX Player patches suite ([389f538](https://github.com/SatanMerde/D-moniakPatches/commit/389f538d6cf0bf8d207cbd614f946712f328cc44))
+
+## [1.13.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.12.0...v1.13.0) (2026-09-26)
+
+### ✨ New Features
+
+* add premium and pro feature patches for Duolingo, Waze, SoundCloud, and Pinterest ([43364aa](https://github.com/SatanMerde/D-moniakPatches/commit/43364aa38f2231a5511418494c1ad0a5491431ab))
+
+## [1.12.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.11.0...v1.12.0) (2026-09-26)
+
+### ✨ New Features
+
+* add Duolingo, Waze, SoundCloud, and Pinterest patches suite ([2eb0d61](https://github.com/SatanMerde/D-moniakPatches/commit/2eb0d61c64b3fd9aadea51b01f9d3776b9bf0c47))
+
+## [1.11.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.10.0...v1.11.0) (2026-09-26)
+
+### ✨ New Features
+
+* **universal:** add Universal App Clone patch for side-by-side dual installation ([0d7055b](https://github.com/SatanMerde/D-moniakPatches/commit/0d7055b70fb4a3c23fbb1a11dd569bcc8fc27768))
+
+## [1.10.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.9.0...v1.10.0) (2026-09-26)
+
+### ✨ New Features
+
+* **spotify:** add Spicetify Mobile patch suite (AMOLED, custom accents, declutter, addons) ([b86d6a9](https://github.com/SatanMerde/D-moniakPatches/commit/b86d6a95abd27e99140248cd166c8980cd440365))
+
 ## [1.9.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.8.0...v1.9.0) (2026-09-25)
 
 ### ✨ New Features

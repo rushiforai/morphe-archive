@@ -44,6 +44,8 @@ public final class PatchSettings {
     }
 
     public static final String KEY_IMAGE_CACHE_MB = "lchanc3_image_cache_mb";
+    public static final String KEY_IMAGE_MEMORY_CACHE_MB = "lchanc3_image_memory_cache_mb";
+    public static final String KEY_IMAGE_MEMORY_RELEASE_MINUTES = "lchanc3_image_memory_release_minutes";
     public static final String KEY_PRELOAD_LIMIT = "lchanc3_preload_limit";
     public static final String KEY_PRELOAD_CONCURRENCY = "lchanc3_preload_concurrency";
     public static final String KEY_BOARD_KEYWORDS = "lchanc3_board_keyword_count";
@@ -53,10 +55,16 @@ public final class PatchSettings {
     private static final Map<String, Setting> REGISTRY = new LinkedHashMap<>();
 
     /** Called from the patched JpttApplication.onCreate(). */
-    public static void registerImageCacheSize(int defaultMb) {
-        register(KEY_IMAGE_CACHE_MB, "圖片快取上限 (MB)",
-                "圖片快取存在手機裡的容量，重新啟動應用程式生效",
-                defaultMb, 40, 8192);
+    public static void registerImageCaches(int defaultMemoryMb, int defaultReleaseMinutes, int defaultDiskMb) {
+        register(KEY_IMAGE_MEMORY_CACHE_MB, "圖片記憶體快取上限 (MB)",
+                "看過和預先載入的圖片放在記憶體裡，捲動、回頭看都不用重新讀取，設為 0 關閉，一分鐘內生效",
+                defaultMemoryMb, 0, 1536);
+        register(KEY_IMAGE_MEMORY_RELEASE_MINUTES, "背景多久後釋放記憶體快取 (分鐘)",
+                "應用程式在背景超過這段時間，就清空圖片記憶體快取，比較不會被系統關閉，設為 0 則一離開就清空",
+                defaultReleaseMinutes, 0, 120);
+        register(KEY_IMAGE_CACHE_MB, "圖片磁碟快取上限 (MB)",
+                "存在手機裡的圖片快取容量，記憶體快取清掉之後從這裡讀，不必重新下載，重新啟動應用程式生效",
+                defaultDiskMb, 16, 8192);
     }
 
     /** Called from the patched JpttApplication.onCreate(). */
@@ -150,6 +158,14 @@ public final class PatchSettings {
 
     public static long imageCacheBytes() {
         return (long) value(KEY_IMAGE_CACHE_MB) * 1024L * 1024L;
+    }
+
+    public static int imageMemoryCacheBytes() {
+        return value(KEY_IMAGE_MEMORY_CACHE_MB) * 1024 * 1024;
+    }
+
+    public static long imageMemoryCacheReleaseMs() {
+        return value(KEY_IMAGE_MEMORY_RELEASE_MINUTES) * 60L * 1000L;
     }
 
     public static int preloadLimit() {

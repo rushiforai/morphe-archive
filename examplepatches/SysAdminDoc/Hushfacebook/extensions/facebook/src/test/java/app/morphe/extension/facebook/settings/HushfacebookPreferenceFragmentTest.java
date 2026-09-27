@@ -7,6 +7,7 @@ package app.morphe.extension.facebook.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -17,6 +18,8 @@ import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
 
+import app.morphe.extension.facebook.download.DownloadQuality;
+import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -34,8 +37,10 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowToast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +67,10 @@ public class HushfacebookPreferenceFragmentTest {
         PatchFamily.inBuildForTests = null;
         ScreenColors.shown = null;
         PauseForTests.resume();
+        BaseSettings.SAFE_MODE.resetToDefault();
         Settings.SAVE_FOLDER.resetToDefault();
+        Settings.DOWNLOAD_QUALITY.resetToDefault();
+        Settings.FILENAME_TEMPLATE.resetToDefault();
     }
 
     @Test
@@ -87,6 +95,8 @@ public class HushfacebookPreferenceFragmentTest {
             for (PatchFamily family : PatchFamily.values()) {
                 for (BooleanSetting setting : family.switches) switchKeys.add(setting.key);
             }
+            // The settings entry's own switches are Pause's to turn off too.
+            for (BooleanSetting setting : PatchFamily.ENTRY_SWITCHES) switchKeys.add(setting.key);
             Set<String> shown = new HashSet<>();
             Preference stays = null;
             for (Preference row : rows) {
@@ -119,6 +129,45 @@ public class HushfacebookPreferenceFragmentTest {
         return -1;
     }
 
+    /**
+     * Facebook builds the feed's adapters once per feed view and the tray is one of them, so the
+     * switch can't act before a restart (an S22 check on 2026-09-26 pulled to refresh and got no
+     * tray back). The row says so, after what the tray is.
+     */
+    @Test
+    public void theStoriesTrayRowSaysTheSwitchWaitsForARestart() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.STORIES_TRAY);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = rowsOf(controller);
+            int tray = indexOfKey(rows, Settings.HIDE_STORIES_TRAY.key);
+            assertTrue("the Stories tray row is missing", tray >= 0);
+            assertEquals("The row of stories at the top of the feed, Create story included. "
+                    + "The switch takes effect when Facebook restarts.", String.valueOf(rows.get(tray).getSummary()));
+        }
+    }
+
+    /**
+     * The sponsored and AI reel filters take ads and flagged reels out of each batch of reels as it
+     * arrives, so reels already loaded stay as they were until the next batch. Both rows say when a
+     * change starts, right after what the switch hides.
+     */
+    @Test
+    public void theReelFilterRowsSayAChangeStartsWithTheNextBatch() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_REELS, PatchFamily.AI_DETECTED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = rowsOf(controller);
+            int sponsored = indexOfKey(rows, Settings.HIDE_SPONSORED_REELS.key);
+            int ai = indexOfKey(rows, Settings.HIDE_AI_DETECTED_REELS.key);
+            assertTrue("the sponsored reels row is missing", sponsored >= 0);
+            assertTrue("the AI reels row is missing", ai >= 0);
+            assertTrue(String.valueOf(rows.get(sponsored).getSummary()), String.valueOf(rows.get(sponsored).getSummary())
+                    .startsWith("Ads inside Reels, starting with the next batch Facebook loads. "));
+            assertTrue(String.valueOf(rows.get(ai).getSummary()), String.valueOf(rows.get(ai).getSummary())
+                    .startsWith("Reels and Watch videos that Facebook's own detection marks as made with AI, "
+                            + "starting with the next batch Facebook loads. "));
+        }
+    }
+
     @Test
     public void thePausedCardSaysWhatStaysInForEveryReason() {
         for (HushfacebookPause.Reason why : HushfacebookPause.Reason.values()) {
@@ -137,6 +186,9 @@ public class HushfacebookPreferenceFragmentTest {
                 .contains("in " + L10n.isolate("Android/data/" + pkg + "/files") + " paused Hushfacebook"));
 
         PauseForTests.pause(HushfacebookPause.Reason.CRASH_LOOP);
+        // A crash-loop pause comes from safe mode, which stays on for the next start too. The card
+        // reads that to say whether the next start still runs paused.
+        BaseSettings.SAFE_MODE.save(true);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             Preference card = rowsOf(controller).get(0);
             assertEquals("Hushfacebook is paused", String.valueOf(card.getTitle()));
@@ -212,6 +264,214 @@ public class HushfacebookPreferenceFragmentTest {
             for (Preference row : rowsOf(controller)) {
                 assertFalse("a folder row with no download in the build",
                         row instanceof HushfacebookPreferenceFragment.FolderRow);
+            }
+        }
+    }
+
+    /**
+     * The download quality's row offers every quality, says what the chosen one does, and a pick
+     * reaches the setting the way the list's own dialog sends it. It sits above the folder, and
+     * it's there with any download in the build.
+     */
+    @Test
+    public void theQualityRowOffersEveryQualityAndSaysWhatItDoes() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = new HushfacebookPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            HushfacebookPreferenceFragment.QualityRow quality = null;
+            int qualityAt = -1;
+            int folderAt = -1;
+            for (int i = 0; i < rows.size(); i++) {
+                if (rows.get(i) instanceof HushfacebookPreferenceFragment.QualityRow) {
+                    quality = (HushfacebookPreferenceFragment.QualityRow) rows.get(i);
+                    qualityAt = i;
+                }
+                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FolderRow) folderAt = i;
+            }
+            assertNotNull("no quality row with a download in the build", quality);
+            assertEquals("the quality row isn't next to the folder", folderAt - 1, qualityAt);
+            assertEquals(Settings.DOWNLOAD_QUALITY.key, quality.getKey());
+            assertEquals("Download quality", String.valueOf(quality.getTitle()));
+
+            List<String> entries = new ArrayList<>();
+            for (CharSequence entry : quality.getEntries()) entries.add(String.valueOf(entry));
+            assertEquals(Arrays.asList("Best", L10n.isolate("1080p"), L10n.isolate("720p"), L10n.isolate("480p"),
+                    L10n.isolate("360p"), "Smallest"), entries);
+            List<String> values = new ArrayList<>();
+            for (CharSequence value : quality.getEntryValues()) values.add(String.valueOf(value));
+            List<String> names = new ArrayList<>();
+            for (DownloadQuality each : DownloadQuality.values()) names.add(each.name());
+            assertEquals(names, values);
+
+            assertEquals("BEST", quality.getValue());
+            assertEquals("Each video saves at the best quality the player streams.", String.valueOf(quality.getSummary()));
+
+            // A pick in the list, the way its dialog sends one.
+            quality.setValue("P480");
+            ShadowLooper.idleMainLooper();
+            assertEquals(DownloadQuality.P480, Settings.DOWNLOAD_QUALITY.savedValue());
+            // A cap prefers anything at or under it, so the summary can't promise the nearest
+            // quality: under 720p a video with 1080p and 240p saves at 240p.
+            assertEquals("Each video saves at " + L10n.isolate("480p") + " or the closest quality below it. A video "
+                            + "with nothing that low saves at the closest quality above.",
+                    String.valueOf(quality.getSummary()));
+
+            quality.setValue("SMALLEST");
+            ShadowLooper.idleMainLooper();
+            assertEquals(DownloadQuality.SMALLEST, Settings.DOWNLOAD_QUALITY.savedValue());
+            assertEquals("Each video saves at its lowest quality, for the smallest file.",
+                    String.valueOf(quality.getSummary()));
+
+            // A value set behind the row, as an import does, shows once the page syncs.
+            Settings.DOWNLOAD_QUALITY.save(DownloadQuality.P720);
+            page.refreshSwitches();
+            assertEquals("P720", quality.getValue());
+            assertEquals(HushfacebookPreferenceFragment.qualitySummary(DownloadQuality.P720),
+                    String.valueOf(quality.getSummary()));
+        }
+
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            for (Preference row : rowsOf(controller)) {
+                assertFalse("a quality row with no download in the build",
+                        row instanceof HushfacebookPreferenceFragment.QualityRow);
+            }
+        }
+    }
+
+    /**
+     * With Open on a chosen tab in the build, the screen opens with its switch and the list of
+     * tabs, which offers each tab by its name in Facebook, says what the chosen one does, and
+     * reaches the setting the way the list's own dialog sends a pick.
+     */
+    @Test
+    public void theStartTabRowOffersEveryTabAndSaysWhatItDoes() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB, PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = new HushfacebookPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            // Right under the status card and the section jump: the heading, the switch, then the list.
+            assertEquals("Jump to a section", String.valueOf(page.getPreferenceScreen().getPreference(1).getTitle()));
+            assertEquals("Opening Facebook", String.valueOf(page.getPreferenceScreen().getPreference(2).getTitle()));
+            assertEquals(Settings.OPEN_ON_CHOSEN_TAB.key, rows.get(2).getKey());
+            assertEquals("Open on a chosen tab", String.valueOf(rows.get(2).getTitle()));
+            assertTrue(rows.get(3) instanceof HushfacebookPreferenceFragment.StartTabRow);
+            HushfacebookPreferenceFragment.StartTabRow start = (HushfacebookPreferenceFragment.StartTabRow) rows.get(3);
+            assertEquals(Settings.START_TAB.key, start.getKey());
+            assertEquals("Tab to open on", String.valueOf(start.getTitle()));
+
+            List<String> entries = new ArrayList<>();
+            for (CharSequence entry : start.getEntries()) entries.add(String.valueOf(entry));
+            assertEquals(Arrays.asList("Home", "Feeds", "Video", "Friends", "Marketplace", "Notifications", "Menu"),
+                    entries);
+            List<String> values = new ArrayList<>();
+            for (CharSequence value : start.getEntryValues()) values.add(String.valueOf(value));
+            List<String> names = new ArrayList<>();
+            for (StartTab each : StartTab.values()) names.add(each.name());
+            assertEquals(names, values);
+
+            assertEquals("MARKETPLACE", start.getValue());
+            assertEquals("Facebook opens on Marketplace. If your tab bar doesn't have it, Facebook opens on Home.",
+                    String.valueOf(start.getSummary()));
+
+            // A pick in the list, the way its dialog sends one.
+            start.setValue("FRIENDS");
+            ShadowLooper.idleMainLooper();
+            assertEquals(StartTab.FRIENDS, Settings.START_TAB.savedValue());
+            assertEquals("Facebook opens on Friends. If your tab bar doesn't have it, Facebook opens on Home.",
+                    String.valueOf(start.getSummary()));
+
+            // A value set behind the row, as an import does, shows once the page syncs.
+            Settings.START_TAB.save(StartTab.MENU);
+            page.refreshSwitches();
+            assertEquals("MENU", start.getValue());
+            assertEquals(HushfacebookPreferenceFragment.startTabSummary(StartTab.MENU), String.valueOf(start.getSummary()));
+        } finally {
+            Settings.START_TAB.resetToDefault();
+        }
+
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            for (Preference row : rowsOf(controller)) {
+                assertFalse("a start tab row with no Open on a chosen tab in the build",
+                        row instanceof HushfacebookPreferenceFragment.StartTabRow);
+                assertFalse(Settings.OPEN_ON_CHOSEN_TAB.key.equals(row.getKey()));
+            }
+        }
+    }
+
+    /**
+     * The video file name's row, next to the folder, keeps the one clean template a save would use,
+     * whatever is typed into it, says so in a toast when it changed what was typed, says what videos
+     * and photos are named, and names both tokens in its dialog.
+     */
+    @Test
+    public void theFileNameRowKeepsOneCleanTemplateNextToTheFolder() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = rowsOf(controller);
+            HushfacebookPreferenceFragment.FileNameRow name = null;
+            int nameAt = -1;
+            int folderAt = -1;
+            for (int i = 0; i < rows.size(); i++) {
+                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FileNameRow) {
+                    name = (HushfacebookPreferenceFragment.FileNameRow) rows.get(i);
+                    nameAt = i;
+                }
+                if (rows.get(i) instanceof HushfacebookPreferenceFragment.FolderRow) folderAt = i;
+            }
+            assertNotNull("no file name row with a download in the build", name);
+            assertEquals("the file name row isn't next to the folder", folderAt + 1, nameAt);
+            assertEquals(Settings.FILENAME_TEMPLATE.key, name.getKey());
+            assertEquals("Video file name", String.valueOf(name.getTitle()));
+            assertEquals("Videos are named " + L10n.isolate("FB_VID_{date}") + ". Photos keep Facebook's own "
+                    + L10n.isolate("FB_IMG_") + " names.", String.valueOf(name.getSummary()));
+            String message = String.valueOf(name.getDialogMessage());
+            assertTrue(message, message.contains(L10n.isolate("{date}")) && message.contains(L10n.isolate("{video_id}"))
+                    && message.contains(L10n.isolate("{owner}")) && message.contains(L10n.isolate("{posted}"))
+                    && message.contains(L10n.isolate("FB_VID_{date}")));
+            // The folder's dialog, in the same words: a Save button and a hint that says what goes in.
+            assertEquals("Save", String.valueOf(name.getPositiveButtonText()));
+            assertEquals("File name", String.valueOf(name.getEditText().getHint()));
+
+            Preference.OnPreferenceChangeListener ok = name.getOnPreferenceChangeListener();
+            assertFalse("a path was kept as typed", ok.onPreferenceChange(name, "../Reels/{video_id}"));
+            ShadowLooper.idleMainLooper();
+            assertEquals("Reels_{video_id}", name.getText());
+            assertEquals("Reels_{video_id}", Settings.FILENAME_TEMPLATE.savedValue());
+            assertEquals(HushfacebookPreferenceFragment.fileNameSummary("Reels_{video_id}"), String.valueOf(name.getSummary()));
+            assertEquals("File name set to " + L10n.isolate("Reels_{video_id}") + ".", ShadowToast.getTextOfLatestToast());
+
+            // A name that would be the same for every video gets the date.
+            assertFalse("a name with no token was kept", ok.onPreferenceChange(name, "Clip"));
+            ShadowLooper.idleMainLooper();
+            assertEquals("Clip_{date}", name.getText());
+            assertEquals("Clip_{date}", Settings.FILENAME_TEMPLATE.savedValue());
+            assertEquals("File name set to " + L10n.isolate("Clip_{date}") + ".", ShadowToast.getTextOfLatestToast());
+
+            ShadowToast.reset();
+            assertTrue("a clean template was changed", ok.onPreferenceChange(name, "{date} {video_id}"));
+            name.setText("{date} {video_id}");
+            ShadowLooper.idleMainLooper();
+            assertEquals("{date} {video_id}", Settings.FILENAME_TEMPLATE.savedValue());
+            assertNull("a clean template raised a toast", ShadowToast.getLatestToast());
+
+            assertFalse("an empty template was kept", ok.onPreferenceChange(name, " . "));
+            ShadowLooper.idleMainLooper();
+            assertEquals("FB_VID_{date}", name.getText());
+            assertEquals("FB_VID_{date}", Settings.FILENAME_TEMPLATE.savedValue());
+        }
+
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            for (Preference row : rowsOf(controller)) {
+                assertFalse("a file name row with no download in the build",
+                        row instanceof HushfacebookPreferenceFragment.FileNameRow);
             }
         }
     }

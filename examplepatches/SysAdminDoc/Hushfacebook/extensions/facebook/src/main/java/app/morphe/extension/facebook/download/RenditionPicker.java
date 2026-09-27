@@ -167,8 +167,10 @@ final class RenditionPicker {
 
             // The tag inside names the rendition as a bare number more often than as a marker:
             // `...C3.360.sve_sd` states 360 and never writes `360p`. Only the decoded tag is read
-            // this way. The address itself is full of long digit runs that mean nothing.
-            measured = bareNumberIn(efg);
+            // this way. The address itself is full of long digit runs that mean nothing, and so
+            // are the efg's numeric fields: its `duration_s` of 1485 once made a 640x360 file
+            // read as 1485p and outrank real 720p ones.
+            measured = bareNumberIn(tagTextOf(efg));
             if (measured > 0) return measured;
         }
 
@@ -214,6 +216,39 @@ final class RenditionPicker {
         }
 
         return best;
+    }
+
+    /**
+     * The video address among these that suits [quality] best, or {@code null} when none is a
+     * video. The best quality is {@link #bestOf}, as it always was. Below it, a single file still
+     * wins over a plausible address first, then {@link DownloadQuality#compare} decides on the
+     * stated qualities, and the address itself breaks a tie, for the same reason as in
+     * {@link #compare}. An address that states no quality comes last but still counts, so a
+     * ceiling never leaves a save with nothing.
+     */
+    static String bestVideo(Collection<String> urls, DownloadQuality quality) {
+        if (quality == null || quality == DownloadQuality.BEST) return bestOf(urls, true);
+        if (urls == null || urls.isEmpty()) return null;
+
+        String best = null;
+        for (String url : new LinkedHashSet<>(urls)) {
+            if (videoTier(url) == TIER_NONE) continue;
+            if (best == null || compare(url, best, quality) < 0) best = url;
+        }
+
+        return best;
+    }
+
+    /** {@link #compare} for a video save held to [quality]. Lower sorts better. */
+    static int compare(String a, String b, DownloadQuality quality) {
+        int tierA = videoTier(a);
+        int tierB = videoTier(b);
+        if (tierA != tierB) return tierB - tierA;
+
+        int order = quality.compare(qualityOf(a), qualityOf(b));
+        if (order != 0) return order;
+
+        return a.compareTo(b);
     }
 
     // ---------------------------------------------------------------- reading an object
@@ -410,11 +445,54 @@ final class RenditionPicker {
         return matchDimensionPair(text);
     }
 
+    /** The heights Facebook encodes renditions at. A bare number is read only when it's one. */
+    private static final int[] RENDITION_HEIGHTS = {144, 240, 270, 360, 480, 540, 720, 1080, 1440, 2160};
+
     /**
-     * The largest plausible standalone number in [text].
+     * The text of [efg] a bare number may be read from: when it's the JSON Facebook writes, the
+     * string values of its tag fields ({@code vencode_tag}) only, never a number field such as
+     * {@code duration_s} or an id; otherwise all of it.
+     */
+    static String tagTextOf(String efg) {
+        String text = efg.trim();
+        if (!text.startsWith("{")) return efg;
+
+        StringBuilder tags = new StringBuilder();
+        int index = 0;
+        while (true) {
+            int keyStart = text.indexOf('"', index);
+            if (keyStart < 0) break;
+            int keyEnd = text.indexOf('"', keyStart + 1);
+            if (keyEnd < 0) break;
+            String key = text.substring(keyStart + 1, keyEnd);
+
+            int colon = keyEnd + 1;
+            while (colon < text.length() && Character.isWhitespace(text.charAt(colon))) colon++;
+            if (colon >= text.length() || text.charAt(colon) != ':') {
+                index = keyEnd + 1;
+                continue;
+            }
+            int value = colon + 1;
+            while (value < text.length() && Character.isWhitespace(text.charAt(value))) value++;
+            if (value < text.length() && text.charAt(value) == '"') {
+                int valueEnd = text.indexOf('"', value + 1);
+                if (valueEnd < 0) break;
+                if (key.toLowerCase(Locale.US).endsWith("tag")) {
+                    tags.append(text, value + 1, valueEnd).append(' ');
+                }
+                index = valueEnd + 1;
+            } else {
+                index = value;
+            }
+        }
+        return tags.toString();
+    }
+
+    /**
+     * The largest standalone number in [text] that is a height Facebook encodes at.
      *
-     * Bounded to real frame heights, so an id or a timestamp in the same tag cannot be mistaken
-     * for one.
+     * Held to {@link #RENDITION_HEIGHTS}, so an id, a width such as the 640 of a 640x360 file, or
+     * a timestamp in the same tag cannot be mistaken for one.
      */
     private static int bareNumberIn(String text) {
         int best = 0;
@@ -434,7 +512,9 @@ final class RenditionPicker {
 
             try {
                 int value = Integer.parseInt(text.substring(start, index));
-                if (value >= 144 && value <= 4320) best = Math.max(best, value);
+                for (int height : RENDITION_HEIGHTS) {
+                    if (value == height) best = Math.max(best, value);
+                }
             } catch (NumberFormatException ignored) {
                 // Cannot happen: every character was checked as a digit.
             }

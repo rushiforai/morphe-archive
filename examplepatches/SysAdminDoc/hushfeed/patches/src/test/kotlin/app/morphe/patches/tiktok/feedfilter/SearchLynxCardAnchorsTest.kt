@@ -33,36 +33,38 @@ class SearchLynxCardAnchorsTest {
     private val holderBinds = listOf(SearchLynxHolderBindFingerprint, SearchDynamicHolderBindFingerprint)
 
     @Test
-    fun `47_0_3's results adapter binds every Lynx card through a hooked holder`() {
-        val build = Build(Fixtures.apks().single { it.name.contains("47.0.3") })
-        val binds = holderBinds.map { fingerprint -> build.single(fingerprint) }
-        for ((holder, bind) in binds) {
-            assertFalse("${bind.name} is static, so p0 is not the holder", AccessFlags.STATIC.isSet(bind.accessFlags))
-            assertTrue("${holder.type} is not a RecyclerView view holder", build.isViewHolder(holder.type))
-            assertEquals("the fragment is not ${holder.type}'s first parameter", fragment, bind.parameterTypes[0].toString())
-            assertEquals("the patch is not ${holder.type}'s second parameter", DYNAMIC_PATCH_DESCRIPTOR, bind.parameterTypes[1].toString())
-        }
-        build.single(SearchLynxCardBindFingerprint)
-
-        // The results adapter's bind is the ten-parameter holder bind's one caller. Every view
-        // holder method it calls with a DynamicPatch has to be one of the two hooked binds.
-        val tenParameter = binds.first().second
-        val adapters = build.methods.filter { (_, method) -> method.calls(tenParameter) }.toList()
-        assertEquals("callers of the ten-parameter holder bind: ${adapters.map { it.second.name }}", 1, adapters.size)
-        val hooked = binds.map { (_, bind) -> key(bind.definingClass, bind.name, bind.parameterTypes) }.toSet()
-        val lynxCalls = adapters.single().second.implementation!!.instructions.mapNotNull { instruction ->
-            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { reference ->
-                reference.parameterTypes.any { it.toString() == DYNAMIC_PATCH_DESCRIPTOR } && build.isViewHolder(reference.definingClass)
+    fun `each declared build's results adapter binds every Lynx card through a hooked holder`() {
+        Fixtures.forEachDeclared { apk ->
+            val build = Build(apk)
+            val binds = holderBinds.map { fingerprint -> build.single(fingerprint) }
+            for ((holder, bind) in binds) {
+                assertFalse("${bind.name} is static, so p0 is not the holder", AccessFlags.STATIC.isSet(bind.accessFlags))
+                assertTrue("${holder.type} is not a RecyclerView view holder", build.isViewHolder(holder.type))
+                assertEquals("the fragment is not ${holder.type}'s first parameter", fragment, bind.parameterTypes[0].toString())
+                assertEquals("the patch is not ${holder.type}'s second parameter", DYNAMIC_PATCH_DESCRIPTOR, bind.parameterTypes[1].toString())
             }
+            build.single(SearchLynxCardBindFingerprint)
+
+            // The results adapter's bind is the ten-parameter holder bind's one caller. Every view
+            // holder method it calls with a DynamicPatch has to be one of the two hooked binds.
+            val tenParameter = binds.first().second
+            val adapters = build.methods.filter { (_, method) -> method.calls(tenParameter) }.toList()
+            assertEquals("callers of the ten-parameter holder bind: ${adapters.map { it.second.name }}", 1, adapters.size)
+            val hooked = binds.map { (_, bind) -> key(bind.definingClass, bind.name, bind.parameterTypes) }.toSet()
+            val lynxCalls = adapters.single().second.implementation!!.instructions.mapNotNull { instruction ->
+                ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf { reference ->
+                    reference.parameterTypes.any { it.toString() == DYNAMIC_PATCH_DESCRIPTOR } && build.isViewHolder(reference.definingClass)
+                }
+            }
+            assertTrue("the results adapter binds no Lynx card at all", lynxCalls.isNotEmpty())
+            lynxCalls.forEach { call ->
+                assertTrue(
+                    "the results adapter binds a Lynx card through an unhooked holder: ${call.definingClass}->${call.name}",
+                    key(call.definingClass, call.name, call.parameterTypes) in hooked,
+                )
+            }
+            assertEquals("both holder binds are called by the adapter", hooked, lynxCalls.map { key(it.definingClass, it.name, it.parameterTypes) }.toSet())
         }
-        assertTrue("the results adapter binds no Lynx card at all", lynxCalls.isNotEmpty())
-        lynxCalls.forEach { call ->
-            assertTrue(
-                "the results adapter binds a Lynx card through an unhooked holder: ${call.definingClass}->${call.name}",
-                key(call.definingClass, call.name, call.parameterTypes) in hooked,
-            )
-        }
-        assertEquals("both holder binds are called by the adapter", hooked, lynxCalls.map { key(it.definingClass, it.name, it.parameterTypes) }.toSet())
     }
 
     /** The patch hooks every bind this test holds, each at index 0 with the same (holder, fragment, patch) call. */

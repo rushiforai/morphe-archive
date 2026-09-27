@@ -131,7 +131,8 @@ internal val serverCheckStallPatch = rawResourcePatch {
 /**
  * Stops the two native requests to Glu's `gserve` S3 bucket, which no longer exists (a free
  * bucket name can be claimed by anyone, who would then be serving this game over plain HTTP),
- * and takes out the two menu buttons that lead to dead services.
+ * takes out the two menu buttons that lead to dead services, and drops the offline message the
+ * dead time server causes.
  *
  * - `CDynamicAd::SetImageUrl()` fetches Glu's own banner through `WebUtil::httpGet()` and never
  *   reads the call's result. With the call made a no-op the `WebUtil` stays idle, and
@@ -145,6 +146,12 @@ internal val serverCheckStallPatch = rawResourcePatch {
  *   never start. The loop's end moves from after the fourth entry to after the second, so the
  *   bar has two buttons. Nothing reads them by position, and only this bar sends the commands
  *   the two buttons carried.
+ * - `CBH_GPSMap::HandleBonuses()` runs on every map update. `CBH_Player::TryMakeFiveDaysBonus()`
+ *   pays the daily bonus only against Glu's network time, which never arrives now, so on a new
+ *   local day it sets a flag, pays nothing, and the map shows "OFFLINE - NO DAILY BONUS". The
+ *   `bne` on that flag becomes a no-op and the function returns as on any other update. The
+ *   bonus logic and its saved fields are untouched; the day the message was last shown is kept
+ *   only in memory and read nowhere else.
  */
 internal val deadServersNativePatch = rawResourcePatch {
     dependsOn(nativeLibraryCheckPatch)

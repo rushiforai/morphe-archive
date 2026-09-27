@@ -29,12 +29,15 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val CLOCK = "Lapp/morphe/extension/music/jam/JamClock;"
+private const val OBJECT = "Ljava/lang/Object;"
 private const val CLOCK_BAR = "Lapp/morphe/extension/music/jam/JamClock\$Bar;"
 private const val PALETTE = "Lapp/morphe/extension/music/jam/JamPalette;"
 private const val PALETTE_SOURCE = "Lapp/morphe/extension/music/jam/JamPalette\$Source;"
 private const val PLAYBACK = "Lapp/morphe/extension/music/jam/JamPlayback;"
 private const val ROUTER_ACCESS = "Lapp/morphe/extension/music/jam/JamPlayback\$Router;"
 private const val NOW_ACCESS = "Lapp/morphe/extension/music/jam/JamPlayback\$NowUi;"
+private const val PLAYER_ICON = "Lapp/morphe/extension/music/jam/JamPlayerState\$Icon;"
+private const val PLAYER_STATE = "Lapp/morphe/extension/music/jam/JamPlayerState;"
 private const val MENU_ROW = "Lapp/morphe/extension/music/jam/JamMenu\$Row;"
 private const val ITEM_ACCESS = "Lapp/morphe/extension/music/jam/YtmBridge\$ItemAccess;"
 
@@ -49,6 +52,69 @@ internal fun BytecodePatchContext.installJamUiBridges(ui: JamUiAbi, queue: JamQu
   installArtwork(ui.artwork)
   installQueueRow(ui.queueRow, queue.item)
   ui.buttons.forEach(::installButton)
+  installPlaybackIcon(ui.playbackIcon)
+}
+
+private fun BytecodePatchContext.installPlaybackIcon(icon: PlaybackIconAbi) {
+  val owner = mutableClassDefBy(icon.render.definingClass)
+  val render = icon.render.getMutableMethod()
+  val name = render.name
+  val modelType = icon.constructor.definingClass
+  render.setName("patch_jamLocalIcon")
+  owner.interfaces.add(PLAYER_ICON)
+  owner.addBridge(
+      name,
+      listOf(modelType),
+      "V",
+      2,
+      render.accessFlags,
+      """
+      invoke-static {p0, p1}, $PLAYER_STATE->model($PLAYER_ICON${OBJECT})${OBJECT}
+      move-result-object p1
+      check-cast p1, $modelType
+      ${invokeKind(icon.render)} {p0, p1}, $render
+      return-void
+      """,
+  )
+  owner.addBridge(
+      "patch_jamView",
+      emptyList(),
+      "Landroid/view/View;",
+      2,
+      body = """
+      iget-object v0, p0, ${icon.view}
+      return-object v0
+      """,
+  )
+  owner.addBridge(
+      "patch_jamState",
+      listOf("Z"),
+      OBJECT,
+      5,
+      body = """
+      if-eqz p1, :paused
+      sget-object v1, ${icon.playing}
+      goto :create
+      :paused
+      sget-object v1, ${icon.paused}
+      :create
+      new-instance v0, $modelType
+      const/4 v2, 0x0
+      invoke-direct {v0, v1, v2}, ${icon.constructor}
+      return-object v0
+      """,
+  )
+  owner.addBridge(
+      "patch_jamRender",
+      listOf(OBJECT),
+      "V",
+      2,
+      body = """
+      check-cast p1, $modelType
+      ${invokeKind(icon.render)} {p0, p1}, $render
+      return-void
+      """,
+  )
 }
 
 private fun BytecodePatchContext.installClock(clock: ClockAbi) {

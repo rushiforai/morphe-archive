@@ -1,5 +1,6 @@
 """Offline helper regressions: python3 -m unittest discover -s scripts/tests -v."""
 
+import importlib.util
 import json
 import os
 import shutil
@@ -9,6 +10,9 @@ import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parents[1] / "repatch.py"
+SPEC = importlib.util.spec_from_file_location("repatch", SCRIPT)
+REPATCH = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(REPATCH)
 FAKE_JAVA = r"""#!/usr/bin/env python3
 import json, os, pathlib, sys
 args = sys.argv[1:]
@@ -79,6 +83,7 @@ class RepatchTest(unittest.TestCase):
                 "KEYSTORE_ENTRY_PASSWORD",
                 "GITHUB_REPO",
                 "VERIFY_SDK",
+                "BYTECODE_MODE",
                 "FAIL_OPTIONS",
                 "FAIL_PATCH",
             }
@@ -135,6 +140,31 @@ class RepatchTest(unittest.TestCase):
             json.loads(line)
             for line in Path(self.env["CALLS"]).read_text().splitlines()
         ]
+
+    def test_download_url_validation(self):
+        """Reject non-HTTPS and non-GitHub destinations."""
+        for url in (
+            "file:///etc/passwd",
+            "http://api.github.com/repos/example/project",
+            "https://127.0.0.1/release.mpp",
+            "https://evil.example/release.mpp",
+        ):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                REPATCH.validate_download_url(url)
+        for url in (
+            "https://api.github.com/repos/example/project/releases/latest",
+            "https://github.com/example/project/releases/download/v1/patches.mpp",
+            "https://release-assets.githubusercontent.com/example/patches.mpp",
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(REPATCH.validate_download_url(url), url)
+
+    def test_redirect_handler_exposes_redirects(self):
+        """Ensure redirects are returned for validation instead of followed implicitly."""
+        handler = REPATCH.NoRedirectHandler()
+        self.assertIsNone(
+            handler.redirect_request(None, None, 302, "", {}, "https://github.com")
+        )
 
     def test_default_signing_and_patch_selection(self):
         """Verify the script uses default signing parameters and selects the correct patch bundle."""
@@ -217,6 +247,17 @@ class RepatchTest(unittest.TestCase):
         args = calls[0][1]
         self.assertFalse(Path(args[args.index("-o") + 1]).parent.exists())
         self.assertFalse(self.output.exists())
+
+    def test_bytecode_mode_passes_through_and_rejects_invalid_values(self):
+        """Verify that FULL reaches the CLI and unsupported bytecode modes fail validation."""
+        result = self.run_helper(BYTECODE_MODE="FULL")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--bytecode-mode=FULL", self.calls()[-1][1])
+        result = self.run_helper(BYTECODE_MODE="bad")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "BYTECODE_MODE must be FULL, STRIP_SAFE, or STRIP_FAST", result.stderr
+        )
 
     def test_verify_sdk_defaults_to_disabled(self):
         """Verify that DEX/APK SDK verification is opt-in and off by default."""

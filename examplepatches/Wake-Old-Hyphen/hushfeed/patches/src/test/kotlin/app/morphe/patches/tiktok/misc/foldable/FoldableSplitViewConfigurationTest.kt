@@ -33,24 +33,24 @@ private const val EXTENSION = "Lapp/morphe/extension/tiktok/foldable/FoldableSpl
 /** The feed activity's configuration change reaches the split view first (issue #26). */
 class FoldableSplitViewConfigurationTest {
     @Test
-    fun `47_0_3's feed activity hands its configuration change to the split view`() {
-        val apks = Fixtures.apks().filter { it.name.contains("47.0.3") }
-        assertEquals("one retained 47.0.3 fixture", 1, apks.size)
-        val container = DexFileFactory.loadDexContainer(apks.single(), Opcodes.getDefault())
-        val classes = HashMap<String, ClassDef>()
-        container.dexEntryNames.forEach { entry ->
-            container.getEntry(entry)!!.dexFile.classes.forEach { classes.putIfAbsent(it.type, it) }
+    fun `each declared build's feed activity hands its configuration change to the split view`() {
+        Fixtures.forEachDeclared { apk ->
+            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val classes = HashMap<String, ClassDef>()
+            container.dexEntryNames.forEach { entry ->
+                container.getEntry(entry)!!.dexFile.classes.forEach { classes.putIfAbsent(it.type, it) }
+            }
+
+            val method = configurationChangeOf(FEED_ACTIVITY) { classes[it] }
+            assertNotNull("nothing between the feed activity and Activity takes configuration changes", method)
+            val chain = generateSequence(FEED_ACTIVITY) { classes[it]?.superclass }.toList()
+            assertTrue("${method!!.definingClass} is not above the feed activity", method.definingClass in chain)
+
+            val mutable = MutableMethod(method)
+            val body = mutable.implementation!!.instructions.map { it.opcode }
+            mutable.handConfigurationChangesToSplitView()
+            assertHandsOverFirst(mutable, body)
         }
-
-        val method = configurationChangeOf(FEED_ACTIVITY) { classes[it] }
-        assertNotNull("nothing between the feed activity and Activity takes configuration changes", method)
-        val chain = generateSequence(FEED_ACTIVITY) { classes[it]?.superclass }.toList()
-        assertTrue("${method!!.definingClass} is not above the feed activity", method.definingClass in chain)
-
-        val mutable = MutableMethod(method)
-        val body = mutable.implementation!!.instructions.map { it.opcode }
-        mutable.handConfigurationChangesToSplitView()
-        assertHandsOverFirst(mutable, body)
     }
 
     @Test

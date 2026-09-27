@@ -183,6 +183,12 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             0,
             "invoke-static {p0}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->initMapLocation(Ljava/lang/Object;)V",
         )
+
+        // 7) Hook CurrentLocationMixin.b(boolean) to detect if toggle-off was triggered by onClick.
+        CurrentLocationMixinUpdateTintFingerprint.method.addInstruction(
+            0,
+            "invoke-static {p0, p1}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->onCurrentLocationMixinTintUpdated(Ljava/lang/Object;Z)V",
+        )
     },
 ) {
     dependsOn(

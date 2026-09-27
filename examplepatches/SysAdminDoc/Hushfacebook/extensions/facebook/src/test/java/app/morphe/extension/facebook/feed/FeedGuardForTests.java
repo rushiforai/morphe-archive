@@ -5,13 +5,55 @@
 package app.morphe.extension.facebook.feed;
 
 import com.facebook.graphql.modelutil.BaseModelWithTree;
+import com.facebook.graphservice.tree.TreeJNI;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * The feed guard with both feed patches in, for a test outside this package. A test JVM has no
  * patched {@code SettingsStatus}, so the public guard would hide nothing whatever the switches say.
+ * The GenAI reel filter's stub is unpatched there too, so its page filters take a stand-in finder.
  */
 public final class FeedGuardForTests {
     private FeedGuardForTests() {
+    }
+
+    /** Stands in for the reel model class the patch names; the filter finds it in an item's field by type. */
+    public static final class ReelModel {
+        final Object attribution;
+
+        public ReelModel(Object attribution) {
+            this.attribution = attribution;
+        }
+    }
+
+    /** An item of the Reels collection holding a reel model, as the Reels tab's items do. */
+    public static final class ReelItem {
+        final Object model;
+
+        public ReelItem(Object model) {
+            this.model = model;
+        }
+    }
+
+    /** A reel model whose GenAI attribution carries the detected flag set to [flagged]. */
+    public static ReelModel reelModel(boolean flagged) {
+        return new ReelModel(new TreeJNI(GenAiReelFilter.ATTRIBUTION_TYPE).holding(GenAiReelFilter.DETECTED_FLAG, flagged));
+    }
+
+    /** Whether the reel page filter, with the patch's finder standing in, takes [item] out of a page. */
+    public static boolean hidesAiReel(Object item) {
+        Collection<?> kept = GenAiReelFilter.withoutAiReels(Arrays.asList(new Object(), item), ReelModel.class.getName(),
+                model -> ((ReelModel) model).attribution, GenAiLabel.PATCHED);
+        return !kept.contains(item);
+    }
+
+    /** The reel section filter with the patch's finder standing in, over [page]. */
+    public static List<?> aiReelSections(List<?> page) {
+        return GenAiReelFilter.withoutAiSections(page, ReelModel.class.getName(),
+                model -> ((ReelModel) model).attribution, GenAiLabel.PATCHED);
     }
 
     public static boolean hides(Object category, Object feedUnit) {

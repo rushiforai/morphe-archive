@@ -77,7 +77,7 @@ public final class VideoMenuItem {
             Object media = mediaOf(item, attachmentsGetter, mediaGetter, attachedStoryGetter);
             if (media == null) return;
 
-            Video video = Video.of(media);
+            Video video = Video.of(media, postOf(item, attachedStoryGetter));
             if (!video.offered()) return;
 
             MenuItem entry = menu.add(L10n.t("Download to phone"));
@@ -110,7 +110,7 @@ public final class VideoMenuItem {
             }
             Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "Download to phone tapped");
             Context application = context == null ? Utils.getContext() : context.getApplicationContext();
-            if (MediaDownload.saveFeedVideo(application, video.id, video.hd, video.sd)) return;
+            if (MediaDownload.saveFeedVideo(application, video.details, video.hd, video.sd)) return;
 
             Feedback.show(application,
                 L10n.t(application, "Couldn't save this video. Play it for a moment, then try again."), true);
@@ -130,14 +130,8 @@ public final class VideoMenuItem {
         if (item == null) return null;
 
         if (isA(item, GRAPHQL_STORY_ATTACHMENT)) return call(item, mediaGetter);
-        if (!isA(item, GRAPHQL_STORY)) return null;
-
-        Object story = item;
-        for (int depth = 0; depth < MAX_SHARE_DEPTH; depth++) {
-            Object shared = call(story, attachedStoryGetter);
-            if (shared == null) break;
-            story = shared;
-        }
+        Object story = postOf(item, attachedStoryGetter);
+        if (story == null) return null;
 
         Object attachments = call(story, attachmentsGetter);
         if (!(attachments instanceof List) || ((List<?>) attachments).isEmpty()) return null;
@@ -145,23 +139,51 @@ public final class VideoMenuItem {
         return first == null ? null : call(first, mediaGetter);
     }
 
-    /** What the item needs of one video: its id, the two single files, and whether it says it's one. */
+    /**
+     * The post [item] is, followed through the posts it shares to the one that holds the media,
+     * or {@code null} when it's no post. That post's actors and creation time name the file, so a
+     * shared video is named after whoever posted it and when, not after the share.
+     */
+    static Object postOf(Object item, String attachedStoryGetter) {
+        if (item == null || !isA(item, GRAPHQL_STORY)) return null;
+
+        Object story = item;
+        for (int depth = 0; depth < MAX_SHARE_DEPTH; depth++) {
+            Object shared = call(story, attachedStoryGetter);
+            if (shared == null) break;
+            story = shared;
+        }
+        return story;
+    }
+
+    /**
+     * What the item needs of one video: its id, the two single files, whether it says it's one,
+     * and what the file name can say of the post.
+     */
     static final class Video {
         final String id;
         final String hd;
         final String sd;
         final boolean typed;
+        final PostDetails details;
 
-        Video(String id, String hd, String sd, boolean typed) {
+        Video(String id, String hd, String sd, boolean typed, PostDetails details) {
             this.id = id;
             this.hd = hd;
             this.sd = sd;
             this.typed = typed;
+            this.details = details;
         }
 
-        static Video of(Object media) {
-            return new Video(cachedString(media, ID), cachedString(media, HD_PLAYABLE_URL),
-                cachedString(media, PLAYABLE_URL), VIDEO_TYPE.equals(typeName(media)));
+        /**
+         * The video [media] holds, of the post [story] (or null for an attachment's menu). The
+         * poster is the video's owner, and then the post's first actor; the post day is the post's
+         * creation time, and then the video's creation story's.
+         */
+        static Video of(Object media, Object story) {
+            String id = cachedString(media, ID);
+            return new Video(id, cachedString(media, HD_PLAYABLE_URL), cachedString(media, PLAYABLE_URL),
+                VIDEO_TYPE.equals(typeName(media)), PostDetails.read(id, media, story));
         }
 
         /**

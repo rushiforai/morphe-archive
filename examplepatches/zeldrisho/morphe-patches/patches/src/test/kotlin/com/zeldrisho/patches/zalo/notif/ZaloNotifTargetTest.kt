@@ -3,7 +3,6 @@ package com.zeldrisho.patches.zalo.notif
 import app.morphe.patcher.FieldAccessFilter
 import app.morphe.patcher.PackageMetadata
 import app.morphe.patcher.PatcherConfig
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -115,6 +114,7 @@ class ZaloNotifTargetTest {
         }
     }
 
+    /** Checks that dropping a promotional channel replaces only its jump and preserves instruction count. */
     @Test fun dropReplacesOnlyTheArmJump() {
         val cls = classDef("Lpy/i;", listOf(armMethod("SOCIAL_STORY")))
         with(context()) {
@@ -122,11 +122,11 @@ class ZaloNotifTargetTest {
             val match = StoryChannelArm.matchAll(cls, 1..1).single()
             // Pure index contract first (no mutable class table needed).
             assertEquals(1 to 2, armJumpIndexes(match))
-            // Then the one-for-one edit mechanics on a detached mutable copy.
-            val mutable = match.originalMethod.toMutable()
+            // Exercise the production callback helper and verify it edits only the arm jump.
             val (_, gotoIndex) = armJumpIndexes(match)
+            val mutable = match.originalMethod.toMutable()
             val before = mutable.implementation!!.instructions.toList()
-            mutable.replaceInstruction(gotoIndex, "return-void")
+            dropChannelArm(match, mutable)
             val after = mutable.implementation!!.instructions.toList()
             assertEquals(before.size, after.size, "one-for-one replace preserves offsets")
             assertEquals(Opcode.RETURN_VOID, after[gotoIndex].opcode)

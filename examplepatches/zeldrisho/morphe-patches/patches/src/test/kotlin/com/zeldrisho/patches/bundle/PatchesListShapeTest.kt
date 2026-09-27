@@ -1,5 +1,6 @@
 package com.zeldrisho.patches.bundle
 
+import com.google.gson.JsonParser
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -15,7 +16,8 @@ class PatchesListShapeTest {
      * Locate and read the generated patches-list.json file from the project root or patches directory.
      */
     private fun listJson(): String {
-        val candidates = listOf(
+        val candidates = listOfNotNull(
+            System.getProperty("patches.list.path")?.let(::File),
             File("../patches-list.json"), // working dir = patches/
             File("patches-list.json"), // working dir = repo root
         )
@@ -26,6 +28,48 @@ class PatchesListShapeTest {
     /**
      * Verify that all expected patches are present in patches-list.json with the correct metadata.
      */
+    @Test fun metadataIsStructurallyValid() {
+        val root = JsonParser.parseString(listJson()).asJsonObject
+        System.getProperty("patches.project.version")?.let { expected ->
+            assertEquals(expected, root["version"].asString, "generated metadata must match release version")
+        }
+        assertTrue(root["version"].isJsonPrimitive)
+        val patches = root["patches"].asJsonArray.map { it.asJsonObject }
+        val namesByPackage = mutableMapOf<String, MutableSet<String>>()
+        patches.forEach { patch ->
+            assertTrue(patch["name"].asString.isNotBlank())
+            assertTrue(patch["default"].isJsonPrimitive)
+            val optionKeys = mutableSetOf<String>()
+            patch["options"].asJsonArray.forEach { option ->
+                val value = option.asJsonObject
+                val key = value["key"].asString
+                assertTrue(key.isNotBlank())
+                assertTrue(optionKeys.add(key), "duplicate option $key on ${patch["name"].asString}")
+                assertTrue(value["title"].asString.isNotBlank())
+                assertTrue(value["type"].asString.isNotBlank())
+                if (value["required"].asBoolean) assertTrue(value.has("default"))
+            }
+            patch["compatiblePackages"]?.takeUnless { it.isJsonNull }?.asJsonArray?.forEach { packageEntry ->
+                val packageObject = packageEntry.asJsonObject
+                val packageName = packageObject["packageName"].asString
+                check(namesByPackage.getOrPut(packageName) { mutableSetOf() }.add(patch["name"].asString)) {
+                    "duplicate patch name ${patch["name"].asString} for $packageName"
+                }
+                val targets = packageObject["targets"].asJsonArray
+                assertTrue(targets.size() > 0, "patch must declare at least one target")
+                targets.forEach { target ->
+                    val targetObject = target.asJsonObject
+                    assertTrue(targetObject["version"].asString.isNotBlank())
+                    assertTrue(targetObject["minSdk"].asInt > 0)
+                    targetObject["versionCodes"]?.takeUnless { it.isJsonNull }?.asJsonObject?.entrySet()?.forEach { (abi, code) ->
+                        assertTrue(abi.isNotBlank())
+                        assertTrue(code.asInt > 0)
+                    }
+                }
+            }
+        }
+    }
+
     @Test fun threadsBundleShape() {
         val json = listJson()
         for (name in listOf("Hide ads", "Remove AD_ID permission", "Change app name", "Change package name")) {
@@ -45,10 +89,11 @@ class PatchesListShapeTest {
     }
 
     /**
-     * Verify that exactly 18 patches are present with no leftover template scaffolding.
+     * Verify that exactly 20 patches are present with no leftover template scaffolding.
      */
     @Test fun patchCountMatchesSources() {
-        // Exactly 18 patches (4 Threads + 14 Zalo) — template scaffolding was removed,
+        // Exact-name comparison catches both added patches and removed patches.
+        // Exactly 20 patches (4 Threads + 16 Zalo) — template scaffolding was removed,
         // so any extra entry (e.g. a resurrected "Example Patch") fails loudly.
         // Note: "name" also appears on compatiblePackages entries ("Threads", "Zalo"),
         // so only top-level patch names are counted (6-space indent in output).
@@ -64,6 +109,7 @@ class PatchesListShapeTest {
                 "Disable ads",
                 "Disable sponsored placements",
                 "Disable telemetry and crash reporting",
+                "Enable Google Drive photo backup",
                 "Filter promo notifications",
                 "Hide Business Box",
                 "Hide ads",
@@ -72,11 +118,12 @@ class PatchesListShapeTest {
                 "Remove AD_ID permission",
                 "Remove AD_ID permission",
                 "Remove media backup age limit",
+                "Suppress outbound seen status",
                 "Suppress outbound typing status",
                 "microG Drive support",
             ),
             names.sorted(),
-            "expected exactly 18 patches, found: $names",
+            "expected exactly 20 patches, found: $names",
         )
     }
 
@@ -87,6 +134,24 @@ class PatchesListShapeTest {
     /**
      * Verify that the Change package name patch is disabled by default to prevent breaking SSO/providers/push.
      */
+    @Test fun everyPatchHasAnAppAndTargets() {
+        val patches = JsonParser.parseString(listJson()).asJsonObject["patches"].asJsonArray
+        patches.forEach { patch ->
+            val apps = patch.asJsonObject["compatiblePackages"].asJsonArray
+            assertTrue(apps.size() > 0, "${patch.asJsonObject["name"].asString} has no app association")
+            apps.forEach { app ->
+                assertTrue(app.asJsonObject["packageName"].asString.contains('.'))
+                assertTrue(app.asJsonObject["targets"].asJsonArray.size() > 0)
+            }
+        }
+    }
+
+    @Test fun riskyRenameDefaultsRemainDisabled() {
+        val patches = JsonParser.parseString(listJson()).asJsonObject["patches"].asJsonArray
+        patches.filter { it.asJsonObject["name"].asString.contains("package name") }
+            .forEach { assertEquals(false, it.asJsonObject["default"].asBoolean) }
+    }
+
     @Test fun renamePatchIsOptIn() {
         // Change package name must stay off by default: renaming breaks
         // package+cert-bound flows (SSO, providers, push). See lessons-learned.

@@ -16,12 +16,11 @@ import java.util.Map;
  * reads a flag through the public {@code getCachedBoolean(int)} by reflection, and the video save
  * reads strings and the type name. Like Facebook's, a boolean key the model doesn't hold reads
  * false. Every boolean read is counted, so a test can show that a switched-off rule reads nothing.
+ * The tree accessors the file name uses are the ones every tree has, on {@link TreeJNI}.
  */
 public class BaseModelWithTree extends TreeJNI {
     private final Map<Integer, Boolean> booleans = new HashMap<>();
-    private final Map<Integer, String> strings = new HashMap<>();
     private final String typeName;
-    private boolean valid = true;
     public int reads;
 
     /** A model tagged with a type's hash, as the GenAI rule checks it. */
@@ -45,14 +44,15 @@ public class BaseModelWithTree extends TreeJNI {
     }
 
     /** Sets the string field named [field], the way a fetched tree holds it. */
+    @Override
     public BaseModelWithTree with(String field, String value) {
-        strings.put(field.hashCode(), value);
+        super.with(field, value);
         return this;
     }
 
     /** A model whose native tree is gone, as after Facebook releases it. */
     public BaseModelWithTree released() {
-        valid = false;
+        releasedTree();
         return this;
     }
 
@@ -62,23 +62,13 @@ public class BaseModelWithTree extends TreeJNI {
         return value != null && value;
     }
 
+    /** The model's own cache of a string field: no native read, so safe on a released model. */
     public final String getCachedString(int field) {
-        return strings.get(field);
+        return cachedString(field);
     }
-
-    public final boolean isValidGraphServicesJNIModel() {
-        return valid;
-    }
-
-    /**
-     * Whether the type name was read after the tree was released. On a phone that read goes to
-     * native code with nothing behind it, which no try block catches, so a test asks this flag
-     * rather than waiting for an exception.
-     */
-    public boolean readAfterRelease;
 
     public String getTypeName() {
-        if (!valid) readAfterRelease = true;
+        if (!isValidGraphServicesJNIModel()) readAfterRelease = true;
         return typeName;
     }
 }

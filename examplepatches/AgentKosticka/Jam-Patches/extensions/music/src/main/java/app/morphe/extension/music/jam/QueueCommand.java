@@ -45,11 +45,26 @@ public final class QueueCommand {
   public static String watchVideo(byte[] data) {
     try {
       if (data == null || data.length > 65536) return null;
-      byte[] video = field(field(data, WATCH_ENDPOINT_FIELD), VIDEO_ID_FIELD);
+      byte[] watch = field(data, WATCH_ENDPOINT_FIELD);
+      // A playlist-bearing watch request must not silently become a single song.
+      if (field(watch, 2) != null) return null;
+      byte[] video = field(watch, VIDEO_ID_FIELD);
       String id = new String(video, StandardCharsets.US_ASCII);
       return id.matches("[A-Za-z0-9_-]{11}") ? id : null;
     } catch (RuntimeException e) {
       return null;
+    }
+  }
+
+  public static boolean isPlayback(byte[] data) {
+    try {
+      return (
+        data != null &&
+        data.length <= 65536 &&
+        field(data, WATCH_ENDPOINT_FIELD) != null
+      );
+    } catch (RuntimeException malformed) {
+      return false;
     }
   }
 
@@ -78,12 +93,14 @@ public final class QueueCommand {
     return endpoint.toByteArray();
   }
 
-  /** Read only a single-track endpoint; playlists and unknown wire forms stay native. */
+  /** Read only a single online track; callers reject other enqueue forms during Jam. */
   public static String[] decode(byte[] data) {
     try {
       if (data == null || data.length > 65536) return null;
       byte[] operation = field(data, QUEUE_EDIT_ENDPOINT_FIELD);
       byte[] target = field(operation, QUEUE_EDIT_TARGET_FIELD);
+      // Playlist targets and the downloaded/local-media route are unsupported.
+      if (field(target, 2) != null || integer(target, 3) != 0) return null;
       byte[] video = field(target, VIDEO_ID_FIELD);
       if (video == null) return null;
       String id = new String(video, StandardCharsets.US_ASCII);

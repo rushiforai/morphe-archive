@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -55,19 +56,30 @@ public class PatchFamilyTest {
         PauseForTests.resume();
         Settings.HIDE_PROMOTED_POSTS.resetToDefault();
         Settings.HIDE_SPONSORED_POSTS.resetToDefault();
+        Settings.HIDE_REEL_FOLLOW_BUTTON.resetToDefault();
         HookStatus.clear();
     }
 
+    /**
+     * A switch is a family's, or the settings entry's own (the release check), and never both: a
+     * switch in neither list goes unmentioned by the screen and the tests that hold Pause to it.
+     */
     @Test
     public void everySwitchBelongsToExactlyOneFamily() {
-        Map<BooleanSetting, PatchFamily> owners = new HashMap<>();
+        Map<BooleanSetting, String> owners = new HashMap<>();
         for (PatchFamily family : PatchFamily.values()) {
             for (BooleanSetting setting : family.switches) {
-                PatchFamily earlier = owners.put(setting, family);
+                String earlier = owners.put(setting, family.name());
                 assertNull(setting.key + " belongs to " + earlier + " and to " + family, earlier);
             }
         }
+        for (BooleanSetting setting : PatchFamily.ENTRY_SWITCHES) {
+            String earlier = owners.put(setting, "the settings entry");
+            assertNull(setting.key + " belongs to " + earlier + " and to the settings entry", earlier);
+        }
         assertEquals(new HashSet<>(PausedHooksTest.settingsSwitches()), owners.keySet());
+        assertTrue("the release check is the settings entry's own",
+                PatchFamily.ENTRY_SWITCHES.contains(Settings.CHECK_FOR_RELEASES));
     }
 
     @Test
@@ -114,20 +126,26 @@ public class PatchFamilyTest {
     public void theStaysRowNamesWhatPauseCantReach() {
         assertNull("a build of switches alone has nothing that stays in",
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.SPONSORED_POSTS, PatchFamily.EXTERNAL_BROWSER)));
-        assertEquals("The background ad prefetch block. It was set when you patched, so Pause can't turn it off. "
-                        + "To rule it out, patch again without the patch it comes from.",
+        // Each item names the patch Morphe Manager lists it under, so the reader knows which one
+        // to leave out.
+        assertEquals("The block on downloading ads in the background (" + L10n.isolate("Block background ad prefetch")
+                        + "). It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
+                        + "and leave out that patch.",
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.AD_PREFETCH)));
         // Every download asks its switch before it goes in, so a pause takes them out whole.
         assertNull(PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.REEL_DOWNLOAD, PatchFamily.STORY_DOWNLOAD,
                 PatchFamily.VIDEO_DOWNLOAD)));
         // Alone, a family's text is followed by "It was set", so a text naming several parts still
         // has to be one thing. 4a7bba9 made the Reels one plural and this sentence stopped reading.
-        assertEquals("The part of the Reels ad block patched into the app. It was set when you patched, so "
-                        + "Pause can't turn it off. To rule it out, patch again without the patch it comes from.",
+        assertEquals("The part of the Reels ad block patched into the app (" + L10n.isolate("Hide sponsored reels")
+                        + "). It was set when you patched, so Pause can't turn it off. To rule it out, patch again "
+                        + "and leave out that patch.",
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.SPONSORED_REELS)));
-        assertEquals("The part of the Reels ad block patched into the app and the ad telemetry block. They "
-                        + "were set when you patched, so Pause can't turn them off. To rule one out, patch again "
-                        + "without the patch it comes from.",
+        assertEquals("The part of the Reels ad block patched into the app (" + L10n.isolate("Hide sponsored reels")
+                        + ") and the block on reports of ad screenshots and app installs ("
+                        + L10n.isolate("Block ad telemetry") + "). They were set "
+                        + "when you patched, so Pause can't turn them off. To rule one out, patch again and leave out "
+                        + "the patch in brackets after it.",
                 PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.SPONSORED_REELS, PatchFamily.AD_TELEMETRY,
                         PatchFamily.SPONSORED_POSTS, PatchFamily.STORY_DOWNLOAD)));
 
@@ -136,6 +154,8 @@ public class PatchFamilyTest {
             if (family.staysWhilePaused == null) continue;
             assertTrue(family.patchName + " is missing from: " + everything,
                     everything.toLowerCase().contains(family.staysWhilePaused.toLowerCase()));
+            assertTrue(family.patchName + " isn't named in: " + everything,
+                    everything.contains("(" + L10n.isolate(family.patchName) + ")"));
         }
     }
 
@@ -150,14 +170,21 @@ public class PatchFamilyTest {
                 "Hide sponsored posts: on (hushfacebook_hide_sponsored_posts=on, hushfacebook_hide_promoted_posts=off)",
                 "Hide sponsored reels: on (hushfacebook_hide_sponsored_reels=on); stays in while paused: "
                         + "the part of the Reels ad block patched into the app",
-                "Block background ad prefetch: no switch, stays in while paused: the background ad prefetch block",
+                "Block background ad prefetch: no switch, stays in while paused: the block on downloading ads in "
+                        + "the background",
                 "not in this build: Hide suggested and promoted posts, Hide Stories tray, Hide Reels in the feed, "
                         + "Block background-return feed refresh, Hide AI-detected posts, "
-                        + "Hide sponsored stories, Open links in "
-                        + "external browser, Sanitize sharing links, Download any story, Download any reel, "
-                        + "Download any video, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material You theme, "
-                        + "Restore screens on re-signed builds"),
+                        + "Hide sponsored stories, Stop Story auto-advance, Clean up Reels, Don't send reel watch history, "
+                        + "Use the system font, Use the phone's emoji, Open links in "
+                        + "external browser, Sanitize sharing links, Stop update prompts, Download any story, Download any reel, "
+                        + "Download any video, Open on a chosen tab, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material You theme, "
+                        + "Restore screens on re-signed builds, Install beside Meta's apps"),
                 running);
+        // Clean up Reels has three switches, and the report names each one.
+        Settings.HIDE_REEL_FOLLOW_BUTTON.save(false);
+        assertEquals("Clean up Reels: on (hushfacebook_hide_reel_chips=on, hushfacebook_hide_reel_follow_button=off, "
+                        + "hushfacebook_hide_reel_social_footer=on)",
+                PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DECLUTTER), false).get(0));
         // The reel button has a switch now, so the report says what it's set to.
         assertEquals("Download any reel: on (hushfacebook_download_reels=on)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DOWNLOAD), false).get(0));

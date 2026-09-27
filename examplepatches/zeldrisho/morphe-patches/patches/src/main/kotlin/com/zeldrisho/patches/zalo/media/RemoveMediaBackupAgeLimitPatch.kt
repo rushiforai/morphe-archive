@@ -17,6 +17,24 @@ import com.zeldrisho.patches.zalo.shared.Constants.COMPATIBILITY_ZALO
  * code treat all timestamps as eligible. This does not recreate files absent from
  * Drive, bypass server retention, or include media explicitly excluded by Zalo.
  */
+internal fun clearAgeResult(method: MutableMethod) {
+    val implementation = method.implementation
+        ?: error("Zalo media age limit: method has no implementation")
+    val instructions = implementation.instructions.toList()
+    val keyIndex = instructions.indexOfFirst { instruction ->
+        if (instruction.opcode != Opcode.CONST_STRING) return@indexOfFirst false
+        val reference = (instruction as? ReferenceInstruction)?.reference
+        (reference as? StringReference)?.string == "BACKUP_MEDIA_LIMIT_TIME_DAY"
+    }
+    check(keyIndex >= 0) { "Zalo media age limit: config key not found" }
+    val resultIndex = instructions.withIndex().indexOfFirst { (index, instruction) ->
+        index > keyIndex && instruction.opcode == Opcode.MOVE_RESULT
+    }
+    check(resultIndex >= 0) { "Zalo media age limit: config result not found" }
+    val result = instructions[resultIndex] as OneRegisterInstruction
+    method.replaceInstruction(resultIndex, "const/4 v${result.registerA}, 0x0")
+}
+
 @Suppress("unused")
 val removeZaloMediaBackupAgeLimitPatch = bytecodePatch(
     name = "Remove media backup age limit",
@@ -27,25 +45,6 @@ val removeZaloMediaBackupAgeLimitPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        /** Replaces the configured media-age result with an unlimited cutoff. */
-        fun clearAgeResult(method: MutableMethod) {
-            val implementation = method.implementation
-                ?: error("Zalo media age limit: method has no implementation")
-            val instructions = implementation.instructions.toList()
-            val keyIndex = instructions.indexOfFirst { instruction ->
-                if (instruction.opcode != Opcode.CONST_STRING) return@indexOfFirst false
-                val reference = (instruction as? ReferenceInstruction)?.reference
-                (reference as? StringReference)?.string == "BACKUP_MEDIA_LIMIT_TIME_DAY"
-            }
-            check(keyIndex >= 0) { "Zalo media age limit: config key not found" }
-            val resultIndex = instructions.withIndex().indexOfFirst { (index, instruction) ->
-                index > keyIndex && instruction.opcode == Opcode.MOVE_RESULT
-            }
-            check(resultIndex >= 0) { "Zalo media age limit: config result not found" }
-            val result = instructions[resultIndex] as OneRegisterInstruction
-            method.replaceInstruction(resultIndex, "const/4 v${result.registerA}, 0x0")
-        }
-
         clearAgeResult(MediaBackupAgeFilter.method)
         clearAgeResult(MediaRestoreAgeCutoff.method)
     }

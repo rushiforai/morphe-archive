@@ -235,7 +235,7 @@ internal val deepSeekCaptionResourcePatch = resourcePatch(
                         SLIDER_PREF_CLASS,
                         "deepseek_caption_text_size",
                         "字幕大小",
-                        "相对字号 12–22，随画面比例缩放",
+                        "相对字号 8–15；13sp 为舒适基准，随画面比例缩放",
                     )
                     addPreference(
                         SLIDER_PREF_CLASS,
@@ -268,11 +268,6 @@ internal val deepSeekCaptionResourcePatch = resourcePatch(
                         "deepseek_caption_diagnostics",
                         "字幕诊断",
                         "展开查看，可手动刷新或复制",
-                    )
-                    addPreference(
-                        ACTION_PREF_CLASS,
-                        "deepseek_caption_clear_diagnostics",
-                        "清空诊断记录",
                     )
                 }
                 root.appendChild(screen)

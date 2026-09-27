@@ -184,3 +184,21 @@ internal object SelectedPhotoOriginalFlag : Fingerprint(
         fieldAccess(definingClass = "Lo00/k0;", name = "s0", type = "Z"),
     ),
 )
+
+internal val mediaFingerprints = listOf(
+    MediaExpiryStatus,
+    MediaBackupAgeFilter,
+    MediaRestoreAgeCutoff,
+    SelectedMediaQuality,
+    OriginalMediaQualityEnabled,
+    OriginalMediaQualityEntitled,
+    OriginalMediaQualityAvailable,
+    QualityPickerArguments,
+    PickerQualityInitialization,
+    PhotoQualityChipUpdate,
+    LandingPageQualityChipUpdate,
+    LandingPageQualityChipInitialization,
+    ChatInputBarQualityChipUpdate,
+    QualityChipLabel,
+    SelectedPhotoOriginalFlag,
+)

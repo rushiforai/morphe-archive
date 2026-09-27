@@ -10,7 +10,10 @@
     every patch in the catalog applied to it, and what patching did to the Android manifest.
 
     Nothing here is asserted. Each fixture is patched with the real desktop CLI, the verdicts
-    come out of the CLI's own result report, and both manifests are read back with aapt2. A
+    come out of the CLI's own result report, and both manifests are read back with aapt2: the
+    patched one, and the one the patches started from. A split bundle is merged into one APK first
+    with the CLI's own merger (Get-MergedApk), the CLI patches that merge, and its manifest is the
+    baseline, since the merge rewrites the manifest before any patch runs. A
     patch that fails on any fixture stops the run with its name and no receipt is written: the
     receipt describes a bundle that fully applies, which is why the validator refuses any
     verdict of applied = false rather than reading it as a recorded failure. Every build the
@@ -21,6 +24,11 @@
     stops the run at once instead of after the others, which for Facebook unpacks gigabytes.
 
     The patched APKs are working files and are deleted on the way out, including after a failure.
+
+    The bundle has to be a build of HEAD from a clean tree, and a clean tree when the receipt is
+    cut doesn't show that. So its stamp has to be HEAD's commit time (the build writes 0 when the
+    tree had uncommitted changes as it started), and no source may be newer than it. Both are
+    checked before anything is patched.
 
     Before any of that, the SBOM :patches:buildAndroid wrote beside the bundle is held to it and
     the libraries it lists are put to OSV (release-advisories.ps1). A high or critical advisory
@@ -117,6 +125,32 @@ if ($dirty.Count -gt 0) {
     $shown = @($dirty | Select-Object -First 5 | ForEach-Object { $_.Trim() }) -join '; '
     throw ("The working tree has uncommitted changes, so the commit this receipt would name is " +
         "not what was built: $shown")
+}
+
+# A clean tree now says nothing about the tree the bundle was built from. Edits someone else made
+# in a shared checkout can be in the bundle and gone again by the time the receipt is cut, and the
+# stamp used to be HEAD's commit time whatever the tree held. :patches:buildAndroid stamps a bundle
+# 0 now when the tree had uncommitted changes as it started, and anything but this commit's time
+# means the bundle isn't a build of it. The receipt check at the end refuses that too, but only
+# once every fixture has been patched.
+$expectedStamp = $commitTimestamp * 1000
+if ($bundleManifest.timestamp -ne $expectedStamp) {
+    if ($bundleManifest.timestamp -eq 0) {
+        throw ("The bundle is stamped 0. :patches:buildAndroid writes that when the working tree has uncommitted " +
+            "changes as the build starts, or git can't read it, so this isn't a build of commit $commit. " +
+            'Build it again from a clean tree. Nothing was patched.')
+    }
+    throw ("The bundle is stamped $($bundleManifest.timestamp), but commit $commit was made at $expectedStamp. " +
+        "It was built from another commit, or with SOURCE_DATE_EPOCH set to something else. Build it again " +
+        'from this commit. Nothing was patched.')
+}
+# And what changed after the build started: an edit made and put back since leaves the tree clean
+# and the stamp right, and a file written after the bundle is the trace it leaves.
+$newerSources = @(Get-SourcesNewerThanBundle -Root $Root -Bundle $Bundle)
+if ($newerSources.Count -gt 0) {
+    throw ("$($newerSources.Count) source file(s) changed after the bundle was built, the newest " +
+        "$($newerSources[0].FullName). The bundle may not hold what they hold now, so build it again. " +
+        'Nothing was patched.')
 }
 
 # The SBOM, read with the bundle and for the same reason, and held to it: an SBOM left from another
@@ -268,12 +302,17 @@ foreach ($apk in $Fixture) {
         $forced = -not ([System.Collections.Generic.HashSet[string]]::new(
             [string[]]$expectedTarget.PackageVersions, [System.StringComparer]::Ordinal)).Contains([string]$stock.versionName)
 
+        # The one APK the CLI patches: the fixture's merge when it's a split bundle, made here
+        # because the CLI deletes its own, or the fixture itself. No merge, no receipt.
+        $mergedApk = Resolve-WithinRoot -Path (Join-Path $runDir 'stock-merged.apk') -Root $workRoot
+        $patchInput = Get-MergedApk -Apk $apk -Destination $mergedApk -Java $Java -DesktopJar $DesktopJar
+
         $enable = @()
         foreach ($name in $patchNames) { $enable += '-e'; $enable += $name }
         $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
             '-o', $out, '-t', $temp, '-r', $resultPath)
         if ($forced) { $arguments += '-f' }
-        $arguments = $arguments + $enable + @($apk)
+        $arguments = $arguments + $enable + @($patchInput)
         & $Java '-jar' $DesktopJar @arguments 2>&1 | Out-Null
         $cliExitCode = $LASTEXITCODE
 
@@ -289,11 +328,10 @@ foreach ($apk in $Fixture) {
         if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode on $label." }
 
         $patched = Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2
-        # The CLI merges a bundle's splits into one APK before it patches, and leaves that merge
-        # beside its output. Its manifest, not the base APK's, is what the patches started from,
-        # so the delta against it is the patches' own and not the merge's.
-        $merged = Get-ChildItem -LiteralPath $runDir -Filter '*-merged.apk' -File | Select-Object -First 1
-        $baseline = if ($merged) { Get-ApkManifestFacts -Apk $merged.FullName -Aapt2 $Aapt2 } else { $stock }
+        # The manifest the patches started from is the APK the CLI patched, the merge for a split
+        # bundle, not the base APK's: the merge rewrites the manifest itself, and a delta against
+        # the base would record its changes as the patches' own.
+        $baseline = Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2
         $delta = Get-ManifestDelta -Stock $baseline -Patched $patched
         $verdicts = Get-PatchVerdicts -Report $report -Names $patchNames
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $delta)

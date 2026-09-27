@@ -33,23 +33,33 @@ val hideZaloBusinessBoxPatch = bytecodePatch(
         // standard Conversation categories and avoiding a broad method short-circuit.
         val insertion = BusinessBoxListInsertionFingerprint.instructionMatches
             .single { it.instruction.opcode == Opcode.INVOKE_DIRECT }
-        BusinessBoxListInsertionFingerprint.method.replaceInstruction(
-            insertion.index,
-            "return-void",
-        )
+        suppressBusinessBoxInsertion(BusinessBoxListInsertionFingerprint.method, insertion.index)
 
         // of1/o.a() periodically revisits visible items. Skip only its q00/a branch,
         // preserving the surrounding list refresh and processing of standard items.
         val periodicMatch = BusinessBoxPeriodicBranchFingerprint.instructionMatches
             .single { it.instruction.opcode == Opcode.CHECK_CAST }
-        BusinessBoxPeriodicBranchFingerprint.method.replaceInstruction(
-            periodicMatch.index,
-            "return-void",
-        )
+        suppressBusinessBoxPeriodicBranch(BusinessBoxPeriodicBranchFingerprint.method, periodicMatch.index)
     }
 }
 
-private object BusinessBoxListInsertionFingerprint : Fingerprint(
+/** Replaces the selected business-box insertion instruction with an immediate void return. */
+internal fun suppressBusinessBoxInsertion(
+    method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod,
+    instructionIndex: Int,
+) {
+    method.replaceInstruction(instructionIndex, "return-void")
+}
+
+/** Replaces the selected periodic business-box branch instruction with a void return. */
+internal fun suppressBusinessBoxPeriodicBranch(
+    method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod,
+    instructionIndex: Int,
+) {
+    method.replaceInstruction(instructionIndex, "return-void")
+}
+
+internal object BusinessBoxListInsertionFingerprint : Fingerprint(
     definingClass = "Lje0/u;",
     name = "G",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -81,7 +91,7 @@ private object BusinessBoxListInsertionFingerprint : Fingerprint(
     ),
 )
 
-private object BusinessBoxPeriodicBranchFingerprint : Fingerprint(
+internal object BusinessBoxPeriodicBranchFingerprint : Fingerprint(
     definingClass = "Lof1/o;",
     name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -93,4 +103,9 @@ private object BusinessBoxPeriodicBranchFingerprint : Fingerprint(
         opcode(Opcode.CHECK_CAST),
         string("business_box_thread"),
     ),
+)
+
+internal val businessBoxFingerprints = listOf(
+    BusinessBoxListInsertionFingerprint,
+    BusinessBoxPeriodicBranchFingerprint,
 )

@@ -30,26 +30,31 @@ import org.junit.Test
  */
 class AmoledSheetTokensTest {
     @Test
-    fun `47_0_3 fills both sheets through a24, which the dark themes send to aia`() {
-        val apk = Fixtures.apks().single { it.name.contains("47.0.3") }
-        val table = FixtureResourceTable(apk)
+    fun `each declared build fills both sheets through a24, which the dark themes send to aia`() {
+        Fixtures.forEachDeclared { apk ->
+            val table = FixtureResourceTable(apk)
 
-        val sheetAttr = tuxSheetBackgroundAttr(apk)
-        assertEquals("the Tux sheet background attribute", "b79", table.attrNames[sheetAttr])
-        val sheetValues = table.styleValues("b79").toSet()
-        assertTrue("b79 reaches a24 in a Tux sheet style: $sheetValues", "?attr/a24" in sheetValues)
+            val sheetAttr = tuxSheetBackgroundAttr(apk)
+            assertEquals("the Tux sheet background attribute", "b79", table.attrNames[sheetAttr])
+            val sheetValues = table.styleValues("b79").toSet()
+            assertTrue("b79 reaches a24 in a Tux sheet style: $sheetValues", "?attr/a24" in sheetValues)
 
-        listOf("af4", "af9").forEach { drawable ->
-            assertTrue("drawable/$drawable fills with ?attr/a24", table.drawableReferencesAttr(drawable, "a24"))
+            // The comment page's two container shapes, as traced on 47.0.3. Drawable names move
+            // with every build and nothing here reads which ones 47.1.3's page sets.
+            if (Fixtures.versionOf(apk) == "47.0.3") {
+                listOf("af4", "af9").forEach { drawable ->
+                    assertTrue("drawable/$drawable fills with ?attr/a24", table.drawableReferencesAttr(drawable, "a24"))
+                }
+            }
+
+            val a24 = table.styleValues("a24")
+            assertEquals("what the themes point a24 at: $a24", setOf("?attr/aia", "?attr/axi"), a24.toSet())
+            val dark = table.styleValues("aia")
+            val light = table.styleValues("axi")
+            assertTrue("aia is a dark opaque literal wherever it is set: $dark", dark.isNotEmpty() && dark.all(::isDarkOpaqueLiteral))
+            assertTrue("axi is light wherever it is set: $light", light.isNotEmpty() && light.none(::isDarkOpaqueLiteral))
+            assertTrue("the patch rewrites aia", "aia" in sheetStyleItems(Fixtures.versionOf(apk), declaredVersions()))
         }
-
-        val a24 = table.styleValues("a24")
-        assertEquals("what the themes point a24 at: $a24", setOf("?attr/aia", "?attr/axi"), a24.toSet())
-        val dark = table.styleValues("aia")
-        val light = table.styleValues("axi")
-        assertTrue("aia is a dark opaque literal wherever it is set: $dark", dark.isNotEmpty() && dark.all(::isDarkOpaqueLiteral))
-        assertTrue("axi is light wherever it is set: $light", light.isNotEmpty() && light.none(::isDarkOpaqueLiteral))
-        assertTrue("the patch rewrites aia on 47.0.3", "aia" in sheetStyleItems("47.0.3", declaredVersions()))
     }
 
     /** R$styleable.TuxSheet[TuxSheet__tux_sheetBackgroundColor]: the int field and the array <clinit> fills. */

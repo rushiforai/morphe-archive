@@ -260,8 +260,13 @@ public final class JamBridgeService extends Service {
           );
           return a.patch_jamItemId(selected);
         });
-        JamClock.playHost(selectedId);
-        result = snapshot().put("confirmed", true);
+        if (r.has("playing")) {
+          JamClock.setHostPlaying(video, selectedId, r.getBoolean("playing"));
+          result = snapshot().put("dispatched", true);
+        } else {
+          JamClock.playHost(selectedId);
+          result = snapshot().put("confirmed", true);
+        }
       } else if ("ADD".equals(op) || "PLAY_NEXT".equals(op)) {
         String video = r.getString("videoId");
         byte[] command = QueueCommand.encode(video, "PLAY_NEXT".equals(op));

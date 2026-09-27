@@ -1,3 +1,22 @@
+# [1.3.1](https://github.com/lchanc3/morphe-patches/compare/v1.3.0...v1.3.1) (2026-09-27)
+
+### 修正
+
+* **Local Dream:** Keep Batch upscale running with the screen off
+
+
+# [1.3.0](https://github.com/lchanc3/morphe-patches/compare/v1.2.9...v1.3.0) (2026-09-26)
+
+### 新功能
+
+* **JPTT:** Keep an article's images in memory, with a 64MB disk cache behind it
+* **JPTT:** Add Local Dream with Batch upscale
+
+### 修正
+
+* **JPTT:** Play GIFs up to 64MB
+
+
 # [1.2.9](https://github.com/lchanc3/morphe-patches/compare/v1.2.8...v1.2.9) (2026-09-26)
 
 ### 新功能

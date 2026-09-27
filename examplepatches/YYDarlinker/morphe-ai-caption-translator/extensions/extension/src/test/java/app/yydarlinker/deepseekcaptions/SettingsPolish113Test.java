@@ -14,16 +14,27 @@ import static org.junit.Assert.*;
 /** Actual native Android view rasterization in an isolated fixture, not a YouTube/device screenshot. */
 @RunWith(RobolectricTestRunner.class) @Config(manifest=Config.NONE,sdk=28) @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class SettingsPolish113Test {
-    @Test public void portraitIsLargerButLayoutShiftIsBounded(){
+    @Test public void bothPreviewOrientationsUseSameVideoWidthAndSimilarFontPixels(){
         for(float width:new float[]{320,360,420,800})for(float height:new float[]{400,800}){
-            float wide=SubtitleStylePreview.stageHeight(width,height,1,false),tall=SubtitleStylePreview.stageHeight(width,height,1,true);
-            assertTrue(tall>=wide);assertTrue(tall-wide<=64);assertTrue(tall<=height*.60f+1);
+            float frame=SubtitleStylePreview.frameWidth(width,height,1);
+            float wide=SubtitleStylePreview.stageHeight(width,height,1,false);
+            float tall=SubtitleStylePreview.stageHeight(width,height,1,true);
+            assertTrue(frame<=width);assertTrue(tall>=wide);
+            assertEquals(frame*16f/9f,tall,.001f);
+            assertTrue(tall<=height*.75f+1);
+            assertTrue(wide>=frame*9f/16f);
+            for(int size:new int[]{13,18}){
+                // Real phone content: portrait is screen width, landscape is full width.
+                // Render each through the same on-screen preview frame.
+                float portrait=SubtitleStyleMetrics.previewTextPx(size,width,1,1,frame);
+                float landscape=SubtitleStyleMetrics.previewTextPx(size,height,1,1,frame);
+                assertTrue(Math.abs(portrait-landscape)/landscape<.13f);
+            }
         }
-        assertTrue(SubtitleStylePreview.stageHeight(360,800,1,true)>360*9f/16f*1.35f);
     }
     private void heading(LinearLayout root,String title){TextView label=new TextView(root.getContext());label.setText(title);CaptionSettingsStyle.caption(label);label.setTextSize(14);label.setPadding(20,20,20,6);root.addView(label);}
     private View row(android.preference.Preference preference,LinearLayout root){View row=preference.getView(null,new ListView(root.getContext()));root.addView(row,new LinearLayout.LayoutParams(-1,-2));return row;}
-    @Test public void renderNativeLightAndDarkSettingsFixtures()throws Exception{
+    @Test @Config(qualifiers="w420dp-h900dp") public void renderNativeLightAndDarkSettingsFixtures()throws Exception{
         for(boolean dark:new boolean[]{false,true})for(boolean portrait:new boolean[]{false,true}){
             Activity activity=Robolectric.buildActivity(Activity.class).setup().get();activity.setTheme(dark?android.R.style.Theme_Material_NoActionBar:android.R.style.Theme_Material_Light_NoActionBar);
             LinearLayout root=new LinearLayout(activity);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(dark?0xff0f0f0f:Color.WHITE);root.setLayoutParams(new FrameLayout.LayoutParams(420,-2));
@@ -34,7 +45,7 @@ public class SettingsPolish113Test {
             ApiKeyPreference key=new ApiKeyPreference(activity);key.setKey(DeepSeekTextPreference.KEY_API_KEY);key.setTitle("API Key");row(key,root);
             DeepSeekModelPreference model=new DeepSeekModelPreference(activity);model.setKey(DeepSeekModelPreference.KEY_MODEL);model.setTitle("模型");row(model,root);
             heading(root,"字幕样式");SubtitleStylePreview pref=new SubtitleStylePreview(activity);View previewRow=row(pref,root);SubtitleStylePreview.Preview preview=(SubtitleStylePreview.Preview)previewRow.findViewWithTag("ai_style_preview_canvas");if(portrait)preview.performClick();
-            for(String field:new String[]{DeepSeekSliderPreference.KEY_TEXT_SIZE,DeepSeekSliderPreference.KEY_OPACITY}){DeepSeekSliderPreference slider=new DeepSeekSliderPreference(activity);slider.setKey(field);slider.setTitle(field.equals(DeepSeekSliderPreference.KEY_TEXT_SIZE)?"字幕大小":"背景不透明度");slider.setSummary(field.equals(DeepSeekSliderPreference.KEY_TEXT_SIZE)?"相对字号 12–22，随画面比例缩放":"0% 为透明，100% 为不透明；松手保存");row(slider,root);}
+            for(String field:new String[]{DeepSeekSliderPreference.KEY_TEXT_SIZE,DeepSeekSliderPreference.KEY_OPACITY}){DeepSeekSliderPreference slider=new DeepSeekSliderPreference(activity);slider.setKey(field);slider.setTitle(field.equals(DeepSeekSliderPreference.KEY_TEXT_SIZE)?"字幕大小":"背景不透明度");slider.setSummary(field.equals(DeepSeekSliderPreference.KEY_TEXT_SIZE)?"相对字号 8–15，随画面比例缩放":"0% 为透明，100% 为不透明；松手保存");row(slider,root);}
             heading(root,"缓存与诊断");row(new DeepSeekDiagnosticsPreference(activity),root);
             root.measure(View.MeasureSpec.makeMeasureSpec(420,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));root.layout(0,0,420,root.getMeasuredHeight());
             Bitmap bitmap=Bitmap.createBitmap(420,root.getHeight(),Bitmap.Config.ARGB_8888);root.draw(new Canvas(bitmap));

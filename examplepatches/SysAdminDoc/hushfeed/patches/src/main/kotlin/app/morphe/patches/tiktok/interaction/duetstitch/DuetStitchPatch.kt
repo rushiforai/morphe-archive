@@ -74,7 +74,7 @@ val duetStitchPatch = bytecodePatch(
     category("Downloads")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         for ((fingerprint, answer) in listOf(

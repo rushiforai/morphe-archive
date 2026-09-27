@@ -211,13 +211,17 @@ class Elf32Test {
     }
 
     @Test
-    fun `the dead server edits silence one call, return from one function and shorten one menu`() {
+    fun `the dead server edits silence one call and one branch, return from one function and shorten one menu`() {
         for (abi in ABIS) {
             // The generator sorts edits by address, so each is picked by what it replaces.
             val edits = NativeEdits.DEAD_SERVERS.getValue(abi)
-            assertEquals(3, edits.size, "$abi: three edits")
+            assertEquals(4, edits.size, "$abi: four edits")
             val call = edits.single { it.old ushr 24 == 0xEBL }
             assertEquals(0xE1A00000L, call.new, "$abi: the BL becomes mov r0, r0")
+            // bne to the offline daily bonus message, one instruction ahead: never taken.
+            val branch = edits.single { it.old ushr 24 == 0x1AL }
+            assertEquals(0x1A000001L, branch.old, "$abi: a bne over the return")
+            assertEquals(0xE1A00000L, branch.new, "$abi: the bne becomes mov r0, r0")
             val entry = edits.single { it.old and 0xFFFFC000L == 0xE92D4000L }
             assertEquals(0xE12FFF1EL, entry.new, "$abi: the push of lr becomes bx lr")
 

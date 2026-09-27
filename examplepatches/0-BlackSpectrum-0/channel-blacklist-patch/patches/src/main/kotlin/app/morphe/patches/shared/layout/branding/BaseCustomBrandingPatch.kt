@@ -539,6 +539,17 @@ internal fun baseCustomBrandingPatch(
             )
         )
 
+        // Startup animation of each launcher foreground, played by the app hooks
+        // in place of the original one.
+        copyResources(
+            "custom-branding",
+            ResourceGroup(
+                "raw",
+                "morphe_startup_animation.json",
+                "morphe_startup_animation_play.json"
+            )
+        )
+
         // Copy template icon files.
         mipmapDirectories.keys.forEach { dpi ->
             copyResources(

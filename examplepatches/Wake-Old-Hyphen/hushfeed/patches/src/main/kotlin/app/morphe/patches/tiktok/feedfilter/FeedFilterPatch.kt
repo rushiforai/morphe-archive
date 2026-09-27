@@ -19,6 +19,7 @@ import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
+import app.morphe.patches.tiktok.privacy.invokeSitesOf
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.objectIn
@@ -77,7 +78,7 @@ val feedFilterPatch = bytecodePatch(
         sharedExtensionPatch,
     )
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // Enables the feed filter extension after settings were loaded.
@@ -417,11 +418,30 @@ val feedFilterPatch = bytecodePatch(
             )
         }
 
-        val coldStartMethods = listOf(
-            ColdStartGoldenCacheFingerprint.method,
-            ColdStartOfflineCacheFingerprint.method,
-        ).distinctBy { method ->
+        // The golden cache method, the offline cache method and whatever runs them both. On 47.0.3
+        // the golden method is itself the cold start's orchestrator: it calls the offline method
+        // and makes three of the four stores. 47.1.3 moved the golden hit-cache step into a method
+        // of its own with one store, and the two parse stores into an orchestrator that calls the
+        // golden and the offline method in turn, five stores in all.
+        val golden = ColdStartGoldenCacheFingerprint.method
+        val offline = ColdStartOfflineCacheFingerprint.method
+        val orchestrators = if (golden.goldenRunsTheColdStart()) emptyList() else findColdStartOrchestrators(golden, offline)
+        if (!golden.goldenRunsTheColdStart() && orchestrators.size != 1) {
+            throw PatchException(
+                "The golden cold-start method no longer runs the cold start, and ${orchestrators.size} " +
+                    "methods call it with the offline one where one orchestrator was expected",
+            )
+        }
+        val coldStartMethods = (listOf(golden, offline) + orchestrators).distinctBy { method ->
             "${method.definingClass}->${method.name}${method.parameterTypes}${method.returnType}"
+        }
+        coldStartMethods.forEach { method ->
+            if (method.returnType != "Z") {
+                throw PatchException(
+                    "Cold-start cache method ${method.definingClass}->${method.name} returns " +
+                        "${method.returnType}, not the hit flag the filter answers with",
+                )
+            }
         }
         val coldStartStores = coldStartMethods.map { method ->
             method to method.implementation!!.instructions.withIndex()
@@ -434,8 +454,11 @@ val feedFilterPatch = bytecodePatch(
                 .toList()
         }
         val cacheStoreCount = coldStartStores.sumOf { (_, indices) -> indices.size }
-        check(cacheStoreCount == 4) {
-            "Expected four cold-start cached FeedItemList stores, found $cacheStoreCount"
+        val expectedStores = expectedColdStartStores(orchestrators.size)
+            ?: throw PatchException("Expected at most one cold-start orchestrator, found ${orchestrators.size}")
+        check(cacheStoreCount == expectedStores) {
+            "Expected $expectedStores cold-start cached FeedItemList stores with " +
+                "${orchestrators.size} separate orchestrator(s), found $cacheStoreCount"
         }
 
         val offlineMarkers = coldStartMethods.flatMap { method ->
@@ -1106,4 +1129,14 @@ private fun MutableMethod.filterProfileDetailAdEvent() {
             move-result-object v$listRegister
         """,
     )
+}
+
+/** The cold start's orchestrator where it is a method of its own (47.1.3), found by what it calls. */
+private fun BytecodePatchContext.findColdStartOrchestrators(golden: Method, offline: Method): List<MutableMethod> {
+    val sites = invokeSitesOf(setOf(golden.coldStartCall(), offline.coldStartCall()), static = true)
+    val calls = sites.groupBy { it.method.coldStartCall() }.values.associate { group ->
+        mutableClassDefBy(group.first().owner).findMutableMethodOf(group.first().method) to
+            group.map { it.target }.toSet()
+    }
+    return coldStartOrchestrators(golden, offline, calls)
 }

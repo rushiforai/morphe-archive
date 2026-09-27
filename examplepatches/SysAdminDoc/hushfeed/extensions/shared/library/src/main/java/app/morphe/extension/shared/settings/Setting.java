@@ -155,15 +155,6 @@ public abstract class Setting<T> {
     }
 
     /**
-     * @return All settings that have been created, sorted by keys.
-     */
-    private static List<Setting<?>> allLoadedSettingsSorted() {
-        //noinspection ComparatorCombinators
-        Collections.sort(SETTINGS, (Setting<?> o1, Setting<?> o2) -> o1.key.compareTo(o2.key));
-        return allLoadedSettings();
-    }
-
-    /**
      * The key used to store the value in the shared preferences.
      */
     public final String key;
@@ -380,6 +371,22 @@ public abstract class Setting<T> {
     @NonNull
     protected T coerce(@NonNull T newValue) {
         return newValue;
+    }
+
+    /**
+     * The value as saving it would store it, for a caller that compares what it recorded with
+     * what was saved: a restore writes what {@link #coerce} returns, not the file's own number.
+     * A value this setting would refuse comes back as it was.
+     */
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public final Object savedFormOf(@Nullable Object value) {
+        if (value == null) return null;
+        try {
+            return coerce((T) value);
+        } catch (RuntimeException refused) {
+            return value;
+        }
     }
 
     /**

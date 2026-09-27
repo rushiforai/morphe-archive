@@ -18,10 +18,25 @@ The baseline can be reproduced with `python .github/scripts/sync_fork.py ../morp
 
 The fork passed Jam regression tests, 9.15.51 patch/build and DEX hierarchy verification, and manual device checks including autoplay, clock updates and LAN discovery. Participant next/previous controls now forward to the host through the authenticated Jam command path and consume the local player click. The new published bundle still requires the clean Morphe Manager source and two-device manual acceptance test. Versions 9.35.54, 9.36.50 and 9.37.54 now pass local patch application, SDK DEX verification and APK construction. They remain experimental: device behavior and the published Manager flow still need user testing. Version 9.34.52 remains excluded. See [experimental compatibility and testing](docs/experimental-versions.md) for the changes, validation traces and handoff checklist.
 
+### Player controls update
+
+Compact-player previous/next and both play/pause buttons now route participant actions to the host. Both layouts mirror the host's playback icon and accessibility label. Repatch **both host and participant** for pause/resume; no Companion update is required. Local validation passed on all four supported versions; device acceptance remains pending.
+
+Jam depends on `versionCheckPatch` and checks the exact supported-version allowlist before its bytecode and resource edits. Unsupported versions are skipped with a warning.
+
+### Session behavior update
+
+Joining pauses participant audio; leaving restores local controls and keeps audio
+paused until explicitly played. Host/join entry allows Wi-Fi-off BLE sessions,
+the player shows BLE connection status, and unsupported playlist/downloaded queue
+actions display the translatable **Unsupported during Jam** message. Setup and
+session replies update the UI promptly. Use the matching Jam Layer lifecycle build
+for cancellation and foreground cleanup. See the [exact two-device test steps](docs/session-lifecycle-testing.md).
+
 ## Patch catalog
 
 <!-- PATCHES_START -->
-> **[v1.0.0-dev.13](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.13)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
+> **[v1.0.0-dev.15](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.15)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;84 patches</summary>
 <br>
@@ -189,7 +204,7 @@ The fork passed Jam regression tests, 9.15.51 patch/build and DEX hierarchy veri
 | [Hide flyout menu components](#hide-flyout-menu-components) | Adds options to hide individual items from the player and queue flyout menus. |  |
 | [Hide layout components](#hide-layout-components) | Adds options to hide general layout components. |  |
 | [Hide music action buttons](#hide-music-action-buttons) | Adds options to hide action buttons under the player. |  |
-| [Jam queue sharing](#jam-queue-sharing) | Adds a native Jam queue panel and authenticated bridge. Newer experimental targets require device testing. Root installation is not supported. |  |
+| [Jam queue sharing](#jam-queue-sharing) | Shares the host queue and playback controls through an authenticated Jam bridge. Supports YouTube Music 9.15.51; 9.35.54, 9.36.50 and 9.37.54 are experimental and require device testing. Other versions are skipped with a warning. Root installation is not supported. |  |
 | [Miniplayer previous and next buttons](#miniplayer-previous-and-next-buttons) | Adds options to show previous and next track buttons in the miniplayer. |  |
 | [Navigation bar](#navigation-bar) | Adds options to hide navigation bar, labels and buttons. |  |
 | [Network proxy](#network-proxy) | Adds settings to route supported network requests through an HTTP or HTTPS proxy. Including this patch may cause connectivity problems on certain devices |  |

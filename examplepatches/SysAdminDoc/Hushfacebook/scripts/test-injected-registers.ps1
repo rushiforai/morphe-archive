@@ -19,9 +19,36 @@
     an int and an object tested for equality in either order, a move-result the patch separated
     from its invoke, bad try ranges and handlers (a handler at a switch or array payload among
     them), a move-exception the method's entry reaches, the one feed guard doubled, moved or
-    missing, the reels hook deleted from the pre-EOF injector or put after a branch, and the
-    showcase stub left unfilled, calling another class, or calling a class that isn't the only one
-    answering its type name. The good build carries the joins, copies and reads ART accepts, a zero tested against
+    missing, the reels hook deleted from the pre-EOF injector or put after a branch, the showcase
+    stub left unfilled, calling another class, or calling a class that isn't the only one
+    answering its type name, Clean up Reels' hook deleted from Facebook's Follow check or put
+    after a branch there, Use the phone's emoji's hook deleted from Facebook's emoji typeface
+    provider or put after a branch there, and the GenAI reel stub left unfilled, filled with a call
+    that stays in the extension, or calling Facebook's finder only after it has returned. Each
+    start-call hook is also put first in a method holding part of what its rule picks by (the tray
+    controller, onPause, another method naming both surfaces, a method holding the emoji
+    provider's log tag alone), and one rule is given two methods to choose from; all five fail
+    naming the method the rule picks. The Follow hook is also put first in that other method as
+    well as in the check. A register out of range fails as its own finding:
+    named by a helper added to a host class, as the upper half of a long read from the last
+    register, as a long an extension method writes there, and in the feed guard. Each of the five
+    ShortcutManager calls the settings patch sends to the
+    extension is left in Facebook's code by a build of its own, which has to fail that call's no-call
+    rule and no other, and the contract file may hold no no-call rule without such a build. The
+    call that gives the Facebook logo its touch listener is left as Facebook makes it, the stand-in
+    is sent in place of the container's call instead, made on the container's register, sent
+    twice, sent in another top bar method holding the logo's first trace section with the builder
+    left alone, or sent there as well as in the builder, and a second builder answers the rule, a
+    build each, and each has to fail the logo's next-call rule for its own reason; the contract
+    file may hold no other next-call rule. The call that hands the Reels viewer's batch of watched
+    reels to its executor is left as Facebook makes it, the watch-history stand-in is sent in
+    another batcher method holding the mutation's name with the flush left alone, sent there as
+    well as in the flush, sent twice, sent with Facebook's call left beside it, or handed the two
+    registers the wrong way round, and a second flush answers the rule, a build each, each failing
+    the sole-call rule for its own reason; a clean build whose flush makes no such call fails the
+    good build's stand-in for want of one to stand in for, and the contract file may hold no other
+    sole-call rule.
+    The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
     here too. Removed methods and DEX entries, the removal allowlist, and the device tally
@@ -95,7 +122,7 @@ function Get-Findings {
     param($Result)
     $fails = @($Result.Output | Where-Object { $_ -like '`[diff`] FAIL*' })
     $categories = @($fails | ForEach-Object {
-        if ($_ -match '^\[diff\] FAIL: (branch|invoke|parameter|width|try|result|contract): ') { $Matches[1] } else { '?' }
+        if ($_ -match '^\[diff\] FAIL: (register|branch|invoke|parameter|width|try|result|contract): ') { $Matches[1] } else { '?' }
     })
     [pscustomobject]@{ Fails = $fails; Categories = $categories }
 }
@@ -550,8 +577,11 @@ try {
             'Lcom/facebook/graphql/model/GraphQLStory;->A0X()Lfixture/Model; before its first return'))) `
             "The good build's $stub was not reported calling the story's accessor.`n$($good.Output -join "`n")"
     }
+    # Each start-call rule finds its one method among others holding part of what it names (the
+    # tray controller, the refresh controller's onPause, two other methods naming both surfaces),
+    # and the hook first there.
     foreach ($adapter in @('NewsFeedAdapterConfiguration.addStoriesAdapter: first in Lfixture/Adapters;->addStoriesAdapter(',
-            'stories_tray_create_adapter_stop: first in Lfixture/Adapters;->addUnifiedTray(')) {
+            'stories_tray_create_adapter_start stories_tray_create_adapter_stop tofu: first in Lfixture/Adapters;->addUnifiedTray(')) {
         Assert-True (($good.Output -join "`n") -match [regex]::Escape("hideStoriesTray(I)Z holding $adapter")) `
             "The good build's tray hook was not reported first in its adapter: $adapter`n$($good.Output -join "`n")"
     }
@@ -563,8 +593,82 @@ try {
         'Lfixture/Showcase;->A01()Lfixture/StoryType; before its first return')) `
         "The good build's showcase stub was not reported calling the showcase unit's accessor.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
-        'ReturnRefresh;->skip()Z holding FeedRefreshTriggerController: first in Lfixture/ReturnController;->resumeAfterBackground(')) `
+        'ReturnRefresh;->skip()Z holding FeedRefreshTriggerController onRefresh: first in Lfixture/ReturnController;->resumeAfterBackground(')) `
         "The good build's background-return guard was not first in the resume callback.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        ('ReelDeclutter;->hideFollowButton()Z in static (Lcom/facebook/auth/usersession/FbUserSession;*)Z holding ' +
+            'friendly_feed friends_tab_ifu: first in Lfixture/FollowCheck;->offersFollow('))) `
+        "The good build's Follow hook was not first in Facebook's Follow check.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        ('SystemEmoji;->typeface()Landroid/graphics/Typeface; in instance ()Landroid/graphics/Typeface; holding ' +
+            'fb.e2e.force_system_emoji_font FacebookEmojiTypefaceProviderImpl: first in Lfixture/EmojiProvider;->emojiTypeface('))) `
+        "The good build's emoji hook was not first in Facebook's emoji typeface provider.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        'GenAiReelFilter;->transparencyAttribution(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; outside ' +
+        'Lapp/morphe/extension/: calls Lfixture/Attributions;->A02(Lfixture/ReelModel;Ljava/lang/String;)Lfixture/Model; ' +
+        'before its first return')) `
+        "The good build's GenAI reel stub was not reported calling Facebook's attribution finder.`n$($good.Output -join "`n")"
+    # The settings patch sends each of these ShortcutManager calls to SettingsEntry, and the fixture's
+    # publisher makes each one from a method of its own (Caller). Every no-call rule in the contract
+    # file has to be one of them, or a rule with no bad build below would pass on "0 call sites".
+    $shortcutCalls = @(
+        [pscustomobject]@{ Case = 'push'; Call = 'pushDynamicShortcut'; Takes = 'Landroid/content/pm/ShortcutInfo;'; Answers = 'V'; Caller = 'push' }
+        [pscustomobject]@{ Case = 'add'; Call = 'addDynamicShortcuts'; Takes = 'Ljava/util/List;'; Answers = 'Z'; Caller = 'add' }
+        [pscustomobject]@{ Case = 'set'; Call = 'setDynamicShortcuts'; Takes = 'Ljava/util/List;'; Answers = 'Z'; Caller = 'set' }
+        [pscustomobject]@{ Case = 'update'; Call = 'updateShortcuts'; Takes = 'Ljava/util/List;'; Answers = 'Z'; Caller = 'update' }
+        [pscustomobject]@{ Case = 'remove-all'; Call = 'removeAllDynamicShortcuts'; Takes = ''; Answers = 'V'; Caller = 'removeAll' }
+    )
+    foreach ($shortcut in $shortcutCalls) {
+        $shortcut | Add-Member -NotePropertyName Callee -NotePropertyValue (
+            "Landroid/content/pm/ShortcutManager;->$($shortcut.Call)($($shortcut.Takes))$($shortcut.Answers)")
+        $shortcut | Add-Member -NotePropertyName Site -NotePropertyValue (
+            "Lfixture/Shortcuts;->$($shortcut.Caller)(Landroid/content/pm/ShortcutManager;$($shortcut.Takes))$($shortcut.Answers)")
+    }
+    $noCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*no-call\s' } |
+        ForEach-Object { ($_.Trim() -split '\s+')[1] } | Sort-Object)
+    $shortcutCallees = @($shortcutCalls | ForEach-Object { $_.Callee } | Sort-Object)
+    Assert-True (($noCallRules -join "`n") -ceq ($shortcutCallees -join "`n")) `
+        ("The contract file's no-call rules and this suite's shortcut builds name different calls.`n" +
+        "Contract file:`n$($noCallRules -join "`n")`nThis suite:`n$($shortcutCallees -join "`n")")
+    foreach ($shortcut in $shortcutCalls) {
+        Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+            "no-call $($shortcut.Callee) outside Lapp/morphe/extension/: 0 call sites")) `
+            ("The good build's $($shortcut.Call), sent to the stand-in whose own call is inside the extension, " +
+            "was not reported clean.`n$($good.Output -join "`n")")
+    }
+    # The settings patch sends the call that gives the Facebook logo its touch listener to a stand-in,
+    # right after the logo gets its tap. The contract file's one next-call rule is that hook, so a
+    # rule this suite builds no bad fixtures for can't pass on a count nobody checks.
+    $logoHook = 'Lapp/morphe/extension/facebook/settings/SettingsEntry;->setLogoTouchListener(Landroid/view/View;Landroid/view/View$OnTouchListener;)V'
+    $logoTap = 'Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V'
+    $logoShape = '(Landroid/content/Context;Lcom/facebook/navigation/navbar/legacy/search/WordmarkNavigationBar;)V'
+    $logoBuilder = "Lfixture/TopBar;->buildLogo$logoShape"
+    $logoHeld = '"WordmarkNavigationBar#createWordmarkView" and "WordmarkNavigationBar.initContents" with the shape ' +
+        "static $logoShape"
+    $logoRule = "next-call $logoHook after $logoTap in static $logoShape holding " +
+        'WordmarkNavigationBar#createWordmarkView WordmarkNavigationBar.initContents'
+    $nextCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*next-call\s' } |
+        ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
+    Assert-True ($nextCallRules.Count -eq 1 -and $nextCallRules[0] -ceq $logoRule) `
+        "The contract file's next-call rules are not the logo hook this suite builds bad fixtures for:`n$($nextCallRules -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        "contract $logoRule`: right after it on v1 in $logoBuilder")) `
+        "The good build's logo hook was not reported right after the logo's tap.`n$($good.Output -join "`n")"
+    # Don't send reel watch history sends the batcher's one hand-over of watched reels to a
+    # stand-in on the same registers. The contract file's one sole-call rule is that hook, so a rule
+    # this suite builds no bad fixtures for can't pass on a count nobody checks.
+    $watchSend = 'Lapp/morphe/extension/facebook/reels/ReelWatchHistory;->send(Ljava/util/concurrent/Executor;Ljava/lang/Runnable;)V'
+    $watchExecute = 'Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V'
+    $watchFlush = 'Lfixture/SeenStateBatcher;->flush()V'
+    $watchHeld = '"FbShortsSeenStateMutation" and "video_ids" with the shape instance ()V'
+    $watchRule = "sole-call $watchSend replacing $watchExecute in instance ()V holding FbShortsSeenStateMutation video_ids"
+    $soleCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*sole-call\s' } |
+        ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
+    Assert-True ($soleCallRules.Count -eq 1 -and $soleCallRules[0] -ceq $watchRule) `
+        "The contract file's sole-call rules are not the watch-history hook this suite builds bad fixtures for:`n$($soleCallRules -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        "contract $watchRule`: in place of it on v2, v1 in $watchFlush")) `
+        "The good build's watch-history hook was not reported in place of the executor call.`n$($good.Output -join "`n")"
 
     $bad = [ordered]@{
         'bad-branch' = 'branch'
@@ -649,12 +753,46 @@ try {
         'bad-showcase-two-classes' = 'contract'
         'bad-return-refresh-hook-missing' = 'contract'
         'bad-return-refresh-hook-late' = 'contract'
+        'bad-follow-hook-missing' = 'contract'
+        'bad-follow-hook-late' = 'contract'
+        'bad-emoji-hook-missing' = 'contract'
+        'bad-emoji-hook-late' = 'contract'
+        'bad-logo-hook-missing' = 'contract'
+        'bad-logo-hook-other-call' = 'contract'
+        'bad-logo-hook-other-view' = 'contract'
+        'bad-logo-hook-twice' = 'contract'
+        'bad-logo-hook-decoy' = 'contract'
+        'bad-logo-hook-also-elsewhere' = 'contract'
+        'bad-logo-two-builders' = 'contract'
+        'bad-watch-hook-missing' = 'contract'
+        'bad-watch-hook-decoy' = 'contract'
+        'bad-watch-hook-also-elsewhere' = 'contract'
+        'bad-watch-hook-twice' = 'contract'
+        'bad-watch-execute-left' = 'contract'
+        'bad-watch-hook-other-registers' = 'contract'
+        'bad-watch-two-flushes' = 'contract'
+        'bad-finder-stub-not-filled' = 'contract'
+        'bad-finder-stub-extension-call' = 'contract'
+        'bad-finder-stub-call-after-return' = 'contract'
+        'bad-tray-hook-wrong-method' = 'contract'
+        'bad-return-refresh-hook-wrong-method' = 'contract'
+        'bad-return-refresh-two-callbacks' = 'contract'
+        'bad-follow-hook-wrong-method' = 'contract'
+        'bad-emoji-hook-wrong-method' = 'contract'
+        'bad-follow-hook-also-elsewhere' = 'contract'
+        'bad-register-added-helper' = 'register'
+        'bad-register-wide-source' = 'register'
+        'bad-register-own-wide' = 'register'
+        'bad-register-changed' = 'register'
     }
+    foreach ($shortcut in $shortcutCalls) { $bad["bad-shortcut-$($shortcut.Case)-left"] = 'contract' }
     $failures = @()
+    $badResults = @{}
     foreach ($case in $bad.GetEnumerator()) {
         $apk = New-DexApk -Name $case.Key -Entries ([ordered]@{ 'classes.dex' = (Get-Dex $case.Key) })
         $result = Invoke-DexDiff -Clean $cleanApk -Patched $apk -Allowlist $emptyAllowlist `
             -Name $case.Key -Contracts $contracts
+        $badResults[$case.Key] = $result
         $findings = Get-Findings $result
         $others = @($findings.Categories | Where-Object { $_ -ne $case.Value })
         if ($result.ExitCode -eq 0) {
@@ -668,6 +806,139 @@ try {
         }
     }
     if ($failures.Count -ne 0) { throw ($failures -join "`n") }
+
+    # Each shortcut build fails on its own call's no-call rule alone, naming the one method that still
+    # makes the call, so a rule that fires for another call, or for every call, fails here too.
+    foreach ($shortcut in $shortcutCalls) {
+        $name = "bad-shortcut-$($shortcut.Case)-left"
+        $fails = @((Get-Findings $badResults[$name]).Fails)
+        $expected = "[diff] FAIL: contract: $($shortcut.Callee) is still called outside Lapp/morphe/extension/, in $($shortcut.Site)"
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $expected) `
+            "$name did not fail with its own no-call finding alone.`nExpected: $expected`nGot:`n$($fails -join "`n")"
+        foreach ($other in $shortcutCalls) {
+            $count = if ($other.Call -eq $shortcut.Call) { '1 call site, in ' } else { '0 call sites' }
+            Assert-True (($badResults[$name].Output -join "`n") -match [regex]::Escape(
+                "no-call $($other.Callee) outside Lapp/morphe/extension/: $count")) `
+                "$name reported $($other.Call) wrong: expected '$count'.`n$($badResults[$name].Output -join "`n")"
+        }
+    }
+
+    # Each logo build fails on the logo rule alone, for its own reason: no stand-in, a stand-in not
+    # right after the logo's tap, one made on another view, two, one in another method holding the
+    # first trace section, one there as well as in the builder, or a second builder.
+    $logoSearch = "Lfixture/TopBar;->buildSearch$logoShape"
+    $logoFails = [ordered]@{
+        'bad-logo-hook-missing' = "[diff] FAIL: contract: $logoHook is not called in $logoBuilder, the one method holding $logoHeld"
+        'bad-logo-hook-other-call' = "[diff] FAIL: contract: $logoHook is called in $logoBuilder, but not right after $logoTap"
+        'bad-logo-hook-other-view' = "[diff] FAIL: contract: $logoHook is called in $logoBuilder on v2, not on v1, " +
+            "the register $logoTap is made on"
+        'bad-logo-hook-twice' = "[diff] FAIL: contract: $logoHook has 2 call sites in $logoBuilder, and must have exactly one"
+        'bad-logo-hook-decoy' = "[diff] FAIL: contract: $logoHook is not called in $logoBuilder, the one method holding " +
+            "$logoHeld; the host methods that call it: $logoSearch"
+        'bad-logo-hook-also-elsewhere' = "[diff] FAIL: contract: $logoHook is called in $logoSearch as well as in " +
+            "$logoBuilder, the one method holding $logoHeld"
+        'bad-logo-two-builders' = "[diff] FAIL: contract: 2 methods hold $logoHeld, and exactly one must, so the rule " +
+            "can't say which one calls ${logoHook}: $logoBuilder, Lfixture/TopBar;->buildLogoAgain$logoShape"
+    }
+    foreach ($case in $logoFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail with its own logo finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
+
+    # Each watch-history build fails on the sole-call rule alone, for its own reason: no stand-in,
+    # one in another method holding the mutation's name, one there as well as in the flush, two,
+    # Facebook's call left beside it, one on the registers the wrong way round, or a second flush.
+    $watchDescribe = 'Lfixture/SeenStateBatcher;->describe()V'
+    $watchFails = [ordered]@{
+        'bad-watch-hook-missing' = "[diff] FAIL: contract: $watchSend is not called in $watchFlush, the one method holding $watchHeld"
+        'bad-watch-hook-decoy' = "[diff] FAIL: contract: $watchSend is not called in $watchFlush, the one method holding " +
+            "$watchHeld; the host methods that call it: $watchDescribe"
+        'bad-watch-hook-also-elsewhere' = "[diff] FAIL: contract: $watchSend is called in $watchDescribe as well as in " +
+            "$watchFlush, the one method holding $watchHeld"
+        'bad-watch-hook-twice' = "[diff] FAIL: contract: $watchSend has 2 call sites in $watchFlush, and must have exactly one"
+        'bad-watch-execute-left' = "[diff] FAIL: contract: $watchFlush still calls $watchExecute, which $watchSend stands in for"
+        'bad-watch-hook-other-registers' = "[diff] FAIL: contract: $watchSend is called in $watchFlush on v1, v2, but the " +
+            "clean build calls $watchExecute there on v2, v1"
+        'bad-watch-two-flushes' = "[diff] FAIL: contract: 2 methods hold $watchHeld, and exactly one must, so the rule " +
+            "can't say which one calls ${watchSend}: $watchFlush, Lfixture/SeenStateBatcher;->flushAgain()V"
+    }
+    foreach ($case in $watchFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail with its own watch-history finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
+    # And against a clean build whose flush makes no executor call, the good build's stand-in has
+    # nothing it took the place of.
+    $noHandOverClean = New-DexApk -Name 'clean-no-hand-over' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'clean-no-hand-over') })
+    $noHandOver = Invoke-DexDiff -Clean $noHandOverClean -Patched (Join-Path $caseRoot 'good.apk') `
+        -Allowlist $emptyAllowlist -Name 'no-hand-over' -Contracts $contracts
+    $noHandOverFails = @((Get-Findings $noHandOver).Fails)
+    $noHandOverExpected = "[diff] FAIL: contract: $watchSend is called in $watchFlush on v2, v1, but the clean build " +
+        "calls $watchExecute there 0 times, not once"
+    Assert-True ($noHandOver.ExitCode -ne 0 -and $noHandOverFails.Count -eq 1 -and $noHandOverFails[0] -ceq $noHandOverExpected) `
+        "A stand-in for a call the clean build never made was accepted.`nExpected: $noHandOverExpected`nGot:`n$($noHandOver.Output -join "`n")"
+
+    # The GenAI reel stub's three builds fail on that stub's own rule alone: a call that stays in the
+    # extension, or Facebook's finder reached only after a return, is no fill.
+    $finderStub = 'Lapp/morphe/extension/facebook/feed/GenAiReelFilter;->transparencyAttribution(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;'
+    foreach ($name in 'bad-finder-stub-not-filled', 'bad-finder-stub-extension-call', 'bad-finder-stub-call-after-return') {
+        $fails = @((Get-Findings $badResults[$name]).Fails)
+        $expected = "[diff] FAIL: contract: $finderStub returns before it calls a method outside Lapp/morphe/extension/, " +
+            "so the patch didn't fill it"
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $expected) `
+            "$name did not fail on the GenAI reel stub's rule alone.`nExpected: $expected`nGot:`n$($fails -join "`n")"
+    }
+
+    # A hook in the wrong method names the one method its rule picks and where the hook went; a rule
+    # two methods answer names both; a register out of range names the instruction, the register it
+    # reaches and the count, in the method it sits in. Each FAIL line has to be one of these.
+    $wrongPlace = [ordered]@{
+        'bad-tray-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z ' +
+            'is not called in Lfixture/Adapters;->addUnifiedTray(Ljava/lang/Object;)Ljava/lang/Object;, the one method holding ' +
+            '"stories_tray_create_adapter_start", "stories_tray_create_adapter_stop" and "tofu"; the host methods that call it: ' +
+            '*Lfixture/TrayController;->create(Ljava/lang/Object;)Ljava/lang/Object;*'))
+        'bad-return-refresh-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/feed/ReturnRefresh;->skip()Z is not ' +
+            'called in Lfixture/ReturnController;->resumeAfterBackground(Ljava/lang/Object;)V, the one method holding ' +
+            '"FeedRefreshTriggerController" and "onRefresh"; the host methods that call it: Lfixture/ReturnController;->onPause()V'))
+        'bad-follow-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/reels/ReelDeclutter;->hideFollowButton()Z is not ' +
+            'called in Lfixture/FollowCheck;->offersFollow(Lcom/facebook/auth/usersession/FbUserSession;)Z, the one method holding ' +
+            '"friendly_feed" and "friends_tab_ifu" with the shape static (Lcom/facebook/auth/usersession/FbUserSession;*)Z; the host ' +
+            'methods that call it: Lfixture/FollowCheck;->offersFollowHere(Lcom/facebook/auth/usersession/FbUserSession;)Z'))
+        'bad-emoji-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/emoji/SystemEmoji;->typeface()Landroid/graphics/Typeface; ' +
+            'is not called in Lfixture/EmojiProvider;->emojiTypeface()Landroid/graphics/Typeface;, the one method holding ' +
+            '"fb.e2e.force_system_emoji_font" and "FacebookEmojiTypefaceProviderImpl" with the shape instance ' +
+            '()Landroid/graphics/Typeface;; the host methods that call it: Lfixture/EmojiProvider;->loggedTypeface()Landroid/graphics/Typeface;'))
+        'bad-follow-hook-also-elsewhere' = @(('*contract: Lapp/morphe/extension/facebook/reels/ReelDeclutter;->hideFollowButton()Z ' +
+            'is called in Lfixture/FollowCheck;->offersFollowHere(Lcom/facebook/auth/usersession/FbUserSession;)Z as well as in ' +
+            'Lfixture/FollowCheck;->offersFollow(Lcom/facebook/auth/usersession/FbUserSession;)Z, the one method holding ' +
+            '"friendly_feed" and "friends_tab_ifu" with the shape static (Lcom/facebook/auth/usersession/FbUserSession;*)Z'))
+        'bad-return-refresh-two-callbacks' = @(('*contract: 2 methods hold "FeedRefreshTriggerController" and "onRefresh", and exactly ' +
+            'one must, so the rule can''t say which one calls Lapp/morphe/extension/facebook/feed/ReturnRefresh;->skip()Z: *' +
+            'Lfixture/ReturnController;->resume*(Ljava/lang/Object;)V, Lfixture/ReturnController;->resume*(Ljava/lang/Object;)V'))
+        'bad-register-added-helper' = @('*register: const/4 at 0 reaches v1, and the method declares 1 register  in Lfixture/Feed;->helper()V')
+        'bad-register-wide-source' = @('*register: move-wide at 0 reaches v2, and the method declares 2 registers  in Lfixture/Feed;->copyWide()V')
+        'bad-register-own-wide' = @(('*register: const-wide/16 at 0 reaches v2, and the method declares 2 registers  in ' +
+            'Lapp/morphe/extension/facebook/feed/Pack;->pack()V'))
+        'bad-register-changed' = @(
+            '*register: move-result at 3 reaches v4, and the method declares 4 registers  in Lfixture/Feed;->addNewEdgeToCollection(*',
+            '*register: if-eqz at 4 reaches v4, and the method declares 4 registers  in Lfixture/Feed;->addNewEdgeToCollection(*')
+    }
+    foreach ($case in $wrongPlace.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        $unmatched = @($fails | Where-Object { $line = $_; @($case.Value | Where-Object { $line -like $_ }).Count -eq 0 })
+        $missing = @($case.Value | Where-Object { $pattern = $_; @($fails | Where-Object { $_ -like $pattern }).Count -eq 0 })
+        Assert-True ($fails.Count -eq $case.Value.Count -and $unmatched.Count -eq 0 -and $missing.Count -eq 0) `
+            "$($case.Key) did not fail with the findings expected.`nExpected:`n$($case.Value -join "`n")`nGot:`n$($fails -join "`n")"
+    }
+    # The added helper is read against its own count in the report too, beside the extension's
+    # methods, which were the only added ones read there before.
+    $helperReport = Get-Content -LiteralPath $badResults['bad-register-added-helper'].Report -Raw
+    Assert-True ($helperReport -match '(?m)^==== added Lfixture/Feed;->helper\(\)V\r?$' -and
+        $helperReport -match 'const/4 v1, #0 \|maxreg=1   <<< REGISTER >= registerCount') `
+        "The report did not hold the helper added to a host class to its register count.`n$helperReport"
+    Assert-True (($badResults['bad-register-added-helper'].Output -join "`n") -match 'injected lines naming an out-of-range register: 1') `
+        "The helper added to a host class was not counted among the out-of-range lines.`n$($badResults['bad-register-added-helper'].Output -join "`n")"
 
     # Without a contract file the structural checks still run; only the call-site rule is off.
     $noContract = Invoke-DexDiff -Clean $cleanApk -Patched (Join-Path $caseRoot 'bad-no-guard.apk') `
@@ -691,9 +962,43 @@ try {
             'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in addStoriesAdapter',
             'start-call hideStoriesTray holding stories_tray_create_adapter_stop',
             'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z holding',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z holding tofu tofu',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in static holding tofu',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in (I)Z',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in static (I)Z holding',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in sometimes (I)Z holding tofu',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in static I)Z holding tofu',
+            'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z tofu holding tofu',
             'first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named Lfixture/Showcase;',
             'first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named',
-            'first-call storyType on-type-named ShowcaseFeedUnit')) {
+            'first-call storyType on-type-named ShowcaseFeedUnit',
+            'first-call Lapp/morphe/extension/facebook/feed/GenAiReelFilter;->transparencyAttribution(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; outside Lapp/morphe/extension',
+            'first-call transparencyAttribution outside Lapp/morphe/extension/',
+            'first-call Lapp/morphe/extension/facebook/feed/GenAiReelFilter;->transparencyAttribution(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; outside',
+            'no-call Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V in Lapp/morphe/extension/',
+            'no-call pushDynamicShortcut outside Lapp/morphe/extension/',
+            'no-call Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V outside',
+            'no-call Landroid/content/pm/ShortcutManager;->pushDynamicShortcut(Landroid/content/pm/ShortcutInfo;)V outside Lapp/morphe/extension',
+            "next-call $logoHook after setOnClickListener holding WordmarkNavigationBar#createWordmarkView",
+            "next-call setLogoTouchListener after $logoTap holding WordmarkNavigationBar#createWordmarkView",
+            "next-call $logoHook after $logoTap in WordmarkNavigationBar#createWordmarkView",
+            "next-call $logoHook before $logoTap holding WordmarkNavigationBar#createWordmarkView",
+            "next-call $logoHook after $logoTap holding",
+            "next-call $logoHook holding WordmarkNavigationBar#createWordmarkView",
+            "next-call $logoHook after $logoTap holding tofu tofu",
+            "next-call $logoHook after $logoTap in static holding tofu",
+            "next-call $logoHook after $logoTap in static $logoShape",
+            "next-call $logoHook after $logoTap in sometimes $logoShape holding tofu",
+            "next-call $logoHook after $logoTap in static Landroid/content/Context;)V holding tofu",
+            "next-call $logoHook after $logoTap tofu holding tofu",
+            "sole-call $watchSend holding FbShortsSeenStateMutation video_ids",
+            "sole-call $watchSend replacing execute holding FbShortsSeenStateMutation video_ids",
+            "sole-call send replacing $watchExecute holding FbShortsSeenStateMutation video_ids",
+            "sole-call $watchSend after $watchExecute holding FbShortsSeenStateMutation video_ids",
+            "sole-call $watchSend replacing $watchExecute holding",
+            "sole-call $watchSend replacing $watchExecute holding video_ids video_ids",
+            "sole-call $watchSend replacing $watchExecute in instance holding video_ids",
+            "sole-call $watchSend replacing $watchExecute in instance ()V")) {
         [System.IO.File]::WriteAllText($badContract, "# a comment line first`n$line`n")
         $unreadableFirstCall = Invoke-DexDiff -Clean $cleanApk -Patched (Join-Path $caseRoot 'good.apk') `
             -Allowlist $emptyAllowlist -Name 'bad-first-call-contract' -Contracts $badContract

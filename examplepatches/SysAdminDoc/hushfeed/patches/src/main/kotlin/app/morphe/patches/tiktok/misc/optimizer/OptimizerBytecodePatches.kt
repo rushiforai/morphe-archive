@@ -20,7 +20,7 @@ val instantLaunchSplashBlockerPatch = bytecodePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val voidMethods = listOf(
@@ -81,7 +81,7 @@ val networkTrafficGovernorPatch = bytecodePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val bufferGate = BufferPreloadGateFingerprint.method
@@ -99,7 +99,7 @@ val runtimeMemoryGovernorPatch = bytecodePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val frameCache = mutableClassDefBy(FRESCO_FRAME_CACHE_DESCRIPTOR)
@@ -147,7 +147,7 @@ val updatePromptSuppressorPatch = bytecodePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val methods = listOf(
@@ -160,7 +160,7 @@ val updatePromptSuppressorPatch = bytecodePatch(
 
 /** Bytecode half of LIVE Stream Suite Optimizer. It is selected only through the resource patch. */
 internal val liveGiftEffectOptimizerPatch = bytecodePatch {
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val methods = listOf(

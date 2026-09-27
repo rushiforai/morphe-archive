@@ -10,10 +10,11 @@
     Called by .git/hooks/pre-push with the remote name and URL, reading the pushed refs from
     standard input the way git supplies them. Run scripts/install-hooks.ps1 once to wire it up.
 
-    Only what changed is checked: runtime tests when extension or patch sources move, and the
-    release facts when a published file moves. The one check every push gets is a scan of every
-    commit it publishes for tracked files that name the maintainer's machine or a phone. Set
-    HUSHFACEBOOK_SKIP_PRE_PUSH=1 to push anyway.
+    Only what changed is checked: runtime tests when extension or patch sources, or the root files
+    those tests read, move, and the release facts when a published file moves. A move counts at
+    both ends, the path it left and the one it took. The one check every push gets is a scan of
+    every commit it publishes for tracked files that name the maintainer's machine or a phone.
+    Set HUSHFACEBOOK_SKIP_PRE_PUSH=1 to push anyway.
 #>
 [CmdletBinding()]
 param(
@@ -110,16 +111,21 @@ function Get-PushedPaths {
             # when the branch changed only documentation. A first push is rare, and a complete
             # tree cannot be made incomplete by a deleted or force-updated remote-tracking ref.
             $range = "$localSha complete branch tree"
-            $names = Invoke-GitQuietly @('ls-tree', '-r', '--name-only', $localSha)
+            $names = Invoke-GitQuietly @('ls-tree', '-r', '--name-only', '-z', $localSha)
         } else {
             $range = "$remoteSha..$localSha"
-            $names = Invoke-GitQuietly @('diff', '--name-only', $remoteSha, $localSha)
+            # Both ends of a move. Taken for a rename, a moved file is listed under its new path
+            # alone: patches-bundle.json moved away ran no release check, a source moved out of
+            # extensions/ no runtime tests, and a gate suite renamed was never looked for.
+            $names = Invoke-GitQuietly @('diff', '--name-only', '--no-renames', '-z', $remoteSha, $localSha)
         }
         if ($LASTEXITCODE -ne 0) {
             throw "Could not read what $range changes. Fetch the remote and try again."
         }
-        foreach ($name in @($names)) {
-            if (-not [string]::IsNullOrWhiteSpace($name)) { [void]$paths.Add($name.Trim()) }
+        # Separated by NULs, so git prints each path as it is. Line by line it quotes a path with a
+        # byte outside ASCII, "extensions/.../\303\234ber.java" in quotes, which matched no route.
+        foreach ($name in ((@($names) -join "`n") -split "`0")) {
+            if (-not [string]::IsNullOrEmpty($name)) { [void]$paths.Add($name) }
         }
         $commit = Invoke-GitQuietly @('rev-parse', '--verify', "$localSha^{commit}")
         if ($LASTEXITCODE -eq 0 -and $commit -and -not $script:pushedCommits.Contains(([string]$commit).Trim())) {
@@ -239,6 +245,45 @@ function Invoke-HookGit {
             })
             if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed: $($errors -join ' ')" }
             return $output
+        } finally {
+            $ErrorActionPreference = $preference
+        }
+    }
+}
+
+function Invoke-CommitScript {
+    <#
+        A pushed commit's script, run from its gate worktree in a PowerShell process of its own and
+        with no GIT_* variables. Run in this one, it saw every function this hook and the working
+        tree's common.ps1 had defined, so a suite calling a helper the working tree holds uncommitted
+        passed here and failed for anyone who checked the commit out. -Arguments are its named
+        parameters; a switch goes as its name alone when it's on. Its output goes where this hook's
+        does, and its exit code is left in $LASTEXITCODE.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string]$Script,
+        [hashtable]$Arguments = @{}
+    )
+    $argv = @()
+    foreach ($name in $Arguments.Keys) {
+        $value = $Arguments[$name]
+        if ($value -is [bool] -or $value -is [System.Management.Automation.SwitchParameter]) {
+            if ($value) { $argv += "-$name" }
+        } else {
+            $argv += "-$name"
+            $argv += [string]$value
+        }
+    }
+    # The shell this hook runs in, so a suite that has to pass under Windows PowerShell 5.1 gets it.
+    $shell = (Get-Process -Id $PID).Path
+    Invoke-WithoutGitEnvironment {
+        # Windows PowerShell 5.1 turns a native command's standard error into a terminating error
+        # under Stop, and a failing suite says why on it.
+        $preference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $Script @argv 2>&1 |
+                ForEach-Object { Write-Host "$_" }
         } finally {
             $ErrorActionPreference = $preference
         }
@@ -371,13 +416,23 @@ try {
         exit 0
     }
 
+    # The files outside the source trees that the runtime tests read. ReadmePatchNamesTest holds the
+    # README's patch rows to the catalog, ProvenanceTest holds NOTICE and every source's header to
+    # provenance.json, PatchFamilyTest and LicenseNoticeTest read the catalog and NOTICE, and
+    # ShortcutCallsTest holds the settings patch's shortcut rewrite to the no-call rules in the
+    # mutation contracts. The Gradle files declare them as test inputs, so the tests rerun when one
+    # moves, but a push of one alone never started them: a README patch row went out with
+    # ReadmePatchNamesTest never run on it.
+    $runtimeTestInputs = @('README.md', 'NOTICE', 'provenance.json', 'patches-list.json',
+        'scripts/injected-mutation-contracts.txt')
     $touchesCode = @($paths | Where-Object {
         $_ -like 'extensions/*' -or $_ -like 'patches/*' -or
         # The pins and the reviewed checksums. Two Gradle tasks hold the Bouncy Castle graphs to
         # the reviewed release, and they only run on the way to a test task; a push that moved
         # the pin alone ran the release facts check, which knows nothing about them.
         $_ -eq 'gradle/libs.versions.toml' -or $_ -eq 'gradle/verification-metadata.xml' -or
-        $_ -eq 'settings.gradle.kts' -or $_ -eq 'build.gradle.kts'
+        $_ -eq 'settings.gradle.kts' -or $_ -eq 'build.gradle.kts' -or
+        $_ -in $runtimeTestInputs
     }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
     # The contract tests read two files outside scripts/ that nothing else checks: the catalog,
@@ -388,7 +443,7 @@ try {
     # the README's hero and links. A push of only artwork or only the README ran no check of them.
     $touchesContracts = $touchesScripts -or @($paths | Where-Object {
         $_ -eq 'patches-list.json' -or $_ -eq 'patches/build.gradle.kts' -or
-        $_ -like 'assets/*' -or $_ -like 'concepts/marketing/*' -or $_ -eq 'README.md'
+        $_ -like 'assets/*' -or $_ -eq 'README.md'
     }).Count -gt 0
     $injectedRegisterVerifierPaths = @(
         'scripts/BadDexFixture.java',
@@ -405,6 +460,7 @@ try {
         $_ -in $injectedRegisterVerifierPaths
     }).Count -gt 0
     $resourceTableCheckPaths = @(
+        'scripts/MergeSplits.java',
         'scripts/ResourceTableCheck.java',
         'scripts/test-resource-table-check.ps1',
         'scripts/verify-all-patches.ps1'
@@ -567,7 +623,13 @@ try {
                     $where = if ($scriptsRoot -eq $Root) { '' } else { " for $scriptsCommit in $scriptsRoot" }
                     Write-Step ($suite[1] + $where)
                     $global:LASTEXITCODE = 0
-                    Invoke-WithoutGitEnvironment { & $suiteScript -Root $scriptsRoot }
+                    # In place, the working tree is the commit, helpers and all. A gate worktree's
+                    # suite runs where nothing the working tree holds can reach it.
+                    if ($scriptsRoot -eq $Root) {
+                        Invoke-WithoutGitEnvironment { & $suiteScript -Root $scriptsRoot }
+                    } else {
+                        Invoke-CommitScript -Script $suiteScript -Arguments @{ Root = $scriptsRoot }
+                    }
                     if ($LASTEXITCODE -ne 0) { throw $suite[2] }
                 }
                 } finally {
@@ -583,7 +645,7 @@ try {
     }
 
     if ($touchesCode) {
-        Write-Step 'extension or patch sources changed, running the runtime tests and the API level check'
+        Write-Step 'extension or patch sources, or a root file their tests read, changed, running the runtime tests and the API level check'
 
         # The Morphe settings plugin resolves from GitHub Packages, which needs a reader token.
         # A hook runs with git's environment, not the shell's, so these are usually absent and
@@ -745,7 +807,12 @@ try {
                     }
                     try {
                     $global:LASTEXITCODE = 0
-                    & $validate -Root $factsRoot @arguments
+                    if ($factsRoot -eq $Root) {
+                        & $validate -Root $factsRoot @arguments
+                    } else {
+                        $arguments['Root'] = $factsRoot
+                        Invoke-CommitScript -Script $validate -Arguments $arguments
+                    }
                     if ($LASTEXITCODE -ne 0) { throw $factsFailed }
                     } finally {
                         if ($factsRoot -eq $Root) { Assert-TreeUnchanged 'the release facts check' }

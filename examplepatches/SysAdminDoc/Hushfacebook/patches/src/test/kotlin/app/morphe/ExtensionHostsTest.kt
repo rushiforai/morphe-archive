@@ -13,7 +13,7 @@ import org.junit.Test
 
 /**
  * What the README's Privacy section says about the extension, held to its source: which web
- * addresses the code names, and the one place that opens a connection by itself.
+ * addresses the code names, and the two places that open a connection by themselves.
  *
  * <p>Comments don't count. Licence headers and design notes name hosts the code never contacts,
  * so string literals and code are read apart first, which also stops the `//` inside a URL from
@@ -39,15 +39,22 @@ class ExtensionHostsTest {
     }
 
     @Test
-    fun `only the media transport opens a connection itself`() {
+    fun `only the media transport and the release check open a connection themselves`() {
         val openers = sources().filter { (_, source) -> NETWORK.containsMatchIn(split(source).second) }
             .map { it.first }.toSortedSet()
         assertEquals(
-            "The README says the extension goes online by itself only to download what you save. " +
-                "These files open connections",
-            sortedSetOf(TRANSPORT),
+            "The README says the extension goes online by itself only to download what you save, and " +
+                "to ask GitHub for the newest release once that check is turned on. These files open connections",
+            TRANSPORTS.toSortedSet(),
             openers,
         )
+    }
+
+    @Test
+    fun `the release check asks api github com and nothing else`() {
+        val check = sources().single { it.first == RELEASE_CHECK }.second
+        val hosts = split(check).first.flatMap { literal -> URL.findAll(literal).map { it.groupValues[1] }.toList() }
+        assertEquals(listOf("api.github.com"), hosts)
     }
 
     @Test
@@ -102,8 +109,13 @@ class ExtensionHostsTest {
 
     private companion object {
         /** The hosts the README's Privacy section names. */
-        val ALLOWED_HOSTS = setOf("github.com", "gitlab.com", "www.gnu.org")
-        const val TRANSPORT = "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/Downloader.java"
+        val ALLOWED_HOSTS = setOf("github.com", "api.github.com", "gitlab.com", "www.gnu.org")
+        const val RELEASE_CHECK =
+            "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/ReleaseCheck.java"
+        val TRANSPORTS = listOf(
+            "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/Downloader.java",
+            "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/ReleaseTransport.java",
+        )
         val URL = Regex("""(?:https?|wss?)://([A-Za-z0-9.-]+)""")
         val NETWORK = Regex(
             """\b(?:HttpURLConnection|HttpsURLConnection|URLConnection|openConnection|Socket|SSLSocket|""" +

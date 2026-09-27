@@ -10,7 +10,8 @@
     preparation mode lets the source commit reach GitHub while the public index still points
     at the previous working bundle. Published-asset verification remains strict, and it also
     fetches the release SBOM the receipt names, holds it to the bundle and puts the libraries it
-    lists to OSV (release-advisories.ps1). It also refuses a release whose Facebook-family source
+    lists to OSV (release-advisories.ps1), and fetches the published receipt, which SHA256SUMS.txt
+    has to list and which has to be the receipt checked here. It also refuses a release whose Facebook-family source
     census (sources/facebook-sources.json, refreshed by audit-facebook-sources.ps1) is more than
     14 days old, breaks the ledger's rules, or lacks a listing or dated submission on an index.
 #>
@@ -101,6 +102,36 @@ function Require-Match {
     }
 }
 
+function Get-DescriptionFacts {
+    <#
+    .SYNOPSIS
+        The patch count and the Facebook build a description names, read the one way every check
+        here reads them.
+    .DESCRIPTION
+        Every "N patches" in it has to name the same N, and every "Facebook <build>" the same build,
+        or it says two things and this throws. The lag check used to read the first of each and the
+        equality check any of them, so a description quoting the catalog's count in one sentence and
+        a stale one in another passed the equality check, whichever the lag check had read. Answers
+        @{ PatchCount; TargetVersion }, each $null when the description names none.
+    #>
+    param([string]$Text, [string]$Source)
+
+    $counts = @([regex]::Matches($Text, '(?<![\d.])(\d+) patches\b') | ForEach-Object { $_.Groups[1].Value } |
+        Select-Object -Unique)
+    $builds = @([regex]::Matches($Text, 'Facebook\s+(\d+(?:\.\d+)+)(?!\d)') | ForEach-Object { $_.Groups[1].Value } |
+        Select-Object -Unique)
+    if ($counts.Count -gt 1) {
+        throw "$Source names $($counts -join ' and ') patches, and it has to name one count."
+    }
+    if ($builds.Count -gt 1) {
+        throw "$Source names Facebook $($builds -join ' and Facebook '), and it has to name one build as its target."
+    }
+    return [pscustomobject]@{
+        PatchCount    = if ($counts.Count -eq 1) { [int]$counts[0] } else { $null }
+        TargetVersion = if ($builds.Count -eq 1) { [string]$builds[0] } else { $null }
+    }
+}
+
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
 # The ZipFile reads below would take a relative -ArtifactPath from the process directory, which
 # Set-Location doesn't move, after Test-Path had found it in PowerShell's location.
@@ -168,13 +199,11 @@ $targetPackage = $target.PackageName
 $targetVersion = $target.PackageVersion
 
 $bundleVersion = [string]$bundle.version
-$publishedPatchMatch = [regex]::Match([string]$bundle.description, '\b(\d+) patches\b')
-$publishedTargetMatch = [regex]::Match([string]$bundle.description, 'Facebook\s+(\d+(?:\.\d+)+)')
+$publishedFacts = Get-DescriptionFacts -Text ([string]$bundle.description) -Source 'The patches-bundle.json description'
 $publishedFactsDifferAtSameVersion = $AllowPublishedIndexLag -and
     $bundleVersion -eq $releaseVersion -and
-    $publishedPatchMatch.Success -and $publishedTargetMatch.Success -and
-    ([int]$publishedPatchMatch.Groups[1].Value -ne $patchCount -or
-        $publishedTargetMatch.Groups[1].Value -ne $targetVersion)
+    $null -ne $publishedFacts.PatchCount -and $null -ne $publishedFacts.TargetVersion -and
+    ($publishedFacts.PatchCount -ne $patchCount -or $publishedFacts.TargetVersion -ne $targetVersion)
 $indexLagsSource = $bundleVersion -ne $releaseVersion -or $publishedFactsDifferAtSameVersion
 if ($indexLagsSource) {
     if (-not $AllowPublishedIndexLag) {
@@ -238,16 +267,20 @@ $descriptionVersion = $sourceVersion
 $descriptionPatchCount = $patchCount
 $descriptionTargetVersion = $targetVersion
 if ($indexLagsSource) {
-    if (-not $publishedPatchMatch.Success -or -not $publishedTargetMatch.Success) {
+    if ($null -eq $publishedFacts.PatchCount -or $null -eq $publishedFacts.TargetVersion) {
         throw 'The published bundle description does not name its patch count and Facebook target.'
     }
     Require-Match -Text ([string]$bundle.description) -Pattern "\bv$([regex]::Escape($publishedVersion))\b" -Description 'published bundle description version'
     $descriptionVersion = "v$publishedVersion"
-    $descriptionPatchCount = [int]$publishedPatchMatch.Groups[1].Value
-    $descriptionTargetVersion = $publishedTargetMatch.Groups[1].Value
+    $descriptionPatchCount = $publishedFacts.PatchCount
+    $descriptionTargetVersion = $publishedFacts.TargetVersion
 } else {
-    Require-Match -Text ([string]$bundle.description) -Pattern "\b$patchCount patches\b" -Description 'bundle description patch count'
-    Require-Match -Text ([string]$bundle.description) -Pattern "$([regex]::Escape($targetVersion))(?!\d)" -Description 'bundle description target version'
+    if ($publishedFacts.PatchCount -ne $patchCount) {
+        throw 'bundle description patch count does not match the generated release facts.'
+    }
+    if ($publishedFacts.TargetVersion -ne $targetVersion) {
+        throw 'bundle description target version does not match the generated release facts.'
+    }
 }
 
 # The one line GitHub shows above the README, which is also what search results, the awesome
@@ -268,12 +301,12 @@ if ($SkipUrlCheck) {
     }
     $description = $description.Trim()
 
-    $wanted = @(
-        @{ Pattern = "\b$([regex]::Escape($descriptionVersion))\b"; Wanted = $descriptionVersion }
-        @{ Pattern = "\b$descriptionPatchCount patches\b"; Wanted = "$descriptionPatchCount patches" }
-        @{ Pattern = "Facebook\s+$([regex]::Escape($descriptionTargetVersion))(?!\d)"; Wanted = "Facebook $descriptionTargetVersion" }
-    )
-    $missing = @($wanted | Where-Object { $description -notmatch $_.Pattern } | ForEach-Object { $_.Wanted })
+    # Its count and build are read the way the index description's are, all of them at once.
+    $githubFacts = Get-DescriptionFacts -Text $description -Source "The GitHub description of $slug"
+    $missing = @()
+    if ($description -notmatch "\b$([regex]::Escape($descriptionVersion))\b") { $missing += $descriptionVersion }
+    if ($githubFacts.PatchCount -ne $descriptionPatchCount) { $missing += "$descriptionPatchCount patches" }
+    if ($githubFacts.TargetVersion -ne $descriptionTargetVersion) { $missing += "Facebook $descriptionTargetVersion" }
     if ($missing.Count -gt 0) {
         throw ("The GitHub description of $slug does not say " + ($missing -join ', ') + '. It reads: ' +
             $description + [Environment]::NewLine +
@@ -467,6 +500,7 @@ if (-not $SkipDescriptionTestCount) {
 # receipt check downloads goes the same way.
 $hostedArtifact = $null
 $hostedSbom = $null
+$hostedReceiptDir = $null
 try {
 if ($VerifyPublishedAsset) {
     if (-not $ArtifactIsHosted) {
@@ -830,7 +864,6 @@ function Test-ReleaseReceiptHere {
     # parameter, and it is typed [string]. Assigning the parsed document to it coerces the whole
     # object to its string form, and every field then reads as empty.
     $receiptDocument = Read-JsonFile $receiptPath
-    $approvedDelta = Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
 
     # The commit the receipt names, checked against git rather than against the receipt's own
     # other field. Its timestamp and the bundle stamp both come out of the same document, so on
@@ -879,6 +912,12 @@ function Test-ReleaseReceiptHere {
     # after the release doesn't make the release's receipt wrong.
     $resolvedList = Resolve-ReceiptCatalog -Root $rootPath -Commit $receiptCommit -WorkingPatchList $patchList
     if ($resolvedList.Note) { Write-Host "[release] $($resolvedList.Note)" }
+    # And the manifest changes its own commit reviewed. Read from the working tree, an allowlist
+    # entry nobody committed approved a change into the release.
+    $resolvedAllowlist = Resolve-ReceiptManifestAllowlist -Root $rootPath -Commit $receiptCommit `
+        -WorkingPath (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
+    if ($resolvedAllowlist.Note) { Write-Host "[release] $($resolvedAllowlist.Note)" }
+    $approvedDelta = @($resolvedAllowlist.Entries)
     $receiptTarget = Get-PatchTarget -PatchList $resolvedList.PatchList
     # From schema 2 a receipt names the release SBOM, and which schema is read at the receipt's own
     # commit, so a release cut before there was an SBOM is read as it was written.
@@ -931,6 +970,41 @@ function Test-ReleaseReceiptHere {
     Write-Host ("[release] the receipt proves $($receiptDocument.release.patchCount) patches on " +
         ($proved -join ', ') + " from commit " + $receiptCommit.Substring(0, 8) +
         ", with no unreviewed manifest change")
+
+    # And it's the receipt the release publishes. CONTRIBUTING.md tells people the receipt goes out
+    # beside the bundle and in SHA256SUMS.txt, and nothing read that copy back: a receipt cut again
+    # after the upload, or a different one uploaded, left the published proof unchecked. So the
+    # hosted copy is fetched from beside the bundle, held to SHA256SUMS.txt, and has to be this
+    # file byte for byte.
+    if ($VerifyPublishedAsset) {
+        $receiptName = "release-receipt-$releaseVersion.json"
+        $script:hostedReceiptDir = Join-Path ([IO.Path]::GetTempPath()) ("hushfacebook-$([Guid]::NewGuid())")
+        New-Item -ItemType Directory -Path $script:hostedReceiptDir -Force | Out-Null
+        $hostedReceipt = Join-Path $script:hostedReceiptDir $receiptName
+        try {
+            $receiptResponse = Invoke-WebRequest -Uri ([Uri]::new($assetUri, $receiptName)) -OutFile $hostedReceipt `
+                -MaximumRedirection 5 -TimeoutSec 60 -PassThru
+        } catch {
+            throw "Could not download the hosted $receiptName, which a release publishes beside its bundle: $($_.Exception.Message)"
+        }
+        if ($receiptResponse.StatusCode -ne 200) {
+            throw "The hosted $receiptName returned HTTP $($receiptResponse.StatusCode)."
+        }
+        $hostedReceiptHash = (Get-FileHash -LiteralPath $hostedReceipt -Algorithm SHA256).Hash.ToLowerInvariant()
+        $listedReceipt = [regex]::Match($checksumText, "(?im)^\s*([0-9a-f]{64})\s+\*?$([regex]::Escape($receiptName))\s*$")
+        if (-not $listedReceipt.Success) {
+            throw "SHA256SUMS.txt has no entry for $receiptName, the release's receipt."
+        }
+        if ($listedReceipt.Groups[1].Value.ToLowerInvariant() -ne $hostedReceiptHash) {
+            throw "SHA256SUMS.txt lists $($listedReceipt.Groups[1].Value) for $receiptName, but the hosted receipt is $hostedReceiptHash."
+        }
+        $localReceiptHash = (Get-FileHash -LiteralPath $receiptPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($localReceiptHash -ne $hostedReceiptHash) {
+            throw ("The hosted $receiptName is not the receipt checked here: the release publishes $hostedReceiptHash " +
+                "and $receiptPath is $localReceiptHash. Publish this receipt, or check the one the release carries.")
+        }
+        Write-Host "[release] the hosted $receiptName is the receipt checked here, as SHA256SUMS.txt lists it"
+    }
     if ($sbomForComparison) {
         $sbomDocument = Read-ReleaseSbom -Path $sbomForComparison
         Write-Host ("[release] the hosted $sbomName is the SBOM the receipt names and SHA256SUMS.txt lists, " +
@@ -997,4 +1071,5 @@ exit 0
 } finally {
     if ($hostedArtifact) { Remove-Item -LiteralPath $hostedArtifact -Force -ErrorAction SilentlyContinue }
     if ($hostedSbom) { Remove-Item -LiteralPath $hostedSbom -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($hostedReceiptDir) { Remove-Item -LiteralPath $hostedReceiptDir -Recurse -Force -ErrorAction SilentlyContinue }
 }

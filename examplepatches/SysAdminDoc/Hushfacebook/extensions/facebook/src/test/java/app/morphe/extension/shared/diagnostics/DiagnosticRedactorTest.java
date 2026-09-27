@@ -134,6 +134,37 @@ public class DiagnosticRedactorTest {
         assertFalse("the browser id cookie survived: " + line, line.contains("Zx9"));
     }
 
+    /**
+     * A Facebook address with no scheme and no subdomain. The host rule asked for a subdomain, so
+     * "facebook.com/dana.q.1987" reached the report as written while the same address with "www."
+     * in front of it was caught.
+     */
+    @Test public void aFacebookHostGoesWithOrWithoutASubdomain() {
+        assertEquals("opened [host omitted] and [host omitted]", DiagnosticRedactor.redact(
+                "opened facebook.com/dana.q.1987 and www.facebook.com/dana.q.1987"));
+        assertEquals("[host omitted] then [host omitted]",
+                DiagnosticRedactor.redact("fb.watch/abc123XYZ then fb.me/1a2b3c"));
+        assertEquals("[host omitted] then [host omitted] and [host omitted]",
+                DiagnosticRedactor.redact("facebook.com:443/profile.php then m.facebook.com and messenger.com/t/2"));
+        assertEquals("cookie domain=.[host omitted]; path=/",
+                DiagnosticRedactor.redact("cookie domain=.facebook.com; path=/"));
+    }
+
+    /**
+     * What only looks like a Facebook address: the package and class names a report prints, and
+     * names that start the same way and go on. They're what a maintainer reads a report for.
+     */
+    @Test public void aNameThatOnlyLooksLikeAFacebookHostStays() {
+        String[] lines = {
+                "app: com.facebook.katana 580.0.0.51.74 (475019344)",
+                "at com.facebook.common.util.TriState.valueOf(TriState.java:12)",
+                "at com.facebook.messenger.app.Thread.run(Thread.java:1012)",
+                "notfacebook.com/page and facebook.community/page",
+                "Hushfacebook: hid 3 rows from the feed",
+        };
+        for (String line : lines) assertEquals(line, DiagnosticRedactor.redact(line));
+    }
+
     @Test public void aBareAccountIdGoesAndATimestampStays() {
         String line = DiagnosticRedactor.redact("Hidden 100012345678901 at 1790000000000");
 

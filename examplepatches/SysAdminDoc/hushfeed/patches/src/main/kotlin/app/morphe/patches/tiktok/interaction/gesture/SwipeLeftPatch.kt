@@ -80,7 +80,7 @@ val swipeLeftPatch = bytecodePatch(
     default = false,
 ) {
     category("Interaction")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     // Double-tap controls registers the comment buttons that "Open comments" presses.
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch, doubleTapPatch)
     execute {

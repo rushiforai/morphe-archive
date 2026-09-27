@@ -15,7 +15,7 @@ val fixGoogleLoginPatch = bytecodePatch(
     default = true,
 ) {
     category("Settings")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // returnEarly writes the same two instructions and refuses a method whose return type

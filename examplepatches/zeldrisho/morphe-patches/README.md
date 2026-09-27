@@ -16,14 +16,22 @@ Or add the source URL manually in Morphe Manager → Sources.
 
 Contributor docs: [development guide](docs/development.md) (start here),
 [toolchain setup](docs/toolchain.md) (installs), [validation guide](docs/validation.md) (device testing),
-[release process](docs/release.md) (publishing), [analysis workspace](docs/analysis.md) (APK investigation artifacts).
+[release process](docs/release.md) (publishing), [Zalo microG/Drive guide](docs/zalo-microg.md), [analysis workspace](docs/reverse-engineering.md#analysis-workspace) (APK investigation artifacts).
+
+### FAQ
+
+- **What is supported?** Use the versions, version codes, ABI, and APK/APKM format in the generated patch catalog and [validation guide](docs/validation.md); unlisted versions are not compatibility claims.
+- **Can I repatch an installed app?** No. Start with the supported original APK/APKM; refreshing the source only updates patch metadata.
+- **Why can sign-in or Drive fail?** Package/certificate-bound services and provider authorization are external boundaries. MicroG support does not guarantee Google sign-in or Drive access. See the [Zalo microG/Drive troubleshooting guide](docs/zalo-microg.md).
+- **Why does Zalo still say MicroG is missing?** The provider must be enabled and use the exact package `app.revanced.android.gms`; Android package visibility can also hide an installed provider. The patch now declares that package and opens the official [Morphe MicroG download page](https://morphe.software/microg). Details and issue references are in the [guide](docs/zalo-microg.md).
+- **How should I report a failure?** Include the app version code, bundle version, selected patches/options, and redacted logs. Never attach credentials, account data, signing keys, or proprietary APKs.
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.5.0](https://github.com/zeldrisho/morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v1.6.3](https://github.com/zeldrisho/morphe-patches/releases/tag/v1.6.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
 <details>
-<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -39,12 +47,14 @@ Contributor docs: [development guide](docs/development.md) (start here),
 | Disable ads | Disables Zalo offline/Google ad networks (forces the Adtima offline gates closed, always drops admob/dfp/ima, and reports limit-ad-tracking opted-out). Sponsored Story/community placements need the companion patch. |  |
 | Disable sponsored placements | Forces Zalo Story/community ad-enable flags to off at their config reads (normal content path kept). Server-stitched or OA-message promos may remain. |  |
 | Disable telemetry and crash reporting | Stops Zalo's first-party analytics records and diagnostic crash data by suppressing its Room analytics writes, Firebase Crashlytics logs/keys, and native crash-handler registration. Messaging, sockets, and database initialization remain intact. |  |
+| Enable Google Drive photo backup | Enables Zalo's existing Google Drive photo-backup option. It does not bypass Google authorization, server retention, encryption, or media exclusions. |  |
 | Filter promo notifications | Skips Zalo Timeline/Stories and Zalo Video push notifications (like/comment digests, new feeds/stories, video reminders) in the push dispatcher. Message, call, friend-request and birthday notifications are untouched; reaction/activity pushes on other channels may remain. |  |
 | Hide Business Box | Removes Zalo's Business Box service entry from the main chat list without filtering ordinary conversations or user-initiated Official Account chats. |  |
 | Keep expired media accessible | Keeps locally stored large chat media usable after Zalo's client-side expiry window by bypassing the expired/subscription state. It does not restore missing files or bypass server download authorization. |  |
 | Prefer original photo quality | Enables Zalo's existing original-quality photo path by default. It does not change server upload limits, account restrictions, or video handling. |  |
 | Remove AD_ID permission | Removes the advertising-id (AD_ID) permissions from Zalo so the device advertising id cannot be read for ad tracking. In-app readers fall back to "unknown"; core messaging is unaffected. |  |
 | Remove media backup age limit | Includes media of any age in Zalo's existing Google Drive backup/restore pipeline. It does not bypass Drive retention or media exclusions. |  |
+| Suppress outbound seen status | Stops Zalo from sending seen-status packets without changing message delivery or incoming status rendering. |  |
 | Suppress outbound typing status | Stops Zalo from sending typing indicators. Incoming status rendering and messages remain unchanged. |  |
 | microG Drive support | Adds Zalo launch/provider checks and redirects Google Drive account selection and token binding to microG-RE (app.revanced / app.revanced.android.gms). Initial photo restore and the complete backup/restore cycle were device-validated on Zalo 26.08.01. |  |
 

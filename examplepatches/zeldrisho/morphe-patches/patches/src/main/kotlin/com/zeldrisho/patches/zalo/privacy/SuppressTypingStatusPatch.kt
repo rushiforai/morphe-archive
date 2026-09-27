@@ -23,9 +23,14 @@ val suppressZaloTypingStatusPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        TypingStatusSend.method.clearBody()
-        TypingStatusSend.method.addInstructions(0, "return-void")
+        suppressTypingStatus(TypingStatusSend.method)
     }
+}
+
+/** Clears the typing-status sender body and try blocks, then replaces it with a void return. */
+internal fun suppressTypingStatus(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    method.clearBody()
+    method.addInstructions(0, "return-void")
 }
 
 /** Zalo 26.08.01's dedicated MessageRepository typing-status sender. */

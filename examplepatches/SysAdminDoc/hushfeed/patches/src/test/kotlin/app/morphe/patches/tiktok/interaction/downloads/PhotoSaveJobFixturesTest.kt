@@ -29,7 +29,7 @@ class PhotoSaveJobFixturesTest {
             assertEquals("${apk.name}: photo save jobs ${jobs.map { "${it.definingClass}->${it.name}" }}", 1, jobs.size)
             val job = jobs.single()
             assertTrue("${apk.name}: the job has a body to hook", job.implementation != null)
-            if (apk.name.contains("47.0.3")) {
+            if (Fixtures.versionOf(apk) in Fixtures.declaredVersions()) {
                 val strings = job.implementation!!.instructions.mapNotNull {
                     ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
                 }

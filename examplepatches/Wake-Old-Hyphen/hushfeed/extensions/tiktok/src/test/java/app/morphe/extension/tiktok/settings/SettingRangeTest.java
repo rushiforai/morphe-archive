@@ -12,8 +12,10 @@ import static org.junit.Assert.assertTrue;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.tiktok.SettingsRegistryRule;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -30,6 +32,8 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class SettingRangeTest {
+    @Rule public final SettingsRegistryRule settingsRegistry = new SettingsRegistryRule();
+
     @Before public void setup() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         // Touching one setting builds them all.

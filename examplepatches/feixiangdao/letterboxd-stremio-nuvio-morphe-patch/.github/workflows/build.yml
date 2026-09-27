@@ -1,0 +1,60 @@
+name: Build patch
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.5.0"
+
+      - name: Generate patch metadata
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle :patches:generatePatchesList --stacktrace
+
+      - name: Build Android patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gradle :patches:buildAndroid --stacktrace
+
+      - name: Verify Android bundle
+        run: |
+          echo "=== GENERATED PATCH LIST ==="
+          cat patches-list.json
+          MPP="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
+          test -n "$MPP"
+          echo "=== MPP MANIFEST ==="
+          unzip -p "$MPP" META-INF/MANIFEST.MF
+          echo "=== DEX ENTRIES ==="
+          unzip -l "$MPP" | grep -Ei '\.dex$'
+          echo "=== MPP CONTENTS ==="
+          unzip -l "$MPP" | sed -n '1,120p'
+
+      - name: Upload patch artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: letterboxd-player-bridge-android
+          path: |
+            patches/build/libs/patches-*.mpp
+          if-no-files-found: error

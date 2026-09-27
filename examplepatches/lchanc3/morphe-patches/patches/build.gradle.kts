@@ -27,7 +27,7 @@ dependencies {
 
 tasks {
     register<JavaExec>("verifyAgainstApk") {
-        description = "Apply the built bundle to a JPTT APK, so a patch that stopped " +
+        description = "Apply the built bundle to an APK, so a patch that stopped " +
             "matching fails here instead of in Morphe Manager"
 
         // buildAndroid rather than build: it writes classes.dex into the jar in

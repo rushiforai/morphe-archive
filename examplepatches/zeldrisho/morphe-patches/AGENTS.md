@@ -8,6 +8,7 @@
 | Task | Command |
 | ---- | ------- |
 | Check selected scripts/workflows | `uvx pre-commit run --files <file> --show-diff-on-failure` |
+| Test Python script file | `python3 -m unittest discover -s scripts/tests -p 'test_<script>.py' -v` |
 | Test patch class | `./gradlew :patches:test --tests '<fully.qualified.Class>' --no-daemon` |
 | Test Threads extension class | `./gradlew :extensions:threads:testDebugUnitTest --tests '<fully.qualified.Class>' --no-daemon` |
 | Test Zalo extension class | `./gradlew :extensions:zalo:testDebugUnitTest --tests '<fully.qualified.Class>' --no-daemon` |
@@ -24,6 +25,7 @@
 - Follow `docs/release.md#changelog-policy` for `CHANGELOG.md`; add only user-visible app changes under `## Unreleased`.
 - Work on branches and follow `docs/release.md` for staging and publishing.
 - Build and unit-test success does not establish real-APK compatibility or device behavior; use `docs/validation.md`.
+- Keep credentials, signing keys, APK analysis, logs, and screenshots out of Git.
 
 ## External References
 | Need | File |
@@ -32,8 +34,10 @@
 | Host setup and credentials | `docs/toolchain.md` |
 | Patch authoring and fingerprints | `docs/patch-development.md` |
 | APK analysis and reverse-engineering | `docs/reverse-engineering.md` |
+| Local analysis layout and cleanup | `docs/reverse-engineering.md#analysis-workspace` |
 | Bytecode and smali reference | `docs/bytecode-reference.md` |
-| Bypass patterns and SDK recipes | `docs/bypass-patterns.md` |
+| Bypass patterns and target selection | `docs/patch-development.md#target-selection` |
 | CLI patching and signing | `docs/cli.md` |
 | Release and generated-file policy | `docs/release.md` |
-| Device validation and project status | `docs/validation.md`, `docs/plan.md` |
+| Device validation and Zalo feature roadmap | `docs/validation.md`, `docs/plan.md` |
+| Cross-app maintenance backlog and provenance | `docs/maintenance.md` |

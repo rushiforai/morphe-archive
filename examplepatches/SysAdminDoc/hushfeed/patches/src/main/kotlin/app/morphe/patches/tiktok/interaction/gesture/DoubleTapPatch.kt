@@ -72,7 +72,7 @@ val doubleTapPatch = bytecodePatch(
     default = false,
 ) {
     category("Interaction")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
     execute {
         doubleTapRouteMethods.forEach { (owner, name) ->

@@ -21,7 +21,7 @@ class ZaloMediaFingerprintsTest {
     /** Creates an isolated patch context for each fingerprint assertion. */
     private fun context(): BytecodePatchContext {
         val config = PatcherConfig(
-            apkFile = temporary.newFile("input.apk"),
+            apkFile = temporary.newFile(),
             temporaryFilesPath = temporary.newFolder(),
         )
         val metadata = PackageMetadata::class.java.constructors.single().newInstance(

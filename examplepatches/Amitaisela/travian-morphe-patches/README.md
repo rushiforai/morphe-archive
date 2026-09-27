@@ -53,7 +53,7 @@ Pick the resulting file in Morphe with **"I already have an APK"**.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.17.0](https://github.com/Amitaisela/travian-morphe-patches/releases/tag/v1.17.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.26.0](https://github.com/Amitaisela/travian-morphe-patches/releases/tag/v1.26.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Travian: Legends&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -66,7 +66,7 @@ Pick the resulting file in Morphe with **"I already have an APK"**.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Build/troop queue notifications](#build-troop-queue-notifications) | Notifies you when a building upgrade or troop training queue finishes, with the building/unit name, level, and village, and warns you about incoming attacks and raids (who, from where, and when they arrive) with a second warning about a minute before they land, tells you when an attack was called off, warns you when a warehouse or granary is about to fill up, tells you when your hero has a new adventure, is back home, died or is low on health, and tells you when reinforcements or your own returning troops arrive. Tapping a notification opens the game, and a second "Travian Tools" icon opens a home screen where you switch each type of notification on or off, see what is building and training, and see your recent ones. Uses the session you're already logged in with in the game — no separate login, no password ever handled by this patch. Checks run quietly in the background: one is scheduled for just after each build/training is due to finish, plus a regular check every 5 minutes (Android may delay background work slightly). Nothing is shown unless something actually finished. The first time you open the app it asks once for notification permission and to exempt the app from battery optimization, so the background checks aren't killed by the system. |  |
-| [Travian notifier manifest entry](#travian-notifier-manifest-entry) | Adds the permission needed to ask for a battery optimization exemption, and the Travian Tools screens. |  |
+| [Travian notifier manifest entry](#travian-notifier-manifest-entry) | Adds the permission needed to ask for a battery optimization exemption, the Travian Tools screens and its home-screen widget. |  |
 
 </details>
 

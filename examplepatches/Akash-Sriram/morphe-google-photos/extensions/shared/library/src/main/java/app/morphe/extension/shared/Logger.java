@@ -118,6 +118,10 @@ public class Logger {
         String managerToastString = className + ": " + logText;
         LogBufferManager.appendToLogBuffer(managerToastString);
 
+        try {
+            app.morphe.extension.shared.diagnostics.SessionLogManager.appendLog(className, logLevel.name(), logText, ex);
+        } catch (Throwable ignored) {}
+
         String logTag = MORPHE_LOG_TAG_PREFIX + className;
         switch (logLevel) {
             case DEBUG:

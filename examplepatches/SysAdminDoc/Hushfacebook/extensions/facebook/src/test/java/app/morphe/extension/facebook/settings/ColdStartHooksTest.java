@@ -6,11 +6,14 @@ package app.morphe.extension.facebook.settings;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 
 import com.facebook.graphql.model.GraphQLPagesYouMayLikeFeedUnit;
@@ -33,11 +36,16 @@ import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
 import app.morphe.extension.facebook.download.VideoMenuItemForTests;
+import app.morphe.extension.facebook.emoji.SystemEmoji;
 import app.morphe.extension.facebook.feed.FeedFilter;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
+import app.morphe.extension.facebook.font.SystemFont;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
+import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
+import app.morphe.extension.facebook.reels.ReelDeclutter;
+import app.morphe.extension.facebook.reels.SeenStateSendForTests;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.PauseForTests;
 
@@ -61,6 +69,9 @@ public class ColdStartHooksTest {
 
     /** Stands in for the showcase story type enum: only the constant names matter to the rule. */
     enum ShowcaseStoryType { SHOWCASE_SHORT_VIDEO }
+
+    /** Stands in for Facebook's font family enum: only the constant's name matters to the swap. */
+    enum FontFamily { OPTIMISTIC_TEXT_APP_BOLD }
 
     /** Stands in for the obfuscated ad item base class; the patch passes its binary name. */
     public static class AdBase {
@@ -105,6 +116,11 @@ public class ColdStartHooksTest {
         assertFalse(FeedGuardForTests.hidesShowcaseReels(Category.SHOWCASE, ShowcaseStoryType.SHOWCASE_SHORT_VIDEO));
         assertFalse(FeedFilter.hidePreEofReels());
         assertFalse(FeedGuardForTests.hides(Category.ORGANIC, new GraphQLStory(), FeedGuardForTests.detectedInfo(true)));
+        assertFalse(FeedGuardForTests.hidesAiReel(new FeedGuardForTests.ReelItem(FeedGuardForTests.reelModel(true))));
+        FeedGuardForTests.ReelItem flaggedReel = new FeedGuardForTests.ReelItem(FeedGuardForTests.reelModel(true));
+        Section reelSection = new Section(new ArrayList<>(Arrays.asList(new Reel(), flaggedReel)));
+        FeedGuardForTests.aiReelSections(Collections.singletonList(reelSection));
+        assertTrue(reelSection.items.contains(flaggedReel));
         assertFalse(FeedFilter.hideEdge(Category.SPONSORED, new Object()));
         assertFalse(FeedFilter.hideSponsoredStories());
         VideoAd reelAd = new VideoAd();
@@ -120,11 +136,26 @@ public class ColdStartHooksTest {
         assertFalse(MediaDownload.offersSave(false));
         assertTrue("Facebook's own yes has to stand", MediaDownload.offersSave(true));
         assertFalse(ReelDownload.showsButton());
+        assertNull(ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))));
+        assertFalse(ReelDeclutter.hideFollowButton());
+        assertFalse(ReelDeclutter.hideFollowingButton());
+        assertFalse(ReelDeclutter.skipHotComment());
+        assertFalse(ReelDeclutter.skipSocialBubbles());
+        assertFalse("a batch of watched reels sent before the context was held back", SeenStateSendForTests.heldBack());
         assertFalse(PlayerSourcesForTests.recordsAPlayer());
         assertFalse("a post menu built before the context got the video item", VideoMenuItemForTests.addsAnItem());
         assertFalse(PlayerSourcesForTests.recordsAVideoPlayer());
+        assertFalse("a start before the context asked Facebook for a tab", StartTabRouteForTests.routes());
         String shared = "https://www.facebook.com/share/p/1AbCdEf/?mibextid=WC7FNe";
         assertEquals("a link shared before the context was cleaned", shared, LinkCleaner.sanitizeShared(shared));
+        assertSame("a typeface resolved before the context was swapped", Typeface.SERIF,
+                SystemFont.systemize(Typeface.SERIF, FontFamily.OPTIMISTIC_TEXT_APP_BOLD, 700));
+        Object fontBuilder = new Object();
+        SystemFont.rememberVariation(fontBuilder, "'wght' 700");
+        assertSame("a typeface built before the context was swapped", Typeface.SERIF,
+                SystemFont.systemizeBuilt(Typeface.SERIF, fontBuilder));
+        // Facebook warms its emoji font from an app init task, which can ask the provider this early.
+        assertNull("an emoji typeface asked for before the context was answered", SystemEmoji.typeface());
 
         // A hook that touched the settings above left them unusable, and this is where a real
         // start would crash. While setContext decides the pause the context is already set, so a

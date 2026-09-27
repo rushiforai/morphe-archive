@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.1.0...v1.2.0) (2026-09-26)
+
+### ✨ New Features
+
+* add 120 hz refresh rate toggle ([cf4ee62](https://github.com/bearinmindcat/morphe-patches/commit/cf4ee6245cef8e99ee74f5f9f400f468a963b032))
+
+## [1.1.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.0.5...v1.1.0) (2026-09-26)
+
+### ✨ New Features
+
+* added power saving nav toggle for all devices (may work on implementing powersaving throughout whole device) ([adc3853](https://github.com/bearinmindcat/morphe-patches/commit/adc385318951da08a3a9ba17ba7538daa22012b6))
+
 ## [1.0.5](https://github.com/bearinmindcat/morphe-patches/compare/v1.0.4...v1.0.5) (2026-09-24)
 
 ### 🐛 Bug Fixes

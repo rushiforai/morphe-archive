@@ -21,7 +21,7 @@ val enableVoiceCommentsPatch = bytecodePatch(
     default = false,
 ) {
     category("Comments")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // The answer returns at once, so nothing after it reads v0 and a parameter may be

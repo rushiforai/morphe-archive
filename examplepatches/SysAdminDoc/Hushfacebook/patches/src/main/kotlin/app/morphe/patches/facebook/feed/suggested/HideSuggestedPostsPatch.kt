@@ -5,13 +5,15 @@
  *
  * Modified for Hushfacebook (Facebook), 2026: the instance-of chain moved into the extension's
  * feed filter, behind the shared feed hook. The patch still refuses a build that carries none of
- * the unit classes, so a rename fails at patch time instead of filtering nothing. It also finds the
+ * the unit classes, so a rename fails at patch time instead of filtering nothing, and names each
+ * one a build lacks in the patch log. It also finds the
  * story's recommendation flag, held to Facebook's own filter, and the People you may know type
  * name, which two more switches read.
  */
 package app.morphe.patches.facebook.feed.suggested
 
 import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
@@ -30,8 +32,12 @@ import app.morphe.patches.facebook.feed.requireStoryFlagReaders
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.handleTargets
+import app.morphe.patches.facebook.misc.extension.javaName
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.settings.settingsPatch
+
+private const val PATCH = "Hide suggested and promoted posts"
 
 /**
  * Units Facebook injects into the feed that are not paid ads. All keep their real names through
@@ -83,11 +89,7 @@ val hideSuggestedPostsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {
-        if (SUGGESTED_FEED_UNITS.none { classDefByOrNull(it) != null }) {
-            throw PatchException(
-                "None of the suggested feed unit classes is in this APK; the model package was renamed or moved",
-            )
-        }
+        requireSuggestedUnits()
         requireFeedTypeName(PEOPLE_YOU_MAY_KNOW_TYPE)
 
         // A "Suggested for you" post is an ordinary story on the wire (ENGAGEMENT, like a friend's),
@@ -119,5 +121,18 @@ val hideSuggestedPostsPatch = bytecodePatch(
         requireStoryFlagReaders()
         fillStoryModelStub(RECOMMENDATION_LABEL, RECOMMENDATION_CONTEXT_STUB, accessor)
         enableStatus("suggestedPosts")
+    }
+}
+
+/**
+ * Checks the build for the suggested feed units the extension hides. Each unit class stands alone:
+ * the extension tells them apart by name at run time, so one a build drops is one it can't show.
+ * The patch goes on with the ones it finds, and the patch log names each missing one (580 dropped
+ * six that 577 still carries). None of them stops the patch: that is a renamed model package, not
+ * a smaller feed.
+ */
+internal fun BytecodePatchContext.requireSuggestedUnits() {
+    handleTargets(PATCH, "suggested feed unit classes", SUGGESTED_FEED_UNITS) { type ->
+        if (classDefByOrNull(type) != null) null else "${javaName(type)} isn't in this Facebook build"
     }
 }

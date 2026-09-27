@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
 
@@ -184,6 +185,20 @@ public class FeedAdFilterTest {
     List<Object> in =
         new ArrayList<>(Arrays.asList(new FakeFeedUnit(false), new FakeFeedUnit(false)));
     assertSame(in, FeedAdFilter.filterAds(in));
+  }
+
+  @Test
+  public void linkedListTraversalRemainsLinearAndPreservesOrder() {
+    Object first = new FakeFeedUnit(false);
+    Object ad = new FakeFeedUnit(true);
+    Object last = new FakeFeedUnit(false);
+    List<Object> in = new LinkedList<>(Arrays.asList(first, ad, last));
+
+    List<?> out = FeedAdFilter.filterAds(in);
+
+    assertEquals(2, out.size());
+    assertSame(first, out.get(0));
+    assertSame(last, out.get(1));
   }
 
   /** Ad headers with direct DED() must be filtered out. */

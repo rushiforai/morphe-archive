@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"Сохранён в зашифрованном виде; введите новый для замены"</string>
     <string name="cap_model_hint" formatted="false">"Выберите модель или введите её ID"</string>
     <string name="cap_preview_hint" formatted="false">"Нажмите на изображение для смены ориентации; стиль обновляется сразу"</string>
-    <string name="cap_size_hint" formatted="false">"Относительный размер 12–22, зависит от размера видео"</string>
+    <string name="cap_size_hint" formatted="false">"Относительный размер 8–15, зависит от размера видео"</string>
     <string name="cap_opacity_hint" formatted="false">"0% — прозрачный, 100% — непрозрачный; сохранение при отпускании"</string>
     <string name="cap_diagnostic_hint" formatted="false">"Разверните для просмотра и копирования диагностики"</string>
     <string name="cap_use_youtube" formatted="false">"Использовать YouTube"</string>

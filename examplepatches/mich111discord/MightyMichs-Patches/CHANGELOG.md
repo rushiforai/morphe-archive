@@ -1,3 +1,37 @@
+## [1.5.3](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.5.2...v1.5.3) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* . ([bca9322](https://github.com/mich111discord/MightyMichs-Patches/commit/bca9322c947c8350fec42e05a75c00b6b24606bf))
+* . ([be542d6](https://github.com/mich111discord/MightyMichs-Patches/commit/be542d66ad119710bf096bb651152b3724c23679))
+
+## [1.5.2](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.5.1...v1.5.2) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* ... ([60ea08b](https://github.com/mich111discord/MightyMichs-Patches/commit/60ea08b1e6e82b15d288c054a52f4e7668e1da0c))
+
+## [1.5.1](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.5.0...v1.5.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* :) ([73bb1ec](https://github.com/mich111discord/MightyMichs-Patches/commit/73bb1ecaff041e0691336f93ee4c129c4c1a4120))
+* fingerprint ([6b233b5](https://github.com/mich111discord/MightyMichs-Patches/commit/6b233b578a1b198b1777b418ca5e3d40527c7f11))
+
+## [1.5.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.4.9...v1.5.0) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* ... ([e03c493](https://github.com/mich111discord/MightyMichs-Patches/commit/e03c49336ec3a112acdd47e312a725bcfac2cece))
+* ... ([ee35378](https://github.com/mich111discord/MightyMichs-Patches/commit/ee35378203109c74c5aa002712e8ae7f8364bfa4))
+* add missing AppTarget import and move Video Guru patch to videoguru folder ([b6ff469](https://github.com/mich111discord/MightyMichs-Patches/commit/b6ff46992de6cced13b480a38a89a4ee2fa4f565))
+* move Video Guru patch to videoguru folder and add AppTarget import ([67bebf9](https://github.com/mich111discord/MightyMichs-Patches/commit/67bebf99e96c8a282da436aafa19ca25b4f4b4de))
+
+### ✨ New Features
+
+* add unlock pro patch for Video Guru ([72ad543](https://github.com/mich111discord/MightyMichs-Patches/commit/72ad543260395f4e676ad59f36d996f4f1556d02))
+* add unlock pro patch for Video Guru ([9426d15](https://github.com/mich111discord/MightyMichs-Patches/commit/9426d151cf500ef8cc49b9043a2d5f8820c4e7de))
+
 ## [1.4.9](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.4.8...v1.4.9) (2026-09-25)
 
 ### 🐛 Bug Fixes

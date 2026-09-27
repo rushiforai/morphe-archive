@@ -186,7 +186,8 @@ public final class RideLog {
         for (int i = parts.length - keep; i < parts.length; i++) {
             kept.append('|').append(parts[i]);
         }
-        return kept.toString();
+        // Close the wrapper of the last kept id, so the de-duplication lookup still matches it.
+        return kept.append('|').toString();
     }
 
     /** Hook called from the telemetry Bike constructor with the finished object. */
@@ -277,7 +278,7 @@ public final class RideLog {
                 "An update is waiting for your Ather.");
 
         threshold(ctx, p, values, SOC_INDEX, "veh_soc", 20.0, "Battery low",
-                "Battery is down to %s%.");
+                "Battery is down to %s%%.");
         threshold(ctx, p, values, indexOf("veh_range", VEHICLE_FIELDS), "veh_range", 10.0,
                 "Range low", "Range is down to %s km.");
     }

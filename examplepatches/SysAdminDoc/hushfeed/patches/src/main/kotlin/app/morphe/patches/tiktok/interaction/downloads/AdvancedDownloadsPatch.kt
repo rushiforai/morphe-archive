@@ -239,7 +239,7 @@ val advancedDownloadsPatch = bytecodePatch(
     default = false,
 ) {
     category("Downloads")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, sharedExtensionPatch)
     execute {
         listOf(DownloadAddressFingerprint, CleanDownloadAddressFingerprint).forEach { fingerprint ->

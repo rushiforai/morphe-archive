@@ -141,7 +141,7 @@ val commentToolsPatch = bytecodePatch(
     category("Comments")
     dependsOn(settingsPatch, sharedExtensionPatch, doubleTapPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // The patcher keeps writes made by a patch that later fails. Each resolver below returns

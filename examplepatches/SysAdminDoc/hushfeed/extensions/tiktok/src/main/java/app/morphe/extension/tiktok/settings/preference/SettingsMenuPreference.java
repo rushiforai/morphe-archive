@@ -42,7 +42,8 @@ public final class SettingsMenuPreference extends Preference {
         BEHAVIOR,
         LAB,
         DIAGNOSTICS,
-        BACKUP
+        BACKUP,
+        NEWS
     }
 
     private static final int ACCESSORY_TAG = 0x4D4D454E;
@@ -321,13 +322,17 @@ public final class SettingsMenuPreference extends Preference {
         private final Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Path path = new Path();
 
+        /** Tiles take their corner from the radius scale, by size, rather than a fifth of their width. */
+        private final float density;
+
         MenuIconDrawable(Context context, Icon icon) {
             this.icon = icon;
+            density = context.getResources().getDisplayMetrics().density;
             fill.setColor(SettingsUi.liftedSurface());
             border.setColor(SettingsUi.border());
             border.setStyle(Paint.Style.STROKE);
             border.setStrokeWidth(SettingsUi.strokePx(context, 1f));
-            line.setColor(SettingsUi.textSecondary());
+            line.setColor(icon == Icon.SEARCH ? SettingsUi.textSecondary() : SettingsUi.accent());
             line.setStyle(Paint.Style.STROKE);
             line.setStrokeWidth(SettingsUi.strokePx(context, 1.8f));
             line.setStrokeCap(Paint.Cap.ROUND);
@@ -337,7 +342,11 @@ public final class SettingsMenuPreference extends Preference {
         @Override
         public void draw(Canvas canvas) {
             RectF bounds = new RectF(getBounds());
-            float radius = bounds.width() * 0.20f;
+            // A fifth of the width made 10.4dp on a row's 52dp tile and 6.4dp on a quick route's
+            // 32dp one, neither on the scale. Row tiles take the card radius, small ones the
+            // control radius.
+            float radius = (bounds.width() >= 40 * density
+                    ? SettingsUi.RADIUS_CARD : SettingsUi.RADIUS_CONTROL) * density;
             canvas.drawRoundRect(bounds, radius, radius, fill);
             canvas.drawRoundRect(bounds, radius, radius, border);
 
@@ -504,6 +513,17 @@ public final class SettingsMenuPreference extends Preference {
                     canvas.drawPath(path, line);
                     canvas.drawLine(left + bounds.width() * 0.08f, cy + bounds.height() * 0.09f,
                             right - bounds.width() * 0.08f, cy + bounds.height() * 0.09f, line);
+                    break;
+                case NEWS:
+                    // A four-point sparkle: each arm bows in toward the centre.
+                    path.reset();
+                    path.moveTo(cx, top);
+                    path.quadTo(cx, cy, right, cy);
+                    path.quadTo(cx, cy, cx, bottom);
+                    path.quadTo(cx, cy, left, cy);
+                    path.quadTo(cx, cy, cx, top);
+                    path.close();
+                    canvas.drawPath(path, line);
                     break;
                 case DIAGNOSTICS:
                     canvas.drawCircle(cx, cy, bounds.width() * 0.16f, line);

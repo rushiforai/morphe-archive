@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-25T10:02:00",
-  "description": "Haiagaru 1.4.10 pre-release: corrects the URL deletion range used by ChMate's thread-date display so the leading h is not left before the board/date label.",
-  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.4.10/haiagaru_patches-1.4.10.mpp",
+  "created_at": "2026-09-26T13:48:02",
+  "description": "Haiagaru 1.4.11 pre-release: restores Edge reporter IDs for NGThread actions on already-read threads without requiring history deletion.",
+  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.4.11/haiagaru_patches-1.4.11.mpp",
   "signature_download_url": "",
-  "version": "1.4.10"
+  "version": "1.4.11"
 }

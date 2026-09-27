@@ -39,7 +39,7 @@ val regionSpoofPatch = bytecodePatch(
     default = false,
 ) {
     category("Settings")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, simSpoofPatch)
     execute {
         val replacements = mapOf("Ljava/util/Locale;" to "locale", "Ljava/util/TimeZone;" to "timeZone")

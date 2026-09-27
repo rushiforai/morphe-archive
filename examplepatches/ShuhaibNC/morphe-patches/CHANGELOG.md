@@ -1,3 +1,15 @@
+## [1.11.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.10.0...v1.11.0) (2026-09-26)
+
+### ✨ New Features
+
+* facebook lite ([e44441d](https://github.com/ShuhaibNC/morphe-patches/commit/e44441d556026a876d70fc588c8df594888d770f))
+
+## [1.11.0-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.10.0...v1.11.0-dev.1) (2026-09-24)
+
+### ✨ New Features
+
+* facebook lite ([e44441d](https://github.com/ShuhaibNC/morphe-patches/commit/e44441d556026a876d70fc588c8df594888d770f))
+
 ## [1.10.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.9.0...v1.10.0) (2026-09-23)
 
 ### ✨ New Features

@@ -18,6 +18,12 @@ import java.util.List;
 
 /** Persists acquired Edge metadata independently of live subject/DAT availability. */
 public final class EdgeReporterHistory {
+    /**
+     * A history row can outlive the subject response that originally carried the
+     * reporter id.  Keep a title alias as well as the numeric thread key so the
+     * NGThread action can recover the id from an already-read row.
+     */
+    private static final String TITLE_KEY_PREFIX = "title:";
     private static volatile SharedPreferences cache;
     private static final ThreadLocal<Object> SUBJECT = new ThreadLocal<>();
     public static void pending(Object list) { SUBJECT.set(list); }
@@ -41,10 +47,39 @@ public final class EdgeReporterHistory {
         String key = Long.toString(thread);
         String suffix = EdgeReporterId.suffix(title);
         if (suffix != null) {
-            if (!suffix.equals(prefs.getString(key, null))) prefs.edit().putString(key, suffix).apply();
+            SharedPreferences.Editor edit = prefs.edit();
+            edit.putString(key, suffix);
+            edit.putString(titleKey(title), suffix);
+            edit.apply();
             return title;
         }
-        return EdgeReporterId.restore(title, prefs.getString(key, null));
+        String stored = prefs.getString(key, null);
+        if (stored != null && title != null) {
+            // This is the important path for rows restored from the local
+            // history database: the row has no suffix, but its thread key does.
+            prefs.edit().putString(titleKey(title), stored).apply();
+        }
+        return EdgeReporterId.restore(title, stored);
+    }
+
+    /** Restores reporter metadata for a menu title when the thread is already read. */
+    public static String resolveTitle(Object board, String title) {
+        if (title == null || EdgeReporterId.suffix(title) != null || !EdgeReporterId.isBoard(board)) {
+            return title;
+        }
+        SharedPreferences prefs = cache;
+        if (prefs == null) return title;
+        return EdgeReporterId.restore(title, prefs.getString(titleKey(title), null));
+    }
+
+    private static String titleKey(String title) {
+        String base = title;
+        String suffix = EdgeReporterId.suffix(title);
+        if (suffix != null && title != null) base = title.substring(0, title.length() - suffix.length()).trim();
+        if (base == null) base = "";
+        // Keep preference keys compact and deterministic; including the length
+        // reduces accidental collisions without storing a full subject in XML.
+        return TITLE_KEY_PREFIX + Integer.toHexString(base.hashCode()) + ":" + base.length();
     }
     public static void capture(Object url, Object result) {
         if (url == null || !(result instanceof List) || cache == null) return;
@@ -68,6 +103,13 @@ public final class EdgeReporterHistory {
                     edit.putString(Long.toString(thread), suffix);
                     changed = true;
                 }
+                if (suffix != null && title != null) {
+                    String alias = titleKey(title);
+                    if (!suffix.equals(cache.getString(alias, null))) {
+                        edit.putString(alias, suffix);
+                        changed = true;
+                    }
+                }
             }
             if (changed) edit.apply();
         } catch (ReflectiveOperationException error) {
@@ -78,7 +120,8 @@ public final class EdgeReporterHistory {
     public static boolean choose(Activity activity, String title, Object type, Object board) {
         if (Boolean.TRUE.equals(OPENING.get()) || !(type instanceof Enum)
                 || !"THREAD".equals(((Enum<?>) type).name()) || !EdgeReporterId.isBoard(board)) return false;
-        String suffix = EdgeReporterId.suffix(title);
+        final String resolvedTitle = resolveTitle(board, title);
+        String suffix = EdgeReporterId.suffix(resolvedTitle);
         if (suffix == null || activity.isFinishing()) return false;
         String owner = type.getClass().getName().equals("o.addPauseListener") ? "o.getSegmentsokio"
                 : type.getClass().getName().equals("o.YHn") ? "o.TTRewardVideoActivity2" : "o.zzawg";
@@ -94,7 +137,7 @@ public final class EdgeReporterHistory {
                 .setItems(new String[]{"記者IDだけをNG  " + suffix, "スレタイでNG"}, (dialog, which) -> {
                     try {
                         OPENING.set(true);
-                        entry.invoke(null, activity, which == 0 ? suffix : title, type, board);
+                        entry.invoke(null, activity, which == 0 ? suffix : resolvedTitle, type, board);
                     } catch (ReflectiveOperationException error) {
                         Log.e("HaiagaruReporter", "Unable to open NG editor", error);
                         Toast.makeText(activity, "NG追加画面を開けませんでした", Toast.LENGTH_LONG).show();
@@ -123,13 +166,13 @@ public final class EdgeReporterHistory {
             Object binding = holder.getClass().getField("b").get(holder);
             RadioButton literal = (RadioButton) binding.getClass().getField("l").get(binding);
             EditText input = findInput(root);
-            if (input == null || EdgeReporterId.suffix(input.getText().toString()) == null
+            if (input == null || EdgeReporterId.suffix(resolveTitle(board, input.getText().toString())) == null
                     || !(input.getParent() instanceof ViewGroup)) return;
             ViewGroup parent = (ViewGroup) input.getParent();
             Button button = new Button(root.getContext());
             button.setText("記者IDだけをNG");
             button.setOnClickListener(view -> {
-                String suffix = EdgeReporterId.suffix(input.getText().toString());
+                String suffix = EdgeReporterId.suffix(resolveTitle(board, input.getText().toString()));
                 if (suffix != null) { literal.setChecked(true); input.setText(suffix); input.setSelection(suffix.length()); }
             });
             parent.addView(button, parent.indexOfChild(input) + 1);

@@ -14,7 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * What the Network request report rests on, held to TikTok 47.0.3.
+ * What the Network request report rests on, held to each TikTok build the bundle declares.
  *
  * The patch counts a request at the start of SsHttpCall.getResponseWithInterceptorChain, one
  * run per attempt, and reads the call's originalRequest there. That sees every call only if both
@@ -28,61 +28,62 @@ class NetworkRequestAnchorsTest {
     private val body = "Lcom/bytedance/retrofit2/mime/TypedOutput;"
 
     @Test
-    fun `47_0_3 builds every call's request before the chain the report counts at`() {
-        val apk = Fixtures.apks().single { it.name.contains("47.0.3") }
-        val classes = HashMap<String, ClassDef>()
-        val callers = mutableListOf<Pair<String, List<Instruction>>>()
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
-        container.dexEntryNames.forEach { entry ->
-            container.getEntry(entry)!!.dexFile.classes.forEach { classDef ->
-                if (classDef.type == call || classDef.type == request || classDef.type == body) {
-                    classes.putIfAbsent(classDef.type, classDef)
-                }
-                classDef.methods.forEach methods@{ method ->
-                    val instructions = method.implementation?.instructions?.toList() ?: return@methods
-                    if (instructions.any { invokes(it, call, "getResponseWithInterceptorChain") }) {
-                        callers += "${method.definingClass}->${method.name}" to instructions
+    fun `each declared build builds every call's request before the chain the report counts at`() {
+        Fixtures.forEachDeclared { apk ->
+            val classes = HashMap<String, ClassDef>()
+            val callers = mutableListOf<Pair<String, List<Instruction>>>()
+            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            container.dexEntryNames.forEach { entry ->
+                container.getEntry(entry)!!.dexFile.classes.forEach { classDef ->
+                    if (classDef.type == call || classDef.type == request || classDef.type == body) {
+                        classes.putIfAbsent(classDef.type, classDef)
+                    }
+                    classDef.methods.forEach methods@{ method ->
+                        val instructions = method.implementation?.instructions?.toList() ?: return@methods
+                        if (instructions.any { invokes(it, call, "getResponseWithInterceptorChain") }) {
+                            callers += "${method.definingClass}->${method.name}" to instructions
+                        }
                     }
                 }
             }
+
+            val callClass = classes.getValue(call)
+            assertTrue(
+                "the chain method takes nothing",
+                callClass.methods.any { it.name == "getResponseWithInterceptorChain" && it.parameterTypes.isEmpty() },
+            )
+            assertEquals(
+                "the field the report reads",
+                request, callClass.fields.single { it.name == "originalRequest" }.type,
+            )
+
+            // Exactly two ways in: execute (a twin method on the call itself) and a runnable's run.
+            assertEquals("callers of the chain: ${callers.map { it.first }}", 2, callers.size)
+            val execute = callers.single { it.first.startsWith("$call->") }
+            val runnable = callers.single { !it.first.startsWith("$call->") }
+            assertTrue("${runnable.first} is a run()", runnable.first.endsWith("->run"))
+            assertTrue(
+                "execute builds the request before the chain",
+                buildsBefore(execute.second, execute.second.indexOfFirst { invokes(it, call, "getResponseWithInterceptorChain") }),
+            )
+            val runnableClass = runnable.first.substringBefore("->")
+            val enqueue = callClass.methods.single { it.name == "enqueue" }.implementation!!.instructions.toList()
+            val posts = enqueue.indexOfFirst {
+                it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == runnableClass
+            }
+            assertTrue("enqueue creates the runnable that runs the chain", posts >= 0)
+            assertTrue(
+                "enqueue builds the request before it hands the runnable on",
+                enqueue.drop(posts).any { invokes(it, call, "ensureOriginalRequestCreated") },
+            )
+
+            val requestClass = classes.getValue(request)
+            assertTrue("Request.getHost", requestClass.methods.any { it.name == "getHost" && it.returnType == "Ljava/lang/String;" })
+            // The debug line names a log host's path by this getter; a build without it still counts.
+            assertTrue("Request.getPath", requestClass.methods.any { it.name == "getPath" && it.returnType == "Ljava/lang/String;" })
+            assertTrue("Request.getBody", requestClass.methods.any { it.name == "getBody" && it.returnType == body })
+            assertTrue("TypedOutput.length", classes.getValue(body).methods.any { it.name == "length" && it.returnType == "J" })
         }
-
-        val callClass = classes.getValue(call)
-        assertTrue(
-            "the chain method takes nothing",
-            callClass.methods.any { it.name == "getResponseWithInterceptorChain" && it.parameterTypes.isEmpty() },
-        )
-        assertEquals(
-            "the field the report reads",
-            request, callClass.fields.single { it.name == "originalRequest" }.type,
-        )
-
-        // Exactly two ways in: execute (a twin method on the call itself) and a runnable's run.
-        assertEquals("callers of the chain: ${callers.map { it.first }}", 2, callers.size)
-        val execute = callers.single { it.first.startsWith("$call->") }
-        val runnable = callers.single { !it.first.startsWith("$call->") }
-        assertTrue("${runnable.first} is a run()", runnable.first.endsWith("->run"))
-        assertTrue(
-            "execute builds the request before the chain",
-            buildsBefore(execute.second, execute.second.indexOfFirst { invokes(it, call, "getResponseWithInterceptorChain") }),
-        )
-        val runnableClass = runnable.first.substringBefore("->")
-        val enqueue = callClass.methods.single { it.name == "enqueue" }.implementation!!.instructions.toList()
-        val posts = enqueue.indexOfFirst {
-            it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == runnableClass
-        }
-        assertTrue("enqueue creates the runnable that runs the chain", posts >= 0)
-        assertTrue(
-            "enqueue builds the request before it hands the runnable on",
-            enqueue.drop(posts).any { invokes(it, call, "ensureOriginalRequestCreated") },
-        )
-
-        val requestClass = classes.getValue(request)
-        assertTrue("Request.getHost", requestClass.methods.any { it.name == "getHost" && it.returnType == "Ljava/lang/String;" })
-        // The debug line names a log host's path by this getter; a build without it still counts.
-        assertTrue("Request.getPath", requestClass.methods.any { it.name == "getPath" && it.returnType == "Ljava/lang/String;" })
-        assertTrue("Request.getBody", requestClass.methods.any { it.name == "getBody" && it.returnType == body })
-        assertTrue("TypedOutput.length", classes.getValue(body).methods.any { it.name == "length" && it.returnType == "J" })
     }
 
     private fun invokes(instruction: Instruction, owner: String, name: String): Boolean {

@@ -23,11 +23,12 @@ final class CaptionDiagnostics {
         if (context == null) return;
         try {
             String cleanStage = sanitize(stage, 80);
-            String cleanDetail = sanitize(detail, 260);
+            String cleanDetail = sanitize(CaptionQualityTrace.redact(detail, DeepSeekConfig.load(context).apiKey, 1600), 1700);
             long now = System.currentTimeMillis();
             SharedPreferences p = prefs(context);
             String old = p.getString(HISTORY, "");
             String line = now + " | " + cleanStage + (cleanDetail.isEmpty() ? "" : " | " + cleanDetail);
+            CaptionDiagnosticArchive.append(context, "history", line);
             String next = old == null || old.isEmpty() ? line : line + "\n" + old;
             if (next.length() > MAX_HISTORY) next = next.substring(0, MAX_HISTORY);
             // Keep bounded clock/rejection evidence separate from noisy display selections.
@@ -50,6 +51,7 @@ final class CaptionDiagnostics {
 
     static void clear(Context context) {
         try { prefs(context).edit().clear().apply(); } catch (Throwable ignored) {}
+        try { CaptionDiagnosticArchive.clear(context); } catch (Throwable ignored) {}
         try { CaptionQualityTrace.clear(context); } catch (Throwable ignored) {}
         try { TokenCostAudit.clear(context); } catch (Throwable ignored) {}
     }
@@ -61,7 +63,7 @@ final class CaptionDiagnostics {
             String detail = p.getString(DETAIL, "");
             long time = p.getLong(TIME, 0L);
             String audit = TokenCostAudit.uiText(context);
-            String header = "引擎：Anchored / source-phrase-134\n当前模式：" + (CaptionChoice.translates() ? "自动翻译" : "原字幕（零翻译 API）") + "\n显示文本调试：" +
+            String header = "引擎：Event rebuild / " + RebuildProtocol.VERSION + "\n当前模式：" + (CaptionChoice.translates() ? "自动翻译" : "原字幕（零翻译 API）") + "\n显示文本调试：" +
                     CaptionStrings.localize(context,DeepSeekConfig.displayTextDebugEnabled(context) ? "开" : "关");
             if (stage == null || stage.isEmpty()) {
                 String base = "尚未捕获到自动翻译请求。启用并填写 API Key 后，播放视频并从“自动翻译”选择任意目标语言，再回来点“刷新诊断”。";
@@ -91,8 +93,21 @@ final class CaptionDiagnostics {
         }
     }
 
+    static String fullText(Context c) {
+        String history=CaptionDiagnosticArchive.read(c,"history"),quality=CaptionDiagnosticArchive.read(c,"quality");
+        return uiText(c) + "\n\n[Export manifest; ui="+app.yydarlinker.extension.BuildConfig.CAPTION_PATCH_VERSION+"; engine="+RebuildProtocol.VERSION+"; exported_at="+System.currentTimeMillis()
+            +"; completeness=bounded_not_guaranteed; history_records="+records(history,false)+"; quality_records="+records(quality,true)
+            +"; truncation_markers="+(occurrences(history,"record truncated")+occurrences(quality,"record truncated"))
+            +"; debug="+DeepSeekConfig.displayTextDebugEnabled(c)+"]\n"
+            + "\n[Extended history: chronological; last 24h; up to 8 MiB per channel]\n"
+            + history + "\n[Extended quality evidence; captured only while debug enabled]\n"+quality;
+    }
+
+    private static int records(String text,boolean json){int n=0;for(String line:text.split("\n"))if(json?line.startsWith("{"):line.matches("^[0-9]+ \\|.*"))n++;return n;}
+    private static int occurrences(String text,String needle){int n=0,p=0;while((p=text.indexOf(needle,p))>=0){n++;p+=needle.length();}return n;}
+
     private static boolean importantDecision(String stage) {
-        return stage.equals("SOURCE_RETRY_SCHEDULED") || stage.equals("SOURCE_LOAD_FAILED")
+        return (stage.startsWith("REBUILD_") && !stage.equals("REBUILD_SELECTED") && !stage.equals("REBUILD_PRESENTED") && !stage.equals("REBUILD_DISPLAY")) || stage.equals("SOURCE_RETRY_SCHEDULED") || stage.equals("SOURCE_LOAD_FAILED")
                 || stage.equals("CONTEXTUAL_CORE_ERROR") || stage.equals("CONTEXTUAL_SEEK_REPRIORITIZED")
                 || stage.equals("ASR_CUE_TIMING_BASE") || stage.equals("ASR_CUE_TIMING_APPLIED")
                 || stage.equals("ASR_REFERENCE_FETCH_FAILED") || stage.equals("SOURCE_TIMING_FALLBACK")

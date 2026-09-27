@@ -10,9 +10,7 @@ internal object AppCompatibilities {
         packageName = "com.google.android.apps.photos",
         appIconColor = 0xFC3F3C,
         targets = listOf(
-            AppTarget("7.92.0.977185651"),
-            AppTarget("7.93.0.982110057"),
-            AppTarget("7.94.0.984908898", isExperimental = true),
+            AppTarget("7.94.0.984908898"),
         ),
     )
 }

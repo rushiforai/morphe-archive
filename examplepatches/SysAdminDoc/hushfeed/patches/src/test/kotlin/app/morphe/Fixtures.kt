@@ -1,5 +1,6 @@
 package app.morphe
 
+import app.morphe.patches.shared.compat.AppCompatibilities
 import java.io.File
 import org.junit.Assert.fail
 import org.junit.Assume.assumeTrue
@@ -33,4 +34,48 @@ internal object Fixtures {
 
     /** Every TikTok APK in the fixture folder. */
     fun apks(): List<File> = files { it.extension == "apk" }
+
+    /** The builds the bundle declares, oldest first. */
+    fun declaredVersions(): List<String> = AppCompatibilities.tiktok().single().targets
+        .map { checkNotNull(it.version) { "a declared target without a version" } }
+        .sortedWith { a, b -> compareVersions(parts(a), parts(b)) }
+
+    /** The universal APK of [version] in the fixture folder, by the APKMirror or the short file name. */
+    fun apkOf(version: String): File {
+        val found = apks().filter { it.name.contains("_$version-") || it.name == "tiktok-$version.apk" }
+        if (found.size != 1) fail("The fixture folder holds ${found.size} universal APKs of TikTok $version, not one: $found")
+        return found.single()
+    }
+
+    /** One universal APK of every declared build, oldest first. A declared build without one fails. */
+    fun declared(): List<File> = declaredVersions().map(::apkOf)
+
+    /**
+     * Runs [check] on each declared build's APK and names the build in a failure, since the
+     * same assertion message reads alike on every build. Not inline, so a `return` in [check]
+     * can't end the test before the later builds were looked at.
+     */
+    fun forEachDeclared(check: (File) -> Unit) {
+        for (apk in declared()) {
+            try {
+                check(apk)
+            } catch (failure: AssertionError) {
+                throw AssertionError("${apk.name}: ${failure.message}", failure)
+            }
+        }
+    }
+
+    /** The build an APK in the fixture folder carries, read off its file name. */
+    fun versionOf(apk: File): String = Regex("""\d+\.\d+\.\d+""").find(apk.name)?.value
+        ?: error("no version in ${apk.name}")
+
+    private fun parts(version: String) = version.split('.').map(String::toInt)
+
+    private fun compareVersions(a: List<Int>, b: List<Int>): Int {
+        for (i in 0 until maxOf(a.size, b.size)) {
+            val difference = a.getOrElse(i) { 0 } - b.getOrElse(i) { 0 }
+            if (difference != 0) return difference
+        }
+        return 0
+    }
 }

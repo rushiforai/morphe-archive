@@ -15,7 +15,7 @@ val aiProfilingGovernorPatch = bytecodePatch(
     default = false,
 ) {
     category("Privacy")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         val initMethod = PitayaInitFingerprint.methodOrNull

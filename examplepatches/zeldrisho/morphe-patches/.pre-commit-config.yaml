@@ -1,13 +1,32 @@
 minimum_pre_commit_version: '4.3.0'
+default_stages: [pre-commit]
+default_install_hook_types: [pre-commit, pre-push]
 # Fast, check-only hooks. JVM checks stay in Gradle, not the commit path.
 repos:
+  - repo: local
+    hooks:
+      - id: markdown-links
+        name: markdown local links
+        entry: python3 scripts/check_markdown_links.py
+        language: system
+        files: '\.md$'
+      - id: gradle-quality
+        name: Gradle JVM quality checks
+        entry: bash ./gradlew qualityCheck --no-daemon
+        language: system
+        stages: [pre-push]
+        files: '\.(kt|kts|java|xml|properties|toml)$'
+        pass_filenames: false
+        require_serial: true
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
     hooks:
       - id: check-merge-conflict
         args: [--assume-in-merge]
       - id: mixed-line-ending
-        args: [--fix=no]
+        args: [--fix=lf]
+        exclude: '\.(bat|cmd)$'
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-json

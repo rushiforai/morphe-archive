@@ -14,6 +14,7 @@ import app.morphe.patcher.dex.SdkDexVerifier
 import app.morphe.patches.all.misc.clone.cloneAppPatch
 import app.morphe.patches.music.ad.hideAdsPatch
 import app.morphe.patches.music.layout.lyrics.lyricsPatch
+import app.morphe.patches.music.layout.miniplayer.miniplayerPreviousNextButtonsPatch
 import app.morphe.patches.music.misc.backgroundplayback.backgroundPlaybackPatch
 import app.morphe.patches.music.misc.gms.gmsCoreSupportPatch
 import java.io.File
@@ -40,6 +41,7 @@ fun main(arguments: Array<String>) {
           hideAdsPatch,
           jamQueueProbePatch,
           lyricsPatch,
+          miniplayerPreviousNextButtonsPatch,
           backgroundPlaybackPatch,
       )
   val workspace = Files.createTempDirectory("jam-device-build")

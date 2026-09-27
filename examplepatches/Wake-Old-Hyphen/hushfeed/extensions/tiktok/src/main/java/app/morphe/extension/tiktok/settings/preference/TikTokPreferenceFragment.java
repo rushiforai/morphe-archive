@@ -67,7 +67,7 @@ import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 @SuppressWarnings("deprecation")
 public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final String FEATURE_GATE_LAB_KEY = "action_feature_gate_lab";
-    private static final String PAUSE_SUMMARY = "From the next start TikTok runs as if it were not patched, so you can tell whether a problem comes from Hushfeed. Your settings stay as they are.";
+    private static final String PAUSE_SUMMARY = "From the next start TikTok runs as if it weren't patched, so you can tell whether a problem comes from Hushfeed. Your settings stay as they are.";
     private static final int REQUEST_DOWNLOAD_PATH_FOLDER = 8841;
     private static final String ARG_SECTION = "morphe_settings_section";
     private static final String ARG_SEARCH = "morphe_settings_search";
@@ -324,14 +324,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
      * will not load offered two identical looking choices and no sense of which one to take.
      */
     @Override protected ErrorActionStyler errorActionStyler() {
-        return (row, primary) -> {
-            android.widget.TextView title = row.findViewById(android.R.id.title);
-            if (title == null) return;
-            title.setTextColor(SettingsUi.enabledTextColors(
-                    primary ? SettingsUi.accent() : SettingsUi.textPrimary()));
-            title.setTypeface(title.getTypeface(),
-                    primary ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
-        };
+        // SettingsListAdapter styles the rows again after this, so it applies the same helper.
+        return SettingsUi::styleErrorAction;
     }
 
     @Override protected CharSequence preferenceChangeRecoveredMessage(Context context) {
@@ -387,7 +381,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         app.morphe.extension.shared.settings.preference.LogBufferManager.savedToMessage =
                 L10n.t(context, "Full report saved to %1$s");
         app.morphe.extension.shared.settings.preference.LogBufferManager.couldNotStartMessage =
-                L10n.t(context, "Couldn't start the report export. Try again shortly.");
+                L10n.t(context, "Couldn't start the report export. Try again in a moment.");
         // Four whole sentences rather than five fragments, so each one is a row a translator
         // can move the numbers around inside. The context is asked for when a line is written
         // rather than captured here: this writer is a static and outlives the screen.
@@ -703,7 +697,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         if (searchInput != null) searchInput.showResultCount(matches.size());
         if (matches.isEmpty()) {
-            addSearchState("No matching settings", "Try a different word or clear the search.");
+            // A switch from a patch left unticked in the Manager is on no page and in no index, and
+            // nothing else on the screen says so (#29 looked for Fill without its patch).
+            addSearchState("No matching settings", "Try a different word or clear the search. Switches "
+                    + "from patches you didn't tick in Morphe Manager aren't listed.");
             return;
         }
 
@@ -1020,6 +1017,24 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         search.setOrder(-900);
         screen.addPreference(search);
 
+        String releaseVersion = Utils.getPatchesReleaseVersion();
+        if (ReleaseNotes.pending(context, releaseVersion)) {
+            SettingsMenuPreference notes = new SettingsMenuPreference(
+                    context,
+                    L10n.t(context, "What's new"),
+                    L10n.f(context, "Changes in Hushfeed %1$s", ReleaseNotes.rowVersion(context, releaseVersion)),
+                    SettingsMenuPreference.Icon.NEWS,
+                    0,
+                    preference -> {
+                        ReleaseNotes.show(context, releaseVersion,
+                                () -> screen.removePreference(preference));
+                        return true;
+                    });
+            notes.setKey(ReleaseNotes.KEY);
+            notes.setOrder(-850);
+            screen.addPreference(notes);
+        }
+
         List<SettingsQuickActionsPreference.Action> quickRoutes = new ArrayList<>();
         if (FeedFilterPreferenceCategory.isAvailable()) {
             quickRoutes.add(new SettingsQuickActionsPreference.Action(
@@ -1134,17 +1149,27 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     /**
      * Pause Hushfeed. It takes the screen-time budget off with everything else, so a locked
-     * day refuses it the same way it refuses every budget setting.
+     * day refuses it the same way it refuses every budget setting, and so does Wait a day to
+     * loosen the budget, the way it refuses Start today over: paused from the next start, the
+     * budget would be gone without waiting for anything.
      */
     private TogglePreference pauseRow(Context context) {
         TogglePreference pause = new TogglePreference(context, "Pause Hushfeed", PAUSE_SUMMARY,
                 BaseSettings.PAUSED);
         pause.setOnPreferenceChangeListener((preference, value) -> {
-            if (!Boolean.TRUE.equals(value) || !SessionBudget.lockedToday()) return true;
-            Utils.showToastShort(L10n.f(context,
-                    "Today's budget is locked. This can be changed again at %1$s.",
-                    SessionLockOverlay.resetTimeLabel()));
-            return false;
+            if (!Boolean.TRUE.equals(value)) return true;
+            if (SessionBudget.lockedToday()) {
+                SettingsActionBanner.showNotice(context, L10n.f(context,
+                        "Today's budget is locked. This can be changed again at %1$s.",
+                        SessionLockOverlay.resetTimeLabel()));
+                return false;
+            }
+            if (Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.savedValue()) {
+                SettingsActionBanner.showNotice(context, L10n.t(context,
+                        "Wait a day to loosen the budget is on, so Hushfeed stays on"));
+                return false;
+            }
+            return true;
         });
         return pause;
     }
@@ -1189,7 +1214,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     /** A group heading on the master menu, which the list adapter treats as a card boundary. */
     private void addHeading(PreferenceScreen screen, String title) {
-        screen.addPreference(new SectionHeadingPreference(getActivity(), title));
+        screen.addPreference(new SectionHeadingPreference(getActivity(), title, true));
     }
 
     /** The master menu's rows and the section each one opens, for the badge refresh. */

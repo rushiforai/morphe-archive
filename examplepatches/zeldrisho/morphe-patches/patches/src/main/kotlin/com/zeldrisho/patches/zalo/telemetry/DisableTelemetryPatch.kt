@@ -100,6 +100,26 @@ private val SetUserId = crashlyticsMethod("setUserId", listOf("Ljava/lang/String
 private val SetCrashlyticsCollectionEnabled =
     crashlyticsMethod("setCrashlyticsCollectionEnabled", listOf("Z"))
 
+internal val telemetryFingerprints = listOf(
+    SessionInsert,
+    ScreenInsert,
+    ViewInsert,
+    EventBatchInsert,
+    NativeCrashHandlerInitCall,
+    RecordException,
+    RecordExceptionWithKeys,
+    CrashLog,
+    SetCustomKeyDouble,
+    SetCustomKeyFloat,
+    SetCustomKeyInt,
+    SetCustomKeyLong,
+    SetCustomKeyString,
+    SetCustomKeyBoolean,
+    SetCustomKeys,
+    SetUserId,
+    SetCrashlyticsCollectionEnabled,
+)
+
 private val disableCrashlyticsManifestPatch = resourcePatch {
     compatibleWith(COMPATIBILITY_ZALO)
 
@@ -132,37 +152,53 @@ val disableZaloTelemetryPatch = bytecodePatch(
         forceReturnVoid(ScreenInsert.matchAll(1..1).single().method)
         forceReturnVoid(ViewInsert.matchAll(1..1).single().method)
         forceReturnInt(EventBatchInsert.matchAll(1..1).single().method)
-        for (match in NativeCrashHandlerInitCall.matchAll(0..Int.MAX_VALUE)) {
-            match.instructionMatches.forEach { instruction ->
-                match.method.replaceInstruction(instruction.index, "nop")
-            }
+        val crashHandlerCalls = NativeCrashHandlerInitCall.matchAll(0..Int.MAX_VALUE)
+        crashHandlerCalls.forEach { match ->
+            removeTelemetryCalls(match.method, match.instructionMatches.map { it.index })
         }
 
-        listOf(
-            RecordException,
-            RecordExceptionWithKeys,
-            CrashLog,
-            SetCustomKeyDouble,
-            SetCustomKeyFloat,
-            SetCustomKeyInt,
-            SetCustomKeyLong,
-            SetCustomKeyString,
-            SetCustomKeyBoolean,
-            SetCustomKeys,
-            SetUserId,
-            SetCrashlyticsCollectionEnabled,
-        ).forEach { fingerprint ->
-            forceReturnVoid(fingerprint.matchAll(1..1).single().method)
-        }
+        neutralizeSinks(
+            listOf(
+                RecordException,
+                RecordExceptionWithKeys,
+                CrashLog,
+                SetCustomKeyDouble,
+                SetCustomKeyFloat,
+                SetCustomKeyInt,
+                SetCustomKeyLong,
+                SetCustomKeyString,
+                SetCustomKeyBoolean,
+                SetCustomKeys,
+                SetUserId,
+                SetCrashlyticsCollectionEnabled,
+            ).map { fingerprint -> fingerprint.matchAll(1..1).single().method },
+        )
     }
 }
 
-private fun forceReturnVoid(method: MutableMethod) {
+/** Replaces the selected telemetry instructions with NOPs, preserving their list positions. */
+internal fun removeTelemetryCalls(method: MutableMethod, instructionIndexes: List<Int>) {
+    instructionIndexes.forEach { method.replaceInstruction(it, "nop") }
+}
+
+/** Replaces every supplied void telemetry sink body with an immediate return. */
+internal fun neutralizeSinks(methods: Iterable<MutableMethod>) {
+    methods.forEach(::forceReturnVoid)
+}
+
+/** Replaces the selected native crash-handler registration instruction with a NOP. */
+internal fun disableNativeCrashHandler(method: MutableMethod, instructionIndex: Int) {
+    removeTelemetryCalls(method, listOf(instructionIndex))
+}
+
+/** Clears the method body and try blocks, then emits a single void return. */
+internal fun forceReturnVoid(method: MutableMethod) {
     method.clearBody()
     method.addInstructions(0, "return-void")
 }
 
-private fun forceReturnInt(method: MutableMethod) {
+/** Clears the method body and try blocks, then returns integer zero through v0. */
+internal fun forceReturnInt(method: MutableMethod) {
     method.clearBody()
     method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
 }

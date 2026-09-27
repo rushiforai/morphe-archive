@@ -29,7 +29,7 @@ A collection of patches that I think would be useful to add, based on features, 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.10.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.11.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details open>
 <summary>📦 apk-signer&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -43,6 +43,16 @@ A collection of patches that I think would be useful to add, based on features, 
 |----------|----------------|-----------|
 | [APK Signer Unlock Pro](#apk-signer-unlock-pro) | Unlocks Pro and remove ads from APK Signer. |  |
 | [Disable Forground Services Warning](#disable-forground-services-warning) | Turns off annoying forground service warning at startup |  |
+
+</details>
+
+<details open>
+<summary>📦 Facebook Lite&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable In-Built Browser](#disable-in-built-browser) | Disables the in-built browser in Facebook Lite by removing its activities from the manifest. |  |
 
 </details>
 

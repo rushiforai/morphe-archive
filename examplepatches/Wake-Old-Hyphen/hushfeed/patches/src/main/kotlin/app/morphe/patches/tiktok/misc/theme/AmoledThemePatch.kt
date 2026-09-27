@@ -21,7 +21,7 @@ val amoledThemePatch = resourcePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     val background by colorOption(
         key = "backgroundColor",
         default = "#000000",
@@ -40,7 +40,7 @@ val amoledThemePatch = resourcePatch(
         )
         if (collisions.isNotEmpty()) throw PatchException(renamedPathsRefusal(collisions.size))
         val color = background ?: throw PatchException("Choose a background color")
-        if (!Regex("#[0-9a-fA-F]{6}|#[fF][fF][0-9a-fA-F]{6}").matches(color)) {
+        if (!Regex("#[0-9a-fA-F]{6}|#[fF]{2}[0-9a-fA-F]{6}").matches(color)) {
             throw PatchException("Background color must be opaque #RRGGBB or #FFRRGGBB")
         }
         // The dark token block's background grays under this build's own names. Read before any
@@ -69,7 +69,6 @@ val amoledThemePatch = resourcePatch(
         // literal inside a <style>. 46.x reached the same sheets through agk (comments) and c3
         // (share), which 47.0.3 keeps as dark surface tokens of their own. Only a dark literal
         // is rewritten, so a light style's white stays white.
-        // We also expand this to catch literal hex codes used in styles for the Followers/Following sheets (#161823, #1e1e1e, etc).
         val sheetItems = sheetStyleItems(packageMetadata.versionName, declaredVersions())
         valuesDirectories.map { it.resolve("styles.xml") }.filter { it.exists() }.forEach { file ->
             document(file.relativeTo(get(".")).invariantSeparatorsPath).use { xml ->
@@ -108,6 +107,17 @@ internal fun decodedResourceDirectories(roots: List<File>): Set<String> =
  * Input resource paths that Morphe's resource rebuild can drop: a path whose own file was
  * decoded under another name (the path map renamed it) while another resource's decoded file
  * sits at that same path.
+ *
+ * <p>The decoder writes every resource file to `res/<type>/<entry name>` and records the
+ * original archive path beside it; the rebuild renames each file back. TikTok's own paths are
+ * short folders (`res/b/cfz.xml`), so nothing clashes, and Morphe Manager's merge of an .apkm
+ * keeps them. The desktop CLI's merge moves every file into a folder named for its type and
+ * keeps the short name, so entry `ac`'s file becomes `res/drawable/a0.xml`, which is also where
+ * entry `a0`'s file decodes. On APKMirror's 46.2.3 and 47.0.3 bundles that made 14,468 and
+ * 14,925 such clashes, the rebuild lost 1,375 and 1,361 files, all clashing paths, and TikTok died
+ * inflating its first feed layout on the S22 (2026-09-18). Manager's merge of the same bundles
+ * and both universal APKs have none and lose nothing. A file kept at its own path (Play's
+ * `res/xml/splits0.xml` in a universal APK) is not a clash: its alias is itself.
  */
 internal fun renamedPathCollisions(
     entries: Iterable<String>,
@@ -115,13 +125,20 @@ internal fun renamedPathCollisions(
     aliasOf: (String) -> String,
     isDecoded: (String) -> Boolean,
 ): List<String> = entries.filter { name ->
+    // The folder check comes first and is free: a clash can only sit where the decoder writes,
+    // and on a clean input none of the archive's folders is one of those.
     name.substringBeforeLast('/', "") in decodedDirectories && aliasOf(name) != name && isDecoded(name)
 }
 
 /**
  * The dark theme's background grays, per build: the opaque dark grays of the color token block
  * the dark app themes set (attrs fx8 to fyf on 46.2.3, g3w to g54 on 47.0.3), which the surfaces
- * read. The names are each build's own and move.
+ * read. The names are each build's own and move. 47.0.3 added a color ahead of the block, so
+ * every gray moved one name along, and 46.x's names there are the brand red a4a, the orange a3y
+ * and the see-through white overlays a40 and a43, which the patch painted black until this was
+ * read off the fixture (AmoledPaletteTest holds every fixture's block to its entry here). The
+ * block's pure black is a token of its own and stays. The fifth gray (fxx, g4l on 47.0.3) is
+ * the one 48 layouts read on 46.2.3 and 50 on 47.0.3.
  */
 internal val DARK_BACKGROUND_COLORS: Map<String, Set<String>> = run {
     val beforeFortySeven = setOf("a3y", "a40", "a41", "a43", "a4a")
@@ -131,6 +148,9 @@ internal val DARK_BACKGROUND_COLORS: Map<String, Set<String>> = run {
         "46.8.3" to beforeFortySeven,
         "46.9.3" to beforeFortySeven,
         "47.0.3" to setOf("a3z", "a41", "a42", "a44", "a4b"),
+        // 47.1.3 added another color ahead of the block, so every gray moved one name along
+        // again. The five values are 47.0.3's, and still no other style points at one.
+        "47.1.3" to setOf("a40", "a42", "a43", "a45", "a4c"),
     )
 }
 
@@ -149,11 +169,15 @@ internal fun unreadPaletteRefusal(versionName: String?): String {
 
 /** The builds this patch is declared for, where the sheet style names are known to be right. */
 internal fun declaredVersions(): Set<String> =
-    AppCompatibilities.tiktok4703().flatMap { it.targets }.mapNotNull { it.version }.toSet()
+    AppCompatibilities.tiktok().flatMap { it.targets }.mapNotNull { it.version }.toSet()
 
 /**
  * On a declared build every sheet item has to have been found: the names are that build's,
- * and one missing means an identity is wrong.
+ * and one missing means an identity is wrong. On a build the patch was forced onto, the
+ * names are not promised. What matched was rewritten, and the failure is nothing matching
+ * at all, which says the sheet lookup itself no longer works there. 46.7.3 has the comments
+ * sheet's item and not the share sheet's, and a whole patch that fails over one grey sheet
+ * on a build it never claimed is the wrong trade.
  */
 internal fun checkSheetStyleItems(found: Set<String>, versionName: String?, declared: Set<String>) {
     if (found == SHEET_STYLE_ITEMS) return
@@ -164,37 +188,19 @@ internal fun checkSheetStyleItems(found: Set<String>, versionName: String?, decl
 }
 
 /**
- * The dark tokens behind TikTok's sheets. 
- * agk and c3 were the comments and share sheets' own through 46.x and are dark surfaces of their own on 47.0.3. 
- * aia is 47.0.3's dark value for UISheetFlat1 (attr/a24).
- * The expanded lists below target literal hex codes used as backgrounds for the Followers/Following sheets and other dark surfaces (#161823, #1e1e1e, #121212).
+ * The dark tokens behind TikTok's sheets. agk and c3 were the comments and share sheets' own
+ * through 46.x and are dark surfaces of their own on 47.0.3. aia is 47.0.3's dark value for
+ * UISheetFlat1 (attr/a24), which the comment panel, the share sheet and TikTok's other sheets,
+ * panels and modals fill with (AmoledSheetTokensTest). 47.1.3 kept every attr where it was
+ * (TuxSheet's background attribute is 0x7f0609fb on both), so the three names hold there too.
  */
-internal val SHEET_STYLE_ITEMS = setOf(
-    // Original sheet tokens (Comments, Share, and general sheets)
-    "agk", "c3", "aia",
-    
-    // #161823 literal items (Followers/Following/Suggested sheets)
-    "eyq", "cbx", "eze", "f2a", "f8g", "f8j",
-    
-    // #1e1e1e literal items (dark gray surfaces)
-    "ccr", "cd4", "f38", "f39", "f3d", "f3e", "f5_", "agg", "agh", "agm", "agn",
-    
-    // #121212 literal items (material dark surfaces)
-    "bo", "bx", "c1", "c8p", "c8r", "c8z", "c90", "eu8", "ezu", "f2t", "aag", "ae5", "ag2", "apn", "a3i"
-)
+internal val SHEET_STYLE_ITEMS = setOf("agk", "c3", "aia")
 
 /**
  * Names only rewritten on a build the patch is declared for. On 46.7.3 to 46.9.3, aia is the
  * dark value of UISheetGrouped3, another surface tier, and on 46.2.3 a yellow.
- * We also restrict our expanded hex literal targets to declared builds to prevent accidental breakage on older versions.
  */
-private val DECLARED_ONLY_ITEMS = setOf(
-    "aia",
-    // New items only valid on declared builds (47.0.3)
-    "eyq", "cbx", "eze", "f2a", "f8g", "f8j",
-    "ccr", "cd4", "f38", "f39", "f3d", "f3e", "f5_", "agg", "agh", "agm", "agn",
-    "bo", "bx", "c1", "c8p", "c8r", "c8z", "c90", "eu8", "ezu", "f2t", "aag", "ae5", "ag2", "apn", "a3i"
-)
+private val DECLARED_ONLY_ITEMS = setOf("aia")
 
 /** The sheet items to rewrite on this build: every one on a declared build, the 46.x pair elsewhere. */
 internal fun sheetStyleItems(versionName: String?, declared: Set<String>): Set<String> =

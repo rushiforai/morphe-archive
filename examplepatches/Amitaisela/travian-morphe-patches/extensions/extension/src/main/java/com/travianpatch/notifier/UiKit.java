@@ -185,6 +185,119 @@ final class UiKit {
         return toggle;
     }
 
+    /** A small rounded button: filled accent for the main action, outlined for the rest. */
+    static TextView pill(Context ctx, String label, boolean filled, View.OnClickListener onClick) {
+        TextView b = text(ctx, label, 15, true, filled ? Color.WHITE : accentText(ctx));
+        b.setGravity(Gravity.CENTER);
+        int h = dp(ctx, 14);
+        b.setPadding(h, dp(ctx, 7), h, dp(ctx, 7));
+        b.setMinWidth(dp(ctx, 44));
+        GradientDrawable shape = rounded(filled ? ACCENT : 0x00000000, 18, ctx);
+        if (!filled) {
+            shape.setStroke(dp(ctx, 1), accentText(ctx));
+        }
+        int ripple = dark(ctx) ? 0x33FFFFFF : 0x22000000;
+        b.setBackground(new RippleDrawable(ColorStateList.valueOf(ripple), shape, null));
+        b.setClickable(true);
+        b.setOnClickListener(onClick);
+        return b;
+    }
+
+    /** Horizontal row with a text block that takes the free width and room for pills on the right. */
+    static LinearLayout listRow(Context ctx, String title, String subtitle) {
+        LinearLayout row = new LinearLayout(ctx);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(0, dp(ctx, 8), 0, dp(ctx, 8));
+        LinearLayout words = new LinearLayout(ctx);
+        words.setOrientation(LinearLayout.VERTICAL);
+        words.addView(text(ctx, title, 15, true, textColor(ctx)));
+        if (subtitle != null && subtitle.length() > 0) {
+            TextView sub = muted(ctx, subtitle);
+            sub.setPadding(0, dp(ctx, 2), 0, 0);
+            words.addView(sub);
+        }
+        row.addView(words, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        return row;
+    }
+
+    /** Adds a pill to a listRow with a little space before it. */
+    static void addPill(LinearLayout row, TextView pill) {
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        p.leftMargin = dp(row.getContext(), 8);
+        row.addView(pill, p);
+    }
+
+    /** A thin line between rows inside a card. */
+    static View divider(Context ctx) {
+        View line = new View(ctx);
+        line.setBackgroundColor(dark(ctx) ? 0x22FFFFFF : 0x14000000);
+        line.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(ctx, 1)));
+        return line;
+    }
+
+    interface OnPick {
+        void picked(int index);
+    }
+
+    /** Segment buttons (one selected), e.g. Buildings | Fields | New. */
+    static LinearLayout segments(final Context ctx, String[] labels, int selected, final OnPick onPick) {
+        LinearLayout bar = new LinearLayout(ctx);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setBackground(rounded(dark(ctx) ? 0xFF2C2A28 : 0xFFE9E4DE, 18, ctx));
+        int pad = dp(ctx, 3);
+        bar.setPadding(pad, pad, pad, pad);
+        for (int i = 0; i < labels.length; i++) {
+            final int index = i;
+            boolean on = i == selected;
+            TextView seg = text(ctx, labels[i], 14, true, on ? Color.WHITE : mutedColor(ctx));
+            seg.setGravity(Gravity.CENTER);
+            seg.setPadding(0, dp(ctx, 7), 0, dp(ctx, 7));
+            if (on) {
+                seg.setBackground(rounded(ACCENT, 16, ctx));
+            }
+            seg.setClickable(true);
+            seg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onPick.picked(index);
+                }
+            });
+            bar.addView(seg, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        }
+        return bar;
+    }
+
+    /** The bottom tab bar: icon over a small label, the current tab in the accent colour. */
+    static LinearLayout tabBar(final Context ctx, String[] icons, String[] labels, int selected, final OnPick onPick) {
+        LinearLayout bar = new LinearLayout(ctx);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setBackgroundColor(surface(ctx));
+        for (int i = 0; i < labels.length; i++) {
+            final int index = i;
+            boolean on = i == selected;
+            LinearLayout item = new LinearLayout(ctx);
+            item.setOrientation(LinearLayout.VERTICAL);
+            item.setGravity(Gravity.CENTER);
+            item.setPadding(0, dp(ctx, 8), 0, dp(ctx, 8));
+            item.addView(text(ctx, icons[i], 20, false, on ? accentText(ctx) : mutedColor(ctx)));
+            item.addView(text(ctx, labels[i], 12, on, on ? accentText(ctx) : mutedColor(ctx)));
+            for (int c = 0; c < item.getChildCount(); c++) {
+                ((TextView) item.getChildAt(c)).setGravity(Gravity.CENTER);
+            }
+            item.setClickable(true);
+            item.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onPick.picked(index);
+                }
+            });
+            bar.addView(item, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        }
+        return bar;
+    }
+
     static LinearLayout column(Context ctx) {
         LinearLayout column = new LinearLayout(ctx);
         column.setOrientation(LinearLayout.VERTICAL);
@@ -221,6 +334,16 @@ final class UiKit {
             }
         });
         return scroll;
+    }
+
+    /** Styles the system bars once the view is on screen (the decor view doesn't exist before that). */
+    static void styleBarsLater(final Activity activity, View anyView) {
+        anyView.post(new Runnable() {
+            @Override
+            public void run() {
+                styleSystemBars(activity);
+            }
+        });
     }
 
     /** Dark icons on the light page, light icons on the dark page. */

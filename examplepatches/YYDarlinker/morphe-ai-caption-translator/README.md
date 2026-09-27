@@ -4,6 +4,8 @@
 
 The installed-source version is recorded in `patches-bundle.json` and the GitHub Releases page.
 
+Version 1.3.5 restores a nearby R2.12 Java snapshot and the exact supplied event-rebuild bundle as assembleable Smali source. See [release 1.3.5 source and rebuild notes](docs/RELEASE-1.3.5.md).
+
 Source-network recovery, seek-demanded missing captions and lower startup overhead are described in
 [caption recovery and verification boundaries](docs/CAPTION-RECOVERY-1.3.3.md). The inline scheme-B profile manager is included.
 
@@ -95,7 +97,7 @@ Manager resolves `patches-bundle.json` from `main` with prerelease disabled, and
 
 This project's regular release channel is for normal source installation; it does **not** certify device playback or translation quality. The original 1.0.0-dev.1 was manually published with a stale manifest and is superseded by the automated metadata repair release. Real-phone validation remains required. Do not select the old AI translator addon together with this replacement (shared runtime namespace).
 
-The release pipeline uses Morphe's changelog generator and semantic-release, builds the Android MPP and extension, executes tests, validates the generated manifest, and checks root DEX / extension / version / repository identity before uploading. No more in-place replacement of published assets.
+The regular release pipeline uses Morphe's changelog generator and semantic-release, builds the Android MPP and extension, executes tests, validates the generated manifest, and checks root DEX / extension / version / repository identity before uploading. Version 1.3.5 uses the recovered Smali build documented above. Published assets are not replaced in place.
 
 Optional feature ownership is now explicit. Do not select another AI translator with the AI root, another Simplified Chinese remapping/insertion patch with the language root, or another subtitle-memory patch with the memory root. Installed sources may remain; this restriction concerns selected overlapping functionality.
 

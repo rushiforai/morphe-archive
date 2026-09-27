@@ -47,7 +47,7 @@ val antiRecordingPatch = bytecodePatch(
     default = true,
 ) {
     category("Downloads")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         var returnedEarly = 0

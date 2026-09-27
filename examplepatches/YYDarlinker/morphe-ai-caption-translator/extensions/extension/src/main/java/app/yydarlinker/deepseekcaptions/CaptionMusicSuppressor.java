@@ -115,27 +115,7 @@ final class CaptionMusicSuppressor {
         if (DynamicCaptionController.isVisibleActive()) kick();
     }
 
-    private static void sanitize() {
-        if(!CaptionChoice.translates()) return; // Source tracks keep their original annotations.
-        Activity activity = activityRef.get();
-        if (activity == null || !prepare()) return;
-        try {
-            if (statusField.getBoolean(null)) return;
-            Object value = textField.get(null);
-            String text = value instanceof String ? ((String) value).trim() : "";
-            if (text.isEmpty()) return;
-            String clean = SentenceBoundaryUtil.stripMusicAnnotations(text);
-            if (clean.equals(text)) return;
-            if (clean.isEmpty()) {
-                CaptionOverlay.hide();
-            } else {
-                textField.set(null, clean);
-                CaptionOverlay.refreshStyle(activity);
-            }
-        } catch (Throwable ignored) {
-            ready = false;
-        }
-    }
+    private static void sanitize() { /* Text belongs exclusively to the accepted event plan. */ }
 
     /**
      * Keep already-found subtitle windows transparent. Only if no attached renderer is known do we

@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"Disimpan terenkripsi; masukkan untuk mengganti"</string>
     <string name="cap_model_hint" formatted="false">"Pilih model atau masukkan ID"</string>
     <string name="cap_preview_hint" formatted="false">"Ketuk gambar untuk mengubah orientasi; gaya diperbarui langsung"</string>
-    <string name="cap_size_hint" formatted="false">"Ukuran relatif 12–22, mengikuti ukuran video"</string>
+    <string name="cap_size_hint" formatted="false">"Ukuran relatif 8–15, mengikuti ukuran video"</string>
     <string name="cap_opacity_hint" formatted="false">"0% transparan, 100% buram; disimpan saat dilepas"</string>
     <string name="cap_diagnostic_hint" formatted="false">"Perluas untuk melihat dan menyalin diagnostik"</string>
     <string name="cap_use_youtube" formatted="false">"Gunakan YouTube"</string>

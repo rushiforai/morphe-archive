@@ -19,7 +19,7 @@ final class ProviderRequestPolicy {
         if("api.deepseek.com".equals(host)) r.put("thinking",new JSONObject().put("type","disabled"));
         if(ProviderEndpoint.bailian(host)||"api.siliconflow.cn".equals(host)||"api.siliconflow.com".equals(host)) r.put("enable_thinking",false);
         if(ProviderEndpoint.bailian(host) && (config.model.equals("qwen3.8-flash") || config.model.startsWith("qwen3.8-flash-"))) {
-            r.put("response_format",CaptionWireProtocol.schema());
+            r.put("response_format",RebuildProtocol.schema());
             // Copy-sensitive translation: no novelty/repetition incentive. Keep the provider's
             // temperature until controlled quality evaluation justifies changing it.
             r.put("presence_penalty",0);

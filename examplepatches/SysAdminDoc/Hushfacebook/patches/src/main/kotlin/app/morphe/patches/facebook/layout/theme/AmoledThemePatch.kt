@@ -10,6 +10,8 @@ package app.morphe.patches.facebook.layout.theme
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
+import app.morphe.patches.facebook.misc.extension.requireParameterIntact
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -307,6 +309,11 @@ internal fun MutableMethod.blackenDarkColors(): Int {
  *
  * A `return` must not be a branch target. The new instructions go in before it, thus a jump onto
  * the `return` would miss them and lose a colour without an error.
+ *
+ * The token has to still be in its parameter's register at every return. The hook reads it there,
+ * at the end of the method, and Facebook's code reuses a parameter's register once it's done with
+ * it: a resolver that did would hand the extension some other object as the token, which verifies
+ * just the same and recolours by the wrong token.
  */
 internal fun MutableMethod.hookColorReturns(tokenParameterIndex: Int, target: String) {
     val implementation = checkNotNull(implementation) { "$definingClass->$name has no body" }
@@ -328,12 +335,12 @@ internal fun MutableMethod.hookColorReturns(tokenParameterIndex: Int, target: St
 
     check(returns.isNotEmpty()) { "$definingClass->$name returns no int to recolour" }
 
-    val parameterRegisters = parameterTypes.sumOf { if (it == "J" || it == "D") 2 else 1 }
-    val tokenRegister = implementation.registerCount - parameterRegisters + tokenParameterIndex
+    val tokenRegister = parameterRegisterNumber(tokenParameterIndex)
 
     check(tokenRegister < 16) {
         "$definingClass->$name: token register v$tokenRegister is out of invoke-static range"
     }
+    requireParameterIntact("Colour token hook", tokenParameterIndex, returns.map { it.first })
 
     returns.asReversed().forEach { (index, register) ->
         check(register < 16) {

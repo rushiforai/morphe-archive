@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"Đã lưu mã hóa; nhập để thay thế"</string>
     <string name="cap_model_hint" formatted="false">"Chọn mô hình hoặc nhập ID"</string>
     <string name="cap_preview_hint" formatted="false">"Chạm hình để đổi hướng; xem trước tức thì"</string>
-    <string name="cap_size_hint" formatted="false">"Cỡ tương đối 12–22, theo kích thước video"</string>
+    <string name="cap_size_hint" formatted="false">"Cỡ tương đối 8–15, theo kích thước video"</string>
     <string name="cap_opacity_hint" formatted="false">"0% trong suốt, 100% đục; thả để lưu"</string>
     <string name="cap_diagnostic_hint" formatted="false">"Mở rộng để xem và sao chép chẩn đoán"</string>
     <string name="cap_use_youtube" formatted="false">"Dùng YouTube"</string>

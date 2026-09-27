@@ -54,7 +54,7 @@ val bdTuringCaptchaPopupPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch, captchaRequestRecorderPatch, hideCaptchaPopupsPatch)
     // Beside Hide CAPTCHA popups, whose switch it answers.
     category("Feed")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         RiskControlServiceExecuteFingerprint.method.apply {

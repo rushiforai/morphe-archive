@@ -13,3 +13,6 @@ local.properties
 
 # Contains the GitHub token
 gradle.properties.local
+
+# Left behind by running the scripts in .github/scripts
+__pycache__/

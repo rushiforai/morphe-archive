@@ -26,7 +26,7 @@ val disableLongPressRepostPatch = bytecodePatch(
 ) {
     category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

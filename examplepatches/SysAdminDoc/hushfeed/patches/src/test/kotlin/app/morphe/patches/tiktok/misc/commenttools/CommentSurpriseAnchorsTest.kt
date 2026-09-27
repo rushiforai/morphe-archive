@@ -21,7 +21,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * What Hide comment popup ads rests on, held to TikTok 47.0.3.
+ * What Hide comment popup ads rests on, held to each TikTok build the bundle declares.
  *
  * The patch hands CommentSurpriseStruct's constructor null for a surprise that words in a comment
  * set off. That takes the animation away from every path only if the constructor is the one
@@ -47,83 +47,84 @@ class CommentSurpriseAnchorsTest {
     private class Read(val where: String, val index: Int, val register: Int, val next: Instruction?)
 
     @Test
-    fun `47_0_3 writes the comment surprise in one constructor and null-checks every read`() {
-        val apk = Fixtures.apks().single { it.name.contains("47.0.3") }
-        val writers = mutableListOf<String>()
-        val reads = mutableListOf<Read>()
-        val eggLoggers = mutableListOf<Method>()
-        val firstCommentLoggers = mutableListOf<Method>()
-        val typeReaders = mutableListOf<Pair<String, List<Instruction>>>()
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
-        container.dexEntryNames.asSequence()
-            .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
-            .flatMap { it.methods.asSequence() }
-            .forEach { method ->
-                val instructions = method.implementation?.instructions?.toList() ?: return@forEach
-                val where = "${method.definingClass}->${method.name}"
-                var readsType = false
-                instructions.forEachIndexed { index, instruction ->
-                    val reference = (instruction as? ReferenceInstruction)?.reference
-                    if (reference is StringReference) {
-                        if (reference.string == "comment_easter_egg_trigger") eggLoggers += method
-                        if (reference.string == "first_comment_surprise_trigger") firstCommentLoggers += method
+    fun `each declared build writes the comment surprise in one constructor and null-checks every read`() {
+        Fixtures.forEachDeclared { apk ->
+            val writers = mutableListOf<String>()
+            val reads = mutableListOf<Read>()
+            val eggLoggers = mutableListOf<Method>()
+            val firstCommentLoggers = mutableListOf<Method>()
+            val typeReaders = mutableListOf<Pair<String, List<Instruction>>>()
+            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .flatMap { it.methods.asSequence() }
+                .forEach { method ->
+                    val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+                    val where = "${method.definingClass}->${method.name}"
+                    var readsType = false
+                    instructions.forEachIndexed { index, instruction ->
+                        val reference = (instruction as? ReferenceInstruction)?.reference
+                        if (reference is StringReference) {
+                            if (reference.string == "comment_easter_egg_trigger") eggLoggers += method
+                            if (reference.string == "first_comment_surprise_trigger") firstCommentLoggers += method
+                        }
+                        if (reference is FieldReference && reference.definingClass == SURPRISE && reference.name == "surpriseType") {
+                            readsType = true
+                        }
+                        if (reference !is FieldReference || reference.definingClass != struct ||
+                            reference.name != "commentSurprise"
+                        ) return@forEachIndexed
+                        if (instruction.opcode == Opcode.IGET_OBJECT) {
+                            val target = (instruction as TwoRegisterInstruction).registerA
+                            reads += Read(where, index, target, instructions.getOrNull(index + 1))
+                        } else {
+                            writers += "$where ${instruction.opcode.name}"
+                        }
                     }
-                    if (reference is FieldReference && reference.definingClass == SURPRISE && reference.name == "surpriseType") {
-                        readsType = true
-                    }
-                    if (reference !is FieldReference || reference.definingClass != struct ||
-                        reference.name != "commentSurprise"
-                    ) return@forEachIndexed
-                    if (instruction.opcode == Opcode.IGET_OBJECT) {
-                        val target = (instruction as TwoRegisterInstruction).registerA
-                        reads += Read(where, index, target, instructions.getOrNull(index + 1))
-                    } else {
-                        writers += "$where ${instruction.opcode.name}"
-                    }
+                    if (readsType) typeReaders += where to instructions
                 }
-                if (readsType) typeReaders += where to instructions
+
+            assertEquals("the only write is the constructor's", listOf("$struct-><init> iput-object"), writers)
+
+            assertEquals("methods naming comment_easter_egg_trigger", 1, eggLoggers.size)
+            val logger = eggLoggers.single()
+            val calls = logger.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            // A constructor, two puts into the event's map and the send: nothing that starts an animation.
+            assertEquals("what the analytics method calls: $calls", 4, calls.size)
+            assertEquals(
+                "one call sends the event (String, Map): $calls",
+                1, calls.count { it.parameterTypes == listOf("Ljava/lang/String;", "Ljava/util/Map;") },
+            )
+            assertEquals("the analytics method takes the surprise", listOf(SURPRISE), logger.parameterTypes.map { it.toString() })
+            val parameter = logger.implementation!!.registerCount - 1
+            val firstUse = logger.implementation!!.instructions.first { parameter in registersOf(it) }
+            assertEquals(
+                "the analytics method checks the surprise for null before using it",
+                Opcode.IF_EQZ, firstUse.opcode,
+            )
+
+            val unchecked = reads.filterNot { read ->
+                val next = read.next ?: return@filterNot false
+                val nullCheck = next.opcode == Opcode.IF_EQZ && (next as OneRegisterInstruction).registerA == read.register
+                val intoLogger = next.opcode == Opcode.INVOKE_STATIC && calls(next, logger) &&
+                    registersOf(next) == listOf(read.register)
+                nullCheck || intoLogger
+            }.map { "${it.where} at ${it.index}" }
+            assertEquals("reads that use the surprise before checking it for null", emptyList<String>(), unchecked)
+            assertEquals("reads of the surprise", 17, reads.size)
+            assertEquals("methods reading it: ${reads.map { it.where }.toSet()}", 8, reads.map { it.where }.toSet().size)
+
+            // Type 1 is the first-comment celebration: its report goes out only behind that test.
+            assertEquals("methods naming first_comment_surprise_trigger", 1, firstCommentLoggers.size)
+            val firstComment = firstCommentLoggers.single()
+            val guardedCalls = typeReaders.flatMap { (where, instructions) ->
+                instructions.indices.filter { k ->
+                    instructions[k].opcode == Opcode.INVOKE_STATIC && calls(instructions[k], firstComment) &&
+                        guardedByTypeOne(instructions, k)
+                }.map { "$where at $it" }
             }
-
-        assertEquals("the only write is the constructor's", listOf("$struct-><init> iput-object"), writers)
-
-        assertEquals("methods naming comment_easter_egg_trigger", 1, eggLoggers.size)
-        val logger = eggLoggers.single()
-        val calls = logger.implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
-        // A constructor, two puts into the event's map and the send: nothing that starts an animation.
-        assertEquals("what the analytics method calls: $calls", 4, calls.size)
-        assertEquals(
-            "one call sends the event (String, Map): $calls",
-            1, calls.count { it.parameterTypes == listOf("Ljava/lang/String;", "Ljava/util/Map;") },
-        )
-        assertEquals("the analytics method takes the surprise", listOf(SURPRISE), logger.parameterTypes.map { it.toString() })
-        val parameter = logger.implementation!!.registerCount - 1
-        val firstUse = logger.implementation!!.instructions.first { parameter in registersOf(it) }
-        assertEquals(
-            "the analytics method checks the surprise for null before using it",
-            Opcode.IF_EQZ, firstUse.opcode,
-        )
-
-        val unchecked = reads.filterNot { read ->
-            val next = read.next ?: return@filterNot false
-            val nullCheck = next.opcode == Opcode.IF_EQZ && (next as OneRegisterInstruction).registerA == read.register
-            val intoLogger = next.opcode == Opcode.INVOKE_STATIC && calls(next, logger) &&
-                registersOf(next) == listOf(read.register)
-            nullCheck || intoLogger
-        }.map { "${it.where} at ${it.index}" }
-        assertEquals("reads that use the surprise before checking it for null", emptyList<String>(), unchecked)
-        assertEquals("reads of the surprise", 17, reads.size)
-        assertEquals("methods reading it: ${reads.map { it.where }.toSet()}", 8, reads.map { it.where }.toSet().size)
-
-        // Type 1 is the first-comment celebration: its report goes out only behind that test.
-        assertEquals("methods naming first_comment_surprise_trigger", 1, firstCommentLoggers.size)
-        val firstComment = firstCommentLoggers.single()
-        val guardedCalls = typeReaders.flatMap { (where, instructions) ->
-            instructions.indices.filter { k ->
-                instructions[k].opcode == Opcode.INVOKE_STATIC && calls(instructions[k], firstComment) &&
-                    guardedByTypeOne(instructions, k)
-            }.map { "$where at $it" }
+            assertEquals("first-comment reports behind a surprise type test against 1: $guardedCalls", 1, guardedCalls.size)
         }
-        assertEquals("first-comment reports behind a surprise type test against 1: $guardedCalls", 1, guardedCalls.size)
     }
 
     /**
@@ -136,67 +137,68 @@ class CommentSurpriseAnchorsTest {
      * parameter register, which is the one the patch reads before the constructor.
      */
     @Test
-    fun `47_0_3 builds the surprise struct in three places the patch can tell apart`() {
-        val apk = Fixtures.apks().single { it.name.contains("47.0.3") }
-        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
-        val builders = container.dexEntryNames.asSequence()
-            .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
-            .flatMap { it.methods.asSequence() }
-            .filter { method -> method.references().any { it.constructs(struct) } }
-            .toList()
-        val shapes = builders.associate { method ->
-            val references = method.references()
-            "${method.definingClass}->${method.name}" to listOfNotNull(
-                "page".takeIf {
-                    references.readsField(COMMENT_ITEM_LIST, "commentSurprise") &&
-                        references.any { it is MethodReference && it.isPlayCall(struct) }
-                },
-                "publish".takeIf { references.readsField(COMMENT_RESPONSE, "commentSurprise") },
-                "milestone".takeIf {
-                    references.any { it is FieldReference && it.name == "FIRST_COMMENT_MILESTONE" } &&
-                        references.any { it is MethodReference && it.definingClass == "Landroid/util/LruCache;" && it.name == "get" }
-                },
+    fun `each declared build builds the surprise struct in three places the patch can tell apart`() {
+        Fixtures.forEachDeclared { apk ->
+            val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+            val builders = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .flatMap { it.methods.asSequence() }
+                .filter { method -> method.references().any { it.constructs(struct) } }
+                .toList()
+            val shapes = builders.associate { method ->
+                val references = method.references()
+                "${method.definingClass}->${method.name}" to listOfNotNull(
+                    "page".takeIf {
+                        references.readsField(COMMENT_ITEM_LIST, "commentSurprise") &&
+                            references.any { it is MethodReference && it.isPlayCall(struct) }
+                    },
+                    "publish".takeIf { references.readsField(COMMENT_RESPONSE, "commentSurprise") },
+                    "milestone".takeIf {
+                        references.any { it is FieldReference && it.name == "FIRST_COMMENT_MILESTONE" } &&
+                            references.any { it is MethodReference && it.definingClass == "Landroid/util/LruCache;" && it.name == "get" }
+                    },
+                )
+            }
+            assertEquals("a site that builds the struct has no shape, or two: $shapes", emptyList<String>(),
+                shapes.filterValues { it.size != 1 }.keys.toList())
+            assertEquals(
+                "sites that build the struct: $shapes",
+                listOf("milestone", "page", "publish"), shapes.values.flatten().sorted(),
+            )
+
+            val page = builders.single { shapes.getValue("${it.definingClass}->${it.name}") == listOf("page") }
+            val instructions = page.implementation!!.instructions.toList()
+            val constructor = instructions.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.constructs(struct) == true }
+            val play = instructions.withIndex().first { (index, instruction) ->
+                index > constructor && ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.isPlayCall(struct) == true
+            }.index
+            val sceneAtPlay = (instructions[play] as FiveRegisterInstruction).registerE
+            val between = (constructor + 1 until play).map { index ->
+                val instruction = instructions[index]
+                "$index ${instruction.opcode.name} ${(instruction as? TwoRegisterInstruction)?.let { "v${it.registerA} <- v${it.registerB}" } ?: ""}"
+            }
+            val copies = (constructor + 1 until play).mapNotNull { index ->
+                (instructions[index] as? TwoRegisterInstruction)?.takeIf {
+                    instructions[index].opcode in MOVES && it.registerA == sceneAtPlay
+                }
+            }
+            assertEquals(
+                "one copy of the play call's scene (v$sceneAtPlay) between the constructor at $constructor and the play call at $play: $between",
+                1, copies.size,
+            )
+            val firstParameter = page.implementation!!.registerCount - page.parameterTypes.size
+            assertTrue(
+                "the play call's scene is copied from v${copies.single().registerB}, and the parameters start at v$firstParameter",
+                copies.single().registerB >= firstParameter,
+            )
+            // What the patch itself marks the site with, which a register that holds the struct at
+            // the constructor would fail verification of the whole class with.
+            assertEquals(
+                "the register the patch marks the page site with",
+                copies.single().registerB,
+                commentPageSceneRegister(instructions, constructor, play, firstParameter),
             )
         }
-        assertEquals("a site that builds the struct has no shape, or two: $shapes", emptyList<String>(),
-            shapes.filterValues { it.size != 1 }.keys.toList())
-        assertEquals(
-            "sites that build the struct: $shapes",
-            listOf("milestone", "page", "publish"), shapes.values.flatten().sorted(),
-        )
-
-        val page = builders.single { shapes.getValue("${it.definingClass}->${it.name}") == listOf("page") }
-        val instructions = page.implementation!!.instructions.toList()
-        val constructor = instructions.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.constructs(struct) == true }
-        val play = instructions.withIndex().first { (index, instruction) ->
-            index > constructor && ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.isPlayCall(struct) == true
-        }.index
-        val sceneAtPlay = (instructions[play] as FiveRegisterInstruction).registerE
-        val between = (constructor + 1 until play).map { index ->
-            val instruction = instructions[index]
-            "$index ${instruction.opcode.name} ${(instruction as? TwoRegisterInstruction)?.let { "v${it.registerA} <- v${it.registerB}" } ?: ""}"
-        }
-        val copies = (constructor + 1 until play).mapNotNull { index ->
-            (instructions[index] as? TwoRegisterInstruction)?.takeIf {
-                instructions[index].opcode in MOVES && it.registerA == sceneAtPlay
-            }
-        }
-        assertEquals(
-            "one copy of the play call's scene (v$sceneAtPlay) between the constructor at $constructor and the play call at $play: $between",
-            1, copies.size,
-        )
-        val firstParameter = page.implementation!!.registerCount - page.parameterTypes.size
-        assertTrue(
-            "the play call's scene is copied from v${copies.single().registerB}, and the parameters start at v$firstParameter",
-            copies.single().registerB >= firstParameter,
-        )
-        // What the patch itself marks the site with, which a register that holds the struct at
-        // the constructor would fail verification of the whole class with.
-        assertEquals(
-            "the register the patch marks the page site with",
-            copies.single().registerB,
-            commentPageSceneRegister(instructions, constructor, play, firstParameter),
-        )
     }
 
     /** The moves, by opcode: dexlib2's Opcode.name is the smali mnemonic, so a name test reads "move/from16". */

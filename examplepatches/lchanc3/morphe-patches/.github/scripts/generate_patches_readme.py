@@ -8,6 +8,7 @@ and PATCHES_END markers is replaced; the rest of the README is left alone.
 import json
 import pathlib
 import sys
+from urllib.parse import quote
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 README = ROOT / "README.md"
@@ -78,7 +79,8 @@ def app_notes(name):
     path = DOCS / f"{name}.md"
     if not path.is_file():
         return ""
-    link = path.relative_to(ROOT).as_posix()
+    # Quoted, since an app name like "Local Dream" has a space a link cannot.
+    link = quote(path.relative_to(ROOT).as_posix())
     # The table already ends a line, so this starts straight at the text.
     return f"📖 安裝前必讀、常見問題與功能說明：[{name} 使用說明]({link})\n"
 

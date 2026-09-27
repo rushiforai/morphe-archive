@@ -38,10 +38,10 @@ import java.util.WeakHashMap;
  * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
-    private static final String[] HOME_TAB_RESOURCE_NAMES = {"omq"};
-    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"omr"};
-    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"pvp"};
-    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"wk7"};
+    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.0.3:omq", "47.1.3:oph"};
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.0.3:omr", "47.1.3:opi"};
+    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.0.3:pvp", "47.1.3:pyf"};
+    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.0.3:wk7", "47.1.3:wny"};
 
     /**
      * The story viewer's pager. One id rather than the comment sheet's two: this one is not

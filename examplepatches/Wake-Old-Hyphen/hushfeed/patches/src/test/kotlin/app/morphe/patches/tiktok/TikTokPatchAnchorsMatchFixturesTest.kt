@@ -4,7 +4,11 @@ import app.morphe.Fixtures
 import app.morphe.patches.tiktok.feedfilter.COMMENT_TOP_BAR_BRIDGE_BASE
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_BRIDGE
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_SERVICE
+import app.morphe.patches.tiktok.feedfilter.coldStartCall
+import app.morphe.patches.tiktok.feedfilter.coldStartOrchestrators
 import app.morphe.patches.tiktok.feedfilter.countColdStartFeedItemListStores
+import app.morphe.patches.tiktok.feedfilter.expectedColdStartStores
+import app.morphe.patches.tiktok.feedfilter.goldenRunsTheColdStart
 import app.morphe.patches.tiktok.feedfilter.isCommentTopBarCanShow
 import app.morphe.patches.tiktok.feedfilter.isTakoSearchEntranceInflater
 import app.morphe.patches.tiktok.feedfilter.takoSearchEntranceVariants
@@ -494,7 +498,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
                         if (
                             method.parameterTypes.isEmpty() && method.returnType == "Z" &&
                             "processGoldenVideoHitCache hitCache , time cost " in strings &&
-                            storeCount in 3..4
+                            storeCount in 1..4
                         ) {
                             goldenCache += method
                         }
@@ -522,10 +526,25 @@ class TikTokPatchAnchorsMatchFixturesTest {
             assertEquals("${apk.name}: offline cold-cache anchor", 1, offlineCache.size)
             assertEquals("${apk.name}: playback speed anchor", 1, speed.size)
 
-            val coldMethods = (goldenCache + offlineCache).distinctBy { it.anchorSignature() }
+            // What calls both cache methods: nothing on 47.0.3, where the golden method runs the
+            // cold start itself, and the orchestrator 47.1.3 split off, which the patch hooks too.
+            val targets = setOf(goldenCache.single().coldStartCall(), offlineCache.single().coldStartCall())
+            val calls = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .flatMap { it.methods.asSequence() }
+                .mapNotNull { method ->
+                    val called = method.implementation?.instructions
+                        ?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+                        ?.map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+                        ?.filter { it in targets }?.toSet().orEmpty()
+                    if (called.isEmpty()) null else method to called
+                }.toMap()
+            val orchestrators = if (goldenCache.single().goldenRunsTheColdStart()) emptyList()
+                else coldStartOrchestrators(goldenCache.single(), offlineCache.single(), calls)
+            val coldMethods = (goldenCache + offlineCache + orchestrators).distinctBy { it.anchorSignature() }
             assertEquals(
-                "${apk.name}: cold-cache FeedItemList stores",
-                4,
+                "${apk.name}: cold-cache FeedItemList stores with ${orchestrators.size} orchestrator(s)",
+                expectedColdStartStores(orchestrators.size),
                 coldMethods.sumOf { it.countColdStartFeedItemListStores() },
             )
             val offlineMarkers = coldMethods.sumOf { method ->
@@ -562,7 +581,5 @@ class TikTokPatchAnchorsMatchFixturesTest {
             }
         } ?: emptyList()
 
-    private fun fixtures(): List<File> = Fixtures.files { file ->
-            file.extension == "apk" && file.name.contains(Regex("(46\\.[2789]\\.3|47\\.0\\.3)"))
-        }
+    private fun fixtures(): List<File> = Fixtures.apks()
 }

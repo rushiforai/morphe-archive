@@ -10,35 +10,26 @@ import android.widget.LinearLayout;
 
 /** Quiet, equal-width profile actions. Stack only when text would crowd the touch targets. */
 final class ProfileActionStrip extends LinearLayout {
+    private Button primaryButton;
+    private boolean stackedLastMeasure;
     ProfileActionStrip(Context context) { super(context); }
 
-    Button add(String label, boolean destructive, int icon, Runnable click) {
-        Context c=getContext();
-        Button button=new Button(c,null,android.R.attr.borderlessButtonStyle);
-        CaptionSettingsStyle.button(button);
-        button.setText(label);
-        button.setTextColor(destructive ? danger(c) : CaptionSettingsStyle.primary(c));
-        button.setMaxLines(3);
-        int color=destructive ? danger(c) : CaptionSettingsStyle.primary(c);
-        GradientDrawable surface=new GradientDrawable();
-        surface.setCornerRadius(CaptionSettingsStyle.dp(c,8));
-        surface.setColor(CaptionSettingsStyle.tint(CaptionSettingsStyle.primary(c),7));
-        button.setBackground(new RippleDrawable(ColorStateList.valueOf(CaptionSettingsStyle.tint(color,28)),surface,null));
-        if(icon!=0){
-            Drawable glyph=new ActionIcon(c,icon,color);
-            glyph.setBounds(0,0,glyph.getIntrinsicWidth(),glyph.getIntrinsicHeight());
-            button.setCompoundDrawablesRelative(glyph,null,null,null);
-            button.setCompoundDrawablePadding(CaptionSettingsStyle.dp(c,6));
-        }
-        button.setOnClickListener(v->click.run());
+    Button add(String label,Runnable click) {
+        Button button=CaptionSettingsStyle.action(getContext(),label,false,false,click);
+        // The host dialog's text-only action buttons are the visual contract at every step.
         addView(button,new LayoutParams(0,LayoutParams.WRAP_CONTENT,1));
         return button;
     }
 
+    Button addPrimary(String label,Runnable click){
+        Button b=CaptionSettingsStyle.action(getContext(),label,true,false,click);
+        primaryButton=b;
+        addView(b,new LayoutParams(0,LayoutParams.WRAP_CONTENT,1));return b;
+    }
     static int danger(Context c) {
         int fg=CaptionSettingsStyle.primary(c);
         boolean dark=Color.red(fg)+Color.green(fg)+Color.blue(fg)>420;
-        return CaptionSettingsStyle.color(c,android.R.attr.colorError,dark?0xffef9a9a:0xffa43e3e);
+        return dark?0xffe7aaa4:0xff98413c;
     }
 
     @Override protected void onMeasure(int widthSpec,int heightSpec) {
@@ -53,6 +44,17 @@ final class ProfileActionStrip extends LinearLayout {
         }
         boolean stacked=MeasureSpec.getMode(widthSpec)!=MeasureSpec.UNSPECIFIED
                 && largest*getChildCount()+gap*Math.max(0,getChildCount()-1)>available;
+        // Morphe puts the primary action before Cancel when it stacks actions vertically.
+        // Preserve the familiar Cancel-left / Primary-right order when there is room.
+        if(stacked != stackedLastMeasure && primaryButton!=null && getChildCount()==2) {
+            int target=stacked?0:1;
+            if(indexOfChild(primaryButton)!=target) {
+                LayoutParams params=(LayoutParams)primaryButton.getLayoutParams();
+                removeView(primaryButton);
+                addView(primaryButton,target,params);
+            }
+        }
+        stackedLastMeasure=stacked;
         setOrientation(stacked?VERTICAL:HORIZONTAL);
         for(int i=0;i<getChildCount();i++){
             LayoutParams lp=(LayoutParams)getChildAt(i).getLayoutParams();

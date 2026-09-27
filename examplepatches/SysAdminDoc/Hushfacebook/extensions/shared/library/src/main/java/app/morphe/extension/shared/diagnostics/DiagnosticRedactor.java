@@ -62,6 +62,13 @@ public final class DiagnosticRedactor {
      * class name.
      */
     private static final String HANDLE = "(?<![\\w.@/:])@[A-Za-z0-9_.]{2,}";
+    /**
+     * One of Facebook's hosts without a scheme, with any port or path after it. The subdomain is
+     * optional: the rule asked for one, so {@code facebook.com/dana.q.1987} passed while
+     * {@code www.facebook.com/dana.q.1987} didn't. A host has to end at a word edge, so a package
+     * name ({@code com.facebook.katana}) and a longer name ({@code facebook.community}) stay.
+     */
+    private static final String HOST = "(?i)\\b(?:[a-z0-9-]+\\.)*" + HOST_SUFFIXES + "\\b(?:[:/][^\\s\"'<>]*)?";
 
     private DiagnosticRedactor() {
     }
@@ -72,8 +79,7 @@ public final class DiagnosticRedactor {
                 .replaceAll(ISOLATED_NAME, "[name omitted]")
                 .replaceAll(HANDLE, "[handle omitted]")
                 .replaceAll("(?i)\\b[a-z][a-z0-9+.-]*://[^\\s\"'<>]+", "[url omitted]")
-                .replaceAll("(?i)\\b(?:[a-z0-9-]+\\.)+" + HOST_SUFFIXES + "\\b(?:[:/][^\\s\"'<>]*)?",
-                        "[host omitted]")
+                .replaceAll(HOST, "[host omitted]")
                 .replaceAll("(?i)\\b(" + CREDENTIAL_NAMES + ")\\s*[=:]\\s*\"?[^\\s;,&\"'<>]+",
                         "$1=[omitted]")
                 .replaceAll("(?i)\\b(" + CONTENT_ID_NAMES + ")\\s*[=:]\\s*" + CONTENT_ID_VALUE,

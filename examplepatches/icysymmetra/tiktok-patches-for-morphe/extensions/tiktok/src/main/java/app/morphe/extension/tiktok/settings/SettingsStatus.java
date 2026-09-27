@@ -7,9 +7,16 @@ package app.morphe.extension.tiktok.settings;
 
 public class SettingsStatus {
     public static boolean feedFilterEnabled = false;
+    public static boolean hideAiContentEnabled = false;
+    public static boolean hideFypSlopEnabled = false;
     public static boolean feedNavigationEnabled = false;
     public static boolean commentTranslationEnabled = false;
     public static boolean hideCommentQuickReactionsEnabled = false;
+    public static boolean hideFeedFollowButtonEnabled = false;
+    public static boolean hideFeedSaveButtonEnabled = false;
+    public static boolean hideFeedLiveButtonEnabled = false;
+    public static boolean hideFeedSearchButtonEnabled = false;
+    public static boolean hideSuggestedAccountsEnabled = false;
     public static boolean copyCommentsWithoutUsernameEnabled = false;
     public static boolean downloadEnabled = false;
     public static boolean simSpoofEnabled = false;
@@ -25,10 +32,28 @@ public class SettingsStatus {
     public static boolean resumeVideoAfterScrollEnabled = false;
     public static boolean externalBrowserEnabled = false;
     public static boolean alwaysShowPublishDateEnabled = false;
+    public static boolean foldableSplitViewEnabled = false;
+    public static boolean commentSortControlsEnabled = false;
     public static boolean diagnosticsEnabled = false;
+    public static boolean shareSheetEnabled = false;
+    public static boolean autoScrollEnabled = false;
+
+    // Patched load() marks the features included in this APK. Run it before
+    // any feature reads these flags, including feed hooks reached at startup.
+    static {
+        load();
+    }
 
     public static void enableFeedFilter() {
         feedFilterEnabled = true;
+    }
+
+    public static void enableHideAiContent() {
+        hideAiContentEnabled = true;
+    }
+
+    public static void enableHideFypSlop() {
+        hideFypSlopEnabled = true;
     }
 
     public static void enableFeedNavigation() {
@@ -41,6 +66,26 @@ public class SettingsStatus {
 
     public static void enableHideCommentQuickReactions() {
         hideCommentQuickReactionsEnabled = true;
+    }
+
+    public static void enableHideFeedFollowButton() {
+        hideFeedFollowButtonEnabled = true;
+    }
+
+    public static void enableHideFeedSaveButton() {
+        hideFeedSaveButtonEnabled = true;
+    }
+
+    public static void enableHideFeedLiveButton() {
+        hideFeedLiveButtonEnabled = true;
+    }
+
+    public static void enableHideFeedSearchButton() {
+        hideFeedSearchButtonEnabled = true;
+    }
+
+    public static void enableHideSuggestedAccounts() {
+        hideSuggestedAccountsEnabled = true;
     }
 
     public static void enableCopyCommentsWithoutUsername() {
@@ -103,11 +148,26 @@ public class SettingsStatus {
         alwaysShowPublishDateEnabled = true;
     }
 
+    public static void enableFoldableSplitView() {
+        foldableSplitViewEnabled = true;
+    }
+
+    public static void enableCommentSortControls() {
+        commentSortControlsEnabled = true;
+    }
+
     public static void enableDiagnostics() {
         diagnosticsEnabled = true;
+    }
+
+    public static void enableShareSheet() {
+        shareSheetEnabled = true;
+    }
+
+    public static void enableAutoScroll() {
+        autoScrollEnabled = true;
     }
 
     public static void load() {
     }
 }
-

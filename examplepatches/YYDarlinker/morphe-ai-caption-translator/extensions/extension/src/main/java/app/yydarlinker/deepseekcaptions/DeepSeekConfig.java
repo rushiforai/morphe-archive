@@ -23,9 +23,9 @@ final class DeepSeekConfig {
             "忠实、自然、简洁地翻译成简体中文；优先符合中文表达习惯；保留人名、专有名词、数字、语气和必要的标点；不要增加原文没有的解释。";
     static final String DEFAULT_PROMPT =
             "忠实、自然、简洁；优先符合目标语言的母语表达习惯；保留人名、专有名词、数字、语气和必要的标点；不要增加原文没有的解释。";
-    static final int DEFAULT_CAPTION_TEXT_SIZE = 16;
-    static final int MIN_CAPTION_TEXT_SIZE = 12;
-    static final int MAX_CAPTION_TEXT_SIZE = 22;
+    static final int DEFAULT_CAPTION_TEXT_SIZE = 13;
+    static final int MIN_CAPTION_TEXT_SIZE = 8;
+    static final int MAX_CAPTION_TEXT_SIZE = 15;
     static final int DEFAULT_BACKGROUND_OPACITY = 70;
     static final boolean DEFAULT_CONTEXTUAL_UNIT_CORE = true;
     static final boolean DEFAULT_DISPLAY_TEXT_DEBUG = false;

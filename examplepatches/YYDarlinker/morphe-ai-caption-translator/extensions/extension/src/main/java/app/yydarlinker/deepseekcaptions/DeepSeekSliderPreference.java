@@ -148,7 +148,7 @@ public final class DeepSeekSliderPreference extends android.preference.Preferenc
     }
 
     private String format(int value) {
-        return KEY_TEXT_SIZE.equals(getKey()) ? Integer.toString(value) : value + "%";
+        return KEY_TEXT_SIZE.equals(getKey()) ? value + " sp" : value + "%";
     }
 
     private void saveValue(int value) {

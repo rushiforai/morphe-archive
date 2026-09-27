@@ -45,9 +45,12 @@ UNUSED_KT = os.path.join(os.path.dirname(EDITS_KT), "..", "compat", "UnusedPermi
 EMPTY_KT = os.path.join(os.path.dirname(EDITS_KT), "..", "compat", "EmptyClasses.kt")
 LIB = "libandroidplatformjni.so"
 WORD_EDIT = r"WordEdit\(0x([0-9A-F]+), 0x([0-9A-F]+)L, 0x([0-9A-F]+)L\)"
-COMPAT, CURRENCY, SOUND, UNUSED, DEAD = ("Modern Android compatibility", "Unlimited currency", "Smooth sound",
-                                         "Remove unused permissions", "Stop requests to dead servers")
-ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD)
+COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO = ("Modern Android compatibility", "Unlimited currency",
+                                                "Smooth sound", "Remove unused permissions",
+                                                "Stop requests to dead servers", "Play intro once")
+ALL_PATCHES = (COMPAT, CURRENCY, SOUND, UNUSED, DEAD, INTRO)
+MOVIE = "Lcom/glu/platform/android/GluMovieActivity;"
+INTRO_ONCE = "Lapp/ckzombies/extension/IntroOnce;"
 failures = 0
 warnings = 0
 
@@ -401,8 +404,8 @@ def main():
         first = [l.strip() for l in body.splitlines()[1:] if l.strip() and not l.strip().startswith(".")]
         check(first and first[0].startswith("invoke-static {p0}, Lapp/ckzombies/extension/ExternalStorage;->prepare"),
               "onCreate calls ExternalStorage.prepare first")
-        # The extension is merged whole, so its sound classes are there even without "Smooth sound".
-        for name in ("ExternalStorage", "SndCache", "ShimPlayer", "PoolPlayer", "SoundBudget"):
+        # The extension is merged whole, so its classes are there even without the patches that use them.
+        for name in ("ExternalStorage", "SndCache", "ShimPlayer", "PoolPlayer", "SoundBudget", "IntroOnce"):
             check(smali_file(f"app/ckzombies/extension/{name}") is not None, f"extension class {name} merged into the dex")
         body = method("com/glu/platform/android/GluPlatformActivity", "InitialiseSoundEvent")
         lines = [l.strip() for l in body.splitlines() if l.strip()]
@@ -417,6 +420,32 @@ def main():
                   "the prepared player goes into the cache")
         else:
             check(plain_player, f"{SOUND} not applied: InitialiseSoundEvent is Glu's own, building a MediaPlayer")
+
+        # "Play intro once": the last thing onCreate does is ask IntroOnce, and finish at once when
+        # the intro was seen; the first thing finishMovieActivity does is mark it seen.
+        code = lambda name: [l.strip() for l in method(MOVIE[1:-1], name).splitlines()[1:]
+                             if l.strip() and not l.strip().startswith((".param", ".annotation", ".end param"))]
+        create, finish = code("onCreate"), code("finishMovieActivity")
+        asks = next((k for k, l in enumerate(create) if f"{INTRO_ONCE}->skip(" in l), None)
+        marks = [l for l in finish if not l.startswith(".")][:1] == \
+            [f"invoke-static {{p0}}, {INTRO_ONCE}->markSeen(Landroid/content/Context;)V"]
+        if asks is not None and marks:
+            found[INTRO] = True
+            tail = create[asks:]
+            reg = tail[1].split()[-1] if len(tail) > 1 and tail[1].startswith("move-result ") else None
+            label = tail[2].rsplit(", ", 1)[-1] if len(tail) > 2 and tail[2].startswith(f"if-eqz {reg}, ") else None
+            check(label is not None and tail[0] == f"invoke-static {{p0}}, {INTRO_ONCE}->skip(Landroid/content/Context;)Z"
+                  and tail[3:] == [f"invoke-direct {{p0}}, {MOVIE}->finishMovieActivity()V", label, "return-void",
+                                   ".end method"],
+                  "GluMovieActivity.onCreate ends by finishing at once when IntroOnce says the intro was seen")
+            check(True, "finishMovieActivity marks the intro seen before it tells the engine the movie is over")
+        elif asks is None and not any("IntroOnce;" in l for l in finish):
+            found[INTRO] = False
+        else:
+            check(False, f"{INTRO}: partly applied (onCreate asks: {asks is not None}, "
+                  f"finishMovieActivity marks: {marks})")
+            found[INTRO] = None
+
         body = method("com/glu/android/tools/community/GluOpenFeint", "initialize")
         first = [l.strip() for l in body.splitlines()[1:] if l.strip() and not l.strip().startswith(".")]
         check(first and first[0] == "return-void", "GluOpenFeint.initialize returns before starting OpenFeint")
@@ -499,7 +528,7 @@ def main():
     check("Verified using v1 scheme (JAR signing): true" in sig, "v1 signature")
     check("Verified using v2 scheme (APK Signature Scheme v2): true" in sig, "v2 signature")
     if expect_libs:
-        for name in (SOUND, UNUSED, DEAD):
+        for name in (SOUND, UNUSED, DEAD, INTRO):
             check(found.get(name), f"{name} applied, as --expect-libs means every patch is on")
 
     print("[patches found]")

@@ -159,15 +159,24 @@ $patchCount = $patches.Count
 $target = Get-PatchTarget -PatchList $patchList
 $targetPackage = $target.PackageName
 $targetVersion = $target.PackageVersion
+$targetVersions = @($target.PackageVersions)
+$targetVersionText = Format-VersionList -Versions $targetVersions
 
 $bundleVersion = [string]$bundle.version
 $publishedPatchMatch = [regex]::Match([string]$bundle.description, '\b(\d+) patches\b')
-$publishedTargetMatch = [regex]::Match([string]$bundle.description, 'TikTok\s+(\d+(?:\.\d+)+)')
+# "TikTok 47.0.3", or with more than one target "TikTok 47.0.3 and 47.1.3".
+$publishedTargetMatch = [regex]::Match([string]$bundle.description,
+    'TikTok\s+(\d+(?:\.\d+)+(?:(?:,\s*|,?\s+and\s+)\d+(?:\.\d+)+)*)')
+# @() around the whole if: an if hands back one match as a plain string, and indexing that
+# string reads its first character (the index named "TikTok 4" on 2026-09-26).
+$publishedTargets = @(if ($publishedTargetMatch.Success) {
+    [regex]::Matches($publishedTargetMatch.Groups[1].Value, '\d+(?:\.\d+)+') | ForEach-Object { $_.Value }
+})
 $publishedFactsDifferAtSameVersion = $AllowPublishedIndexLag -and
     $bundleVersion -eq $releaseVersion -and
     $publishedPatchMatch.Success -and $publishedTargetMatch.Success -and
     ([int]$publishedPatchMatch.Groups[1].Value -ne $patchCount -or
-        $publishedTargetMatch.Groups[1].Value -ne $targetVersion)
+        (@($publishedTargets | Sort-Object) -join ',') -ne (@($targetVersions | Sort-Object) -join ','))
 $indexLagsSource = $bundleVersion -ne $releaseVersion -or $publishedFactsDifferAtSameVersion
 if ($indexLagsSource) {
     if (-not $AllowPublishedIndexLag) {
@@ -226,10 +235,13 @@ if ($SkipUrlCheck) {
 }
 Require-Match -Text $readme -Pattern "\b$patchCount patches\b" -Description 'README patch count'
 Require-Match -Text $readme -Pattern ([regex]::Escape($targetPackage)) -Description 'README package name'
-Require-Match -Text $readme -Pattern "TikTok\s+$([regex]::Escape($targetVersion))(?!\d)" -Description 'README target version'
+Require-Match -Text $readme -Pattern "TikTok\s+$([regex]::Escape($targetVersions[0]))(?!\d|\.\d)" -Description 'README target version'
+foreach ($version in $targetVersions) {
+    Require-Match -Text $readme -Pattern "(?<![\d.])$([regex]::Escape($version))(?!\d|\.\d)" -Description "README target version $version"
+}
 $descriptionVersion = $sourceVersion
 $descriptionPatchCount = $patchCount
-$descriptionTargetVersion = $targetVersion
+$descriptionTargetVersions = @($targetVersions)
 if ($indexLagsSource) {
     if (-not $publishedPatchMatch.Success -or -not $publishedTargetMatch.Success) {
         throw 'The published bundle description does not name its patch count and TikTok target.'
@@ -237,11 +249,14 @@ if ($indexLagsSource) {
     Require-Match -Text ([string]$bundle.description) -Pattern "\bv$([regex]::Escape($publishedVersion))\b" -Description 'published bundle description version'
     $descriptionVersion = "v$publishedVersion"
     $descriptionPatchCount = [int]$publishedPatchMatch.Groups[1].Value
-    $descriptionTargetVersion = $publishedTargetMatch.Groups[1].Value
+    $descriptionTargetVersions = @($publishedTargets)
 } else {
     Require-Match -Text ([string]$bundle.description) -Pattern "\b$patchCount patches\b" -Description 'bundle description patch count'
-    Require-Match -Text ([string]$bundle.description) -Pattern "$([regex]::Escape($targetVersion))(?!\d)" -Description 'bundle description target version'
+    foreach ($version in $targetVersions) {
+        Require-Match -Text ([string]$bundle.description) -Pattern "(?<![\d.])$([regex]::Escape($version))(?!\d|\.\d)" -Description "bundle description target version $version"
+    }
 }
+$descriptionTargetText = Format-VersionList -Versions $descriptionTargetVersions
 
 # The one line GitHub shows above the README, which is also what search results, the awesome
 # lists and the Manager's community button repeat. Nothing here read it until now, and it had
@@ -264,17 +279,20 @@ if ($SkipUrlCheck) {
     $wanted = @(
         @{ Pattern = "\b$([regex]::Escape($descriptionVersion))\b"; Wanted = $descriptionVersion }
         @{ Pattern = "\b$descriptionPatchCount patches\b"; Wanted = "$descriptionPatchCount patches" }
-        @{ Pattern = "TikTok\s+$([regex]::Escape($descriptionTargetVersion))(?!\d)"; Wanted = "TikTok $descriptionTargetVersion" }
+        @{ Pattern = "TikTok\s+$([regex]::Escape($descriptionTargetVersions[0]))(?!\d|\.\d)"; Wanted = "TikTok $($descriptionTargetVersions[0])" }
     )
+    $wanted += @($descriptionTargetVersions | Select-Object -Skip 1 | ForEach-Object {
+        @{ Pattern = "(?<![\d.])$([regex]::Escape($_))(?!\d|\.\d)"; Wanted = $_ }
+    })
     $missing = @($wanted | Where-Object { $description -notmatch $_.Pattern } | ForEach-Object { $_.Wanted })
     if ($missing.Count -gt 0) {
         throw ("The GitHub description of $slug does not say " + ($missing -join ', ') + '. It reads: ' +
             $description + [Environment]::NewLine +
             'Set it with: gh repo edit ' + $slug + ' --description "Hushfeed ' + $descriptionVersion +
-            ': ... ' + $descriptionPatchCount + ' patches for TikTok ' + $descriptionTargetVersion + '."')
+            ': ... ' + $descriptionPatchCount + ' patches for TikTok ' + $descriptionTargetText + '."')
     }
     Write-Host ("[release] the GitHub description of " + $slug + " names " + $descriptionVersion +
-        ", " + $descriptionPatchCount + " patches and TikTok " + $descriptionTargetVersion)
+        ", " + $descriptionPatchCount + " patches and TikTok " + $descriptionTargetText)
 }
 
 $testRoot = Join-Path $rootPath 'extensions/tiktok/build/test-results/testDebugUnitTest'
@@ -667,7 +685,11 @@ if (-not (Test-Path -LiteralPath $bugFormPath -PathType Leaf)) {
     throw "The bug report form is missing: $bugFormPath"
 }
 $bugForm = Get-Content -LiteralPath $bugFormPath -Raw
-$bugFormVersions = "Version $publishedVersion for TikTok $targetVersion"
+# While the index lags, the form names the build the published bundle targets, not the source's.
+$bugFormTarget = if ($indexLagsSource -and $publishedTargets.Count -gt 0) {
+    @($publishedTargets | Sort-Object { [version]$_ })[-1]
+} else { $targetVersion }
+$bugFormVersions = "Version $publishedVersion for TikTok $bugFormTarget"
 Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*$([regex]::Escape($bugFormVersions))\s*$" `
     -Description 'bug report form version placeholder'
 Require-Match -Text $bugForm -Pattern "(?m)^\s*placeholder:\s*Morphe Manager $([regex]::Escape($managerFloor))\s*$" `
@@ -811,7 +833,7 @@ function Test-ReleaseReceiptHere {
         -ExpectedPatchNames @($resolvedList.PatchList.patches | ForEach-Object { [string]$_.name }) `
         -ExpectedPatcherVersion $expectedToolchain.PatcherVersion `
         -ExpectedManagerFloor $expectedToolchain.ManagerFloor `
-        -ExpectedPackageName $receiptTarget.PackageName -ExpectedPackageVersion $receiptTarget.PackageVersion `
+        -ExpectedPackageName $receiptTarget.PackageName -ExpectedPackageVersions @($receiptTarget.PackageVersions) `
         -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
         -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit
     if (-not $receiptCheck.Valid) {
@@ -841,7 +863,7 @@ if (-not (Test-Path -LiteralPath $bundlePath -PathType Leaf)) {
     # No bundle to compare bytes against, but everything else the receipt says is
     # still checked.
     Test-ReleaseReceiptHere
-    Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testFacts)
+    Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersionText + "; " + $testFacts)
     exit 0
 }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -870,7 +892,7 @@ Write-Host "[release] the bundle stamps patcher $pinnedPatcher, as the catalog p
 
 Test-ReleaseReceiptHere -BundleForComparison $(if ($VerifyPublishedAsset) { $bundlePath } else { $null })
 
-Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersion + "; " + $testFacts)
+Write-Host ("[facts] " + $sourceVersion + ": " + $patchCount + " patches for " + $targetPackage + " " + $targetVersionText + "; " + $testFacts)
 
 # Callers check the exit code, and a script invoked with & leaves the previous native
 # command's code in $LASTEXITCODE, so a clean run has to say so itself.

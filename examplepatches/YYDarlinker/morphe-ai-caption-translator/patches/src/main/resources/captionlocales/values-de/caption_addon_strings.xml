@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"Verschlüsselt gespeichert; zum Ersetzen eingeben"</string>
     <string name="cap_model_hint" formatted="false">"Modell auswählen oder ID eingeben"</string>
     <string name="cap_preview_hint" formatted="false">"Zum Drehen auf das Bild tippen; Live-Vorschau"</string>
-    <string name="cap_size_hint" formatted="false">"Relative Größe 12–22, skaliert mit dem Video"</string>
+    <string name="cap_size_hint" formatted="false">"Relative Größe 8–15, skaliert mit dem Video"</string>
     <string name="cap_opacity_hint" formatted="false">"0% transparent, 100% deckend; beim Loslassen gespeichert"</string>
     <string name="cap_diagnostic_hint" formatted="false">"Zum Anzeigen und Kopieren der Diagnose aufklappen"</string>
     <string name="cap_use_youtube" formatted="false">"YouTube verwenden"</string>

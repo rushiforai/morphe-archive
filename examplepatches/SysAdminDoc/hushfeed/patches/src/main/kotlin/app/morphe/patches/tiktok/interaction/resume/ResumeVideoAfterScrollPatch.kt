@@ -44,7 +44,7 @@ val resumeVideoAfterScrollPatch = bytecodePatch(
     category("Interaction")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // Everything the writes below need is read off the host and checked before the first of

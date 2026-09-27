@@ -8,8 +8,12 @@ package app.morphe.extension.shared.settings.preference;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.preference.Preference;
 import android.util.AttributeSet;
+import android.widget.ListAdapter;
+
+import androidx.annotation.Nullable;
 
 import app.morphe.extension.shared.L10n;
 
@@ -21,26 +25,33 @@ public class ExportDiagnosticReportPreference extends Preference {
         // framework treats it as a setting: a key with no Setting behind it is skipped.
         setKey("action_export_diagnostic_report");
         setOnPreferenceClickListener(pref -> {
-            AlertDialog shownDialog = new AlertDialog.Builder(getContext())
-                    .setTitle(dialogTitle())
-                    .setItems(
-                            labels(),
-                            (dialog, which) -> {
-                                if (which == 0) LogBufferManager.exportToClipboard();
-                                if (which == 1) LogBufferManager.exportToFile();
-                            }
-                    )
-                    .setNegativeButton(negativeText(), null)
-                    .show();
-            onDialogShown(shownDialog);
+            DialogInterface.OnClickListener choose = (dialog, which) -> {
+                if (which == 0) LogBufferManager.exportToClipboard();
+                if (which == 1) LogBufferManager.exportToFile();
+            };
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext()).setTitle(dialogTitle());
+            ListAdapter drawn = choices(builder.getContext());
+            if (drawn == null) builder.setItems(labels(), choose);
+            else builder.setAdapter(drawn, choose);
+            AlertDialog dialog = builder.setNegativeButton(negativeText(), null).create();
+            // Built, then styled, then shown, so the first layout measures what's on show. The
+            // list works out its height from rows it builds itself, and styling applied after
+            // show() reached rows it had already measured without it.
+            dialog.create();
+            onDialogCreated(dialog);
+            dialog.show();
             return true;
         });
     }
 
-    protected void onDialogShown(AlertDialog dialog) {
+    /**
+     * The dialog, built and not yet shown: a bundle's place to style it. Anything that changes a
+     * size belongs here rather than after show(), where the list has already measured itself.
+     */
+    protected void onDialogCreated(AlertDialog dialog) {
     }
 
-    /** The dialog's title, in the phone's language. A bundle may override these three. */
+    /** The dialog's title, in the phone's language. A bundle may override these four. */
     protected CharSequence dialogTitle() {
         return L10n.t(getContext(), "Export diagnostic report");
     }
@@ -49,6 +60,18 @@ public class ExportDiagnosticReportPreference extends Preference {
     protected CharSequence[] labels() {
         return new CharSequence[]{L10n.t(getContext(), "Copy quick report"),
                 L10n.t(getContext(), "Save full report")};
+    }
+
+    /**
+     * The two choices as the bundle draws them, in the order of {@link #labels()}, or null for
+     * Android's own list of those labels. Each row comes from the adapter already styled, padding
+     * included, which is what the list measures.
+     *
+     * @param dialogContext the dialog's themed context
+     */
+    @Nullable
+    protected ListAdapter choices(Context dialogContext) {
+        return null;
     }
 
     /**

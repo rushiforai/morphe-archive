@@ -11,6 +11,7 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 
 import com.facebook.graphql.model.GraphQLPagesYouMayLikeFeedUnit;
@@ -32,6 +33,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,12 +44,19 @@ import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
 import app.morphe.extension.facebook.download.VideoMenuItemForTests;
+import app.morphe.extension.facebook.emoji.SystemEmoji;
 import app.morphe.extension.facebook.feed.FeedFilter;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
+import app.morphe.extension.facebook.font.SystemFont;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
+import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
+import app.morphe.extension.facebook.reels.ReelDeclutter;
+import app.morphe.extension.facebook.reels.SeenStateSendForTests;
+import app.morphe.extension.facebook.stories.StoryAdvance;
+import app.morphe.extension.facebook.updates.UpdatePrompts;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -72,6 +82,9 @@ public class PausedHooksTest {
 
     /** Stands in for the showcase story type enum: only the constant names matter to the rule. */
     enum ShowcaseStoryType { SHOWCASE_SHORT_VIDEO }
+
+    /** Stands in for Facebook's font family enum: only the constant's name matters to the swap. */
+    enum FontFamily { OPTIMISTIC_TEXT_APP_BOLD }
 
     /** Stands in for the obfuscated ad item base class; the patch passes its binary name. */
     public static class AdBase {
@@ -117,6 +130,31 @@ public class PausedHooksTest {
         PauseForTests.resume();
         for (BooleanSetting setting : settingsSwitches()) setting.resetToDefault();
         FeedFilterCounters.clear();
+        ReleaseCheckForTests.forget();
+    }
+
+    /**
+     * The settings entry's own switches, which no family owns, one probe each, held to the same
+     * promise as a family's: paused, or before the settings are ready, a start makes no request.
+     */
+    private static Map<BooleanSetting, Probe> entryProbes() {
+        Map<BooleanSetting, Probe> probes = new LinkedHashMap<>();
+        // Loads the check's own settings here, with the context, so a probe run without one reads
+        // them rather than loading them.
+        ReleaseCheck.Stored.CHECKED_AT.savedValue();
+        // A Facebook start a day after the last try asks GitHub for the newest release.
+        probes.put(Settings.CHECK_FOR_RELEASES, ReleaseCheckForTests::aStartAsksGitHub);
+        return probes;
+    }
+
+    /** Adds a line to [wrong] for every entry probe that didn't answer [changes]. */
+    private static void everyEntryProbe(Map<BooleanSetting, Probe> probes, boolean changes, String when,
+                                        List<String> wrong) {
+        for (Map.Entry<BooleanSetting, Probe> entry : probes.entrySet()) {
+            if (entry.getValue().changedFacebook() != changes) {
+                wrong.add(entry.getKey().key + ", " + when + (changes ? ": left Facebook alone" : ": still changed Facebook"));
+            }
+        }
     }
 
     private static Map<PatchFamily, List<Probe>> probes() {
@@ -144,10 +182,19 @@ public class PausedHooksTest {
             ReturnRefresh.uiHidden();
             return ReturnRefresh.skip();
         }));
-        // A story Facebook's own detection marked as made with AI.
-        probes.put(PatchFamily.AI_DETECTED_POSTS, Collections.singletonList(
-                () -> FeedGuardForTests.hides(Category.ORGANIC, new GraphQLStory(), FeedGuardForTests.detectedInfo(true))));
+        // A story Facebook's own detection marked as made with AI, and a reel whose GenAI attribution
+        // carries the same flag, at both levels a page of reels enters.
+        probes.put(PatchFamily.AI_DETECTED_POSTS, Arrays.asList(
+                () -> FeedGuardForTests.hides(Category.ORGANIC, new GraphQLStory(), FeedGuardForTests.detectedInfo(true)),
+                () -> FeedGuardForTests.hidesAiReel(new FeedGuardForTests.ReelItem(FeedGuardForTests.reelModel(true))),
+                () -> {
+                    FeedGuardForTests.ReelItem reel = new FeedGuardForTests.ReelItem(FeedGuardForTests.reelModel(true));
+                    Section section = new Section(new ArrayList<>(Arrays.asList(new Reel(), reel)));
+                    FeedGuardForTests.aiReelSections(Collections.singletonList(section));
+                    return !section.items.contains(reel);
+                }));
         probes.put(PatchFamily.SPONSORED_STORIES, Collections.singletonList(FeedFilter::hideSponsoredStories));
+        probes.put(PatchFamily.STORY_AUTO_ADVANCE, Collections.singletonList(StoryAdvance::waitForTap));
         probes.put(PatchFamily.SPONSORED_REELS, Arrays.asList(
                 () -> {
                     VideoAd ad = new VideoAd();
@@ -159,6 +206,26 @@ public class PausedHooksTest {
                     ReelsAdFilter.withoutAdSections(Collections.singletonList(section), AD);
                     return !section.items.contains(ad);
                 }));
+        // A Remix chip under a reel, the Follow and Following buttons beside its author, and both
+        // footer queries.
+        probes.put(PatchFamily.REEL_DECLUTTER, Arrays.asList(
+                () -> ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))) != null,
+                ReelDeclutter::hideFollowButton,
+                ReelDeclutter::hideFollowingButton,
+                ReelDeclutter::skipHotComment,
+                ReelDeclutter::skipSocialBubbles));
+        // The Reels batcher's send of the reels you watched never reaches its executor.
+        probes.put(PatchFamily.REEL_WATCH_HISTORY, Collections.singletonList(SeenStateSendForTests::heldBack));
+        // The repository's answer for one of Meta's families, and a variable-font builder's.
+        probes.put(PatchFamily.SYSTEM_FONT, Arrays.asList(
+                () -> SystemFont.systemize(Typeface.SERIF, FontFamily.OPTIMISTIC_TEXT_APP_BOLD, -1) != Typeface.SERIF,
+                () -> {
+                    Object builder = new Object();
+                    SystemFont.rememberVariation(builder, "'wght' 700");
+                    return SystemFont.systemizeBuilt(Typeface.SERIF, builder) != Typeface.SERIF;
+                }));
+        // The emoji typeface provider hears the phone's default typeface instead of running its own code.
+        probes.put(PatchFamily.SYSTEM_EMOJI, Collections.singletonList(() -> SystemEmoji.typeface() != null));
         probes.put(PatchFamily.EXTERNAL_BROWSER, Collections.singletonList(() -> {
             Activity browser = Robolectric.buildActivity(Activity.class,
                     new Intent(Intent.ACTION_VIEW, Uri.parse("https://example.org/"))).create().get();
@@ -183,11 +250,19 @@ public class PausedHooksTest {
         probes.put(PatchFamily.VIDEO_DOWNLOAD, Arrays.asList(
                 VideoMenuItemForTests::addsAnItem,
                 PlayerSourcesForTests::recordsAVideoPlayer));
+        // A start from the launcher icon asks Facebook for the chosen tab.
+        probes.put(PatchFamily.START_TAB, Collections.singletonList(StartTabRouteForTests::routes));
         // A shared link loses what the app added to it.
         probes.put(PatchFamily.SANITIZE_SHARING_LINKS, Collections.singletonList(() -> {
             String shared = "https://www.facebook.com/share/p/1AbCdEf/?mibextid=WC7FNe";
             return !shared.equals(LinkCleaner.sanitizeShared(shared));
         }));
+        // Both Meta App Manager promotion filters fail, the force-sync push is skipped, and the
+        // chat filter that targets older versions fails.
+        probes.put(PatchFamily.UPDATE_PROMPTS, Arrays.asList(
+                UpdatePrompts::blockPromotion,
+                UpdatePrompts::blockForceSync,
+                () -> UpdatePrompts.blockVersionCeiling(UpdatePrompts.VERSION_CEILING_FILTER)));
         return probes;
     }
 
@@ -231,20 +306,26 @@ public class PausedHooksTest {
         for (BooleanSetting setting : settingsSwitches()) setting.save(true);
         Map<PatchFamily, List<Probe>> probes = probes();
         assertEquals("every family with a switch needs a probe here", switched(), probes.keySet());
+        Map<BooleanSetting, Probe> entry = entryProbes();
+        assertEquals("every switch of the settings entry needs a probe here",
+                new HashSet<>(PatchFamily.ENTRY_SWITCHES), entry.keySet());
 
         // Every hook is asked every time, so one run names every hook that broke the promise.
         List<String> wrong = new ArrayList<>();
         everyProbe(probes, true, "running", wrong);
+        everyEntryProbe(entry, true, "running", wrong);
 
         for (HushfacebookPause.Reason why : new HushfacebookPause.Reason[]{
                 HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP,
                 HushfacebookPause.Reason.MARKER_FILE}) {
             PauseForTests.pause(why);
             everyProbe(probes, false, "paused by " + why, wrong);
+            everyEntryProbe(entry, false, "paused by " + why, wrong);
         }
 
         PauseForTests.resume();
         everyProbe(probes, true, "running again", wrong);
+        everyEntryProbe(entry, true, "running again", wrong);
         assertEquals(Collections.emptyList(), wrong);
     }
 
@@ -261,18 +342,25 @@ public class PausedHooksTest {
         for (BooleanSetting setting : settingsSwitches()) setting.save(true);
         Map<PatchFamily, List<Probe>> probes = probes();
         assertEquals("every family with a switch needs a probe here", switched(), probes.keySet());
+        Map<BooleanSetting, Probe> entry = entryProbes();
 
         List<String> wrong = new ArrayList<>();
-        SettingsContextRule.withoutContext(() -> everyProbe(probes, false, "before the context is set", wrong));
+        SettingsContextRule.withoutContext(() -> {
+            everyProbe(probes, false, "before the context is set", wrong);
+            everyEntryProbe(entry, false, "before the context is set", wrong);
+        });
         // Safe mode on, as after three crashed starts: the context is set and the pause undecided.
         BaseSettings.SAFE_MODE.save(true);
         try {
-            SettingsContextRule.beforeThePauseIsDecided(
-                    () -> everyProbe(probes, false, "before the pause is decided", wrong));
+            SettingsContextRule.beforeThePauseIsDecided(() -> {
+                everyProbe(probes, false, "before the pause is decided", wrong);
+                everyEntryProbe(entry, false, "before the pause is decided", wrong);
+            });
         } finally {
             BaseSettings.SAFE_MODE.resetToDefault();
         }
         everyProbe(probes, true, "once they're ready", wrong);
+        everyEntryProbe(entry, true, "once they're ready", wrong);
         assertEquals(Collections.emptyList(), wrong);
     }
 

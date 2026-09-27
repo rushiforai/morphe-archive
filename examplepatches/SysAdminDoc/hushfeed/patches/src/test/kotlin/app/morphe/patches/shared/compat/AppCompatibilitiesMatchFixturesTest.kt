@@ -30,29 +30,33 @@ class AppCompatibilitiesMatchFixturesTest {
                 signers[name] = result.signerCertificates.map { sha256(it.encoded) }.toSet()
             }
         }
-        val declared = AppCompatibilities.tiktok4703().single().signatures
+        val declared = AppCompatibilities.tiktok().single().signatures
         assertEquals("declared signatures", setOf(AppCompatibilities.TIKTOK_SIGNER_SHA256), declared)
         val other = signers.filterValues { it != declared }
         assertEquals("fixtures another certificate signed", emptyMap<String, Set<String>>(), other)
     }
 
     @Test
-    fun `the declared target carries the version code of the vendor build`() {
-        val target = AppCompatibilities.tiktok4703().single().targets.single()
-        val version = checkNotNull(target.version)
-        val codes = checkNotNull(target.versionCodes) { "the $version target declares no version codes" }
-        assertEquals("declared codes for $version", setOf(AppCompatibilities.TIKTOK_4703_VERSION_CODE), codes.values.toSet())
+    fun `each declared target carries the version code of its vendor build`() {
+        val targets = AppCompatibilities.tiktok().single().targets
+        val expected = mapOf(
+            "47.0.3" to AppCompatibilities.TIKTOK_4703_VERSION_CODE,
+            "47.1.3" to AppCompatibilities.TIKTOK_4713_VERSION_CODE,
+        )
+        assertEquals("declared versions", expected.keys, targets.map { it.version }.toSet())
+        assertEquals("the codes the Play Store patch accepts", expected.values.toSet(), AppCompatibilities.TIKTOK_VERSION_CODES)
+        for (target in targets) {
+            val version = checkNotNull(target.version)
+            val codes = checkNotNull(target.versionCodes) { "the $version target declares no version codes" }
+            assertEquals("declared codes for $version", setOf(expected.getValue(version)), codes.values.toSet())
 
-        val fixtures = Fixtures.files {
-            it.extension == "apk" && (it.name.contains("_$version-") || it.name == "tiktok-$version.apk")
-        }
-        for (fixture in fixtures) {
+            val fixture = Fixtures.apkOf(version)
             val manifest = RandomAccessFile(fixture, "r").use { file ->
                 ApkUtils.getAndroidManifest(DataSources.asDataSource(file))
             }
             assertEquals(
                 "${fixture.name} version code",
-                AppCompatibilities.TIKTOK_4703_VERSION_CODE,
+                expected.getValue(version),
                 ApkUtils.getVersionCodeFromBinaryAndroidManifest(manifest),
             )
         }

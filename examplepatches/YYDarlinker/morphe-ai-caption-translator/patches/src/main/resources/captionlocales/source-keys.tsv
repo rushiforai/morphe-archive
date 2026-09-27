@@ -34,7 +34,7 @@ API Key	cap_api_key
 已加密保存；输入可替换	cap_key_saved
 选择模型或输入模型 ID	cap_model_hint
 点按画面切换方向，样式实时预览	cap_preview_hint
-相对字号 12–22，随画面比例缩放	cap_size_hint
+相对字号 8–15，随画面比例缩放	cap_size_hint
 0% 为透明，100% 为不透明；松手保存	cap_opacity_hint
 展开查看并复制诊断记录	cap_diagnostic_hint
 使用 YouTube	cap_use_youtube
@@ -131,3 +131,4 @@ API 配置方案	cap_profiles_title
 无法新增方案，请检查输入及 30 套方案上限。	cap_profile_add_failed
 各方案独立保存；清空恢复随界面语言变化的默认要求	cap_prompt_summary
 清除本方案的 API Key	cap_profile_clear_key
+相对字号 8–15；13sp 为舒适基准，随画面比例缩放	cap_size_hint

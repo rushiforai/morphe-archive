@@ -29,5 +29,5 @@ final class WordTimingReference {
    if("v".equals(key)){videos++;same=video.equals(value);}if("tlang".equals(key)&&!value.isEmpty())return false;}
   return videos==1&&same;
  }catch(Exception e){return false;}}
- static boolean sameWords(CaptionDocument.Parsed a,CaptionDocument.Parsed b){StringBuilder x=new StringBuilder(),y=new StringBuilder();for(CaptionDocument.Cue c:a.cues())x.append(SourcePhraseAlignment.timingLexical(c.text));for(CaptionDocument.Cue c:b.cues())y.append(SourcePhraseAlignment.timingLexical(c.text));return x.length()>0&&x.toString().equals(y.toString());}
+ static boolean sameWords(CaptionDocument.Parsed a,CaptionDocument.Parsed b){StringBuilder x=new StringBuilder(),y=new StringBuilder();for(CaptionDocument.Cue c:a.cues())x.append(RebuildSource.key(c.text));for(CaptionDocument.Cue c:b.cues())y.append(RebuildSource.key(c.text));return x.length()>0&&x.toString().equals(y.toString());}
 }

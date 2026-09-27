@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"암호화되어 저장됨. 입력하면 교체됩니다"</string>
     <string name="cap_model_hint" formatted="false">"모델을 선택하거나 ID 입력"</string>
     <string name="cap_preview_hint" formatted="false">"화면을 눌러 방향 전환, 스타일은 실시간 반영"</string>
-    <string name="cap_size_hint" formatted="false">"상대 크기 12–22, 영상 크기에 맞게 조정"</string>
+    <string name="cap_size_hint" formatted="false">"상대 크기 8–15, 영상 크기에 맞게 조정"</string>
     <string name="cap_opacity_hint" formatted="false">"0% 투명, 100% 불투명. 놓으면 저장"</string>
     <string name="cap_diagnostic_hint" formatted="false">"펼쳐서 진단 기록 확인 및 복사"</string>
     <string name="cap_use_youtube" formatted="false">"YouTube 사용"</string>

@@ -96,11 +96,12 @@ public class InlineProfileManagementTest {
         assertEquals("A",a.getSharedPreferences("deepseek_caption_secret",0).getString("api_key_ciphertext",""));
         assertEquals("C",a.getSharedPreferences("deepseek_caption_secret",0).getString("api_key_ciphertext_"+c,""));
     }
-    @Test public void activeDeleteExplainsExactReplacementAndUpdatesCurrentMarker(){
+    @Test public void activeDeleteHasOnlyConfirmationButtonsAndUpdatesCurrentMarker(){
         LinkedHashMap<String,String> remaining=ApiProfiles.list(a);remaining.remove("default");
         String next=remaining.keySet().iterator().next(),name=remaining.get(next);
         Dialog d=open();more("default");action("default","profile_delete");
-        assertNotNull(label(panel("default"),text("profile_delete_switch")+" "+name));
+        assertNull(label(panel("default"),text("profile_delete_switch")+" "+name));
+        assertNull(label(panel("default"),text("profile_delete_inline")));
         action("default","profile_confirm_delete");assertEquals(next,ApiProfiles.active(a));assertSame(d,dialog());
         assertNotNull(label(tree(),"✓  "+name));assertTrue(d.isShowing());
     }
@@ -116,7 +117,7 @@ public class InlineProfileManagementTest {
     @Test public void deletingUntilLastProfileRemovesDeleteAction(){
         open();more(b);action(b,"profile_delete");action(b,"profile_confirm_delete");
         more(c);action(c,"profile_delete");action(c,"profile_confirm_delete");more("default");
-        assertNull(label(panel("default"),text("profile_delete")));assertNotNull(label(panel("default"),text("profile_keep_one")));
+        assertNull(label(panel("default"),text("profile_delete")));assertNull(label(panel("default"),text("profile_keep_one")));
     }
     @Test public void staleSaveButtonCannotMutateAfterDialogDismissal(){
         Dialog d=open();more(b);action(b,"profile_rename");input(panel(b)).setText("stale");
@@ -136,12 +137,40 @@ public class InlineProfileManagementTest {
         ((AlertDialog)d).getButton(AlertDialog.BUTTON_POSITIVE).performClick();idle();
         assertFalse(d.isShowing());assertEquals("Bailian",ApiProfiles.list(a).get(b));
     }
+    @Test public void profileActionsRenameDeleteAndNewUseTheSameHostButtonFamily(){
+        open();more(b);
+        assertTrue(label(panel(b),text("profile_rename")) instanceof Button);
+        assertTrue(label(panel(b),text("profile_delete")) instanceof Button);
+        action(b,"profile_rename");
+        assertTrue(label(panel(b),text("cancel")) instanceof Button);
+        assertTrue(label(panel(b),text("profile_save")) instanceof Button);
+        action(b,"cancel");action(b,"profile_delete");
+        assertTrue(label(panel(b),text("profile_keep")) instanceof Button);
+        assertTrue(label(panel(b),text("profile_confirm_delete")) instanceof Button);
+        action(b,"profile_keep");
+        label(tree(),text("profile_add")).performClick();idle();
+        assertTrue(label(tree(),text("profile_save")) instanceof Button);
+    }
+    @Test public void samePrimaryActionAndNoDecorativeActionIconsThroughRenameAndDelete(){
+        open();more(b);
+        Button rename=(Button)label(panel(b),text("profile_rename"));
+        Button delete=(Button)label(panel(b),text("profile_delete"));
+        assertNull(rename.getCompoundDrawablesRelative()[0]);assertNull(delete.getCompoundDrawablesRelative()[0]);
+        action(b,"profile_rename");Button save=(Button)label(panel(b),text("profile_save"));
+        assertNull(save.getCompoundDrawablesRelative()[0]);
+        action(b,"cancel");action(b,"profile_delete");
+        Button confirm=(Button)label(panel(b),text("profile_confirm_delete"));
+        assertNull(confirm.getCompoundDrawablesRelative()[0]);
+        assertEquals(save.getCurrentTextColor(),confirm.getCurrentTextColor());
+        assertEquals(save.getBackground().getClass(),confirm.getBackground().getClass());
+        assertTrue(confirm.getContentDescription().toString().contains("Bailian"));
+    }
     @Test public void actionStripUsesEqualButtonsAtWideWidthAndStacksAtNarrowWidth(){
-        ProfileActionStrip strip=new ProfileActionStrip(a);Button rename=strip.add(text("profile_rename"),false,1,()->{});
-        Button delete=strip.add(text("profile_delete"),true,2,()->{});
+        ProfileActionStrip strip=new ProfileActionStrip(a);Button rename=strip.add(text("profile_rename"),()->{});
+        Button delete=strip.add(text("profile_delete"),()->{});
         measure(strip,500);assertEquals(LinearLayout.HORIZONTAL,strip.getOrientation());
         assertEquals(rename.getMeasuredWidth(),delete.getMeasuredWidth());assertTrue(delete.getLeft()>=rename.getRight());
-        assertNotNull(rename.getCompoundDrawablesRelative()[0]);assertNotNull(delete.getCompoundDrawablesRelative()[0]);
+        assertNull(rename.getCompoundDrawablesRelative()[0]);assertNull(delete.getCompoundDrawablesRelative()[0]);
         measure(strip,120);assertEquals(LinearLayout.VERTICAL,strip.getOrientation());
         assertTrue(delete.getTop()>=rename.getBottom());assertTrue(delete.getRight()<=strip.getWidth());
         assertTrue(rename.getHeight()>=CaptionSettingsStyle.dp(a,48));assertTrue(delete.getHeight()>=CaptionSettingsStyle.dp(a,48));
@@ -151,11 +180,24 @@ public class InlineProfileManagementTest {
         v.measure(View.MeasureSpec.makeMeasureSpec(px,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(0,View.MeasureSpec.UNSPECIFIED));
         v.layout(0,0,px,v.getMeasuredHeight());
     }
+    @Test public void stackedPrimaryIsAboveCancelLikeOfficialDialog(){
+        ProfileActionStrip strip=new ProfileActionStrip(a);
+        Button cancel=strip.add(text("cancel"),()->{});
+        Button save=strip.addPrimary(text("profile_save"),()->{});
+        measure(strip,120);
+        assertEquals(LinearLayout.VERTICAL,strip.getOrientation());
+        assertEquals(0,strip.indexOfChild(save));
+        assertTrue(save.getBottom()<=cancel.getTop());
+        measure(strip,500);
+        assertEquals(LinearLayout.HORIZONTAL,strip.getOrientation());
+        assertEquals(1,strip.indexOfChild(save));
+        assertTrue(cancel.getRight()<=save.getLeft());
+    }
     @Test public void largeFontAndRtlKeepActionsInsideTheirContainer(){
         Configuration config=new Configuration(a.getResources().getConfiguration());config.fontScale=1.6f;config.setLocales(new LocaleList(Locale.forLanguageTag("ar")));
         a.getResources().updateConfiguration(config,a.getResources().getDisplayMetrics());
         ProfileActionStrip strip=new ProfileActionStrip(a);strip.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-        strip.add(text("profile_rename"),false,1,()->{});strip.add(text("profile_delete"),true,2,()->{});
+        strip.add(text("profile_rename"),()->{});strip.add(text("profile_delete"),()->{});
         measure(strip,224);
         for(int i=0;i<strip.getChildCount();i++){
             View child=strip.getChildAt(i);assertTrue(child.getLeft()>=0);assertTrue(child.getRight()<=strip.getWidth());

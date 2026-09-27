@@ -7,15 +7,18 @@
  */
 package app.morphe.patches.facebook.ads.telemetry
 
-import app.morphe.patches.facebook.shared.neuterVoidMethods
+import app.morphe.patches.facebook.shared.neuterOrReason
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.handleTargets
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 
+private const val PATCH = "Block ad telemetry"
+
 /** Ad measurement that runs whether or not an ad is shown. All keep their real names. */
-private val AD_TELEMETRY = listOf(
+internal val AD_TELEMETRY = listOf(
     // Watches for you taking a screenshot of an ad. The controller's void methods add and remove
     // the detector's listener, so neutering them means it is never registered.
     "Lcom/facebook/ads/screenshot/AdsScreenshotController;",
@@ -45,13 +48,11 @@ val blockAdTelemetryPatch = bytecodePatch(
     //   continuation that does not expect one. They only run on a rendered ad anyway.
     // - PigeonFeedUnitSponsoredImpressionLogger. Its one clean entry point marks an impression as
     //   *already logged*; neutering it invites repeat logging rather than none.
+    //
+    // Each class stands alone, so a build that renamed some still gets the others stopped, and the
+    // patch log names each one left running. None found stops the patch.
     execute {
-        val neutered = AD_TELEMETRY.sumOf { neuterVoidMethods(it) }
-
-        check(neutered > 0) {
-            "No ad telemetry classes found; com.facebook.ads.screenshot / " +
-                "com.facebook.feed.platformads were renamed or removed"
-        }
+        handleTargets(PATCH, "ad telemetry classes", AD_TELEMETRY) { neuterOrReason(it) }
 
         enableStatus("adTelemetry")
     }

@@ -53,13 +53,29 @@ val freeInAppPurchasesPatch = bytecodePatch(
         // (VerifyError on the whole class, seen on Nice Dice 3D). Only
         // safe when the block returns before the original body (which then
         // is dead anyway); fall-through injections must keep them.
-        fun expandSwap(m: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, block: String): Boolean {
+        fun expandSwap(m: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, block: String, wipeBody: Boolean = false): Boolean {
             return try {
                 val owner = mutableClassDefByOrNull(m.definingClass) ?: return false
                 val target = owner.methods.firstOrNull {
                     it.name == m.name && it.parameterTypes == m.parameterTypes && it.returnType == m.returnType
                 } ?: return false
                 val cloned = m.cloneMutable(additionalRegisters = 4)
+                // wipeBody: for return-terminated injections, drop the
+                // original body entirely. Inserting at 0 shifts every PC,
+                // which silently corrupts PC-relative payloads
+                // (packed/sparse-switch tables, fill-array-data) in the
+                // original body; ART then verifies garbage and rejects the
+                // whole class (seen on Nice Dice 3D). Dead code needs no
+                // preservation. Only for blocks that return (never fall
+                // through into the original body).
+                if (wipeBody) {
+                    try {
+                        val impl = cloned.implementation ?: return false
+                        impl.removeInstructions(impl.instructions.size)
+                    } catch (_: Exception) {
+                        return false
+                    }
+                }
                 owner.methods.remove(target)
                 cloned.addInstructions(0, block)
                 owner.methods.add(cloned)
@@ -140,7 +156,16 @@ val freeInAppPurchasesPatch = bytecodePatch(
                     val inner = holderCls.fields.firstOrNull {
                         it.type == "Lcom/android/billingclient/api/PurchasesUpdatedListener;"
                     } ?: continue
+                    // Guard the intermediate hop. The holder is only populated once the
+                    // client is really connected, so when the connection never
+                    // completes the second iget throws a NullPointerException from
+                    // inside our own injection. That escapes launchBillingFlow, the
+                    // caller never gets a result, and the game waits on its purchase
+                    // spinner forever - no success and no failure callback. Bailing
+                    // out here lets the caller's own null check fall through to the
+                    // OK-only path instead.
                     return "iget-object v0, v0, $defClass->${f.name}:${f.type}\n" +
+                        "if-eqz v0, :morphe_iap_nocb\n" +
                         "iget-object v0, v0, $holder->${inner.name}:${inner.type}"
                 }
                 null
@@ -762,7 +787,8 @@ val freeInAppPurchasesPatch = bytecodePatch(
                             val donor = owner.methods.firstOrNull { m ->
                                 try {
                                     com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(m.accessFlags) &&
-                                        m.implementation != null
+                                        m.implementation != null &&
+                                        !m.name.startsWith("<")
                                 } catch (_: Exception) { false }
                             } ?: run {
                                 logger.warning("FreeIAP synthetic catalog helper skipped: no static donor")
@@ -770,6 +796,8 @@ val freeInAppPurchasesPatch = bytecodePatch(
                             }
                             val helper = donor.cloneMutable(
                                 name = "morpheFakeProductList",
+                                accessFlags = com.android.tools.smali.dexlib2.AccessFlags.PUBLIC.getValue() or
+                                    com.android.tools.smali.dexlib2.AccessFlags.STATIC.getValue(),
                                 parameters = listOf(
                                     com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter(
                                         qppClass, null, null,
@@ -851,11 +879,7 @@ val freeInAppPurchasesPatch = bytecodePatch(
                     }
                     val helperRef = "${it.definingClass}->morpheFakeProductList($qppClass)Ljava/util/List;"
                     logger.info("FreeIAP synthetic catalog sources: " + listGetters.joinToString(",") { it.first })
-                    // NOTE: the callback goes through java.lang.reflect
-                    // (getClass/getMethod/invoke) instead of a direct
-                    // interface invoke: morphe's inline lexer rejects the
-                    // ProductDetailsResponseListener method ref outright.
-                    // Straight-line, no labels: clone-safe. Needs v0..v6.
+                    // Straight-line, no labels: clone-safe. Needs v0..v4.
                     val block = """
                         move-object/from16 v0, $paramsReg
                         invoke-static {v0}, $helperRef
@@ -868,28 +892,7 @@ val freeInAppPurchasesPatch = bytecodePatch(
                         invoke-virtual {v0}, Lcom/android/billingclient/api/BillingResult${'$'}Builder;->build()Lcom/android/billingclient/api/BillingResult;
                         move-result-object v0
                         move-object/from16 v2, $listenerReg
-                        invoke-virtual {v2}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-                        move-result-object v3
-                        const-string v5, "onProductDetailsResponse"
-                        const/4 v4, 0x2
-                        new-array v6, v4, [Ljava/lang/Class;
-                        const-class v5, Lcom/android/billingclient/api/BillingResult;
-                        const/4 v4, 0x0
-                        aput-object v6, v4, v5
-                        const-class v5, Ljava/util/List;
-                        const/4 v4, 0x1
-                        aput-object v6, v4, v5
-                        const-string v5, "onProductDetailsResponse"
-                        invoke-virtual {v3, v5, v6}, Ljava/lang/Class;->getMethod(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;
-                        move-result-object v3
-                        const/4 v4, 0x2
-                        new-array v5, v4, [Ljava/lang/Object;
-                        const/4 v4, 0x0
-                        aput-object v5, v4, v0
-                        const/4 v4, 0x1
-                        aput-object v5, v4, v1
-                        invoke-virtual {v3, v2, v5}, Ljava/lang/reflect/Method;->invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;
-                        move-result-object v3
+                        invoke-interface {v2, v0, v1}, Lcom/android/billingclient/api/ProductDetailsResponseListener;->onProductDetailsResponse(Lcom/android/billingclient/api/BillingResult;Ljava/util/List;)V
                         return-void
                     """.trimIndent()
                     var done = false
@@ -897,7 +900,7 @@ val freeInAppPurchasesPatch = bytecodePatch(
                         try { it.addInstructions(0, block); done = true } catch (_: Exception) {}
                     }
                     if (!done) {
-                        try { done = expandSwap(it, block) } catch (_: Exception) {}
+                        try { done = expandSwap(it, block, wipeBody = true) } catch (_: Exception) {}
                     }
                     if (done) {
                         logger.info("FreeIAP synthetic catalog: ${it.definingClass}->${it.name}")
@@ -1284,7 +1287,7 @@ val freeInAppPurchasesPatch = bytecodePatch(
                     }
                 }
             }
-        } else {
+        } else if (mutableClassDefByOrNull(rcPurchases) != null) {
             logger.warning("Free In-app Purchases: RevenueCat unsafe fake skipped (fields not found)")
         }
 

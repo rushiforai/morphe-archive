@@ -58,6 +58,7 @@ public final class DeepSeekActionPreference extends android.preference.Preferenc
             toast("字幕已恢复水平居中的默认位置");
         } else if (KEY_CLEAR_CACHE.equals(key)) {
             DiskCaptionCache.clear(context);
+            RebuildCache.clear(context);
             SourceCaptionCache.clear(context);
             toast("字幕缓存已清除");
         } else if (KEY_DELETE_KEY.equals(key)) {

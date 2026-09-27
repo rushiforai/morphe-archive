@@ -52,7 +52,7 @@ val customOfflineVideosLimitPatch = bytecodePatch(
     category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // Everything the writes below need is found and checked before the first of them, because

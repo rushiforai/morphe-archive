@@ -63,8 +63,8 @@ if (-not $Apk -and $env:HUSHFEED_FIXTURE_DIR -and (Test-Path -LiteralPath $env:H
         -Filter "*$($target.PackageVersion)*.apk" -File | Select-Object -First 1).FullName
 }
 if (-not $Apk -or -not (Test-Path -LiteralPath $Apk -PathType Leaf)) {
-    throw ("No vendor APK. Pass -Apk with the $($target.PackageVersion) build, or set " +
-        'HUSHFEED_FIXTURE_DIR to the folder that holds it.')
+    throw ("No vendor APK. Pass -Apk with a $(Format-VersionList -Versions @($target.PackageVersions)) build, or set " +
+        'HUSHFEED_FIXTURE_DIR to the folder that holds one.')
 }
 $passwordVariable = 'HUSHFEED_SIDELOAD_KEYSTORE_PASSWORD'
 $keystorePassword = [Environment]::GetEnvironmentVariable(
@@ -134,7 +134,7 @@ $report = $null
 if (Test-Path -LiteralPath $result -PathType Leaf) { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
 $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
     -AllowedDependencyNames $dependencyNames -OutputPath $out `
-    -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
+    -ExpectedPackageName $target.PackageName -ExpectedPackageVersion (Get-DeclaredReportVersion -Report $report -Target $target)
 if (-not $validation.Valid) { throw "Patching did not produce a complete APK: $($validation.Reason)" }
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
 Write-Host "[device] $out"

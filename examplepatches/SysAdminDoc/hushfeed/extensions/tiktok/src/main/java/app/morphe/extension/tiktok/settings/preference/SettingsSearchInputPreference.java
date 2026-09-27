@@ -11,6 +11,8 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.preference.Preference;
 import android.text.InputType;
 import android.text.Editable;
@@ -58,18 +60,39 @@ public final class SettingsSearchInputPreference extends Preference {
         root.setOrientation(LinearLayout.VERTICAL);
         LinearLayout row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(0, SettingsUi.dp(context, 8), 0, SettingsUi.dp(context, 8));
+        row.setMinimumHeight(SettingsUi.dp(context, 64));
+        row.setPadding(SettingsUi.dp(context, 12), SettingsUi.dp(context, 8),
+                SettingsUi.dp(context, 8), SettingsUi.dp(context, 8));
+        row.setAddStatesFromChildren(true);
+        GradientDrawable focused = SettingsUi.borderedSurface(
+                context, SettingsUi.RADIUS_CARD, false);
+        focused.setStroke(SettingsUi.dp(context, 1), SettingsUi.accent());
+        StateListDrawable background = new StateListDrawable();
+        background.addState(new int[]{android.R.attr.state_focused}, focused);
+        background.addState(new int[]{}, SettingsUi.borderedSurface(
+                context, SettingsUi.RADIUS_CARD, false));
+        row.setBackground(background);
+
+        ImageView search = new ImageView(context);
+        search.setImageResource(android.R.drawable.ic_menu_search);
+        search.setColorFilter(SettingsUi.textSecondary());
+        search.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        LinearLayout.LayoutParams searchParams = new LinearLayout.LayoutParams(
+                SettingsUi.dp(context, 26), SettingsUi.dp(context, 26));
+        searchParams.setMarginEnd(SettingsUi.dp(context, 12));
+        row.addView(search, searchParams);
 
         editText = new EditText(context);
         editText.setTag("settings_search_input");
         editText.setSingleLine(true);
-        editText.setTextSize(16);
+        editText.setTextSize(18);
         editText.setHint(L10n.t(context, "Search settings"));
         // No content description on a search box. On an editable view it replaces what was
         // typed in the announcement, so "cats" came back as the label. The hint names it.
         editText.setMinimumHeight(SettingsUi.dp(context, 48));
         editText.setPadding(0, 0, 0, 0);
         SettingsUi.styleEditText(editText);
+        editText.setBackground(null);
         // Every native search flow lands with the field focused, the keyboard up and the action
         // key searching. This one made the reader tap the box first, showed a generic action
         // key, and let autocorrect rewrite a setting's name into another word.
@@ -109,7 +132,8 @@ public final class SettingsSearchInputPreference extends Preference {
         clear.setTag("settings_search_clear");
         clear.setImageDrawable(new ClearDrawable(context));
         clear.setScaleType(ImageView.ScaleType.CENTER);
-        clear.setBackground(SettingsUi.roundedSurface(context, SettingsUi.RADIUS_CONTROL, false));
+        clear.setBackground(SettingsUi.pressAndFocusOver(context, SettingsUi.RADIUS_CONTROL,
+                SettingsUi.roundedSurface(context, SettingsUi.RADIUS_CONTROL, false)));
         clear.setContentDescription(L10n.t(context, "Clear search"));
         SettingsUi.markAsButton(clear);
         clear.setFocusable(true);
@@ -124,7 +148,14 @@ public final class SettingsSearchInputPreference extends Preference {
         root.addView(row, new LinearLayout.LayoutParams(-1, -2));
 
         resultCount = SettingsUi.resultCount(context, "settings_search_result_count");
-        resultCount.setPadding(0, 0, 0, SettingsUi.dp(context, 6));
+        resultCount.setAllCaps(true);
+        resultCount.setLetterSpacing(0.08f);
+        // The home page's group labels: 12sp, and inset 18dp to line up with the text inside the
+        // cards. This one sat on the card's edge, the only label on any page that did.
+        resultCount.setTextSize(12);
+        int inset = SettingsUi.dp(context, 18);
+        resultCount.setPaddingRelative(inset, SettingsUi.dp(context, 16),
+                inset, SettingsUi.dp(context, 6));
         root.addView(resultCount, new LinearLayout.LayoutParams(-1, -2));
         updateResultCount();
         return root;

@@ -1,3 +1,15 @@
+## [1.32.1](https://github.com/legendsciber/morphe-patches/compare/v1.32.0...v1.32.1) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **subwaysurfers:** drop 3.69.1 target ([9c54ebe](https://github.com/legendsciber/morphe-patches/commit/9c54ebe375f33fe53ce72c3bcfea12a2ec7e6493))
+
+## [1.32.0](https://github.com/legendsciber/morphe-patches/compare/v1.31.0...v1.32.0) (2026-09-27)
+
+### ✨ New Features
+
+* **subwaysurfers:** add 3.69.2 support ([08fe382](https://github.com/legendsciber/morphe-patches/commit/08fe382c8ded0d87f57fe7dcf5a645a780c9e83b))
+
 ## [1.31.0](https://github.com/legendsciber/morphe-patches/compare/v1.30.1...v1.31.0) (2026-09-25)
 
 ### ✨ New Features

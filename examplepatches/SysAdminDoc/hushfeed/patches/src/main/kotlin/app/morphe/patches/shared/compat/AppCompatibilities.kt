@@ -23,14 +23,29 @@ internal object AppCompatibilities {
     /** TikTok 47.0.3's version code. APKMirror lists three variants of the release, all with this one. */
     const val TIKTOK_4703_VERSION_CODE = 2024700030
 
-    /** Target: TikTok 47.0.3 global package. */
-    fun tiktok4703(): Array<Compatibility> = arrayOf(
+    /**
+     * TikTok 47.1.3's version code. APKMirror stops at 47.0.16; APKCombo and Uptodown carry the
+     * universal arm64 and armeabi build, signed with TikTok's own certificate.
+     */
+    const val TIKTOK_4713_VERSION_CODE = 2024701030
+
+    /** The version codes of every declared build, for the patches that read one off the manifest. */
+    val TIKTOK_VERSION_CODES = setOf(TIKTOK_4703_VERSION_CODE, TIKTOK_4713_VERSION_CODE)
+
+    /**
+     * Targets: the TikTok global package, 47.0.3 and 47.1.3. Every patch is read against both
+     * builds' fixtures and declares both.
+     */
+    fun tiktok(): Array<Compatibility> = arrayOf(
         Compatibility(
             name = "TikTok",
             packageName = "com.zhiliaoapp.musically",
             appIconColor = TIKTOK_COLOR,
             signatures = setOf(TIKTOK_SIGNER_SHA256),
-            targets = listOf(AppTarget(version = "47.0.3", versionCode = TIKTOK_4703_VERSION_CODE)),
+            targets = listOf(
+                AppTarget(version = "47.0.3", versionCode = TIKTOK_4703_VERSION_CODE),
+                AppTarget(version = "47.1.3", versionCode = TIKTOK_4713_VERSION_CODE),
+            ),
         ),
     )
 }

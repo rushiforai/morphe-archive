@@ -52,7 +52,7 @@ public class ShareSheetToolsTest {
         ShadowToast.reset();
         Object cache = ReflectionHelpers.getStaticField(ShareSheetTools.class, "RESOURCE_IDS");
         Map<String, Integer> ids = ReflectionHelpers.getField(cache, "ids");
-        ids.put("com.zhiliaoapp.musically:ip5", 0x7f000201);
+        ids.put("com.zhiliaoapp.musically:47.0.3:ip5", 0x7f000201);
         ids.put("com.zhiliaoapp.musically:ibc", 0x7f000101);
     }
 

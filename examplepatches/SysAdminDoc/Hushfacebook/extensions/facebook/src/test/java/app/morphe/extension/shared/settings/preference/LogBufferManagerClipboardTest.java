@@ -6,7 +6,12 @@ package app.morphe.extension.shared.settings.preference;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.os.Looper;
 
 import org.junit.After;
 import org.junit.Before;
@@ -16,14 +21,18 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
+import org.robolectric.shadows.ShadowToast;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.WorkerPoolForTests;
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -200,6 +209,112 @@ public class LogBufferManagerClipboardTest {
                 }
             }
         }
+    }
+
+    private static ClipboardManager clipboard() {
+        return RuntimeEnvironment.getApplication().getSystemService(ClipboardManager.class);
+    }
+
+    private static String clipText(ClipboardManager clipboard) {
+        return String.valueOf(clipboard.getPrimaryClip().getItemAt(0).getText());
+    }
+
+    /** A clip the test can tell apart from any report, and no toast or bundle sentence left over. */
+    private static ClipboardManager clipboardHolding(String text) {
+        ClipboardManager clipboard = clipboard();
+        clipboard.setPrimaryClip(ClipData.newPlainText("test", text));
+        LogBufferManager.copiedMessage = null;
+        LogBufferManager.exportFailedMessage = null;
+        LogBufferManager.couldNotStartMessage = null;
+        ShadowToast.reset();
+        return clipboard;
+    }
+
+    /**
+     * Copy quick report builds and redacts the report on a worker, and only the copy and its toast
+     * come back to the main thread. Built on the main thread, a full buffer's redaction held up
+     * the tap that asked for it.
+     */
+    @Test
+    public void theQuickReportIsBuiltOffTheMainThreadAndCopiedOnIt() throws Exception {
+        List<Boolean> builtOnMain = new CopyOnWriteArrayList<>();
+        LogBufferManager.registerReportSection(new LogBufferManager.ReportSection() {
+            @Override
+            public String title() {
+                return "PROBE";
+            }
+
+            @Override
+            public List<String> lines() {
+                builtOnMain.add(Looper.getMainLooper().isCurrentThread());
+                return Collections.singletonList("probe line");
+            }
+        });
+        LogBufferManager.appendEvent(DiagnosticCategory.OTHER, "Probe", "INFO",
+                "opened www.facebook.com/dana.q.1987");
+        ClipboardManager clipboard = clipboardHolding("before");
+
+        LogBufferManager.exportToClipboard();
+        Utils.awaitBackgroundTasksForTests();
+
+        assertEquals("the report was built " + builtOnMain.size() + " times", 1, builtOnMain.size());
+        assertFalse("the report was built on the main thread", builtOnMain.get(0));
+        assertEquals("the copy didn't wait for the main thread", "before", clipText(clipboard));
+        assertNull(ShadowToast.getTextOfLatestToast());
+
+        ShadowLooper.idleMainLooper();
+        String copied = clipText(clipboard);
+        assertTrue(copied, copied.startsWith("MORPHE DIAGNOSTIC REPORT\n"));
+        assertTrue(copied, copied.contains("[PROBE]\nprobe line"));
+        assertFalse("the copy wasn't redacted: " + copied, copied.contains("dana.q.1987"));
+        assertEquals("Diagnostic report copied to the clipboard.", ShadowToast.getTextOfLatestToast());
+    }
+
+    /**
+     * A full worker queue copies nothing and says the copy couldn't start, and the next tap copies.
+     * The pool is one static executor for every test in this JVM; WorkerPoolForTests says how it's
+     * held full.
+     */
+    @Test
+    public void aFullWorkerQueueSaysTheCopyCouldNotStart() throws Exception {
+        events(3);
+        ClipboardManager clipboard = clipboardHolding("before");
+        try (WorkerPoolForTests full = WorkerPoolForTests.fill()) {
+            LogBufferManager.exportToClipboard();
+            ShadowLooper.idleMainLooper();
+            assertEquals("Couldn't start the report export. Try again shortly.", ShadowToast.getTextOfLatestToast());
+            assertEquals("before", clipText(clipboard));
+        }
+
+        LogBufferManager.exportToClipboard();
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+        assertTrue(clipText(clipboard), clipText(clipboard).startsWith("MORPHE DIAGNOSTIC REPORT\n"));
+    }
+
+    /** A report that can't be built says so, and whatever was on the clipboard stays there. */
+    @Test
+    public void aReportThatCannotBeBuiltSaysSoAndCopiesNothing() throws Exception {
+        LogBufferManager.registerReportSection(new LogBufferManager.ReportSection() {
+            @Override
+            public String title() {
+                throw new IllegalStateException("no title");
+            }
+
+            @Override
+            public List<String> lines() {
+                return Collections.singletonList("a line");
+            }
+        });
+        events(1);
+        ClipboardManager clipboard = clipboardHolding("before");
+
+        LogBufferManager.exportToClipboard();
+        Utils.awaitBackgroundTasksForTests();
+        ShadowLooper.idleMainLooper();
+
+        assertEquals("The diagnostic report couldn't be saved. Try again.", ShadowToast.getTextOfLatestToast());
+        assertEquals("before", clipText(clipboard));
     }
 
     /** A cut never leaves half of a character in front of the note. */

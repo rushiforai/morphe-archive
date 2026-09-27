@@ -39,6 +39,7 @@ internal data class JamUiAbi(
     val artwork: ArtworkAbi,
     val queueRow: QueueRowAbi,
     val buttons: List<ButtonAbi>,
+    val playbackIcon: PlaybackIconAbi,
     val autoplay: AutoplayUiAbi,
 )
 
@@ -120,6 +121,14 @@ internal data class QueueRowAbi(
 
 internal data class ButtonAbi(val type: String, val click: MethodReference)
 
+internal data class PlaybackIconAbi(
+    val render: MethodReference,
+    val view: FieldReference,
+    val constructor: MethodReference,
+    val playing: FieldReference,
+    val paused: FieldReference,
+)
+
 /**
  * Resolves presentation hooks from queue and platform relationships, never host obfuscation names.
  */
@@ -141,6 +150,7 @@ internal fun BytecodePatchContext.resolveJamUiAbi(queue: JamQueueAbi): JamUiAbi 
       artwork,
       queueRow,
       buttons,
+      resolvePlaybackIcon(),
       resolveAutoplayUi(queue),
   )
 }
@@ -404,10 +414,32 @@ private fun BytecodePatchContext.resolveQueueRow(
 
 private fun BytecodePatchContext.resolveButtons(): List<ButtonAbi> {
   val controls = PlaybackControlViewsFingerprint.matchSingle().originalClassDef
+  val presenter = PlayerMetadataViewsFingerprint.matchSingle().originalClassDef
   return (playbackControlsClickFingerprint(controls.type).matchAll() +
-          playbackButtonClickFingerprint(controls.type).matchAll())
+          playbackButtonClickFingerprint(controls.type).matchAll() +
+          playbackButtonClickFingerprint(presenter.type).matchAll())
       .map { match -> ButtonAbi(match.originalClassDef.type, match.originalMethod) }
       .distinctBy { it.type }
+}
+
+private fun BytecodePatchContext.resolvePlaybackIcon(): PlaybackIconAbi {
+  val controls = PlaybackControlViewsFingerprint.matchSingle().originalClassDef
+  val render = playbackIconFingerprint(controls.fields.map { it.type }.toSet()).matchSingle()
+  val constructor =
+      playbackIconModelConstructorFingerprint(render.originalMethod.parameterTypes.single().toString())
+          .matchSingle()
+          .originalMethod
+  val stateType = constructor.parameterTypes[0].toString()
+  require(AccessFlags.ENUM.isSet(classDefBy(stateType).accessFlags)) {
+    "Jam playback icon state must be an enum"
+  }
+  val view =
+      render.originalClassDef.fields.singleOrNull { it.type == "Landroid/widget/ImageView;" }
+          ?: error("Missing or ambiguous Jam playback icon view")
+  fun state(name: String) =
+      playbackIconStateFingerprint(stateType, name).matchSingle()
+          .instructionMatches[1].instruction.getReference<FieldReference>()!!
+  return PlaybackIconAbi(render.originalMethod, view, constructor, state("PLAYING"), state("PAUSED"))
 }
 
 private fun BytecodePatchContext.implementedInterfaces(type: String): Set<String> {

@@ -1,3 +1,39 @@
+## [1.12.27](https://github.com/xob0t/morphe-patches/compare/v1.12.26...v1.12.27) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **avito:** long-press to block on seller profile pages ([#95](https://github.com/xob0t/morphe-patches/issues/95)) ([9061c60](https://github.com/xob0t/morphe-patches/commit/9061c60fd34191e5cd6b37aeff456e4427c3e1fd))
+
+## [1.12.26](https://github.com/xob0t/morphe-patches/compare/v1.12.25...v1.12.26) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **avito:** hide the installments badge on offer pages ([#94](https://github.com/xob0t/morphe-patches/issues/94)) ([d493d0c](https://github.com/xob0t/morphe-patches/commit/d493d0cc36a13cfefd3fa12660021a60d455d36e))
+
+## [1.12.25](https://github.com/xob0t/morphe-patches/compare/v1.12.24...v1.12.25) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **avito:** hide "Реклама скрыта" stubs in Beduin v2 feeds ([#93](https://github.com/xob0t/morphe-patches/issues/93)) ([2893712](https://github.com/xob0t/morphe-patches/commit/28937122dc66d921f820889d890a9aae6a283673))
+
+## [1.12.24](https://github.com/xob0t/morphe-patches/compare/v1.12.23...v1.12.24) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **avito:** hide the profile prize portal banner ([#92](https://github.com/xob0t/morphe-patches/issues/92)) ([8351f88](https://github.com/xob0t/morphe-patches/commit/8351f88843c54da3cab8152bd61a2f1f1c0639e6))
+
+## [1.12.23](https://github.com/xob0t/morphe-patches/compare/v1.12.22...v1.12.23) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **avito:** block listings in Beduin v2 search feeds ([#91](https://github.com/xob0t/morphe-patches/issues/91)) ([91c52eb](https://github.com/xob0t/morphe-patches/commit/91c52eb8c1fdb020f999e405c0053c65950c0928))
+
+## [1.12.22](https://github.com/xob0t/morphe-patches/compare/v1.12.21...v1.12.22) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* **ozon:** support version 19.36.1 ([b33964b](https://github.com/xob0t/morphe-patches/commit/b33964b0ed943949d0fb7f75b4b9c6abaab6eb7a))
+
 ## [1.12.21](https://github.com/xob0t/morphe-patches/compare/v1.12.20...v1.12.21) (2026-09-22)
 
 ### 🚀 Updated App Support

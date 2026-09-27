@@ -174,7 +174,7 @@ val hideSearchSuggestionsPatch = bytecodePatch(
 ) {
     category("Search")
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         // Resolved before anything is written, so a build without it leaves the patch unapplied

@@ -58,6 +58,14 @@ public final class JamClock {
   }
 
   private static volatile MediaController controller;
+  private static boolean participating;
+  private static final MediaController.Callback localPlayback =
+    new MediaController.Callback() {
+      @Override
+      public void onPlaybackStateChanged(PlaybackState state) {
+        silenceLocalPlayer(state);
+      }
+    };
   private static final Map<Bar, Object> bars = new WeakHashMap<>();
   private static JSONObject sample;
   private static long received,
@@ -68,7 +76,30 @@ public final class JamClock {
   private static long serial;
 
   public static void capture(MediaSession session) {
-    controller = session.getController();
+    Utils.runOnMainThread(() -> {
+      if (controller != null) controller.unregisterCallback(localPlayback);
+      controller = session.getController();
+      controller.registerCallback(localPlayback, JamUi.main);
+      silenceLocalPlayer(controller.getPlaybackState());
+    });
+  }
+
+  private static void silenceLocalPlayer(PlaybackState state) {
+    if (!participating || controller == null || state == null) return;
+    int value = state.getState();
+    if (
+      value == PlaybackState.STATE_PLAYING ||
+      value == PlaybackState.STATE_BUFFERING ||
+      value == PlaybackState.STATE_CONNECTING
+    ) controller.getTransportControls().pause();
+  }
+
+  // Leaving restores the local UI, but never unexpectedly resumes local audio.
+  static void participation(boolean active) {
+    participating = active;
+    if (active && controller != null) silenceLocalPlayer(
+      controller.getPlaybackState()
+    );
   }
 
   /** YTM's MediaSession resolves this persistent ID in both native queue lanes. */
@@ -164,6 +195,7 @@ public final class JamClock {
     MediaController c = controller;
     JSONObject out = new JSONObject()
       .put("generation", generation)
+      .put("playbackControl", true)
       .put("sequence", ++serial)
       .put("sampledAt", SystemClock.elapsedRealtime())
       .put("videoId", VideoInformation.getVideoId());
@@ -188,8 +220,13 @@ public final class JamClock {
   static void accept(JSONObject view) {
     JSONObject session = view.optJSONObject("session");
     if (session == null) return;
+    participation(
+      "Joining".equals(session.optString("role")) ||
+        "Participant".equals(session.optString("role"))
+    );
     if (!"Participant".equals(session.optString("role"))) {
       clear();
+      participation("Joining".equals(session.optString("role")));
       return;
     }
     JSONObject next = view.optJSONObject("clock");
@@ -219,6 +256,7 @@ public final class JamClock {
     received =
       next.optLong("receivedAt", SystemClock.elapsedRealtime()) -
       Math.min(4000, Math.max(0, next.optLong("age")));
+    JamPlayerState.refresh();
     if (!ticking) {
       ticking = true;
       Utils.runOnMainThread(tick);
@@ -235,6 +273,55 @@ public final class JamClock {
           sample.optBoolean("playing"),
           SystemClock.elapsedRealtime() - received
         );
+  }
+
+  static Boolean hostPlaying() {
+    return sample == null ? null : sample.optBoolean("playing");
+  }
+
+  static boolean canControlHostPlayback() {
+    return sample != null && sample.optBoolean("playbackControl");
+  }
+
+  /** Apply an explicit state to the current host item without selecting or restarting it. */
+  static void setHostPlaying(String video, long itemId, boolean playing)
+    throws Exception {
+    FutureTask<Void> task = new FutureTask<>(() -> {
+      MediaController current = controller;
+      PlaybackState state = current == null ? null : current.getPlaybackState();
+      if (
+        state == null ||
+        state.getActiveQueueItemId() != itemId ||
+        !video.equals(VideoInformation.getVideoId())
+      ) {
+        throw new IllegalStateException(
+          "Host track changed; refresh before controlling playback"
+        );
+      }
+      int desired = playing
+        ? PlaybackState.STATE_PLAYING
+        : PlaybackState.STATE_PAUSED;
+      if (state.getState() == desired) return null;
+      long action = playing
+        ? PlaybackState.ACTION_PLAY
+        : PlaybackState.ACTION_PAUSE;
+      if (
+        (state.getActions() & (action | PlaybackState.ACTION_PLAY_PAUSE)) == 0
+      ) {
+        throw new IllegalStateException(
+          "The host cannot change playback state"
+        );
+      }
+      if (playing) current.getTransportControls().play();
+      else current.getTransportControls().pause();
+      return null;
+    });
+    Utils.runOnMainThread(task);
+    try {
+      task.get(5, TimeUnit.SECONDS);
+    } finally {
+      task.cancel(false);
+    }
   }
 
   public static Object model(Object view, Object local) {
@@ -263,10 +350,12 @@ public final class JamClock {
   };
 
   static void clear() {
+    participation(false);
     boolean wasMirroring = sample != null;
     sample = null;
     stream = "";
     sequence = -1;
+    JamPlayerState.refresh();
     if (wasMirroring) for (Map.Entry<Bar, Object> e : new ArrayList<>(
       bars.entrySet()
     ))

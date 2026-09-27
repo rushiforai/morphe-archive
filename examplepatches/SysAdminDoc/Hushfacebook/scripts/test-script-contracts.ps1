@@ -5,8 +5,8 @@
 .DESCRIPTION
     Ported from Hushfeed's suite on 2026-09-25 and held to Facebook's facts: two declared builds,
     both of Meta's signers, and .apkm split bundles. The pre-push hook runs it for changes under
-    scripts/, assets/ or concepts/marketing/, and for README.md, patches-list.json or
-    patches/build.gradle.kts. A missing suite stops the push.
+    scripts/ or assets/, and for README.md, patches-list.json or patches/build.gradle.kts. A
+    missing suite stops the push.
 #>
 [CmdletBinding()]
 param([string]$Root)
@@ -73,6 +73,23 @@ $three = Get-PatchTarget -PatchList $threeBuilds
 Assert-True (($three.PackageVersions -join ',') -eq '580.0.0.51.74,577.0.0.50.72,99.1.0.0.1' -and
     $three.PackageVersion -eq '580.0.0.51.74') `
     "Declared builds were not ordered newest first by number: $($three.PackageVersions -join ', ')"
+
+# Every part of the version, as a number. Facebook's have five and [version] takes four, so the fifth
+# was dropped and builds apart only there sorted as equals, the older one first in both shells.
+$fifthPart = [pscustomobject]@{
+    patches = @([pscustomobject]@{ name = 'hotfixes'
+        compatiblePackages = [pscustomobject]@{ 'com.example.app' = @('580.0.0.51.8', '580.0.0.51.10', '580.0.0.51', '580.0.0.51.9') } })
+}
+$fifth = Get-PatchTarget -PatchList $fifthPart
+Assert-True (($fifth.PackageVersions -join ',') -eq '580.0.0.51.10,580.0.0.51.9,580.0.0.51.8,580.0.0.51' -and
+    $fifth.PackageVersion -eq '580.0.0.51.10') `
+    "Builds apart only in their fifth part were not ordered newest first: $($fifth.PackageVersions -join ', ')"
+$notNumbers = [pscustomobject]@{
+    patches = @([pscustomobject]@{ name = 'lettered'
+        compatiblePackages = [pscustomobject]@{ 'com.example.app' = @('580.0.0.51.74', '580.0.0.51.x') } })
+}
+Assert-Throws { Get-PatchTarget -PatchList $notNumbers } "*580.0.0.51.x, which isn't a version of dotted numbers*" `
+    'A declared version that is not dotted numbers was sorted instead of refused.'
 
 $uneven = [pscustomobject]@{
     patches = @(
@@ -306,6 +323,17 @@ exit /b 19
         $newer[0].FullName -eq (Get-Item -LiteralPath $stub).FullName -and
         $newer[1].FullName -eq (Get-Item -LiteralPath $rules).FullName) `
         "The R8 rules or a patches submodule's stub was missed: $(@($newer | ForEach-Object FullName) -join ', ')"
+    # NOTICE as well: :extensions:facebook compiles it into the payload for the Licenses row, so a
+    # bundle built before it moved carries the old text.
+    $notice = Join-Path $staleRoot 'NOTICE'
+    [System.IO.File]::WriteAllText($notice, 'x', [System.Text.Encoding]::ASCII)
+    [System.IO.File]::SetLastWriteTimeUtc($notice, $then)
+    Assert-True (@(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle).Count -eq 5) `
+        'A NOTICE written before the bundle was counted.'
+    [System.IO.File]::SetLastWriteTimeUtc($notice, $then.AddMinutes(12))
+    $newer = @(Get-SourcesNewerThanBundle -Root $staleRoot -Bundle $staleBundle)
+    Assert-True ($newer.Count -eq 6 -and $newer[0].FullName -eq (Get-Item -LiteralPath $notice).FullName) `
+        "A NOTICE written after the bundle, which the payload carries, was missed: $(@($newer | ForEach-Object FullName) -join ', ')"
     $deviceScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'patch-for-device.ps1') -Raw
     Assert-True ($deviceScript -match 'Get-SourcesNewerThanBundle' -and
         $deviceScript -match '\[switch\]\$AllowStaleBundle') `
@@ -404,10 +432,20 @@ $unchanged = Get-ManifestDelta -Stock $facts -Patched $facts
 Assert-True (@(ConvertTo-ManifestDeltaEntries -Delta $unchanged).Count -eq 0) `
     'An unchanged manifest produced a delta.'
 
-$checkedInAllowlist = Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt')
-Assert-True (@($checkedInAllowlist | Where-Object { $_ }).Count -eq 0) `
-    ('The checked-in manifest delta allowlist is no longer empty, so the patches now change the ' +
-     "Android manifest: $(@($checkedInAllowlist) -join ', ')")
+# The checked-in allowlist approves one change and nothing else: Install beside Meta's apps renames
+# the two permissions Facebook shares with Messenger, Lite, Business Suite and Workplace, which the
+# receipt reads as the two new names asked for and the two old ones no longer asked for.
+$checkedInAllowlist = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
+    Where-Object { $_ })
+$renameEntries = @(
+    'permission-added app.hushfacebook.permission.prod.FB_APP_COMMUNICATION',
+    'permission-added app.hushfacebook.receiver.permission.ACCESS',
+    'permission-removed com.facebook.permission.prod.FB_APP_COMMUNICATION',
+    'permission-removed com.facebook.receiver.permission.ACCESS')
+Assert-True ((@($checkedInAllowlist | Sort-Object -CaseSensitive) -join "`n") -ceq
+        (@($renameEntries | Sort-Object -CaseSensitive) -join "`n")) `
+    ('The checked-in manifest delta allowlist approves something besides the permission rename, or ' +
+     "less than all of it: $($checkedInAllowlist -join ', ')")
 
 $allowlistRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("receipt-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $allowlistRoot | Out-Null
@@ -736,6 +774,52 @@ try {
     Assert-True (-not $stale.Valid) 'An allowlist entry no patch produces was accepted.'
     Assert-True ($stale.Reason -like '*any more*') `
         "The stale allowlist entry was refused for the wrong reason: $($stale.Reason)"
+
+    # The checked-in allowlist, against receipts that carry the permission rename on both builds.
+    # The rename passes. The rename plus any other change is refused, naming only the other, and a
+    # rename that stopped halfway is refused for the half no patch makes any more.
+    $withRename = {
+        param($r)
+        foreach ($target in $r.targets) {
+            $target.manifestDelta.permissionsAdded = @('app.hushfacebook.permission.prod.FB_APP_COMMUNICATION',
+                'app.hushfacebook.receiver.permission.ACCESS')
+            $target.manifestDelta.permissionsRemoved = @('com.facebook.permission.prod.FB_APP_COMMUNICATION',
+                'com.facebook.receiver.permission.ACCESS')
+        }
+    }
+    $renamed = Test-TestReceipt -Receipt (New-TestReceipt -Mutate $withRename) -Approved $checkedInAllowlist
+    Assert-True $renamed.Valid "A receipt carrying the approved permission rename was refused: $($renamed.Reason)"
+    $unrenamed = Test-TestReceipt -Receipt (New-TestReceipt) -Approved $checkedInAllowlist
+    Assert-True (-not $unrenamed.Valid -and $unrenamed.Reason -like '*any more*') `
+        "A receipt without the rename passed the allowlist that approves it: $($unrenamed.Reason)"
+    foreach ($other in @(
+            @{ Name = 'another permission asked for'; Entry = 'permission-added android.permission.READ_SMS'
+                Change = { param($t) $t.manifestDelta.permissionsAdded = @($t.manifestDelta.permissionsAdded) + 'android.permission.READ_SMS' } },
+            @{ Name = 'a third renamed permission'; Entry = 'permission-added app.hushfacebook.permission.prod.OTHER'
+                Change = { param($t) $t.manifestDelta.permissionsAdded = @($t.manifestDelta.permissionsAdded) + 'app.hushfacebook.permission.prod.OTHER' } },
+            @{ Name = 'another permission dropped'; Entry = 'permission-removed android.permission.CAMERA'
+                Change = { param($t) $t.manifestDelta.permissionsRemoved = @($t.manifestDelta.permissionsRemoved) + 'android.permission.CAMERA' } },
+            @{ Name = 'a component exported'; Entry = 'exported-added receiver:com.facebook.device_id.UniqueIdSupplier'
+                Change = { param($t) $t.manifestDelta.exportedComponentsAdded = @('receiver:com.facebook.device_id.UniqueIdSupplier') } },
+            @{ Name = 'a component no longer exported'; Entry = 'exported-removed activity:com.facebook.katana.ProxyAuth'
+                Change = { param($t) $t.manifestDelta.exportedComponentsRemoved = @('activity:com.facebook.katana.ProxyAuth') } })) {
+        $receipt = New-TestReceipt -Mutate { param($r) & $withRename $r; & $other.Change $r.targets[1] }
+        $result = Test-TestReceipt -Receipt $receipt -Approved $checkedInAllowlist
+        Assert-True (-not $result.Valid) "With the permission rename approved, $($other.Name) was accepted."
+        Assert-True ($result.Reason -like "*nobody reviewed: $($other.Entry)") `
+            "With the permission rename approved, $($other.Name) was refused for the wrong reason: $($result.Reason)"
+    }
+    $halfway = New-TestReceipt -Mutate {
+        param($r)
+        & $withRename $r
+        foreach ($target in $r.targets) {
+            $target.manifestDelta.permissionsAdded = @('app.hushfacebook.permission.prod.FB_APP_COMMUNICATION')
+            $target.manifestDelta.permissionsRemoved = @('com.facebook.permission.prod.FB_APP_COMMUNICATION')
+        }
+    }
+    $half = Test-TestReceipt -Receipt $halfway -Approved $checkedInAllowlist
+    Assert-True (-not $half.Valid -and $half.Reason -like '*any more*receiver.permission.ACCESS*') `
+        "A rename of one permission of the two passed the allowlist of both: $($half.Reason)"
 
     # The SBOM a receipt names. Each refusal has to name the SBOM fact that failed rather than trip
     # over the next field, or a check that went missing would pass unseen behind the one after it.
@@ -1067,6 +1151,51 @@ try {
         $factsSource -match '-ExpectedPackageVersions \$receiptTarget\.PackageVersions(?![\w.\[])') `
         ('validate-release-facts.ps1 no longer holds the receipt to the patch list its own commit ' +
             'carried, or to every build that list declares.')
+
+    # The manifest delta allowlist, the same way: the one the receipt's own commit carried. An entry
+    # added in the working tree and never committed approved a change into a release no commit had
+    # reviewed, and one pruned after a release refused the release that needed it. A commit with no
+    # allowlist, or no commit, gets the working one, the first with a note, and a malformed line at
+    # the commit says where it is. Written without a byte order mark, as the repository's is, and
+    # then with one, which git hands back as text.
+    $allowlistFile = Join-Path $toolchainRoot 'scripts/manifest-delta-allowlist.txt'
+    New-Item -ItemType Directory -Path (Split-Path -Parent $allowlistFile) -Force | Out-Null
+    function Save-FixtureAllowlist([string[]]$Lines, [switch]$Bom, [switch]$Commit) {
+        [System.IO.File]::WriteAllText($allowlistFile, (($Lines -join "`n") + "`n"), (New-Object System.Text.UTF8Encoding($Bom.IsPresent)))
+        if (-not $Commit) { return $null }
+        Invoke-FixtureGit -Root $toolchainRoot -Arguments @('add', '-A') | Out-Null
+        Invoke-FixtureGit -Root $toolchainRoot -Arguments @('commit', '-m', 'allowlist', '--quiet') | Out-Null
+        return "$(Invoke-FixtureGit -Root $toolchainRoot -Arguments @('rev-parse', 'HEAD') | Select-Object -First 1)".Trim()
+    }
+    $reviewed = 'exported-added activity:com.example.Reviewed'
+    $unreviewed = 'exported-added activity:com.example.Unreviewed'
+    foreach ($bom in $false, $true) {
+        $allowlistCommit = Save-FixtureAllowlist @('# reviewed at the release', $reviewed) -Bom:$bom -Commit
+        Save-FixtureAllowlist @('# added since, never committed', $unreviewed) | Out-Null
+        $atAllowlist = Resolve-ReceiptManifestAllowlist -Root $toolchainRoot -Commit $allowlistCommit -WorkingPath $allowlistFile
+        Assert-True ((@($atAllowlist.Entries) -join ',') -ceq $reviewed -and
+            $atAllowlist.Note -like "*allowlist at its own commit $($allowlistCommit.Substring(0, 8)) reviews*") `
+            "The receipt was not held to the allowlist its own commit carried (byte order mark: $bom): $(@($atAllowlist.Entries) -join ', ') / $($atAllowlist.Note)"
+    }
+    $atNoAllowlist = Resolve-ReceiptManifestAllowlist -Root $toolchainRoot -Commit $releaseCommitSha -WorkingPath $allowlistFile
+    Assert-True ((@($atNoAllowlist.Entries) -join ',') -ceq $unreviewed -and $atNoAllowlist.Note -like '*has no manifest delta allowlist*') `
+        "A commit with no allowlist did not fall back to the working one, saying so: $($atNoAllowlist.Note)"
+    $noCommitAllowlist = Resolve-ReceiptManifestAllowlist -Root $toolchainRoot -Commit '' -WorkingPath $allowlistFile
+    Assert-True ((@($noCommitAllowlist.Entries) -join ',') -ceq $unreviewed -and $null -eq $noCommitAllowlist.Note) `
+        'A receipt naming no commit was not held quietly to the working allowlist.'
+    $sameAllowlist = Resolve-ReceiptManifestAllowlist -Root $toolchainRoot -Commit (Save-FixtureAllowlist @($unreviewed) -Commit) `
+        -WorkingPath $allowlistFile
+    Assert-True ((@($sameAllowlist.Entries) -join ',') -ceq $unreviewed -and $null -eq $sameAllowlist.Note) `
+        "An allowlist the working tree still holds as committed reported a difference: $($sameAllowlist.Note)"
+    $brokenAllowlist = Save-FixtureAllowlist @('exported-added') -Commit
+    Assert-Throws { Resolve-ReceiptManifestAllowlist -Root $toolchainRoot -Commit $brokenAllowlist -WorkingPath $allowlistFile } `
+        "*allowlist at $($brokenAllowlist.Substring(0, 8)) has a line that is not*" `
+        'A malformed allowlist at the receipt''s commit was read without complaint.'
+    Assert-True ($factsSource -match '\$resolvedAllowlist = Resolve-ReceiptManifestAllowlist -Root \$rootPath -Commit \$receiptCommit' -and
+        $factsSource -match '\$approvedDelta = @\(\$resolvedAllowlist\.Entries\)' -and
+        $factsSource -match '-ApprovedManifestDelta \$approvedDelta' -and
+        $factsSource -notmatch 'Read-ManifestDeltaAllowlist') `
+        'validate-release-facts.ps1 no longer holds the receipt to the allowlist its own commit carried.'
 
     # The receipt schema, read the same way: out of scripts/release-receipt.ps1 at the receipt's
     # commit. A release cut before the SBOM is held to schema 1 and says so, one cut since to this
@@ -1590,6 +1719,35 @@ try {
     Assert-Throws { Invoke-Facts } '*' 'An index counting patches the catalog does not have was accepted.'
     Reset-FactsFile 'patches-bundle.json'
 
+    # Read one way, all at once: every "N patches" the description says has to be one count and
+    # every "Facebook <build>" one build. The lag check read the first of each and the equality
+    # check any, so a description quoting the catalog's count once and a stale one elsewhere, or
+    # naming another build beside the target, passed the equality check. On both paths now.
+    $indexCount = [regex]::Match([string](Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw |
+        ConvertFrom-Json).description, '(?<![\d.])(\d+) patches\b').Groups[1].Value
+    $indexCounts = [regex]::Matches((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw), '(?<!\d)\d+ patches\b').Count
+    Assert-True ($indexCounts -ge 2) "The copied description names its patch count once, so the stale-count case would prove nothing."
+    $factsTarget = (Get-PatchTarget -PatchList (Get-Content -LiteralPath (Join-Path $factsRoot 'patches-list.json') -Raw |
+        ConvertFrom-Json)).PackageVersion
+    Assert-True ([regex]::Matches((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-bundle.json') -Raw),
+            "Facebook $([regex]::Escape($factsTarget))(?!\d)").Count -ge 2) `
+        "The copied description names Facebook $factsTarget once, so the other-build case would prove nothing."
+    foreach ($case in @(
+            @{ Name = 'a stale count beside the catalog''s'; Pattern = "*names 3 and $indexCount patches, and it has to name one count*"
+                Edit = { param($text) ([regex]'(?<!\d)\d+ patches\b').Replace($text, '3 patches', 1) } },
+            @{ Name = 'another build beside the target'; Pattern = "*names Facebook $factsTarget and Facebook 9.9.9.9.9, and it has to name one build*"
+                Edit = { param($text) $at = $text.LastIndexOf("Facebook $factsTarget")
+                    $text.Substring(0, $at) + 'Facebook 9.9.9.9.9' + $text.Substring($at + "Facebook $factsTarget".Length) } })) {
+        Set-FactsFile 'patches-bundle.json' $case.Edit
+        try {
+            Assert-Throws { Invoke-Facts } $case.Pattern "An index description naming $($case.Name) was accepted."
+            Assert-Throws { & $factsScript -Root $factsRoot -SkipDescriptionTestCount -AllowPublishedIndexLag -SkipUrlCheck 6> $null } `
+                $case.Pattern "The lenient check read an index description naming $($case.Name) as one fact."
+        } finally {
+            Reset-FactsFile 'patches-bundle.json'
+        }
+    }
+
     # The same number in the README, which is the other half of the same promise.
     Set-FactsFile 'README.md' {
         param($text) $text -replace '(?<!\d)\d+ patches\b', '3 patches'
@@ -1816,6 +1974,9 @@ Write-Host '[scripts] release facts contracts passed'
 $prePushScript = Join-Path $PSScriptRoot 'pre-push.ps1'
 $hookRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfacebook-hook-" + [guid]::NewGuid().ToString('N'))
 $savedSkip = $env:HUSHFACEBOOK_SKIP_PRE_PUSH
+$savedRoutingWrapper = $env:HUSHFACEBOOK_BUILD_WRAPPER
+$savedRoutingActor = $env:GITHUB_ACTOR
+$savedRoutingToken = $env:GITHUB_TOKEN
 $savedHookGit = @{}
 # These cases invoke another hook against a foreign repository. Git's own hook environment
 # must not leak into that repository or its local bare transport, including GIT_EXEC_PATH.
@@ -1847,10 +2008,23 @@ try {
         'param([string]$Root)',
         "Set-Content -LiteralPath '$contractsMarker' -Value 'ran'",
         'exit 0')
+    # The runtime tests start through HUSHFACEBOOK_BUILD_WRAPPER, which the hook reads from the
+    # user's environment when this process lacks it, so a stub stands in for it here: it records
+    # that the tests were asked for and builds nothing. The credentials the build path wants first
+    # are dummies. The build sections further down put stubs of their own in its place.
+    $buildMarker = Join-Path $hookRoot 'build-ran.txt'
+    $routingBuild = Join-Path $hookRoot 'routing-build.ps1'
+    Set-Content -LiteralPath $routingBuild -Encoding UTF8 -Value @(
+        'param([string]$ProjectDir, [string[]]$Tasks)',
+        "Set-Content -LiteralPath '$buildMarker' -Value 'ran'",
+        'exit 0')
+    $env:HUSHFACEBOOK_BUILD_WRAPPER = $routingBuild
+    $env:GITHUB_ACTOR = 'contract'
+    $env:GITHUB_TOKEN = 'contract'
 
     function Invoke-Hook {
         param([string[]]$Paths)
-        Remove-Item -LiteralPath $factsMarker, $contractsMarker -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $factsMarker, $contractsMarker, $buildMarker -Force -ErrorAction SilentlyContinue
         $global:LASTEXITCODE = 0
         & $prePushScript -Root $hookRoot -ChangedPaths $Paths 6> $null
         if ($LASTEXITCODE -ne 0) { throw "pre-push exited $LASTEXITCODE for $($Paths -join ', ')" }
@@ -1933,7 +2107,7 @@ try {
         'scripts/test-injected-registers.ps1' = @('BadDexFixture.java', 'DexDiff.java', 'injected-mutation-contracts.txt',
             'injected-register-contracts.ps1', 'injected-register-removal-allowlist.txt', 'script-wiring.ps1',
             'test-injected-registers.ps1', 'verify-all-patches.ps1', 'verify-injected-registers.ps1')
-        'scripts/test-resource-table-check.ps1' = @('ResourceTableCheck.java', 'test-resource-table-check.ps1',
+        'scripts/test-resource-table-check.ps1' = @('MergeSplits.java', 'ResourceTableCheck.java', 'test-resource-table-check.ps1',
             'verify-all-patches.ps1')
         'scripts/test-injected-register-device.ps1' = @('injected-register-device.ps1', 'script-wiring.ps1',
             'test-injected-register-device.ps1', 'verify-injected-registers.ps1')
@@ -1989,7 +2163,7 @@ try {
     # These tests end with the marketing asset check, which holds the artwork and the README's hero
     # and links. A push of only an icon ran no gate, and one of only the README ran the release
     # check alone.
-    foreach ($artwork in 'assets/icons/icon-16.png', 'concepts/marketing/2026-09-25/selected/icon-master.png', 'README.md') {
+    foreach ($artwork in 'assets/icons/icon-16.png', 'assets/readme-hero.png', 'README.md') {
         Invoke-Hook -Paths @($artwork)
         Assert-True (Test-Path -LiteralPath $contractsMarker) `
             "A push that changed only $artwork did not run the script contract tests, which hold the marketing assets."
@@ -2032,6 +2206,126 @@ try {
     Assert-True ($routed -like "*artifact=$releaseCopy hosted=False*") `
         "The index push compared something other than the release copy: $routed"
     Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force
+
+    # The files outside the source trees that the runtime tests read. ReadmePatchNamesTest holds the
+    # README's patch rows to the catalog, ProvenanceTest holds NOTICE and every source's header to
+    # provenance.json, PatchFamilyTest reads the catalog, and ShortcutCallsTest reads the mutation
+    # contracts. The Gradle files declare them as test inputs, and a push of one alone still never
+    # started the tests. Files no test reads still don't start them.
+    foreach ($route in @(
+            @{ Path = 'README.md'; Build = $true }, @{ Path = 'NOTICE'; Build = $true },
+            @{ Path = 'provenance.json'; Build = $true }, @{ Path = 'patches-list.json'; Build = $true },
+            @{ Path = 'scripts/injected-mutation-contracts.txt'; Build = $true },
+            @{ Path = 'scripts/injected-register-removal-allowlist.txt'; Build = $false },
+            @{ Path = 'CHANGELOG.md'; Build = $false }, @{ Path = 'docs/sources.md'; Build = $false },
+            @{ Path = 'sources/facebook-sources.json'; Build = $false }, @{ Path = 'patches-bundle.json'; Build = $false },
+            @{ Path = 'assets/icons/icon-16.png'; Build = $false }, @{ Path = 'CONTRIBUTING.md'; Build = $false })) {
+        Invoke-Hook -Paths @($route.Path)
+        $started = Test-Path -LiteralPath $buildMarker
+        Assert-True ($started -eq $route.Build) `
+            "A push of only $($route.Path) $(if ($started) { 'started' } else { 'did not start' }) the runtime tests."
+    }
+
+    # What a push changes, read the way git lists it. Taken for a rename, a moved file was listed
+    # under its new path alone: patches-bundle.json moved away ran no release check, a source moved
+    # out of extensions/ no runtime tests, and a verifier suite renamed was never looked for, so the
+    # push went out without it. And git quotes a path with a byte outside ASCII unless told not to,
+    # and "extensions/.../\303\234ber.java" in quotes matched no route. A repository of its own,
+    # clean and pushed from HEAD, so every check runs in place from the stubs its commits carry.
+    $listingRepo = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfacebook-listing-" + [guid]::NewGuid().ToString('N'))
+    $listingRan = "$listingRepo-ran"
+    New-Item -ItemType Directory -Path (Join-Path $listingRepo 'scripts'), $listingRan -Force | Out-Null
+    try {
+        & git -C $listingRepo init --quiet
+        $listingGitDir = (& git -C $listingRepo rev-parse --absolute-git-dir).Trim()
+        Assert-True ([IO.Path]::GetFullPath($listingGitDir).TrimEnd('\', '/') -ieq
+            [IO.Path]::GetFullPath((Join-Path $listingRepo '.git')).TrimEnd('\', '/')) `
+            'The listing fixture resolved outside its temporary repository; refusing to write.'
+        & git -C $listingRepo config user.name 'Listing Contract'
+        & git -C $listingRepo config user.email 'listing@example.invalid'
+        & git -C $listingRepo config core.autocrlf false
+        $listingStubs = [ordered]@{
+            'scripts/validate-release-facts.ps1' = ('param([string]$Root, [switch]$SkipDescriptionTestCount, ' +
+                '[switch]$AllowPublishedIndexLag, [switch]$VerifyPublishedAsset, [string]$ArtifactPath, ' +
+                '[switch]$ArtifactIsHosted, [switch]$SkipTestResults)')
+        }
+        foreach ($suite in @('scripts/test-script-contracts.ps1') + @($verifierRoutes.Keys)) {
+            $listingStubs[$suite] = 'param([string]$Root)'
+        }
+        foreach ($stub in $listingStubs.Keys) {
+            $ranFile = Join-Path $listingRan ([IO.Path]::GetFileNameWithoutExtension($stub) + '.txt')
+            Set-Content -LiteralPath (Join-Path $listingRepo $stub) -Encoding UTF8 -Value @(
+                $listingStubs[$stub], "Set-Content -LiteralPath '$ranFile' -Value 'ran'", 'exit 0')
+        }
+        # Commits what -Change leaves, pushes it the way git hands the hook a push, and answers
+        # with what ran: the stubs by name, and build for the runtime tests.
+        function Push-ListingChange([scriptblock]$Change, [switch]$NewBranch) {
+            $before = if ($NewBranch) { '0' * 40 } else { (& git -C $listingRepo rev-parse HEAD).Trim() }
+            & $Change
+            & git -C $listingRepo add -A
+            & git -C $listingRepo commit --quiet -m 'listing case'
+            $after = (& git -C $listingRepo rev-parse HEAD).Trim()
+            Remove-Item -Path (Join-Path $listingRan '*') -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $buildMarker -Force -ErrorAction SilentlyContinue
+            $global:LASTEXITCODE = 0
+            & $prePushScript -Root $listingRepo -PushedRefs "refs/heads/main $after refs/heads/main $before" 6> $null
+            if ($LASTEXITCODE -ne 0) { throw "pre-push exited $LASTEXITCODE" }
+            $ran = @(Get-ChildItem -LiteralPath $listingRan -File | ForEach-Object { $_.BaseName } | Sort-Object)
+            if (Test-Path -LiteralPath $buildMarker) { $ran = @('build') + $ran }
+            return ($ran -join ', ')
+        }
+
+        # A new branch is read from its whole tree, where the one source has a name outside ASCII.
+        $javaFolder = Join-Path $listingRepo 'extensions/facebook/src/main/java'
+        $ran = Push-ListingChange -NewBranch {
+            New-Item -ItemType Directory -Path $javaFolder -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $javaFolder "$([char]0x00DC)ber.java") -Encoding ASCII -Value 'final class U {}'
+        }
+        Assert-True ($ran -like 'build, *') "A new branch whose only source has a name outside ASCII ran [$ran], without the runtime tests."
+        $ran = Push-ListingChange {
+            Set-Content -LiteralPath (Join-Path $listingRepo 'patches-bundle.json') -Encoding ASCII -Value '{}'
+            Set-Content -LiteralPath (Join-Path $javaFolder 'Moved.java') -Encoding ASCII -Value 'final class Moved {}'
+        }
+        Assert-True ($ran -eq 'build, validate-release-facts') "A push adding the index and a source ran [$ran]."
+
+        # Each end of a move counts where it is.
+        $ran = Push-ListingChange {
+            New-Item -ItemType Directory -Path (Join-Path $listingRepo 'attic') -Force | Out-Null
+            & git -C $listingRepo mv patches-bundle.json attic/patches-bundle.json
+        }
+        Assert-True ($ran -eq 'validate-release-facts') "A push that moved patches-bundle.json away ran [$ran], not the release check."
+        $ran = Push-ListingChange { & git -C $listingRepo mv extensions/facebook/src/main/java/Moved.java attic/Moved.java }
+        Assert-True ($ran -eq 'build') "A push that moved a source out of extensions/ ran [$ran], not the runtime tests."
+
+        # A gate suite renamed away is one the gate still expects, by the name it had.
+        foreach ($suite in @('scripts/test-script-contracts.ps1') + @($verifierRoutes.Keys)) {
+            $renamed = "scripts/retired-$(Split-Path -Leaf $suite)"
+            Assert-Throws { Push-ListingChange { & git -C $listingRepo mv $suite $renamed } } "*$suite was deleted in this push*" `
+                "A push that renamed $suite went out without it."
+            & git -C $listingRepo mv $renamed $suite
+            & git -C $listingRepo commit --quiet -m 'the suite back'
+        }
+
+        # And a changed path with a name outside ASCII, where the push is a range.
+        $ran = Push-ListingChange {
+            Set-Content -LiteralPath (Join-Path $listingRepo "scripts/n$([char]0x00F6)tes.txt") -Encoding ASCII -Value 'notes'
+        }
+        Assert-True ($ran -eq 'test-script-contracts') "A push of a script with a name outside ASCII ran [$ran], not the contract tests."
+        $ran = Push-ListingChange {
+            Set-Content -LiteralPath (Join-Path $javaFolder "Caf$([char]0x00E9).java") -Encoding ASCII -Value 'final class Cafe {}'
+        }
+        Assert-True ($ran -eq 'build') "A push of a source with a name outside ASCII ran [$ran], not the runtime tests."
+    } finally {
+        foreach ($line in @(& git -C $listingRepo worktree list --porcelain)) {
+            if ($line -like 'worktree *') {
+                $listed = $line.Substring('worktree '.Length)
+                if ([IO.Path]::GetFullPath($listed).TrimEnd('\', '/') -ine [IO.Path]::GetFullPath($listingRepo).TrimEnd('\', '/')) {
+                    & git -C $listingRepo worktree remove --force $listed
+                }
+            }
+        }
+        Remove-Item -LiteralPath $listingRepo, $listingRan -Recurse -Force -ErrorAction SilentlyContinue
+    }
 
     # A new remote branch can contain several unpublished commits. The code change here is in
     # the first commit and the tip changes only documentation. Looking at HEAD^..HEAD silently
@@ -2601,6 +2895,67 @@ try {
             $contractsBroken = Save-GateContracts 'broken'
             Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $contractsBroken refs/heads/main $contractsGood" 6> $null } `
                 '*script contract tests did not pass*' 'A push whose own script contract tests fail was let through.'
+
+            # A pushed commit's suite and facts check run in a process of their own. Run in the
+            # hook's, they saw every function the hook and the working tree's common.ps1 define, so
+            # a suite calling a helper that exists only uncommitted passed the hook and failed for
+            # anyone who checked the commit out. A copy of the hook sits in this working tree beside
+            # a common.ps1 that defines such a helper, uncommitted; the commit's own common.ps1
+            # doesn't, until the control commits it. The suite and the check each call it.
+            $helperMarker = Join-Path $hookRoot 'gate-helper-ran.txt'
+            $gateCommon = Join-Path $gateRepo 'scripts/common.ps1'
+            $gateHook = Join-Path $gateRepo 'scripts/pre-push.ps1'
+            $helperCalls = @('$ErrorActionPreference = ''Stop''', '. (Join-Path $PSScriptRoot ''common.ps1'')',
+                "Set-Content -LiteralPath '$helperMarker' -Value (Get-UncommittedHelper)")
+            function Save-GateHelperCommit([string]$Message, [string[]]$Common, [string[]]$Suite, [string[]]$Facts) {
+                Set-Content -LiteralPath $gateCommon -Encoding UTF8 -Value $Common
+                if ($Suite) { Set-Content -LiteralPath $contractsStub -Encoding UTF8 -Value $Suite }
+                if ($Facts) { Set-Content -LiteralPath (Join-Path $gateRepo 'scripts/validate-release-facts.ps1') -Encoding UTF8 -Value $Facts }
+                # By name: the hook's copy sits in scripts/ too, and it isn't part of any commit.
+                & git -C $gateRepo add scripts/common.ps1 scripts/test-script-contracts.ps1 scripts/validate-release-facts.ps1
+                & git -C $gateRepo commit --quiet -m $Message
+                return (& git -C $gateRepo rev-parse HEAD).Trim()
+            }
+            $withoutHelper = @('function Get-CommittedHelper { ''committed'' }')
+            $suiteCallingHelper = @('param([string]$Root)') + $helperCalls + @('exit 0')
+            $factsCallingHelper = @('param([string]$Root, [switch]$SkipDescriptionTestCount, [switch]$AllowPublishedIndexLag,',
+                '    [switch]$VerifyPublishedAsset, [string]$ArtifactPath, [switch]$SkipTestResults)') + $helperCalls + @('exit 0')
+            $helperBase = (& git -C $gateRepo rev-parse HEAD).Trim()
+            $suiteNeedsHelper = Save-GateHelperCommit 'suite calls a helper' -Common $withoutHelper -Suite $suiteCallingHelper
+            # The working tree's common.ps1: the hook's own helpers, and the one nobody committed.
+            Set-Content -LiteralPath $gateCommon -Encoding UTF8 -Value (@(Get-Content -LiteralPath (Join-Path $PSScriptRoot 'common.ps1')) +
+                @('function Get-UncommittedHelper { ''uncommitted'' }'))
+            Copy-Item -LiteralPath $prePushScript -Destination $gateHook
+            try {
+                Remove-Item -LiteralPath $helperMarker -Force -ErrorAction SilentlyContinue
+                Assert-Throws { & $gateHook -Root $gateRepo -PushedRefs "refs/heads/main $suiteNeedsHelper refs/heads/main $helperBase" 6> $null } `
+                    '*script contract tests did not pass*' `
+                    'A pushed suite calling a helper only the working tree defines passed the hook.'
+                Assert-True (-not (Test-Path -LiteralPath $helperMarker)) 'The pushed suite reached a helper its commit does not define.'
+                # The facts check the same way, on a README push, with a suite that calls nothing.
+                $factsNeedsHelper = Save-GateHelperCommit 'facts check calls a helper' -Common $withoutHelper `
+                    -Suite @('param([string]$Root)', 'exit 0') -Facts $factsCallingHelper
+                Set-Content -LiteralPath $gateCommon -Encoding UTF8 -Value (@(Get-Content -LiteralPath (Join-Path $PSScriptRoot 'common.ps1')) +
+                    @('function Get-UncommittedHelper { ''uncommitted'' }'))
+                $factsReadme = Save-GateReadme 'helper'
+                Assert-Throws { & $gateHook -Root $gateRepo -PushedRefs "refs/heads/main $factsReadme refs/heads/main $factsNeedsHelper" 6> $null } `
+                    '*release facts do not agree*' 'A pushed facts check calling a helper only the working tree defines passed the hook.'
+                # The control: the helper committed, and the same pushes go through from the same
+                # dirty tree, each script finding it in its own commit's common.ps1.
+                $helperCommitted = Save-GateHelperCommit 'helper committed' -Common @($withoutHelper + @('function Get-UncommittedHelper { ''committed now'' }')) `
+                    -Suite $suiteCallingHelper -Facts $factsCallingHelper
+                Set-Content -LiteralPath $gateCommon -Encoding UTF8 -Value (@(Get-Content -LiteralPath (Join-Path $PSScriptRoot 'common.ps1')) +
+                    @('function Get-UncommittedHelper { ''uncommitted'' }'))
+                $controlReadme = Save-GateReadme 'control'
+                Remove-Item -LiteralPath $helperMarker -Force -ErrorAction SilentlyContinue
+                $global:LASTEXITCODE = 0
+                & $gateHook -Root $gateRepo -PushedRefs "refs/heads/main $controlReadme refs/heads/main $helperBase" 6> $null
+                Assert-True ($LASTEXITCODE -eq 0 -and (Get-Content -LiteralPath $helperMarker -Raw).Trim() -eq 'committed now') `
+                    "A pushed commit whose own common.ps1 defines the helper did not pass from a dirty tree: $LASTEXITCODE"
+            } finally {
+                Remove-Item -LiteralPath $gateHook -Force -ErrorAction SilentlyContinue
+                & git -C $gateRepo checkout --quiet -- scripts
+            }
         } finally {
             foreach ($line in @(& git -C $gateRepo worktree list --porcelain)) {
                 if ($line -like 'worktree *') {
@@ -2619,6 +2974,9 @@ try {
     }
 } finally {
     $env:HUSHFACEBOOK_SKIP_PRE_PUSH = $savedSkip
+    $env:HUSHFACEBOOK_BUILD_WRAPPER = $savedRoutingWrapper
+    $env:GITHUB_ACTOR = $savedRoutingActor
+    $env:GITHUB_TOKEN = $savedRoutingToken
     foreach ($name in $savedHookGit.Keys) { Set-Item -LiteralPath ('Env:\' + $name) -Value $savedHookGit[$name] }
     Remove-Item -LiteralPath $hookRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
@@ -2991,15 +3349,22 @@ Write-Host '[scripts] shared helper contracts passed'
 
 # --- split bundle callers ----------------------------------------------------------------------
 #
-# The morphe CLI merges an .apkm's splits into one APK before it patches and leaves the merge
-# beside its output. The patched manifest has to be compared with that merge, not with the base
-# APK: the merge itself moves the manifest, and a receipt compared with the base would record the
-# merge's changes as the patches' own, for somebody to allowlist. build-release-receipt.ps1 is run
-# against exactly that in the release root section below; a pattern over its text passed with the
-# merged APK ignored. Every caller that reads an APK out of a bundle goes through Get-BaseApk.
+# The morphe CLI merges an .apkm's splits into one APK before it patches, and since 1.17.0 deletes
+# that merge when it's done. The patched manifest and resource table have to be compared with the
+# merge, not with the base APK: the merge itself moves the manifest, and base.apk lacks every
+# resource the splits carry. So the receipt builder and verify-all-patches.ps1 merge first
+# (Get-MergedApk) and hand the CLI the merge, and both are run against exactly that in the release
+# root section below, a merge that yields nothing among the cases. Every caller that reads the
+# manifest facts out of a bundle goes through Get-BaseApk, and no caller looks for a merge the CLI
+# left behind: there is none to find.
 foreach ($name in @('build-release-receipt.ps1', 'verify-all-patches.ps1', 'verify-injected-registers.ps1')) {
     Assert-True ((Get-Content -LiteralPath (Join-Path $PSScriptRoot $name) -Raw) -match 'Get-BaseApk -Apk') `
         "$name reads a bundle without taking its base APK out first."
+}
+foreach ($name in @('build-release-receipt.ps1', 'verify-all-patches.ps1')) {
+    $text = Get-Content -LiteralPath (Join-Path $PSScriptRoot $name) -Raw
+    Assert-True ($text -match '(?m)^[^#\r\n]*\$patchInput = Get-MergedApk -Apk ' -and $text -notmatch '\*-merged\.apk') `
+        "$name does not merge a bundle before it patches, or still looks for the merge the CLI deletes."
 }
 
 Write-Host '[scripts] split bundle contracts passed'
@@ -3170,9 +3535,21 @@ try {
     $indexVersionHere = [string]($releaseIndexText | ConvertFrom-Json).version
     Invoke-FixtureGit -Root $releaseRepo -Arguments @('tag', "v$indexVersionHere", $releaseCommit) | Out-Null
 
-    # A receipt for this commit with a run of each build given, every patch applied and no
-    # manifest change, written where the release check looks for it. A schema 1 receipt names no
-    # SBOM, as the ones cut before it existed don't.
+    # A receipt for this commit with a run of each build given, every patch applied and the
+    # manifest changes the checked-in allowlist approves, the permission rename, written where the
+    # release check looks for it. A schema 1 receipt names no SBOM, as the ones cut before it
+    # existed don't.
+    $approvedDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
+        exportedComponentsAdded = @(); exportedComponentsRemoved = @() }
+    foreach ($entry in $checkedInAllowlist) {
+        $kind, $value = $entry -split ' ', 2
+        switch ($kind) {
+            'permission-added' { $approvedDelta.permissionsAdded += $value }
+            'permission-removed' { $approvedDelta.permissionsRemoved += $value }
+            'exported-added' { $approvedDelta.exportedComponentsAdded += $value }
+            'exported-removed' { $approvedDelta.exportedComponentsRemoved += $value }
+        }
+    }
     function Save-ReleaseReceipt([string[]]$Builds, [string]$Commit = $releaseCommit, [long]$Seconds = $releaseSeconds,
             [int]$Schema = (Get-ReleaseReceiptSchemaVersion)) {
         $targets = @(for ($i = 0; $i -lt $Builds.Count; $i++) {
@@ -3181,8 +3558,7 @@ try {
                     package = $releaseTarget.PackageName; versionName = $Builds[$i]; versionCode = "47500000$i"
                     sha256 = ([string]'ABCDEF'[$i % 6] * 64); forced = $false }
                 patches       = @($releaseNames | ForEach-Object { [ordered]@{ name = $_; applied = $true; reason = $null } })
-                manifestDelta = [ordered]@{ permissionsAdded = @(); permissionsRemoved = @()
-                    exportedComponentsAdded = @(); exportedComponentsRemoved = @() }
+                manifestDelta = $approvedDelta
             }
         })
         $document = [ordered]@{
@@ -3244,13 +3620,16 @@ try {
         'The release check accepted a receipt with no run of an older declared build.'
 
     # build-release-receipt.ps1 itself, on the same root. Stand-ins take the tools' places: a JDK
-    # that answers -version and does what the desktop CLI leaves behind for each input (the result
-    # report, the patched APK and the merged APK beside it), and an aapt2 that prints the manifest
-    # lines written for each APK. One .apkm per declared build, and a bundle stamped with the
-    # commit's time where buildAndroid leaves it, carrying the classes.dex the published asset check
-    # at the end of this section looks for. The CLI's merge carries a component the base
-    # APK's manifest lacks, so a delta taken against the base instead of the merge records it as
-    # the patches' own and the empty allowlist refuses the receipt.
+    # that answers -version, plays MergeSplits.java (the merged APK, and a note beside it naming
+    # the bundle it came from), and does what the desktop CLI leaves behind for each input (the
+    # result report and the patched APK), and an aapt2 that prints the manifest lines written for
+    # each APK. One .apkm per declared build, and a bundle stamped with the commit's time where
+    # buildAndroid leaves it, carrying the classes.dex the published asset check at the end of
+    # this section looks for. The merge carries a component the base APK's manifest lacks, so a
+    # delta taken against the base instead of the merge records it as the patches' own, and the
+    # allowlist, which approves only the permission rename, refuses the receipt. The JDK also plays ResourceTableCheck.java, keeping a
+    # copy of the stock APK it was handed, and DexDiff.java, and an apksigner beside aapt2 names
+    # Meta's signer, so verify-all-patches.ps1 runs on the same stand-ins.
     $tools = Join-Path $releaseRoot 'tools'
     $fixtures = Join-Path $releaseRoot 'fixtures'
     New-Item -ItemType Directory -Path $tools, $fixtures -Force | Out-Null
@@ -3258,6 +3637,8 @@ try {
     $stubAapt2 = Join-Path $tools 'aapt2.cmd'
     $stubJar = Join-Path $tools 'morphe-desktop.jar'
     $javaLog = Join-Path $tools 'java.log'
+    $mergeLog = Join-Path $tools 'merge.log'
+    $resourceStock = Join-Path $tools 'resource-stock.txt'
     [System.IO.File]::WriteAllText($stubJava, ((@(
         '@echo off',
         'setlocal EnableExtensions EnableDelayedExpansion',
@@ -3265,9 +3646,13 @@ try {
         '    echo openjdk version "21.0.5" 2024-10-15',
         '    exit /b 0',
         ')',
-        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
         'rem Its own folder, read before shift moves %0 along with the arguments.',
         'set "HERE=%~dp0"',
+        'rem -Xmx -cp <jar> <tool>.java and the tool''s arguments.',
+        'if /i "%~nx4"=="MergeSplits.java" goto merge',
+        'if /i "%~nx4"=="ResourceTableCheck.java" goto resources',
+        'if /i "%~nx4"=="DexDiff.java" goto dexdiff',
+        'set "OUT=" & set "RESULT=" & set "LAST=" & set "PREV=" & set "FORCED=0"',
         'shift',
         'shift',
         'rem patch-for-device.ps1 hands the CLI one argument file, a quoted value a line with',
@@ -3295,15 +3680,38 @@ try {
         'set "LAST=!V!"',
         'exit /b 0',
         ':run',
-        '>>"!HERE!java.log" echo patch !LAST! forced=!FORCED!',
+        'rem A merged APK names the bundle it came from, whose report and patched manifest these are.',
+        'set "SRC=!LAST!"',
+        'set "VIA="',
+        'if exist "!LAST!.source" (',
+        '    set /p SRC=<"!LAST!.source"',
+        '    set "VIA= merged"',
+        ')',
+        '>>"!HERE!java.log" echo patch !SRC!!VIA! forced=!FORCED!',
         'rem A case that needs something to change while a fixture is patched leaves this behind.',
         'if exist "!HERE!during-patch.cmd" call "!HERE!during-patch.cmd"',
-        'copy /y "!LAST!.result.json" "!RESULT!" >nul || exit /b 3',
+        'copy /y "!SRC!.result.json" "!RESULT!" >nul || exit /b 3',
         'copy /y "!HERE!patched.apk" "!OUT!" >nul || exit /b 4',
-        'copy /y "!LAST!.patched.txt" "!OUT!.xmltree" >nul || exit /b 5',
-        'for %%F in ("!OUT!") do set "OUTDIR=%%~dpF"',
-        'for %%F in ("!LAST!") do set "STEM=%%~nF"',
-        'copy /y "!LAST!.merged.txt" "!OUTDIR!!STEM!-merged.apk" >nul || exit /b 6',
+        'copy /y "!SRC!.patched.txt" "!OUT!.xmltree" >nul || exit /b 5',
+        'exit /b 0',
+        'rem MergeSplits.java <bundle> <merged.apk>. A case can make it fail, or leave no APK behind.',
+        ':merge',
+        '>>"!HERE!merge.log" echo merge %~5',
+        'if exist "!HERE!merge-fails.txt" (',
+        '    echo [merge] could not read the bundle 1>&2',
+        '    exit /b 9',
+        ')',
+        'if exist "!HERE!merge-writes-nothing.txt" exit /b 0',
+        'copy /y "%~5.merged.txt" "%~6" >nul || exit /b 7',
+        '>"%~6.source" echo %~5',
+        'exit /b 0',
+        'rem ResourceTableCheck.java <stock> <patched> <report>: keeps what it was handed as the stock side.',
+        ':resources',
+        'copy /y "%~5" "!HERE!resource-stock.txt" >nul || exit /b 8',
+        'echo [resources] stand-in: every stock resource resolves in the patched table',
+        'exit /b 0',
+        ':dexdiff',
+        'echo [diff] structural findings: 0',
         'exit /b 0') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
     [System.IO.File]::WriteAllText($stubAapt2, ((@(
         '@echo off',
@@ -3323,7 +3731,12 @@ try {
 
     $androidName = 'http://schemas.android.com/apk/res/android:name(0x01010003)='
     $androidExported = '          A: http://schemas.android.com/apk/res/android:exported(0x01010010)=true'
-    function Get-FixtureManifest([string]$Build, [string]$Code, [switch]$WithSplit, [string]$Package = $releaseTarget.PackageName) {
+    # Facebook asks for the two permissions it shares with Meta's other apps, and the patched build
+    # asks for them under the names Install beside Meta's apps gives them: the change the checked-in
+    # allowlist approves, and the only one the patches make here.
+    function Get-FixtureManifest([string]$Build, [string]$Code, [switch]$WithSplit, [switch]$Renamed,
+            [string]$Package = $releaseTarget.PackageName) {
+        $prefix = if ($Renamed) { 'app.hushfacebook.' } else { 'com.facebook.' }
         $lines = @(
             'N: android=http://schemas.android.com/apk/res/android (line=1)',
             '  E: manifest (line=1)',
@@ -3332,6 +3745,10 @@ try {
             "    A: package=`"$Package`" (Raw: `"$Package`")",
             '      E: uses-permission (line=10)',
             "        A: $androidName`"android.permission.INTERNET`" (Raw: `"android.permission.INTERNET`")",
+            '      E: uses-permission (line=11)',
+            "        A: $androidName`"${prefix}permission.prod.FB_APP_COMMUNICATION`" (Raw: `"${prefix}permission.prod.FB_APP_COMMUNICATION`")",
+            '      E: uses-permission (line=12)',
+            "        A: $androidName`"${prefix}receiver.permission.ACCESS`" (Raw: `"${prefix}receiver.permission.ACCESS`")",
             '      E: application (line=20)',
             '        E: activity (line=21)',
             "          A: $androidName`"com.facebook.katana.LoginActivity`" (Raw: `"com.facebook.katana.LoginActivity`")",
@@ -3358,7 +3775,7 @@ try {
         Set-Content -LiteralPath "$apkm.merged.txt" -Encoding ASCII -NoNewline `
             -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit)
         Set-Content -LiteralPath "$apkm.patched.txt" -Encoding ASCII -NoNewline `
-            -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit)
+            -Value (Get-FixtureManifest -Build $build -Code "$versionCode" -WithSplit -Renamed)
         # The report the CLI writes: every patch and the internal dependencies applied, one step,
         # and the input's own version, which is what the CLI reports.
         Set-Content -LiteralPath "$apkm.result.json" -Encoding ASCII -Value ([ordered]@{
@@ -3387,7 +3804,7 @@ try {
     $builderSaid = ''
     function Invoke-ReceiptBuilder([string[]]$Fixtures, [string]$Bundle,
             [string]$WorkDir = (Join-Path $releaseRoot 'work'), [string]$DesktopJar = $stubJar, [switch]$SkipAdvisoryCheck) {
-        Remove-Item -LiteralPath $javaLog -Force -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath $javaLog, $mergeLog -Force -ErrorAction SilentlyContinue
         $saved = @{}
         foreach ($variable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'GIT_*' })) {
             $saved[$variable.Name] = $variable.Value
@@ -3409,8 +3826,8 @@ try {
     }
 
     # A fixture for every declared build and the newer one: one target each, only the newer build
-    # forced, every patch applied, and no manifest change, because the patched manifest is held to
-    # the merge and not to the base.
+    # forced, every patch applied, and no manifest change but the rename, because the patched
+    # manifest is held to the merge and not to the base.
     $builtBuilds = @($releaseTarget.PackageVersions) + @($newerBuild)
     $allFixtures = @($builtBuilds | ForEach-Object { $fixturePaths[$_] })
     try {
@@ -3432,14 +3849,21 @@ try {
             "The receipt does not hash the $label fixture it was given."
         Assert-True (@($builtTarget.patches | Where-Object { $_.applied }).Count -eq $releaseNames.Count) `
             "The receipt does not record every patch applied to $label."
+        # The rename is the patches' change. The split's activity the merge brings in is the merge's.
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $builtTarget.manifestDelta)
-        Assert-True ($changes.Count -eq 0) "The receipt records the merge's own manifest change for $label as the patches': $($changes -join ', ')"
+        Assert-True (($changes -join "`n") -ceq (@($checkedInAllowlist | Sort-Object -Unique -CaseSensitive) -join "`n")) `
+            "The receipt records other manifest changes for $label than the patches' rename: $($changes -join ', ')"
     }
+    # Each fixture merged once, and the CLI handed that merge rather than the bundle: the CLI deletes
+    # its own merge, and the manifest delta above is taken against this one.
+    $mergeRuns = @(Get-Content -LiteralPath $mergeLog)
+    Assert-True (($mergeRuns -join "`n") -eq (@($builtBuilds | ForEach-Object { "merge $($fixturePaths[$_])" }) -join "`n")) `
+        "Each fixture was not merged once, before it was patched: $($mergeRuns -join '; ')"
     $patchRuns = @(Get-Content -LiteralPath $javaLog)
     $expectedRuns = @($builtBuilds | ForEach-Object {
-        "patch $($fixturePaths[$_]) forced=$(if ($releaseTarget.PackageVersions -contains $_) { 0 } else { 1 })" })
+        "patch $($fixturePaths[$_]) merged forced=$(if ($releaseTarget.PackageVersions -contains $_) { 0 } else { 1 })" })
     Assert-True (($patchRuns -join "`n") -eq ($expectedRuns -join "`n")) `
-        "The CLI was not run once per fixture, with -f for the undeclared build only: $($patchRuns -join '; ')"
+        "The CLI was not run once per fixture, on its merge, with -f for the undeclared build only: $($patchRuns -join '; ')"
     # The SBOM beside the bundle, recorded by name, hash and count, once OSV had been asked about it.
     Assert-True ($built.sbom.file -eq "patches-$releaseVersionHere.cdx.json" -and
         $built.sbom.sha256 -ceq (Get-Sha256Hex -Path $releaseSbom) -and [int]$built.sbom.components -eq 3) `
@@ -3451,6 +3875,96 @@ try {
     $builtProved = "the receipt proves $($releaseNames.Count) patches on $($builtVersions -join ', ') " +
         "from commit $($releaseCommit.Substring(0, 8))"
     Assert-True ($said -like "*$builtProved*") "The release check did not accept the receipt the builder wrote: $said"
+
+    # A merge that fails, and one that exits 0 and writes nothing, stop the run before the CLI
+    # patches anything. base.apk is not what the CLI patches, so there's no receipt to fall back to.
+    $builtReceiptBeforeMerge = [System.IO.File]::ReadAllBytes($releaseReceipt)
+    $brokenMerges = @(
+        @{ Flag = 'merge-fails.txt'; Pattern = '*Could not merge facebook-*.apkm into one APK (exit 9)*could not read the bundle*' },
+        @{ Flag = 'merge-writes-nothing.txt'; Pattern = '*The merge of facebook-*.apkm wrote no APK at *stock-merged.apk*' })
+    foreach ($broken in $brokenMerges) {
+        $flag = Join-Path $tools $broken.Flag
+        Set-Content -LiteralPath $flag -Value 'on' -Encoding ASCII
+        Remove-Item -LiteralPath $releaseReceipt -Force
+        try {
+            Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } $broken.Pattern `
+                "build-release-receipt.ps1 went ahead when $($broken.Flag -replace '\.txt$', '')."
+            Assert-True (-not (Test-Path -LiteralPath $javaLog) -and -not (Test-Path -LiteralPath $releaseReceipt)) `
+                "build-release-receipt.ps1 patched or wrote a receipt when $($broken.Flag -replace '\.txt$', '')."
+            Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'work') -Directory -Filter 'receipt-*').Count -eq 0) `
+                "build-release-receipt.ps1 left its run folder behind when $($broken.Flag -replace '\.txt$', '')."
+        } finally {
+            Remove-Item -LiteralPath $flag -Force -ErrorAction SilentlyContinue
+            [System.IO.File]::WriteAllBytes($releaseReceipt, $builtReceiptBeforeMerge)
+        }
+    }
+
+    # verify-all-patches.ps1 on the same stand-ins, with an apksigner beside aapt2 that names Meta's
+    # signer. Once the CLI stopped leaving its merge behind (1.17.0) it held the patched table to
+    # base.apk, so the 7,588 resources 580's splits carry were never compared. It merges first now:
+    # the CLI is handed the merge, the resource check's stock side is that merge, and a bundle that
+    # yields no merged APK stops the run before anything is patched. A plain APK goes to the CLI as
+    # it is and is its own stock side.
+    $releaseSigner = @($releaseCatalog.patches | ForEach-Object { $_.compatibility } |
+        Where-Object { $_.packageName -eq $releaseTarget.PackageName } | ForEach-Object { $_.signatures } |
+        Sort-Object -Unique | Select-Object -First 1)
+    Assert-True ($releaseSigner.Count -eq 1) 'The release catalog names no signer for the stand-in apksigner.'
+    Set-Content -LiteralPath (Join-Path $tools 'apksigner.bat') -Encoding ASCII -Value @(
+        '@echo off', "echo Signer #1 certificate SHA-256 digest: $($releaseSigner[0])", 'exit /b 0')
+    $verifyAllScript = Join-Path $PSScriptRoot 'verify-all-patches.ps1'
+    function Invoke-VerifyAll([string]$Apk) {
+        Remove-Item -LiteralPath $javaLog, $mergeLog, $resourceStock -Force -ErrorAction SilentlyContinue
+        $global:LASTEXITCODE = 0
+        $said = @(& $verifyAllScript -Apk $Apk -DesktopJar $stubJar -WorkDir (Join-Path $releaseRoot 'verify-work') `
+            -Bundle $releaseBundle -PatchList (Join-Path $releaseRepo 'patches-list.json') -Java $stubJava `
+            -Aapt2 $stubAapt2 3>&1 6>&1 | ForEach-Object { "$_" }) -join "`n"
+        if ($LASTEXITCODE -ne 0) { throw "verify-all-patches.ps1 exited $LASTEXITCODE`: $said" }
+        return $said
+    }
+    $newestFixture = $fixturePaths[$releaseTarget.PackageVersion]
+    $said = Invoke-VerifyAll -Apk $newestFixture
+    Assert-True ($said -like "*merged $(Split-Path -Leaf $newestFixture) into one APK for the CLI*" -and
+        $said -like '*success: every requested patch applied*') "verify-all-patches.ps1 did not merge the bundle and pass: $said"
+    Assert-True ((@(Get-Content -LiteralPath $mergeLog) -join "`n") -eq "merge $newestFixture" -and
+        (@(Get-Content -LiteralPath $javaLog) -join "`n") -eq "patch $newestFixture merged forced=0") `
+        ("verify-all-patches.ps1 did not merge the bundle once and hand the CLI that merge: " +
+            "$(@(Get-Content -LiteralPath $javaLog) -join '; ')")
+    Assert-True ((Get-Content -LiteralPath $resourceStock -Raw) -ceq (Get-Content -LiteralPath "$newestFixture.merged.txt" -Raw)) `
+        'The resource check was not handed the merge as its stock side.'
+    foreach ($broken in $brokenMerges) {
+        $flag = Join-Path $tools $broken.Flag
+        Set-Content -LiteralPath $flag -Value 'on' -Encoding ASCII
+        try {
+            Assert-Throws { Invoke-VerifyAll -Apk $newestFixture } $broken.Pattern `
+                "verify-all-patches.ps1 went ahead when $($broken.Flag -replace '\.txt$', '')."
+            Assert-True (-not (Test-Path -LiteralPath $javaLog) -and -not (Test-Path -LiteralPath $resourceStock)) `
+                "verify-all-patches.ps1 patched or compared a table when $($broken.Flag -replace '\.txt$', '')."
+        } finally {
+            Remove-Item -LiteralPath $flag -Force -ErrorAction SilentlyContinue
+        }
+    }
+    $plainFixture = Join-Path $fixtures "facebook-$($releaseTarget.PackageVersion)-arm64-v8a.apk"
+    $newestCode = [regex]::Match((Get-Content -LiteralPath "$newestFixture.merged.txt" -Raw),
+        'versionCode\(0x0101021b\)=(\d+)').Groups[1].Value
+    Set-Content -LiteralPath $plainFixture -Encoding ASCII -NoNewline `
+        -Value (Get-FixtureManifest -Build $releaseTarget.PackageVersion -Code $newestCode)
+    Copy-Item -LiteralPath "$newestFixture.result.json" -Destination "$plainFixture.result.json"
+    # Patched from the plain APK itself: its manifest with the patches' change and no split's
+    # component, which verify-all-patches.ps1 would refuse as a change nobody approved.
+    Set-Content -LiteralPath "$plainFixture.patched.txt" -Encoding ASCII -NoNewline `
+        -Value (Get-FixtureManifest -Build $releaseTarget.PackageVersion -Code $newestCode -Renamed)
+    try {
+        $said = Invoke-VerifyAll -Apk $plainFixture
+        Assert-True ($said -like '*success: every requested patch applied*' -and $said -notlike '*into one APK for the CLI*' -and
+            -not (Test-Path -LiteralPath $mergeLog) -and
+            (@(Get-Content -LiteralPath $javaLog) -join "`n") -eq "patch $plainFixture forced=0" -and
+            (Get-Content -LiteralPath $resourceStock -Raw) -ceq (Get-Content -LiteralPath $plainFixture -Raw)) `
+            "verify-all-patches.ps1 did not patch a plain APK as it is and hold the table to it: $said"
+    } finally {
+        Remove-Item -LiteralPath $plainFixture, "$plainFixture.result.json", "$plainFixture.patched.txt" -Force -ErrorAction SilentlyContinue
+    }
+    Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'verify-work') -Directory -Filter 'verify-*').Count -eq 0) `
+        'verify-all-patches.ps1 left a run folder behind.'
 
     # The newest build alone, or beside the undeclared one, is not enough for a receipt: the older
     # declared build has no run. The builder says so before it patches anything. It used to patch
@@ -3508,6 +4022,62 @@ try {
     } finally {
         [System.IO.File]::WriteAllBytes($releaseSbom, $cleanSbomBytes)
         [System.IO.File]::WriteAllBytes($releaseReceipt, $cleanReceiptBytes)
+    }
+
+    # A bundle that isn't a build of the commit, from a tree that is clean by the time the receipt
+    # is cut. The build stamps a bundle 0 when the tree had uncommitted changes as it started, and
+    # another commit's bundle carries that commit's time. The receipt check at the end refused
+    # both, but only after every fixture had been patched; they're refused before anything is now.
+    # And a source written after the bundle, which is what an edit put back since leaves: the tree
+    # is clean and the stamp right, yet the bundle may have been built from the edit. Nothing
+    # refused that one at all, so a bundle built from someone else's edits in a shared tree could
+    # ship as the tag once the edits were gone.
+    $builtBundleBytes = [System.IO.File]::ReadAllBytes($releaseBundle)
+    $builtSbomBytes = [System.IO.File]::ReadAllBytes($releaseSbom)
+    $builtReceiptBytes = [System.IO.File]::ReadAllBytes($releaseReceipt)
+    try {
+        foreach ($stamped in @(
+                @{ Name = 'a bundle built from a tree with uncommitted changes'; Stamp = 0L
+                    Pattern = "*stamped 0*uncommitted changes*isn't a build of commit $releaseCommit*Nothing was patched*" },
+                @{ Name = 'a bundle built from another commit'; Stamp = ($releaseSeconds - 60) * 1000
+                    Pattern = "*stamped $(($releaseSeconds - 60) * 1000), but commit $releaseCommit was made at $($releaseSeconds * 1000)*Nothing was patched*" })) {
+            Remove-Item -LiteralPath $releaseBundle -Force
+            New-TestBundleArchive -Path $releaseBundle -Entries ([ordered]@{
+                'META-INF/MANIFEST.MF' = ("Manifest-Version: 1.0`nVersion: $releaseVersionHere`nTimestamp: $($stamped.Stamp)`n" +
+                    "Patcher-Version: $($releaseToolchain.PatcherVersion)`n`n")
+                'classes.dex' = "dex`n035" + ('patches' * 8)
+                'extensions/facebook.mpe' = "dex`n035" + ('payload' * 8) })
+            # The SBOM that build writes beside it, so nothing but the stamp is out of place.
+            New-TestSbom -Path $releaseSbom -Bundle $releaseBundle
+            Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } $stamped.Pattern `
+                "build-release-receipt.ps1 went ahead with $($stamped.Name)."
+            Assert-True (-not (Test-Path -LiteralPath $javaLog)) "build-release-receipt.ps1 patched with $($stamped.Name)."
+        }
+    } finally {
+        [System.IO.File]::WriteAllBytes($releaseBundle, $builtBundleBytes)
+        [System.IO.File]::WriteAllBytes($releaseSbom, $builtSbomBytes)
+        [System.IO.File]::WriteAllBytes($releaseReceipt, $builtReceiptBytes)
+    }
+    # The catalog touched after the build: git sees no change in it, and it's newer than the bundle.
+    $touchedCatalog = Join-Path $releaseRepo 'gradle/libs.versions.toml'
+    $catalogWritten = [System.IO.File]::GetLastWriteTimeUtc($touchedCatalog)
+    try {
+        [System.IO.File]::SetLastWriteTimeUtc($touchedCatalog, [System.IO.File]::GetLastWriteTimeUtc($releaseBundle).AddMinutes(1))
+        Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } `
+            "*1 source file(s) changed after the bundle was built, the newest *libs.versions.toml*Nothing was patched*" `
+            'build-release-receipt.ps1 went ahead with a bundle older than a source it was built from.'
+        Assert-True (-not (Test-Path -LiteralPath $javaLog)) 'build-release-receipt.ps1 patched with a bundle older than its sources.'
+    } finally {
+        [System.IO.File]::SetLastWriteTimeUtc($touchedCatalog, $catalogWritten)
+        [System.IO.File]::WriteAllBytes($releaseReceipt, $builtReceiptBytes)
+    }
+    # The control: with the catalog as old as it was, the same run writes its receipt.
+    try {
+        Invoke-ReceiptBuilder -Fixtures $allFixtures
+    } catch {
+        throw "build-release-receipt.ps1 refused the built bundle once its sources were older again: $($_.Exception.Message)"
+    } finally {
+        [System.IO.File]::WriteAllBytes($releaseReceipt, $builtReceiptBytes)
     }
 
     # patch-for-device.ps1 on the same root and stand-ins. It held every run's report to the
@@ -3639,26 +4209,31 @@ try {
         ':list',
         'copy /y "%HERE%patch-names.txt" "%LISTING%" >nul || exit /b 3',
         'exit /b 0') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
-    # What GitHub answers: the served bundle and SBOM, a checksum list naming both (or $servedSums,
-    # when a case wants a wrong one), and the repository description. Dot-sourced into each runner,
-    # so the check it starts finds them first. The SBOM served is a copy of the one beside the bundle,
-    # which the cases below take away along with the bundle.
+    # What GitHub answers: the served bundle, SBOM and receipt, a checksum list naming all three (or
+    # $servedSums, when a case wants a wrong one), and the repository description. Dot-sourced into
+    # each runner, so the check it starts finds them first. The SBOM served is a copy of the one
+    # beside the bundle, which the cases below take away along with the bundle, and the receipt
+    # served is the release's own, as the release uploads it, unless a case serves another.
     $servedBundle = $releaseBundle
     $cleanServedSbom = Join-Path $releaseRoot "served\patches-$releaseVersionHere.cdx.json"
     New-Item -ItemType Directory -Path (Split-Path -Parent $cleanServedSbom) -Force | Out-Null
     Copy-Item -LiteralPath $releaseSbom -Destination $cleanServedSbom
     $servedSbom = $cleanServedSbom
     $servedSums = $null
+    $servedReceipt = $null
     $publishedStandIns = {
         function Invoke-WebRequest {
             param($Uri, $Method, $OutFile, $MaximumRedirection, $TimeoutSec, [switch]$PassThru, [switch]$UseBasicParsing)
+            $receiptServed = if ($servedReceipt) { $servedReceipt } else { $releaseReceipt }
             if ($OutFile) {
-                $served = if ("$Uri" -like '*.cdx.json') { $servedSbom } else { $servedBundle }
+                $served = if ("$Uri" -like '*.cdx.json') { $servedSbom } elseif ("$Uri" -like '*/release-receipt-*.json') {
+                    $receiptServed } else { $servedBundle }
                 Copy-Item -LiteralPath $served -Destination $OutFile -Force
             }
             $sums = if ($servedSums) { $servedSums } else {
                 "$((Get-FileHash -LiteralPath $servedBundle -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.mpp`n" +
-                    "$((Get-FileHash -LiteralPath $servedSbom -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.cdx.json`n"
+                    "$((Get-FileHash -LiteralPath $servedSbom -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.cdx.json`n" +
+                    "$((Get-FileHash -LiteralPath $receiptServed -Algorithm SHA256).Hash.ToLowerInvariant())  release-receipt-$releaseVersionHere.json`n"
             }
             [pscustomobject]@{ StatusCode = 200; Content = [Text.Encoding]::UTF8.GetBytes($sums) }
         }
@@ -3702,6 +4277,36 @@ try {
             "The index push did not hold the hosted SBOM to the receipt, or did not ask OSV about it: $said"
         Assert-True ($said -like '*the Facebook-family source census is 0 day(s) old*every index lists Hushfacebook or has its submission*') `
             "The index push was not held to the Facebook-family source census: $said"
+        # The receipt the release hosts, held to SHA256SUMS.txt and to the receipt checked here.
+        Assert-True ($said -like "*the hosted release-receipt-$releaseVersionHere.json is the receipt checked here, as SHA256SUMS.txt lists it*") `
+            "The index push did not hold the hosted receipt to the one it checked: $said"
+        # And each way it can fail: SHA256SUMS.txt not listing it, listing another hash, or the
+        # release hosting another receipt, one cut again after the upload. That one differs in its
+        # last byte alone, and the push stops all the same.
+        $recutReceipt = Join-Path $releaseRoot "served\recut\release-receipt-$releaseVersionHere.json"
+        New-Item -ItemType Directory -Path (Split-Path -Parent $recutReceipt) -Force | Out-Null
+        $recutBytes = New-Object System.Collections.Generic.List[byte] (, [System.IO.File]::ReadAllBytes($releaseReceipt))
+        $recutBytes.Add(10)
+        [System.IO.File]::WriteAllBytes($recutReceipt, $recutBytes.ToArray())
+        $bundleAndSbomSums = "$((Get-FileHash -LiteralPath $releaseBundle -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.mpp`n" +
+            "$((Get-FileHash -LiteralPath $cleanServedSbom -Algorithm SHA256).Hash.ToLowerInvariant())  patches-$indexVersionHere.cdx.json`n"
+        try {
+            $servedSums = $bundleAndSbomSums
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } "*SHA256SUMS.txt has no entry for release-receipt-$releaseVersionHere.json*" `
+                'An index push went through with a receipt SHA256SUMS does not list.'
+            $servedSums = $bundleAndSbomSums + "$('2' * 64)  release-receipt-$releaseVersionHere.json`n"
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } `
+                "*SHA256SUMS.txt lists $('2' * 64) for release-receipt-$releaseVersionHere.json, but the hosted receipt is*" `
+                'An index push went through with a receipt SHA256SUMS lists under another hash.'
+            $servedSums = $null
+            $servedReceipt = $recutReceipt
+            Assert-Throws { Invoke-IndexPushCheck $publishedRun } `
+                "*The hosted release-receipt-$releaseVersionHere.json is not the receipt checked here*" `
+                'An index push went through with a hosted receipt that is not the one it checked.'
+        } finally {
+            $servedSums = $null
+            $servedReceipt = $null
+        }
 
         # The census, one fact at a time. Fourteen days old is still a release; fifteen isn't. An
         # index that doesn't list Hushfacebook yet is named in what the release says, not a refusal:
@@ -4069,6 +4674,12 @@ Assert-True ($gradleFile -match 'val releaseBundleName = "patches-\$\{project\.v
     $gradleFile -match 'output\.set\(layout\.buildDirectory\.file\("release/\$releaseSbomName"\)\)' -and
     $gradleFile -match 'finalizedBy\(releaseSbom\)') `
     'patches/build.gradle.kts no longer writes the SBOM beside the bundle in build/release after each buildAndroid.'
+# The stamp names a commit only when the tree is that commit. A tree with uncommitted changes is
+# stamped 0, which the receipt refuses; stamped with HEAD's time, it passed for a clean build.
+# Asked before the commit time is read, and git status is asked with no optional locks.
+Assert-True ($gradleFile -match 'commandLine\("git", "--no-optional-locks", "status", "--porcelain"\)' -and
+    $gradleFile -match '(?s)val sourceDateEpoch: Long = run \{.*?if \(uncommittedChanges\?\.isEmpty\(\) != true\) return@run 0L.*?"log", "-1", "--format=%ct"') `
+    'patches/build.gradle.kts stamps the bundle with the commit time without asking git whether the tree has uncommitted changes.'
 
 # Code only: a comment may say where the bundle used to be read from.
 $libsReaders = New-Object System.Collections.Generic.List[string]

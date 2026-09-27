@@ -11,7 +11,6 @@ import static app.morphe.extension.shared.StringRef.str;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -21,7 +20,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -42,8 +40,10 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.json.JSONObject;
 
@@ -57,11 +57,38 @@ public final class JamUi {
     updates = Executors.newSingleThreadExecutor();
   private static final Set<Consumer<JSONObject>> observers = new HashSet<>();
   private static volatile IJamCompanion companion;
+  private static volatile CompletableFuture<IJamCompanion> ready =
+    new CompletableFuture<>();
   private static boolean binding, polling, inFlight;
   private static ServiceConnection connection;
   private static WeakReference<Activity> current = new WeakReference<>(null);
-  static JSONObject latest = new JSONObject();
+  static volatile JSONObject latest = new JSONObject();
+  private static volatile long stateEpoch;
+  private static volatile boolean joining;
   static int pending;
+
+  static boolean participant() {
+    String role = JamPanel.role(latest);
+    return (
+      joining ||
+      "Joining".equals(role) ||
+      "Participant".equals(role) ||
+      JamMirror.active()
+    );
+  }
+
+  static void unsupported() {
+    Utils.runOnMainThread(() ->
+      Utils.showToastLong(str("morphe_music_jam_unsupported"))
+    );
+  }
+
+  private static void publish(JSONObject value) {
+    latest = value;
+    JamClock.accept(value);
+    JamMirror.accept(application, value);
+    notifyState();
+  }
 
   static void notifyState() {
     for (Consumer<JSONObject> listener : new ArrayList<>(observers))
@@ -146,6 +173,7 @@ public final class JamUi {
     ServiceConnection old = connection;
     connection = null;
     companion = null;
+    ready = new CompletableFuture<>();
     binding = false;
     if (old != null) try {
       app.unbindService(old);
@@ -188,7 +216,7 @@ public final class JamUi {
     observer.accept(latest);
     application = c.getApplicationContext();
     bind(c);
-    ensurePolling();
+    pollNow();
   }
 
   static void unobserve(Consumer<JSONObject> observer) {
@@ -228,6 +256,7 @@ public final class JamUi {
           companion != null
         ) {
           inFlight = true;
+          final long epoch = stateEpoch;
           updates.execute(() -> {
             JSONObject value;
             try {
@@ -244,11 +273,8 @@ public final class JamUi {
             JSONObject received = value;
             Utils.runOnMainThread(() -> {
               inFlight = false;
-              latest = received;
-              JamMirror.accept(application, received);
-              JamClock.accept(received);
-              for (Consumer<JSONObject> listener : new ArrayList<>(observers))
-                listener.accept(received);
+              if (epoch != stateEpoch || joining) return;
+              publish(received);
             });
           });
         }
@@ -256,7 +282,10 @@ public final class JamUi {
           polling = false;
           return;
         }
-        main.postDelayed(this, sessionActive() ? 600 : 3000);
+        main.postDelayed(
+          this,
+          sessionActive() || !observers.isEmpty() ? 400 : 3000
+        );
       } catch (Exception error) {
         polling = false;
         Logger.printInfo(() -> "Could not poll Jam state", error);
@@ -271,17 +300,20 @@ public final class JamUi {
       connection = new ServiceConnection() {
         public void onServiceConnected(ComponentName n, IBinder b) {
           companion = IJamCompanion.Stub.asInterface(b);
-          ensurePolling();
+          ready.complete(companion);
+          pollNow();
         }
 
         public void onServiceDisconnected(ComponentName n) {
           companion = null;
-          binding = false;
-          connection = null;
+          ready = new CompletableFuture<>();
+          // Android retains this binding and reconnects it automatically.
+          notifyState();
         }
 
         public void onBindingDied(ComponentName n) {
           companion = null;
+          ready = new CompletableFuture<>();
           binding = false;
           connection = null;
           try {
@@ -338,14 +370,39 @@ public final class JamUi {
       return;
     }
     bind(c);
+    application = c.getApplicationContext();
+    final String operation = request.optString("op");
+    final long epoch;
+    if (
+      "JOIN".equals(operation) ||
+      "END".equals(operation) ||
+      "HOST".equals(operation)
+    ) {
+      stateEpoch++;
+      joining = "JOIN".equals(operation);
+      if (joining) {
+        try {
+          publish(
+            new JSONObject().put(
+              "session",
+              new JSONObject().put("role", "Joining")
+            )
+          );
+        } catch (Exception error) {
+          Logger.printInfo(() -> "Could not display Jam join", error);
+        }
+      }
+    }
+    epoch = stateEpoch;
     pending++;
     notifyState();
     ("END".equals(request.optString("op")) ? updates : commands).execute(() -> {
       JSONObject value;
       try {
         IJamCompanion service = companion;
-        if (service == null) throw new IllegalStateException(
-          str("morphe_music_jam_enable_layer_first")
+        if (service == null) service = ready.get(5, TimeUnit.SECONDS);
+        if (epoch != stateEpoch) throw new IllegalStateException(
+          str("morphe_music_jam_cancelled")
         );
         value = companionCall(c, service, request);
       } catch (Exception e) {
@@ -354,6 +411,33 @@ public final class JamUi {
       JSONObject response = value;
       Utils.runOnMainThread(() -> {
         pending = Math.max(0, pending - 1);
+        if (epoch != stateEpoch) {
+          notifyState();
+          return;
+        }
+        // Discard VIEW replies sampled before this lifecycle acknowledgement.
+        if (
+          "JOIN".equals(operation) ||
+          "HOST".equals(operation) ||
+          "END".equals(operation)
+        ) stateEpoch++;
+        if ("JOIN".equals(operation)) joining = false;
+        if (response.has("session")) publish(response);
+        else if (
+          ("END".equals(operation) && response.optBoolean("ok")) ||
+          ("JOIN".equals(operation) && !response.optBoolean("ok"))
+        ) {
+          try {
+            publish(
+              new JSONObject().put(
+                "session",
+                new JSONObject().put("role", "Idle").put("paired", true)
+              )
+            );
+          } catch (Exception error) {
+            Logger.printInfo(() -> "Could not restore Jam state", error);
+          }
+        }
         if (
           response.optBoolean("ok") &&
           "GUEST_EDITS".equals(request.optString("op"))
@@ -423,36 +507,7 @@ public final class JamUi {
     }
   }
 
-  private static boolean requireWifi(Context c) {
-    android.net.wifi.WifiManager wifi = c
-      .getApplicationContext()
-      .getSystemService(android.net.wifi.WifiManager.class);
-    if (wifi == null || wifi.isWifiEnabled()) return true;
-    AlertDialog dialog = new AlertDialog.Builder(c)
-      .setTitle(str("morphe_music_jam_wifi_title"))
-      .setMessage(str("morphe_music_jam_wifi_message"))
-      .setNegativeButton(str("morphe_music_jam_cancel"), null)
-      .setPositiveButton(str("morphe_music_jam_wifi_settings"), (d, w) -> {
-        try {
-          c.startActivity(
-            new Intent(
-              Build.VERSION.SDK_INT >= 29
-                ? android.provider.Settings.Panel.ACTION_WIFI
-                : android.provider.Settings.ACTION_WIFI_SETTINGS
-            )
-          );
-        } catch (ActivityNotFoundException error) {
-          Logger.printInfo(() -> "Could not open Wi-Fi settings", error);
-        }
-      })
-      .create();
-    dialog.show();
-    styleDialog(dialog);
-    return false;
-  }
-
   static void host(Context c) {
-    if (!requireWifi(c)) return;
     try {
       startLayer(c);
       edit(c, command("HOST"));
@@ -497,7 +552,6 @@ public final class JamUi {
   }
 
   static void join(Context c) {
-    if (!requireWifi(c)) return;
     LinearLayout content = new LinearLayout(c);
     content.setOrientation(LinearLayout.VERTICAL);
     content.setPadding(dp(c, 24), dp(c, 8), dp(c, 24), 0);
@@ -521,7 +575,6 @@ public final class JamUi {
       .setView(content)
       .setPositiveButton(str("morphe_music_jam_join"), null)
       .setNeutralButton(str("morphe_music_jam_scan_qr"), (d, w) -> {
-        if (!requireWifi(c)) return;
         try {
           Activity a = activity(c);
           if (a != null) a.startActivityForResult(
@@ -551,7 +604,6 @@ public final class JamUi {
           return;
         }
         try {
-          if (!requireWifi(c)) return;
           startLayer(c);
           call(c, command("JOIN").put("invite", value), r -> {
             if (!r.optBoolean("ok")) Utils.showToastLong(r.optString("error"));
@@ -645,6 +697,10 @@ public final class JamUi {
       return offerQueueCommand(access, bytes);
     } catch (Exception error) {
       Logger.printInfo(() -> "Could not inspect Jam queue command", error);
+      if (participant()) {
+        unsupported();
+        return true;
+      }
       return false;
     }
   }
@@ -656,6 +712,24 @@ public final class JamUi {
     if (!ENABLED) return false;
     String[] decoded = QueueCommand.decode(bytes);
     Activity a = current.get();
+    if (participant()) {
+      if (decoded == null) {
+        unsupported();
+        return true;
+      }
+      if (a == null || a.isFinishing() || companion == null) {
+        Utils.runOnMainThread(() ->
+          Utils.showToastLong(str("morphe_music_jam_reconnecting_toast"))
+        );
+        return true;
+      }
+      try {
+        edit(a, command(decoded[1]).put("videoId", decoded[0]));
+      } catch (Exception error) {
+        unsupported();
+      }
+      return true;
+    }
     if (decoded == null || a == null || a.isFinishing()) return false;
     if (companion == null) {
       if (JamMirror.active()) {

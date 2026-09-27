@@ -1,0 +1,50 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
+package app.morphe.extension.tiktok.settings.preference;
+
+/** Published CHANGELOG entries carried inside the patched app. Run tools/gen-release-notes.py after release edits. */
+public final class ReleaseNotesData {
+    private ReleaseNotesData() {}
+    public static final String TEXT =
+            "## 0.61.0 (2026-09-26)\n" +
+            "\n" +
+            "A large release. Hushfeed supports TikTok 47.1.3 as well as 47.0.3 now, and it carries every fix made since 0.60.0. Copy comments without username works from the comment menu again, folding a foldable no longer jumps to another video, and sticker saves read TikTok's own sticker data. The settings screens also had a long polish pass.\n" +
+            "\n" +
+            "* **TikTok:** Save media on a sticker's sheet lightens while you hold it, like TikTok's own Share and Save next to it. It used to be the one button there that showed no press.\n" +
+            "* **TikTok:** Save media on a comment sticker reads the sticker from TikTok's own sticker data now, which keeps its names from one version to the next. It used to look first for a field and a class that neither 47.0.3 nor 47.1.3 has, and only reached the sticker through its last fallback. It saves the picture the sheet shows, and if a later TikTok renames that data, Hook status says so.\n" +
+            "* **TikTok:** Hushfeed supports TikTok 47.1.3 as well as 47.0.3 (#33). Every patch applies to both, and Morphe Manager lists both versions. 47.1.3 renamed 42 of the screen parts Hushfeed finds by name, so each one is looked up by the name the running build gives it. The feed filter reads 47.1.3's rearranged cold-start cache, AMOLED dark theme knows its gray palette, the corner LIVE button check reads its LIVE mode where 47.1.3 moved it, and the four resource optimizers and the language purger accept its reviewed files, from the universal APK and from APKMirror's split bundle. On the S22 running 47.1.3, the feed, comments, inbox, share sheet, captions and the dark theme were checked.\n" +
+            "* **TikTok:** The Feature Gate Lab names its export file in UTC like every other Hushfeed export, so they sort together.\n" +
+            "* **TikTok:** A like, comment or share count range restored with spaces around its numbers is read as that range instead of being reset to any.\n" +
+            "* **TikTok:** A CAPTCHA check whose type TikTok sends as a number is named by its scene now, not by the word scene.\n" +
+            "* **TikTok:** Region spoof no longer works out the country, locale and timezone again on every call, and TikTok asks for them constantly. Share sheet tools, the comment tools, search card filtering, Fit the video to the screen and the Feature Gate Lab look up what they need once instead of on every screen update, and the block button's overlay no longer keeps a closed screen in memory.\n" +
+            "* **TikTok:** A blocked-creator pattern that could stall the feed is refused when you type it and skipped, with one note, when it comes in with a backup or from an older list. That covers back-references, a repeat inside a repeated group, and patterns stacked with open-ended repeats. The time limit that was meant to catch these never actually ran on a phone.\n" +
+            "* **TikTok:** Rarely, the block, Not interested and sound buttons stayed off for a whole video when it started playing at the moment the feed loaded it. That no longer happens.\n" +
+            "* **TikTok:** A restored backup that had a number out of range, like an edge seek of 90 seconds where 60 is the most, is no longer undone at the next start as if the restore had been interrupted.\n" +
+            "* **TikTok:** A day locked by the daily budget stays locked when TikTok restarts after the phone's timezone moved forward. Before, swiping TikTok away after the change handed the rest of the day back.\n" +
+            "* **TikTok:** A settings search that finds nothing now says that switches from patches you didn't tick in Morphe Manager aren't listed. Fill the screen with the video is one of them, since it comes with Fit the video to the screen, which is off by default.\n" +
+            "* **TikTok:** Camera and microphone indicator draws a green square for the camera and an orange diamond for the microphone, so telling them apart doesn't depend on seeing green and orange. The text on Hushfeed's banners over a video is easier to read against a bright frame or TikTok's light comment sheet.\n" +
+            "* **TikTok:** In settings, the back arrow is announced as a button, and the search box's clear button, the Lab's switch rows and its Technical details heading show when they're pressed or focused. A chosen SIM preset no longer looks like the row that has focus. When a budget change or Pause is refused, the reason stays on screen, under the number you typed or in the settings banner, instead of a toast that was gone before the time in it could be read.\n" +
+            "* **TikTok:** Settings text reads more naturally, with contractions throughout, one way of asking you to restart TikTok and one of saying to try again in a moment. Number rows show their range the way they show the value, as in \"0 to 86,400 seconds\". The Feature Gate Lab says On or off where its filter said Boolean, tells you what to fix in a bad value or bad JSON, uses a real ellipsis while it loads, and its menu has a title and a Cancel.\n" +
+            "* **TikTok:** The settings home's status mark is a rounded square now, on the same corner scale as the cards and icon tiles, and the three quick routes no longer sit on the search card's edge. The Feature Gate Lab's icon buttons show where keyboard or d-pad focus is, which the round ripple they had never did.\n" +
+            "* **TikTok:** The page that opens when settings can't load now has a proper title, and Retry is drawn as the way forward instead of a second plain row next to Back. Choice dialogs line their marks up under the title and show Cancel in the dialog's own language. What's new offers Got it and Later and has an icon of its own. When Undo or Restart now fails, the message says which one failed, where it used to talk about undoing a clear either way.\n" +
+            "* **TikTok:** A What's new row sits at the top of Hushfeed's settings after an update. It opens the changelog for the version you're on, and for any releases you skipped since you last dismissed it. Later keeps the row for another look, and Got it takes it away until the next release.\n" +
+            "* **TikTok:** Hide Play Store update offer is a new optional patch. On the S22, Play changed from Update to Open while Morphe Manager kept showing TikTok 47.0.3. Android won't install a lower-code APK over this one, so leave the patch off if you expect to switch back without removing the app.\n" +
+            "* **TikTok:** The settings home has pink section icons, quieter group labels and a warmer active card in dark mode. Search now has its own framed field and a separate results card. Section pages keep pink headings and larger row titles.\n" +
+            "* **TikTok:** Repost diagnostics writes the request, TikTok's response status and the next repost-list result into a diagnostic report when logging is on. It keeps the video's ID and any repost note out of the report.\n" +
+            "* **TikTok:** Taking LIVE off the top feed tabs now keeps the corner LIVE button available, just as taking LIVE off the bottom bar does. Hide the LIVE button still works on its own.\n" +
+            "* **TikTok:** On a foldable with the split comment view, folding or unfolding no longer moves you to another video when Hide seen videos is on. The rebuild for the new width let the filter drop the video you were watching before TikTok could put it back.\n" +
+            "* **TikTok:** Camera and microphone indicator shows its mark on TikTok's camera screen. Before, the first time the camera opened the mark was drawn on the main screen hidden behind it, so on a phone it rarely showed at all.\n" +
+            "* **TikTok:** Copy comments without username works from the comment sheet's own menu again. Since TikTok 46.9.3 that menu builds the clipboard text a different way, and the option was only reaching Copy in Favorites. Stickers and emoji in the copied text come through as before.\n" +
+            "\n" +
+            "## 0.60.0 (2026-09-25)\n" +
+            "\n" +
+            "A small release with three fixes. Comments that TikTok dropped without a word now go out, the caption no longer shows over the video when Caption above comments is on, and Allow Duet and Stitch covers creators who limit duets on their whole account.\n" +
+            "\n" +
+            "* **TikTok:** Comment send fix, a new patch that's on by default, covers a way TikTok drops a comment without a word. TikTok checks a send against the page opened most recently, and when that page has already lost its screen, the check stops the comment and shows nothing, so the text just stays in the box. The check now gets the comment panel's own screen in that case. The diagnostic export names the page that had none, so a report from a phone where comments still don't post says whether this was the reason.\n" +
+            "* **TikTok:** With Caption above comments on, the caption over the video goes away, since the whole caption now sits at the top of the comments. It used to show in both places. Hide the caption still hides it on its own.\n" +
+            "* **TikTok:** Allow Duet and Stitch now answers the creator's account-wide choice as well as the video's own. TikTok checks both, and on the S22 a video that allowed anyone still had no Duet entry because its creator's account allowed only people they follow back. With the switch on, Duet and Stitch both show on those videos now. Whether TikTok's servers accept the upload is still up to them.\n";
+}

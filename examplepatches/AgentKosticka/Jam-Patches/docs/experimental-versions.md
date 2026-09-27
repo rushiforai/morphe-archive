@@ -4,6 +4,13 @@ The Jam patch now advertises exactly 9.15.51, 9.35.54, 9.36.50 and 9.37.54.
 The three newer targets retain `isExperimental = true`. Validation used the supplied
 ARM64, minAPI26 APKs. These results do not establish support for every version or ABI.
 
+Jam declares `versionCheckPatch` as a dependency and checks the exact version name
+at the start of both its bytecode and resource execution blocks. Other versions
+log a warning and return before Jam's ABI resolution, hook installation, preferences,
+manifest edits or layout edits. Shared dependency patches may still run for other
+selected features. The compatibility metadata and execution guards use one version
+allowlist; a nearby version such as 9.15.52 or 9.37.55 is not implicitly accepted.
+
 ## Local validation
 
 On 2026-09-25, `:patches:validateJam` completed with exit code 0 for:
@@ -16,7 +23,8 @@ On 2026-09-25, `:patches:validateJam` completed with exit code 0 for:
 | 9.15.51 baseline | Pass | Pass | Pass | Prior baseline checks; release acceptance pending |
 
 The harness applies GmsCore support, Hide ads, Jam queue sharing, Lyrics and
-background playback, including their dependencies. It rejects patch exceptions,
+background playback, including their dependencies. The player-controls regression
+validation also includes Miniplayer previous and next buttons. It rejects patch exceptions,
 uses `SdkDexVerifier`, compiles resources and assembles an unsigned APK with the
 isolated package `app.morphe.jam.next.music`. This is the tested selection; the
 entire optional Morphe patch catalog was not applied.
@@ -94,6 +102,56 @@ Closing an inspection or failed session also clears matches even when `get()`
 was never called.
 
 ## User testing handoff
+
+### Player controls correction
+
+The controls correction passed patch application, SDK DEX/hierarchy verification
+and APK construction with miniplayer buttons selected on all four versions:
+
+| Version | Trace in the workspace's `analysis` directory | Result |
+| --- | --- | --- |
+| 9.15.51 | `jam-controls-9.15.51-miniplayer.log` | Exit 0 |
+| 9.35.54 | `jam-controls-9.35.54-miniplayer.log` | Exit 0 |
+| 9.36.50 | `jam-controls-9.36.50-miniplayer.log` | Exit 0 |
+| 9.37.54 | `jam-controls-9.37.54-miniplayer.log` | Exit 0 |
+
+Seven regression tests passed on both 9.15.51 and 9.37.54, including the native
+click coverage and shared icon renderer check. Device acceptance of the correction
+is pending. The subsequent exact-version guard adds an eighth regression test.
+All eight tests and the full guarded 9.37.54 APK validation passed in
+`jam-controls-version-guard.log` (exit 0). The final catalog and Android bundle
+build passed in `jam-controls-final-catalog.log`; the `.mpp` contains `classes.dex`.
+
+The compact player shown above the expanded queue now routes its optional
+previous/next buttons through Jam before dispatching any local media keys. Native
+click listeners for both the compact and full player are resolved from their
+fingerprinted owners.
+
+Both play/pause buttons send an explicit desired playback state for the current
+host queue item. This uses the existing `PLAY` operation with an optional `playing`
+boolean, which the Companion forwards unchanged. Ordinary queue-item `PLAY`
+requests retain their selection behavior. The host checks the current item and
+video before issuing MediaSession play/pause; a stale click cannot select another
+track. Existing authentication, guest-edit permission and command deduplication
+remain in effect.
+
+The host clock advertises `playbackControl` support. **Repatch both host and
+participant** to use pause/resume; older hosts produce an update message instead
+of interpreting a pause as a queue-item play request. No Companion update is
+required for this additive command field.
+
+The shared native icon renderer receives the validated host clock state. It uses
+YouTube Music's own PLAYING/PAUSED models, drawable transitions and accessibility
+labels for both layouts. Local models are retained and restored when leaving Jam.
+The new native discovery uses resource and diagnostic fingerprints, enum names
+and BytecodeUtils filters; no host obfuscation names or version branches were added.
+
+After updating both devices, verify pause/resume and previous/next from the
+expanded queue and full player. The participant's local audio must stay unchanged;
+the displayed icon and accessibility label must follow the host, including when
+the host changes state directly. Leaving Jam must restore normal local controls.
+
+### General acceptance
 
 After the prerelease is published, use `AgentKosticka/Jam-Patches` in Morphe Manager
 with prereleases enabled. Select a clean APK of the exact target version and enable

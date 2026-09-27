@@ -49,8 +49,11 @@ public final class ApiProfilesPreference extends android.preference.Preference {
     @Override protected void onClick(){showProfiles();}
 
     private void show(String title,LinearLayout body,String closeLabel){
+        show(title,body,closeLabel,null);
+    }
+    private void show(String title,LinearLayout body,String closeLabel,View footer){
         close();
-        dialog=CaptionSettingsDialogs.show(getContext(),title,body,text(closeLabel));
+        dialog=CaptionSettingsDialogs.show(getContext(),title,body,text(closeLabel),footer);
         final Dialog shown=dialog;
         shown.setOnDismissListener(ignored->{
             if(dialog==shown){endRename();dialog=null;listDialog=null;expanded=null;rows.clear();listBody=null;notifyChanged();}
@@ -181,9 +184,10 @@ public final class ApiProfilesPreference extends android.preference.Preference {
         if(!current(row) || expanded!=row)return;
         endRename();row.panel.removeAllViews();
         ProfileActionStrip actions=strip(row);
-        actions.add(text("profile_rename"),false,1,()->beginRename(row));
-        if(ApiProfiles.list(getContext()).size()>1)actions.add(text("profile_delete"),true,2,()->beginDelete(row));
-        else message(row.panel,text("profile_keep_one"));
+        actions.add(text("profile_rename"),()->beginRename(row));
+        if(ApiProfiles.list(getContext()).size()>1)
+            actions.add(text("profile_delete"),()->beginDelete(row));
+
         reveal(row);
     }
     private void beginRename(ProfileRow row){
@@ -195,7 +199,7 @@ public final class ApiProfilesPreference extends android.preference.Preference {
         renameOriginal=ApiProfiles.list(getContext()).get(row.id);input.setText(renameOriginal);input.selectAll();
         renameEditor=input;row.panel.addView(input,new LinearLayout.LayoutParams(-1,-2));
         ProfileActionStrip actions=strip(row);actions.setPadding(0,dp(8),0,0);
-        actions.add(text("cancel"),false,0,()->{if(current(row) && renameEditor==input)showActions(row);});
+        actions.add(text("cancel"),()->{if(current(row) && renameEditor==input)showActions(row);});
         Runnable save=()->{
             if(!current(row) || renameEditor!=input)return;
             String value=input.getText().toString().trim();
@@ -203,7 +207,7 @@ public final class ApiProfilesPreference extends android.preference.Preference {
             ApiProfiles.rename(getContext(),row.id,value);
             collapse();row.more.requestFocus();
         };
-        actions.add(text("profile_save"),false,0,save);
+        actions.addPrimary(text("profile_save"),save);
         input.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
         input.setOnEditorActionListener((v,id,event)->{if(id==android.view.inputmethod.EditorInfo.IME_ACTION_DONE){save.run();return true;}return false;});
         // Outside taps cannot silently throw away a name draft. Footer Cancel is explicit cancellation.
@@ -224,15 +228,11 @@ public final class ApiProfilesPreference extends android.preference.Preference {
         if(!current(row) || expanded!=row)return;
         if(ApiProfiles.list(getContext()).size()<=1){showActions(row);return;}
         row.panel.removeAllViews();refreshNames();
-        message(row.panel,text("profile_delete_inline"));
-        if(row.id.equals(ApiProfiles.active(getContext()))){
-            LinkedHashMap<String,String> remaining=ApiProfiles.list(getContext());remaining.remove(row.id);
-            message(row.panel,text("profile_delete_switch")+" "+remaining.values().iterator().next());
-        }
+        // The owning row identifies the target. Keep only explicit keep/delete actions.
         final String confirmedContext=deletionContext(row);
         ProfileActionStrip actions=strip(row);
-        actions.add(text("profile_keep"),false,0,()->{if(current(row))showActions(row);});
-        actions.add(text("profile_confirm_delete"),true,2,()->{
+        actions.add(text("profile_keep"),()->{if(current(row))showActions(row);});
+        Button confirm=actions.addPrimary(text("profile_confirm_delete"),()->{
             if(!current(row))return;
             if(ApiProfiles.list(getContext()).size()<=1){showActions(row);return;}
             // If another UI changed the name/active profile, show the updated consequence first.
@@ -240,6 +240,7 @@ public final class ApiProfilesPreference extends android.preference.Preference {
             ApiProfiles.delete(getContext(),row.id);
             expanded=null;listBody.removeView(row.root);rows.remove(row.id);refreshNames();
         });
+        confirm.setContentDescription(text("profile_confirm_delete")+": "+ApiProfiles.list(getContext()).get(row.id));
         reveal(row);
     }
 
@@ -253,7 +254,9 @@ public final class ApiProfilesPreference extends android.preference.Preference {
         name.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(60)});
         name.setText(defaultName());body.addView(name,new LinearLayout.LayoutParams(-1,-2));
         message(body,text("profile_new_summary"));
-        action(body,text("profile_save"),()->{
+        ProfileActionStrip footer=new ProfileActionStrip(getContext());
+        footer.add(text("cancel"),()->close());
+        footer.addPrimary(text("profile_save"),()->{
             String value=name.getText().toString().trim();if(value.isEmpty())value=defaultName();
             try{
                 if(!flush())return;
@@ -263,14 +266,13 @@ public final class ApiProfilesPreference extends android.preference.Preference {
             }catch(IllegalArgumentException invalid){name.setError(text("profile_name_error"));}
             catch(IllegalStateException failed){error("profile_add_failed");}
         });
-        show(text("profile_add"),body,"cancel");
+        show(text("profile_add"),body,"cancel",footer);
     }
     void clearCurrentKey(){
         if(!ApiProfiles.flushExceptKey()){error("profile_invalid_edits");return;}
         final String id=ApiProfiles.active(getContext());String name=ApiProfiles.list(getContext()).get(id);
-        LinearLayout body=column();message(body,text("profile_clear_key_summary"));
-        action(body,text("profile_clear_key"),()->{ApiProfiles.clearKey(getContext(),id);close();});
-        show(name,body,"cancel");
+        CaptionSettingsDialogs.confirm(getContext(),name,text("profile_clear_key_summary"),
+                text("profile_clear_key"),()->ApiProfiles.clearKey(getContext(),id));
     }
     @Override protected void onPrepareForRemoval(){close();super.onPrepareForRemoval();}
 }

@@ -33,7 +33,7 @@ val networkRequestReportPatch = bytecodePatch(
 ) {
     category("Privacy")
     dependsOn(sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         ApiCallChainFingerprint.method.addInstruction(

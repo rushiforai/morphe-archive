@@ -21,7 +21,7 @@ val amoledThemePatch = resourcePatch(
     default = false,
 ) {
     category("Performance")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     val background by colorOption(
         key = "backgroundColor",
         default = "#000000",
@@ -148,6 +148,9 @@ internal val DARK_BACKGROUND_COLORS: Map<String, Set<String>> = run {
         "46.8.3" to beforeFortySeven,
         "46.9.3" to beforeFortySeven,
         "47.0.3" to setOf("a3z", "a41", "a42", "a44", "a4b"),
+        // 47.1.3 added another color ahead of the block, so every gray moved one name along
+        // again. The five values are 47.0.3's, and still no other style points at one.
+        "47.1.3" to setOf("a40", "a42", "a43", "a45", "a4c"),
     )
 }
 
@@ -166,7 +169,7 @@ internal fun unreadPaletteRefusal(versionName: String?): String {
 
 /** The builds this patch is declared for, where the sheet style names are known to be right. */
 internal fun declaredVersions(): Set<String> =
-    AppCompatibilities.tiktok4703().flatMap { it.targets }.mapNotNull { it.version }.toSet()
+    AppCompatibilities.tiktok().flatMap { it.targets }.mapNotNull { it.version }.toSet()
 
 /**
  * On a declared build every sheet item has to have been found: the names are that build's,
@@ -188,7 +191,8 @@ internal fun checkSheetStyleItems(found: Set<String>, versionName: String?, decl
  * The dark tokens behind TikTok's sheets. agk and c3 were the comments and share sheets' own
  * through 46.x and are dark surfaces of their own on 47.0.3. aia is 47.0.3's dark value for
  * UISheetFlat1 (attr/a24), which the comment panel, the share sheet and TikTok's other sheets,
- * panels and modals fill with (AmoledSheetTokensTest).
+ * panels and modals fill with (AmoledSheetTokensTest). 47.1.3 kept every attr where it was
+ * (TuxSheet's background attribute is 0x7f0609fb on both), so the three names hold there too.
  */
 internal val SHEET_STYLE_ITEMS = setOf("agk", "c3", "aia")
 

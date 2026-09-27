@@ -12,13 +12,12 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Spinner;
+import android.widget.PopupWindow;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
@@ -64,13 +63,14 @@ public final class DeepSeekModelPreference extends android.preference.Preference
     private EditText editor;
     private TextView state;
     private Button refresh;
-    private Spinner choices;
+    private TextView choices;
+    private PopupWindow modelMenu;
+    private List<String> shownModels = Collections.emptyList();
     private String lastCommitted = "";
     private String boundProfile="";
     private View boundView;
     private long boundRevision=-1;
     private volatile int fetchGeneration;
-    private boolean populatingChoices;
 
     public DeepSeekModelPreference(Context context) {
         super(context);
@@ -185,27 +185,17 @@ public final class DeepSeekModelPreference extends android.preference.Preference
         state.setPadding(dp(10), 0, 0, 0);
         root.addView(controls, matchWrap());
 
-        choices = new Spinner(context);
+        choices = new TextView(context);
+        CaptionSettingsStyle.title(choices);
+        choices.setTextSize(14);
+        choices.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
+        choices.setSingleLine(true);
+        choices.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        choices.setMinHeight(dp(48));
+        choices.setClickable(true);
+        choices.setFocusable(true);
+        choices.setOnClickListener(view -> showModelMenu());
         choices.setVisibility(View.GONE);
-        choices.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(
-                    AdapterView<?> parentView,
-                    View view,
-                    int position,
-                    long id
-            ) {
-                if (parentView!=choices || !boundProfile.equals(ApiProfiles.active(getContext())) || populatingChoices || position <= 0) return;
-                Object selected = parentView.getItemAtPosition(position);
-                if (!(selected instanceof String)) return;
-                String model = ((String) selected).trim();
-                if (model.isEmpty()) return;
-                editor.setText(model);
-                editor.setSelection(model.length());
-                commitNow(model, true);
-            }
-
-            @Override public void onNothingSelected(AdapterView<?> parentView) {}
-        });
         controls.addView(choices,0,new LinearLayout.LayoutParams(0,dp(48),1f));
         state.setPadding(0,dp(4),0,0);state.setMaxLines(2);
         root.addView(state,matchWrap());
@@ -217,7 +207,10 @@ public final class DeepSeekModelPreference extends android.preference.Preference
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override public void afterTextChanged(Editable value) {
-                if(createdEditor==editor&&createdProfile.equals(ApiProfiles.active(getContext())))scheduleSave(value == null ? "" : value.toString());
+                if(createdEditor==editor&&createdProfile.equals(ApiProfiles.active(getContext()))){
+                    scheduleSave(value == null ? "" : value.toString());
+                    updatePickerLabel();
+                }
             }
         });
         editor.setOnFocusChangeListener((view, hasFocus) -> {
@@ -246,6 +239,7 @@ public final class DeepSeekModelPreference extends android.preference.Preference
             @Override public void onViewDetachedFromWindow(View view) {
                 if(view==editor)ApiProfiles.unregister(DeepSeekModelPreference.this);
                 if(view!=editor||!createdProfile.equals(ApiProfiles.active(getContext())))return;
+                dismissModelMenu();
                 commitNow(((EditText) view).getText().toString(), false);
                 fetchGeneration++;
                 if (active.get() == DeepSeekModelPreference.this) {
@@ -328,28 +322,88 @@ public final class DeepSeekModelPreference extends android.preference.Preference
 
     private void showModels(List<String> models, boolean newlyFetched) {
         if (choices == null) return;
-        List<String> entries = new ArrayList<>(models.size() + 1);
-        entries.add(CaptionStrings.localize(getContext(),"模型")+" ("+models.size()+")");
-        entries.addAll(models);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                getContext(),
-                android.R.layout.simple_spinner_item,
-                entries
-        ) {
-            @Override public View getView(int position,View reused,ViewGroup parent){
-                View v=super.getView(position,reused,parent);if(v instanceof TextView){((TextView)v).setTextSize(14);((TextView)v).setSingleLine(true);((TextView)v).setEllipsize(android.text.TextUtils.TruncateAt.END);}return v;
-            }
-            @Override public View getDropDownView(int position,View reused,ViewGroup parent){
-                View v=super.getDropDownView(position,reused,parent);if(v instanceof TextView)((TextView)v).setTextSize(14);return v;
-            }
-        };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        populatingChoices = true;
-        choices.setAdapter(adapter);
-        choices.setSelection(0, false);
+        dismissModelMenu();
+        shownModels = new ArrayList<>(models);
+        updatePickerLabel();
         choices.setVisibility(View.VISIBLE);
-        populatingChoices = false;
         setState(newlyFetched ? "列表已更新" : "可选择模型或直接输入 ID", false);
+    }
+
+    private void updatePickerLabel() {
+        if (choices == null) return;
+        String name = editor == null ? "" : editor.getText().toString().trim();
+        String label = shownModels.contains(name) ? name
+                : CaptionStrings.localize(getContext(), "模型") + " (" + shownModels.size() + ")";
+        choices.setText(label + "  ▾");
+        choices.setContentDescription(CaptionStrings.localize(getContext(), "模型") + ": " + label);
+    }
+
+    private void dismissModelMenu() {
+        if (modelMenu != null) { modelMenu.dismiss(); modelMenu = null; }
+    }
+
+    private void showModelMenu() {
+        if (choices == null || !choices.isAttachedToWindow() || shownModels.isEmpty()
+                || boundRevision != ApiProfiles.revision()
+                || !boundProfile.equals(ApiProfiles.active(getContext()))) return;
+        dismissModelMenu();
+        Context context = getContext();
+        int width = Math.min(context.getResources().getDisplayMetrics().widthPixels - dp(32),
+                Math.max(choices.getWidth(), dp(240)));
+        if (width <= 0) return;
+        LinearLayout rows = new LinearLayout(context);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        String heading = CaptionStrings.localize(context, "模型") + " (" + shownModels.size() + ")";
+        rows.addView(modelMenuRow(context, heading, false, true, null, null),
+                new LinearLayout.LayoutParams(-1, dp(48)));
+        String selected = editor.getText().toString().trim();
+        for (String model : shownModels) {
+            TextView row = modelMenuRow(context, model, model.equals(selected), false, null, null);
+            row.setOnClickListener(v -> {
+                dismissModelMenu();
+                if (editor == null || !boundProfile.equals(ApiProfiles.active(context))) return;
+                editor.setText(model);
+                editor.setSelection(model.length());
+                commitNow(model, true);
+                updatePickerLabel();
+            });
+            rows.addView(row, new LinearLayout.LayoutParams(-1, dp(48)));
+        }
+        ScrollView scroll = new ScrollView(context);
+        scroll.setFillViewport(false);
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.addView(rows);
+        LinearLayout surface = new LinearLayout(context);
+        surface.setBackground(CaptionSettingsStyle.menuSurface(context));
+        surface.setClipToOutline(true);
+        surface.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
+        int maxHeight = Math.round(context.getResources().getDisplayMetrics().heightPixels * .55f);
+        int height = Math.min(dp(48) * (shownModels.size() + 1), maxHeight);
+        PopupWindow popup = new PopupWindow(surface, width, height, true);
+        popup.setBackgroundDrawable(CaptionSettingsStyle.menuSurface(context));
+        popup.setOutsideTouchable(true);
+        popup.setElevation(dp(8));
+        popup.setInputMethodMode(PopupWindow.INPUT_METHOD_NOT_NEEDED);
+        popup.setOnDismissListener(() -> { if (modelMenu == popup) modelMenu = null; });
+        modelMenu = popup;
+        popup.showAsDropDown(choices);
+    }
+
+    static TextView modelMenuRow(Context context,String model,boolean selected,boolean heading,View reused,ViewGroup parent){
+        // Only the outer popup owns the corners: do not let a platform selector
+        // replace the neutral fill as the first or last item scrolls into view.
+        TextView row=reused instanceof TextView?(TextView)reused:new TextView(context);
+        CaptionSettingsStyle.title(row);row.setTextSize(14);row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        row.setMinHeight(CaptionSettingsStyle.dp(context,48));
+        row.setPadding(CaptionSettingsStyle.dp(context,16),CaptionSettingsStyle.dp(context,12),CaptionSettingsStyle.dp(context,16),CaptionSettingsStyle.dp(context,12));
+        row.setSingleLine(true);row.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        row.setText((selected?"✓  ":"    ")+model);
+        row.setContentDescription(model+(selected?", "+CaptionStrings.localize(context,"已选择"):""));
+        int fg=CaptionSettingsStyle.primary(context);
+        row.setTextColor(heading?CaptionSettingsStyle.secondary(context):fg);
+        android.graphics.drawable.ColorDrawable fill=new android.graphics.drawable.ColorDrawable(selected?CaptionSettingsStyle.tint(fg,20):android.graphics.Color.TRANSPARENT);
+        row.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(CaptionSettingsStyle.tint(fg,24)),fill,null));
+        return row;
     }
 
     private void scheduleCredentialRefresh() {
@@ -403,6 +457,7 @@ public final class DeepSeekModelPreference extends android.preference.Preference
     }
     @Override public void profileChanged(){
         cancelPendingSave();
+        dismissModelMenu();
         fetchGeneration++;
         if(pendingCredentialRefresh!=null)main.removeCallbacks(pendingCredentialRefresh);
         boundProfile="";boundView=null;lastCommitted="";

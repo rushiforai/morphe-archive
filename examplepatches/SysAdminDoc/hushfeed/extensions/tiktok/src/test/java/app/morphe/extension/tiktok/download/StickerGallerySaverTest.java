@@ -23,19 +23,9 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class StickerGallerySaverTest {
-    /** A UrlModel the saver can read, which is what the source sticker hands back. */
-    public static final class Urls extends com.ss.android.ugc.aweme.base.model.UrlModel {
-        private final java.util.List<String> urls;
-        Urls(String url) { urls = java.util.List.of(url); }
-        @Override public java.util.List<String> getUrlList() { return urls; }
-        @Override public String getUri() { return urls.get(0); }
-    }
-
-    /** Stands in for the source sticker, whose accessors kept their names. */
-    public static final class Sticker {
-        private final Urls urls;
-        Sticker(String url) { urls = new Urls(url); }
-        public com.ss.android.ugc.aweme.base.model.UrlModel getStaticUrl() { return urls; }
+    /** Stands in for the source sticker, TikTok's StickerItem, whose members keep their names. */
+    private static StickerItemFake sticker(String url) {
+        return StickerItemFake.of(StickerGallerySaver.TYPE_STATIC, "png", url);
     }
 
     /** The preview model TikTok binds to the sheet; the source is registered against it. */
@@ -142,14 +132,14 @@ public class StickerGallerySaverTest {
         View sheet = new View(RuntimeEnvironment.getApplication());
 
         PreviewModel first = new PreviewModel();
-        StickerGallerySaver.registerStickerSource(first, new Sticker("https://example.invalid/first.png"));
+        StickerGallerySaver.registerStickerSource(first, sticker("https://example.invalid/first.png"));
         // The sheet has already been given its button, which is the state a second bind meets.
         attached().put(sheet, findAsset(first));
         assertEquals("https://example.invalid/first.png", url(attached().get(sheet)));
 
         // The reader closes it and opens a different sticker. TikTok binds the same sheet.
         PreviewModel second = new PreviewModel();
-        StickerGallerySaver.registerStickerSource(second, new Sticker("https://example.invalid/second.png"));
+        StickerGallerySaver.registerStickerSource(second, sticker("https://example.invalid/second.png"));
         StickerGallerySaver.attachSaveImageButton(sheet, second);
 
         // The button reads this when it is pressed, so it has to be the sticker on screen.
@@ -168,7 +158,7 @@ public class StickerGallerySaverTest {
         StickerSheet sheet = new StickerSheet(context);
 
         PreviewModel preview = new PreviewModel();
-        StickerGallerySaver.registerStickerSource(preview, new Sticker("https://example.invalid/sticker.png"));
+        StickerGallerySaver.registerStickerSource(preview, sticker("https://example.invalid/sticker.png"));
         StickerGallerySaver.attachSaveImageButton(sheet, preview);
 
         assertEquals("the Save media button was not added", 3, sheet.actions.getChildCount());
@@ -192,7 +182,7 @@ public class StickerGallerySaverTest {
         bare.addView(new android.widget.TextView(context));
 
         PreviewModel preview = new PreviewModel();
-        StickerGallerySaver.registerStickerSource(preview, new Sticker("https://example.invalid/sticker.png"));
+        StickerGallerySaver.registerStickerSource(preview, sticker("https://example.invalid/sticker.png"));
         StickerGallerySaver.attachSaveImageButton(bare, preview);
 
         assertEquals(1, bare.getChildCount());

@@ -39,15 +39,17 @@ final class QueueEstimate {
         long lumber = 0, clay = 0, iron = 0, crop = 0;
         int unknown = 0;
         int reachedCount = 0;
-        Map<Integer, Integer> reached = new HashMap<Integer, Integer>();
+        Map<String, Integer> reached = new HashMap<String, Integer>();
         for (BuildOrderStore.Entry entry : order) {
             BuildingRules.Rule rule = rules == null ? null : rules.find(entry.buildingTypeId);
             if (rule == null || village == null) {
                 unknown++;
                 continue;
             }
-            Integer known = reached.get(entry.buildingTypeId);
-            int from = known != null ? known : reachedLevel(village, entry.buildingTypeId);
+            String key = entry.slotId > 0 ? "slot" + entry.slotId : "type" + entry.buildingTypeId;
+            Integer known = reached.get(key);
+            int from = known != null ? known : entry.slotId > 0 ? slotLevel(village, entry.slotId)
+                    : reachedLevel(village, entry.buildingTypeId);
             if (entry.targetLevel <= from) {
                 reachedCount++;
                 continue;
@@ -65,7 +67,7 @@ final class QueueEstimate {
                 i += data.iron;
                 cr += data.crop;
             }
-            reached.put(entry.buildingTypeId, entry.targetLevel);
+            reached.put(key, entry.targetLevel);
             if (!complete) {
                 unknown++;
                 continue;
@@ -76,6 +78,17 @@ final class QueueEstimate {
             crop += cr;
         }
         return new Result(new BuildQueueAutomation.Resources(lumber, clay, iron, crop), unknown, reachedCount);
+    }
+
+    /** The level of the building on this slot, counting an upgrade queued in the game; 0 if empty. */
+    static int slotLevel(PlayerBuildings.Village village, int slotId) {
+        int level = 0;
+        for (PlayerBuildings.Slot s : village.slots) {
+            if (s.slotId == slotId) {
+                level = s.level;
+            }
+        }
+        return Math.max(level, village.queuedLevel(slotId));
     }
 
     /** The highest level of this building type the village has built or has queued in the game. */

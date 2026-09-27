@@ -44,6 +44,30 @@ val blockCrashExtrasPatch = bytecodePatch(
         key = "blockSplunkMint",
         description = "Legacy crash and event SDK.",
     )
+    val blockAppCenter by booleanOption(
+        title = "Block App Center",
+        default = true,
+        key = "blockAppCenter",
+        description = "Microsoft App Center crashes and analytics.",
+    )
+    val blockSentry by booleanOption(
+        title = "Block Sentry",
+        default = true,
+        key = "blockSentry",
+        description = "Sentry error tracking SDK.",
+    )
+    val blockAcra by booleanOption(
+        title = "Block ACRA",
+        default = true,
+        key = "blockAcra",
+        description = "ACRA crash reporting SDK.",
+    )
+    val blockOpenTelemetry by booleanOption(
+        title = "Block OpenTelemetry",
+        default = true,
+        key = "blockOpenTelemetry",
+        description = "OpenTelemetry (OpenCensus/OpenTracing) spans and export.",
+    )
 
     execute {
         val logger = Logger.getLogger(this::class.java.name)
@@ -52,6 +76,10 @@ val blockCrashExtrasPatch = bytecodePatch(
             if (blockShake == true) put("Lcom/shakebugs", "Shake")
             if (blockEmbrace == true) put("Lio/embrace", "Embrace")
             if (blockSplunk == true) put("Lcom/splunk", "Splunk Mint")
+            if (blockAppCenter == true) put("Lcom/microsoft/appcenter", "App Center")
+            if (blockSentry == true) put("Lio/sentry", "Sentry")
+            if (blockAcra == true) put("Lorg/acra", "ACRA")
+            if (blockOpenTelemetry == true) put("Lio/opentelemetry", "OpenTelemetry")
         }
         if (prefixes.isEmpty()) {
             logger.warning("All vendors disabled. No changes applied.")

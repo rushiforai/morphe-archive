@@ -101,7 +101,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Caption above comments",
-                    "The comment button also opens a video's comments with its caption at the top.",
+                    "The comment button also opens a video's comments with its caption at the top. The caption over the video goes away while this is on.",
                     Settings.CAPTION_ABOVE_COMMENTS
             ));
         }
@@ -160,7 +160,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new InputTextPreference(
                     context,
                     "Blocked comment words",
-                    "Comma separated. A comment is hidden if its text contains any of them. Case does not matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
+                    "Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
                     Settings.COMMENT_BLOCKED_KEYWORDS
             ).withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
             addPreference(new InputTextPreference(

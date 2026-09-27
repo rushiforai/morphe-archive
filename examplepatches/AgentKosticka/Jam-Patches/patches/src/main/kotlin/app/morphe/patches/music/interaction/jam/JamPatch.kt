@@ -88,6 +88,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.music.misc.extension.sharedExtensionPatch
+import app.morphe.patches.music.misc.playservice.versionCheckPatch
 import app.morphe.patches.music.misc.settings.PreferenceScreen
 import app.morphe.patches.music.misc.settings.settingsPatch
 import app.morphe.patches.music.shared.Constants.COMPATIBILITY_YOUTUBE_MUSIC
@@ -96,9 +97,25 @@ import app.morphe.patches.music.video.information.musicVideoInformationPatch
 import app.morphe.patches.shared.misc.settings.preference.NonInteractivePreference
 import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPreference
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
+import java.util.logging.Logger
+
+internal val supportedJamVersions = setOf("9.15.51", "9.35.54", "9.36.50", "9.37.54")
+
+internal fun isSupportedJamVersion(version: String): Boolean = version in supportedJamVersions
+
+private fun warnUnsupportedJamVersion(version: String) {
+  Logger.getLogger("Jam queue sharing").warning(
+      "Skipping Jam queue sharing on YouTube Music $version. " +
+          "Supported versions: ${supportedJamVersions.joinToString()}. No Jam changes will be applied."
+  )
+}
 
 private val jamResources = resourcePatch {
+  dependsOn(versionCheckPatch)
   execute {
+    if (!isSupportedJamVersion(packageMetadata.versionName)) {
+      return@execute warnUnsupportedJamVersion(packageMetadata.versionName)
+    }
     document("AndroidManifest.xml").use { doc ->
       val permissions = doc.getElementsByTagName("uses-permission")
       if (
@@ -156,7 +173,10 @@ val jamQueueProbePatch =
     bytecodePatch(
         name = "Jam queue sharing",
         description =
-            "Adds a native Jam queue panel and authenticated bridge. Newer experimental targets require device testing. Root installation is not supported.",
+            "Shares the host queue and playback controls through an authenticated Jam bridge. " +
+                "Supports YouTube Music 9.15.51; 9.35.54, 9.36.50 and 9.37.54 are experimental " +
+                "and require device testing. Other versions are skipped with a warning. " +
+                "Root installation is not supported.",
         default = true,
     ) {
       dependsOn(
@@ -165,6 +185,7 @@ val jamQueueProbePatch =
           jamResources,
           musicVideoInformationPatch,
           resourceMappingPatch,
+          versionCheckPatch,
       )
       compatibleWith(
           Compatibility(
@@ -174,12 +195,15 @@ val jamQueueProbePatch =
               signatures = COMPATIBILITY_YOUTUBE_MUSIC.signatures,
               targets =
                   COMPATIBILITY_YOUTUBE_MUSIC.targets.filter {
-                    it.version in setOf("9.15.51", "9.35.54", "9.36.50", "9.37.54")
+                    it.version in supportedJamVersions
                   },
           )
       )
 
       execute {
+        if (!isSupportedJamVersion(packageMetadata.versionName)) {
+          return@execute warnUnsupportedJamVersion(packageMetadata.versionName)
+        }
         val baseQueue = resolveJamQueueAbi()
         val ui = resolveJamUiAbi(baseQueue)
         val queue =

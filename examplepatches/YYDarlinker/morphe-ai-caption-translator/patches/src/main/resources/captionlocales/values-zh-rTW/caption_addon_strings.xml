@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"已加密儲存；輸入可取代"</string>
     <string name="cap_model_hint" formatted="false">"選擇模型或輸入模型 ID"</string>
     <string name="cap_preview_hint" formatted="false">"點按畫面切換方向，樣式即時預覽"</string>
-    <string name="cap_size_hint" formatted="false">"相對字級 12–22，隨畫面比例縮放"</string>
+    <string name="cap_size_hint" formatted="false">"相對字級 8–15，隨畫面比例縮放"</string>
     <string name="cap_opacity_hint" formatted="false">"0% 為透明，100% 為不透明；放開儲存"</string>
     <string name="cap_diagnostic_hint" formatted="false">"展開查看並複製診斷記錄"</string>
     <string name="cap_use_youtube" formatted="false">"使用 YouTube"</string>

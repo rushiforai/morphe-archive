@@ -389,6 +389,21 @@ public class Utils {
     public static void setActivity(Activity mainActivity) {
         Logger.printInfo(() -> "Set activity: " + mainActivity);
         activityRef = new WeakReference<>(mainActivity);
+        checkPostCrashPrompt(mainActivity);
+    }
+
+    private static final java.util.concurrent.atomic.AtomicBoolean sCrashPromptShown = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+    private static void checkPostCrashPrompt(Activity activity) {
+        if (activity == null || sCrashPromptShown.getAndSet(true)) return;
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            try {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                if (app.morphe.extension.shared.diagnostics.SessionLogManager.didLastSessionCrash()) {
+                    Toast.makeText(activity, "⚠️ Photos recovered from a crash. Check Diagnostics in Settings.", Toast.LENGTH_LONG).show();
+                }
+            } catch (Throwable ignored) {}
+        }, 2000);
     }
 
     public static Context getContext() {
@@ -404,6 +419,10 @@ public class Utils {
         Logger.printInfo(() -> "Set context: " + appContext);
         // Must initially set context to check the app language.
         context = appContext;
+
+        try {
+            app.morphe.extension.shared.diagnostics.SessionLogManager.initialize(appContext);
+        } catch (Throwable ignored) {}
 
         // Set activity if not already set.
         if (appContext instanceof Activity activity && getActivity() == null) {

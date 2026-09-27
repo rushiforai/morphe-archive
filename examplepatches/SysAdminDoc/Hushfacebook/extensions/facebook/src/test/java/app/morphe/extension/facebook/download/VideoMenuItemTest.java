@@ -18,6 +18,7 @@ import android.view.View;
 import com.facebook.graphql.model.GraphQLMedia;
 import com.facebook.graphql.model.GraphQLStory;
 import com.facebook.graphql.model.GraphQLStoryAttachment;
+import com.facebook.graphservice.tree.TreeJNI;
 import com.facebook.video.engine.api.VideoDataSource;
 
 import org.junit.After;
@@ -32,6 +33,10 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.facebook.settings.Settings;
@@ -86,6 +91,7 @@ public class VideoMenuItemTest {
     public void tearDown() throws InterruptedException {
         waitForSaves();
         MediaDownload.policyForTests = null;
+        MediaDownload.detailsForTests = null;
         PauseForTests.resume();
         Settings.DOWNLOAD_VIDEOS.resetToDefault();
         LogBufferManager.clearLogBuffer();
@@ -316,6 +322,49 @@ public class VideoMenuItemTest {
         assertTrue(report, report.contains("Download to phone tapped after its switch went off"));
         assertFalse(report, report.contains("saving"));
         assertNull("a tap on a switched-off item showed a message", ShadowToast.getTextOfLatestToast());
+    }
+
+    /**
+     * The item hands the save who posted the video and when, read off the video's owner and the
+     * post's actors and creation time by the hashes Facebook's own getters use. A share is named
+     * after the post it shares, whose video it is, not after the sharer. The report names nobody.
+     */
+    @Test
+    public void aTapNamesTheVideoAfterItsPosterAndTheDayItWentUp() throws Exception {
+        List<PostDetails> handed = new ArrayList<>();
+        MediaDownload.detailsForTests = details -> {
+            synchronized (handed) {
+                handed.add(details);
+            }
+        };
+        long seconds = 1_756_728_000L;
+
+        GraphQLMedia media = video("2134567890123456");
+        media.with("playable_url", CLIP).with("owner", new TreeJNI().with("name", "Page Owner"));
+        GraphQLStory post = post(media);
+        post.with("actors", Collections.singletonList(new TreeJNI().with("name", "Post Actor"))).with("creation_time", seconds);
+        tap(filled(post));
+        report();
+
+        GraphQLMedia original = video("3134567890123456");
+        original.with("playable_url", CLIP);
+        GraphQLStory shared = post(original);
+        shared.with("actors", Collections.singletonList(new TreeJNI().with("name", "Original Poster")))
+                .with("creation_time", seconds);
+        GraphQLStory share = new GraphQLStory(shared);
+        share.with("actors", Collections.singletonList(new TreeJNI().with("name", "Sharer"))).with("creation_time", seconds + 86_400);
+        tap(filled(share));
+        String report = report();
+
+        assertEquals(2, handed.size());
+        assertEquals("2134567890123456", handed.get(0).videoId);
+        assertEquals("Page Owner", handed.get(0).owner);
+        assertEquals(new Date(seconds * 1000), handed.get(0).posted);
+        assertEquals("3134567890123456", handed.get(1).videoId);
+        assertEquals("Original Poster", handed.get(1).owner);
+        assertEquals(new Date(seconds * 1000), handed.get(1).posted);
+        assertFalse(report, report.contains("Page Owner") || report.contains("Original Poster") || report.contains("Sharer"));
+        assertNoAddressIn(report);
     }
 
     private static void assertNoAddressIn(String report) {

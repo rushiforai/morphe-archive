@@ -45,7 +45,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new SectionHeadingPreference(context, "Auto-advance"));
             addPreference(new TogglePreference(context, "Auto-advance videos",
                     "Move to the next video when the current one ends. Pauses, open dialogs and "
-                            + "screen-time holds stop it. Restart TikTok after changing this.",
+                            + "screen-time holds stop it. Restart TikTok to apply this.",
                     Settings.AUTO_ADVANCE));
             addPreference(new NumberInputPreference(context, "Auto-advance session limit",
                     "Zero means no limit. Counts the videos Hushfeed advanced past for you, "
@@ -112,12 +112,34 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     new String[]{"off", "highest", "lowest", "1080", "720", "540", "480", "360"}));
         }
         if (SettingsStatus.videoFitEnabled) {
-            addPreference(new TogglePreference(context, "Fit the video to the screen",
+            TogglePreference fit = new TogglePreference(context, "Fit the video to the screen",
                     "Show the whole video instead of cropping it to the window. Nothing changes "
                             + "on a tall phone, where it already fits. On a folding phone opened "
                             + "up, a squarer screen or a split view the sides or the ends stop "
                             + "being cut off.",
-                    Settings.FIT_VIDEO_TO_SCREEN));
+                    Settings.FIT_VIDEO_TO_SCREEN);
+            TogglePreference fill = new TogglePreference(context, "Fill the screen with the video",
+                    "Crop the video until it covers the whole window. On a tall phone the black "
+                            + "strip TikTok leaves under a video goes and so does a little of each side.",
+                    Settings.FILL_VIDEO_TO_SCREEN);
+            // One or the other: the whole video inside the window and the window covered can't
+            // both hold, so turning either on turns the other off.
+            fit.setOnPreferenceChangeListener((preference, value) -> {
+                if (Boolean.TRUE.equals(value)) {
+                    Settings.FILL_VIDEO_TO_SCREEN.save(false);
+                    fill.setChecked(false);
+                }
+                return true;
+            });
+            fill.setOnPreferenceChangeListener((preference, value) -> {
+                if (Boolean.TRUE.equals(value)) {
+                    Settings.FIT_VIDEO_TO_SCREEN.save(false);
+                    fit.setChecked(false);
+                }
+                return true;
+            });
+            addPreference(fit);
+            addPreference(fill);
         }
     }
 }

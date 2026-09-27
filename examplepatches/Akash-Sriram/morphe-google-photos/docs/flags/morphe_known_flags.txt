@@ -1,0 +1,173 @@
+# ==============================================================================
+# Morphe Google Photos - Master Known UI & Functional Flags (54 Flags)
+# Exclusively contains documented, verified UI, navigation, editor & layout features.
+# Zero background telemetry, zero sync workers, zero Cronet bloat.
+# ==============================================================================
+
+# ─── Navigation & Modern UI ───
+# Floating Navigation Bar (Master) - Elevated Material You floating navigation pill bar
+45732792=true
+
+# Date Capsule Pill - Floating [ Today ] date capsule pill during grid scrolling
+45743215=true
+
+# Floating Bar Elevation - Dynamic depth & elevation shadow animations on navigation bar
+45746812=true
+
+# Floating Bar Dynamic Theming - Material You dynamic corner radius and accent theming
+45745561=true
+
+# "On this device" Filter Button - Quick top bar filter button to view only locally saved media
+45753590=true
+
+# Reels Videos Tab (V1) - Full-screen vertically scrollable video feed tab
+45752831=true
+
+# Reels Videos Tab (V2) - Explore tab transition into full-screen vertical video feed
+45754546=true
+
+# Modern UI Layout Components - Material 3 baseline layout tokens and card shapes
+2675=true
+
+# Modern Layout Controls - Perspective and dynamic layout controls
+3606=true
+
+# Modern UI Styling Tokens - M3 dynamic color and shape styling
+3611=true
+
+# Dynamic Action Bars - Context-sensitive floating action bars
+4306=true
+
+# Floating Navigation Pill Styling - Floating pill styling and bottom padding offsets
+4311=true
+
+# Gemini Search Tab Sparkle - Changes search tab icon to Gemini sparkle AI icon
+3013=1
+
+# ─── Collections V2 & Shelves ───
+# Collections V2 Layout - Collections Shelves V2 redesigned grouped layout (0=Off, 2=On)
+45762698=2
+
+# Collections V2 Content Cards - Collections Shelves V2 modern card preview tiles
+45802110=2
+
+# Customizable Pinned Shelf - Pin, reorder, and customize favorite albums at the top of Collections
+45787397=true
+
+# People & Pets Carousel - Prominent horizontal circular avatar carousel for recognized faces
+45816328=true
+
+# Modern Album Card Animation - Fluid scale, press feedback, and corner-rounding on album tiles
+45821034=true
+
+# Documents Category Shelf - Auto-categorized documents, receipts, and payment method shelf with OCR
+45794038=true
+
+# Screenshots Category Shelf - Dedicated isolated shelf and quick-actions for screenshots
+45794037=true
+
+# ─── Create Hub & Tools ───
+# Create Tab Master (AuraTab) - Dedicated Creation Hub tab in the bottom navigation bar
+45754248=true
+
+# Creative Studio Hero Header - Animated headline banner ('Go ahead, show off your creative side')
+45754250=true
+
+# Creation Tools Module (6+ Controls) - Quick-launch shortcuts for Collages, Highlight Videos, Cinematic Photos, Animations, and Books
+45815131=true
+
+# Made For You Carousel - Horizontal carousel for AI-generated creations, highlights, and suggestions
+45815129=true
+
+# Remix Creations Action - Enables one-tap photo and video remixing directly from creation cards
+45815130=true
+
+# Template Category Filter Chips - Horizontal filter chips for collage, video remix, and templates
+45778870=true
+
+# Skottie Creation Animations - High-performance vector Lottie animations on creation preview cards
+45719431=true
+
+# Suggestion Chip Gradient Styling - Material You subtle gradient styling and outline on template chips
+45774010=true
+
+# Moods Adaptive Filter Presets - Adaptive creative color grading presets with hold-to-compare
+45797840=true
+
+# ─── Photo & Video Editor ───
+# Magic Editor Tap/Circle Select - Gesture-based subject selection in Magic Editor (tap, circle, brush)
+45705305=true
+
+# AI Enhance V2 - Multi-option AI photo enhancement presets with comparison slider
+45683689=true
+
+# New Video Editor & AI Presets - Redesigned intuitive video editor layout with AI-powered features
+45709528=true
+
+# Ask Photos Gemini AI Search - Conversational Gemini AI search assistant UI
+45724258=true
+
+# Video Seek Scrubbing - High-speed video thumbnail scrubbing preview bar
+45683026=true
+
+# Motion Photo Stabilizer - Motion photo stabilizer and floating playback pill
+45694311=true
+
+# Document Scanner Crop - Perspective document scanner cropping and corner handles
+45353606=true
+
+# ─── Google One & Avatar ───
+# OneGoogle Avatar Ring Master - Master switch for profile avatar subscriber ring (synced to OneGoogle .pb)
+45531621=true
+
+# Google One Ring Style Variant - Subscriber gradient ring style variant (synced to OneGoogle .pb)
+45531625=3
+
+# Account Particle Disc - Base particle disc animation around avatar
+45375377=true
+
+# Dynamic Accent Theming - OneGoogle Material You dynamic accent ring
+45785454=true
+
+# Modern Account Sheet - Fullscreen modern account switcher sheet
+45804059=true
+
+# ─── Memories & Story Player ───
+# Story Cutouts (Pop-Out) - Master pop-out subject cutout scrapbook animations in Memories
+45659276=true
+
+# MemoryCard Styles - Master MemoryCard graphic styling and scrapbook frames
+45477626=true
+
+# Story Multi-Up Capability - Multi-photo collage cards and cutouts in Memories
+45742883=true
+
+# Pop-Out 3D Templates - Pop-out animation templates and 3D foreground motion
+45785531=true
+
+# MemoryCard Graphic Templates - Dynamic scrapbook layout templates and textures
+45662994=true
+
+# N Years Ago Graphic Generator - On-device N Years Ago graphic theme generator
+45741031=true
+
+# Over the Years Theme - Over the Years scrapbook memory story theme
+45737826=true
+
+# Collage Engine - Multi-up collage scrapbook layout engine
+45764779=true
+
+# Collage Layout Support - Multi-up collage layout support and animations
+45659278=true
+
+# Memories Stories Layout - Modern stories grid and carousel layout
+2892=true
+
+# Enhanced Memories Gestures - Swipe and hold gestures inside Memories player
+3023=true
+
+# Redesigned Memories Carousel - Rounded card carousel at the top of the Photos grid
+3026=true
+
+# Skottie CDN Bundle Version - Production Skottie vector animation bundle version
+3999=118109605

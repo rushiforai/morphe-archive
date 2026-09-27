@@ -32,7 +32,7 @@ val showAuthorRegionPatch = bytecodePatch(
     category("Feed")
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

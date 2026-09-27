@@ -1,0 +1,108 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ */
+package app.morphe.extension.facebook.reels;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.concurrent.Executor;
+
+import app.morphe.extension.facebook.settings.FamilyNames;
+import app.morphe.extension.facebook.settings.Settings;
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
+import app.morphe.extension.shared.diagnostics.HookStatus;
+
+/**
+ * What the Don't send reel watch history patch asks before Facebook sends the reels you watched.
+ *
+ * <p>Facebook's Reels viewer queues the id of every reel you watch and sends the queue in batches
+ * as one GraphQL mutation, FbShortsSeenStateMutation, whose input is those ids and nothing else. It
+ * names no viewer and nobody else ever sees it: it's the record Facebook ranks your Reels feed with.
+ * The batcher empties its queue, builds the mutation and hands a runnable to an executor, and that
+ * runnable is what gives the request to Facebook's GraphQL layer. The patch puts {@link #send} in
+ * place of that hand-over, so a batch held back here has already left the queue and isn't kept
+ * for a later send. The switch is read when a batch goes out, so reels queued before it's turned
+ * off go out with the next batch.
+ *
+ * <p>It fails open. The runnable is recognised by the name Redex keeps on its class, and anything
+ * else goes to the executor as Facebook handed it over: a runnable this doesn't recognise, the
+ * switch off, a pause, settings that aren't ready yet, or a failure in here.
+ */
+public final class ReelWatchHistory {
+    /** The name Redex keeps on the runnable Facebook's seen-state helper hands its executor. */
+    static final String SEEN_STATE_SEND = "FbShortsSeenStateMutationHelper$sendFbShortsSeenStateMutation$1";
+
+    /** The static field Redex leaves on a class it renamed, holding the class's name from before. */
+    static final String REDEX_NAME = "__redex_internal_original_name";
+
+    /** The diagnostic counter route: each batch Facebook went to send, and the ones held back. */
+    static final String ROUTE = "Reel watch history";
+
+    /** What a batch held back is counted under. */
+    static final String HELD_BACK = "watched reels";
+
+    /** The send's class once it has been recognised, so later batches skip the lookup. */
+    private static volatile Class<?> recognised;
+
+    private ReelWatchHistory() {
+    }
+
+    /**
+     * Injection point, in place of the batcher's {@code executor.execute(send)}, with the same two
+     * values. Hands the send to the executor unless the switch holds it back. Whatever the executor
+     * throws reaches Facebook as it did before.
+     */
+    public static void send(Executor executor, Runnable send) {
+        if (holdBack(send)) return;
+        executor.execute(send);
+    }
+
+    /** True when [send] is Facebook's seen-state send and the switch is on. Never throws. */
+    static boolean holdBack(Runnable send) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_WATCH_HISTORY);
+            FeedFilterCounters.sawList(ROUTE, 1);
+            // Recognised whatever the switch says, so the report shows the hook works before
+            // anyone turns it on.
+            if (!isSeenStateSend(send)) return false;
+            if (!Utils.settingsReady() || !Settings.DONT_SEND_REEL_WATCH_HISTORY.get()) return false;
+            FeedFilterCounters.removed(ROUTE, 1, HELD_BACK);
+            Logger.printDebug(() -> "Reel watch history: held back a batch of watched reels");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_WATCH_HISTORY, "reel watch history send", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Whether [send] is an instance of the class Redex named {@link #SEEN_STATE_SEND}, reported
+     * under the patch's name either way. A repeat of either report costs a hash lookup, and one
+     * made after a diagnostic clear is recorded again.
+     */
+    private static boolean isSeenStateSend(Runnable send) {
+        Class<?> type = send.getClass();
+        if (type != recognised && !SEEN_STATE_SEND.equals(redexName(type))) {
+            HookStatus.missingMember(FamilyNames.REEL_WATCH_HISTORY, "Redex name", type.getName(), SEEN_STATE_SEND);
+            return false;
+        }
+        recognised = type;
+        HookStatus.bound(FamilyNames.REEL_WATCH_HISTORY, SEEN_STATE_SEND);
+        return true;
+    }
+
+    /** The name Redex left on [type], or null when it left none. */
+    private static String redexName(Class<?> type) {
+        try {
+            Field field = type.getDeclaredField(REDEX_NAME);
+            if (!Modifier.isStatic(field.getModifiers()) || field.getType() != String.class) return null;
+            field.setAccessible(true);
+            return (String) field.get(null);
+        } catch (NoSuchFieldException | IllegalAccessException | SecurityException none) {
+            return null;
+        }
+    }
+}

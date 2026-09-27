@@ -42,6 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.theme.PalettesForTests;
 import app.morphe.extension.facebook.theme.TonePalette;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -81,13 +82,18 @@ public class ScreenColorsTest {
     static Map<String, int[]> pairs(ScreenColors c) {
         Map<String, int[]> text = new LinkedHashMap<>();
         text.put("row title on its card", new int[]{c.title, c.card});
+        text.put("title of a row a tap acts on, on its card", new int[]{c.heading, c.card});
         text.put("row summary on its card", new int[]{c.summary, c.card});
         text.put("section title on the page", new int[]{c.heading, c.background});
         text.put("title bar and back arrow on the page", new int[]{c.title, c.background});
         text.put("dialog title on the dialog", new int[]{c.title, c.dialog});
         text.put("dialog message on the dialog", new int[]{c.summary, c.dialog});
+        // A dialog's choice cards take the page's tone, a step off the dialog's.
+        text.put("dialog choice's name on its card", new int[]{c.title, c.background});
+        text.put("dialog choice's detail on its card", new int[]{c.summary, c.background});
         text.put("primary action text on its fill", new int[]{c.onAccent, c.accent});
-        text.put("secondary action on the dialog", new int[]{c.accent, c.dialog});
+        text.put("secondary action on the dialog", new int[]{c.secondaryActionText(), c.dialog});
+        text.put("secondary recovery action on its card", new int[]{c.secondaryActionText(), c.card});
         return text;
     }
 
@@ -95,6 +101,7 @@ public class ScreenColorsTest {
         Map<String, int[]> parts = new LinkedHashMap<>();
         parts.put("switch on, against its card", new int[]{c.accent, c.card});
         parts.put("switch off, against its card", new int[]{c.switchOff, c.card});
+        parts.put("chevron of a row a tap opens something from, against its card", new int[]{c.summary, c.card});
         return parts;
     }
 
@@ -128,6 +135,16 @@ public class ScreenColorsTest {
                 assertMeets(name, controls(colors), NON_TEXT);
             }
         }
+    }
+
+    /**
+     * The black page, which every build without the Material You theme shows. Nothing held it to
+     * AA, and its dialogs' Cancel read at 3.4:1, accent blue on the dialog's grey.
+     */
+    @Test
+    public void theBlackPageMeetsAa() {
+        assertMeets("black page", pairs(ScreenColors.DEFAULT), TEXT);
+        assertMeets("black page", controls(ScreenColors.DEFAULT), NON_TEXT);
     }
 
     /** The framework's own wallpaper palette, as a phone on Android 12 and newer reads it. */
@@ -289,6 +306,39 @@ public class ScreenColorsTest {
                 }
                 assertEquals(colors.summary, field.getCurrentHintTextColor());
                 assertTrue(contrast(field.getCurrentHintTextColor(), colors.dialog) >= TEXT);
+            } finally {
+                row.getDialog().dismiss();
+            }
+        }
+    }
+
+    /**
+     * The download quality's list. Its title and its Cancel button take the screen's colours, as
+     * every other dialog here does, and each choice reads on the dialog.
+     */
+    @Test
+    public void theQualityListTakesTheScreensColours() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsDialog dialog = show(controller.get());
+            HushfacebookPreferenceFragment page = (HushfacebookPreferenceFragment)
+                    dialog.getChildFragmentManager().findFragmentById(SettingsDialog.CONTAINER_ID);
+            HushfacebookPreferenceFragment.QualityRow row =
+                    (HushfacebookPreferenceFragment.QualityRow) page.findPreference(Settings.DOWNLOAD_QUALITY.key);
+            assertNotNull("no download quality row", row);
+            row.showDialog(null);
+            ShadowLooper.idleMainLooper();
+            try {
+                ScreenColors colors = ScreenColors.shown;
+                assertNotNull(colors);
+                android.app.AlertDialog list = (android.app.AlertDialog) row.getDialog();
+                int titleId = list.getContext().getResources().getIdentifier("alertTitle", "id", "android");
+                TextView title = list.findViewById(titleId);
+                assertNotNull("the list has no title", title);
+                assertEquals("Download quality", String.valueOf(title.getText()));
+                assertEquals(colors.title, title.getCurrentTextColor());
+                assertEquals(colors.accent, list.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).getCurrentTextColor());
+                assertEquals(DownloadQuality.values().length, list.getListView().getAdapter().getCount());
             } finally {
                 row.getDialog().dismiss();
             }

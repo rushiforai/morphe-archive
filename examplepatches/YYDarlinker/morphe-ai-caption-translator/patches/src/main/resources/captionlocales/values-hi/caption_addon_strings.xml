@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"एन्क्रिप्ट करके सहेजी गई; बदलने के लिए दर्ज करें"</string>
     <string name="cap_model_hint" formatted="false">"मॉडल चुनें या उसका ID दर्ज करें"</string>
     <string name="cap_preview_hint" formatted="false">"दिशा बदलने के लिए चित्र पर टैप करें; शैली तुरंत दिखती है"</string>
-    <string name="cap_size_hint" formatted="false">"सापेक्ष आकार 12–22, वीडियो के साथ बदलता है"</string>
+    <string name="cap_size_hint" formatted="false">"सापेक्ष आकार 8–15, वीडियो के साथ बदलता है"</string>
     <string name="cap_opacity_hint" formatted="false">"0% पारदर्शी, 100% अपारदर्शी; छोड़ने पर सहेजें"</string>
     <string name="cap_diagnostic_hint" formatted="false">"निदान रिकॉर्ड देखने और कॉपी करने के लिए विस्तार करें"</string>
     <string name="cap_use_youtube" formatted="false">"YouTube इस्तेमाल करें"</string>

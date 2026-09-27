@@ -49,9 +49,10 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * activity as before. The Tapjoy SDK logs an error whenever it is asked for an instance it never
  * made, several times a minute here, so that getter returns without the log.
  *
- * The native part stops Glu's own banner and the content update check, and takes out the Games
+ * The native part stops Glu's own banner and the content update check, takes out the Games
  * button, which opened Glu's deleted games page, and the Boards button, which opened OpenFeint's
- * leaderboards (see [deadServersNativePatch]).
+ * leaderboards, and skips the "OFFLINE - NO DAILY BONUS" message that Glu's missing time server
+ * brings up (see [deadServersNativePatch]).
  *
  * OpenFeint's servers closed in 2012, and [openFeintPatch] keeps the SDK from starting: every
  * call the game makes into it first checks a flag that only a finished `initialize()` sets. Its
@@ -63,8 +64,8 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
 @Suppress("unused")
 val deadServersPatch = bytecodePatch(
     name = "Stop requests to dead servers",
-    description = "Removes the 30 second wait on the loading screen and stops the game from contacting Tapjoy, " +
-        "OpenFeint and Glu's dead servers.",
+    description = "Removes the 30 second wait on the loading screen and the daily offline message, and stops " +
+        "the game from contacting Tapjoy, OpenFeint and Glu's dead servers.",
 ) {
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 

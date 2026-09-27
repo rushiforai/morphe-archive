@@ -47,7 +47,11 @@ with zipfile.ZipFile(io.BytesIO(body)) as z:
     assert "Name: Anchored AI Captions" in mf
     dex=z.read("extensions/extension.mpe")
     assert dex.startswith(b"dex\n") and int.from_bytes(dex[32:36],"little")==len(dex)
-    assert b"AnchoredCaptionPlan" in dex and b"NativeCaptionBridge" in dex
+    assert b"NativeCaptionBridge" in dex
+    if tuple(map(int,v.split("-")[0].split("."))) >= (1,3,5):
+        assert b"RebuildController" in dex and b"CaptionDiagnosticArchive" in dex
+    else:
+        assert b"AnchoredCaptionPlan" in dex
     assert b"SemanticLedgerCaptionController" not in dex and b"LocalDisplaySliceFallback" not in dex
 
 report={"branch":branch,"version":v,"manifest_http":200,"asset_http":200,"patch_count":len(listing["patches"]),"bytes":len(body),"sha256":hashlib.sha256(body).hexdigest(),"manager_dto_valid":True,"root_dex":True,"extension_valid":True,"legacy_engines_absent":True}

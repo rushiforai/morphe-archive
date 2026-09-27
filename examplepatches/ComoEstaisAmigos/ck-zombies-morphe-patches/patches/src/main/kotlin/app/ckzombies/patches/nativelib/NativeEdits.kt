@@ -38,11 +38,13 @@ internal object NativeEdits {
     val DEAD_SERVERS: Map<String, List<WordEdit>> = mapOf(
         "armeabi" to listOf(
             WordEdit(0x002B8638, 0xEB07BCDEL, 0xE1A00000L),
+            WordEdit(0x0035E438, 0x1A000001L, 0xE1A00000L),
             WordEdit(0x00360AC0, 0xE2853058L, 0xE2853030L),
             WordEdit(0x003CE9B0, 0xE92D47F0L, 0xE12FFF1EL),
         ),
         "armeabi-v7a" to listOf(
             WordEdit(0x002AAC68, 0xEB0753C3L, 0xE1A00000L),
+            WordEdit(0x00341C28, 0x1A000001L, 0xE1A00000L),
             WordEdit(0x00344074, 0xE2853058L, 0xE2853030L),
             WordEdit(0x003B24EC, 0xE92D47F0L, 0xE12FFF1EL),
         ),

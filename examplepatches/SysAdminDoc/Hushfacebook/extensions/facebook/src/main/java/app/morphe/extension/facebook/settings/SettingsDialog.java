@@ -64,7 +64,17 @@ public final class SettingsDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        // What the framework's own onCreateDialog builds, with Back first taking the list back to
+        // where it was before a section jump. Dialog's back callback on Android 13 and newer ends
+        // in onBackPressed as well, so this covers the gesture and the key alike.
+        Dialog dialog = new Dialog(getActivity(), getTheme()) {
+            @Override
+            public void onBackPressed() {
+                HushfacebookPreferenceFragment page = page();
+                if (page != null && page.backFromJump()) return;
+                super.onBackPressed();
+            }
+        };
         Window window = dialog.getWindow();
         if (window != null) {
             window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(background()));
@@ -81,6 +91,13 @@ public final class SettingsDialog extends DialogFragment {
             }
         }
         return dialog;
+    }
+
+    /** The settings page this dialog holds, or null before it's attached. */
+    @Nullable
+    private HushfacebookPreferenceFragment page() {
+        Object page = getChildFragmentManager().findFragmentById(CONTAINER_ID);
+        return page instanceof HushfacebookPreferenceFragment ? (HushfacebookPreferenceFragment) page : null;
     }
 
     @Override

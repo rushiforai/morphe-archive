@@ -36,7 +36,7 @@
     <string name="cap_key_saved" formatted="false">"Armazenada com criptografia; digite para substituir"</string>
     <string name="cap_model_hint" formatted="false">"Selecione um modelo ou insira seu ID"</string>
     <string name="cap_preview_hint" formatted="false">"Toque na imagem para mudar a orientação; prévia em tempo real"</string>
-    <string name="cap_size_hint" formatted="false">"Tamanho relativo 12–22, proporcional ao vídeo"</string>
+    <string name="cap_size_hint" formatted="false">"Tamanho relativo 8–15, proporcional ao vídeo"</string>
     <string name="cap_opacity_hint" formatted="false">"0% transparente, 100% opaco; salvo ao soltar"</string>
     <string name="cap_diagnostic_hint" formatted="false">"Expanda para consultar e copiar o diagnóstico"</string>
     <string name="cap_use_youtube" formatted="false">"Usar YouTube"</string>

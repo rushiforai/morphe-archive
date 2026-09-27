@@ -19,6 +19,7 @@ import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -72,28 +73,80 @@ internal fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.answerLive
     }
 }
 
-/** Answer both of the button's LIVE top-tab comparisons from the filtered tab model. */
+/**
+ * Answer every one of the button's LIVE top-tab comparisons from the filtered tab model, by
+ * taking the mode where it is read. 47.0.3 reads it right before comparing it with the two LIVE
+ * modes; 47.1.3 reads it at the top of the method and compares it twice, once for a diagnostic
+ * reason list and once for the button itself.
+ */
 internal fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.answerLiveTopTabMode() {
-    val instructions = implementation!!.instructions.toList()
-    val single = instructions.indexOfFirst {
-        it.opcode == Opcode.CONST_STRING && it.getReference<StringReference>()?.string == "live_tab_single"
-    }
-    val double = instructions.indexOfFirst {
-        it.opcode == Opcode.CONST_STRING && it.getReference<StringReference>()?.string == "live_tab_double"
-    }
-    if (single < 2 || double <= single || instructions[single - 1].opcode != Opcode.MOVE_RESULT_OBJECT ||
-        instructions[single - 2].getReference<MethodReference>()?.returnType != "Ljava/lang/String;"
-    ) {
-        throw PatchException("Feed tab navigation: the LIVE button's top-tab mode read moved.")
-    }
-    val register = (instructions[single - 1] as OneRegisterInstruction).registerA
-    addInstructionsAtControlFlowLabel(
-        single,
+    val read = liveTopTabModeRead()
+        ?: throw PatchException("Feed tab navigation: the LIVE button's top-tab mode read moved.")
+    addInstructions(
+        read.index + 1,
         """
-            invoke-static/range {v$register .. v$register}, $EXTENSION_CLASS_DESCRIPTOR->liveTopTabMode(Ljava/lang/String;)Ljava/lang/String;
-            move-result-object v$register
+            invoke-static/range {v${read.register} .. v${read.register}}, $EXTENSION_CLASS_DESCRIPTOR->liveTopTabMode(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object v${read.register}
         """,
     )
+}
+
+/** The LIVE top-tab modes the corner button compares TikTok's mode with. */
+internal val LIVE_TOP_TAB_MODES = setOf("live_tab_single", "live_tab_double")
+
+/** Where the mode string lands: the move-result-object at [index], into [register]. */
+internal class LiveTopTabModeRead(val index: Int, val register: Int)
+
+/**
+ * The read every comparison with a LIVE mode compares, or null when the method no longer has
+ * that shape: each mode loaded and handed straight to a static boolean equality check with one
+ * other register, the same register in every check, last written by the move-result-object of
+ * a call returning a String, and not written again before the last check.
+ */
+internal fun com.android.tools.smali.dexlib2.iface.Method.liveTopTabModeRead(): LiveTopTabModeRead? {
+    val instructions = implementation?.instructions?.toList() ?: return null
+    val compared = mutableSetOf<Int>()
+    val modes = mutableSetOf<String>()
+    var first = -1
+    var last = -1
+    for ((index, instruction) in instructions.withIndex()) {
+        if (instruction.opcode != Opcode.CONST_STRING) continue
+        val mode = instruction.getReference<StringReference>()?.string
+        if (mode !in LIVE_TOP_TAB_MODES) continue
+        val constant = (instruction as OneRegisterInstruction).registerA
+        val check = instructions.getOrNull(index + 1) as? FiveRegisterInstruction ?: return null
+        val callee = instructions[index + 1].getReference<MethodReference>() ?: return null
+        if (check.opcode != Opcode.INVOKE_STATIC || check.registerCount != 2 || callee.returnType != "Z" ||
+            callee.parameterTypes.size != 2
+        ) {
+            return null
+        }
+        val other = when (constant) {
+            check.registerD -> check.registerC
+            check.registerC -> check.registerD
+            else -> return null
+        }
+        compared += other
+        modes += mode!!
+        if (first < 0) first = index
+        last = index + 1
+    }
+    if (modes != LIVE_TOP_TAB_MODES || compared.size != 1) return null
+    val register = compared.single()
+    val read = (first - 1 downTo 0).firstOrNull { instructions[it].writes(register) } ?: return null
+    if (read < 1 || instructions[read].opcode != Opcode.MOVE_RESULT_OBJECT ||
+        instructions[read - 1].getReference<MethodReference>()?.returnType != "Ljava/lang/String;"
+    ) {
+        return null
+    }
+    if ((read + 1..last).any { instructions[it].writes(register) }) return null
+    return LiveTopTabModeRead(read, register)
+}
+
+/** Whether the instruction writes [register], as itself or as the high half of a wide pair. */
+private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.writes(register: Int): Boolean {
+    val target = (this as? OneRegisterInstruction)?.registerA ?: return false
+    return (opcode.setsRegister() && target == register) || (opcode.setsWideRegister() && target + 1 == register)
 }
 
 @Suppress("unused")
@@ -105,7 +158,7 @@ val feedTabNavigationPatch = bytecodePatch(
     category("Settings")
     dependsOn(settingsPatch, sharedExtensionPatch)
 
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

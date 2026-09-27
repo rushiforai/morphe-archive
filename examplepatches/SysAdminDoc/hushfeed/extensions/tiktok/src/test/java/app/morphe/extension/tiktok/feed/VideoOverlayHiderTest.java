@@ -103,7 +103,7 @@ public class VideoOverlayHiderTest {
         int surveyId = 0x7f0a0a11;
         int cellId = 0x7f0a0a12;
         int captionId = 0x7f0a0a13;
-        VideoOverlayHider.resolveForTests("f7u", surveyId);
+        VideoOverlayHider.resolveForTests("47.0.3:f7u", surveyId);
         VideoOverlayHider.resolveForTests("desc", captionId);
         VideoOverlayHider.resolveForTests("view_rootview", cellId);
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -188,11 +188,11 @@ public class VideoOverlayHiderTest {
         // hold through a reset and stop holding once Normal is chosen again. The music row
         // spans the width and is left alone. Before 2026-09-17 none of this reached a phone:
         // the cell root the walk scoped to was a sibling of the rail, so it found nothing.
-        String[] names = {"i98", "g6r", "ep7", "i7r", "pnp", "w_2"};
+        String[] names = {"47.0.3:i98", "47.0.3:g6r", "47.0.3:ep7", "47.0.3:i7r", "47.0.3:pnp", "47.0.3:w_2"};
         int cellId = 0x7f0a0a31;
         int actionBarId = 0x7f0a0a32;
         VideoOverlayHider.resolveForTests("view_rootview", cellId);
-        VideoOverlayHider.resolveForTests("liy", actionBarId);
+        VideoOverlayHider.resolveForTests("47.0.3:liy", actionBarId);
         for (int i = 0; i < names.length; i++) {
             VideoOverlayHider.resolveForTests(names[i], 0x7f0a0a40 + i);
         }
@@ -276,7 +276,7 @@ public class VideoOverlayHiderTest {
         } finally {
             Settings.TOUCH_TARGET_SCALE.resetToDefault();
             VideoOverlayHider.resolveForTests("view_rootview", 0);
-            VideoOverlayHider.resolveForTests("liy", 0);
+            VideoOverlayHider.resolveForTests("47.0.3:liy", 0);
             for (String name : names) {
                 VideoOverlayHider.resolveForTests(name, 0);
             }
@@ -288,7 +288,7 @@ public class VideoOverlayHiderTest {
         // A build that renames the cell root must not turn every hide switch off; the walk
         // falls back to the whole window and the hook status names the miss.
         int surveyId = 0x7f0a0a21;
-        VideoOverlayHider.resolveForTests("f7u", surveyId);
+        VideoOverlayHider.resolveForTests("47.0.3:f7u", surveyId);
         VideoOverlayHider.resolveForTests("view_rootview", 0);
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
@@ -316,7 +316,7 @@ public class VideoOverlayHiderTest {
         int surveyId = 0x7f0a0a52;
         int oldNameId = 0x7f0a0a53;
         VideoOverlayHider.resolveForTests("view_rootview", cellId);
-        VideoOverlayHider.resolveForTests("f7u", surveyId);
+        VideoOverlayHider.resolveForTests("47.0.3:f7u", surveyId);
         VideoOverlayHider.resolveForTests("ezp", oldNameId);
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
@@ -342,7 +342,7 @@ public class VideoOverlayHiderTest {
         } finally {
             Settings.HIDE_FEED_SURVEYS.save(false);
             VideoOverlayHider.resolveForTests("view_rootview", 0);
-            VideoOverlayHider.resolveForTests("f7u", 0);
+            VideoOverlayHider.resolveForTests("47.0.3:f7u", 0);
             VideoOverlayHider.resolveForTests("ezp", 0);
         }
     }
@@ -403,7 +403,7 @@ public class VideoOverlayHiderTest {
         int cellId = 0x7f0a0a22;
         int surveyId = 0x7f0a0a23;
         VideoOverlayHider.resolveForTests("view_rootview", cellId);
-        VideoOverlayHider.resolveForTests("f7u", surveyId);
+        VideoOverlayHider.resolveForTests("47.0.3:f7u", surveyId);
         HookStatus.clear();
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
@@ -417,11 +417,11 @@ public class VideoOverlayHiderTest {
 
             assertTrue("a survey is optional content, not a required build anchor: "
                             + HookStatus.missing("overlay"),
-                    HookStatus.missing("overlay").stream().noneMatch(line -> line.contains("f7u")));
+                    HookStatus.missing("overlay").stream().noneMatch(line -> line.contains("47.0.3:f7u")));
         } finally {
             Settings.HIDE_FEED_SURVEYS.save(false);
             VideoOverlayHider.resolveForTests("view_rootview", 0);
-            VideoOverlayHider.resolveForTests("f7u", 0);
+            VideoOverlayHider.resolveForTests("47.0.3:f7u", 0);
             HookStatus.clear();
         }
     }
@@ -433,7 +433,7 @@ public class VideoOverlayHiderTest {
         int captionId = 0x7f0a0001;
         int columnId = 0x7f0a0002;
         VideoOverlayHider.resolveForTests("desc", captionId);
-        VideoOverlayHider.resolveForTests("liy", columnId);
+        VideoOverlayHider.resolveForTests("47.0.3:liy", columnId);
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             Utils.setContext(activity);
@@ -497,13 +497,13 @@ public class VideoOverlayHiderTest {
         int currentCountTextId = 0x7f0a0507;
         int oldCountTextId = 0x7f0a0508;
         VideoOverlayHider.resolveForTests("view_rootview", cellId);
-        VideoOverlayHider.resolveForTests("liy", currentColumnId);
+        VideoOverlayHider.resolveForTests("47.0.3:liy", currentColumnId);
         VideoOverlayHider.resolveForTests("kzj", oldColumnId);
-        VideoOverlayHider.resolveForTests("g6r", currentLikeId);
+        VideoOverlayHider.resolveForTests("47.0.3:g6r", currentLikeId);
         VideoOverlayHider.resolveForTests("fws", oldLikeId);
-        VideoOverlayHider.resolveForTests("g6t", currentCountRowId);
+        VideoOverlayHider.resolveForTests("47.0.3:g6t", currentCountRowId);
         VideoOverlayHider.resolveForTests("fwu", oldCountRowId);
-        VideoOverlayHider.resolveForTests("g6s", currentCountTextId);
+        VideoOverlayHider.resolveForTests("47.0.3:g6s", currentCountTextId);
         VideoOverlayHider.resolveForTests("fwt", oldCountTextId);
 
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -572,8 +572,8 @@ public class VideoOverlayHiderTest {
             Settings.HIDE_FEED_ACTION_BAR.save(false);
             Settings.HIDE_RAIL_LIKE.save(false);
             Settings.HIDE_RAIL_COUNTS.save(false);
-            String[] names = {"view_rootview", "liy", "kzj", "g6r", "fws",
-                    "g6t", "fwu", "g6s", "fwt"};
+            String[] names = {"view_rootview", "47.0.3:liy", "kzj", "47.0.3:g6r", "fws",
+                    "47.0.3:g6t", "fwu", "47.0.3:g6s", "fwt"};
             for (String name : names) VideoOverlayHider.resolveForTests(name, 0);
         }
     }
@@ -602,7 +602,7 @@ public class VideoOverlayHiderTest {
     public void eachRailButtonHasItsOwnSwitchInEveryCell() {
         // The column keeps its six buttons under fixed ids, and the feed keeps the cells on
         // either side inflated with the same ones.
-        String[] names = {"i98", "g6r", "ep7", "i7r", "pnp", "w_2"};
+        String[] names = {"47.0.3:i98", "47.0.3:g6r", "47.0.3:ep7", "47.0.3:i7r", "47.0.3:pnp", "47.0.3:w_2"};
         int[] ids = new int[names.length];
         for (int i = 0; i < names.length; i++) {
             ids[i] = 0x7f0a0100 + i;
@@ -664,9 +664,9 @@ public class VideoOverlayHiderTest {
      */
     @Test
     public void aHiddenButtonTakesItsOwnCountWithIt() {
-        String[] rowNames = {"g6t", "ej_", "i6r", "w6_"};
-        String[] textNames = {"g6s", "ej9", "i6q", "w69"};
-        String[] buttonNames = {"g6r", "ep7", "i7r", "w_2"};
+        String[] rowNames = {"47.0.3:g6t", "47.0.3:ej_", "47.0.3:i6r", "47.0.3:w6_"};
+        String[] textNames = {"47.0.3:g6s", "47.0.3:ej9", "47.0.3:i6q", "47.0.3:w69"};
+        String[] buttonNames = {"47.0.3:g6r", "47.0.3:ep7", "47.0.3:i7r", "47.0.3:w_2"};
         for (int i = 0; i < rowNames.length; i++) {
             VideoOverlayHider.resolveForTests(rowNames[i], 0x7f0a0300 + i);
             VideoOverlayHider.resolveForTests(textNames[i], 0x7f0a0310 + i);
@@ -726,9 +726,9 @@ public class VideoOverlayHiderTest {
 
     @Test
     public void countRowsAndTheirInnerTextAnchorsGoWithoutTheButtons() {
-        String[] rowNames = {"g6t", "ej_", "i6r", "w6_"};
-        String[] textNames = {"g6s", "ej9", "i6q", "w69"};
-        String[] buttonNames = {"g6r", "ep7", "i7r", "w_2"};
+        String[] rowNames = {"47.0.3:g6t", "47.0.3:ej_", "47.0.3:i6r", "47.0.3:w6_"};
+        String[] textNames = {"47.0.3:g6s", "47.0.3:ej9", "47.0.3:i6q", "47.0.3:w69"};
+        String[] buttonNames = {"47.0.3:g6r", "47.0.3:ep7", "47.0.3:i7r", "47.0.3:w_2"};
         int[] rowIds = new int[rowNames.length];
         int[] textIds = new int[textNames.length];
         int[] buttonIds = new int[buttonNames.length];
@@ -812,7 +812,7 @@ public class VideoOverlayHiderTest {
     @Test
     public void clearDisplayKeepsTheTabStripAwayUntilItEnds() {
         int tabStripId = 0x7f0a0011;
-        VideoOverlayHider.resolveForTests("uvy", tabStripId);
+        VideoOverlayHider.resolveForTests("47.0.3:uvy", tabStripId);
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             Utils.setContext(activity);

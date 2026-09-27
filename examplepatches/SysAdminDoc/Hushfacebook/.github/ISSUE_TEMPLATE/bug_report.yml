@@ -18,7 +18,7 @@ body:
     attributes:
       label: Hushfacebook and Facebook versions
       description: Long-press Facebook's icon and tap Hushfacebook. The first row says "Hushfacebook is on", with both versions on the line under it. Copy that line here.
-      placeholder: Version 0.1.4 for Facebook 580.0.0.51.74
+      placeholder: Version 0.2.0 for Facebook 580.0.0.51.74
     validations:
       required: true
   - type: input
@@ -68,7 +68,7 @@ body:
     attributes:
       label: Which patches did you select?
       description: If you kept the manager's own selection, just say so. Otherwise list what you added or removed.
-      placeholder: The default selection, plus Download any reel.
+      placeholder: The default selection, plus Download any video.
     validations:
       required: true
   - type: dropdown
@@ -111,7 +111,7 @@ body:
     attributes:
       label: Diagnostic report
       description: |
-        This answers most of our questions, so please add it if you can. Long-press Facebook's icon, tap Hushfacebook, turn on Debug logging, do the thing that goes wrong, then come back and tap Export diagnostic report. Drag the file into this box.
+        This answers most of our questions, so please add it if you can. Long-press Facebook's icon, tap Hushfacebook, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. That saves a text file in Download/Morphe on your phone. Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
         The report leaves out links, account and post ids, session cookies and names, but please look it over before you post it.
   - type: textarea
     id: additional_context

@@ -13,13 +13,16 @@
 
     Static. scripts/DexDiff.java lists every method the patched APK does not share with the
     clean build it came from, and holds each line that was not in the clean body, and every
-    line of the bundle's own added methods, to that method's register count. Every changed and
-    added method is also checked for branch and switch targets, invoke registers, the static and
-    wide parameter layout, move-result placement and try ranges, and the whole APK is held to
+    line of every added method (the extension's and the helpers patches add to Facebook's own
+    classes), to that method's register count. Every changed and added method is also checked
+    for a register past its count, the upper half of a wide value included, for branch and
+    switch targets, invoke registers, the static and wide parameter layout, move-result
+    placement and try ranges, and the whole APK is held to
     scripts/injected-mutation-contracts.txt: one feed guard, in addNewEdgeToCollection, each
     story-flag stub calling GraphQLStory's accessor before it returns, the showcase stub calling
     the accessor of the one class answering ShowcaseFeedUnit, the Stories tray hook first in both
-    tray adapter methods, and the reels hook first in the pre-EOF injector.
+    tray adapter methods, and the reels hook first in the pre-EOF injector, each in the one method
+    its rule's strings and shape pick out.
 
     On a device. The Android runtime's own verifier is the authority, so with -Serial the
     clean APK and the patched APK are both put through dex2oat with the verify filter and the

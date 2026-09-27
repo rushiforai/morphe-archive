@@ -1,0 +1,334 @@
+.class final Lkotlin/ranges/OpenEndFloatRange;
+.super Ljava/lang/Object;
+.source "Ranges.kt"
+
+# interfaces
+.implements Lkotlin/ranges/OpenEndRange;
+
+
+# annotations
+.annotation system Ldalvik/annotation/Signature;
+    value = {
+        "Ljava/lang/Object;",
+        "Lkotlin/ranges/OpenEndRange<",
+        "Ljava/lang/Float;",
+        ">;"
+    }
+.end annotation
+
+.annotation runtime Lkotlin/Metadata;
+    d1 = {
+        "\u0000*\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\u0010\u0007\n\u0002\u0008\n\n\u0002\u0010\u000b\n\u0002\u0008\u0007\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\u0008\n\u0000\n\u0002\u0010\u000e\n\u0000\u0008\u0002\u0018\u00002\u0008\u0012\u0004\u0012\u00020\u00020\u0001B\u0019\u0008F\u0012\u0006\u0010\u0003\u001a\u00020\u0002\u0012\u0006\u0010\u0004\u001a\u00020\u0002\u00a2\u0006\u0004\u0008\u0005\u0010\u0006J\u001a\u0010\u000c\u001a\u00020\r2\u0006\u0010\u000e\u001a\u00020\u00022\u0006\u0010\u000f\u001a\u00020\u0002H\u0082\u0080\u0004J\u0012\u0010\u0010\u001a\u00020\r2\u0006\u0010\u0011\u001a\u00020\u0002H\u0096\u0082\u0004J\n\u0010\u0012\u001a\u00020\rH\u0096\u0080\u0004J\u0014\u0010\u0013\u001a\u00020\r2\u0008\u0010\u0014\u001a\u0004\u0018\u00010\u0015H\u0096\u0082\u0004J\n\u0010\u0016\u001a\u00020\u0017H\u0096\u0080\u0004J\n\u0010\u0018\u001a\u00020\u0019H\u0096\u0080\u0004R\u000f\u0010\u0007\u001a\u00020\u0002X\u0082\u0084\u0008\u00a2\u0006\u0002\n\u0000R\u000f\u0010\u0008\u001a\u00020\u0002X\u0082\u0084\u0008\u00a2\u0006\u0002\n\u0000R\u0015\u0010\u0003\u001a\u00020\u00028VX\u0096\u0084\u0008\u00a2\u0006\u0006\u001a\u0004\u0008\t\u0010\nR\u0015\u0010\u0004\u001a\u00020\u00028VX\u0096\u0084\u0008\u00a2\u0006\u0006\u001a\u0004\u0008\u000b\u0010\n\u00a8\u0006\u001a"
+    }
+    d2 = {
+        "Lkotlin/ranges/OpenEndFloatRange;",
+        "Lkotlin/ranges/OpenEndRange;",
+        "",
+        "start",
+        "endExclusive",
+        "<init>",
+        "(FF)V",
+        "_start",
+        "_endExclusive",
+        "getStart",
+        "()Ljava/lang/Float;",
+        "getEndExclusive",
+        "lessThanOrEquals",
+        "",
+        "a",
+        "b",
+        "contains",
+        "value",
+        "isEmpty",
+        "equals",
+        "other",
+        "",
+        "hashCode",
+        "",
+        "toString",
+        "",
+        "kotlin-stdlib"
+    }
+    k = 0x1
+    mv = {
+        0x2,
+        0x4,
+        0x0
+    }
+    xi = 0x30
+.end annotation
+
+
+# instance fields
+.field private final _endExclusive:F
+
+.field private final _start:F
+
+
+# direct methods
+.method public constructor <init>(FF)V
+    .registers 3
+
+    .line 216
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    .line 220
+    iput p1, p0, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    .line 221
+    iput p2, p0, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    return-void
+.end method
+
+.method private final lessThanOrEquals(FF)Z
+    .registers 3
+
+    cmpg-float p0, p1, p2
+
+    if-gtz p0, :cond_6
+
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_6
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+
+# virtual methods
+.method public contains(F)Z
+    .registers 3
+
+    .line 227
+    iget v0, p0, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    cmpl-float v0, p1, v0
+
+    if-ltz v0, :cond_e
+
+    iget p0, p0, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    cmpg-float p0, p1, p0
+
+    if-gez p0, :cond_e
+
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_e
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public bridge synthetic contains(Ljava/lang/Comparable;)Z
+    .registers 2
+
+    .line 216
+    check-cast p1, Ljava/lang/Number;
+
+    invoke-virtual {p1}, Ljava/lang/Number;->floatValue()F
+
+    move-result p1
+
+    invoke-virtual {p0, p1}, Lkotlin/ranges/OpenEndFloatRange;->contains(F)Z
+
+    move-result p0
+
+    return p0
+.end method
+
+.method public equals(Ljava/lang/Object;)Z
+    .registers 4
+
+    .line 231
+    instance-of v0, p1, Lkotlin/ranges/OpenEndFloatRange;
+
+    if-eqz v0, :cond_27
+
+    invoke-virtual {p0}, Lkotlin/ranges/OpenEndFloatRange;->isEmpty()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_13
+
+    move-object v0, p1
+
+    check-cast v0, Lkotlin/ranges/OpenEndFloatRange;
+
+    invoke-virtual {v0}, Lkotlin/ranges/OpenEndFloatRange;->isEmpty()Z
+
+    move-result v0
+
+    if-nez v0, :cond_25
+
+    .line 232
+    :cond_13
+    iget v0, p0, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    check-cast p1, Lkotlin/ranges/OpenEndFloatRange;
+
+    iget v1, p1, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    cmpg-float v0, v0, v1
+
+    if-nez v0, :cond_27
+
+    iget p0, p0, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    iget p1, p1, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    cmpg-float p0, p0, p1
+
+    if-nez p0, :cond_27
+
+    :cond_25
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_27
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public bridge synthetic getEndExclusive()Ljava/lang/Comparable;
+    .registers 1
+
+    .line 216
+    invoke-virtual {p0}, Lkotlin/ranges/OpenEndFloatRange;->getEndExclusive()Ljava/lang/Float;
+
+    move-result-object p0
+
+    check-cast p0, Ljava/lang/Comparable;
+
+    return-object p0
+.end method
+
+.method public getEndExclusive()Ljava/lang/Float;
+    .registers 1
+
+    .line 223
+    iget p0, p0, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    invoke-static {p0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public bridge synthetic getStart()Ljava/lang/Comparable;
+    .registers 1
+
+    .line 216
+    invoke-virtual {p0}, Lkotlin/ranges/OpenEndFloatRange;->getStart()Ljava/lang/Float;
+
+    move-result-object p0
+
+    check-cast p0, Ljava/lang/Comparable;
+
+    return-object p0
+.end method
+
+.method public getStart()Ljava/lang/Float;
+    .registers 1
+
+    .line 222
+    iget p0, p0, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    invoke-static {p0}, Ljava/lang/Float;->valueOf(F)Ljava/lang/Float;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+.method public hashCode()I
+    .registers 2
+
+    .line 236
+    invoke-virtual {p0}, Lkotlin/ranges/OpenEndFloatRange;->isEmpty()Z
+
+    move-result v0
+
+    if-eqz v0, :cond_8
+
+    const/4 p0, -0x1
+
+    return p0
+
+    :cond_8
+    iget v0, p0, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    invoke-static {v0}, Ljava/lang/Float;->floatToIntBits(F)I
+
+    move-result v0
+
+    mul-int/lit8 v0, v0, 0x1f
+
+    iget p0, p0, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    invoke-static {p0}, Ljava/lang/Float;->floatToIntBits(F)I
+
+    move-result p0
+
+    add-int/2addr v0, p0
+
+    return v0
+.end method
+
+.method public isEmpty()Z
+    .registers 2
+
+    .line 228
+    iget v0, p0, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    iget p0, p0, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    cmpg-float p0, v0, p0
+
+    if-ltz p0, :cond_a
+
+    const/4 p0, 0x1
+
+    return p0
+
+    :cond_a
+    const/4 p0, 0x0
+
+    return p0
+.end method
+
+.method public toString()Ljava/lang/String;
+    .registers 3
+
+    .line 239
+    new-instance v0, Ljava/lang/StringBuilder;
+
+    invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+
+    iget v1, p0, Lkotlin/ranges/OpenEndFloatRange;->_start:F
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+
+    const-string v1, "..<"
+
+    invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+    iget p0, p0, Lkotlin/ranges/OpenEndFloatRange;->_endExclusive:F
+
+    invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;
+
+    invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
+    move-result-object p0
+
+    return-object p0
+.end method

@@ -116,9 +116,18 @@ public final class SettingsUi {
     /**
      * The scrim raised to carry a sentence. A chip holds one glyph and reads through the video
      * at 55 percent; a banner holds a line of 14sp text and an action, which need the video
-     * mostly gone behind them.
+     * mostly gone behind them. 232 rather than 220: over a white frame or TikTok's light comment
+     * sheet, the red action text on 220 was 4.3:1, under the 4.5:1 that 14sp text needs. On 232
+     * it is 4.9:1 there and 5.7:1 over black.
      */
-    public static final @ColorInt int OVERLAY_BANNER_SCRIM = Color.argb(220, 0, 0, 0);
+    public static final @ColorInt int OVERLAY_BANNER_SCRIM = Color.argb(232, 0, 0, 0);
+    /**
+     * The camera and microphone marks. Fixed like the other overlay colours, since they sit on
+     * video. They differ in shape as well as colour, so neither depends on telling the two apart.
+     */
+    public static final @ColorInt int INDICATOR_CAMERA = 0xFF34C759;
+    public static final @ColorInt int INDICATOR_MICROPHONE = 0xFFFF9500;
+    public static final @ColorInt int INDICATOR_RING = Color.argb(153, 0, 0, 0);
     /** Text and glyphs on {@link #OVERLAY_SCRIM}: white on it is 12.6:1. */
     public static final @ColorInt int OVERLAY_TEXT = Color.WHITE;
     public static final @ColorInt int OVERLAY_TEXT_MUTED = Color.argb(200, 255, 255, 255);
@@ -177,12 +186,24 @@ public final class SettingsUi {
         return isDarkMode() ? DARK_ERROR : LIGHT_ERROR;
     }
 
+    /** Amber on a dark surface, 9.6:1, and burnt orange on a light one, 5.0:1. */
+    public static final @ColorInt int DARK_ATTENTION = 0xFFFFA45B;
+    public static final @ColorInt int LIGHT_ATTENTION = 0xFFB45309;
+    public static final @ColorInt int DARK_OK = 0xFF6BCB77;
+    public static final @ColorInt int LIGHT_OK = 0xFF1D7A37;
+    /**
+     * The home status card while Hushfeed is running, in the dark theme: the surface warmed
+     * toward the accent, with a border between the two. The light theme keeps the plain card.
+     */
+    public static final @ColorInt int DARK_STATUS_SURFACE = 0xFF1D1119;
+    public static final @ColorInt int DARK_STATUS_BORDER = 0xFF573244;
+
     public static @ColorInt int attentionColor() {
-        return isDarkMode() ? 0xFFFFA45B : 0xFFB45309;
+        return isDarkMode() ? DARK_ATTENTION : LIGHT_ATTENTION;
     }
 
     public static @ColorInt int okColor() {
-        return isDarkMode() ? 0xFF6BCB77 : 0xFF1D7A37;
+        return isDarkMode() ? DARK_OK : LIGHT_OK;
     }
 
     /** The glyph every toned notice and status row leads with, so it is written once. */
@@ -235,6 +256,52 @@ public final class SettingsUi {
         return row;
     }
 
+    /**
+     * The recovery page's message, drawn as that page's title.
+     *
+     * <p>It was the first card on an otherwise empty page, flush with the top edge, so the one
+     * screen that opens when settings fail looked like a list that had lost its header. Every
+     * other page opens with a large title and a line under it, and so does this one now.
+     */
+    public static void styleErrorHeading(View row) {
+        Context context = row.getContext();
+        row.setBackground(null);
+        // The list already sits 16dp in, so 8dp more puts the title where every page title starts.
+        row.setPaddingRelative(dp(context, 8), dp(context, 56), dp(context, 8), dp(context, 20));
+        View icon = row.findViewById(android.R.id.icon_frame);
+        if (icon != null) icon.setVisibility(View.GONE);
+        TextView title = row.findViewById(android.R.id.title);
+        if (title != null) {
+            if (title.getParent() instanceof View && title.getParent() != row) {
+                ((View) title.getParent()).setPadding(0, 0, 0, 0);
+            }
+            title.setTextSize(30);
+            title.setTypeface(Typeface.DEFAULT_BOLD);
+            title.setTextColor(textPrimary());
+            title.setSingleLine(false);
+            title.setMaxLines(Integer.MAX_VALUE);
+            title.setEllipsize(null);
+            if (Build.VERSION.SDK_INT >= 28) title.setAccessibilityHeading(true);
+        }
+        TextView summary = row.findViewById(android.R.id.summary);
+        if (summary != null) {
+            summary.setTextSize(15);
+            summary.setTextColor(textSecondary());
+            summary.setSingleLine(false);
+            summary.setMaxLines(Integer.MAX_VALUE);
+            summary.setEllipsize(null);
+            summary.setPadding(0, dp(context, 12), 0, 0);
+        }
+    }
+
+    /** The recovery page's actions: Retry in the accent as the way forward, Back plain as the way out. */
+    public static void styleErrorAction(View row, boolean primary) {
+        TextView title = row.findViewById(android.R.id.title);
+        if (title == null) return;
+        title.setTextColor(enabledTextColors(primary ? accent() : textPrimary()));
+        title.setTypeface(Typeface.create("sans-serif-medium", primary ? Typeface.BOLD : Typeface.NORMAL));
+    }
+
     public static void stylePreferenceRow(View view) {
         Context context = view.getContext();
         view.setPaddingRelative(dp(context, 18), dp(context, 18), dp(context, 18), dp(context, 18));
@@ -244,7 +311,7 @@ public final class SettingsUi {
             if (title.getParent() instanceof View && title.getParent() != view) {
                 ((View) title.getParent()).setPadding(0, 0, 0, 0);
             }
-            title.setTextSize(16);
+            title.setTextSize(17);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             title.setTextColor(title.isEnabled() ? textPrimary() : textDisabled());
             title.setSingleLine(false);
@@ -315,14 +382,17 @@ public final class SettingsUi {
         // greyed switch looks the same on as off: a reader cannot see what state it will come
         // back in when the parent is turned on again.
         track.addState(new int[]{-android.R.attr.state_enabled, android.R.attr.state_checked},
-                switchShape(context, (accent() & 0x00ffffff) | 0x66000000, 44, 26, 6));
-        track.addState(new int[]{-android.R.attr.state_enabled}, switchShape(context, border(), 44, 26, 6));
-        track.addState(new int[]{android.R.attr.state_checked}, switchShape(context, accent(), 44, 26, 6));
-        track.addState(new int[]{}, switchShape(context, isDarkMode() ? DARK_SWITCH_TRACK_OFF : LIGHT_SWITCH_TRACK_OFF, 44, 26, 6));
+                switchShape(context, (accent() & 0x00ffffff) | 0x66000000, 44, 26, RADIUS_CONTROL));
+        track.addState(new int[]{-android.R.attr.state_enabled},
+                switchShape(context, border(), 44, 26, RADIUS_CONTROL));
+        track.addState(new int[]{android.R.attr.state_checked},
+                switchShape(context, accent(), 44, 26, RADIUS_CONTROL));
+        track.addState(new int[]{}, switchShape(context,
+                isDarkMode() ? DARK_SWITCH_TRACK_OFF : LIGHT_SWITCH_TRACK_OFF, 44, 26, RADIUS_CONTROL));
         control.setTrackTintList(null);
         control.setThumbTintList(null);
         control.setTrackDrawable(track);
-        GradientDrawable thumb = switchShape(context, SWITCH_THUMB, 20, 22, 4);
+        GradientDrawable thumb = switchShape(context, SWITCH_THUMB, 20, 22, RADIUS_BADGE);
         thumb.setStroke(dp(context, 1), isDarkMode() ? DARK_SWITCH_THUMB_STROKE : LIGHT_SWITCH_THUMB_STROKE);
         control.setThumbDrawable(thumb);
         control.setSwitchMinWidth(dp(context, 44));
@@ -473,7 +543,7 @@ public final class SettingsUi {
             this.context = context;
             this.first = first;
             this.last = last;
-            radius = dp(context, 10);
+            radius = dp(context, RADIUS_CARD);
             inset = dp(context, 18);
         }
         @Override public void draw(Canvas canvas) {
@@ -1049,6 +1119,18 @@ public final class SettingsUi {
         } else if (view instanceof CheckedTextView) {
             CheckedTextView checkedTextView = (CheckedTextView) view;
             checkedTextView.setTextColor(textPrimary());
+            // The platform row starts nearer the edge than the dialog's title, so the marks sat
+            // out to the left of every heading above them. The title is inset by the theme's
+            // dialog padding, and the mark is centred in its own box, so the row starts that
+            // much before the padding to put the mark's edge under the title's first letter.
+            // setPaddingRelative only relays out on a change, so the scroll callback that runs
+            // this per frame costs nothing.
+            Context rowContext = checkedTextView.getContext();
+            int titleInset = dialogInset(rowContext);
+            int markMargin = dp(rowContext,
+                    (DialogCheckMarkDrawable.intrinsicSizeDp - DialogCheckMarkDrawable.boxSizeDp) / 2);
+            checkedTextView.setPaddingRelative(Math.max(0, titleInset - markMargin),
+                    checkedTextView.getPaddingTop(), titleInset, checkedTextView.getPaddingBottom());
             Drawable[] drawables = checkedTextView.getCompoundDrawablesRelative();
             // Runs on every scroll callback now, so it does its work once per row rather than
             // building a drawable per frame. A rebound row brings the platform check mark back,
@@ -1056,9 +1138,15 @@ public final class SettingsUi {
             if (checkedTextView.getCheckMarkDrawable() != null
                     || !(drawables[0] instanceof DialogCheckMarkDrawable)) {
                 checkedTextView.setCheckMarkDrawable(null);
+                // Given no bounds, the mark was drawn centred on the padding edge with half of it
+                // out past the row's start, and the platform's 20dp gap put the text after that.
+                // With its own box the mark takes its space, and 8dp keeps the text close to it.
+                DialogCheckMarkDrawable mark =
+                        new DialogCheckMarkDrawable(checkedTextView.getContext(), radio);
+                mark.setBounds(0, 0, mark.getIntrinsicWidth(), mark.getIntrinsicHeight());
                 checkedTextView.setCompoundDrawablesRelative(
-                        new DialogCheckMarkDrawable(checkedTextView.getContext(), radio),
-                        drawables[1], drawables[2], drawables[3]);
+                        mark, drawables[1], drawables[2], drawables[3]);
+                checkedTextView.setCompoundDrawablePadding(dp(checkedTextView.getContext(), 8));
             }
         } else if (view instanceof Button) {
             ((Button) view).setTextColor(accent());
@@ -1072,6 +1160,17 @@ public final class SettingsUi {
                 styleDialogText(group.getChildAt(i), radio);
             }
         }
+    }
+
+    /** The theme's dialog content inset, which an AlertDialog's title uses. 24dp when unset. */
+    static int dialogInset(Context context) {
+        android.util.TypedValue value = new android.util.TypedValue();
+        if (context.getTheme().resolveAttribute(android.R.attr.dialogPreferredPadding, value, true)
+                && value.type == android.util.TypedValue.TYPE_DIMENSION) {
+            return android.util.TypedValue.complexToDimensionPixelSize(
+                    value.data, context.getResources().getDisplayMetrics());
+        }
+        return dp(context, 24);
     }
 
     public static void styleActionButton(Button button, boolean primary) {
@@ -1583,6 +1682,10 @@ public final class SettingsUi {
     }
 
     private static final class DialogCheckMarkDrawable extends Drawable {
+        /** The drawable's box and the mark centred in it, which row alignment measures against. */
+        static final int intrinsicSizeDp = 32;
+        static final int boxSizeDp = 18;
+
         private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final int intrinsicSize;
@@ -1598,9 +1701,9 @@ public final class SettingsUi {
         }
 
         DialogCheckMarkDrawable(Context context, boolean radio, boolean pinnedChecked) {
-            intrinsicSize = dp(context, 32);
-            boxSize = dp(context, 18);
-            radius = dp(context, 2);
+            intrinsicSize = dp(context, intrinsicSizeDp);
+            boxSize = dp(context, boxSizeDp);
+            radius = dp(context, RADIUS_BADGE);
             this.radio = radio;
             this.pinned = pinnedChecked;
             this.checked = pinnedChecked;

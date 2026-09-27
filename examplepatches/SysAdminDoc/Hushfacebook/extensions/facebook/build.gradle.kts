@@ -214,6 +214,16 @@ android {
             it.inputs.file(rootProject.layout.projectDirectory.file("NOTICE"))
                 .withPropertyName("licenseNotice")
                 .withPathSensitivity(PathSensitivity.RELATIVE)
+            // PatchFamilyTest holds every family to patches-list.json, which sits outside this module
+            // as well, so a push of the catalog alone would find these tests up to date.
+            it.inputs.file(rootProject.layout.projectDirectory.file("patches-list.json"))
+                .withPropertyName("patchList")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+            // PatchStatusWiringTest reads each patch's enableStatus call from the patch sources, so
+            // a patch-only change (a misspelled status name) has to rerun these tests too.
+            it.inputs.dir(rootProject.layout.projectDirectory.dir("patches/src/main/kotlin"))
+                .withPropertyName("patchSources")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
             it.jvmArgs(
                 "--add-opens=java.base/java.lang=ALL-UNNAMED",
                 "--add-opens=java.base/java.util=ALL-UNNAMED",

@@ -28,8 +28,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The view ids the extension looks up by name on the phone, held against the TikTok build the
- * bundle declares.
+ * The view ids the extension looks up by name on the phone, held against every TikTok build the
+ * bundle declares, each by the names that apply on it.
  *
  * <p>Those lookups happen at run time, so a renamed id used to surface as a switch that did nothing
  * on somebody's phone. Most of the names are the three character ones TikTok's build makes up, and
@@ -43,7 +43,9 @@ import org.junit.Test
  * layouts, and the survey card's id has to be one of the ids those layouts set.
  *
  * <p>The table has to list exactly the lookups the code makes, so it can't fall behind the code.
- * Older fixtures only report what they cover, since the bundle doesn't claim them.
+ * Older fixtures only report what they cover, since the bundle doesn't claim them. 47.1.3 handed
+ * 42 of the groups new names (g6r's like button is g85 there), each found by the owner and tell
+ * that hold 47.0.3's, and the other 13 kept theirs.
  */
 class RuntimeViewIdAnchorsTest {
     @Test
@@ -67,15 +69,19 @@ class RuntimeViewIdAnchorsTest {
     }
 
     /**
-     * A group names one view. Its second name used to be the 46.x name of the same view, tried when
-     * the current one found nothing, and on 47.0.3 each of those names some other view, which the
-     * fallback then hid or read. A group may keep more than one name only with a reason in
+     * A group names one view, with one name on each declared build. Its second name used to be the
+     * 46.x name of the same view, tried when the current one found nothing, and on 47.0.3 each of
+     * those names some other view, which the fallback then hid or read. A name written for one
+     * build is skipped on every other, so 47.0.3's and 47.1.3's names for a view sit side by side
+     * without that risk. A group may try more than one name on a build only with a reason in
      * [MORE_THAN_ONE_NAME], and that list only shrinks: a group that drops its extra names fails
      * here until its entry goes too.
      */
     @Test
     fun `a group looks up more than one name only for a reason the test records`() {
-        val several = anchors().filter { it.names.size > 1 }.map { it.lookup }.toSortedSet()
+        val several = anchors().filter { anchor ->
+            Fixtures.declaredVersions().any { anchor.namesOn(it).size > 1 }
+        }.map { it.lookup }.toSortedSet()
         assertEquals(
             "Groups that try more than one name. On the target a second name is an older build's " +
                 "name for the view, now some other view, so drop it; or record why the group needs " +
@@ -86,15 +92,12 @@ class RuntimeViewIdAnchorsTest {
     }
 
     @Test
-    fun `every anchor resolves on the declared target and its owner loads the id`() {
-        val compatibility = AppCompatibilities.tiktok4703().single()
-        val version = checkNotNull(compatibility.targets.single().version)
-        val targets = Fixtures.files {
-            it.extension == "apk" && (it.name.contains("_$version-") || it.name == "tiktok-$version.apk")
-        }
+    fun `every anchor resolves on each declared target and its owner loads the id`() {
+        val compatibility = AppCompatibilities.tiktok().single()
         val anchors = anchors()
-        for (apk in targets) {
-            val coverage = coverage(apk, anchors, checkNotNull(compatibility.packageName))
+        for (version in Fixtures.declaredVersions()) {
+            val apk = Fixtures.apkOf(version)
+            val coverage = coverage(apk, anchors, checkNotNull(compatibility.packageName), version)
             // Every group has had an owner since fdaec7f8. A group that only resolves passes
             // whatever view TikTok hands its name to next, so a missing owner fails like a broken one.
             val failures = coverage.filter { it.state != State.OWNED }.map {
@@ -113,19 +116,19 @@ class RuntimeViewIdAnchorsTest {
      */
     @Test
     fun `older fixtures report which anchors they cover`() {
-        val compatibility = AppCompatibilities.tiktok4703().single()
-        val version = checkNotNull(compatibility.targets.single().version)
-        val older = Fixtures.apks().filter { !it.name.contains("_$version-") && it.name != "tiktok-$version.apk" }
+        val compatibility = AppCompatibilities.tiktok().single()
+        val declared = Fixtures.declaredVersions()
+        val older = Fixtures.apks().filter { Fixtures.versionOf(it) !in declared }
         val anchors = anchors()
         for (apk in older) {
-            val coverage = coverage(apk, anchors, checkNotNull(compatibility.packageName))
+            val coverage = coverage(apk, anchors, checkNotNull(compatibility.packageName), Fixtures.versionOf(apk))
             val broken = coverage.filter { it.state == State.BROKEN }
             println("${apk.name}: ${coverage.count { it.state == State.OWNED }} of " +
                 "${anchors.count { it.owner != null }} owners load the id of the first name their group " +
-                "defines; ${broken.size} groups don't hold")
+                "defines there; ${broken.size} groups don't hold")
             broken.forEach { println("  ${it.anchor.lookup}: ${it.detail}") }
         }
-        if (older.isEmpty()) println("No fixture older than $version to report on.")
+        if (older.isEmpty()) println("No fixture older than $declared to report on.")
     }
 
     @Test
@@ -150,26 +153,28 @@ class RuntimeViewIdAnchorsTest {
         }
     }
 
+    /** Each group handed another group's id on each declared build, by that build's name for it. */
     @Test
     fun `semantic owners reject an unrelated id for every group that needs one`() {
-        val version = checkNotNull(AppCompatibilities.tiktok4703().single().targets.single().version)
-        val apk = Fixtures.files {
-            it.extension == "apk" && (it.name.contains("_$version-") || it.name == "tiktok-$version.apk")
-        }.single()
+        val actions = "share/ShareSheetTools.java|ACTIONS_LIST_IDS|47.0.3:a5t,47.1.3:a5u"
+        val dislike = "comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.0.3:k0k,47.1.3:k2_"
+        val dislikeIcon = "comment/CommentTools.java|DISLIKE_ICON_IDS|47.0.3:mmt,47.1.3:mpe"
+        val captionText = "captions/CaptionStyle.java|TEXT_IDS|47.0.3:dlr,47.1.3:dmb"
         val wrongNames = mapOf(
-            "share/ShareSheetTools.java|ACTIONS_LIST_IDS|a5t" to "k0k",
-            "comment/CommentTools.java|DISLIKE_BUTTON_IDS|k0k" to "a5t",
-            "comment/CommentTools.java|DISLIKE_ICON_IDS|mmt" to "a5t",
-            "captions/CaptionStyle.java|TEXT_ID|dlr" to "k0k",
+            "47.0.3" to mapOf(actions to "k0k", dislike to "a5t", dislikeIcon to "a5t", captionText to "k0k"),
+            "47.1.3" to mapOf(actions to "k2_", dislike to "a5u", dislikeIcon to "a5u", captionText to "k2_"),
         )
-        val changed = anchors().map { anchor ->
-            wrongNames[anchor.lookup]?.let { anchor.copy(names = listOf(it)) } ?: anchor
+        assertEquals(Fixtures.declaredVersions().toSet(), wrongNames.keys)
+        for ((version, wrong) in wrongNames) {
+            val changed = anchors().map { anchor ->
+                wrong[anchor.lookup]?.let { anchor.copy(names = listOf(it)) } ?: anchor
+            }
+            val rejected = coverage(Fixtures.apkOf(version), changed, checkNotNull(
+                AppCompatibilities.tiktok().single().packageName,
+            ), version).filter { it.anchor.lookup in wrong && it.state == State.BROKEN }
+                .map { it.anchor.lookup }.toSet()
+            assertEquals(version, wrong.keys, rejected)
         }
-        val rejected = coverage(apk, changed, checkNotNull(
-            AppCompatibilities.tiktok4703().single().packageName,
-        )).filter { it.anchor.lookup in wrongNames && it.state == State.BROKEN }
-            .map { it.anchor.lookup }.toSet()
-        assertEquals(wrongNames.keys, rejected)
     }
 
     /**
@@ -185,15 +190,14 @@ class RuntimeViewIdAnchorsTest {
      */
     @Test
     fun `every tell is carried by an owner that needs one`() {
-        val compatibility = AppCompatibilities.tiktok4703().single()
-        val version = checkNotNull(compatibility.targets.single().version)
-        val apk = Fixtures.files {
-            it.extension == "apk" && (it.name.contains("_$version-") || it.name == "tiktok-$version.apk")
-        }.single()
-        val appPackage = checkNotNull(compatibility.packageName)
+        val appPackage = checkNotNull(AppCompatibilities.tiktok().single().packageName)
+        for (version in Fixtures.declaredVersions()) tellsNeeded(Fixtures.apkOf(version), version, appPackage)
+    }
+
+    private fun tellsNeeded(apk: File, version: String, appPackage: String) {
         val anchors = anchors()
         val facts = facts(apk, anchors, appPackage)
-        val owned = coverage(facts, anchors, appPackage).filter { it.state == State.OWNED }
+        val owned = coverage(facts, anchors, appPackage, version).filter { it.state == State.OWNED }
         assertTrue("too few owned groups to check: ${owned.size}", owned.size > 40)
         val told = owned.filter { it.anchor.tell != null }
         assertTrue("too few tells to check: ${told.size}", told.size > 10)
@@ -209,7 +213,21 @@ class RuntimeViewIdAnchorsTest {
         val packageSuffix: String,
         val owner: Owner?,
         val tell: Tell?,
-    )
+    ) {
+        /**
+         * The names the code resolves on [version], in its order: that build's own, written
+         * `47.0.3:g6r`, and the real names with no build in front. BuildNames in the shared
+         * extension skips every other build's.
+         */
+        fun namesOn(version: String): List<String> = names.mapNotNull { name ->
+            val colon = name.indexOf(':')
+            when {
+                colon < 0 -> name
+                name.substring(0, colon) == version -> name.substring(colon + 1)
+                else -> null
+            }
+        }
+    }
 
     private sealed interface Owner {
         /** A real-named class loads the id directly. */
@@ -220,6 +238,12 @@ class RuntimeViewIdAnchorsTest {
 
         /** One method loads both the id and this semantic string. */
         data class MethodString(val value: String) : Owner
+
+        /**
+         * One method that names this semantic string loads a layout that sets the id: for a view
+         * whose layout is inflated by an obfuscated class, as the auto caption strip is.
+         */
+        data class LayoutMethodString(val value: String) : Owner
 
         /** A class that declares this real method name loads the id somewhere in that class. */
         data class ClassMethod(val name: String) : Owner
@@ -287,20 +311,26 @@ class RuntimeViewIdAnchorsTest {
             }
         }.map(::descriptor).toSet()
         val (loaded, classUses) = literalsLoadedBy(apk, classOwners, allIds)
+        // Every package's layouts in one map: an id carries its package in its top byte.
+        val layouts = if (anchors.none { it.owner is Owner.LayoutClass || it.owner is Owner.LayoutMethodString }) emptyMap()
+            else ResourceIds.files(apk, "layout").values.fold(mutableMapOf<Int, List<String>>()) { all, one -> all.apply { putAll(one) } }
         val semantic = semanticLiteralsLoadedBy(
             apk,
             allIds,
             anchors.mapNotNull { (it.owner as? Owner.MethodString)?.value }.toSet(),
             anchors.mapNotNull { (it.owner as? Owner.ClassMethod)?.name }.toSet(),
+            layouts.keys,
+            anchors.mapNotNull { (it.owner as? Owner.LayoutMethodString)?.value }.toSet(),
         )
-        // Every package's layouts in one map: an id carries its package in its top byte.
-        val layouts = if (anchors.none { it.owner is Owner.LayoutClass }) emptyMap()
-            else ResourceIds.files(apk, "layout").values.fold(mutableMapOf<Int, List<String>>()) { all, one -> all.apply { putAll(one) } }
         val elements = mutableMapOf<String, List<IdUse>>()
         ZipFile(apk).use { zip ->
             for (anchor in anchors) {
-                val owner = anchor.owner as? Owner.LayoutClass ?: continue
-                for (path in layoutPaths(loaded, layouts, owner)) {
+                val paths = when (val owner = anchor.owner) {
+                    is Owner.LayoutClass -> layoutPaths(loaded, layouts, owner)
+                    is Owner.LayoutMethodString -> layoutPaths(semantic, layouts, owner)
+                    else -> continue
+                }
+                for (path in paths) {
                     elements.getOrPut(path) { elementsSetIn(zip, path) }
                 }
             }
@@ -312,6 +342,10 @@ class RuntimeViewIdAnchorsTest {
     private fun layoutPaths(loaded: Map<String, Set<Int>>, layouts: Map<Int, List<String>>, owner: Owner.LayoutClass): List<String> =
         loaded[descriptor(owner.className)].orEmpty().sorted().flatMap { layouts[it].orEmpty() }.distinct()
 
+    /** The layouts the methods naming the owner's string load, in the order of their ids. */
+    private fun layoutPaths(semantic: SemanticLiterals, layouts: Map<Int, List<String>>, owner: Owner.LayoutMethodString): List<String> =
+        semantic.methodStringLayouts[owner.value].orEmpty().sorted().flatMap { layouts[it].orEmpty() }.distinct()
+
     private fun packageOf(anchor: Anchor, appPackage: String) =
         if (anchor.packageSuffix == "app") appPackage else "$appPackage.${anchor.packageSuffix}"
 
@@ -319,30 +353,32 @@ class RuntimeViewIdAnchorsTest {
      * Where each anchor stands on one APK: the first name it defines is the one the code will use
      * there, so that is the one its owner has to load.
      */
-    private fun coverage(apk: File, anchors: List<Anchor>, appPackage: String): List<Coverage> =
-        coverage(facts(apk, anchors, appPackage), anchors, appPackage)
+    private fun coverage(apk: File, anchors: List<Anchor>, appPackage: String, version: String): List<Coverage> =
+        coverage(facts(apk, anchors, appPackage), anchors, appPackage, version)
 
-    private fun coverage(facts: Facts, anchors: List<Anchor>, appPackage: String): List<Coverage> {
+    /** Each anchor on one build, held to the names that apply there. */
+    private fun coverage(facts: Facts, anchors: List<Anchor>, appPackage: String, version: String): List<Coverage> {
         return anchors.map { anchor ->
             val packageName = packageOf(anchor, appPackage)
             val ids = facts.tables[packageName].orEmpty()
-            val used = anchor.names.firstOrNull { it in ids }
+            val names = anchor.namesOn(version)
+            val used = names.firstOrNull { it in ids }
             val candidates = used?.let { ids.getValue(it) }.orEmpty()
             val owner = anchor.owner
             when {
-                used == null -> Coverage(anchor, State.BROKEN, "$packageName defines none of ${anchor.names}")
+                used == null -> Coverage(anchor, State.BROKEN, "$packageName defines none of $names")
                 // Two entries under one name: an invented short name that is also a real one. The
                 // lookup on the phone lands on one of them, and which one is the platform's choice.
                 candidates.size > 1 -> Coverage(anchor, State.BROKEN,
                     "$packageName gives $used ${candidates.size} ids, ${candidates.joinToString { hex(it) }}")
                 owner == null -> Coverage(anchor, State.UNOWNED, "resolves as $used")
-                else -> owned(facts, anchor, owner, used, candidates.single())
+                else -> owned(facts, anchor, owner, used, candidates.single(), names)
             }
         }
     }
 
     /** The owner's verdict on one id: does it load the id, and does the tell pick that id alone. */
-    private fun owned(facts: Facts, anchor: Anchor, owner: Owner, used: String, wanted: Int): Coverage {
+    private fun owned(facts: Facts, anchor: Anchor, owner: Owner, used: String, wanted: Int, names: List<String>): Coverage {
         val uses: List<IdUse>
         val loads: String
         when (owner) {
@@ -365,8 +401,8 @@ class RuntimeViewIdAnchorsTest {
                     ?: return Coverage(anchor, State.BROKEN, "there is no class ${owner.className}")
                 uses = facts.classUses[descriptor(owner.className)].orEmpty()
                 if (wanted !in literals) {
-                    val ids = facts.tables.values.firstOrNull { anchor.names.any { name -> name in it } }.orEmpty()
-                    val others = anchor.names.filter { name -> ids[name].orEmpty().any { it in literals } }
+                    val ids = facts.tables.values.firstOrNull { names.any { name -> name in it } }.orEmpty()
+                    val others = names.filter { name -> ids[name].orEmpty().any { it in literals } }
                     return Coverage(anchor, State.BROKEN,
                         "${owner.className} doesn't load ${hex(wanted)}, the id of $used" +
                             if (others.isEmpty()) ", nor the id of any other name in the group"
@@ -374,6 +410,17 @@ class RuntimeViewIdAnchorsTest {
                         uses.map { it.id }.toSet())
                 }
                 loads = "${owner.className} loads $used"
+            }
+            is Owner.LayoutMethodString -> {
+                val paths = layoutPaths(facts.semantic, facts.layouts, owner)
+                if (paths.isEmpty()) return Coverage(anchor, State.BROKEN, "no method that names ${owner.value} loads a layout")
+                uses = paths.flatMap { facts.elements[it].orEmpty() }
+                if (uses.none { it.id == wanted }) {
+                    return Coverage(anchor, State.BROKEN,
+                        "none of the ${paths.size} layouts a method naming ${owner.value} loads sets ${hex(wanted)}, the id of $used",
+                        uses.map { it.id }.toSet())
+                }
+                loads = "a method that names ${owner.value} loads a layout that sets $used"
             }
             is Owner.MethodString -> {
                 uses = facts.semantic.methodStringUses[owner.value].orEmpty()
@@ -567,6 +614,8 @@ class RuntimeViewIdAnchorsTest {
         val classMethods: Map<String, Set<Int>>,
         val methodStringUses: Map<String, List<IdUse>>,
         val classMethodUses: Map<String, List<IdUse>>,
+        /** Layout ids loaded by the methods naming each layout owner's string. */
+        val methodStringLayouts: Map<String, Set<Int>> = emptyMap(),
     )
 
     /**
@@ -581,12 +630,17 @@ class RuntimeViewIdAnchorsTest {
         ids: Set<Int>,
         methodStrings: Set<String>,
         classMethods: Set<String>,
+        layoutIds: Set<Int> = emptySet(),
+        layoutStrings: Set<String> = emptySet(),
     ): SemanticLiterals {
         val byString = methodStrings.associateWith { mutableSetOf<Int>() }.toMutableMap()
         val byMethod = classMethods.associateWith { mutableSetOf<Int>() }.toMutableMap()
         val usesByString = methodStrings.associateWith { mutableListOf<IdUse>() }.toMutableMap()
         val usesByMethod = classMethods.associateWith { mutableListOf<IdUse>() }.toMutableMap()
-        if (methodStrings.isEmpty() && classMethods.isEmpty()) return SemanticLiterals(byString, byMethod, usesByString, usesByMethod)
+        val layoutsByString = layoutStrings.associateWith { mutableSetOf<Int>() }.toMutableMap()
+        if (methodStrings.isEmpty() && classMethods.isEmpty() && layoutStrings.isEmpty()) {
+            return SemanticLiterals(byString, byMethod, usesByString, usesByMethod, layoutsByString)
+        }
 
         fun scan(dexFile: DexFile) {
             for (classDef in dexFile.classes) {
@@ -597,8 +651,16 @@ class RuntimeViewIdAnchorsTest {
                 val declaresWanted = classMethods.any { it in declared }
                 for (method in methods) {
                     val instructions = method.implementation?.instructions?.toList() ?: continue
-                    val hits = instructions.filterIsInstance<NarrowLiteralInstruction>()
-                        .map { it.narrowLiteral }.filter { it in ids }.toSet()
+                    val literals = instructions.filterIsInstance<NarrowLiteralInstruction>().map { it.narrowLiteral }
+                    if (layoutStrings.isNotEmpty()) {
+                        val layoutHits = literals.filter { it in layoutIds }.toSet()
+                        if (layoutHits.isNotEmpty()) {
+                            val named = instructions.filterIsInstance<ReferenceInstruction>()
+                                .mapNotNull { (it.reference as? StringReference)?.string }.toSet()
+                            for (value in layoutStrings) if (value in named) layoutsByString.getValue(value) += layoutHits
+                        }
+                    }
+                    val hits = literals.filter { it in ids }.toSet()
                     if (hits.isEmpty()) continue
                     classHits += hits
                     val strings = instructions.filterIsInstance<ReferenceInstruction>()
@@ -632,7 +694,7 @@ class RuntimeViewIdAnchorsTest {
                 }
             }
         }
-        return SemanticLiterals(byString, byMethod, usesByString, usesByMethod)
+        return SemanticLiterals(byString, byMethod, usesByString, usesByMethod, layoutsByString)
     }
 
     /**
@@ -696,6 +758,11 @@ class RuntimeViewIdAnchorsTest {
                     assertTrue("bad layout owner in: $line", className.matches(CLASS_NAME))
                     Owner.LayoutClass(className)
                 }
+                ownerField.startsWith(LAYOUT_METHOD_STRING_OWNER) -> {
+                    val value = ownerField.removePrefix(LAYOUT_METHOD_STRING_OWNER)
+                    assertTrue("empty layout method string owner in: $line", value.isNotBlank())
+                    Owner.LayoutMethodString(value)
+                }
                 ownerField.startsWith(METHOD_STRING_OWNER) -> {
                     val value = ownerField.removePrefix(METHOD_STRING_OWNER)
                     assertTrue("empty method string owner in: $line", value.isNotBlank())
@@ -733,9 +800,9 @@ class RuntimeViewIdAnchorsTest {
             }
             assertTrue("a tell without an owner in: $line", owner != null || tell == null)
             assertTrue("a layout owner takes tag: or at:, not $tellField, in: $line",
-                owner !is Owner.LayoutClass || tell == null || tell is Tell.Tag || tell is Tell.At)
+                (owner !is Owner.LayoutClass && owner !is Owner.LayoutMethodString) || tell == null || tell is Tell.Tag || tell is Tell.At)
             assertTrue("a code owner takes on:, to: or at:, not $tellField, in: $line",
-                owner is Owner.LayoutClass || owner == null || tell == null || tell !is Tell.Tag)
+                owner is Owner.LayoutClass || owner is Owner.LayoutMethodString || owner == null || tell == null || tell !is Tell.Tag)
             Anchor(
                 lookup = "$source|$group|$names",
                 names = names.split(','),
@@ -882,6 +949,8 @@ class RuntimeViewIdAnchorsTest {
         const val LAYOUT_OWNER = "layout:"
         /** An owner written `method-string:<text>`: one method loads the id and the text. */
         const val METHOD_STRING_OWNER = "method-string:"
+        /** An owner written `layout-method-string:<text>`: a method naming the text loads a layout that sets the id. */
+        const val LAYOUT_METHOD_STRING_OWNER = "layout-method-string:"
         /** An owner written `class-method:<name>`: a class declaring the method loads the id. */
         const val CLASS_METHOD_OWNER = "class-method:"
         const val ANDROID_ID = 0x010100d0

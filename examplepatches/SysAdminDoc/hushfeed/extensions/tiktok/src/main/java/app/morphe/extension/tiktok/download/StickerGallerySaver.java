@@ -8,11 +8,15 @@ package app.morphe.extension.tiktok.download;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -202,7 +206,7 @@ public final class StickerGallerySaver {
 
         Drawable background = template.getBackground();
         if (background != null && background.getConstantState() != null) {
-            button.setBackground(background.getConstantState().newDrawable().mutate());
+            button.setBackground(withHostPress(background, button.getCurrentTextColor()));
         } else {
             boolean dark = SettingsUi.isDarkContext(template.getContext());
             button.setBackground(SettingsUi.overlayAction(context, SettingsUi.RADIUS_CONTROL,
@@ -226,11 +230,40 @@ public final class StickerGallerySaver {
         return button;
     }
 
+    /** The wash TikTok lays over a pressed sheet button: 0x21 of 0xff, about 13 percent. */
+    static final int HOST_PRESS_WASH_ALPHA = 0x21;
+
+    /**
+     * A copy of TikTok's button background that also shows TikTok's press.
+     *
+     * <p>TikTok's sheet buttons lighten while held, a flat wash of the text colour over the whole
+     * pill (#fe2c55 to #fe476b on Save, measured on 47.1.3), but not through their background:
+     * that is a GradientDrawable of one colour, so a plain copy never showed a press at all.
+     * Focus is left to the platform's default highlight, which is what TikTok's own buttons get.
+     * A background that already has states of its own is copied as it is.
+     */
+    static Drawable withHostPress(Drawable background, int tone) {
+        Drawable.ConstantState state = background.getConstantState();
+        Drawable surface = state.newDrawable().mutate();
+        if (surface.isStateful()) return surface;
+        Drawable wash = state.newDrawable().mutate();
+        // A tint, not a colour filter: a StateListDrawable mutates what it is given, and a
+        // mutated LayerDrawable rebuilds its layers from their constant state, which carries
+        // the tint and drops a filter set on the instance.
+        wash.setTintList(ColorStateList.valueOf((tone & 0x00ffffff) | (HOST_PRESS_WASH_ALPHA << 24)));
+        wash.setTintMode(PorterDuff.Mode.SRC_IN);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_pressed},
+                new LayerDrawable(new Drawable[]{state.newDrawable().mutate(), wash}));
+        states.addState(new int[0], surface);
+        return states;
+    }
+
     private static void saveStickerFromButton(View button, StickerAsset asset) {
         Context context = button.getContext().getApplicationContext();
         SettingsUi.setBusy(button, true,
                 L10n.t(button.getContext(), "Saving"));
-        Utils.showToastShort(L10n.t("Saving sticker"));
+        Utils.showToastShort(L10n.t("Saving the sticker"));
 
         // A submitted job can wait behind eight others, then run up to the two minute deadline.
         // Capturing the button would hold the sheet's Activity for that whole window after the
@@ -422,7 +455,7 @@ public final class StickerGallerySaver {
 
             Bitmap bitmap = decodeStaticSticker(source);
             if (bitmap == null) return SaveResult.failure(
-                    L10n.t("That sticker is in a format Hushfeed cannot read"));
+                    L10n.t("That sticker is in a format Hushfeed can't read"));
 
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -846,118 +879,115 @@ public final class StickerGallerySaver {
         }
         StickerAsset sourceAsset = findSourceStickerAsset(source);
         if (sourceAsset != null) {
-            HookStatus.bound(HOOK_FAMILY, source.getClass().getName() + "#source adapter");
+            HookStatus.bound(HOOK_FAMILY, source.getClass().getName() + "#stickerBase");
             return sourceAsset;
         }
 
         UrlModel urlModel = findUrlModel(model);
         List<String> urls = usableUrls(urlModel);
         if (urls.isEmpty()) {
-            if (source != null && !hasKnownStickerSourceMember(source)) {
+            if (source != null && !hasStickerItemMembers(source)) {
                 HookStatus.missingMember(
                         HOOK_FAMILY,
-                        "source adapter",
+                        "source sticker",
                         source.getClass().getName(),
-                        "LLILLIZIL or X.0UD5");
+                        "stickerBase or currentImage()");
             }
             return null;
         }
-        return new StickerAsset(urls, isAnimatedStickerModel(model));
+        // The preview model says nothing reliable about motion: its first flag is false for
+        // static and animated set stickers alike. The downloaded file's header decides.
+        return new StickerAsset(urls, false);
     }
 
+    /**
+     * The sticker behind the sheet, read off TikTok's StickerItem, the source the patch
+     * registers. Its members keep their names on every build, unlike the classes that convert
+     * it, which R8 renames each time (StickerSourceFixturesTest holds each declared build to
+     * the names read here).
+     *
+     * <p>The sheet shows stickerBase.image: TikTok builds its preview from that image, with the
+     * thumbnail as the low resolution. currentImage() is the variant a sender picked, else that
+     * same image, and the thumbnail is a smaller still. Each is tried only when the one before
+     * it has no HTTPS address.
+     */
     private static StickerAsset findSourceStickerAsset(Object source) {
         if (source == null) return null;
 
-        Object sticker = resolveSourceSticker(source);
-        if (sticker != null) {
-            for (String methodName : new String[]{"getAnimateUrl", "getAnimatedUrl"}) {
-                UrlModel animated = bestResolutionUrl(invokeNoArg(sticker, methodName));
-                List<String> animatedUrls = usableUrls(animated);
-                if (!animatedUrls.isEmpty()) {
-                    String animatedUrl = animatedUrls.get(0);
-                    debugLog("[Morphe Stickers] selected source animated URL " + summarizeUrl(animatedUrl));
-                    return new StickerAsset(animatedUrls, true);
-                }
+        Object base = readNamedField(source, "stickerBase");
+        Boolean movesByType = movesByType(readNamedField(base, "stickerType"));
+        Object[] images = {
+                readNamedField(base, "image"),
+                invokeNoArg(source, "currentImage"),
+                readNamedField(base, "thumbnail"),
+        };
+        for (int i = 0; i < images.length; i++) {
+            List<String> urls = usableUrlList(readNamedField(images[i], "urlList"));
+            if (urls.isEmpty()) continue;
+
+            Object imageTypeValue = readNamedField(images[i], "imageType");
+            String imageType = imageTypeValue == null
+                    ? ""
+                    : imageTypeValue.toString().toLowerCase(java.util.Locale.ROOT);
+            boolean thumbnail = i == images.length - 1;
+            boolean animated;
+            if (thumbnail) {
+                animated = false;
+            } else if (movesByType != null) {
+                animated = movesByType;
+            } else {
+                animated = imageType.contains("anim") || imageType.contains("webp") || imageType.contains("gif");
             }
-
-            UrlModel staticModel = bestResolutionUrl(invokeNoArg(sticker, "getStaticUrl"));
-            List<String> staticUrls = usableUrls(staticModel);
-            if (!staticUrls.isEmpty()) {
-                String staticUrl = staticUrls.get(0);
-                debugLog("[Morphe Stickers] selected source static URL " + summarizeUrl(staticUrl));
-                return new StickerAsset(staticUrls, false);
-            }
-
-            Object directValue = invokeNoArg(sticker, "getUrl");
-            if (directValue instanceof String) {
-                String directUrl = ((String) directValue).trim();
-                if (MediaTransport.hasAllowedShape(directUrl)) {
-                    Object typeValue = invokeNoArg(sticker, "getType");
-                    String type = typeValue == null
-                            ? ""
-                            : typeValue.toString().toLowerCase(java.util.Locale.ROOT);
-                    boolean animated = !type.contains("static")
-                            && !type.contains("png")
-                            && !type.contains("jpeg")
-                            && !type.contains("jpg");
-                    debugLog("[Morphe Stickers] selected source direct URL "
-                            + summarizeUrl(directUrl) + " type=" + type);
-                    return new StickerAsset(directUrl, animated);
-                }
-            }
-        }
-
-        Object image = invokeNoArg(source, "currentImage");
-        List<String> directUrls = usableUrlList(readNamedField(image, "urlList"));
-        if (directUrls.isEmpty()) return null;
-        String directUrl = directUrls.get(0);
-
-        Object imageTypeValue = readNamedField(image, "imageType");
-        String imageType = imageTypeValue == null ? "" : imageTypeValue.toString().toLowerCase(java.util.Locale.ROOT);
-        boolean animated = imageType.contains("anim") || imageType.contains("webp") || imageType.contains("gif");
-        debugLog("[Morphe Stickers] selected StickerItem image URL " + summarizeUrl(directUrl)
-                + " type=" + imageType);
-        return new StickerAsset(directUrls, animated);
-    }
-
-    private static Object resolveSourceSticker(Object source) {
-        Object legacySticker = readNamedField(source, "LLILLIZIL");
-        if (legacySticker != null) return legacySticker;
-
-        if (invokeNoArg(source, "getStaticUrl") != null
-                || invokeNoArg(source, "getAnimateUrl") != null
-                || invokeNoArg(source, "getAnimatedUrl") != null) {
-            return source;
-        }
-
-        java.lang.reflect.Method adapter = richStickerAdapter(source);
-        try {
-            if (adapter != null) {
-                adapter.setAccessible(true);
-                Object value = adapter.invoke(null, source);
-                if (value != null) return value;
-            }
-        } catch (Throwable ignored) {
-            // Fall through to StickerItem.currentImage().
+            debugLog("[Morphe Stickers] selected StickerItem " + (thumbnail ? "thumbnail " : "image ")
+                    + summarizeUrl(urls.get(0)) + " type=" + imageType + " animated=" + animated);
+            return new StickerAsset(urls, animated);
         }
         return null;
     }
 
+    // StickerBase.stickerType: the numbers TikTok's sticker type enum hands out through getType(),
+    // under the names that enum gives them. Only the enum's own class name changes per build.
+    static final int TYPE_STATIC = 1;
+    static final int TYPE_ANIMATED = 2;
+    static final int TYPE_VIDEO_STICKER_STATIC = 3;
+    static final int TYPE_VIDEO_STICKER_ANIMATED = 4;
+    static final int TYPE_AIMOJI_STICKER_STATIC = 5;
+    static final int TYPE_GIPHY = 6;
+    static final int TYPE_THIRD_PARTY_GIPHY = 7;
+    static final int TYPE_THIRD_PARTY_TENOR = 8;
+    static final int TYPE_PHOTO_COMMENT_STICKER = 15;
+
     /**
-     * Whether this source still exposes any supported route to a sticker.
-     *
-     * <p>The legacy field, the conversion helper and StickerItem are alternatives. Reporting
-     * each miss while another one works would call a healthy build broken, so this is checked
-     * only after the source and preview routes both fail.
+     * Whether TikTok itself treats a sticker of this type as moving: its converters hand the
+     * static types a static URL and the animated ones an animated URL, and GIPHY and Tenor
+     * stickers are GIFs. Null for a type they don't sort, where the image type is the hint.
      */
-    private static boolean hasKnownStickerSourceMember(Object source) {
-        if (hasNamedField(source.getClass(), "LLILLIZIL")) return true;
-        for (String method : new String[]{
-                "getStaticUrl", "getAnimateUrl", "getAnimatedUrl", "currentImage"
-        }) {
-            if (hasNoArgMethod(source.getClass(), method)) return true;
+    static Boolean movesByType(Object stickerType) {
+        if (!(stickerType instanceof Integer)) return null;
+        switch ((Integer) stickerType) {
+            case TYPE_ANIMATED:
+            case TYPE_VIDEO_STICKER_ANIMATED:
+            case TYPE_GIPHY:
+            case TYPE_THIRD_PARTY_GIPHY:
+            case TYPE_THIRD_PARTY_TENOR:
+                return Boolean.TRUE;
+            case TYPE_STATIC:
+            case TYPE_VIDEO_STICKER_STATIC:
+            case TYPE_AIMOJI_STICKER_STATIC:
+            case TYPE_PHOTO_COMMENT_STICKER:
+                return Boolean.FALSE;
+            default:
+                return null;
         }
-        return richStickerAdapter(source) != null;
+    }
+
+    /**
+     * Whether the source still looks like a StickerItem. Checked only after the source and the
+     * preview both failed, so a sticker with no HTTPS address is not reported as a renamed model.
+     */
+    private static boolean hasStickerItemMembers(Object source) {
+        return hasNamedField(source.getClass(), "stickerBase")
+                || hasNoArgMethod(source.getClass(), "currentImage");
     }
 
     private static boolean hasNamedField(Class<?> type, String name) {
@@ -983,31 +1013,6 @@ public final class StickerGallerySaver {
         }
     }
 
-    private static java.lang.reflect.Method richStickerAdapter(Object source) {
-        try {
-            Class<?> helperClass = Class.forName("X.0UD5");
-            for (java.lang.reflect.Method method : helperClass.getDeclaredMethods()) {
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                if (java.lang.reflect.Modifier.isStatic(method.getModifiers())
-                        && parameterTypes.length == 1
-                        && parameterTypes[0].isAssignableFrom(source.getClass())
-                        && isRichStickerType(method.getReturnType())) {
-                    return method;
-                }
-            }
-        } catch (Throwable ignored) {
-            // The caller decides whether another supported source route remains.
-        }
-        return null;
-    }
-
-    private static boolean isRichStickerType(Class<?> type) {
-        String name = type.getName();
-        return name.endsWith(".SetSticker")
-                || name.endsWith(".VideoSticker")
-                || name.endsWith(".IMGiphyInfo");
-    }
-
     static List<String> usableUrlList(Object value) {
         if (!(value instanceof List<?>)) return Collections.emptyList();
         List<String> result = new ArrayList<>();
@@ -1019,20 +1024,6 @@ public final class StickerGallerySaver {
             if (MediaTransport.hasAllowedShape(url)) result.add(url);
         }
         return result.isEmpty() ? Collections.emptyList() : List.copyOf(result);
-    }
-
-    private static UrlModel bestResolutionUrl(Object stickerUrlStruct) {
-        if (stickerUrlStruct instanceof UrlModel) return (UrlModel) stickerUrlStruct;
-        if (stickerUrlStruct == null) return null;
-        for (String methodName : new String[]{
-                "getHighResolutionUrl", "getMidResolutionUrl", "getLowResolutionUrl"
-        }) {
-            Object value = invokeNoArg(stickerUrlStruct, methodName);
-            if (value instanceof UrlModel && firstUsableUrl((UrlModel) value) != null) {
-                return (UrlModel) value;
-            }
-        }
-        return null;
     }
 
     private static Object invokeNoArg(Object instance, String methodName) {
@@ -1061,25 +1052,6 @@ public final class StickerGallerySaver {
             }
         }
         return null;
-    }
-
-    private static boolean isAnimatedStickerModel(Object model) {
-        if (model == null) return false;
-        Class<?> current = model.getClass();
-        while (current != null) {
-            try {
-                java.lang.reflect.Field staticFlag = current.getDeclaredField("LIZIZ");
-                if (staticFlag.getType() == Boolean.TYPE || staticFlag.getType() == Boolean.class) {
-                    staticFlag.setAccessible(true);
-                    Object value = staticFlag.get(model);
-                    if (value instanceof Boolean) return !((Boolean) value);
-                }
-            } catch (Throwable ignored) {
-                // Continue with the media signature when the target model changes.
-            }
-            current = current.getSuperclass();
-        }
-        return false;
     }
 
     private static UrlModel findUrlModel(Object model) {
@@ -1116,11 +1088,6 @@ public final class StickerGallerySaver {
         } catch (Throwable ignored) {
             return null;
         }
-    }
-
-    private static String firstUsableUrl(UrlModel model) {
-        List<String> urls = usableUrls(model);
-        return urls.isEmpty() ? null : urls.get(0);
     }
 
     private static List<String> usableUrls(UrlModel model) {

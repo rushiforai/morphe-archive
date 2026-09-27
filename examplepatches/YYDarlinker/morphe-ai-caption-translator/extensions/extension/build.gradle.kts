@@ -4,6 +4,10 @@ extension {
 
 android {
     namespace = "app.yydarlinker.extension"
+    buildFeatures { buildConfig = true }
+    defaultConfig {
+        buildConfigField("String", "CAPTION_PATCH_VERSION", "\"${rootProject.version}\"")
+    }
 }
 
 

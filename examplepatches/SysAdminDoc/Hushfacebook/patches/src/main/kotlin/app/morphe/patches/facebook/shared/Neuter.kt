@@ -8,6 +8,7 @@
 package app.morphe.patches.facebook.shared
 
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patches.facebook.misc.extension.javaName
 import app.morphe.util.returnEarly
 
 /**
@@ -29,5 +30,20 @@ internal fun BytecodePatchContext.neuterVoidMethods(classDescriptor: String): In
 
         if (neuterable) method.returnEarly()
         neuterable
+    }
+}
+
+/**
+ * [neuterVoidMethods] for a patch that works down a list of classes with
+ * [app.morphe.patches.facebook.misc.extension.handleTargets]: null once [classDescriptor]'s void
+ * methods return at once, or why nothing changed, naming the class.
+ */
+internal fun BytecodePatchContext.neuterOrReason(classDescriptor: String): String? {
+    if (neuterVoidMethods(classDescriptor) > 0) return null
+    val name = javaName(classDescriptor)
+    return if (classDefByOrNull(classDescriptor) == null) {
+        "$name isn't in this Facebook build"
+    } else {
+        "$name has no void method left to stop"
     }
 }

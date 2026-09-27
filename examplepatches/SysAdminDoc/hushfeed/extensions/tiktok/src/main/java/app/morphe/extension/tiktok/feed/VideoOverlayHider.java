@@ -78,14 +78,14 @@ public final class VideoOverlayHider {
     private static final String SEARCH_MODULE_PACKAGE = APP_PACKAGE + ".df_search_biz";
     private static final String[] VISUAL_SEARCH_LAYER_IDS = {"fo"};
     private static final String[] VISUAL_SEARCH_PILL_IDS = {"d4"};
-    private static final String[] LIVE_ENTRANCE_IDS = {"k_5"};
+    private static final String[] LIVE_ENTRANCE_IDS = {"47.0.3:k_5", "47.1.3:kam"};
 
     /** The caption under the creator's name, and the music cover block beside it. */
     private static final String[] CAPTION_IDS = {"desc"};
     private static final String[] MUSIC_IDS = {"videomusiccoverblock"};
-    private static final String[] ACTION_BAR_IDS = {"liy"};
-    private static final String[] SURVEY_IDS = {"f7u"};
-    private static final String[] TAB_STRIP_IDS = {"uvy"};
+    private static final String[] ACTION_BAR_IDS = {"47.0.3:liy", "47.1.3:llj"};
+    private static final String[] SURVEY_IDS = {"47.0.3:f7u", "47.1.3:f98"};
+    private static final String[] TAB_STRIP_IDS = {"47.0.3:uvy", "47.1.3:uzf"};
     /**
      * The feed cell root. Furniture is only hidden underneath one: Hide feed surveys used to
      * take every survey card id in the window, and on the profile that is the Favorites tab's whole
@@ -127,19 +127,19 @@ public final class VideoOverlayHider {
         return true;
     };
     /** The row under each rail button holding its count, without the button itself. */
-    private static final String[] LIKE_COUNT_ROW_IDS = {"g6t"};
-    private static final String[] COMMENT_COUNT_ROW_IDS = {"ej_"};
-    private static final String[] FAVORITE_COUNT_ROW_IDS = {"i6r"};
-    private static final String[] SHARE_COUNT_ROW_IDS = {"w6_"};
+    private static final String[] LIKE_COUNT_ROW_IDS = {"47.0.3:g6t", "47.1.3:g87"};
+    private static final String[] COMMENT_COUNT_ROW_IDS = {"47.0.3:ej_", "47.1.3:ek6"};
+    private static final String[] FAVORITE_COUNT_ROW_IDS = {"47.0.3:i6r", "47.1.3:i83"};
+    private static final String[] SHARE_COUNT_ROW_IDS = {"47.0.3:w6_", "47.1.3:w_1"};
     private static final String[][] RAIL_COUNT_ROW_IDS = {
             LIKE_COUNT_ROW_IDS, COMMENT_COUNT_ROW_IDS,
             FAVORITE_COUNT_ROW_IDS, SHARE_COUNT_ROW_IDS
     };
     /** The numeric text inside each row, retained by layouts that replace the row wrapper. */
-    private static final String[] LIKE_COUNT_TEXT_IDS = {"g6s"};
-    private static final String[] COMMENT_COUNT_TEXT_IDS = {"ej9"};
-    private static final String[] FAVORITE_COUNT_TEXT_IDS = {"i6q"};
-    private static final String[] SHARE_COUNT_TEXT_IDS = {"w69"};
+    private static final String[] LIKE_COUNT_TEXT_IDS = {"47.0.3:g6s", "47.1.3:g86"};
+    private static final String[] COMMENT_COUNT_TEXT_IDS = {"47.0.3:ej9", "47.1.3:ek5"};
+    private static final String[] FAVORITE_COUNT_TEXT_IDS = {"47.0.3:i6q", "47.1.3:i82"};
+    private static final String[] SHARE_COUNT_TEXT_IDS = {"47.0.3:w69", "47.1.3:w_0"};
     private static final String[][] RAIL_COUNT_TEXT_IDS = {
             LIKE_COUNT_TEXT_IDS, COMMENT_COUNT_TEXT_IDS,
             FAVORITE_COUNT_TEXT_IDS, SHARE_COUNT_TEXT_IDS
@@ -152,12 +152,12 @@ public final class VideoOverlayHider {
      */
     private static final int[] RAIL_COUNT_BUTTON_INDEX = {1, 2, 3, 5};
     /** The six buttons inside the action column, in the order they are stacked. */
-    private static final String[] AVATAR_BUTTON_IDS = {"i98"};
-    private static final String[] LIKE_BUTTON_IDS = {"g6r"};
-    private static final String[] COMMENT_BUTTON_IDS = {"ep7"};
-    private static final String[] FAVORITE_BUTTON_IDS = {"i7r"};
-    private static final String[] MUSIC_BUTTON_IDS = {"pnp"};
-    private static final String[] SHARE_BUTTON_IDS = {"w_2"};
+    private static final String[] AVATAR_BUTTON_IDS = {"47.0.3:i98", "47.1.3:i_l"};
+    private static final String[] LIKE_BUTTON_IDS = {"47.0.3:g6r", "47.1.3:g85"};
+    private static final String[] COMMENT_BUTTON_IDS = {"47.0.3:ep7", "47.1.3:eq5"};
+    private static final String[] FAVORITE_BUTTON_IDS = {"47.0.3:i7r", "47.1.3:i93"};
+    private static final String[] MUSIC_BUTTON_IDS = {"47.0.3:pnp", "47.1.3:pqg"};
+    private static final String[] SHARE_BUTTON_IDS = {"47.0.3:w_2", "47.1.3:wct"};
     private static final String[][] RAIL_BUTTON_IDS = {
             AVATAR_BUTTON_IDS, LIKE_BUTTON_IDS, COMMENT_BUTTON_IDS,
             FAVORITE_BUTTON_IDS, MUSIC_BUTTON_IDS, SHARE_BUTTON_IDS
@@ -491,13 +491,6 @@ public final class VideoOverlayHider {
             final int held = seen;
             Logger.printDebug(() -> "Rail scale " + scale + " put back on " + put + " of " + held + " icons");
         }
-    }
-
-    /** One flag per button in {@link #RAIL_BUTTON_IDS}, in the same order. */
-    static boolean[] railButtonsWanted() {
-        boolean[] rail = new boolean[RAIL_BUTTON_IDS.length];
-        updateRailButtonsWanted(rail);
-        return rail;
     }
 
     private static void updateRailButtonsWanted(boolean[] rail) {

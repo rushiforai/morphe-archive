@@ -114,7 +114,7 @@ foreach ($case in @($Cases)) {
         $validation = Test-PatchingReport -Report $report `
             -ExpectedNames $expectedNames -AllowedDependencyNames $dependencyNames `
             -OutputPath $out `
-            -ExpectedPackageName $target.PackageName -ExpectedPackageVersion $target.PackageVersion
+            -ExpectedPackageName $target.PackageName -ExpectedPackageVersion (Get-DeclaredReportVersion -Report $report -Target $target)
         if ($outOfMemory) {
             $verdict = 'OUT OF MEMORY'
             $invalidCases++

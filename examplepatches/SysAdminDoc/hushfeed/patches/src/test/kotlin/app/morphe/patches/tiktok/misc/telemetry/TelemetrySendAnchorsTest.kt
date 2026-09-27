@@ -5,7 +5,9 @@ import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.DexFile
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.MultiDexContainer
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -33,14 +35,23 @@ import org.junit.Test
  * piling up, and would fail here.
  */
 class TelemetrySendAnchorsTest {
-    private val container by lazy {
-        val apk = Fixtures.apks().single { it.name.contains("47.0.3") }
-        DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+    /** The build the running check reads, set by [onEachDeclared] for the length of one pass. */
+    private var container: MultiDexContainer<out DexFile>? = null
+
+    /** Runs [check] once per declared build with [container] loaded from that build's APK. */
+    private fun onEachDeclared(check: () -> Unit) = Fixtures.forEachDeclared { apk ->
+        container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        try {
+            check()
+        } finally {
+            container = null
+        }
     }
 
     // Streaming passes: holding every method of the APK at once runs the heap out.
-    private fun classes(): Sequence<ClassDef> = container.dexEntryNames.asSequence()
-        .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+    private fun classes(): Sequence<ClassDef> = checkNotNull(container).let { dex ->
+        dex.dexEntryNames.asSequence().flatMap { dex.getEntry(it)!!.dexFile.classes.asSequence() }
+    }
 
     private fun methods(): Sequence<Method> = classes()
         .flatMap { it.methods.asSequence() }
@@ -54,32 +65,34 @@ class TelemetrySendAnchorsTest {
      * it, which is what the caller count says.
      */
     @Test
-    fun `47_0_3 sends every AppLog pack through one method whose callers read 200 as sent`() {
-        val senders = methods().filter { method ->
-            val strings = method.strings()
-            // The pack builder names both strings too; the send is the one that takes the pack
-            // bytes and answers a status, which is how the fingerprint tells them apart.
-            "ss_app_log" in strings && "applog_forward" in strings && method.returnType == "I" &&
-                method.parameterTypes.size == 10 && method.parameterTypes[1].toString() == "[B"
-        }.map { it.signature() }.toList()
-        assertEquals("methods carrying both strings: $senders", 1, senders.size)
-        val send = senders.single()
-        assertEquals("the send returns the status", "I", send.returnType)
-        assertEquals("the send takes the pack bytes second", "[B", send.parameters[1])
-        assertEquals("the send's parameter count", 10, send.parameters.size)
+    fun `each declared build sends every AppLog pack through one method whose callers read 200 as sent`() {
+        onEachDeclared {
+            val senders = methods().filter { method ->
+                val strings = method.strings()
+                // The pack builder names both strings too; the send is the one that takes the pack
+                // bytes and answers a status, which is how the fingerprint tells them apart.
+                "ss_app_log" in strings && "applog_forward" in strings && method.returnType == "I" &&
+                    method.parameterTypes.size == 10 && method.parameterTypes[1].toString() == "[B"
+            }.map { it.signature() }.toList()
+            assertEquals("methods carrying both strings: $senders", 1, senders.size)
+            val send = senders.single()
+            assertEquals("the send returns the status", "I", send.returnType)
+            assertEquals("the send takes the pack bytes second", "[B", send.parameters[1])
+            assertEquals("the send's parameter count", 10, send.parameters.size)
 
-        val callers = methods().filter { method -> method.calls().any { it.matches(send) } }.map { method ->
-            Caller(method.definingClass, method.name, method.comparesResultOf(send, PACK_SENT_STATUS))
-        }.toList()
-        val others = callers.filter { it.owner != send.owner || it.name != send.name }
-        assertEquals("callers besides the send's own retry: $others", 2, others.size)
-        for (caller in others) {
-            assertTrue(
-                "${caller.owner}->${caller.name} does not compare the send's result with the status the guard answers ($PACK_SENT_STATUS)",
-                caller.comparesWithAnswer,
-            )
+            val callers = methods().filter { method -> method.calls().any { it.matches(send) } }.map { method ->
+                Caller(method.definingClass, method.name, method.comparesResultOf(send, PACK_SENT_STATUS))
+            }.toList()
+            val others = callers.filter { it.owner != send.owner || it.name != send.name }
+            assertEquals("callers besides the send's own retry: $others", 2, others.size)
+            for (caller in others) {
+                assertTrue(
+                    "${caller.owner}->${caller.name} does not compare the send's result with the status the guard answers ($PACK_SENT_STATUS)",
+                    caller.comparesWithAnswer,
+                )
+            }
+            assertEquals("the two callers are of two classes", 2, others.map { it.owner }.toSet().size)
         }
-        assertEquals("the two callers are of two classes", 2, others.map { it.owner }.toSet().size)
     }
 
     /**
@@ -90,44 +103,46 @@ class TelemetrySendAnchorsTest {
      * the list, or an answer changed to one the caller reads as failure, fails here.
      */
     @Test
-    fun `47_0_3 guards every send that reached the log hosts with the answer its caller reads as success`() {
-        assertEquals(
-            "the guarded sends",
-            setOf(AppLogSendPackFingerprint, AppLogForwardSendFingerprint, InstallActiveCheckFingerprint, AppLogPrioritySendFingerprint),
-            TELEMETRY_SEND_GUARDS.map { it.fingerprint }.toSet(),
-        )
-        fun answer(fingerprint: Any) = TELEMETRY_SEND_GUARDS.single { it.fingerprint == fingerprint }.answer(7)
-            .lines().map(String::trim).filter(String::isNotEmpty)
-        assertEquals(listOf("const/16 v7, $PACK_SENT_STATUS", "return v7"), answer(AppLogSendPackFingerprint))
-        assertEquals(listOf("return-void"), answer(AppLogForwardSendFingerprint))
-        assertEquals(listOf("const/4 v7, $ACTIVE_CHECK_PASSED", "return v7"), answer(InstallActiveCheckFingerprint))
-        assertNotEquals("the activation answer is the job's failure", 0, ACTIVE_CHECK_PASSED)
-        val priority = answer(AppLogPrioritySendFingerprint)
-        assertTrue("the priority guard does not hand back the extension's reply: $priority",
-            priority.first().endsWith("->deliveredPriorityResponse()Ljava/lang/Object;") && priority.last() == "return-object v7")
+    fun `each declared build guards every send that reached the log hosts with the answer its caller reads as success`() {
+        onEachDeclared {
+            assertEquals(
+                "the guarded sends",
+                setOf(AppLogSendPackFingerprint, AppLogForwardSendFingerprint, InstallActiveCheckFingerprint, AppLogPrioritySendFingerprint),
+                TELEMETRY_SEND_GUARDS.map { it.fingerprint }.toSet(),
+            )
+            fun answer(fingerprint: Any) = TELEMETRY_SEND_GUARDS.single { it.fingerprint == fingerprint }.answer(7)
+                .lines().map(String::trim).filter(String::isNotEmpty)
+            assertEquals(listOf("const/16 v7, $PACK_SENT_STATUS", "return v7"), answer(AppLogSendPackFingerprint))
+            assertEquals(listOf("return-void"), answer(AppLogForwardSendFingerprint))
+            assertEquals(listOf("const/4 v7, $ACTIVE_CHECK_PASSED", "return v7"), answer(InstallActiveCheckFingerprint))
+            assertNotEquals("the activation answer is the job's failure", 0, ACTIVE_CHECK_PASSED)
+            val priority = answer(AppLogPrioritySendFingerprint)
+            assertTrue("the priority guard does not hand back the extension's reply: $priority",
+                priority.first().endsWith("->deliveredPriorityResponse()Ljava/lang/Object;") && priority.last() == "return-object v7")
 
-        // The active job branches on the helper's answer, true being the success it records.
-        val helper = methods().single { method ->
-            ACTIVE_TAG in method.strings() && method.returnType == "Z" && method.parameterTypes.size == 6
-        }.signature()
-        val job = methods().single { method -> method.calls().any { it.matches(helper) } }
-        assertTrue("the active job does not branch on the helper's answer", job.branchesOnResultOf(helper))
+            // The active job branches on the helper's answer, true being the success it records.
+            val helper = methods().single { method ->
+                ACTIVE_TAG in method.strings() && method.returnType == "Z" && method.parameterTypes.size == 6
+            }.signature()
+            val job = methods().single { method -> method.calls().any { it.matches(helper) } }
+            assertTrue("the active job does not branch on the helper's answer", job.branchesOnResultOf(helper))
 
-        // The priority uploader is the method the fingerprint names, and every checker of its
-        // reply takes it as delivered only with message success and the SDK's magic tag, which is
-        // what the extension's reply carries (DisableTelemetryPatchTest).
-        val priorityClass = classes().single { it.type == "Lcom/bytedance/applog/priority/PriorityCallbackImpl;" }
-        assertEquals(1, priorityClass.methods.count {
-            it.name == "doHttpPost" && it.returnType == PRIORITY_RESPONSE &&
-                it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;", "[B", "Lkotlin/Pair;")
-        })
-        val checkers = methods().filter { method ->
-            method.returnType == "Z" && method.parameterTypes.map(Any::toString) == listOf(PRIORITY_RESPONSE, "Ljava/util/Map;")
-        }.map { it.signature() to it.strings() }.toList()
-        assertTrue("no method checks a priority reply", checkers.isNotEmpty())
-        for ((checker, strings) in checkers) {
-            assertTrue("$checker reads a reply by something other than message success and the magic tag: $strings",
-                strings.containsAll(listOf("message", "success", "magic_tag", "ss_app_log")))
+            // The priority uploader is the method the fingerprint names, and every checker of its
+            // reply takes it as delivered only with message success and the SDK's magic tag, which is
+            // what the extension's reply carries (DisableTelemetryPatchTest).
+            val priorityClass = classes().single { it.type == "Lcom/bytedance/applog/priority/PriorityCallbackImpl;" }
+            assertEquals(1, priorityClass.methods.count {
+                it.name == "doHttpPost" && it.returnType == PRIORITY_RESPONSE &&
+                    it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;", "[B", "Lkotlin/Pair;")
+            })
+            val checkers = methods().filter { method ->
+                method.returnType == "Z" && method.parameterTypes.map(Any::toString) == listOf(PRIORITY_RESPONSE, "Ljava/util/Map;")
+            }.map { it.signature() to it.strings() }.toList()
+            assertTrue("no method checks a priority reply", checkers.isNotEmpty())
+            for ((checker, strings) in checkers) {
+                assertTrue("$checker reads a reply by something other than message success and the magic tag: $strings",
+                    strings.containsAll(listOf("message", "success", "magic_tag", "ss_app_log")))
+            }
         }
     }
 
@@ -139,44 +154,46 @@ class TelemetrySendAnchorsTest {
      * guard with the switch on.
      */
     @Test
-    fun `47_0_3 forward worker deletes its rows before the one forward send posts them`() {
-        val senders = methods().filter { method ->
-            FORWARD_LINE in method.strings() && method.returnType == "V" &&
-                method.parameterTypes.map(Any::toString) == listOf("I", "Ljava/util/List;", "Lorg/json/JSONObject;")
-        }.map { it.signature() to it.calls() }.toList()
-        assertEquals("methods carrying the forward send's log line: ${senders.map { it.first }}", 1, senders.size)
-        val (send, sendCalls) = senders.single()
-        assertTrue(
-            "the forward send does not post through the client interface: $sendCalls",
-            sendCalls.any {
-                it.name == "post" && it.returnType == "Ljava/lang/String;" &&
-                    it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;", "Ljava/util/Map;", "[B")
-            },
-        )
+    fun `each declared build's forward worker deletes its rows before the one forward send posts them`() {
+        onEachDeclared {
+            val senders = methods().filter { method ->
+                FORWARD_LINE in method.strings() && method.returnType == "V" &&
+                    method.parameterTypes.map(Any::toString) == listOf("I", "Ljava/util/List;", "Lorg/json/JSONObject;")
+            }.map { it.signature() to it.calls() }.toList()
+            assertEquals("methods carrying the forward send's log line: ${senders.map { it.first }}", 1, senders.size)
+            val (send, sendCalls) = senders.single()
+            assertTrue(
+                "the forward send does not post through the client interface: $sendCalls",
+                sendCalls.any {
+                    it.name == "post" && it.returnType == "Ljava/lang/String;" &&
+                        it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;", "Ljava/util/Map;", "[B")
+                },
+            )
 
-        val callers = methods()
-            .filter { method -> method.signature() != send && method.calls().any { it.matches(send) } }
-            .map { it.signature() to it.calls() }.toList()
-        assertEquals("callers of the forward send: ${callers.map { it.first }}", 1, callers.size)
-        val (worker, workerCalls) = callers.single()
-        assertEquals("the worker is of the send's class", send.owner, worker.owner)
+            val callers = methods()
+                .filter { method -> method.signature() != send && method.calls().any { it.matches(send) } }
+                .map { it.signature() to it.calls() }.toList()
+            assertEquals("callers of the forward send: ${callers.map { it.first }}", 1, callers.size)
+            val (worker, workerCalls) = callers.single()
+            assertEquals("the worker is of the send's class", send.owner, worker.owner)
 
-        val beforeSend = workerCalls.take(workerCalls.indexOfFirst { it.matches(send) })
-        val storeCalls = beforeSend.filter {
-            it.definingClass.endsWith("/DbStore;") && it.returnType == "V" &&
-                it.parameterTypes.map(Any::toString) == listOf("Ljava/util/List;")
-        }
-        assertTrue("the worker hands the store no list before the send: $workerCalls", storeCalls.isNotEmpty())
-        val store = classes().single { it.type == storeCalls.first().definingClass }
-        val deletes = storeCalls.filter { call ->
-            val method = store.methods.single {
-                it.name == call.name && it.returnType == call.returnType &&
-                    it.parameterTypes.map(Any::toString) == call.parameterTypes.map(Any::toString)
+            val beforeSend = workerCalls.take(workerCalls.indexOfFirst { it.matches(send) })
+            val storeCalls = beforeSend.filter {
+                it.definingClass.endsWith("/DbStore;") && it.returnType == "V" &&
+                    it.parameterTypes.map(Any::toString) == listOf("Ljava/util/List;")
             }
-            "forward_eventv3" in method.strings() &&
-                method.calls().any { it.name == "delete" && it.definingClass == "Landroid/database/sqlite/SQLiteDatabase;" }
+            assertTrue("the worker hands the store no list before the send: $workerCalls", storeCalls.isNotEmpty())
+            val store = classes().single { it.type == storeCalls.first().definingClass }
+            val deletes = storeCalls.filter { call ->
+                val method = store.methods.single {
+                    it.name == call.name && it.returnType == call.returnType &&
+                        it.parameterTypes.map(Any::toString) == call.parameterTypes.map(Any::toString)
+                }
+                "forward_eventv3" in method.strings() &&
+                    method.calls().any { it.name == "delete" && it.definingClass == "Landroid/database/sqlite/SQLiteDatabase;" }
+            }
+            assertEquals("store calls before the send that delete the forward rows: $storeCalls", 1, deletes.size)
         }
-        assertEquals("store calls before the send that delete the forward rows: $storeCalls", 1, deletes.size)
     }
 
     /**
@@ -187,36 +204,38 @@ class TelemetrySendAnchorsTest {
      * helper of the same class, which is not touched.
      */
     @Test
-    fun `47_0_3 install active job fetches the alert check through one helper that reads success`() {
-        val helpers = methods().filter { method ->
-            ACTIVE_TAG in method.strings() && method.returnType == "Z" && method.parameterTypes.size == 6 &&
-                method.parameterTypes[1].toString() == "Ljava/lang/String;" &&
-                method.parameterTypes[5].toString() == "Ljava/util/HashMap;"
-        }.map { Triple(it.signature(), it.calls(), it.strings()) }.toList()
-        assertEquals("methods carrying the activation tag: ${helpers.map { it.first }}", 1, helpers.size)
-        val (helper, helperCalls, helperStrings) = helpers.single()
-        assertTrue(
-            "the helper does not fetch through the client interface: $helperCalls",
-            helperCalls.any {
-                it.name == "get" && it.returnType == "Ljava/lang/String;" &&
-                    it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;", "Ljava/util/Map;")
-            },
-        )
-        assertTrue("the helper does not read the reply for success: $helperStrings", "success" in helperStrings && "message" in helperStrings)
+    fun `each declared build's install active job fetches the alert check through one helper that reads success`() {
+        onEachDeclared {
+            val helpers = methods().filter { method ->
+                ACTIVE_TAG in method.strings() && method.returnType == "Z" && method.parameterTypes.size == 6 &&
+                    method.parameterTypes[1].toString() == "Ljava/lang/String;" &&
+                    method.parameterTypes[5].toString() == "Ljava/util/HashMap;"
+            }.map { Triple(it.signature(), it.calls(), it.strings()) }.toList()
+            assertEquals("methods carrying the activation tag: ${helpers.map { it.first }}", 1, helpers.size)
+            val (helper, helperCalls, helperStrings) = helpers.single()
+            assertTrue(
+                "the helper does not fetch through the client interface: $helperCalls",
+                helperCalls.any {
+                    it.name == "get" && it.returnType == "Ljava/lang/String;" &&
+                        it.parameterTypes.map(Any::toString) == listOf("Ljava/lang/String;", "Ljava/util/Map;")
+                },
+            )
+            assertTrue("the helper does not read the reply for success: $helperStrings", "success" in helperStrings && "message" in helperStrings)
 
-        val registerHelpers = classes().single { it.type == helper.owner }.methods
-            .filter { it.implementation != null && REGISTER_TAG in it.strings() }.map { it.signature() }
-        assertEquals("register helpers of the same class: $registerHelpers", 1, registerHelpers.size)
-        assertNotEquals("the register helper is the activation helper", helper, registerHelpers.single())
+            val registerHelpers = classes().single { it.type == helper.owner }.methods
+                .filter { it.implementation != null && REGISTER_TAG in it.strings() }.map { it.signature() }
+            assertEquals("register helpers of the same class: $registerHelpers", 1, registerHelpers.size)
+            assertNotEquals("the register helper is the activation helper", helper, registerHelpers.single())
 
-        val callers = methods().filter { method -> method.calls().any { it.matches(helper) } }
-            .map { it.signature() to it.strings() }.toList()
-        assertEquals("callers of the activation helper: ${callers.map { it.first }}", 1, callers.size)
-        val (job, jobStrings) = callers.single()
-        assertEquals("the active job answers whether it is done", "Z", job.returnType)
-        assertEquals("the active job takes nothing", emptyList<String>(), job.parameters)
-        for (key in listOf("google_aid", "carrier", "sim_region", "timezone")) {
-            assertTrue("the active job does not put $key in the query: $jobStrings", key in jobStrings)
+            val callers = methods().filter { method -> method.calls().any { it.matches(helper) } }
+                .map { it.signature() to it.strings() }.toList()
+            assertEquals("callers of the activation helper: ${callers.map { it.first }}", 1, callers.size)
+            val (job, jobStrings) = callers.single()
+            assertEquals("the active job answers whether it is done", "Z", job.returnType)
+            assertEquals("the active job takes nothing", emptyList<String>(), job.parameters)
+            for (key in listOf("google_aid", "carrier", "sim_region", "timezone")) {
+                assertTrue("the active job does not put $key in the query: $jobStrings", key in jobStrings)
+            }
         }
     }
 

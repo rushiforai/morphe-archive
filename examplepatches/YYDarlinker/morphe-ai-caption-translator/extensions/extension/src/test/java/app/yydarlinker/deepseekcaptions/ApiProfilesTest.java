@@ -30,7 +30,7 @@ public class ApiProfilesTest {
  }
  @Test public void namesDoNotChangeIdentityOrGlobalEngineAndStyle(){
   DeepSeekConfig.saveEnabled(a,true);DeepSeekConfig.saveCaptionTextSize(a,20);String b=ApiProfiles.create(a,"B","https://b.example/v1");ApiProfiles.rename(a,b,"Renamed");
-  ApiProfiles.select(a,b);assertEquals("Renamed",ApiProfiles.list(a).get(b));assertTrue(DeepSeekConfig.enabled(a));assertEquals(20,DeepSeekConfig.load(a).captionTextSize);
+  ApiProfiles.select(a,b);assertEquals("Renamed",ApiProfiles.list(a).get(b));assertTrue(DeepSeekConfig.enabled(a));assertEquals(15,DeepSeekConfig.load(a).captionTextSize);
   assertEquals(b,ApiProfiles.active(a.getApplicationContext()));assertEquals(2,ApiProfiles.list(a).size());
  }
  @Test public void pendingUrlEditsFlushToOldProfileAndDetachedEventsCannotWriteNewProfile(){

@@ -15,7 +15,11 @@ with zipfile.ZipFile(p) as z:
     dex=z.read("extensions/extension.mpe")
     assert dex.startswith(b"dex\n"), "Morphe extension must be raw DEX"
     assert int.from_bytes(dex[32:36],"little")==len(dex), "extension DEX length mismatch"
-    assert b"AnchoredCaptionPlan" in dex and b"NativeCaptionBridge" in dex
+    assert b"NativeCaptionBridge" in dex
+    if tuple(map(int,v.split("-")[0].split("."))) >= (1,3,5):
+        assert b"RebuildController" in dex and b"CaptionDiagnosticArchive" in dex
+    else:
+        assert b"AnchoredCaptionPlan" in dex
     assert b"SemanticLedgerCaptionController" not in dex and b"LocalDisplaySliceFallback" not in dex
     if tuple(map(int,v.split("-")[0].split("."))) >= (1,2,0):
         assert b"RememberedCaptionSelection" in dex and b"CaptionQuickToggle" in dex

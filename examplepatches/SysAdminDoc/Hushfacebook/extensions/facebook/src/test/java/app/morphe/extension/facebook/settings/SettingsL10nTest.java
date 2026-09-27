@@ -233,9 +233,9 @@ public class SettingsL10nTest {
     @Test
     public void theStaysRowReadsAsOneSentenceInEveryLanguage() {
         String one = "%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch "
-                + "again without the patch it comes from.";
+                + "again and leave out that patch.";
         String other = "%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, "
-                + "patch again without the patch it comes from.";
+                + "patch again and leave out the patch in brackets after it.";
         String[][] languages = {{"en", null}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"},
                 {"tr", "tr"}};
         for (String[] language : languages) {
@@ -267,6 +267,51 @@ public class SettingsL10nTest {
         }
     }
 
+    /**
+     * Each stays item is followed by its patch's name in brackets, so an item that was the name
+     * read it twice: "the AMOLED black theme (AMOLED black theme)". In English and in each shipped
+     * language the name shows once, in the brackets, and the item says what stays in with words of
+     * its own. Every word of the name in another order repeats it just the same: "the ad telemetry
+     * block (Block ad telemetry)".
+     */
+    @Test
+    public void noStaysItemRepeatsItsPatchNameInAnyLanguage() {
+        // The check has to be able to say yes, to the name itself and to its words reordered.
+        assertTrue(repeatsItsName("The AMOLED black theme (" + L10n.isolate("AMOLED black theme") + ").",
+                "AMOLED black theme"));
+        assertTrue(repeatsItsName("The ad telemetry block (" + L10n.isolate("Block ad telemetry") + ").",
+                "Block ad telemetry"));
+        assertFalse(repeatsItsName("The Audience Network block (" + L10n.isolate("Disable Audience Network") + ").",
+                "Disable Audience Network"));
+
+        List<String> repeats = new ArrayList<>();
+        for (String language : new String[]{"en", "de", "es", "in-rID", "pt-rBR", "tr"}) {
+            RuntimeEnvironment.setQualifiers("+" + language);
+            for (PatchFamily family : PatchFamily.values()) {
+                if (family.staysWhilePaused == null) continue;
+                String shown = PatchFamily.staysWhilePausedSummary(EnumSet.of(family));
+                if (repeatsItsName(shown, family.patchName)) repeats.add(language + ": " + shown);
+            }
+        }
+        assertEquals("items that say their patch's name again: " + repeats, 0, repeats.size());
+    }
+
+    /**
+     * Whether [shown], a stays item with [patchName] in brackets after it, says the name again:
+     * more than once anywhere, or every word of it before the bracket.
+     */
+    private static boolean repeatsItsName(String shown, String patchName) {
+        int bracket = shown.indexOf(" (" + L10n.isolate(patchName) + ")");
+        assertTrue("no bracketed " + patchName + " in: " + shown, bracket > 0);
+        String name = patchName.toLowerCase(Locale.ROOT);
+        String lower = shown.toLowerCase(Locale.ROOT);
+        int count = 0;
+        for (int at = lower.indexOf(name); at >= 0; at = lower.indexOf(name, at + 1)) count++;
+        Set<String> itemWords = new java.util.HashSet<>(Arrays.asList(
+                shown.substring(0, bracket).toLowerCase(Locale.ROOT).split("[^\\p{L}\\p{N}-]+")));
+        return count > 1 || itemWords.containsAll(Arrays.asList(name.split(" ")));
+    }
+
     private static String row(Map<String, String> table, String english) {
         return table == null ? english : table.get(english);
     }
@@ -296,7 +341,8 @@ public class SettingsL10nTest {
             assertNotNull("the export row opened no dialog", choices);
             ShadowAlertDialog shadow = org.robolectric.Shadows.shadowOf(choices);
             shown.add(String.valueOf(shadow.getTitle()));
-            for (CharSequence item : shadow.getItems()) shown.add(String.valueOf(item));
+            // Each choice is its name and, on the next line, what it does: two catalog strings.
+            for (CharSequence item : shadow.getItems()) shown.addAll(Arrays.asList(String.valueOf(item).split("\n")));
             // Its button is the catalog's Cancel, so the activity's own language can't reach it.
             String cancel = String.valueOf(choices.getButton(AlertDialog.BUTTON_NEGATIVE).getText());
             assertEquals(L10n.t("Cancel"), cancel);
@@ -314,10 +360,14 @@ public class SettingsL10nTest {
             notice.dismiss();
 
             addSettingsFileText(activity, rows, shown);
+            addDownloadSettingsText(shown);
+            addTypedNameToasts(rows, shown);
+            addReleaseCheckText(shown);
 
-            // What the diagnostics rows say in a toast, with nothing to export or clear.
+            // What the diagnostics rows say in a toast, with nothing to export or clear. The quick
+            // report is built on a worker and answers on the main thread.
             LogBufferManager.exportToClipboard();
-            ShadowLooper.idleMainLooper();
+            settle();
             addToast(shown);
             Preference clear = find(rows, "action_clear_diagnostic_data");
             clear.getOnPreferenceClickListener().onPreferenceClick(clear);
@@ -415,6 +465,59 @@ public class SettingsL10nTest {
         }
     }
 
+    /**
+     * What the download settings say for every value, not only the one saved now: the quality
+     * row's summary, the sentence an import's preview gives for each quality, and the toast after
+     * an import that moves only the download settings.
+     */
+    private static void addDownloadSettingsText(Set<String> shown) {
+        for (app.morphe.extension.facebook.download.DownloadQuality quality
+                : app.morphe.extension.facebook.download.DownloadQuality.values()) {
+            shown.add(HushfacebookPreferenceFragment.qualityLabel(quality));
+            shown.add(HushfacebookPreferenceFragment.qualitySummary(quality));
+            shown.add(SettingsBackupPreference.qualitySentence(quality));
+            shown.add(SettingsBackupPreference.importedMessage(0, null, quality, null));
+            shown.add(SettingsBackupPreference.importedMessage(2, "Clips", quality, "Clip {date}"));
+        }
+        shown.add(HushfacebookPreferenceFragment.fileNameSummary("Reel {video_id}"));
+        shown.add(SettingsBackupPreference.fileNameSentence("Reel {video_id}"));
+        shown.add(SettingsBackupPreference.importedMessage(0, null, null, "Reel {video_id}"));
+    }
+
+    /**
+     * The toast the folder and file name rows raise when what's typed isn't a clean name, and they
+     * keep the one the saves will use instead.
+     */
+    private static void addTypedNameToasts(List<Preference> rows, Set<String> shown) {
+        String[][] typed = {{Settings.SAVE_FOLDER.key, "../Clips"}, {Settings.FILENAME_TEMPLATE.key, "Clip"}};
+        for (String[] row : typed) {
+            Preference preference = find(rows, row[0]);
+            assertFalse(row[0] + " kept " + row[1], preference.getOnPreferenceChangeListener()
+                    .onPreferenceChange(preference, row[1]));
+            ShadowLooper.idleMainLooper();
+            addToast(shown);
+        }
+        Settings.SAVE_FOLDER.resetToDefault();
+        Settings.FILENAME_TEMPLATE.resetToDefault();
+    }
+
+    /**
+     * What the release check can say, not only what it says now: the status card's line for a newer
+     * release and for another Facebook target, and the Check now row on its way and for every way a
+     * try can end.
+     */
+    private static void addReleaseCheckText(Set<String> shown) {
+        shown.add(ReleaseCheck.statusLine("0.2.0", "582.0.0.40.70", "0.1.8", "580.0.0.51.74"));
+        shown.add(ReleaseCheck.statusLine("0.1.8", "580.0.0.51.74", "0.1.8", "577.0.0.50.72"));
+        shown.add(ReleaseCheck.checkingSummary());
+        shown.add(ReleaseCheck.idleSummary());
+        for (ReleaseCheck.Result result : ReleaseCheck.Result.values()) {
+            shown.add(ReleaseCheck.resultLine(result, "0.2.0", "0.1.8"));
+            shown.add(ReleaseCheck.resultLine(result, "0.1.8", "0.1.8"));
+            shown.add(ReleaseCheck.resultLine(result, "0.2.0", ""));
+        }
+    }
+
     private static AlertDialog importPreview(Activity activity, List<Preference> rows, String file) throws Exception {
         Uri uri = Uri.parse("content://settings-l10n/" + System.nanoTime() + ".json");
         byte[] bytes = file.getBytes(java.nio.charset.StandardCharsets.UTF_8);
@@ -487,6 +590,24 @@ public class SettingsL10nTest {
             Preference preference = group.getPreference(i);
             shown.add(String.valueOf(preference.getTitle()));
             if (preference.getSummary() != null) shown.add(String.valueOf(preference.getSummary()));
+            // A row's own dialog: its title and message, a field's button and hint, and a list's choices.
+            if (preference instanceof android.preference.DialogPreference) {
+                android.preference.DialogPreference dialog = (android.preference.DialogPreference) preference;
+                if (dialog.getDialogTitle() != null) shown.add(String.valueOf(dialog.getDialogTitle()));
+                if (dialog.getDialogMessage() != null) shown.add(String.valueOf(dialog.getDialogMessage()));
+                // Left unset, Android fills Cancel in the activity's language, not Facebook's.
+                if (dialog.getNegativeButtonText() != null) shown.add(String.valueOf(dialog.getNegativeButtonText()));
+            }
+            if (preference instanceof android.preference.EditTextPreference) {
+                android.preference.EditTextPreference field = (android.preference.EditTextPreference) preference;
+                if (field.getPositiveButtonText() != null) shown.add(String.valueOf(field.getPositiveButtonText()));
+                if (field.getEditText().getHint() != null) shown.add(String.valueOf(field.getEditText().getHint()));
+            }
+            if (preference instanceof android.preference.ListPreference) {
+                for (CharSequence entry : ((android.preference.ListPreference) preference).getEntries()) {
+                    shown.add(String.valueOf(entry));
+                }
+            }
             if (preference instanceof PreferenceGroup) {
                 collect((PreferenceGroup) preference, rows, shown);
             } else {

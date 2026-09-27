@@ -2,718 +2,473 @@ package app.yydarlinker.deepseekcaptions;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Configuration;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.os.Handler;
-import android.os.Looper;
-import android.text.Layout;
-import android.text.StaticLayout;
-import android.text.TextPaint;
+import android.graphics.*;
+import android.graphics.drawable.GradientDrawable;
+import android.os.*;
+import android.text.*;
 import android.util.TypedValue;
-import android.view.Gravity;
-import android.view.HapticFeedbackConstants;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.TextView;
-
+import android.view.*;
+import android.widget.*;
 import java.lang.ref.WeakReference;
+import java.util.function.Supplier;
 
-/** Stable Activity-root caption overlay backed by a fixed-width player-relative anchor. */
+/** One event in one view. Layout never edits a translation or creates new timeline events. */
 final class CaptionOverlay {
-    interface RenderGuard {
-        boolean isValid();
+  interface RenderGuard {
+    boolean isValid();
+  }
+
+  private static final Handler MAIN = new Handler(Looper.getMainLooper());
+  private static final java.util.concurrent.atomic.AtomicLong COMMAND =
+      new java.util.concurrent.atomic.AtomicLong();
+  private static WeakReference<Activity> activityRef = new WeakReference<>(null);
+  private static WeakReference<FrameLayout> hostRef = new WeakReference<>(null),
+      anchorRef = new WeakReference<>(null);
+  private static WeakReference<TextView> textRef = new WeakReference<>(null);
+
+  /** Immutable geometry; background translation can measure without touching Views. */
+  static final class LayoutBudget {
+    final int width;
+    final float minimumPx, preferredPx;
+
+    LayoutBudget(int w, float px) {
+      this(w,px,px);
     }
 
-    private static final Handler MAIN = new Handler(Looper.getMainLooper());
-    private static final String ANCHOR_TAG = "yydarlinker.deepseek.caption.anchor";
-    private static final String TEXT_TAG = "yydarlinker.deepseek.caption.overlay";
-    private static final String[] PLAYER_IDS = {
-            "inset_overlay_view_layout", "player_overlays", "player_overlay", "watch_player"
-    };
-    private static final long DRAG_LONG_PRESS_MS = 350L;
+    LayoutBudget(int w,float px,float preferred) {
+      width=w; minimumPx=px; preferredPx=preferred;
+    }
 
-    private static WeakReference<Activity> activityRef = new WeakReference<>(null);
-    private static WeakReference<FrameLayout> hostRef = new WeakReference<>(null);
-    private static WeakReference<FrameLayout> playerRef = new WeakReference<>(null);
-    private static WeakReference<FrameLayout> anchorRef = new WeakReference<>(null);
-    private static WeakReference<TextView> textRef = new WeakReference<>(null);
+    boolean fits(String value) {
+      if (value.isEmpty()) return true;
+      TextPaint paint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+      paint.setTypeface(Typeface.DEFAULT);
+      paint.setTextSize(minimumPx);
+      return StaticLayout.Builder.obtain(value, 0, value.length(), paint, Math.max(1, width))
+              .setIncludePad(false)
+              .setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED)
+              .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
+              .build()
+              .getLineCount()
+          <= 2;
+    }
 
-    private static String pendingText = "";
-    private static java.util.function.Supplier<String> overflowSource;
-    private static boolean pendingStatus;
-    private static boolean suppressed;
-    private static boolean guardedExpansion;
-    private static boolean geometryPosted;
-    private static int lastLeft = -1;
-    private static int lastTop = -1;
-    private static int lastWidth = -1;
-    private static int lastHeight = -1;
-    private static int lastMaxWidth = -1;
-    private static boolean lastStatus;
-    private static long lastSurfaceScan;
-    private static long lastGeometryCheck;
-    private static boolean wasShorts;
-    private static long lastSurfaceDiagnostic;
-    private static String lastOverflowText="";
-    private static int lastOverflowWidth;
+    int preferredColumns() { return Math.max(1,(int)(width/Math.max(1,preferredPx))); }
 
-    private static Runnable armDrag;
-    private static boolean dragging;
-    private static float downRawY;
-    private static float dragStartY;
+    int approximateColumns() {
+      return Math.max(1, (int) (width / Math.max(1, minimumPx)));
+    }
+  }
 
-    private static final android.view.ViewTreeObserver.OnPreDrawListener GEOMETRY_DRAW = () -> {
-        long now=android.os.SystemClock.uptimeMillis();
-        if(now-lastGeometryCheck>=80 && !dragging && !suppressed && !guardedExpansion && !pendingText.isEmpty()){lastGeometryCheck=now;syncGeometry();}
+  private static volatile LayoutBudget layoutBudget;
+
+  static LayoutBudget budget() {
+    return layoutBudget;
+  }
+
+  private static String pendingText = "", pendingIdentity = "", lastNotice = "";
+  private static boolean previousShorts;
+  private static boolean pendingStatus, suppressed, guardedExpansion;
+  private static RenderGuard currentGuard;
+  private static Supplier<String> fallback;
+  private static Rect previous = new Rect();
+  private static long lastScan, lastLayout;
+  private static boolean dirty = true;
+  private static float downY, initial;
+  private static long downAt;
+  private static boolean dragging;
+  private static final android.view.ViewTreeObserver.OnPreDrawListener WATCH =
+      () -> {
+        long now = SystemClock.uptimeMillis();
+        if (now - lastLayout >= 100 && !guardedExpansion && !suppressed && !pendingText.isEmpty()) {
+          lastLayout = now;
+          render();
+        }
         return true;
-    };
+      };
 
-    private static final View.OnLayoutChangeListener HOST_LAYOUT =
-            (v, l, t, r, b, ol, ot, or, ob) -> {
-                if (guardedExpansion) return;
-                if (l != ol || t != ot || r != or || b != ob) {
-                    resetGeometry();
-                    scheduleGeometry();
-                }
-            };
-
-    private static final View.OnLayoutChangeListener PLAYER_LAYOUT =
-            (v, l, t, r, b, ol, ot, or, ob) -> {
-                if (guardedExpansion) return;
-                if (l != ol || t != ot || r != or || b != ob) scheduleGeometry();
-            };
-
-    private CaptionOverlay() {}
-
-    static void setActivity(Activity activity) {
-        runMain(() -> {
-            Activity old = activityRef.get();
-            if (old != activity) detach();
-            activityRef = new WeakReference<>(activity);
-            CaptionSurface.activity(activity);
-            if (!pendingText.isEmpty() && !guardedExpansion) render();
+  static void setActivity(Activity a) {
+    main(
+        () -> {
+          if (activityRef.get() != a) detach();
+          activityRef = new WeakReference<>(a);
+          CaptionSurface.activity(a);
+          dirty = true;
+          render();
         });
-    }
+  }
 
-    static void refreshSurface(){runMain(()->{
-        long now=android.os.SystemClock.uptimeMillis();if(now-lastSurfaceScan<500)return;lastSurfaceScan=now;
-        CaptionSurface.refresh();boolean current=CaptionSurface.isShorts();
-        if(current!=wasShorts){wasShorts=current;unbindPlayer();resetGeometry();}
-        if(current){suppressed=false;guardedExpansion=false;if(!pendingText.isEmpty())render();}
-        else scheduleGeometry();
-    });}
+  static void showCaption(String s) {
+    show(s, false, null, null);
+  }
 
-    static void showCaption(String text,RenderGuard guard,java.util.function.Supplier<String> source) {
-        show(text,false,guard,source);
-    }
-    static void showCaption(String text) { show(text, false, null); }
-    static void showStatus(String text) { show(text, true, null); }
-    static void showCaption(String text, RenderGuard guard) { show(text, false, guard); }
-    static void showStatus(String text, RenderGuard guard) { show(text, true, guard); }
+  static void showCaption(String s, RenderGuard g) {
+    show(s, false, g, null);
+  }
 
-    /** Normal player-shape changes are event-driven; no multi-frame geometry polling is used. */
-    static void setPlayerType(String rawType) {
-        String type = rawType == null ? "" : rawType.trim();
-        MAIN.post(() -> {
-            boolean next = !CaptionSurface.isShorts() && compact(type);
-            if (next == suppressed) {
-                if (!next && !guardedExpansion && !pendingText.isEmpty()) scheduleGeometry();
-                return;
-            }
-            suppressed = next;
-            if (next) {
-                hideAnchorOnly();
-                unbindPlayer();
-            } else if (!guardedExpansion && !pendingText.isEmpty()) {
-                unbindPlayer();
-                render();
-            }
+  static void showCaption(String s, RenderGuard g, Supplier<String> f) {
+    show(s, false, g, f);
+  }
+
+  static void showStatus(String s) {
+    show(s, true, null, null);
+  }
+
+  static void showStatus(String s, RenderGuard g) {
+    show(s, true, g, null);
+  }
+
+  static void showEvent(String s, RenderGuard g, Supplier<String> f, String id) {
+    show(s, false, g, f, id);
+  }
+
+  private static void show(String s, boolean status, RenderGuard g, Supplier<String> f) {
+    show(s, status, g, f, "");
+  }
+
+  private static void show(String s, boolean status, RenderGuard g, Supplier<String> f, String id) {
+    if (g != null && !g.isValid()) return;
+    long command = COMMAND.incrementAndGet();
+    main(
+        () -> {
+          if (command != COMMAND.get() || g != null && !g.isValid()) return;
+          pendingText = s == null ? "" : s;
+          pendingIdentity = id;
+          pendingStatus = status;
+          currentGuard = g;
+          fallback = f;
+          dirty = true;
+          render();
         });
-    }
+  }
 
-    /**
-     * Enter the miniplayer transition quarantine. From here until restoreAfterGuardedExpansion(),
-     * caption text may change in memory but no extension layout listener or renderer may touch the
-     * player transition.
-     */
-    static void beginGuardedExpansion() {
-        runMain(() -> {
-            guardedExpansion = true;
-            suppressed = true;
-            geometryPosted = false;
-            hideAnchorOnly();
-            unbindPlayer();
+  static void hide() {
+    hide(null);
+  }
+
+  static void hide(RenderGuard g) {
+    if (g != null && !g.isValid()) return;
+    long command = COMMAND.incrementAndGet();
+    main(
+        () -> {
+          if (command != COMMAND.get() || g != null && !g.isValid()) return;
+          pendingText = "";
+          fallback = null;
+          currentGuard = g;
+          hideView();
         });
-    }
+  }
 
-    /** Restore exactly once after the read-only transition guard has observed stable geometry. */
-    static void restoreAfterGuardedExpansion(String rawType) {
-        String type = rawType == null ? "" : rawType.trim();
-        runMain(() -> {
-            boolean next = !CaptionSurface.isShorts() && compact(type);
+  static void clear() {
+    long command = COMMAND.incrementAndGet();
+    main(
+        () -> {
+          if (command != COMMAND.get()) return;
+          pendingText = "";
+          pendingStatus = false;
+          fallback = null;
+          currentGuard = null;
+          hideView();
+        });
+  }
+
+  static void refreshStyle(Context c) {
+    main(
+        () -> {
+          dirty = true;
+          render();
+        });
+  }
+
+  static void refreshSurface() {
+    main(
+        () -> {
+          long now = SystemClock.uptimeMillis();
+          if (now >= lastScan && now - lastScan < 500L) return;
+          CaptionSurface.refresh();
+          lastScan = SystemClock.uptimeMillis();
+          if (CaptionSurface.isShorts()) {
+            suppressed = false;
             guardedExpansion = false;
-            suppressed = next;
-            geometryPosted = false;
-            if (next) {
-                hideAnchorOnly();
-                return;
-            }
-            unbindPlayer();
-            if (!pendingText.isEmpty()) render();
+          }
+          dirty = true;
+          render();
         });
-    }
+  }
 
-    static void hide() { hide(null); }
-
-    static void hide(RenderGuard guard) {
-        runMain(() -> {
-            if (!allows(guard)) return;
-            pendingText = "";
-            overflowSource=null;
-            FrameLayout anchor = anchorRef.get();
-            TextView text = textRef.get();
-            if (text != null) text.setClickable(false);
-            if (anchor != null) anchor.setVisibility(View.GONE);
+  static void setPlayerType(String type) {
+    main(
+        () -> {
+          String s = type == null ? "" : type.toUpperCase(java.util.Locale.ROOT);
+          suppressed =
+              !CaptionSurface.isShorts()
+                  && (s.contains("MINIM")
+                      || s.contains("HIDDEN")
+                      || s.contains("DISMISSED")
+                      || s.contains("PICTURE_IN_PICTURE"));
+          dirty = true;
+          render();
         });
-    }
+  }
 
-    static void clear() {
-        runMain(() -> {
-            pendingText = "";
-            overflowSource=null;
-            pendingStatus = false;
-            guardedExpansion = false;
-            detachOverlay();
+  static void beginGuardedExpansion() {
+    main(
+        () -> {
+          guardedExpansion = true;
+          hideView();
         });
-    }
+  }
 
-    static void refreshStyle(Context ignored) {
-        runMain(() -> {
-            if (!pendingText.isEmpty() && !guardedExpansion) render();
+  static void restoreAfterGuardedExpansion(String type) {
+    main(
+        () -> {
+          guardedExpansion = false;
+          suppressed = false;
+          CaptionSurface.refresh();
+          dirty = true;
+          setPlayerType(type);
         });
-    }
+  }
 
-    private static void hideAnchorOnly() {
-        cancelDrag();
+  private static void main(Runnable r) {
+    if (Looper.myLooper() == Looper.getMainLooper()) r.run();
+    else MAIN.post(r);
+  }
+
+  private static void hideView() {
+    FrameLayout a = anchorRef.get();
+    if (a != null) a.setVisibility(View.GONE);
+  }
+
+  private static void detach() {
+    FrameLayout h = hostRef.get(), a = anchorRef.get();
+    if (h != null && h.getViewTreeObserver().isAlive())
+      h.getViewTreeObserver().removeOnPreDrawListener(WATCH);
+    if (a != null && a.getParent() instanceof ViewGroup) ((ViewGroup) a.getParent()).removeView(a);
+    hostRef = new WeakReference<>(null);
+    anchorRef = new WeakReference<>(null);
+    textRef = new WeakReference<>(null);
+    previous.setEmpty();
+    lastScan = -500;
+    lastLayout = 0;
+    lastNotice = "";
+    layoutBudget = null;
+  }
+
+  private static boolean attach(Activity a) {
+    FrameLayout h = hostRef.get();
+    if (h != null && h.isAttachedToWindow() && anchorRef.get() != null) return true;
+    detach();
+    View content = a.findViewById(android.R.id.content);
+    if (!(content instanceof FrameLayout)) return false;
+    h = (FrameLayout) content;
+    FrameLayout anchor = new FrameLayout(a);
+    anchor.setTag("yydarlinker.deepseek.caption.anchor");
+    anchor.setClipChildren(false);
+    anchor.setClipToPadding(false);
+    anchor.setElevation(dp(a, 12));
+    TextView text = new TextView(a);
+    text.setTag("yydarlinker.deepseek.caption.overlay");
+    text.setTextColor(Color.WHITE);
+    text.setGravity(Gravity.CENTER);
+    text.setIncludeFontPadding(false);
+    text.setPadding(dp(a, 6), dp(a, 4), dp(a, 6), dp(a, 4));
+    text.setShadowLayer(dp(a, 1), 0, dp(a, 1), 0xD0000000);
+    text.setTypeface(Typeface.DEFAULT, Typeface.NORMAL);
+    text.setSingleLine(false);
+    text.setMaxLines(2);
+    text.setEllipsize(null);
+    text.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE);
+    text.setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED);
+    text.setOnTouchListener((v, e) -> drag(v, e));
+    anchor.addView(
+        text,
+        new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.TOP | Gravity.CENTER_HORIZONTAL));
+    h.addView(anchor, new FrameLayout.LayoutParams(1, 1));
+    hostRef = new WeakReference<>(h);
+    anchorRef = new WeakReference<>(anchor);
+    textRef = new WeakReference<>(text);
+    h.getViewTreeObserver().addOnPreDrawListener(WATCH);
+    dirty = true;
+    return true;
+  }
+
+  private static void render() {
+    Activity a = activityRef.get();
+    if (a == null
+        || a.isFinishing()
+        || a.isDestroyed()
+        || pendingText.isEmpty()
+        || suppressed
+        || guardedExpansion
+        || currentGuard != null && !currentGuard.isValid()) {
+      hideView();
+      return;
+    }
+    if (!attach(a)) return;
+    FrameLayout host = hostRef.get(), anchor = anchorRef.get();
+    TextView text = textRef.get();
+    long now = SystemClock.uptimeMillis();
+    if (now - lastScan >= 500) {
+      CaptionSurface.refresh();
+      lastScan = now;
+    }
+    Rect b = CaptionSurface.videoBounds(host);
+    if (b == null || b.width() < 50 || b.height() < 50) {
+      layoutBudget = null;
+      hideView();
+      return;
+    }
+    boolean shorts = CaptionSurface.isShorts();
+    if (!dirty
+        && b.equals(previous)
+        && shorts == previousShorts
+        && anchor.getVisibility() == View.VISIBLE) return;
+    previousShorts = shorts;
+    dirty = false;
+    previous.set(b);
+    DeepSeekConfig.Snapshot cfg = DeepSeekConfig.displayStyle(a);
+    int width = Math.max(1, Math.round(b.width() * (CaptionSurface.isShorts() ? .78f : .92f)));
+    int inner = Math.max(1, width - text.getPaddingLeft() - text.getPaddingRight());
+    layoutBudget =
+        new LayoutBudget(
+            inner,
+            TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_SP, 12, a.getResources().getDisplayMetrics()),
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, SubtitleStyleMetrics.scaledSp(cfg.captionTextSize,b.width()/a.getResources().getDisplayMetrics().density),a.getResources().getDisplayMetrics()));
+    float preferred = SubtitleStyleMetrics.scaledSp(cfg.captionTextSize, b.width()/a.getResources().getDisplayMetrics().density), size = preferred;
+    String shown = pendingText;
+    String mode = pendingStatus ? "status" : "caption";
+    // Scale only within the user's readable range, not to arbitrarily small text.
+    while (size > 12 && lines(a, shown, size, inner) > 2) size = Math.max(12, size - .5f);
+    if (lines(a, shown, size, inner) > 2) {
+      mode = "original_fallback";
+      shown = fallback == null ? "" : fallback.get();
+      if (shown == null || shown.isEmpty() || lines(a, shown, size, inner) > 2) {
+        mode = "overflow_status";
+        shown = CaptionStrings.get(a, "caption_overflow");
+      }
+      if (lines(a, shown, size, inner) > 2) shown = "…";
+    }
+    String notice = pendingIdentity + "|" + pendingText + "|" + mode + "|" + inner + "|" + size;
+    if (!notice.equals(lastNotice)) {
+      lastNotice = notice;
+      String detail =
+          "id="
+              + pendingIdentity
+              + ";mode="
+              + mode
+              + ";width="
+              + inner
+              + ";sp="
+              + size
+              + ";lines="
+              + lines(a, pendingText, size, inner);
+      if (mode.equals("original_fallback") || mode.equals("overflow_status"))
+        CaptionDiagnostics.mark(a, "REBUILD_LAYOUT_FALLBACK", detail);
+      if (DeepSeekConfig.displayTextDebugEnabled(a))
+        CaptionDiagnostics.mark(
+            a,
+            "REBUILD_PRESENTED",
+            detail
+                + ";text="
+                + CaptionQualityTrace.redact(shown, DeepSeekConfig.load(a).apiKey, 400));
+    }
+    text.setText(shown);
+    text.setSingleLine(false);
+    text.setMaxLines(2);
+    text.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);
+    text.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+    text.setTextColor(pendingStatus ? 0xE6FFFFFF : Color.WHITE);
+    int compact = compactWidth(a, shown, size, inner) + text.getPaddingLeft() + text.getPaddingRight();
+    text.setMaxWidth(compact);
+    text.getLayoutParams().width = compact;
+    GradientDrawable bg = new GradientDrawable();
+    bg.setColor((SubtitleStyleMetrics.alpha(cfg.backgroundOpacity) << 24));
+    bg.setCornerRadius(dp(a, 4));
+    text.setBackground(bg);
+    text.measure(
+        View.MeasureSpec.makeMeasureSpec(compact, View.MeasureSpec.EXACTLY),
+        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+    int height = text.getMeasuredHeight();
+    boolean landscape = b.width() > b.height();
+    float y =
+        CaptionSurface.isShorts()
+            ? DeepSeekConfig.shortsPosition(a)
+            : DeepSeekConfig.captionPositionY(a, landscape);
+    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) anchor.getLayoutParams();
+    params.width = width;
+    params.height = height;
+    params.gravity = Gravity.TOP | Gravity.START;
+    params.leftMargin = b.left + (b.width() - width) / 2;
+    params.topMargin =
+        Math.max(
+            b.top, Math.min(b.bottom - height, b.top + Math.round(b.height() * y) - height / 2));
+    anchor.setLayoutParams(params);
+    anchor.setVisibility(View.VISIBLE);
+    anchor.bringToFront();
+  }
+
+  static int compactWidth(Context a, String value, float sp, int maximum) {
+    int target = lines(a,value,sp,maximum), low=1, high=maximum;
+    while(low<high){int mid=(low+high)/2;if(lines(a,value,sp,mid)<=target)high=mid;else low=mid+1;}
+    return Math.min(maximum,low+1); // one pixel rounding guard; never omit text
+  }
+
+  static int lines(Context a, String s, float sp, int width) {
+    android.text.TextPaint paint = new android.text.TextPaint(Paint.ANTI_ALIAS_FLAG);
+    paint.setTypeface(Typeface.DEFAULT);
+    paint.setTextSize(
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP, sp, a.getResources().getDisplayMetrics()));
+    return StaticLayout.Builder.obtain(s, 0, s.length(), paint, Math.max(1, width))
+        .setIncludePad(false)
+        .setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED)
+        .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
+        .build()
+        .getLineCount();
+  }
+
+  private static boolean drag(View v, MotionEvent e) {
+    Activity a = activityRef.get();
+    if (a == null || previous.height() <= 0) return false;
+    switch (e.getActionMasked()) {
+      case MotionEvent.ACTION_DOWN:
+        downY = e.getRawY();
+        downAt = SystemClock.uptimeMillis();
         dragging = false;
-        FrameLayout host = hostRef.get();
-        if (host != null) host.requestDisallowInterceptTouchEvent(false);
-        FrameLayout anchor = anchorRef.get();
-        TextView text = textRef.get();
-        if (text != null) text.setClickable(false);
-        if (anchor != null) anchor.setVisibility(View.GONE);
-    }
-
-    private static void show(String text, boolean status, RenderGuard guard) { show(text,status,guard,null); }
-    private static void show(String text,boolean status,RenderGuard guard,java.util.function.Supplier<String> source) {
-        String clean = text == null ? "" : text.trim();
-        runMain(() -> {
-            if (!allows(guard)) return;
-            pendingText = clean;
-            overflowSource=source;
-            pendingStatus = status;
-            if (clean.isEmpty() || suppressed || guardedExpansion) {
-                FrameLayout anchor = anchorRef.get();
-                TextView view = textRef.get();
-                if (view != null) view.setClickable(false);
-                if (anchor != null) anchor.setVisibility(View.GONE);
-            } else {
-                render();
-            }
-        });
-    }
-
-    private static boolean allows(RenderGuard guard) {
-        if (guard == null) return true;
-        try {
-            return guard.isValid();
-        } catch (Throwable ignored) {
-            return false;
+        initial =
+            CaptionSurface.isShorts()
+                ? DeepSeekConfig.shortsPosition(a)
+                : DeepSeekConfig.captionPositionY(a, previous.width() > previous.height());
+        return true;
+      case MotionEvent.ACTION_MOVE:
+        if (!dragging && SystemClock.uptimeMillis() - downAt >= 350) {
+          dragging = true;
+          v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
         }
-    }
-
-    private static void render() {
-        if (suppressed || guardedExpansion || pendingText.isEmpty()) return;
-        Activity activity = activityRef.get();
-        TextView view = ensureView();
-        FrameLayout anchor = anchorRef.get();
-        if (activity == null || view == null || anchor == null) {
-            MAIN.postDelayed(CaptionOverlay::render, 32L);
-            return;
+        if (dragging) {
+          float y =
+              Math.max(.08f, Math.min(.92f, initial + (e.getRawY() - downY) / previous.height()));
+          if (CaptionSurface.isShorts()) DeepSeekConfig.saveShortsPosition(a, y);
+          else DeepSeekConfig.saveCaptionPosition(a, previous.width() > previous.height(), y);
+          dirty = true;
+          render();
         }
-        Rect bounds = resolveBounds(activity);
-        if (bounds == null) {
-            hideAnchorOnly();
-            MAIN.postDelayed(CaptionOverlay::render, 32L);
-            return;
-        }
-
-        boolean changed = !pendingText.contentEquals(view.getText()) || pendingStatus != lastStatus;
-        if (changed || anchor.getVisibility() != View.VISIBLE) {
-            anchor.setVisibility(View.INVISIBLE);
-            view.setClickable(false);
-        }
-
-        configure(anchor, view, activity, bounds);
-        anchor.setVisibility(View.VISIBLE);
-        anchor.setElevation(dp(activity,32));
-        surfaceDiagnostic(activity,"OVERLAY_VIEW_VISIBLE","shorts="+CaptionSurface.isShorts()+";bounds="+bounds.toShortString());
-        view.setClickable(true);
-        anchor.postOnAnimation(() -> {
-            if (anchor != anchorRef.get() || dragging || suppressed || guardedExpansion) return;
-            Activity current = activityRef.get();
-            Rect currentBounds = current == null ? null : resolveBounds(current);
-            if (currentBounds != null) {
-                positionAnchor(anchor, currentBounds,
-                        Math.max(1, anchor.getMeasuredWidth()),
-                        Math.max(1, anchor.getMeasuredHeight()));
-            }
-        });
-    }
-
-    private static void surfaceDiagnostic(Activity activity,String stage,String detail){
-        long now=android.os.SystemClock.uptimeMillis();if(now-lastSurfaceDiagnostic<5000)return;lastSurfaceDiagnostic=now;
-        CaptionDiagnostics.mark(activity,stage,detail);
-    }
-    private static TextView ensureView() {
-        Activity activity = activityRef.get();
-        if (activity == null || activity.isFinishing() || guardedExpansion) return null;
-        FrameLayout host = findHost(activity);
-        if (host == null) return null;
-        bindHost(host);
-        FrameLayout player = findPlayer(activity, host);
-        if (player == null && !CaptionSurface.isShorts()) return null;
-        if(player!=null && !CaptionSurface.isShorts())bindPlayer(player);
-
-        FrameLayout anchor = anchorRef.get();
-        TextView text = textRef.get();
-        if (anchor != null && anchor.getParent() == host && text != null && text.getParent() == anchor) {
-            return text;
-        }
-
-        if (anchor != null && anchor.getParent() instanceof ViewGroup) {
-            ((ViewGroup) anchor.getParent()).removeView(anchor);
-        }
-        View stale = host.findViewWithTag(TEXT_TAG);
-        if (stale instanceof TextView && stale.getParent() == host) host.removeView(stale);
-
-        anchor = new FrameLayout(activity);
-        anchor.setTag(ANCHOR_TAG);
-        anchor.setClipChildren(false);
-        anchor.setClipToPadding(false);
-        anchor.setFocusable(false);
-        anchor.setClickable(false);
-        anchor.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        anchor.setVisibility(View.INVISIBLE);
-        host.addView(anchor, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.TOP | Gravity.START));
-
-        text = new TextView(activity);
-        text.setTag(TEXT_TAG);
-        text.setGravity(Gravity.CENTER);
-        text.setIncludeFontPadding(false);
-        text.setFocusable(false);
-        text.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        text.setShadowLayer(dp(activity, 3), 0f, dp(activity, 1), Color.BLACK);
-        int h = dp(activity, 9);
-        int v = dp(activity, 5);
-        text.setPadding(h, v, h, v);
-        text.setElevation(dp(activity, 16));
-        text.setSingleLine(false);
-        text.setMaxLines(2);
-        text.setClickable(false);
-        text.setOnTouchListener(CaptionOverlay::touch);
-        anchor.addView(text, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.TOP | Gravity.CENTER_HORIZONTAL));
-
-        anchorRef = new WeakReference<>(anchor);
-        textRef = new WeakReference<>(text);
-        resetGeometry();
-        return text;
-    }
-
-    private static void configure(FrameLayout anchor, TextView view, Activity activity, Rect bounds) {
-        DeepSeekConfig.Snapshot style = DeepSeekConfig.displayStyle(activity);
-        int anchorWidth = Math.max(1, Math.round(bounds.width() * (CaptionSurface.isShorts()?0.78f:0.90f)));
-        int configured = pendingStatus
-                ? Math.max(DeepSeekConfig.MIN_CAPTION_TEXT_SIZE, style.captionTextSize - 4)
-                : style.captionTextSize;
-        float preferredSp = scaledTextSize(activity, configured, bounds);
-        float minimumSp = scaledTextSize(activity, DeepSeekConfig.MIN_CAPTION_TEXT_SIZE, bounds);
-        float finalSp = fittedSize(activity, view, pendingText, preferredSp, minimumSp, anchorWidth);
-
-        view.setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED);
-        view.setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE);
-        String shown=pendingText;
-        int available=Math.max(1,anchorWidth-view.getPaddingLeft()-view.getPaddingRight());
-        if(lineCount(activity,shown,finalSp,available)>2) {
-            // Never crop a translated paragraph or turn it into tiny text. It is a labelled
-            // source fallback, not a successful translation; actual lines remain readable.
-            String source=overflowSource==null?"":overflowSource.get();
-            shown=source==null?"":source;
-            if(shown.isEmpty()||lineCount(activity,shown,finalSp,available)>2)
-                shown=CaptionStrings.get(activity,"caption_overflow");
-            if(lineCount(activity,shown,finalSp,available)>2)shown="…";
-        }
-        view.setText(shown);
-        view.setSingleLine(false);
-        view.setMaxLines(2); // setSingleLine(false) resets maxLines on Android.
-        try { view.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE); }
-        catch (Throwable ignored) {}
-        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, finalSp);
-        view.setTextColor(pendingStatus ? 0xE6FFFFFF : Color.WHITE);
-        view.setAlpha(1f);
-        applyBackground(view, activity, style.backgroundOpacity);
-        if (lastMaxWidth != anchorWidth) {
-            lastMaxWidth = anchorWidth;
-            view.setMaxWidth(anchorWidth);
-        }
-
-        FrameLayout.LayoutParams textParams = (FrameLayout.LayoutParams) view.getLayoutParams();
-        textParams.width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        textParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        textParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        view.setLayoutParams(textParams);
-
-        FrameLayout.LayoutParams anchorParams = (FrameLayout.LayoutParams) anchor.getLayoutParams();
-        anchorParams.width = anchorWidth;
-        anchorParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-        anchorParams.gravity = Gravity.TOP | Gravity.START;
-        anchor.setLayoutParams(anchorParams);
-
-        int unspecified = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
-        view.measure(View.MeasureSpec.makeMeasureSpec(anchorWidth, View.MeasureSpec.AT_MOST), unspecified);
-        anchor.measure(View.MeasureSpec.makeMeasureSpec(anchorWidth, View.MeasureSpec.EXACTLY), unspecified);
-        positionAnchor(anchor, bounds, anchorWidth, Math.max(1, anchor.getMeasuredHeight()));
-        remember(bounds);
-        lastStatus = pendingStatus;
-    }
-
-    private static float fittedSize(Activity activity, TextView view, String text,
-                                    float preferred, float minimum, int maxWidth) {
-        int available = Math.max(1, maxWidth - view.getPaddingLeft() - view.getPaddingRight());
-        float size = Math.max(minimum, preferred);
-        while (size > minimum + 0.24f && lineCount(activity, text, size, available) > 2) {
-            size = Math.max(minimum, size - 0.5f);
-        }
-        if (lineCount(activity,text,size,available)>2) {
-            if(!text.equals(lastOverflowText)||lastOverflowWidth!=available){
-                lastOverflowText=text;lastOverflowWidth=available;
-                CaptionDiagnostics.mark(activity,"OVERLAY_READABILITY_FALLBACK",
-                        "minimum_font_preserved=true;chars="+text.length()+";sp="+size);
-            }
-        }
-        return size;
-    }
-
-    @SuppressWarnings("deprecation")
-    private static int lineCount(Activity activity, String text, float sp, int width) {
-        TextPaint paint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
-        paint.setTextSize(TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP, sp, activity.getResources().getDisplayMetrics()));
-        StaticLayout layout = StaticLayout.Builder.obtain(text, 0, text.length(), paint, Math.max(1, width))
-                .setAlignment(Layout.Alignment.ALIGN_CENTER).setIncludePad(false)
-                .setBreakStrategy(Layout.BREAK_STRATEGY_BALANCED)
-                .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE).build();
-        return layout.getLineCount();
-    }
-
-    private static void positionAnchor(FrameLayout anchor, Rect bounds, int width, int height) {
-        Activity activity = activityRef.get();
-        if (activity == null || bounds.width() <= 0 || bounds.height() <= 0) return;
-        boolean landscape = isLandscape(activity);
-        float ratio = DeepSeekConfig.hasCaptionPosition(activity, landscape)
-                ? DeepSeekConfig.captionPositionY(activity, landscape)
-                : (landscape ? 0.80f : 0.82f);
-        if(CaptionSurface.isShorts()) {
-            Float nativeY=CaptionSurface.nativeCenter(hostRef.get(),bounds);
-            ratio=DeepSeekConfig.hasShortsPosition(activity)?DeepSeekConfig.shortsPosition(activity):nativeY!=null?nativeY:.72f;
-        }
-        float x = bounds.left + (bounds.width() - width) / 2f;
-        float y = bounds.top + ratio * bounds.height() - height / 2f;
-        anchor.setX(clamp(x, bounds.left, Math.max(bounds.left, bounds.right - width)));
-        anchor.setY(clamp(y, bounds.top, Math.max(bounds.top, bounds.bottom - height)));
-    }
-
-    private static FrameLayout findHost(Activity activity) {
-        View content = activity.findViewById(android.R.id.content);
-        if (content instanceof FrameLayout && content.isAttachedToWindow()) return (FrameLayout) content;
-        View root = activity.getWindow() == null ? null : activity.getWindow().getDecorView();
-        return root instanceof FrameLayout && root.isAttachedToWindow() ? (FrameLayout) root : null;
-    }
-
-    private static FrameLayout findPlayer(Activity activity, FrameLayout host) {
-        View root = activity.getWindow() == null ? null : activity.getWindow().getDecorView();
-        if (root == null) return null;
-        FrameLayout remembered = playerRef.get();
-        FrameLayout best = null;
-        double bestScore = Double.NEGATIVE_INFINITY;
-        for (String name : PLAYER_IDS) {
-            int id = activity.getResources().getIdentifier(name, "id", activity.getPackageName());
-            if (id == 0) continue;
-            View candidate = root.findViewById(id);
-            FrameLayout frame = candidate instanceof FrameLayout
-                    ? (FrameLayout) candidate
-                    : candidate != null && candidate.getParent() instanceof FrameLayout
-                    ? (FrameLayout) candidate.getParent() : null;
-            double score = playerScore(activity, host, frame, frame == remembered);
-            if (score > bestScore) {
-                bestScore = score;
-                best = frame;
-            }
-        }
-        double rememberedScore = playerScore(activity, host, remembered, true);
-        return rememberedScore > bestScore ? remembered : best;
-    }
-
-    private static double playerScore(Activity activity, FrameLayout host,
-                                      FrameLayout candidate, boolean remembered) {
-        if (candidate == null || !candidate.isAttachedToWindow() || !candidate.isShown() ||
-                candidate.getAlpha() <= 0.01f) return Double.NEGATIVE_INFINITY;
-        Rect hostRect = new Rect();
-        Rect rect = new Rect();
-        if (!host.getGlobalVisibleRect(hostRect) || !candidate.getGlobalVisibleRect(rect) ||
-                !rect.intersect(hostRect)) return Double.NEGATIVE_INFINITY;
-        int w = rect.width();
-        int h = rect.height();
-        if (w <= 1 || h <= 1) return Double.NEGATIVE_INFINITY;
-        double area = (double) w * h;
-        double wr = Math.min(1d, w / (double) Math.max(1, hostRect.width()));
-        double hr = Math.min(1d, h / (double) Math.max(1, hostRect.height()));
-        double aspect = w / (double) h;
-        double fit = 1d / (1d + Math.abs(Math.log(Math.max(0.01d, aspect / (16d / 9d)))));
-        double score;
-        if (isLandscape(activity)) {
-            score = area * (2d + wr + hr);
-            if (wr < 0.5d) score *= 0.35d;
-        } else {
-            score = area * (1d + 2.2d * fit + wr);
-            if (aspect < 1.05d) score *= 0.15d;
-            if (hr > 0.82d) score *= 0.25d;
-        }
-        return remembered ? score * 1.02d : score;
-    }
-
-    private static Rect resolveBounds(Activity activity) {
-        FrameLayout host = hostRef.get();
-        if (host == null || !host.isAttachedToWindow()) return null;
-        Rect shorts=CaptionSurface.bounds(host);if(shorts!=null){Rect video=CaptionSurface.renderedBounds(CaptionSurface.refresh(),host);return video!=null?video:shorts;}
-        FrameLayout best = findPlayer(activity, host);
-        if (best != null) bindPlayer(best);
-        FrameLayout player = playerRef.get();
-        if (player == null || !player.isAttachedToWindow()) return null;
-        Rect rendered=CaptionSurface.renderedBounds(player,host);
-        if(rendered!=null)return rendered;
-        // Controls can be siblings of the video surface; inspect other named player containers,
-        // never climb to the entire Activity or scan comment/media previews outside the player.
-        View root=activity.getWindow().getDecorView();
-        for(String name:PLAYER_IDS){int id=activity.getResources().getIdentifier(name,"id",activity.getPackageName());
-            if(id==0)continue;View container=root.findViewById(id);
-            if(container==null || container==host)continue;
-            rendered=CaptionSurface.renderedBounds(container,host);if(rendered!=null)return rendered;
-        }
-        Rect hostRect = new Rect();
-        Rect playerRect = new Rect();
-        if (!host.getGlobalVisibleRect(hostRect) || !player.getGlobalVisibleRect(playerRect)) return null;
-        playerRect.offset(-hostRect.left, -hostRect.top);
-        int left = Math.max(0, playerRect.left);
-        int top = Math.max(0, playerRect.top);
-        int right = Math.min(host.getWidth(), playerRect.right);
-        int bottom = Math.min(host.getHeight(), playerRect.bottom);
-        return right > left && bottom > top ? new Rect(left, top, right, bottom) : null;
-    }
-
-    private static void bindHost(FrameLayout host) {
-        FrameLayout old = hostRef.get();
-        if (old == host) return;
-        if (old != null) {old.removeOnLayoutChangeListener(HOST_LAYOUT);old.getViewTreeObserver().removeOnPreDrawListener(GEOMETRY_DRAW);}
-        hostRef = new WeakReference<>(host);
-        host.addOnLayoutChangeListener(HOST_LAYOUT);
-        host.getViewTreeObserver().addOnPreDrawListener(GEOMETRY_DRAW);
-        resetGeometry();
-    }
-
-    private static void bindPlayer(FrameLayout player) {
-        FrameLayout old = playerRef.get();
-        if (old == player) return;
-        if (old != null) old.removeOnLayoutChangeListener(PLAYER_LAYOUT);
-        playerRef = new WeakReference<>(player);
-        player.addOnLayoutChangeListener(PLAYER_LAYOUT);
-        resetGeometry();
-    }
-
-    private static void unbindPlayer() {
-        FrameLayout old = playerRef.get();
-        if (old != null) old.removeOnLayoutChangeListener(PLAYER_LAYOUT);
-        playerRef = new WeakReference<>(null);
-        resetGeometry();
-    }
-
-    private static void scheduleGeometry() {
-        if (guardedExpansion || suppressed || pendingText.isEmpty() || geometryPosted) return;
-        geometryPosted = true;
-        View target = anchorRef.get();
-        Runnable action = () -> {
-            geometryPosted = false;
-            syncGeometry();
-        };
-        if (target != null) target.postOnAnimation(action); else MAIN.post(action);
-    }
-
-    private static void syncGeometry() {
-        if (guardedExpansion || suppressed || pendingText.isEmpty()) return;
-        Activity activity = activityRef.get();
-        FrameLayout anchor = anchorRef.get();
-        TextView view = textRef.get();
-        if (activity == null || anchor == null || view == null) return;
-        Rect bounds = resolveBounds(activity);
-        if (bounds == null) {hideAnchorOnly();return;}
-        boolean changed = bounds.left != lastLeft || bounds.top != lastTop ||
-                bounds.width() != lastWidth || bounds.height() != lastHeight;
-        if (!changed && anchor.getVisibility()==View.VISIBLE) return;
-        configure(anchor, view, activity, bounds);
-        anchor.setVisibility(View.VISIBLE);
-        anchor.setElevation(dp(activity,32));
-        surfaceDiagnostic(activity,"OVERLAY_VIEW_VISIBLE","shorts="+CaptionSurface.isShorts()+";bounds="+bounds.toShortString());
-        view.setClickable(true);
-    }
-
-    private static boolean touch(View touched, MotionEvent event) {
-        if (!(touched instanceof TextView)) return false;
-        TextView view = (TextView) touched;
-        FrameLayout anchor = anchorRef.get();
-        FrameLayout host = hostRef.get();
-        Activity activity = activityRef.get();
-        Rect bounds = activity == null ? null : resolveBounds(activity);
-        if (anchor == null || host == null || activity == null || bounds == null) return false;
-        switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                cancelDrag();
-                dragging = false;
-                downRawY = event.getRawY();
-                dragStartY = anchor.getY();
-                host.requestDisallowInterceptTouchEvent(true);
-                armDrag = () -> {
-                    if (view == textRef.get() && view.isShown()) {
-                        dragging = true;
-                        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                    }
-                };
-                MAIN.postDelayed(armDrag, DRAG_LONG_PRESS_MS);
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                if (!dragging) {
-                    if (Math.abs(event.getRawY() - downRawY) >
-                            ViewConfiguration.get(activity).getScaledTouchSlop()) cancelDrag();
-                    return true;
-                }
-                int height = Math.max(1, anchor.getMeasuredHeight());
-                anchor.setY(clamp(dragStartY + event.getRawY() - downRawY,
-                        bounds.top, Math.max(bounds.top, bounds.bottom - height)));
-                return true;
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
-                cancelDrag();
-                Rect finalBounds = resolveBounds(activity);
-                if (dragging && finalBounds != null && finalBounds.height() > 0) {
-                    boolean landscape = isLandscape(activity);
-                    float centerY = anchor.getY() + Math.max(1, anchor.getMeasuredHeight()) / 2f;
-                    if(CaptionSurface.isShorts())DeepSeekConfig.saveShortsPosition(activity,(centerY-finalBounds.top)/finalBounds.height());
-                    else DeepSeekConfig.saveCaptionPosition(activity, landscape,
-                            (centerY - finalBounds.top) / finalBounds.height());
-                } else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                    view.performClick();
-                }
-                dragging = false;
-                host.requestDisallowInterceptTouchEvent(false);
-                return true;
-            default:
-                return true;
-        }
-    }
-
-    private static void applyBackground(TextView view, Activity activity, int opacity) {
-        view.setBackground(new CaptionTextBackground(view, opacity, dp(activity, 5)));
-    }
-
-    private static float scaledTextSize(Activity activity, int configuredSp, Rect bounds) {
-        float density = activity.getResources().getDisplayMetrics().density;
-        if (density <= 0f || bounds.width() <= 0 || bounds.height() <= 0) return configuredSp;
-        float shortDp = Math.min(bounds.width(), bounds.height()) / density;
-        return SubtitleStyleMetrics.scaledSp(configuredSp,shortDp);
-    }
-
-    private static void remember(Rect bounds) {
-        lastLeft = bounds.left;
-        lastTop = bounds.top;
-        lastWidth = bounds.width();
-        lastHeight = bounds.height();
-    }
-
-    private static void resetGeometry() {
-        lastLeft = lastTop = lastWidth = lastHeight = lastMaxWidth = -1;
-    }
-
-    private static void cancelDrag() {
-        if (armDrag != null) MAIN.removeCallbacks(armDrag);
-        armDrag = null;
-    }
-
-    private static void detach() {
-        cancelDrag();
+        return true;
+      case MotionEvent.ACTION_UP:
+      case MotionEvent.ACTION_CANCEL:
         dragging = false;
-        guardedExpansion = false;
-        detachOverlay();
+        return true;
+      default:
+        return false;
     }
+  }
 
-    private static void detachOverlay() {
-        FrameLayout anchor = anchorRef.get();
-        if (anchor != null && anchor.getParent() instanceof ViewGroup) {
-            ((ViewGroup) anchor.getParent()).removeView(anchor);
-        }
-        FrameLayout host = hostRef.get();
-        if (host != null) {host.removeOnLayoutChangeListener(HOST_LAYOUT);host.getViewTreeObserver().removeOnPreDrawListener(GEOMETRY_DRAW);}
-        FrameLayout player = playerRef.get();
-        if (player != null) player.removeOnLayoutChangeListener(PLAYER_LAYOUT);
-        anchorRef = new WeakReference<>(null);
-        textRef = new WeakReference<>(null);
-        hostRef = new WeakReference<>(null);
-        playerRef = new WeakReference<>(null);
-        geometryPosted = false;
-        resetGeometry();
-    }
-
-    private static boolean compact(String type) {
-        if (type.isEmpty()) return false;
-        return type.equals("NONE") || type.equals("HIDDEN") || type.equals("INLINE_MINIMAL") ||
-                type.equals("WATCH_WHILE_PICTURE_IN_PICTURE") || type.contains("MINIMAL") ||
-                type.contains("MINIMIZED") || type.contains("PICTURE_IN_PICTURE") ||
-                type.contains("DISMISSED");
-    }
-
-    private static boolean isLandscape(Activity activity) {
-        return activity.getResources().getConfiguration().orientation ==
-                Configuration.ORIENTATION_LANDSCAPE;
-    }
-
-    private static int dp(Activity activity, int value) {
-        return Math.round(value * activity.getResources().getDisplayMetrics().density);
-    }
-
-    private static float clamp(float value, float min, float max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    private static void runMain(Runnable action) {
-        if (Looper.myLooper() == Looper.getMainLooper()) action.run(); else MAIN.post(action);
-    }
+  private static int dp(Context c, float x) {
+    return Math.round(x * c.getResources().getDisplayMetrics().density);
+  }
 }

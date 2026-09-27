@@ -26,6 +26,7 @@ final class ActionSender {
     static final String PREFS = ActionLog.PREFS;
     static final String KEY_MASTER = "master_on";
     static final String KEY_DRY_RUN = "dry_run";
+    static final String KEY_PAUSE_ON = "attack_pause_on";
     static final String KEY_PAUSE_MIN = "attack_pause_minutes";
     private static final String KEY_RECENT = "recent_keys";
 
@@ -34,9 +35,13 @@ final class ActionSender {
 
     static ActionClient.Settings settings(Context ctx) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        AutomationSettings.Config timing = AutomationSettings.fromJson(ctx.getSharedPreferences(
+                AutomationSettings.PREFS, Context.MODE_PRIVATE).getString(AutomationSettings.KEY, null));
         return new ActionClient.Settings(p.getBoolean(KEY_MASTER, ActionClient.DEFAULT_SETTINGS.masterOn),
                 p.getBoolean(KEY_DRY_RUN, ActionClient.DEFAULT_SETTINGS.dryRun),
-                p.getInt(KEY_PAUSE_MIN, ActionClient.DEFAULT_SETTINGS.attackPauseMinutes));
+                p.getBoolean(KEY_PAUSE_ON, ActionClient.DEFAULT_SETTINGS.attackPauseOn),
+                p.getInt(KEY_PAUSE_MIN, ActionClient.DEFAULT_SETTINGS.attackPauseMinutes),
+                QuietHours.isQuietNow(timing.quietHours, System.currentTimeMillis()));
     }
 
     /** From a screen tap: uses the session the background check cached (about 2 hours). */
@@ -53,19 +58,54 @@ final class ActionSender {
         return send(ctx, TravianApi.newClient(jar), host, action, false);
     }
 
+    /**
+     * A read-only GraphQL query from a screen, with the session the background check cached. Returns the
+     * game's JSON answer, or null when there is no session yet. Must be called off the main thread.
+     */
+    static JSONObject queryFromScreen(Context ctx, String query) throws Exception {
+        if (!query.trim().startsWith("query")) {
+            throw new IllegalArgumentException("only reads");
+        }
+        SimpleCookieJar jar = new SimpleCookieJar();
+        SharedPreferences state = ctx.getSharedPreferences(NotifierWorker.STATE_PREFS, Context.MODE_PRIVATE);
+        String host = NotifierWorker.seedWorldToken(state, jar);
+        if (host == null) {
+            return null;
+        }
+        Request req = new Request.Builder()
+                .url(host + "/api/v1/graphql")
+                .post(TravianApi.jsonBody(new JSONObject().put("query", query).toString()))
+                .build();
+        return TravianApi.executeJson(TravianApi.newClient(jar), req);
+    }
+
     /** From the background worker, with its own signed-in client. */
     static ActionClient.Result send(Context ctx, final OkHttpClient http, final String host, GameAction action,
                                     boolean automated) {
+        return send(ctx, http, host, action, automated, null);
+    }
+
+    /** From the worker, for a two-step send whose step-1 preview check decides whether step 2 goes. */
+    static ActionClient.Result send(Context ctx, final OkHttpClient http, final String host, GameAction action,
+                                    boolean automated, final ActionClient.PreviewCheck check) {
         ActionClient.Transport transport = new ActionClient.Transport() {
             @Override
-            public ActionClient.Response post(String path, String json) throws Exception {
-                Request req = new Request.Builder()
+            public ActionClient.Response send(String method, String path, String json, String nonce)
+                    throws Exception {
+                Request.Builder b = new Request.Builder()
                         .url(host + "/api/v1" + path)
-                        .post(TravianApi.jsonBody(json))
-                        .build();
-                Response resp = http.newCall(req).execute();
+                        .method(method, TravianApi.jsonBody(json));
+                if (nonce != null) {
+                    b.header(ActionClient.NONCE_HEADER, nonce);
+                }
+                Response resp = http.newCall(b.build()).execute();
                 try {
-                    return new ActionClient.Response(resp.code(), resp.body() == null ? "" : resp.body().string());
+                    Map<String, String> headers = new HashMap<String, String>();
+                    for (String name : resp.headers().names()) {
+                        headers.put(name.toLowerCase(java.util.Locale.ROOT), resp.header(name));
+                    }
+                    return new ActionClient.Response(resp.code(), resp.body() == null ? "" : resp.body().string(),
+                            headers);
                 } finally {
                     resp.close();
                 }
@@ -74,14 +114,14 @@ final class ActionSender {
         // One send at a time in this app (worker, screen taps, a second worker): the dedupe memory is read,
         // checked, marked and saved under this lock, so two overlapping sends can never both go out.
         synchronized (SEND_LOCK) {
-            return sendLocked(ctx, transport, action, automated);
+            return sendLocked(ctx, transport, action, automated, check);
         }
     }
 
     private static final Object SEND_LOCK = new Object();
 
     private static ActionClient.Result sendLocked(Context ctx, ActionClient.Transport transport, GameAction action,
-                                                  boolean automated) {
+                                                  boolean automated, ActionClient.PreviewCheck check) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         SharedPreferences state = ctx.getSharedPreferences(NotifierWorker.STATE_PREFS, Context.MODE_PRIVATE);
         Map<String, Long> recent = loadRecent(p.getString(KEY_RECENT, null));
@@ -90,18 +130,18 @@ final class ActionSender {
         long nextAttack = ActionClient.effectiveNextAttack(state.getLong(NotifierWorker.KEY_NEXT_ATTACK_AT, 0),
                 state.getLong(NotifierWorker.KEY_ATTACKS_KNOWN_AT, 0), now);
 
-        if ("BUILD".equals(action.kind) || "TRAIN".equals(action.kind)) {
+        if (ActionSteps.inVillage(action.kind)) {
             int villages = villageCount(state);
             if (villages < 1) {
                 return finish(ctx, p, recent, now, action, new ActionClient.Result("REFUSED", 0,
                         "the village list isn't read yet", false, null));
             }
+            // Check the action itself first, so a refused action never touches the game at all.
+            ActionClient.Result pre = preflight(action, automated, settings, now, nextAttack, recent);
+            if (pre != null) {
+                return finish(ctx, p, recent, now, action, pre);
+            }
             if (villages > 1) {
-                // Check the action itself first, so a refused action never moves the game's current village.
-                ActionClient.Result pre = preflight(action, automated, settings, now, nextAttack, recent);
-                if (pre != null) {
-                    return finish(ctx, p, recent, now, action, pre);
-                }
                 ActionClient.Result switched;
                 try {
                     switched = ActionClient.sendWith(transport, GameActions.changeVillage(action.villageId), automated,
@@ -113,16 +153,47 @@ final class ActionSender {
                     return finish(ctx, p, recent, now, action, new ActionClient.Result("REFUSED", 0,
                             "not sent: switching to the village failed (" + switched.describe() + ")", false, null));
                 }
+                pause(ActionSteps.AFTER_SWITCH);
+            }
+            if (!settings.dryRun) {
+                // Open the village the way the game does and check its fresh answer before going on.
+                String why;
+                try {
+                    ActionClient.Response view = transport.send("POST", "/graphql", ActionSteps.villageViewBody(action.villageId), null);
+                    why = view.code == 200 ? ActionSteps.check(view.body, action)
+                            : "the game didn't open the village (HTTP " + view.code + ")";
+                } catch (Exception e) {
+                    why = "couldn't open the village (" + e.getClass().getSimpleName() + ")";
+                }
+                if (why != null) {
+                    return finish(ctx, p, recent, now, action, new ActionClient.Result("REFUSED", 0,
+                            "not sent: " + why, false, null));
+                }
+                pause(ActionSteps.OPEN_BUILDING);
+                pause(ActionSteps.PRESS);
+                now = System.currentTimeMillis();
             }
         }
-        ActionClient.Result result = ActionClient.sendWith(transport, action, automated, settings, now, nextAttack, recent);
+        boolean troops = TroopSend.KIND.equals(action.kind) || TroopSend.ESCAPE_KIND.equals(action.kind);
+        ActionClient.Result result = troops || SilverActions.SELL.equals(action.kind)
+                ? ActionClient.sendTwoStep(transport, action, automated, settings, now, nextAttack, recent,
+                troops ? TroopSend.STEP_ONE_ONLY : SilverActions.SELL_STEP_ONE_ONLY, check)
+                : ActionClient.sendWith(transport, action, automated, settings, now, nextAttack, recent);
         if (result.sessionExpired) {
             state.edit().remove(NotifierWorker.KEY_WORLD_HOST).remove(NotifierWorker.KEY_WORLD_TOKEN)
                     .remove(NotifierWorker.KEY_WORLD_TOKEN_EXP).commit();
         }
-        Log.i(TAG, "action " + action.kind + " " + action.label + ": " + result.outcome
-                + (result.httpCode > 0 ? " HTTP " + result.httpCode : "") + " " + result.describe());
         return finish(ctx, p, recent, now, action, result);
+    }
+
+    private static final java.util.Random PAUSE_RANDOM = new java.util.Random();
+
+    private static void pause(int step) {
+        try {
+            Thread.sleep(ActionSteps.pauseMs(PAUSE_RANDOM, step));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /** The guard's answer for the action without sending or marking anything; null when it may go. */
@@ -135,7 +206,10 @@ final class ActionSender {
         in.dryRun = settings.dryRun;
         in.nowMs = now;
         in.nextAttackLandingMs = nextAttack;
+        in.attackPauseOn = settings.attackPauseOn;
         in.attackPauseMinutes = settings.attackPauseMinutes;
+        in.passesAttackPause = TroopSend.ESCAPE_KIND.equals(action.kind);
+        in.quietNow = settings.quietNow;
         in.dedupeKey = action.dedupeKey;
         in.recentKeys = recent;
         ActionGuard.Verdict v = ActionGuard.check(in);
@@ -144,6 +218,9 @@ final class ActionSender {
 
     private static ActionClient.Result finish(Context ctx, SharedPreferences p, Map<String, Long> recent, long now,
                                               GameAction action, ActionClient.Result r) {
+        // Every outcome goes to the phone log, including ones stopped before anything was sent.
+        Log.i(TAG, "action " + action.kind + " " + action.label + ": " + r.outcome
+                + (r.httpCode > 0 ? " HTTP " + r.httpCode : "") + " " + r.describe());
         saveRecent(p, recent, now);
         record(ctx, action, r);
         return r;

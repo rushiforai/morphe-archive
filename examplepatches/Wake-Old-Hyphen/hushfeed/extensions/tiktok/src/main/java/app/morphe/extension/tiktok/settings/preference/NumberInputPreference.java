@@ -95,21 +95,37 @@ public class NumberInputPreference extends EditTextPreference {
 
     public void setValue(String value) {
         int clampedValue = parseAndClamp(value);
-        String text = String.valueOf(clampedValue);
-        setText(text);
-        boolean labeled = zeroLabel != null && clampedValue == 0;
-        // Either the zero label, or the number inside its unit phrase ("5 seconds").
-        String shown = labeled
-                ? L10n.t(getContext(), zeroLabel)
-                : withUnit(clampedValue, displayValue(clampedValue));
+        setText(String.valueOf(clampedValue));
+        showSummary(clampedValue);
+    }
+
+    /**
+     * Draws the summary again from the stored value without writing anything, for a row whose
+     * extra line changed while its value did not.
+     */
+    public void refreshSummary() {
+        showSummary(parseAndClamp(getText()));
+    }
+
+    private void showSummary(int clampedValue) {
         // The range is read off the setting, so every one of these rows states it without each
         // of them growing a sentence of its own. Twelve of the fourteen said nothing about it
         // and pulled an out of range number to the nearest end without a word.
         String extra = extraSummaryLine();
         setSummary(L10n.t(getContext(), baseSummary)
-                + "\n" + L10n.f(getContext(), "%1$s to %2$s", minValue, maxValue)
-                + "\n" + L10n.f(getContext(), "Current: %1$s", shown)
+                // Formatted like the value under it and carrying the unit, so a limit reads
+                // "0 to 86,400 seconds" where it used to be the bare "0 to 86400".
+                + "\n" + L10n.f(getContext(), "%1$s to %2$s",
+                        displayValue(minValue), withUnit(maxValue, displayValue(maxValue)))
+                + "\n" + L10n.f(getContext(), "Current: %1$s", shown(clampedValue))
                 + (extra == null ? "" : "\n" + extra));
+    }
+
+    /** A value as the row shows it: the zero label, or the number inside its unit phrase ("5 seconds"). */
+    protected String shown(int value) {
+        return zeroLabel != null && value == 0
+                ? L10n.t(getContext(), zeroLabel)
+                : withUnit(value, displayValue(value));
     }
 
     /**
@@ -128,7 +144,12 @@ public class NumberInputPreference extends EditTextPreference {
      * of the day is not "13 o'clock".
      */
     protected String displayValue(int value) {
-        return String.valueOf(value);
+        // Grouped the reader's way: 86,400 rather than 86400. Display only; the box the value
+        // is typed into takes plain digits.
+        android.content.res.Configuration configuration = getContext().getResources().getConfiguration();
+        java.util.Locale locale = android.os.Build.VERSION.SDK_INT >= 24
+                ? configuration.getLocales().get(0) : configuration.locale;
+        return java.text.NumberFormat.getIntegerInstance(locale).format(value);
     }
 
     /**

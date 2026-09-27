@@ -265,4 +265,16 @@ object Constants {
             )
         )
     )
+
+    val FACEBOOK_LITE_COMPATIBILITY = Compatibility(
+        name = "Facebook Lite",
+        packageName = "com.facebook.lite",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x0866FF,
+        targets = listOf(
+            AppTarget(
+                version = null,
+            )
+        )
+    )
 }

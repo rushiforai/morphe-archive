@@ -69,6 +69,16 @@ public final class ReelDownload implements Function1<Object, Object> {
     /** The real name of the field that holds the DASH manifest. The patch reads it the same way. */
     private final String manifestField;
 
+    /**
+     * The reel's own story: the props its sidebar was built from, a GraphQL tree the patch hands
+     * over beside the player. Facebook reads the reel's creation_time off it for the reel's time
+     * label, and its actors are who posted the reel, so it gives the file name its poster and post
+     * day ({@link PostDetails}). Null, or a model that isn't a tree, costs those two tokens and
+     * nothing else.
+     */
+    private final Object story;
+
+    /** A handler with no story of the reel: the name then has no poster and no post day. */
     public ReelDownload(
         Object playerParams,
         Context context,
@@ -78,6 +88,19 @@ public final class ReelDownload implements Function1<Object, Object> {
         int slot,
         boolean saves
     ) {
+        this(playerParams, context, hdField, sdField, manifestField, slot, saves, null);
+    }
+
+    public ReelDownload(
+        Object playerParams,
+        Context context,
+        String hdField,
+        String sdField,
+        String manifestField,
+        int slot,
+        boolean saves,
+        Object story
+    ) {
         this.playerParams = playerParams;
         this.context = context;
         this.hdField = hdField;
@@ -85,6 +108,7 @@ public final class ReelDownload implements Function1<Object, Object> {
         this.manifestField = manifestField;
         this.slot = slot;
         this.saves = saves;
+        this.story = story;
     }
 
     /**
@@ -154,7 +178,47 @@ public final class ReelDownload implements Function1<Object, Object> {
             return;
         }
 
-        MediaDownload.saveVideo(context, source, hdField, sdField, manifestField);
+        MediaDownload.saveVideo(context, source, hdField, sdField, manifestField,
+            PostDetails.read(videoIdOf(playerParams), story));
+    }
+
+    /** What Facebook's player params say of themselves on 577 and 580, before the id. */
+    private static final String ID_PREFIX = "VideoId: ";
+
+    /**
+     * The reel's id on Facebook, for the file name, or {@code null}.
+     *
+     * <p>Facebook's player params keep their class name, and their toString says {@code "VideoId: "}
+     * and the id: a kept string and the id field, joined, in both 577 and 580. The sidebar holds a
+     * rich params object with one field of that type, so this reads that field, or the params
+     * themselves when they're what was handed over. Two such fields leave no way to tell which is
+     * the reel on the screen, and a wrong id would name the file after another video, so neither is
+     * read. Anything else, or anything but digits after the prefix, is no id. Never throws.
+     */
+    static String videoIdOf(Object params) {
+        try {
+            if (params == null) return null;
+            if (params.getClass().getName().equals(VIDEO_PLAYER_PARAMS)) return idFrom(params.toString());
+            java.lang.reflect.Field only = null;
+            for (java.lang.reflect.Field field : params.getClass().getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                if (!field.getType().getName().equals(VIDEO_PLAYER_PARAMS)) continue;
+                if (only != null) return null;
+                only = field;
+            }
+            if (only == null) return null;
+            only.setAccessible(true);
+            Object plain = only.get(params);
+            return plain == null ? null : idFrom(plain.toString());
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    private static String idFrom(String said) {
+        if (said == null || !said.startsWith(ID_PREFIX)) return null;
+        String id = said.substring(ID_PREFIX.length());
+        return FileNameTemplate.isVideoId(id) ? id : null;
     }
 
     private static final String VIDEO_DATA_SOURCE = "com.facebook.video.engine.api.VideoDataSource";

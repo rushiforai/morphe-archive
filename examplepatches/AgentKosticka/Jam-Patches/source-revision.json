@@ -1839,6 +1839,16 @@
       "Clear fingerprint matches when closing a session without serialization"
     ]
   },
+  "playerControlsOverlay": {
+    "documentation": "docs/experimental-versions.md#player-controls-correction",
+    "changes": [
+      "Route compact player skip buttons and native play/pause clicks to the host",
+      "Mirror the host clock through the native playback icon renderer",
+      "Extend PLAY with explicit playing state and advertise host support in clock samples"
+    ],
+    "companionUpdateRequired": false,
+    "hostAndParticipantPatchUpdateRequired": true
+  },
   "buildOverlay": "patches/build.gradle.kts retains Jam-Patches source identity; all other tasks come from fork",
   "dependencyOverlays": {
     "morphe-patches-gradle-plugin": "SettingsPlugin.kt defaults absent GitHub credentials to empty strings for public composite builds"

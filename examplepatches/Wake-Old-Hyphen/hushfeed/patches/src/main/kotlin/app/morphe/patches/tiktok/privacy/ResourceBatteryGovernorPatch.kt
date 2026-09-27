@@ -24,7 +24,7 @@ val resourceBatteryGovernorPatch = bytecodePatch(
 ) {
     category("Privacy")
     dependsOn(settingsPatch, sharedExtensionPatch)
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
         SettingsStatusLoadFingerprint.method.addInstruction(

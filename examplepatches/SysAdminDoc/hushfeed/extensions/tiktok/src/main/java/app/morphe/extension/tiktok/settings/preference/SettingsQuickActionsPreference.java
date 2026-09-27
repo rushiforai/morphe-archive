@@ -84,7 +84,9 @@ public final class SettingsQuickActionsPreference extends Preference {
 
         FrameLayout holder = new FrameLayout(context);
         holder.setBackgroundColor(SettingsUi.background());
-        holder.setPadding(0, 0, 0, SettingsUi.dp(context, 8));
+        // 8dp above as well as below: the routes sat on the search card's edge while every other
+        // card on the page is 8dp from the next.
+        holder.setPadding(0, SettingsUi.dp(context, 8), 0, SettingsUi.dp(context, 8));
         holder.addView(row, new FrameLayout.LayoutParams(-1, -2));
         return holder;
     }
@@ -95,14 +97,14 @@ public final class SettingsQuickActionsPreference extends Preference {
         button.setGravity(Gravity.CENTER_VERTICAL);
         button.setOrientation(LinearLayout.HORIZONTAL);
         button.setMinimumWidth(SettingsUi.dp(context, 48));
-        button.setMinimumHeight(SettingsUi.dp(context, 56));
+        button.setMinimumHeight(SettingsUi.dp(context, 60));
         button.setPadding(
                 SettingsUi.dp(context, 10), SettingsUi.dp(context, 6),
                 SettingsUi.dp(context, 10), SettingsUi.dp(context, 6));
         button.setBackground(SettingsUi.pressAndFocusOver(
                 context,
-                SettingsUi.RADIUS_CONTROL,
-                SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CONTROL, true)));
+                SettingsUi.RADIUS_CARD,
+                SettingsUi.borderedSurface(context, SettingsUi.RADIUS_CARD, true)));
         button.setContentDescription(action.title);
         button.setFocusable(true);
         button.setClickable(true);

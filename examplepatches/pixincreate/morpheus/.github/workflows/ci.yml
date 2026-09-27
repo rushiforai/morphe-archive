@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -54,12 +54,12 @@ jobs:
       - name: Every patch that calls the extension ships it
         run: |
           set -euo pipefail
-          # A patch that injects a call to an extension class must declare the
-          # extension, otherwise the patched app crashes with NoClassDefFoundError.
+          # A patch that refers to an extension class must mount the extension, either
+          # directly with extendWith or through a dependency on a patch that mounts it.
           missing=0
           for f in $(find patches/src/main/kotlin/app/morphe/patches -name '*.kt'); do
-            if { grep -q "Lapp/morphe/ather/" "$f" || grep -q "Lapp/morphe/extension/" "$f"; } && ! grep -q 'extendWith("extensions/' "$f"; then
-              echo "no extendWith: $f"
+            if grep -qE 'Lapp/morphe/(ather|extension)/|app\.morphe\.(ather|extension)' "$f" && ! grep -qE 'extendWith\("extensions/|dependsOn\(' "$f"; then
+              echo "no extension mount: $f"
               missing=1
             fi
           done
@@ -86,7 +86,9 @@ jobs:
 
   patches:
     name: Patch bundle
-    if: github.repository == 'pixincreate/morpheus'
+    # The bundle build reads GitHub Packages credentials, so keep it off pull
+    # requests: fork PRs get no secrets, and same-repo PR code would run with them.
+    if: github.repository == 'pixincreate/morpheus' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -118,4 +120,14 @@ jobs:
             printf 'gpr.key=%s\n' "$GPR_KEY"
           } >> "$HOME/.gradle/gradle.properties"
       - name: Build the patch bundle
-        run: ./gradlew :patches:build --console=plain
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew :patches:buildAndroid --console=plain
+          version="$(sed -n 's/^version *= *//p' gradle.properties)"
+          mpp="patches/build/libs/patches-$version.mpp"
+          if [ ! -f "$mpp" ] || ! jar tf "$mpp" | grep -q '^classes\.dex$'; then
+            echo "::error::$mpp is missing or has no classes.dex, so the Manager cannot load it."
+            exit 1
+          fi
+          echo "built $mpp"

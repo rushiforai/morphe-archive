@@ -14,8 +14,9 @@ import java.security.MessageDigest
 import kotlin.system.exitProcess
 
 /**
- * Applies the built bundle to a JPTT APK the way Morphe Manager would, so a
- * patch whose fingerprint stopped matching fails here rather than on your phone.
+ * Applies the built bundle to an APK the way Morphe Manager would, so a patch
+ * whose fingerprint stopped matching fails here rather than on your phone. Only
+ * the patches for that APK's app are applied, as Manager only offers those.
  * Run it with `./gradlew verifyAgainstApk`.
  *
  * Nothing is signed or installed: this stops at the patched dex files, which are
@@ -24,6 +25,8 @@ import kotlin.system.exitProcess
  *     args[0] = APK to patch, empty when none was found
  *     args[1] = directory for the patched dex files
  */
+
+private const val JPTT_PACKAGE = "com.joshua.jptt"
 
 /** `base.apk` of JPTT 3.8.4, the version these patches were written against. */
 private const val KNOWN_APK_SHA256 =
@@ -68,15 +71,25 @@ fun main(args: Array<String>) {
     }
     println("apk:    ${apk.absolutePath}")
 
-    val digest = apk.sha256()
-    if (digest != KNOWN_APK_SHA256) {
-        println("note:   not the 3.8.4 APK these patches were written against ($digest)")
-    }
-
     var failed = 0
 
     Patcher(PatcherConfig(apkFile = apk, temporaryFilesPath = temporaryFiles)).use { patcher ->
-        patcher += loadPatchesFromJar(setOf(bundle)).toSet()
+        val packageName = patcher.context.packageMetadata.packageName
+        println("app:    $packageName ${patcher.context.packageMetadata.versionName}")
+
+        val digest = apk.sha256()
+        if (packageName == JPTT_PACKAGE && digest != KNOWN_APK_SHA256) {
+            println("note:   not the 3.8.4 APK these patches were written against ($digest)")
+        }
+
+        val patches = loadPatchesFromJar(setOf(bundle)).filter { patch ->
+            patch.compatibility?.any { it.packageName == packageName } ?: true
+        }
+        if (patches.none { it.compatibility != null }) {
+            println("No patch in the bundle is for $packageName.")
+            exitProcess(1)
+        }
+        patcher += patches.toSet()
 
         runBlocking {
             patcher().collect { result ->

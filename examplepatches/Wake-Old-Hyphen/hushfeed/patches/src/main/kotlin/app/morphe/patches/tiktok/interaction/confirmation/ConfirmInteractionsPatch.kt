@@ -182,7 +182,7 @@ val confirmInteractionsPatch = bytecodePatch(
     default = false,
 ) {
     category("Interaction")
-    compatibleWith(*AppCompatibilities.tiktok4703())
+    compatibleWith(*AppCompatibilities.tiktok())
     dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
     execute {
         listOf(FollowClickFingerprint to "follow", LikeClickFingerprint to "like").forEach { (fingerprint, callback) ->

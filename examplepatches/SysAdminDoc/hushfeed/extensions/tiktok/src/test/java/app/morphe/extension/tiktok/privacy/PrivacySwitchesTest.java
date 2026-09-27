@@ -257,6 +257,49 @@ public class PrivacySwitchesTest {
         }
     }
 
+    /**
+     * TikTok's camera is a scene inside an activity that has already resumed when the camera
+     * opens. With the tracking installed from the main activity, the mark goes onto that screen,
+     * not onto the main activity underneath, where the S25 showed nothing (2026-09-26).
+     */
+    @Test public void theDotGoesOnTheScreenInFrontWhenTheCameraOpensAfterItResumed() {
+        try (var main = Robolectric.buildActivity(Activity.class).create()) {
+            CameraMicIndicator.install(main.get());
+            main.start().resume().visible();
+            Utils.setActivity(main.get());
+            try (var camera = Robolectric.buildActivity(Activity.class).setup().visible()) {
+                Settings.CAMERA_MIC_INDICATOR.save(true);
+                CameraMicIndicator.onCameraStart();
+                Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+                CameraMicIndicator.DotView dot = CameraMicIndicator.shownDot();
+                assertNotNull("an open camera shows the mark", dot);
+                assertSame("the mark is on the camera's screen, not the main one behind it",
+                        camera.get().getWindow().getDecorView(), dot.getParent());
+            }
+        }
+    }
+
+    /**
+     * A screen that draws under the status bar and reports no top inset still gets the mark below
+     * the bar, not on its icons: the S25's camera screen put it over the battery (2026-09-26).
+     */
+    @Test public void theMarkSitsBelowTheStatusBarWhenTheWindowReportsNoInset() {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            Settings.CAMERA_MIC_INDICATOR.save(true);
+            CameraMicIndicator.onCameraStart();
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            CameraMicIndicator.DotView dot = CameraMicIndicator.shownDot();
+            assertNotNull(dot);
+            int id = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
+            int bar = activity.getResources().getDimensionPixelSize(id);
+            assertTrue("the status bar has a height to clear", bar > 0);
+            int top = ((android.widget.FrameLayout.LayoutParams) dot.getLayoutParams()).topMargin;
+            assertTrue("the mark starts below the status bar (" + top + " px, bar " + bar + " px)", top > bar);
+        }
+    }
+
     @Test public void thePrivacyPageCarriesTheSwitchesAndAppBehaviorNoLongerDoes() {
         SettingsStatus.contactListBlockerEnabled = true;
         SettingsStatus.installedAppsBlockerEnabled = true;

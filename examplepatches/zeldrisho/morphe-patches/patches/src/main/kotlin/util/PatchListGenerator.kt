@@ -14,18 +14,22 @@ import java.net.URLClassLoader
 import java.util.jar.Manifest
 
 /**
- * Entry point for generating patches-list.json from the compiled patch bundle.
- * Reads the .mpp bundle from build/libs/, extracts patch metadata, and writes patches-list.json.
+ * Generates `patches-list.json` from one compiled patch bundle.
+ *
+ * `PATCHES_BUNDLE` may select the input; otherwise exactly one distributable `.mpp` must exist in
+ * `build/libs/`.
  */
 fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                !fileName.contains("sources") &&
-                fileName.endsWith(".mpp")
-        }!!.first(),
-    )
+    val requested = System.getenv("PATCHES_BUNDLE")?.let(::File)
+    val candidates = requested?.let { listOf(it) } ?: File("build/libs/").listFiles { file ->
+        !file.name.contains("javadoc") &&
+            !file.name.contains("sources") &&
+            file.name.endsWith(".mpp")
+    }?.toList().orEmpty()
+    require(candidates.size == 1 && candidates.single().isFile) {
+        "Expected exactly one distributable .mpp in build/libs; found ${candidates.map { it.name }}"
+    }
+    val patchFiles = setOf(candidates.single())
     val loadedPatches = loadPatchesFromJar(patchFiles)
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
     val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
@@ -41,13 +45,15 @@ fun main() {
 }
 
 /**
- * Generates the patches-list.json file from a set of loaded patches.
+ * Validates and writes `patches-list.json`, using `PATCHES_LIST_OUTPUT` when configured.
+ *
  * @param version The patch bundle version string from the manifest.
  * @param patches The set of patches loaded from the bundle JAR.
  */
 @Suppress("DEPRECATION")
 private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
-    val listJson = File("../patches-list.json")
+    val listJson = System.getenv("PATCHES_LIST_OUTPUT")?.let(::File)
+        ?: File("../patches-list.json")
 
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
         JsonPatch(
@@ -91,6 +97,11 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
         )
     }
 
+    listJson.writeText(formatPatchList(version, patchesMap))
+}
+
+/** Formats and validates patch metadata independently of bundle loading and filesystem I/O. */
+internal fun formatPatchList(version: String, patches: List<JsonPatch>): String {
     val gson = GsonBuilder()
         .serializeNulls()
         .disableHtmlEscaping()
@@ -105,14 +116,14 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
             "file can break your releases and break third party tools that use this file.",
     )
     jsonObject.addProperty("version", version)
-    jsonObject.add("patches", gson.toJsonTree(patchesMap))
-
-    listJson.writeText(gson.toJson(jsonObject))
+    jsonObject.add("patches", gson.toJsonTree(patches))
+    PatchListValidator.validate(jsonObject)
+    return gson.toJson(jsonObject)
 }
 
 /** JSON representation of a patch entry in patches-list.json. */
 @Suppress("unused")
-private class JsonPatch(
+internal class JsonPatch(
     val name: String? = null,
     val description: String? = null,
     val default: Boolean = true,
@@ -121,7 +132,7 @@ private class JsonPatch(
     val compatiblePackages: List<JsonCompatibility>? = null,
     val options: List<Option>,
 ) {
-    class Option(
+    internal class Option(
         val key: String,
         val title: String?,
         val description: String?,
@@ -134,7 +145,7 @@ private class JsonPatch(
 
 /** JSON representation of a compatible app entry, including name and per-version metadata. */
 @Suppress("unused")
-private class JsonCompatibility(
+internal class JsonCompatibility(
     /** Android package name, e.g. com.google.android.youtube. */
     val packageName: String,
     /** Human-readable app name declared in Compatibility, e.g. "YouTube". */
@@ -149,7 +160,7 @@ private class JsonCompatibility(
     val signatures: Set<String>?,
     val targets: List<Target>,
 ) {
-    class Target(
+    internal class Target(
         val version: String?,
         val versionCodes: Map<String, Int>?,
         val isExperimental: Boolean,

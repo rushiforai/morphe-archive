@@ -123,6 +123,8 @@ public class NotifierWorker extends Worker {
 
     // earliest upcoming finish seen during this run (epoch ms), and whether a just-passed one is still listed
     private long nextWakeMs = Long.MAX_VALUE;
+    /** This check's incoming attacks, set only when every village's attack list was read. */
+    private List<AttackAlerts.Alert> completeAttacks;
     private boolean lagging = false;
     private int currentTribeId = -1; // tribe of the village being read, for logging trained unit ids
     // what this run saw, saved for the Travian Tools screen (-1 = not checked)
@@ -253,6 +255,7 @@ public class NotifierWorker extends Worker {
         AlertStatus status = new AlertStatus(System.currentTimeMillis(), note,
                 statBuilds, statTrainings, statAttacks, statArrivals);
         statePrefs().edit().putString(KEY_STATUS, status.toJson()).apply();
+        ToolsWidget.update(getApplicationContext());
     }
 
     /** Records a finish time from the server: schedules around it, or flags server lag if it just passed. */
@@ -532,6 +535,7 @@ public class NotifierWorker extends Worker {
             long nowMs = System.currentTimeMillis();
             statePrefs().edit().putLong(KEY_NEXT_ATTACK_AT, AttackAlerts.nextArrivalMs(attacks, nowMs))
                     .putLong(KEY_ATTACKS_KNOWN_AT, nowMs).apply();
+            completeAttacks = attacks;
         }
         if (withMovements) {
             announceAttacks(attacks);
@@ -579,6 +583,71 @@ public class NotifierWorker extends Worker {
     private void refreshBuildingData(OkHttpClient http, String gameworldHost) {
         refreshBuildingRules(http, gameworldHost);
         refreshPlayerBuildings(http, gameworldHost);
+        try {
+            refreshLandDistribution(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "land distribution read failed: " + e);
+        }
+    }
+
+    /** village id -> the game's landDistribution value (picks the field layout on the Map). */
+    static final String KEY_LAND_DISTRIBUTION = "land_distribution";
+    private static final String KEY_LAND_TRIED_AT = "land_distribution_tried_at";
+
+    /**
+     * Reads each village's landDistribution once (it never changes), so the Map can place the fields the way
+     * the game does. The field name comes from the game client; where it sits in the API is tried in two
+     * places, at most every 6 hours while unknown. The raw answers are logged ("LAND" lines).
+     */
+    private void refreshLandDistribution(OkHttpClient http, String gameworldHost) throws Exception {
+        SharedPreferences state = statePrefs();
+        PlayerBuildings player = PlayerBuildings.parse(state.getString(KEY_PLAYER_BUILDINGS, null));
+        if (player == null || player.villages.isEmpty()) {
+            return;
+        }
+        JSONObject known = new JSONObject(state.getString(KEY_LAND_DISTRIBUTION, "{}"));
+        boolean missing = false;
+        for (PlayerBuildings.Village v : player.villages) {
+            missing |= !known.has(v.id);
+        }
+        long now = System.currentTimeMillis();
+        if (!missing || now - state.getLong(KEY_LAND_TRIED_AT, 0) < 6 * 3_600_000L) {
+            return;
+        }
+        state.edit().putLong(KEY_LAND_TRIED_AT, now).apply();
+        JSONObject own = null;
+        try {
+            JSONObject first = runRootQuery(http, gameworldHost, "query { ownPlayer { villages { id landDistribution } } }");
+            Log.i(TAG, "LAND ownPlayer: " + cut(first.toString(), 600));
+            own = dataObject(first, "ownPlayer");
+        } catch (Exception e) {
+            Log.i(TAG, "LAND ownPlayer failed: " + e);
+        }
+        org.json.JSONArray list = own == null ? null : own.optJSONArray("villages");
+        for (int i = 0; list != null && i < list.length(); i++) {
+            JSONObject v = list.optJSONObject(i);
+            if (v != null && v.has("landDistribution") && !v.isNull("landDistribution")) {
+                known.put(String.valueOf(v.opt("id")), String.valueOf(v.opt("landDistribution")));
+            }
+        }
+        for (PlayerBuildings.Village v : player.villages) {
+            if (known.has(v.id)) {
+                continue;
+            }
+            JSONObject one = null;
+            try {
+                JSONObject second = runRootQuery(http, gameworldHost,
+                        "query { village( id: " + Long.parseLong(v.id) + " ) { landDistribution } }");
+                Log.i(TAG, "LAND village " + v.id + ": " + cut(second.toString(), 600));
+                one = dataObject(second, "village");
+            } catch (Exception e) {
+                Log.i(TAG, "LAND village " + v.id + " failed: " + e);
+            }
+            if (one != null && one.has("landDistribution") && !one.isNull("landDistribution")) {
+                known.put(v.id, String.valueOf(one.opt("landDistribution")));
+            }
+        }
+        state.edit().putString(KEY_LAND_DISTRIBUTION, known.toString()).apply();
     }
 
     private void refreshBuildingRules(OkHttpClient http, String gameworldHost) {
@@ -634,7 +703,7 @@ public class NotifierWorker extends Worker {
     }
 
     /**
-     * One-off, read-only diagnostic for the next features (troops, farm lists, crop finder, Gold status):
+     * One-off, read-only diagnostic for the next features (celebrations, oases, troops, merchants, hero):
      * runs the queries in DataProbe once per install after a poll has seen a village and logs every raw
      * response. Nothing is shown on any screen and nothing is changed in the game.
      */
@@ -654,9 +723,17 @@ public class NotifierWorker extends Worker {
                 JSONObject response = runRootQuery(http, gameworldHost, query);
                 logProbePieces(n, response.toString());
                 JSONObject player = dataObject(response, "ownPlayer");
-                JSONArray lists = player == null ? null : player.optJSONArray("farmLists");
-                if (lists != null && lists.length() > 0 && lists.optJSONObject(0) != null) {
-                    queries.add(DataProbe.farmSlotsQuery(lists.optJSONObject(0).optLong("id")));
+                JSONObject auctions = player == null ? null : player.optJSONObject("auctions");
+                if (auctions != null && auctions.optJSONObject("items") != null) {
+                    queries.addAll(DataProbe.sellingProbes(response.optJSONObject("data")));
+                }
+                JSONObject hero = player == null ? null : player.optJSONObject("hero");
+                if (hero != null && hero.optJSONArray("inventory") != null) {
+                    String selling = SilverData.sellingQuery(SilverData.bag(new JSONObject().put("bag",
+                            response.optJSONObject("data"))), true);
+                    if (selling != null) {
+                        queries.add(selling);
+                    }
                 }
             } catch (Exception e) {
                 Log.i(TAG, "DPROBE " + n + " failed: " + e);
@@ -670,6 +747,12 @@ public class NotifierWorker extends Worker {
         List<String> pieces = DataProbe.split(cut(response, DataProbe.MAX_LOGGED_CHARS), DataProbe.LOG_PIECE);
         for (int k = 0; k < pieces.size(); k++) {
             Log.i(TAG, "DPROBE " + n + " part " + (k + 1) + "/" + pieces.size() + ": " + pieces.get(k));
+            try {
+                Thread.sleep(50); // the round-2 probe lost pieces when many long lines were logged at once
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
         }
     }
 
@@ -707,24 +790,27 @@ public class NotifierWorker extends Worker {
         midnight.set(java.util.Calendar.MILLISECOND, 0);
         boolean quiet = QuietHours.isQuiet(cfg.quietHours, now, midnight.getTimeInMillis());
         for (PlayerBuildings.Village village : player.villages) {
-            if (!orders.getBoolean(BuildOrderActivity.autoKey(village.id), false)) {
+            if (!orders.getBoolean(BuildOrderStore.autoKey(village.id), false)) {
                 continue;
             }
-            String idleKey = "idle_since_" + village.id;
-            long idleSince = orders.getLong(idleKey, 0);
-            if (!village.pending.isEmpty()) {
-                orders.edit().remove(idleKey).apply();
-            } else if (idleSince == 0) {
-                idleSince = now;
-                orders.edit().putLong(idleKey, now).apply();
+            boolean parallel = player.tribeId == BuildChoices.ROMAN_TRIBE
+                    && orders.getBoolean(BuildOrderStore.parallelKey(village.id), true);
+            long fieldIdle, buildingIdle;
+            if (parallel) {
+                fieldIdle = idleSince(orders, "idle_since_" + village.id + "_field",
+                        BuildQueueStep.laneBusy(village, true), now);
+                buildingIdle = idleSince(orders, "idle_since_" + village.id + "_building",
+                        BuildQueueStep.laneBusy(village, false), now);
+            } else {
+                fieldIdle = buildingIdle = idleSince(orders, "idle_since_" + village.id, !village.pending.isEmpty(), now);
             }
             List<BuildOrderStore.Entry> queue = BuildOrderStore.fromJson(
                     orders.getString(BuildOrderStore.key(village.id), null));
             BuildQueueStep.Outcome out = BuildQueueStep.next(rules, player.tribeId, village,
-                    VillageResources.find(stocks, village.id), queue, cfg, quiet, now, idleSince);
+                    VillageResources.find(stocks, village.id), queue, cfg, quiet, now, parallel, fieldIdle, buildingIdle);
             String notes = android.text.TextUtils.join("; ", out.notes);
             orders.edit().putString(BuildOrderStore.key(village.id), BuildOrderStore.toJson(out.queue))
-                    .putString(BuildOrderActivity.notesKey(village.id),
+                    .putString(BuildOrderStore.notesKey(village.id),
                             java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(new java.util.Date(now))
                                     + ": " + (notes.isEmpty() ? "nothing to do" : notes))
                     .apply();
@@ -736,21 +822,22 @@ public class NotifierWorker extends Worker {
             long until = orders.getLong(failKey + "_until", 0);
             String label = GameData.buildingName(out.fire.typeId) + " to " + out.fire.toLevel;
             if (now < until) {
-                orders.edit().putString(BuildOrderActivity.notesKey(village.id), label + ": the game refused it, trying "
+                orders.edit().putString(BuildOrderStore.notesKey(village.id), label + ": the game refused it, trying "
                         + "again at " + java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
                         .format(new java.util.Date(until))).apply();
                 continue;
             }
             try {
                 ActionClient.Result r = ActionSender.send(ctx, http, gameworldHost,
-                        GameActions.build(village.id, out.fire.slotId, out.fire.typeId, label), true);
+                        GameActions.build(village.id, out.fire.slotId, out.fire.typeId, label,
+                                out.fire.fromLevel, out.fire.next), true);
                 Log.i(TAG, "build queue " + village.id + ": " + label + " -> " + r.outcome);
                 if (r.sessionExpired) {
                     clearCachedWorldToken();
                 } else if ("FAILED".equals(r.outcome)) {
                     orders.edit().putInt(failKey, failures + 1)
                             .putLong(failKey + "_until", now + Backoff.delayMs(failures + 1))
-                            .putString(BuildOrderActivity.notesKey(village.id), label + ": the game said no ("
+                            .putString(BuildOrderStore.notesKey(village.id), label + ": the game said no ("
                                     + r.describe() + ")").apply();
                 } else if ("SENT".equals(r.outcome)) {
                     orders.edit().remove(failKey).remove(failKey + "_until").apply();
@@ -761,7 +848,177 @@ public class NotifierWorker extends Worker {
         }
     }
 
+    /**
+     * Starts a town hall celebration per village when the user's switch is on (Settings, default off) and
+     * CelebrationPlanner says the game allows it and the stock covers it plus the auto-build buffer. Sends
+     * through ActionSender (master switch, practice mode, attack pause, log).
+     */
+    private void checkCelebrations(OkHttpClient http, String gameworldHost) throws Exception {
+        Context ctx = getApplicationContext();
+        SharedPreferences actions = ctx.getSharedPreferences(ActionSender.PREFS, Context.MODE_PRIVATE);
+        if (!ActionSender.settings(ctx).masterOn || !actions.getBoolean(CelebrationPlanner.KEY_ON, false)) {
+            return;
+        }
+        SharedPreferences state = statePrefs();
+        PlayerBuildings player = PlayerBuildings.parse(state.getString(KEY_PLAYER_BUILDINGS, null));
+        if (player == null) {
+            return;
+        }
+        String wanted = actions.getBoolean(CelebrationPlanner.KEY_GREAT, false) ? "GREAT" : "SMALL";
+        int buffer = AutomationSettings.fromJson(ctx.getSharedPreferences(AutomationSettings.PREFS,
+                Context.MODE_PRIVATE).getString(AutomationSettings.KEY, null)).bufferPercent;
+        List<VillageResources.Entry> stocks = VillageResources.fromJson(state.getString(KEY_VILLAGE_RESOURCES, null));
+        SharedPreferences orders = ctx.getSharedPreferences(BuildOrderStore.PREFS, Context.MODE_PRIVATE);
+        long now = System.currentTimeMillis();
+        for (PlayerBuildings.Village village : player.villages) {
+            JSONObject v = dataObject(runRootQuery(http, gameworldHost, CelebrationPlanner.query(village.id)),
+                    "ownVillage");
+            CelebrationPlanner.TownHall hall = CelebrationPlanner.parse(v == null ? null : v.optJSONObject("townHall"));
+            VillageResources.Entry s = VillageResources.find(stocks, village.id);
+            BuildQueueAutomation.Resources stock = s == null ? null
+                    : new BuildQueueAutomation.Resources(s.lumberStock, s.clayStock, s.ironStock, s.cropStock);
+            boolean queueWaiting = orders.getBoolean(BuildOrderStore.autoKey(village.id), false)
+                    && village.pending.isEmpty()
+                    && !BuildOrderStore.fromJson(orders.getString(BuildOrderStore.key(village.id), null)).isEmpty();
+            CelebrationPlanner.Decision d = CelebrationPlanner.decide(hall, wanted, stock, buffer, queueWaiting, now);
+            String line = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(new java.util.Date(now))
+                    + ": " + d.reason;
+            if (d.start != null) {
+                ActionClient.Result r = ActionSender.send(ctx, http, gameworldHost,
+                        GameActions.celebrate(village.id, d.start), true);
+                Log.i(TAG, "celebration " + village.id + ": " + d.start + " -> " + r.outcome + " " + r.describe());
+                line += " -> " + r.describe();
+                if (r.sessionExpired) {
+                    clearCachedWorldToken();
+                }
+            }
+            actions.edit().putString(CelebrationPlanner.notesKey(village.id), line).apply();
+        }
+    }
+
+    /**
+     * Troop escape (Settings, off by default): shortly before an attack lands on a village, raids the
+     * nearest empty oasis with the troops at home. EscapePlanner decides when; the game's step-1 preview
+     * (its own travel time) decides whether an oasis is far enough that the troops are still away when the
+     * wave's last attack lands; up to MAX_TRIES of the nearest empty oases are tried. Sends through
+     * ActionSender (master switch, practice mode, village steps, log); the attack pause doesn't apply.
+     */
+    private void checkEscape(OkHttpClient http, String gameworldHost) throws Exception {
+        Context ctx = getApplicationContext();
+        SharedPreferences p = ctx.getSharedPreferences(ActionSender.PREFS, Context.MODE_PRIVATE);
+        EscapePlanner.Settings s = new EscapePlanner.Settings(p.getBoolean(EscapePlanner.KEY_ON, false),
+                p.getInt(EscapePlanner.KEY_LEAD_MIN, EscapePlanner.DEFAULT_LEAD_MIN),
+                p.getBoolean(EscapePlanner.KEY_HERO, true), p.getInt(EscapePlanner.KEY_MIN_ATTACK, 0));
+        if (!s.on || completeAttacks == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        List<Long> handled = EscapePlanner.handled(p.getString(EscapePlanner.KEY_DONE, null), now);
+        for (VillageList.Entry v : VillageList.fromJson(statePrefs().getString(KEY_VILLAGES, null))) {
+            List<Long> arrivals = new ArrayList<Long>();
+            for (AttackAlerts.Alert a : completeAttacks) {
+                if (a.targetX == v.x && a.targetY == v.y) {
+                    arrivals.add(a.arrivalMs);
+                }
+            }
+            EscapePlanner.Plan plan = EscapePlanner.plan(s, arrivals, now, handled);
+            if ("wait".equals(plan.step)) {
+                noteWake("escape " + v.name, plan.wakeAtMs);
+                continue;
+            }
+            if (!"go".equals(plan.step)) {
+                continue;
+            }
+            // Handled from here on, whatever happens, so one wave is acted on once.
+            p.edit().putString(EscapePlanner.KEY_DONE, EscapePlanner.withHandled(handled, plan.firstImpactMs)).apply();
+            handled.add(plan.firstImpactMs);
+            String when = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+                    .format(new java.util.Date(plan.firstImpactMs));
+            JSONObject own = dataObject(runRootQuery(http, gameworldHost, "query { ownVillage(id: "
+                    + Integer.parseInt(v.id) + ") { troops { ownTroopsAtTown { units { t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 "
+                    + "t11 } } } troopOverview { incomingAttacksRaidsPower { attack amount } } } }"), "ownVillage");
+            JSONObject power = own == null || own.optJSONObject("troopOverview") == null ? null
+                    : own.optJSONObject("troopOverview").optJSONObject("incomingAttacksRaidsPower");
+            if (s.minAttackPower > 0 && power != null && power.optInt("attack", 0) < s.minAttackPower) {
+                Log.i(TAG, "escape " + v.name + ": attack power " + power.optInt("attack") + " is under "
+                        + s.minAttackPower + ", staying home");
+                continue;
+            }
+            JSONObject atTown = own == null || own.optJSONObject("troops") == null ? null
+                    : own.optJSONObject("troops").optJSONObject("ownTroopsAtTown");
+            java.util.Map<String, Integer> units = EscapePlanner.unitsToMove(
+                    atTown == null ? null : atTown.optJSONObject("units"), s.includeHero);
+            if (units.isEmpty()) {
+                Log.i(TAG, "escape " + v.name + ": no troops at home to move");
+                continue;
+            }
+            JSONObject grid = runRootQuery(http, gameworldHost, OasisFinder.gridQuery(v.x, v.y)).optJSONObject("data");
+            List<OasisFinder.Oasis> empties = new ArrayList<OasisFinder.Oasis>();
+            for (OasisFinder.Oasis o : OasisFinder.parseGrid(grid, v.x, v.y)) {
+                if (o.empty() && o.cellId > 0) {
+                    empties.add(o);
+                }
+            }
+            final long lastImpact = plan.lastImpactMs;
+            ActionClient.PreviewCheck check = new ActionClient.PreviewCheck() {
+                @Override
+                public String problem(ActionClient.Response preview) {
+                    return EscapePlanner.previewProblem(preview.body, System.currentTimeMillis(), lastImpact);
+                }
+            };
+            String outcome = null;
+            java.util.List<String> tried = new ArrayList<String>();
+            for (int i = 0; i < empties.size() && i < EscapePlanner.MAX_TRIES; i++) {
+                OasisFinder.Oasis o = empties.get(i);
+                ActionClient.Result r = ActionSender.send(ctx, http, gameworldHost,
+                        TroopSend.escape(v.id, o.cellId, o.x, o.y, units, plan.firstImpactMs), true, check);
+                Log.i(TAG, "escape " + v.name + " -> (" + o.x + "|" + o.y + "): " + r.outcome + " " + r.describe());
+                if (r.sessionExpired) {
+                    clearCachedWorldToken();
+                    break;
+                }
+                if ("SENT".equals(r.outcome) || "DRY_RUN".equals(r.outcome)) {
+                    String arrival = TroopSend.arrivalText(r.responseBody);
+                    outcome = ("SENT".equals(r.outcome) ? "Moved " : "Practice: would move ")
+                            + EscapePlanner.total(units) + " troops from " + v.name + " to the empty oasis ("
+                            + o.x + "|" + o.y + ") before the attack at " + when
+                            + (arrival.isEmpty() ? "" : " (" + arrival + ")");
+                    break;
+                }
+                tried.add("(" + o.x + "|" + o.y + "): " + r.describe());
+                if (!r.describe().contains("too close")) {
+                    break; // refused for another reason (switch off, game said no): trying farther won't help
+                }
+            }
+            if (outcome == null) {
+                outcome = "Couldn't move troops from " + v.name + " before the attack at " + when + ": "
+                        + (empties.isEmpty() ? "no empty oasis within " + OasisFinder.RADIUS + " fields"
+                        : android.text.TextUtils.join("; ", tried));
+            }
+            notify(NotificationKind.TROOPS_ESCAPED, outcome);
+        }
+    }
+
+    /** When a build line went idle (saved under key); cleared while the game is building in it. */
+    private static long idleSince(SharedPreferences orders, String key, boolean busy, long now) {
+        if (busy) {
+            orders.edit().remove(key).apply();
+            return 0;
+        }
+        long since = orders.getLong(key, 0);
+        if (since == 0) {
+            since = now;
+            orders.edit().putLong(key, now).apply();
+        }
+        return since;
+    }
+
     private void checkExtras(OkHttpClient http, String gameworldHost) {
+        try {
+            checkEscape(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "escape check failed: " + e);
+        }
         try {
             runDataProbe(http, gameworldHost);
         } catch (Exception e) {
@@ -778,6 +1035,11 @@ public class NotifierWorker extends Worker {
             Log.w(TAG, "build queue check failed: " + e);
         }
         try {
+            checkCelebrations(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "celebration check failed: " + e);
+        }
+        try {
             checkStorage(http, gameworldHost);
         } catch (Exception e) {
             Log.w(TAG, "storage check failed: " + e);
@@ -786,6 +1048,11 @@ public class NotifierWorker extends Worker {
             checkHero(http, gameworldHost);
         } catch (Exception e) {
             Log.w(TAG, "hero data check failed: " + e);
+        }
+        try {
+            checkSilver(http, gameworldHost);
+        } catch (Exception e) {
+            Log.w(TAG, "silver check failed: " + e);
         }
         try {
             logFarmLists(http, gameworldHost);
@@ -981,10 +1248,17 @@ public class NotifierWorker extends Worker {
         saveVillageResources(villages);
         Set<String> alerted = new HashSet<String>(statePrefs().getStringSet(KEY_STORAGE_ALERTED, new HashSet<String>()));
         int warned = 0;
+        long nowMs = System.currentTimeMillis();
+        long soonestFull = 0;
+        String soonestWhat = null;
         for (int i = 0; i < villages.length(); i++) {
             JSONObject village = villages.getJSONObject(i);
             List<ResourceAlerts.Reading> fresh = new ArrayList<ResourceAlerts.Reading>();
             for (ResourceAlerts.Reading r : ResourceAlerts.read(village)) {
+                if (r.etaMs >= 0 && (soonestFull == 0 || nowMs + r.etaMs < soonestFull)) {
+                    soonestFull = nowMs + r.etaMs;
+                    soonestWhat = r.label + (villages.length() > 1 ? " in " + village.optString("name", "a village") : "");
+                }
                 if (ResourceAlerts.atRisk(r)) {
                     if (alerted.add(r.key)) {
                         fresh.add(r);
@@ -1016,7 +1290,9 @@ public class NotifierWorker extends Worker {
                 warned++;
             }
         }
-        statePrefs().edit().putStringSet(KEY_STORAGE_ALERTED, alerted).apply();
+        statePrefs().edit().putStringSet(KEY_STORAGE_ALERTED, alerted)
+                .putLong(ToolsWidget.KEY_STORAGE_FULL_AT, soonestFull)
+                .putString(ToolsWidget.KEY_STORAGE_FULL_WHAT, soonestWhat).apply();
         Log.i(TAG, "storage checked: villages=" + villages.length() + " warned=" + warned + " tracked=" + alerted.size());
     }
 
@@ -1054,6 +1330,109 @@ public class NotifierWorker extends Worker {
         Log.i(TAG, "hero checked: " + result.events.size() + " change(s), alive=" + result.next.alive
                 + " health=" + result.next.health + " adventures=" + result.next.adventures
                 + " atHome=" + result.next.atHome);
+    }
+
+    private static final String KEY_SILVER_SEEN = "silver_seen_at";
+    private static final String KEY_SILVER_DEALS = "silver_deals_announced";
+    private static final String KEY_SILVER_BIDS = "silver_auto_bids";
+    private static final String KEY_SILVER_SOLD_AT = "silver_auto_sell_at";
+
+    /**
+     * Silver and the auction house, every check: announces new outbid / won / sold entries from the game's
+     * silver log (the first look only remembers where the log stands), announces cheap auctions ending soon
+     * (once per auction), and - only when the user switched them on - bids on those deals and puts bag items
+     * up for sale when the game's price history says prices are high. Bids and sales go through ActionSender
+     * (master switch, practice mode, guard, log).
+     */
+    private void checkSilver(OkHttpClient http, final String gameworldHost) throws Exception {
+        final OkHttpClient client = http;
+        SilverData.Reader reader = new SilverData.Reader() {
+            @Override
+            public JSONObject query(String query) throws Exception {
+                return runRootQuery(client, gameworldHost, query);
+            }
+        };
+        long now = System.currentTimeMillis();
+        JSONObject snap = SilverData.readForAlerts(reader, now);
+        SharedPreferences state = statePrefs();
+        SharedPreferences actions = getApplicationContext().getSharedPreferences(ActionSender.PREFS,
+                Context.MODE_PRIVATE);
+
+        if (snap.optJSONObject("me") != null) {
+            List<SilverData.Record> records = SilverData.records(snap);
+            long seen = state.getLong(KEY_SILVER_SEEN, 0);
+            for (SilverData.Event e : SilverData.newEvents(records, seen)) {
+                postNotification(e.kind, "Travian: Legends", e.text, ("silver:" + e.text).hashCode(),
+                        NotificationCompat.PRIORITY_HIGH);
+            }
+            long newest = SilverData.newestRecord(records);
+            // The first look stores "now" when the log is empty, so later entries count as new.
+            state.edit().putLong(KEY_SILVER_SEEN, Math.max(seen, newest > 0 ? newest : now)).apply();
+        } else {
+            Log.i(TAG, "silver: no wallet/log (" + snap.optString("meError") + ")");
+        }
+
+        int percent = actions.getInt(SilverActions.KEY_DEAL_PERCENT, SilverData.DEFAULT_DEAL_PERCENT);
+        int minutes = actions.getInt(SilverActions.KEY_DEAL_MINUTES, SilverData.DEFAULT_DEAL_MINUTES);
+        List<SilverData.Deal> deals = SilverData.deals(SilverData.buy(snap), SilverData.market(snap),
+                SilverData.myId(snap), now, percent, minutes);
+        Map<String, Long> announced = loadLongMap(KEY_SILVER_DEALS);
+        Map<String, Long> autoBids = loadLongMap(KEY_SILVER_BIDS);
+        boolean autoBid = actions.getBoolean(SilverActions.KEY_AUTO_BID, false);
+        long cap = actions.getLong(SilverActions.KEY_BID_CAP, 0);
+        long silver = SilverData.silver(snap);
+        for (SilverData.Deal d : deals) {
+            SilverData.Auction a = d.auction;
+            if (!announced.containsKey(a.id)) {
+                announced.put(a.id, a.finishedMs);
+                postNotification(NotificationKind.SILVER_DEAL, "Cheap auction ending soon",
+                        SilverData.itemText(a.name, a.amount) + " at " + a.price + " silver, " + d.percentUnder
+                                + "% under the usual " + d.normalTotal() + ". Ends in "
+                                + AlertStatus.duration(a.finishedMs - now) + ".",
+                        ("silverdeal:" + a.id).hashCode(), NotificationCompat.PRIORITY_DEFAULT);
+            }
+            if (autoBid && !autoBids.containsKey(a.id)) {
+                long amount = SilverActions.autoBidAmount(d, percent, cap, silver);
+                if (amount > 0) {
+                    ActionClient.Result r = ActionSender.send(getApplicationContext(), http, gameworldHost,
+                            SilverActions.bid(a.id, amount, "Bid up to " + amount + " silver on "
+                                    + SilverData.itemText(a.name, a.amount)), true);
+                    if (SilverActions.bidTried(r.outcome)) {
+                        autoBids.put(a.id, a.finishedMs);
+                    }
+                    if ("SENT".equals(r.outcome)) {
+                        silver -= amount;
+                    }
+                }
+            }
+        }
+        pruneOld(announced, now);
+        pruneOld(autoBids, now);
+        saveLongMap(KEY_SILVER_DEALS, announced);
+        saveLongMap(KEY_SILVER_BIDS, autoBids);
+        Log.i(TAG, "silver checked: silver=" + silver + " deals=" + deals.size()
+                + (snap.has("buyError") ? " buyError=" + snap.optString("buyError") : "")
+                + (snap.has("marketError") ? " marketError=" + snap.optString("marketError") : ""));
+
+        if (actions.getBoolean(SilverActions.KEY_AUTO_SELL, false)
+                && now - state.getLong(KEY_SILVER_SOLD_AT, 0) > TimeUnit.HOURS.toMillis(1)) {
+            state.edit().putLong(KEY_SILVER_SOLD_AT, now).apply();
+            if (SilverActions.SELL_STEP_ONE_ONLY) {
+                Log.i(TAG, "silver: automatic selling waits for the one-time Sell test on the Silver tab");
+                return;
+            }
+            JSONObject full = SilverData.readAll(reader, now);
+            int running = 0;
+            for (SilverData.Auction s : SilverData.mySales(full)) {
+                if (s.running()) {
+                    running++;
+                }
+            }
+            for (SilverData.BagItem it : SilverActions.toSell(full, running, SilverData.maxSales(full))) {
+                ActionSender.send(getApplicationContext(), http, gameworldHost, SilverActions.sell(it.id,
+                        it.amountToSell(), "Sell " + SilverData.itemText(it.name, it.amountToSell())), true);
+            }
+        }
     }
 
     /**

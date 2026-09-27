@@ -61,12 +61,26 @@ function Get-PatchTarget {
     $packageName = $packages[0]
     # Every version the catalog declares, newest first. Facebook moves a release a week, so the
     # bundle declares the build it was last proved on and keeps the one before it; the newest is
-    # the one a device build and the README name.
-    $versions = @($targets[$packageName] | Sort-Object -Unique |
-        Sort-Object -Descending -Property { [version](($_ -split '\.')[0..3] -join '.') })
-    if ($versions.Count -eq 0) {
+    # the one a device build and the README name. Compared part by part as numbers, every part:
+    # Facebook's versions have five (580.0.0.51.74) and [version] takes four, so the fifth was
+    # dropped, and two builds apart only there sorted as equals in whatever order the shell left
+    # them, the older one first in both.
+    $declared = @($targets[$packageName] | Sort-Object -Unique)
+    if ($declared.Count -eq 0) {
         throw "No compatible version for $packageName."
     }
+    foreach ($version in $declared) {
+        if ($version -notmatch '^\d+(?:\.\d+)*$') {
+            throw "$packageName is declared at $version, which isn't a version of dotted numbers."
+        }
+    }
+    $width = ($declared | ForEach-Object { @($_ -split '\.').Count } | Measure-Object -Maximum).Maximum
+    # One sort key per part, a missing part below any number, so 580.0.0.51 comes after 580.0.0.51.0.
+    $keys = @(0..($width - 1) | ForEach-Object {
+        $part = $_
+        { $parts = @($_ -split '\.'); if ($part -lt $parts.Count) { [decimal]$parts[$part] } else { [decimal]-1 } }.GetNewClosure()
+    })
+    $versions = @($declared | Sort-Object -Descending -Property $keys)
     return [pscustomobject]@{
         PackageName = $packageName
         PackageVersion = $versions[0]
