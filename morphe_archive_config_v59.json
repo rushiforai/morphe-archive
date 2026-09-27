@@ -1603,14 +1603,6 @@
                 "updatedAt": 1788750211649
             },
             {
-                "name": "ringconn-patches",
-                "source": "https://raw.githubusercontent.com/DarioDKM/ringconn-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 212,
-                "createdAt": 1788837232795,
-                "updatedAt": 1788837232795
-            },
-            {
                 "name": "psylos-morphe-patches",
                 "source": "https://raw.githubusercontent.com/lootdev78/psylos-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2281,6 +2273,30 @@
                 "sortOrder": 301,
                 "createdAt": 1790394339630,
                 "updatedAt": 1790394339630
+            },
+            {
+                "name": "letterboxd-stremio-nuvio-morphe-patch",
+                "source": "https://raw.githubusercontent.com/feixiangdao/letterboxd-stremio-nuvio-morphe-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 302,
+                "createdAt": 1790481171651,
+                "updatedAt": 1790481171651
+            },
+            {
+                "name": "lawnchair-morphe-patches",
+                "source": "https://raw.githubusercontent.com/latanvillegas/lawnchair-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 303,
+                "createdAt": 1790481173870,
+                "updatedAt": 1790481173870
+            },
+            {
+                "name": "anghami-patches",
+                "source": "https://raw.githubusercontent.com/mohamedamrnady/anghami-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 304,
+                "createdAt": 1790481174500,
+                "updatedAt": 1790481174500
             }
         ]
     }
