@@ -2297,6 +2297,70 @@
                 "sortOrder": 304,
                 "createdAt": 1790481174500,
                 "updatedAt": 1790481174500
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Adish08/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 305,
+                "createdAt": 1790567702978,
+                "updatedAt": 1790567702978
+            },
+            {
+                "name": "uyu",
+                "source": "https://raw.githubusercontent.com/bakwudo/uyu/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 306,
+                "createdAt": 1790567704351,
+                "updatedAt": 1790567704351
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/bartlomiejfornalczyk/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 307,
+                "createdAt": 1790567704601,
+                "updatedAt": 1790567704601
+            },
+            {
+                "name": "ggyasin-morphe-patches",
+                "source": "https://raw.githubusercontent.com/ggYasin/ggyasin-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 308,
+                "createdAt": 1790567706177,
+                "updatedAt": 1790567706177
+            },
+            {
+                "name": "qqmusic-proxy",
+                "source": "https://raw.githubusercontent.com/LDP924/qqmusic-proxy/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 309,
+                "createdAt": 1790567707649,
+                "updatedAt": 1790567707649
+            },
+            {
+                "name": "HushMessenger",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/HushMessenger/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 310,
+                "createdAt": 1790567709268,
+                "updatedAt": 1790567709268
+            },
+            {
+                "name": "den-patch",
+                "source": "https://raw.githubusercontent.com/tkiethuynh/den-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 311,
+                "createdAt": 1790567709936,
+                "updatedAt": 1790567709936
+            },
+            {
+                "name": "uyu",
+                "source": "https://raw.githubusercontent.com/trivisa-itihasa/uyu/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 312,
+                "createdAt": 1790567710103,
+                "updatedAt": 1790567710103
             }
         ]
     }

@@ -3,6 +3,7 @@
 abhis1n/Morphe-Patches
 adderalladmiral/psychonaut-journal-patches
 adderalladmiral/psychonaut-wiki-journal-patches
+Adish08/morphe-patches
 AgentKosticka/Jam-Patches
 ahmedyarub/morphe-patches
 ajstrick81/morphe-androidtv-patches
@@ -43,6 +44,8 @@ ausamnco/gboard-enc-patches
 azksama/aniskip-stremio
 AzukiSensei/aniskip-stremio
 babyhuehnchen/morphe-patches
+bakwudo/uyu
+bartlomiejfornalczyk/morphe-patches
 bdgerszewski/morphe-patches-ihealth
 bearinmindcat/morphe-patches
 benzophury/oraimo-health-morphe-patches
@@ -111,6 +114,7 @@ Freeman022026/rustore-privacy-patches
 Fripe070/PixivPatches
 furkngld/tiktok-lite-patches-for-morphe
 Gamer92000/pixelcamera-patches
+ggYasin/ggyasin-morphe-patches
 giaaaacomo/nifty-patches-selection
 gitlab.com/dhl0/morphe-patches
 gitlab.com/early.egg3707/ee-morphe-patches
@@ -188,6 +192,7 @@ LaBlazer/morphe-patches
 LaKakaReal/LaKakaShitPatches
 latanvillegas/lawnchair-morphe-patches
 lchanc3/morphe-patches
+LDP924/qqmusic-proxy
 legendsciber/morphe-patches
 LimeLimes/cbc-patches
 liongalahad/liongalahad-nuviotv-morphe-patches
@@ -284,8 +289,11 @@ subenoeva/roadsync-patches
 Supperelias2/sbs-morphe-patches
 Supperelias2/sbs-tv-morphe-patches
 sushruth/imgur-patches
+SysAdminDoc/HushFacebook
 SysAdminDoc/Hushfacebook
+SysAdminDoc/HushFeed
 SysAdminDoc/hushfeed
+SysAdminDoc/HushMessenger
 tadikwa/google-clock-morphe-patches
 testiwy268/morphe-patches
 theabhishekbhujang/morphe-patches
@@ -298,9 +306,11 @@ thrkingunknown/gboard-theme-patch
 tiaruebar1024/tiaruebar-patches
 TimBuckrue/nyt-games-vrr-patch
 timpra/a17
+tkiethuynh/den-patch
 Tornillo2/movistar-block-ads-morphe
 totsiaw/proxma-patches
 Trimpsuz/morphe-busuu
+trivisa-itihasa/uyu
 Utsavrajputt/Modx-patches
 V4n1X/morphe-patches
 variablenine/morphe-patches
