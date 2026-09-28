@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.protonvpn.misc.restrictions.clearFreeUserCheck
 import app.morphe.patches.protonvpn.misc.restrictions.filterReturnValue
 import app.morphe.patches.protonvpn.misc.restrictions.freeAccountStatePatch
+import app.morphe.patches.protonvpn.misc.restrictions.invertFreeServerCheckForFreeAccount
 import app.morphe.patches.protonvpn.misc.settings.patchesSettingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.proton.markPatchApplied
@@ -33,18 +34,8 @@ val unlockProfilesPatch = bytecodePatch(
         VpnCountriesFingerprint.matchSingle().method.filterReturnValue(
             "$FREE_SERVER_LOCATIONS->countriesForAccount(Ljava/util/List;)Ljava/util/List;",
         )
-        ProfileServerFilterFingerprint.matchSingle().run {
-            val isFreeServerResult = instructionMatches.last()
-            val register = isFreeServerResult.getInstruction<OneRegisterInstruction>().registerA
-            method.addInstructions(
-                isFreeServerResult.index + 1,
-                """
-                    invoke-static { v$register }, $FREE_SERVER_LOCATIONS->shouldExcludeServer(Z)Z
-                    move-result v$register
-                """,
-            )
-        }
-        ProfileCitiesFingerprint.matchSingle().run {
+        invertFreeServerCheckForFreeAccount(ProfileServerFilterFingerprint)
+        ProfileCitiesOrStatesFingerprint.matchSingle().run {
             val serverList = instructionMatches.last()
             val register = serverList.getInstruction<OneRegisterInstruction>().registerA
             method.addInstructions(

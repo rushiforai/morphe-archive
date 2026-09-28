@@ -32,9 +32,12 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import org.w3c.dom.Element
 import org.w3c.dom.Document
 import java.net.URI
+import java.io.File
 import java.util.Locale
 
 private const val EXTENSION = "Lapp/morphe/extension/chmate/Haiagaru;"
+
+private object EmojiFontResourceMarker
 
 /**
  * ChMate stores ordinary NG entries and shared NG-ID entries with separate
@@ -555,6 +558,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
             }
             "0.8.10.243 dev" -> {
                 patchProgrammableNgModern("Lo/zzdic;", "a", "c")
+                patchPreIoHissiMenu("Lo/zzacz;", "c", "Lo/zzabv;", "Lo/zzacz\$write;")
                 patchSetTextCalls()
                 patchBbsMenuUrl("b", "Lo/StandardAndroidSocketAdapterCompanion\$RemoteActionCompatParcelizer;")
                 patchModernThreadListAd()
@@ -563,6 +567,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchModernTalkIntegrityPrimitives()
             }
             "0.8.10.241" -> {
+                patchPreIoHissiMenu("Lo/lhA1;", "d", "Lo/setDislikeWidth;", "Lo/lhA1\$write;")
                 patchSetTextCalls()
                 patchBbsMenuUrl("c", "Lo/TaskRunnerCompanion\$ComponentActivity;")
                 patchIoTalkDatLoading()
@@ -1553,6 +1558,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchIoThreadRefreshCa
 
 private const val ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val OPEN_URL_ACTIVITY = "app.morphe.extension.chmate.OpenUrlActivity"
+private const val HISSI_MENU_ACTIVITY = "app.morphe.extension.chmate.HissiMenuActivity"
 
 private data class OpenUrlPattern(
     val scheme: String,
@@ -1641,7 +1647,50 @@ val haiagaruPatch = resourcePatch(
         description = "http(s)://から始まるURLをカンマ区切りで指定。末尾/*は配下も対象です。ChMateが解析できる板・スレURLに使用してください。",
     )
 
+    val emojiMode = stringOption(
+        key = "emojiMode",
+        default = "missing",
+        title = "絵文字フォントの適用範囲",
+        description = "missing=端末にない絵文字だけ（推奨）、all=全絵文字、off=無効。",
+    )
+
+    val emojiFontPath = stringOption(
+        key = "emojiFontPath",
+        default = "",
+        title = "任意の絵文字フォント（任意）",
+        description = "パッチ実行PC上のTTF/OTFファイルの絶対パス。空欄なら内蔵Noto Color Emojiを使用します。",
+    )
+
     execute {
+        val bundledEmojiFont = get("assets").resolve("haiagaru/NotoColorEmoji.ttf")
+        bundledEmojiFont.parentFile.mkdirs()
+        val requestedEmojiMode = emojiMode.value.orEmpty().trim().lowercase(Locale.ROOT)
+        if (requestedEmojiMode !in setOf("missing", "all", "off")) {
+            throw PatchException("emojiModeは missing / all / off のいずれかを指定してください: $requestedEmojiMode")
+        }
+        val requestedFontPath = emojiFontPath.value.orEmpty().trim()
+        if (requestedFontPath.isBlank()) {
+            checkNotNull(EmojiFontResourceMarker::class.java.getResourceAsStream(
+                "/chmate/emoji/NotoColorEmoji.ttf",
+            )) {
+                "Bundled Noto Color Emoji font is missing from the Haiagaru patch bundle"
+            }.use { source ->
+                bundledEmojiFont.outputStream().use(source::copyTo)
+            }
+        } else {
+            val customFont = File(requestedFontPath)
+            if (!customFont.isFile || !customFont.canRead()) {
+                throw PatchException("emojiFontPathのフォントファイルを読み込めません: $requestedFontPath")
+            }
+            customFont.inputStream().use { source ->
+                bundledEmojiFont.outputStream().use(source::copyTo)
+            }
+        }
+        bundledEmojiFont.parentFile.resolve("emoji.properties").writeText(
+            "mode=$requestedEmojiMode\n",
+            Charsets.UTF_8,
+        )
+
         val customUrls = parseAdditionalOpenUrls(additionalOpenUrls.value.orEmpty())
         document("AndroidManifest.xml").use { document ->
             val additions = buildList {
@@ -1759,6 +1808,24 @@ val haiagaruPatch = resourcePatch(
                 )
             }
             application.appendChild(openUrlActivity)
+
+            val hissiActivity = document.createElement("activity").apply {
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:name", HISSI_MENU_ACTIVITY)
+                setAttributeNS(ANDROID_XML_NAMESPACE, "android:exported", "true")
+                setAttributeNS(
+                    ANDROID_XML_NAMESPACE,
+                    "android:theme",
+                    "@android:style/Theme.Material.Light.NoActionBar",
+                )
+            }
+            document.addOpenUrlFilter(
+                hissiActivity,
+                listOf("haiagaru-hissi", "haiagaru-hissis"),
+                "hissi.org",
+                path = "/read.php/",
+                pathAttribute = "android:pathPrefix",
+            )
+            application.appendChild(hissiActivity)
         }
     }
 }
@@ -3121,6 +3188,8 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchSetTextCalls() {
                     index,
                     """
                         invoke-static/range { v$register .. v$register }, $EXTENSION->replace5chDomain(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+                        move-result-object v$register
+                        invoke-static/range { v$register .. v$register }, $EXTENSION->processEmojiText(Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
                         move-result-object v$register
                     """
                 )

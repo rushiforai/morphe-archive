@@ -34,7 +34,7 @@ internal object BalticSeaPaletteFingerprint : Fingerprint(
 
 internal object CoreColorsBuilderFingerprint : Fingerprint(
     parameters = listOf("J", "J", "J", "J", "J"),
-    custom = { _, classDef -> classDef.type.startsWith(CORE_COMPOSE_THEME_PACKAGE) },
+    custom = { method, _ -> method.hasCoreComposeThemeType() },
     filters = listOf(methodCall(name = "<init>", opcode = Opcode.INVOKE_DIRECT_RANGE)),
 )
 

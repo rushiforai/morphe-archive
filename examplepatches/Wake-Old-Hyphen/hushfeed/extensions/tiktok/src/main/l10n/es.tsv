@@ -4,6 +4,7 @@
 %1$d fields will be overridden when requested	%1$d campos se sobrescribirán cuando se soliciten
 %1$d gates selected	%1$d interruptores seleccionados
 %1$d minutes left	Quedan %1$d minutos
+%1$d overrides were turned off because the Lab couldn't confirm their gates are unchanged in TikTok %2$s. Review them before turning them back on.	Se desactivaron %1$d sustituciones porque el Lab no pudo confirmar que sus interruptores sigan igual en TikTok %2$s. Revísalas antes de volver a activarlas.
 %1$d rejected	%1$d rechazados
 %1$d results	%1$d resultados
 %1$d results so far	%1$d resultados hasta ahora
@@ -17,15 +18,13 @@
 %1$s (custom, unverified)	%1$s (personalizado, sin verificar)
 %1$s (override returned)	%1$s (se devolvió la sobrescritura)
 %1$s (will be returned when requested)	%1$s (se devolverá cuando se solicite)
-%1$s / current cache only	%1$s / solo caché actual
-%1$s / generated registry	%1$s / registro generado
-%1$s / generated registry and current cache	%1$s / registro generado y caché actual
-%1$s / local catalog	%1$s / catálogo local
 %1$s and above	%1$s y superior
 %1$s appears more than once in this file.	%1$s aparece más de una vez en este archivo.
 %1$s changed	%1$s cambiados
 %1$s is already hidden	%1$s ya está oculto
 %1$s destinations must start with %2$s	Los destinos de %1$s deben empezar por %2$s
+%1$s is too long for a settings backup. Shorten it, then save the backup again.	%1$s es demasiado larga para una copia de seguridad de ajustes. Acórtala y vuelve a guardar la copia.
+%1$s isn't a language code, so no video would ever match it. Use two letters, like en, es or de.	%1$s no es un código de idioma, así que ningún video coincidiría. Usa dos letras, como en, es o de.
 %1$s needs fixing. %2$s	Hay que corregir %1$s. %2$s
 %1$s is a kind of value the Lab can't override.	%1$s es un tipo de valor que el Lab no puede sustituir.
 %1$s has type %2$s, but the file says %3$s.	%1$s tiene el tipo %2$s, pero el archivo indica %3$s.
@@ -36,7 +35,13 @@
 %1$s min left	Quedan %1$s min
 %1$s to %2$s	De %1$s a %2$s
 %1$s videos left	Quedan %1$s videos
+%1$s videos were recorded before each account kept its own list. They hide nothing until you add them here.	%1$s vídeos se registraron antes de que cada cuenta tuviera su propia lista. No ocultan nada hasta que los añadas aquí.
 %1$s was rejected. %2$s	%1$s fue rechazado. %2$s
+%1$s · Hushfeed's list only	%1$s · solo en la lista de Hushfeed
+%1$s · current value only	%1$s · solo valor actual
+%1$s · declared by TikTok	%1$s · declarado por TikTok
+%1$s · declared by TikTok, with a current value	%1$s · declarado por TikTok, con un valor actual
+%1$s%%	%1$s %%
 %1$s, %2$s, %3$s, %4$s, %5$s	%1$s, %2$s, %3$s, %4$s, %5$s
 %1$s, selected	%1$s, seleccionado
 %1$s. %2$s	%1$s. %2$s
@@ -49,11 +54,13 @@
 1 field will be overridden when requested	1 campo se sobrescribirá cuando se solicite
 1 gate selected	1 interruptor seleccionado
 1 min left	Queda 1 min
+1 override was turned off because the Lab couldn't confirm its gate is unchanged in TikTok %2$s. Review it before turning it back on.	Se desactivó 1 sustitución porque el Lab no pudo confirmar que su interruptor siga igual en TikTok %2$s. Revísala antes de volver a activarla.
 1 result	1 resultado
 1 result so far	1 resultado hasta ahora
 1 video left	Queda 1 video
 A Lab change is already running	Ya se está ejecutando un cambio del Lab
 A diagnostic report is already being saved	Ya se está guardando un informe de diagnóstico
+A few seconds	Unos segundos
 A field value couldn't be read. Check the values and try again.	No se pudo leer el valor de un campo. Revisa los valores e inténtalo de nuevo.
 A good place to stop, if you want one.	Un buen momento para parar, si quieres uno.
 A green square in the top corner while TikTok has the camera open, and an orange diamond while it records sound. They go when the access ends.	Un cuadrado verde en la esquina superior mientras TikTok tiene la cámara abierta, y un rombo naranja mientras graba sonido. Desaparecen cuando termina el acceso.
@@ -67,16 +74,44 @@ A web address someone left in a comment can be tapped instead of copied out by h
 AI-generated posts	Publicaciones generadas por IA
 About	Acerca de
 A forced value applies to this copy of TikTok whichever account is signed in. It can't get past a check the server makes.	Un valor forzado se aplica a esta copia de TikTok, sea cual sea la cuenta con sesión iniciada. No puede saltarse una comprobación que haga el servidor.
+Add older seen videos to this account	Añadir vídeos vistos anteriores a esta cuenta
+Added %1$s older seen videos to this account	Se añadieron %1$s vídeos vistos anteriores a esta cuenta
+Added one older seen video to this account	Se añadió un vídeo visto anterior a esta cuenta
+Added to this account.	Añadidos a esta cuenta.
+Caption languages	Idiomas de subtítulos
+Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries and caption languages, and seen videos still apply.	Nombres de cuenta o ids de usuario separados por comas. Sus videos se quedan cuando solo un filtro por tipo de publicación, etiquetas, antigüedad, duración o cifras los ocultaría. Los anuncios, los creadores, palabras, sonidos, países e idiomas de subtítulos bloqueados y los videos ya vistos siguen aplicándose.
+Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.	Códigos de idioma separados por comas, como en, es. Se oculta un video cuyo subtítulo original está en otro idioma. Los videos sin subtítulos, o solo con subtítulos traducidos, se quedan siempre.
+Couldn't add the older seen videos. Try again.	No se pudieron añadir los vídeos vistos anteriores. Inténtalo de nuevo.
+Couldn't copy the report. Use Save report instead.	No se pudo copiar el informe. Usa «Guardar informe».
+Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.	No se pudieron leer los valores actuales de TikTok (%1$s). Actualiza los valores desde el menú para volver a intentarlo.
 Couldn't restart TikTok. Close it and open it again.	No se pudo reiniciar TikTok. Ciérralo y vuelve a abrirlo.
 Couldn't undo that. Try again.	No se pudo deshacer. Inténtalo de nuevo.
+Count a video as seen after	Contar un vídeo como visto después de
+Forget the %1$s videos @%2$s has seen.	Olvidar los %1$s vídeos que ha visto @%2$s.
+Forget the seen video.	Olvidar el vídeo visto.
+Forget the video @%2$s has seen.	Olvidar el vídeo que ha visto @%2$s.
 Got it	Entendido
+Hide the status bar in LIVE rooms	Ocultar la barra de estado en los LIVE
+How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	Cuánto de un vídeo ves antes de que se oculte la próxima vez. Con cero cuenta tras unos segundos.
 Later	Más tarde
 Leave when TikTok says time is up	Salir cuando TikTok diga que se acabó el tiempo
+Let a LIVE fill the screen up to the top edge. The status bar comes back when you leave the LIVE. Swipe down from the top to peek at it.	Deja que un LIVE ocupe la pantalla hasta el borde superior. La barra de estado vuelve cuando sales del LIVE. Desliza hacia abajo desde arriba para verla un momento.
+Loading the gate list and TikTok's current values…	Cargando la lista de gates y los valores actuales de TikTok…
+New value	Nuevo valor
 No app on this phone opens that file	Ninguna app de este teléfono abre ese archivo
+One video was recorded before each account kept its own list. It hides nothing until you add it here.	Se registró un vídeo antes de que cada cuenta tuviera su propia lista. No oculta nada hasta que lo añadas aquí.
+Only these caption languages	Solo estos idiomas de subtítulos
 Open	Abrir
+Photos can't be saved to the folder in that file, so your photo folder was kept	Las fotos no se pueden guardar en la carpeta de ese archivo, así que se mantuvo tu carpeta de fotos
+Preview shortened. Save report keeps the full report.	Vista previa acortada. «Guardar informe» conserva el informe completo.
+Refreshing TikTok's current values…	Actualizando los valores actuales de TikTok…
 Restart TikTok to apply this	Reinicia TikTok para que se aplique
+Save report	Guardar informe
+Stay on the video in full screen	Quedarse en el vídeo a pantalla completa
+Stickers can't be saved to the folder in that file, so your sticker folder was kept	Los stickers no se pueden guardar en la carpeta de ese archivo, así que se mantuvo tu carpeta de stickers
 That creator pattern could stall the feed, so it was skipped: %1$s	Ese patrón de creador podría trabar el feed, así que se omitió: %1$s
 That creator pattern could stall the feed, so it wasn't added: %1$s	Ese patrón de creador podría trabar el feed, así que no se añadió: %1$s
+This key isn't in Hushfeed's list, so its type can't be checked. Reset the override.	Esta clave no está en la lista de Hushfeed, así que no se puede comprobar su tipo. Restablece la anulación.
 This key touches account safety. Forcing it can change login, region, payment or security checks.	Esta clave afecta a la protección de la cuenta. Forzarla puede cambiar las comprobaciones de inicio de sesión, región, pagos o seguridad.
 Activity	Actividad
 Activity center (PIA)	Centro de actividad (PIA)
@@ -232,7 +267,6 @@ Copy the sound link	Copiar el enlace del sonido
 Copy the video link	Copiar el enlace del vídeo
 Couldn't change the Lab settings. Try again.	No se pudieron cambiar los ajustes del Lab. Inténtalo de nuevo.
 Couldn't clear the suggested accounts. Reopen the Inbox and try again.	No se pudieron borrar las cuentas sugeridas. Vuelve a abrir la bandeja de entrada e inténtalo de nuevo.
-Couldn't copy the report. Use Save JSON instead.	No se pudo copiar el informe. Usa Guardar JSON en su lugar.
 Couldn't open settings search. Reopen settings and try again.	No se pudo abrir la búsqueda de ajustes. Vuelve a abrir los ajustes e inténtalo de nuevo.
 Couldn't open that settings section. Reopen settings and try again.	No se pudo abrir esa sección de ajustes. Vuelve a abrir los ajustes e inténtalo de nuevo.
 Couldn't open the file picker to export. Try again.	No se pudo abrir el selector de archivos para exportar. Inténtalo de nuevo.
@@ -257,7 +291,6 @@ Creators and sounds	Creadores y sonidos
 Creators you hid from a video. Search the list and remove one at a time.	Creadores que ocultaste desde un vídeo. Busca en la lista y quita las entradas de una en una.
 Current	Actual
 Current %1$s	Actual: %1$s
-Current cache unavailable: %1$s	La caché actual no está disponible: %1$s
 Current state	Estado actual
 Current: %1$s	Ahora: %1$s
 Custom SIM details	Datos de SIM personalizados
@@ -311,7 +344,6 @@ Enabled	Activados
 Enter a JSON object or array.	Introduce un objeto o una matriz JSON.
 Enter a creator handle or id	Escribe un nombre de usuario o un id de creador
 Enter a finite number.	Introduce un número finito.
-Enter a number	Escribe un número
 Enter a number.	Escribe un número.
 Enter a valid structured value.	Introduce un valor estructurado válido.
 Enter a valid two-letter country code	Escribe un código de país válido de dos letras
@@ -563,7 +595,6 @@ Loaded current values. Loading all known gates…	Valores actuales cargados. Car
 Loaded values are still being read. Try again in a moment.	Los valores cargados aún se están leyendo. Inténtalo de nuevo en un momento.
 Loaded-value file export failed	Ha fallado la exportación de los valores cargados
 Loading gates…	Cargando los interruptores…
-Loading local catalog and current TikTok cache…	Cargando el catálogo local y la caché actual de TikTok…
 Creators hidden on this phone	Creadores ocultos en este dispositivo
 Lock today's budget	Bloquear el presupuesto de hoy
 Logging, hook status and reports	Registros, estado de los hooks e informes
@@ -592,6 +623,9 @@ Comments range	Rango de comentarios
 Favorites range	Rango de favoritos
 Likes range	Rango de me gusta
 Shares range	Rango de veces compartido
+Use Save report for this large report	Usa «Guardar informe» para este informe grande
+Video player settings	Ajustes del reproductor de vídeo
+Videos can't be saved to the folder in that file, so your video folder was kept	Los vídeos no se pueden guardar en la carpeta de ese archivo, así que se mantuvo tu carpeta de vídeos
 Views range	Rango de visualizaciones
 Minimum	Mínimo
 More options	Más opciones
@@ -653,7 +687,6 @@ Off	Desactivado
 Off forces false, on forces true. Reset hands the choice back to TikTok.	Apagado fuerza false y encendido fuerza true. Restablecer le devuelve la decisión a TikTok.
 Offline videos	Vídeos sin conexión
 Offline videos limit	Límite de vídeos sin conexión
-Older overrides were kept disabled. Review their values before enabling them on TikTok %1$s.	Las sustituciones anteriores se han dejado desactivadas. Revisa sus valores antes de activarlas en TikTok %1$s.
 On mobile data	Con datos móviles
 Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.	Una vez que se agote el presupuesto de hoy, la pausa se queda y no se puede cerrar. Los ajustes de presupuesto se bloquean hasta que comience el nuevo día. Desactiva esto en cualquier momento antes de que se agote.
 One area was checked and everything it needs is here.	Se comprobó un área y está todo lo que necesita.
@@ -705,14 +738,12 @@ Pick the buttons to take off the column. The rest stay where they are.	Elige los
 Play videos TikTok has classified without the overlay asking to be tapped through first.	Reproducir los vídeos que TikTok ha clasificado sin la capa que pide tocar para pasar.
 Playback	Reproducción
 Player	Reproductor
-Player config	Configuración del reproductor
 Playlist posts	Publicaciones de listas de reproducción
 Popular	Popular
 Popups	Ventanas emergentes
 Press and hold a profile picture to save the full size original to your photo destination.	Mantén pulsada una foto de perfil para guardar el original a tamaño completo en tu destino de fotos.
 Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.	Mantén pulsada una historia para guardarla. Las historias no tienen botón de guardar propio, y mantenerlas pulsadas es como TikTok las pausa, así que esto se queda con ese gesto.
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.	Mantén pulsado el tercio izquierdo o derecho de la pantalla para saltar atrás o adelante. El tercio central mantiene la acción de Pulsación larga.
-Preview shortened. Save JSON includes the full report.	Vista previa recortada. Guardar JSON incluye el informe completo.
 Privacy	Privacidad
 Privacy and system	Privacidad y sistema
 Profile	Perfil
@@ -734,7 +765,6 @@ Recording gate reads. Use a feature, then return here to stop.	Registrando las l
 Put back the settings saved before the last restore or reset.	Recuperar los ajustes guardados antes de la última restauración o reinicio.
 Recovered an interrupted settings change. Restart TikTok to apply this.	Se recuperó un cambio de ajustes interrumpido. Reinicia TikTok para que se aplique.
 Refresh values	Actualizar los valores
-Refreshing current TikTok cache…	Actualizando la caché actual de TikTok…
 Region	Región
 Country filters	Filtros por país
 Remember the last speed	Recordar la última velocidad
@@ -786,7 +816,6 @@ SIM country preset	País preestablecido de la SIM
 STEM	STEM
 Sanitize sharing links	Limpiar los enlaces al compartir
 Save	Guardar
-Save JSON	Guardar JSON
 Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.	Guardar los archivos SRT junto al vídeo. Los guardados emparejados usan Movies en Android 11 y superior, Download en Android 10, y tu carpeta de vídeos en versiones anteriores.
 Save a profile picture on a long press	Guardar una foto de perfil con una pulsación larga
 Save a story on a long press	Guardar una historia con una pulsación larga
@@ -813,10 +842,7 @@ Saving %1$s original photos	Guardando %1$s fotos originales
 Saving one original photo	Guardando una foto original
 Saving settings backup	Guardando la copia de seguridad de los ajustes
 Saving the sticker	Guardando el sticker
-Saving the selected video quality	Guardando la calidad de vídeo elegida
-Saving the selected video quality without sound	Guardando la calidad de vídeo elegida sin sonido
 Saving the story	Guardando la historia
-Saving video and subtitles to %1$s	Guardando el vídeo y los subtítulos en %1$s
 Screen	Pantalla
 Screen time	Tiempo de pantalla
 Search	Búsqueda
@@ -874,6 +900,13 @@ Show gates	Mostrar interruptores
 Show last report	Ver el último informe
 Show the hide button on videos	Mostrar el botón de ocultar en los vídeos
 Show the Not interested button	Mostrar el botón de No me interesa
+Mute feed videos	Silenciar los videos del feed
+Muted	Silenciado
+Sound on	Sonido activado
+Sound	Sonido
+Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.	Reproduce los videos del feed sin sonido y no cambia el volumen del teléfono. La música de otra app sigue sonando mientras esté activado. Los mensajes directos, las historias y los LIVE conservan su sonido.
+Show the mute button on videos	Mostrar el botón de silencio en los videos
+Add a button beside the block control that turns the feed's sound off and on.	Añade un botón junto al control de bloqueo que apaga y enciende el sonido del feed.
 Show the country a video was posted from next to the creator's name.	Mostrar el país desde el que se publicó un vídeo junto al nombre del creador.
 Show the current spoken caption while the other controls are hidden.	Mostrar el subtítulo que se está diciendo mientras los demás controles están ocultos.
 Show the handle instead of the name	Mostrar el nombre de usuario en vez del nombre
@@ -1017,7 +1050,6 @@ This file has more loaded values than the Lab takes at once.	Este archivo tiene 
 This file has no loaded values in it.	Este archivo no contiene valores cargados.
 This file isn't a loaded-values export from the Feature Gate Lab.	Este archivo no es una exportación de valores cargados del Feature Gate Lab.
 This gate type isn't supported.	Este tipo de gate no es compatible.
-This key isn't in the local catalog, so its type can't be checked. Reset the override.	Esta clave no está en el catálogo local, así que no se puede comprobar su tipo. Restablece la anulación.
 This line opens a rule and doesn't finish it: %1$s. Write two phrases as "a" & "b" for both, or "a" !& "b" for the first without the second.	Esta línea abre una regla y no la termina: %1$s. Escribe dos frases como "a" & "b" para pedir las dos, o "a" !& "b" para la primera sin la segunda.
 This phone has no file picker, so there's no way to choose a file here	Este teléfono no tiene selector de archivos, así que aquí no se puede elegir uno
 This phone has no folder picker. Type the folder into the row instead.	Este teléfono no tiene selector de carpetas. Escribe la carpeta en la fila.
@@ -1064,7 +1096,6 @@ Today: %1$d minutes	Hoy: %1$d minutos
 Today: %1$d video	Hoy: %1$d vídeo
 Today: %1$d videos	Hoy: %1$d vídeos
 Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos. Anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.	Comodines: {creator}, {date}, {video_id}, {index}. {index} numera las fotos de una presentación que guardes con Descargar las fotos originales; lo que se guarde con el botón propio de TikTok lo numera la carpeta. La extensión del archivo se mantiene automáticamente.
-Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.	Comodines: {creator}, {date}, {video_id}. La extensión del archivo se mantiene automáticamente.
 Tokens: {date}, {media_id}. Works for image and video stickers.	Comodines: {date}, {media_id}. Sirve para los stickers de imagen y de vídeo.
 Too many media saves are already running. Try again in a moment.	Ya se están guardando demasiados archivos. Inténtalo dentro de un momento.
 Tracking	Rastreo
@@ -1094,7 +1125,6 @@ Undoing the last change	Deshaciendo el último cambio
 Until you choose here, this sheet follows your choices under Hide share actions.	Hasta que elijas aquí, esta hoja sigue tus opciones en Ocultar acciones de compartir.
 Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	Hasta %1$d velocidades de %2$s a %3$s, separadas por comas. Por ejemplo: 0.5, 1, 1.5, 2, 2.5, 3. Déjalo vacío para la lista de TikTok. Reinicia TikTok para que se aplique.
 Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.	Usa 0 para el tamaño de TikTok, o de %1$d a %2$d. Se aplica al siguiente subtítulo.
-Use Save JSON for this large report	Usa Guardar JSON para este informe tan grande
 Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.	Usar el gesto propio de TikTok de mantener, deslizar hacia abajo y soltar para seguir a la velocidad de mantener pulsado, que es 2x salvo que elijas otra en Reproducción.
 Use a default playback speed	Usar una velocidad de reproducción predeterminada
 Use non-personalized search	Usar la búsqueda sin personalizar
@@ -1126,9 +1156,10 @@ Watching and sharing	Ver y compartir
 WebP, exactly as TikTok sent it	WebP, exactamente como lo envió TikTok
 What TikTok gets	Lo que TikTok recibe
 When TikTok requests this key, return the selected value below	Cuando TikTok pida esta clave, devolver el valor elegido abajo
+When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on.	Cuando un vídeo termina a pantalla completa, se queda en él en lugar de pasar al siguiente. Deslizar sigue avanzando.
 While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.	Mientras el registro de diagnóstico está activado, un mensaje indica la parte de Hushfeed que falló. Desactivado, los fallos solo quedan en el informe.
 Window width needed to enable the layout. Restart TikTok to apply this.	Anchura de ventana necesaria para activar el diseño. Reinicia TikTok para que se aplique.
-Words and countries	Palabras y países
+Words, countries and languages	Palabras, países e idiomas
 Write the video's sound beside it as an .m4a. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.	Escribir el sonido del vídeo a su lado como un .m4a. Android 10 y posteriores archivan el audio por separado, así que acaba en Music, en una carpeta con el mismo nombre que la de tus vídeos.
 YTDLnis background mode	Modo en segundo plano de YTDLnis
 YTDLnis download type	Tipo de descarga de YTDLnis
@@ -1250,7 +1281,6 @@ Saved %1$s of %2$s, the rest ran out of time	Se guardaron %1$s de %2$s, al resto
 Live photo clip saved to %1$s	Clip de la foto en vivo guardado en %1$s
 The live photo's clip couldn't be saved. Try again.	No se pudo guardar el clip de la foto en vivo. Inténtalo de nuevo.
 Creator exceptions	Excepciones de creadores
-Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds and countries, and seen videos still apply.	Nombres de cuenta o ids de usuario separados por comas. Sus videos se quedan cuando solo un filtro por tipo de publicación, etiquetas, antigüedad, duración o cifras los ocultaría. Los anuncios, los creadores, palabras, sonidos y países bloqueados y los videos ya vistos siguen aplicándose.
 An exception names one creator, so a pattern can't be one: %1$s	Una excepción nombra a un creador, así que un patrón no puede serlo: %1$s
 An exception takes a handle or id, not a display name: %1$s	Una excepción toma un nombre de cuenta o un id, no un nombre para mostrar: %1$s
 Also on a block list, so still hidden: %1$s	También está en una lista de bloqueo, así que sigue oculto: %1$s
@@ -1263,3 +1293,34 @@ This is the video's own sound, so YouTube Music won't have it	Este es el sonido 
 Not a handle or id, so ignored: %1$s	No es un nombre de cuenta ni un id, así que se ignora: %1$s
 What's new	Novedades
 Changes in Hushfeed %1$s	Cambios en Hushfeed %1$s
+Reviewed presets	Ajustes verificados
+Show See translation	Mostrar la opción de traducir
+Reviewed for TikTok %1$s	Verificado para TikTok %1$s
+Value: %1$s to %2$s	Valor: de %1$s a %2$s
+The presets couldn't load. Open the Lab again.	No se pudieron cargar los ajustes. Abre el laboratorio de nuevo.
+Apply enables these overrides. Undo last Lab change restores your previous rules.	Aplicar activa estas modificaciones. Deshacer el último cambio del laboratorio restaura tus reglas anteriores.
+Apply saves these overrides. Turn on overrides in the Lab to use them. Undo restores your previous rules.	Aplicar guarda estas modificaciones. Actívalas en el laboratorio para usarlas. Deshacer restaura tus reglas anteriores.
+This preset isn't available for your installed TikTok version.	Este ajuste no está disponible para tu versión instalada de TikTok.
+Preset applied. Restart TikTok to use it.	Ajuste aplicado. Reinicia TikTok para usarlo.
+Preset saved. Turn on overrides in the Lab to use it.	Ajuste guardado. Activa las modificaciones en el laboratorio para usarlo.
+This preset doesn't match the installed gates. Nothing changed.	Este ajuste no coincide con las opciones instaladas. No se cambió nada.
+About overrides	Acerca de las sustituciones
+Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.	Variables: {creator}, {date}, {video_id}. Empieza con {creator}/ para crear una carpeta por creador. La extensión del archivo se conserva automáticamente.
+Save details beside the video	Guardar detalles junto al video
+Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.	Guarda la descripción, el creador, el enlace y la fecha de publicación en un TXT. En Android 10 o posterior, ambos archivos usan Download o Documents con el mismo nombre de carpeta. Se aplica a los videos guardados aquí.
+Check for already-saved videos	Comprobar videos ya guardados
+Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.	Recuerda hasta %1$s videos guardados aquí mientras está activado. Si el archivo aún existe, ofrece Abrir o Guardar de nuevo antes de descargar otra copia.
+This video is already saved. Open TikTok to save another copy.	Este video ya está guardado. Abre TikTok para guardar otra copia.
+This video is already saved	Este video ya está guardado
+Save again	Guardar de nuevo
+The saved-video choice couldn't open. Try again.	No se pudieron abrir las opciones del video guardado. Inténtalo de nuevo.
+This video isn't available as a complete file. Try again later.	Este video no está disponible como archivo completo. Inténtalo más tarde.
+Saving video to %1$s	Guardando video en %1$s
+Video and details saved to %1$s	Video y detalles guardados en %1$s
+The video was saved, but its record couldn't be updated. A later save may make another copy.	El video se guardó, pero no se pudo actualizar su registro. Si lo guardas de nuevo, puede crearse otra copia.
+The already-saved check failed. Try again.	No se pudieron comprobar los videos ya guardados. Inténtalo de nuevo.
+Show download progress	Mostrar progreso de descarga
+Show a progress bar while a video saves.	Muestra una barra de progreso mientras se guarda un vídeo.
+Saving video	Guardando vídeo
+Saving video: %1$s	Guardando vídeo: %1$s
+Saving %1$s of %2$s: %3$s	Guardando %1$s de %2$s: %3$s

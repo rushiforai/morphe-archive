@@ -53,6 +53,10 @@ public class NotInterestedQueueTest {
     }
 
     @After public void tearDown() throws Exception {
+        // The recovery tap starts a real worker. Finish its posted response before resetting
+        // the sandbox, or the next test can count that response as one of its own toasts.
+        Utils.awaitBackgroundTasksForTests();
+        idle();
         reset();
         ShadowToast.reset();
     }

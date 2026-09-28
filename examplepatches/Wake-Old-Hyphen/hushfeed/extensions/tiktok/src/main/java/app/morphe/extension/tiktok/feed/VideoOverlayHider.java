@@ -228,6 +228,7 @@ public final class VideoOverlayHider {
             }
             boolean installed = LAYOUT_HOOK.install(root, VideoOverlayHider::apply);
             activityReference = new WeakReference<>(activity);
+            LiveStatusBar.follow(activity);
             if (installed) {
                 Logger.printDebug(() -> "Video overlay hider installed");
             }

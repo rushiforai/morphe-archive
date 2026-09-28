@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-09-27T10:45:00",
+  "description": "Haiagaru 1.5.1: bundled emoji fallback for Talk names and bodies, reload-safe rendering, selectable emoji mode, and custom TTF/OTF support across ChMate 0.8.10.191 dev, 0.8.10.226 dev, 0.8.10.241, and 0.8.10.243 dev.",
+  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.5.1/haiagaru_patches-1.5.1.mpp",
+  "signature_download_url": "",
+  "version": "1.5.1"
+}

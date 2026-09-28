@@ -9,9 +9,10 @@ object Constants {
         name = "Chorki",
         packageName = "com.prothomalo",
         apkFileType = ApkFileType.XAPK,
+        appIconColor = 0XE11D48,
         signatures = setOf("297da502a4aa81631233b95c2b8179b6a4182685a9f373e6515fe842935cf375"),
         targets = listOf(
-            AppTarget(version = "2.4.3", versionCode = 311, isExperimental = true, minSdk = 24),
+            AppTarget(version = "2.4.3", versionCode = 311, minSdk = 24),
         )
     )
 }

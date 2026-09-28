@@ -61,6 +61,14 @@ final class FeatureGateLabUi {
         ((TextView) header.findViewWithTag("hushfeed_page_title")).setTextSize(
                 app.morphe.extension.tiktok.settings.preference.SettingsHeaderPreference.headingSizeSp(context));
         if (onMenu != null) {
+            // The list page needs one toolbar, not a brand row plus a display-sized title.
+            TextView heading = header.findViewWithTag("hushfeed_page_title");
+            LinearLayout toolbar = header.findViewWithTag("hushfeed_toolbar");
+            header.removeView(heading);
+            toolbar.removeViewAt(1);
+            heading.setTextSize(20);
+            toolbar.addView(heading, new LinearLayout.LayoutParams(0, -2, 1f));
+            frame.setPadding(dp(context, 16), 0, dp(context, 16), dp(context, 8));
             View menu = iconButton(context, "icon_ellipsis_horizontal", android.R.drawable.ic_menu_more,
                     L10n.t(context, "More options"), onMenu);
             menu.setTag("feature_gate_menu");
@@ -175,7 +183,7 @@ final class FeatureGateLabUi {
         LinearLayout labels = new LinearLayout(context);
         labels.setOrientation(LinearLayout.VERTICAL);
         labels.addView(body(context, title), matchWrap());
-        labels.addView(label(context, summary), matchWrap());
+        if (summary != null && !summary.isEmpty()) labels.addView(label(context, summary), matchWrap());
         row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         // The control draws the state and nothing else: the row answers the tap and the reader.
         control.setClickable(false);
@@ -185,7 +193,8 @@ final class FeatureGateLabUi {
                 ViewGroup.LayoutParams.WRAP_CONTENT, dp(context, 48)));
         row.setClickable(true);
         row.setFocusable(true);
-        row.setContentDescription(L10n.f(context, "%1$s. %2$s", title, summary));
+        row.setContentDescription(summary == null || summary.isEmpty()
+                ? title : L10n.f(context, "%1$s. %2$s", title, summary));
         row.setOnClickListener(view -> {
             if (control.isEnabled()) control.toggle();
         });

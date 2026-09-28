@@ -25,6 +25,7 @@ import app.morphe.extension.tiktok.blockauthor.BlockGlyphDrawable;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.blockauthor.VideoAuthor;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.tiktok.SignedInUser;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -554,6 +555,7 @@ public final class CommentTools {
         if (button != null) {
             ControlTouchListener listener = existingControl(button);
             if (listener != null) listener.handBack(button);
+            CommentLikeTouchTarget.detachBlockHalo(button);
             // The native thumbs down control uses touch handling; this click belongs to the takeover.
             button.setOnClickListener(null);
             button.setClickable(state.buttonClickable);
@@ -662,6 +664,8 @@ public final class CommentTools {
         if (button == null) return;
         control(button).blocking = true;
         button.setOnClickListener(CommentTools::onDislikeTapped);
+        // About 40 x 24 dp on the S25's sheet; the halo grows it toward 48 x 48 in blank space.
+        CommentLikeTouchTarget.attachBlockHalo(button);
         if (icon != null) {
             control(icon).blocking = true;
             // One target for the row rather than two, so the label and the state are in one
@@ -762,7 +766,7 @@ public final class CommentTools {
             // goes back the moment the control is handed over.
             if (!(image.getDrawable() instanceof BlockGlyphDrawable)) {
                 image.setImageDrawable(new BlockGlyphDrawable(
-                        glyphColour(image.getContext()), SettingsUi.dp(image.getContext(), 2)));
+                        glyphColour(cell, image.getContext()), SettingsUi.dp(image.getContext(), 2)));
             }
             if (blocked) {
                 image.setColorFilter(BLOCKED_TINT, PorterDuff.Mode.SRC_IN);
@@ -778,10 +782,50 @@ public final class CommentTools {
      * <p>The comment sheet follows whatever theme TikTok is in, and there is one colour that is
      * wrong in both: a fixed one. A glyph painted the accent red at rest would shout on a screen
      * where nothing has happened yet, and a fixed white one disappears on the light sheet. The
-     * theme's own secondary text colour is the same colour the icon beside it is already drawn
-     * in, so the control keeps the weight it had and only its shape changes. The accent is the
-     * fallback: visible everywhere, and only reached if the theme cannot answer.
+     * colour TikTok gives most of the row's own text (the name, the time, Reply, the like count)
+     * is its secondary grey for the sheet it is drawing, the weight the icon beside it has, so
+     * the control keeps that weight and only its shape changes. The Android theme's secondary
+     * text colour was read before, but TikTok's dark mode is its own and doesn't follow the
+     * Android theme: on the S25's dark sheet that put a near black symbol on a near black sheet,
+     * about 1.13:1 (2026-09-26). It stays as the fallback for a row with no text, and the accent
+     * after it.
      */
+    static int glyphColour(View cell, android.content.Context context) {
+        Integer fromRow = mostCommonTextColour(cell);
+        return fromRow != null ? fromRow : glyphColour(context);
+    }
+
+    /** The text colour most of a row's visible, non-empty TextViews share, or null for none. */
+    static Integer mostCommonTextColour(View root) {
+        java.util.Map<Integer, Integer> counts = new java.util.LinkedHashMap<>();
+        java.util.ArrayDeque<View> pending = new java.util.ArrayDeque<>();
+        if (root != null) pending.add(root);
+        while (!pending.isEmpty()) {
+            View view = pending.poll();
+            if (view.getVisibility() != View.VISIBLE) continue;
+            if (view instanceof android.widget.TextView) {
+                android.widget.TextView text = (android.widget.TextView) view;
+                if (text.getText() != null && text.getText().length() > 0) {
+                    Integer colour = text.getCurrentTextColor();
+                    Integer seen = counts.get(colour);
+                    counts.put(colour, seen == null ? 1 : seen + 1);
+                }
+            } else if (view instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) pending.add(group.getChildAt(i));
+            }
+        }
+        Integer best = null;
+        int bestCount = 0;
+        for (java.util.Map.Entry<Integer, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() > bestCount) {
+                best = entry.getKey();
+                bestCount = entry.getValue();
+            }
+        }
+        return best;
+    }
+
     private static int glyphColour(android.content.Context context) {
         try {
             android.util.TypedValue value = new android.util.TypedValue();
@@ -1000,33 +1044,13 @@ public final class CommentTools {
         if (signedInUserIdForTests != null) {
             return signedInUserIdForTests.isEmpty() ? null : signedInUserIdForTests;
         }
-        try {
-            Class<?> serviceManagerClass = Class.forName(SERVICE_MANAGER_CLASS);
-            Object serviceManager = serviceManagerClass.getMethod("get").invoke(null);
-            Class<?> accountServiceClass = Class.forName(ACCOUNT_USER_SERVICE_CLASS);
-            Object accountService = serviceManagerClass
-                    .getMethod("getService", Class.class)
-                    .invoke(serviceManager, accountServiceClass);
-            if (accountService == null
-                    || !Boolean.TRUE.equals(accountServiceClass.getMethod("isLogin").invoke(accountService))) {
-                return null;
-            }
-            Object id = accountServiceClass.getMethod("getCurUserId").invoke(accountService);
-            return id instanceof String && !((String) id).isEmpty() ? (String) id : null;
-        } catch (Throwable ignored) {
-            // Not signed in, or a build where the account service moved. Either way the filter
-            // behaves as it did before: it hides every comment carrying a picture.
-            return null;
-        }
+        // Null when signed out or on a build where the account service moved. Either way the
+        // filter behaves as it did before: it hides every comment carrying a picture.
+        return SignedInUser.id();
     }
 
     /** So a test can stand in for the account service, which needs the host to be running. */
     static String signedInUserIdForTests;
-
-    private static final String SERVICE_MANAGER_CLASS =
-            "com.ss.android.ugc.aweme.framework.services.ServiceManager";
-    private static final String ACCOUNT_USER_SERVICE_CLASS =
-            "com.ss.android.ugc.aweme.IAccountUserService";
 
     private static boolean hasMedia(Object comment) {
         Object images = Reflect.property(comment, "getImageList", "imageList");

@@ -101,13 +101,13 @@ public final class ShareActionChecklistPreference extends DialogPreference {
         int padding = SettingsUi.dp(context, 22);
         root.setPadding(padding, padding, padding, SettingsUi.dp(context, 8));
 
-        TextView title = SettingsUi.text(context, getTitle().toString(), 20,
+        TextView title = SettingsUi.text(context, getTitle().toString(), SettingsUi.TEXT_HEADLINE,
                 SettingsUi.textPrimary(), Typeface.BOLD);
         SettingsUi.markDialogHeading(title);
         root.addView(title, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        TextView summary = SettingsUi.text(context, getSummary().toString(), 14,
+        TextView summary = SettingsUi.text(context, getSummary().toString(), SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.textSecondary(), Typeface.NORMAL);
         LinearLayout.LayoutParams summaryParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -176,7 +176,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
             rows.addView(check, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-            TextView identifier = SettingsUi.text(getContext(), entry.key, 12,
+            TextView identifier = SettingsUi.text(getContext(), entry.key, SettingsUi.TEXT_CAPTION,
                     SettingsUi.textSecondary(), Typeface.NORMAL);
             // Relative padding: the 48 is the indent that lines this up under the checkbox
             // label above it, and in an RTL layout that checkbox is on the right.
@@ -194,13 +194,13 @@ public final class ShareActionChecklistPreference extends DialogPreference {
     }
 
     private void addState(String title, String summary) {
-        TextView state = SettingsUi.text(getContext(), L10n.t(getContext(), title), 14,
+        TextView state = SettingsUi.text(getContext(), L10n.t(getContext(), title), SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.textSecondary(), Typeface.NORMAL);
         state.setPadding(SettingsUi.dp(getContext(), 8), SettingsUi.dp(getContext(), 8),
                 SettingsUi.dp(getContext(), 8), SettingsUi.dp(getContext(), 8));
         rows.addView(state, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        TextView details = SettingsUi.text(getContext(), L10n.t(getContext(), summary), 12,
+        TextView details = SettingsUi.text(getContext(), L10n.t(getContext(), summary), SettingsUi.TEXT_CAPTION,
                 SettingsUi.textSecondary(), Typeface.NORMAL);
         details.setPadding(SettingsUi.dp(getContext(), 8), 0, SettingsUi.dp(getContext(), 8),
                 SettingsUi.dp(getContext(), 8));

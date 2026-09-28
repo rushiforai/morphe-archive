@@ -1,0 +1,29 @@
+# Reviewed Android manifest changes the Hushfacebook patches make to a stock Facebook APK.
+#
+# One line per change, as "<kind> <value>":
+#   permission-added     <permission name>      the patched app asks for something stock did not
+#   permission-removed   <permission name>      the patched app no longer asks for it
+#   exported-added       <kind>:<class>         something other apps can now reach
+#   exported-removed     <kind>:<class>         something other apps can no longer reach
+#
+# scripts/build-release-receipt.ps1 writes the delta it measures into the release receipt, and
+# scripts/validate-release-facts.ps1 refuses a receipt carrying a change that is not listed here.
+# scripts/verify-all-patches.ps1 reads it too, and stops a run whose patched manifest changed in
+# a way it doesn't list. A line nothing produces any more fails the receipt as well, so this
+# cannot quietly outlive the change it approved.
+#
+# Everything here is Install beside Meta's apps. Facebook declares two signature permissions that
+# Messenger, Facebook Lite, Business Suite and Workplace declare too, and Android lets one signing
+# key own a permission name, so a re-signed Facebook and those apps couldn't be installed
+# together. The patch renames every mention of Facebook's two from com.facebook. to
+# app.hushfacebook., and what the receipt sees of that is Facebook asking for the new names in
+# place of the old ones. It declares the new names itself at the same signature level, so nothing
+# it asks for is granted to anyone the old names weren't.
+#
+# Nothing else is approved. A patch that asks for any other permission, drops one, or changes what
+# other apps can reach still stops the release until somebody says why.
+
+permission-added app.hushfacebook.permission.prod.FB_APP_COMMUNICATION
+permission-added app.hushfacebook.receiver.permission.ACCESS
+permission-removed com.facebook.permission.prod.FB_APP_COMMUNICATION
+permission-removed com.facebook.receiver.permission.ACCESS

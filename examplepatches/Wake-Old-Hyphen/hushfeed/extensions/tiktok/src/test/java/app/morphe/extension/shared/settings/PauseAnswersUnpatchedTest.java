@@ -67,7 +67,8 @@ public class PauseAnswersUnpatchedTest {
             "bottom_navigation_observed_tabs", "down_path", "download_paths_migrated",
             "remembered_speed_v2", "session_budget_state", "block_author_button_position",
             "local_hide_button_position", "block_sound_button_position",
-            "not_interested_button_position", "share_action_catalog", "diagnostic_report_salt",
+            "not_interested_button_position", "feed_mute_button_position", "share_action_catalog",
+            "diagnostic_report_salt",
             // The budget's day is worked out from this hour, paused or not.
             "session_budget_reset_hour",
             // Downloads rewrite TikTok's folder and file name with no switch in front.

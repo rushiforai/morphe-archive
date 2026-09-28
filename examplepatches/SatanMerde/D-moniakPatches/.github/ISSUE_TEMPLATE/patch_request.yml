@@ -1,13 +1,13 @@
-name: "✨ Demande d'ajout de patch / Patch request"
-description: "Demander l'ajout d'un nouveau patch ou le support d'un nouveau jeu / application."
+name: "✨ Demande de patch ou mise à niveau fonctionnelle / Patch Request"
+description: "Demander de rendre un patch expérimental 100% fonctionnel ou le support d'un nouveau jeu / application."
 title: "patch: "
 labels: ["enhancement", "patch-request"]
 body:
   - type: markdown
     attributes:
       value: |
-        ### 💡 Demande d'ajout de patch / Patch request
-        Vous souhaitez qu'un nouveau patch soit créé ou qu'un nouveau jeu/application soit supporté ? Remplissez ce formulaire !
+        ### 💡 Demande de patch ou mise à niveau fonctionnelle / Patch Request
+        Vous souhaitez qu'un patch expérimental existant soit rendu **100% fonctionnel pour la prochaine mise à jour**, ou proposer un nouveau jeu / application ? Remplissez ce formulaire !
         Vérifiez d'abord si une demande similaire n'a pas déjà été faite dans les [Issues existantes](https://github.com/SatanMerde/D-moniakPatches/issues?q=is%3Aissue).
 
   - type: input
@@ -15,7 +15,7 @@ body:
     attributes:
       label: "Nom du jeu ou de l'application / Game or App Name"
       description: "Le nom complet du jeu ou de l'application concernée."
-      placeholder: "ex: Subway Surfers, Hungry Shark Evolution, etc."
+      placeholder: "ex: Truecaller, Subway Surfers, Duolingo, etc."
     validations:
       required: true
 
@@ -23,8 +23,8 @@ body:
     id: package-name
     attributes:
       label: "Nom de package Android / Package Name (si connu)"
-      description: "L'identifiant de package Android (ex. com.kiloo.subwaysurf)."
-      placeholder: "ex: com.kiloo.subwaysurf"
+      description: "L'identifiant de package Android (ex. com.truecaller)."
+      placeholder: "ex: com.truecaller"
     validations:
       required: false
 
@@ -40,9 +40,11 @@ body:
   - type: checkboxes
     id: patch-type
     attributes:
-      label: "Type de patch souhaité / Desired Patch Type"
+      label: "Type de demande / Request Type"
       description: "Cochez le ou les types de fonctionnalités souhaitées."
       options:
+        - label: "Rendre un patch expérimental existant 100% fonctionnel (Make experimental patch functional for next update)"
+        - label: "Déblocage Premium / Pro / VIP (Unlock Premium / Pro / VIP)"
         - label: "Bypass de publicités avec récompense (Rewarded Ads)"
         - label: "Achat in-app gratuit (Free In-App Purchases / Free Shopping)"
         - label: "Déblocage de contenu cosmétique ou niveaux"

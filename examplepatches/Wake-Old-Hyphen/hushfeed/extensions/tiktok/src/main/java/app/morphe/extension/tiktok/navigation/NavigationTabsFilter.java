@@ -15,6 +15,7 @@ import android.view.View;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.featurecontrols.LiveButtonReport;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -55,15 +56,21 @@ public final class NavigationTabsFilter {
      * this filter took away. Hide the LIVE button still hides the corner button on its own.
      */
     public static boolean liveHasBottomTab(boolean original) {
+        if (original) {
+            LiveButtonReport.record(liveBottomTabHidden
+                    ? LiveButtonReport.Route.BOTTOM_TAB_TAKEN : LiveButtonReport.Route.BOTTOM_TAB);
+        }
         return original && !liveBottomTabHidden;
     }
 
     /** TikTok's LIVE top-tab modes only hide the corner button while that tab is still visible. */
     public static String liveTopTabMode(String mode) {
-        if (liveTopTabHidden && Settings.FEED_NAVIGATION.get()
-                && ("live_tab_single".equals(mode) || "live_tab_double".equals(mode))) {
+        boolean topTab = "live_tab_single".equals(mode) || "live_tab_double".equals(mode);
+        if (liveTopTabHidden && Settings.FEED_NAVIGATION.get() && topTab) {
+            LiveButtonReport.record(LiveButtonReport.Route.TOP_TAB_TAKEN);
             return "";
         }
+        if (topTab) LiveButtonReport.record(LiveButtonReport.Route.TOP_TAB);
         return mode;
     }
 

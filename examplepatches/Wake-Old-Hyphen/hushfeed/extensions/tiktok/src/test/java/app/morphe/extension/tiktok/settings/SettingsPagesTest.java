@@ -533,6 +533,13 @@ public class SettingsPagesTest {
                 String name = "pages/" + theme + "/" + SECTIONS[i].toLowerCase(java.util.Locale.ROOT);
                 UiCapture.save(page.getView(), name + ".png");
                 ListView list = page.getView().findViewById(android.R.id.list);
+                if ("PLAYBACK".equals(SECTIONS[i])) {
+                    int mute = positionOf(list, Settings.FEED_MUTED.key);
+                    assertTrue("the Sound controls are missing", mute > 0);
+                    list.setSelectionFromTop(mute - 1, 70);
+                    Shadows.shadowOf(Looper.getMainLooper()).idle();
+                    UiCapture.save(page.getView(), name + "-sound.png");
+                }
                 list.setSelection(list.getCount() - 1);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
                 UiCapture.save(page.getView(), name + "-end.png");
@@ -1931,6 +1938,34 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
             Settings.REGION_SPOOF.resetToDefault();
             SettingsStatus.simSpoofEnabled = sim;
             SettingsStatus.regionSpoofEnabled = region;
+        }
+    }
+
+    /** A greyed number row puts the note on its own line; it ran into "Current: Off" before. */
+    @Test public void aGreyedNumberRowPutsTheNoteOnALineOfItsOwn() throws Exception {
+        boolean autoAdvance = SettingsStatus.autoAdvanceEnabled;
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            SettingsStatus.autoAdvanceEnabled = true;
+            Settings.AUTO_ADVANCE.save(false);
+            Settings.AUTO_ADVANCE_LIMIT.save(0);
+            TikTokPreferenceFragment page = attachSection(activity, "PLAYBACK");
+            Preference limit = findPreference(page.getPreferenceScreen(), "Auto-advance session limit");
+            Preference parent = findPreference(page.getPreferenceScreen(), "Auto-advance videos");
+            assertNotNull(limit);
+            assertNotNull(parent);
+            String[] lines = String.valueOf(limit.getSummary()).split("\n");
+            assertEquals("Turn on " + parent.getTitle() + " first.", lines[lines.length - 1]);
+            assertEquals("Current: Off", lines[lines.length - 2]);
+
+            Settings.AUTO_ADVANCE.save(true);
+            refreshAvailability(page);
+            assertTrue(String.valueOf(limit.getSummary()).endsWith("Current: Off"));
+        } finally {
+            Settings.AUTO_ADVANCE.resetToDefault();
+            Settings.AUTO_ADVANCE_LIMIT.resetToDefault();
+            SettingsStatus.autoAdvanceEnabled = autoAdvance;
         }
     }
 

@@ -23,6 +23,11 @@ param(
     # Only for running the rest of the checks with no network. Nothing in the repo
     # passes it; the pre-push escape hatch is HUSHFEED_SKIP_PRE_PUSH=1.
     [switch]$SkipUrlCheck,
+    # The repository description to hold to the facts instead of reading it through gh. Only the
+    # script contract tests pass it, beside -SkipUrlCheck, so the description check (and the
+    # lagging-index path that decides what it wants) runs without a network. Unset, -SkipUrlCheck
+    # skips the description as before.
+    [string]$DescriptionText,
     # The published bundle description quotes a test count, which is a fact about the release it
     # describes rather than about the working tree. The two agree at the moment the description
     # is written and drift apart with the next test anyone adds, so a push that only touches
@@ -262,19 +267,23 @@ $descriptionTargetText = Format-VersionList -Versions $descriptionTargetVersions
 # lists and the Manager's community button repeat. Nothing here read it until now, and it had
 # gone two releases and two patches stale before anyone noticed. The repository it reads is the
 # one the index points at, so this cannot drift onto some other fork.
-if ($SkipUrlCheck) {
+if ($SkipUrlCheck -and -not $DescriptionText) {
     Write-Host '[release] the repository description was not read because -SkipUrlCheck was given'
 } else {
-    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-        throw ('The gh CLI is needed to read the repository description of ' + $slug +
-            '. Install it, or pass -SkipUrlCheck to run the rest with no network.')
+    if ($DescriptionText) {
+        $description = $DescriptionText.Trim()
+    } else {
+        if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+            throw ('The gh CLI is needed to read the repository description of ' + $slug +
+                '. Install it, or pass -SkipUrlCheck to run the rest with no network.')
+        }
+        $description = (& gh api "repos/$slug" --jq '.description' 2>$null)
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($description)) {
+            throw ("Could not read the description of $slug through gh. Run gh auth login, or pass " +
+                '-SkipUrlCheck to run the rest with no network.')
+        }
+        $description = $description.Trim()
     }
-    $description = (& gh api "repos/$slug" --jq '.description' 2>$null)
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($description)) {
-        throw ("Could not read the description of $slug through gh. Run gh auth login, or pass " +
-            '-SkipUrlCheck to run the rest with no network.')
-    }
-    $description = $description.Trim()
 
     $wanted = @(
         @{ Pattern = "\b$([regex]::Escape($descriptionVersion))\b"; Wanted = $descriptionVersion }

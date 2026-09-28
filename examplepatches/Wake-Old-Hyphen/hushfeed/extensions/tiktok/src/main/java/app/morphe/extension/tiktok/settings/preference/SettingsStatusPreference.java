@@ -150,14 +150,14 @@ public final class SettingsStatusPreference extends Preference {
         }
 
         TextView title = SettingsUi.text(
-                context, String.valueOf(getTitle()), 18, SettingsUi.textPrimary(),
+                context, String.valueOf(getTitle()), SettingsUi.TEXT_HEADLINE_SMALL, SettingsUi.textPrimary(),
                 android.graphics.Typeface.BOLD);
         title.setTag(TITLE_TAG);
         title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         labels.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
         TextView summary = SettingsUi.text(
-                context, String.valueOf(getSummary()), 14, SettingsUi.textSecondary(), 0);
+                context, String.valueOf(getSummary()), SettingsUi.TEXT_BODY_SMALL, SettingsUi.textSecondary(), 0);
         summary.setTag(SUMMARY_TAG);
         summary.setSingleLine(false);
         summary.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -179,7 +179,7 @@ public final class SettingsStatusPreference extends Preference {
         if (cardAction != null) {
             String label = L10n.t(context, offerTurnBackOn ? "Turn Hushfeed back on" : "Diagnostics");
             TextView action = SettingsUi.text(
-                    context, label, 14, SettingsUi.accent(),
+                    context, label, SettingsUi.TEXT_BODY_SMALL, SettingsUi.accent(),
                     android.graphics.Typeface.BOLD);
             action.setTag(offerTurnBackOn ? TURN_BACK_ON_TAG : ACTION_TAG);
             action.setContentDescription(label);

@@ -301,7 +301,7 @@ public class FeatureGateLabActionsTest {
             JSONArray rules = new JSONArray().put(rule("gate", "true")).put(rule("same_gate", "false"))
                     .put(rule("missing", "true")).put(rule("gate", "invalid")).put(42);
             JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
-                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION).put("rules", rules);
+                    .put("tiktok_version", FeatureGateLabStore.targetVersion()).put("rules", rules);
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             try (var gzip = new GZIPOutputStream(bytes)) { gzip.write(root.toString().getBytes(StandardCharsets.UTF_8)); }
             action(fragment, 3);
@@ -328,7 +328,7 @@ public class FeatureGateLabActionsTest {
             var activity = owner.get();
             var fragment = attach(activity);
             JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
-                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("tiktok_version", FeatureGateLabStore.targetVersion())
                     .put("rules", new JSONArray().put(rule("gate", "true")));
             action(fragment, 3);
             var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
@@ -339,6 +339,28 @@ public class FeatureGateLabActionsTest {
             waitForImportDialog("Imported 1 values", "0 rejected");
             assertFalse(FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").enabled);
             assertEquals("true", FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").value);
+        }
+    }
+
+    /** The rules a change of TikTok build turned off are counted when the Lab next opens. */
+    @Test public void openingTheLabAfterABuildChangeSaysHowManyRulesWereTurnedOff() throws Exception {
+        app.morphe.extension.shared.BuildNames.setRunningBuildForTests("47.0.3");
+        try {
+            FeatureGateLabStore.resetAllLabData();
+            // Unchanged on 47.1.3, a default that moved, and a gate 47.1.3 dropped.
+            FeatureGateLabStore.saveRule("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+            FeatureGateLabStore.saveRule("abmock", "low_memory_kill_monitor", "INT", "50", true);
+            FeatureGateLabStore.saveRule("abmock", "comment_cell_badge_dedup", "BOOLEAN", "true", true);
+            app.morphe.extension.shared.BuildNames.setRunningBuildForTests("47.1.3");
+            try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+                attach(owner.get());
+                waitFor("2 overrides were turned off because the Lab couldn't confirm their gates are "
+                        + "unchanged in TikTok 47.1.3. Review them before turning them back on.");
+                assertTrue(FeatureGateLabStore.rule("abmock", "1005_max_limit_count_daily", "INT").enabled);
+            }
+        } finally {
+            FeatureGateLabStore.resetAllLabData();
+            app.morphe.extension.shared.BuildNames.setRunningBuildForTests(null);
         }
     }
 
@@ -376,7 +398,7 @@ public class FeatureGateLabActionsTest {
         JSONArray many = new JSONArray();
         for (int i = 0; i < 2000; i++) many.put(rule("gate" + i, "true"));
         JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
-                .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION).put("rules", many);
+                .put("tiktok_version", FeatureGateLabStore.targetVersion()).put("rules", many);
         assertLoadedJsonRejected(root.toString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -385,7 +407,7 @@ public class FeatureGateLabActionsTest {
         JSONObject duplicate = rule("gate", "false");
         JSONObject duplicateAgain = rule("gate", "true");
         JSONObject root = new JSONObject().put("schema", 1).put("target", "TikTok global")
-                .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                .put("tiktok_version", FeatureGateLabStore.targetVersion())
                 .put("rules", new JSONArray().put(nonString).put(duplicate).put(duplicateAgain));
         FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewProfile(
                 root.toString(), FeatureGateCatalog.cachedSnapshot().byIdentity);
@@ -432,7 +454,7 @@ public class FeatureGateLabActionsTest {
             snapshot.setAccessible(true);
             snapshot.set(fragment, null);
             JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
-                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("tiktok_version", FeatureGateLabStore.targetVersion())
                     .put("rules", new JSONArray().put(rule("gate", "true")));
             var uri = android.net.Uri.parse("content://lab-test/not-ready.json");
             Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
@@ -453,7 +475,7 @@ public class FeatureGateLabActionsTest {
             var activity = owner.get();
             var fragment = attach(activity);
             JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
-                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("tiktok_version", FeatureGateLabStore.targetVersion())
                     .put("rules", new JSONArray().put(rule("gate", "true")));
             var uri = android.net.Uri.parse("content://lab-test/leaving.json");
             Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
@@ -856,7 +878,15 @@ public class FeatureGateLabActionsTest {
         assertNotNull("the overflow did not open", menu);
         android.widget.ListView list = menu.getListView();
         assertNotNull("the overflow has no items", list);
-        int position = id - 1;
+        // These IDs name actions, not their positions after adding another menu entry.
+        String[] labels = {"Refresh values", "Export loaded values", "Import loaded values",
+                "Remove all overrides", "Clear all Lab data (overrides, switch, recordings)",
+                "Undo last Lab change"};
+        int position = -1;
+        for (int index = 0; index < list.getAdapter().getCount(); index++) {
+            if (labels[id - 1].equals(list.getAdapter().getItem(index))) position = index;
+        }
+        assertTrue("missing action " + labels[id - 1], position >= 0);
         assertTrue("overflow item " + position + " is offered but cannot be taken",
                 list.getAdapter().isEnabled(position));
         assertTrue(list.performItemClick(list.getAdapter().getView(position, null, list),

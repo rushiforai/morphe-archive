@@ -44,6 +44,7 @@ public class OverlayControlsTest {
         Settings.LOCAL_HIDE_BUTTON_POSITION.resetToDefault();
         Settings.BLOCK_SOUND_BUTTON_POSITION.resetToDefault();
         Settings.NOT_INTERESTED_BUTTON_POSITION.resetToDefault();
+        Settings.FEED_MUTE_BUTTON_POSITION.resetToDefault();
     }
 
     @Test public void theInstalledBlockButtonDrawsBothTheRingAndTheSlash() throws Exception {
@@ -591,8 +592,47 @@ public class OverlayControlsTest {
         }
     }
 
+    /**
+     * Mute feed videos keeps one name and reads out its state: a screen reader hears "Mute feed
+     * videos", checked or not, and Muted or Sound on, and a tap flips the saved mute.
+     */
+    @Test @org.robolectric.annotation.Config(sdk = 34)
+    public void theMuteButtonReadsOutWhetherTheFeedIsMuted() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().visible().get();
+        Utils.setContext(activity);
+        boolean wasEnabled = app.morphe.extension.tiktok.settings.SettingsStatus.feedMuteEnabled;
+        app.morphe.extension.tiktok.settings.SettingsStatus.feedMuteEnabled = true;
+        Settings.FEED_MUTED.save(false);
+        try {
+            Method factory = BlockAuthorOverlay.class.getDeclaredMethod("createMuteButton", Activity.class);
+            factory.setAccessible(true);
+            View mute = (View) factory.invoke(null, activity);
+            assertEquals("Mute feed videos", mute.getContentDescription().toString());
+            AccessibilityNodeInfo node = mute.createAccessibilityNodeInfo();
+            assertTrue("the mute button isn't a switch to a reader", node.isCheckable());
+            assertFalse(node.isChecked());
+            assertEquals("Sound on", String.valueOf(mute.getStateDescription()));
+            node.recycle();
+
+            mute.performClick();
+            assertTrue("a tap didn't save the mute", Settings.FEED_MUTED.get());
+            node = mute.createAccessibilityNodeInfo();
+            assertTrue(node.isChecked());
+            assertEquals("Muted", String.valueOf(mute.getStateDescription()));
+            assertEquals("the name changed with the state", "Mute feed videos", mute.getContentDescription().toString());
+            node.recycle();
+
+            mute.performClick();
+            assertFalse(Settings.FEED_MUTED.get());
+            assertEquals("Sound on", String.valueOf(mute.getStateDescription()));
+        } finally {
+            Settings.FEED_MUTED.resetToDefault();
+            app.morphe.extension.tiktok.settings.SettingsStatus.feedMuteEnabled = wasEnabled;
+        }
+    }
+
     private static final String[] CONTROLS = {"buttonReference", "localHideReference",
-            "soundButtonReference", "notInterestedReference"};
+            "soundButtonReference", "notInterestedReference", "muteReference"};
 
     /** The content root with all four controls attached, laid out at a known size. */
     /**
@@ -609,13 +649,14 @@ public class OverlayControlsTest {
         Settings.LOCAL_HIDE_BUTTON_POSITION.resetToDefault();
         Settings.BLOCK_SOUND_BUTTON_POSITION.resetToDefault();
         Settings.NOT_INTERESTED_BUTTON_POSITION.resetToDefault();
+        Settings.FEED_MUTE_BUTTON_POSITION.resetToDefault();
         ViewGroup root = attachedRoot(1080, 2316);
         // TikTok's rail on 46.2.3 at this size: the avatar as uiautomator reports it, and the
         // column under it, which the like, comment, favourite, share and sound controls share.
         android.graphics.Rect avatar = new android.graphics.Rect(932, 1019, 1057, 1144);
         android.graphics.Rect rail = new android.graphics.Rect(915, 1019, 1080, 2100);
         for (String name : new String[]{"buttonReference", "localHideReference",
-                "soundButtonReference", "notInterestedReference"}) {
+                "soundButtonReference", "notInterestedReference", "muteReference"}) {
             View chip = held(name);
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) chip.getLayoutParams();
             android.graphics.Rect box = new android.graphics.Rect(params.leftMargin,
@@ -764,7 +805,7 @@ public class OverlayControlsTest {
         Settings.NOT_INTERESTED_BUTTON.save(true);
 
         for (String factoryName : new String[]{"createButton", "createSoundButton",
-                "createLocalHideButton", "createNotInterestedButton"}) {
+                "createLocalHideButton", "createNotInterestedButton", "createMuteButton"}) {
             Method factory = BlockAuthorOverlay.class.getDeclaredMethod(factoryName, Activity.class);
             factory.setAccessible(true);
             View control = (View) factory.invoke(null, activity);

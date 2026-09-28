@@ -682,6 +682,7 @@ final class ParallelRangeProxy {
         connection.setReadTimeout(TIMEOUT_MS);
         connection.setRequestProperty("Range", "bytes=" + start + "-" + end);
         connection.setRequestProperty("Accept-Encoding", "identity");
+        connection.setRequestProperty("User-Agent", "");
         if (cookie != null) {
             connection.setRequestProperty("Cookie", cookie);
         }

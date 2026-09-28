@@ -50,7 +50,9 @@ class JamQueueCommandTest {
         assertNull(decode(byteArrayOf(-1)))
         assertEquals("abcdefghijk", watch(field(48687757, video)))
         val playlistWatch = field(48687757, video + field(2, "PLplaylist".toByteArray()))
-        assertNull(watch(playlistWatch))
+        assertEquals("abcdefghijk", watch(playlistWatch))
+        assertNull(watch(field(48687757, field(2, "PLplaylist".toByteArray()))))
+        assertNull(watch(field(48687757, video + video)))
         assertTrue(decoder.getMethod("isPlayback", ByteArray::class.java).invoke(null, playlistWatch) as Boolean)
       }
     } finally { output.deleteRecursively() }

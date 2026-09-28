@@ -42,7 +42,7 @@ internal object RideStatsFlagFingerprint : Fingerprint(
  * The method body is replaced instead of patched in place, which keeps the method
  * valid no matter how the obfuscated class is laid out.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321):
+ * Equivalent smali (verified against 13.5.1, versionCode 324):
  * ```
  * .method public final k()Z
  *     .locals 0

@@ -4,13 +4,14 @@
  */
 package app.morphe.patches.tiktok.interaction.downloads
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.addInstruction
+import app.morphe.util.addInstructions
+import app.morphe.util.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -25,6 +26,9 @@ import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
 import app.morphe.util.numberOfParameterRegisters
+import app.morphe.util.numberOfParameterRegistersLogical
+import app.morphe.util.p0Register
+import app.morphe.util.cloneMutable
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -40,6 +44,44 @@ private const val STICKER_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/ti
 private const val FILENAME_FORMATTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/download/DownloadFilenameFormatter;"
 private const val COMMENT_LIVE_PHOTO_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/download/CommentLivePhotoSaver;"
 internal const val COMMENT_MODEL_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
+
+/** Each invocation captures its folder before consuming the staging name, without shared state. */
+context(patchContext: BytecodePatchContext)
+internal fun MutableMethod.withDownloadDestination(
+    nameParameter: Int,
+    pathGetter: String,
+    consume: Boolean,
+): MutableMethod {
+    val cloned = captureDownloadDestination(nameParameter, pathGetter, consume)
+    patchContext.mutableClassDefBy(definingClass).methods.apply {
+        remove(this@withDownloadDestination)
+        add(cloned)
+    }
+    return cloned
+}
+
+internal fun MutableMethod.captureDownloadDestination(
+    nameParameter: Int,
+    pathGetter: String,
+    consume: Boolean,
+): MutableMethod {
+    val nameRegister = p0Register + nameParameter
+    val insertion = numberOfParameterRegistersLogical
+    val cloned = cloneMutable(additionalRegisters = numberOfParameterRegisters)
+    val pathRegister = cloned.p0Register + nameParameter
+    if (pathRegister > 255) throw PatchException("Downloads: destination register exceeds move-result range")
+    val dynamicKind = pathGetter == "getMediaDestination"
+    val lastParameter = if (dynamicKind) nameParameter + 1 else nameParameter
+    val signature = if (dynamicKind) "Ljava/lang/String;Z" else "Ljava/lang/String;"
+    val nameGetter = if (consume) "consumeDestinationName" else "resolveDestinationName"
+    cloned.addInstructions(insertion, """
+        invoke-static/range {p$nameParameter .. p$lastParameter}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->$pathGetter($signature)Ljava/lang/String;
+        move-result-object p$nameParameter
+        invoke-static/range {v$nameRegister .. v$nameRegister}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->$nameGetter(Ljava/lang/String;)Ljava/lang/String;
+        move-result-object v$nameRegister
+    """)
+    return cloned
+}
 
 /**
  * Hands the finished download's path and video to the filename formatter, at index 0.
@@ -337,14 +379,7 @@ val downloadsPatch = bytecodePatch(
         }
 
         // Change the download path.
-        VideoDownloadUriFingerprint.method.apply {
-            addInstructions(
-                0,
-                """
-                    invoke-static/range {p1 .. p1}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->consumeDestinationName(Ljava/lang/String;)Ljava/lang/String;
-                    move-result-object p1
-                """,
-            )
+        VideoDownloadUriFingerprint.method.withDownloadDestination(1, "getVideoDestination", true).apply {
             findInstructionIndicesReversedOrThrow {
                 getReference<FieldReference>().let { ref ->
                     ref?.definingClass == "Landroid/os/Environment;" && ref.name.startsWith("DIRECTORY_")
@@ -362,22 +397,14 @@ val downloadsPatch = bytecodePatch(
                 addInstructions(
                     fieldIndex,
                     """
-                        invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->getVideoDownloadPath()Ljava/lang/String;
-                        move-result-object v$pathRegister
+                        move-object/from16 v$pathRegister, p1
                         invoke-virtual { v$builderRegister, v$pathRegister }, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                     """,
                 )
             }
         }
 
-        PhotoDownloadUriFingerprint.method.apply {
-            addInstructions(
-                0,
-                """
-                    invoke-static/range {p1 .. p1}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->consumeDestinationName(Ljava/lang/String;)Ljava/lang/String;
-                    move-result-object p1
-                """,
-            )
+        PhotoDownloadUriFingerprint.method.withDownloadDestination(1, "getPhotoDestination", true).apply {
             findInstructionIndicesReversedOrThrow {
                 getReference<FieldReference>().let { ref ->
                     ref?.definingClass == "Landroid/os/Environment;" && ref.name.startsWith("DIRECTORY_")
@@ -390,22 +417,14 @@ val downloadsPatch = bytecodePatch(
                 addInstructions(
                     fieldIndex,
                     """
-                        invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->getPhotoDownloadPath()Ljava/lang/String;
-                        move-result-object v$pathRegister
+                        move-object/from16 v$pathRegister, p1
                         invoke-virtual { v$builderRegister, v$pathRegister }, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                     """,
                 )
             }
         }
 
-        VideoLookupUriFingerprint.method.apply {
-            addInstructions(
-                0,
-                """
-                    invoke-static/range {p1 .. p1}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->resolveDestinationName(Ljava/lang/String;)Ljava/lang/String;
-                    move-result-object p1
-                """,
-            )
+        VideoLookupUriFingerprint.method.withDownloadDestination(1, "getVideoDestination", false).apply {
             findInstructionIndicesReversedOrThrow {
                 getReference<FieldReference>().let { ref ->
                     ref?.definingClass == "Landroid/os/Environment;" && ref.name.startsWith("DIRECTORY_")
@@ -418,8 +437,7 @@ val downloadsPatch = bytecodePatch(
                 addInstructions(
                     fieldIndex,
                     """
-                        invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->getVideoDownloadPath()Ljava/lang/String;
-                        move-result-object v$pathRegister
+                        move-object/from16 v$pathRegister, p1
                         invoke-virtual { v$builderRegister, v$pathRegister }, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                     """,
                 )
@@ -432,14 +450,7 @@ val downloadsPatch = bytecodePatch(
             replaceInstruction(collectionIndex, "invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->getVideoCollectionUri()Landroid/net/Uri;")
         }
 
-        PhotoLookupUriFingerprint.method.apply {
-            addInstructions(
-                0,
-                """
-                    invoke-static/range {p1 .. p1}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->resolveDestinationName(Ljava/lang/String;)Ljava/lang/String;
-                    move-result-object p1
-                """,
-            )
+        PhotoLookupUriFingerprint.method.withDownloadDestination(1, "getPhotoDestination", false).apply {
             findInstructionIndicesReversedOrThrow {
                 getReference<FieldReference>().let { ref ->
                     ref?.definingClass == "Landroid/os/Environment;" && ref.name.startsWith("DIRECTORY_")
@@ -452,8 +463,7 @@ val downloadsPatch = bytecodePatch(
                 addInstructions(
                     fieldIndex,
                     """
-                        invoke-static {}, $EXTENSION_CLASS_DESCRIPTOR->getPhotoDownloadPath()Ljava/lang/String;
-                        move-result-object v$pathRegister
+                        move-object/from16 v$pathRegister, p1
                         invoke-virtual { v$builderRegister, v$pathRegister }, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                     """,
                 )
@@ -485,14 +495,7 @@ val downloadsPatch = bytecodePatch(
         }
 
         // Image posts use a direct media-copy helper instead of the ordinary photo wrapper.
-        ImagePostMediaCopyFingerprint.method.apply {
-            addInstructions(
-                0,
-                """
-                    invoke-static/range {p2 .. p2}, $FILENAME_FORMATTER_CLASS_DESCRIPTOR->consumeDestinationName(Ljava/lang/String;)Ljava/lang/String;
-                    move-result-object p2
-                """,
-            )
+        ImagePostMediaCopyFingerprint.method.withDownloadDestination(2, "getMediaDestination", true).apply {
             findInstructionIndicesReversedOrThrow {
                 getReference<FieldReference>()?.let { reference ->
                     reference.definingClass == "Landroid/os/Environment;" && reference.name == "DIRECTORY_DCIM"
@@ -505,8 +508,7 @@ val downloadsPatch = bytecodePatch(
                 addInstructions(
                     fieldIndex,
                     """
-                        invoke-static/range {p3 .. p3}, $EXTENSION_CLASS_DESCRIPTOR->getMediaDownloadPath(Z)Ljava/lang/String;
-                        move-result-object v$pathRegister
+                        move-object/from16 v$pathRegister, p2
                         invoke-virtual {v$builderRegister, v$pathRegister}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
                     """,
                 )

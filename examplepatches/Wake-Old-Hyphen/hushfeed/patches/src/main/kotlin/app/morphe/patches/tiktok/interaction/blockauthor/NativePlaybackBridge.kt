@@ -6,7 +6,7 @@
  */
 package app.morphe.patches.tiktok.interaction.blockauthor
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.util.cloneMutable

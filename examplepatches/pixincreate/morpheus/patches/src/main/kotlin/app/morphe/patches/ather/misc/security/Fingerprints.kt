@@ -9,27 +9,49 @@ import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * Matches [com.ather.common.utils.coreUtils.SecurityCheck.performSecurityCheck].
+ * Matches the security-check factory the app runs on start-up.
  *
  * ```
- * public final CheckResult performSecurityCheck(boolean developerOptionsEnabled)
+ * public static CheckResult b(boolean developerOptionsEnabled)
  * ```
  *
- * The method returns `CheckResult.DeveloperOptionsEnabled` when Developer Options
- * are on and `CheckResult.Compromised` when root/Frida indicators are found.
- * MainActivity feeds the result into a Compose state that gates the app behind a
- * blocking warning screen.
+ * The method returns `DeveloperOptionsEnabled` when Developer Options are on,
+ * `Compromised` when root, LSPosed or Frida indicators are found and `Secure`
+ * otherwise. MainActivity stores the result in the Compose state that gates the app
+ * behind a blocking warning screen.
  *
- * The class name is stable (not obfuscated) across 13.x builds. The fingerprint
- * pins the defining class plus the exact signature so it survives method
- * reordering.
+ * The names are obfuscated, and the 13.5.1 build renamed every one of them:
+ * `SecurityCheck` -> `w`, `CheckResult` -> `v`, `Secure` -> `u`,
+ * `Compromised` -> `s` and `DeveloperOptionsEnabled` -> `t`. The fingerprint pins
+ * the defining class, the method name and the signature the 13.5.1 build ships.
  */
-internal object PerformSecurityCheckFingerprint : Fingerprint(
-    definingClass = "Lcom/ather/common/utils/coreUtils/SecurityCheck;",
-    name = "performSecurityCheck",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Lcom/ather/common/utils/coreUtils/SecurityCheck\$CheckResult;",
+internal object SecurityCheckFingerprint : Fingerprint(
+    definingClass = "Lcom/ather/common/utils/coreUtils/w;",
+    name = "b",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "Lcom/ather/common/utils/coreUtils/v;",
     parameters = listOf("Z"),
+)
+
+/**
+ * Matches the native signature guard that closes the app when the APK is not signed
+ * by Ather.
+ *
+ * ```
+ * public final boolean a(c callback)
+ * ```
+ *
+ * `MainActivity.onCreate` calls the guard before it does anything else and returns
+ * when the guard returns false. The class loads the native `atherkeys` library and
+ * asks it to verify the APK's signing certificate, then runs the callback when the
+ * check fails. A re-signed build therefore never reaches the UI.
+ */
+internal object SignatureGuardFingerprint : Fingerprint(
+    definingClass = "Lcom/ather/common/utils/coreUtils/SignatureGuard;",
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf("Lcom/athermobileapp/navigation/c;"),
 )
 
 /**
@@ -63,6 +85,9 @@ internal object PackageCertificateHashFingerprint : Fingerprint(
  * PairIP injects this class as the app's real `Application`, and its
  * `attachBaseContext` is the single place where the Play licence check starts. The
  * class name survives obfuscation because PairIP must reference it from the manifest.
+ *
+ * The 13.5.1 build no longer bundles PairIP, so this fingerprint matches nothing
+ * there and the patch that uses it leaves the app untouched.
  */
 internal object PairIpAttachBaseContextFingerprint : Fingerprint(
     definingClass = "Lcom/pairip/application/Application;",

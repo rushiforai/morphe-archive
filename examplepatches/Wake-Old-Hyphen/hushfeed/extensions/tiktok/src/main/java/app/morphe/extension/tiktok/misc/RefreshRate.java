@@ -69,9 +69,11 @@ public final class RefreshRate {
         float found = -1f;
         try {
             Context context = Utils.getContext();
-            WindowManager windows = context == null
-                    ? null : (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            Display display = windows == null ? null : windows.getDefaultDisplay();
+            // DisplayManager rather than an application context's WindowManager, which Android
+            // 11 and later count as a use of a context with no display.
+            android.hardware.display.DisplayManager displays = context == null ? null
+                    : (android.hardware.display.DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+            Display display = displays == null ? null : displays.getDisplay(Display.DEFAULT_DISPLAY);
             float[] rates = display == null ? null : display.getSupportedRefreshRates();
             if (rates != null) {
                 for (float rate : rates) if (rate > found) found = rate;

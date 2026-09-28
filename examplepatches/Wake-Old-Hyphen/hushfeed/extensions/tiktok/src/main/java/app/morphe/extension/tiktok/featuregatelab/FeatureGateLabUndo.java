@@ -161,12 +161,23 @@ final class FeatureGateLabUndo {
     }
 
     static synchronized void importRules(FeatureGateLabStore.ImportReview review) throws Exception {
+        importRules(review, false);
+    }
+
+    static synchronized void applyPreset(String build, String id,
+            java.util.Map<String, FeatureGateCatalog.Entry> catalog) throws Exception {
+        // Recheck after the preview, before taking an undo snapshot or changing any rule.
+        importRules(FeatureGateLabStore.reviewPreset(build, id, catalog), true);
+    }
+
+    private static void importRules(FeatureGateLabStore.ImportReview review, boolean enabled)
+            throws Exception {
         if (review.accepted.isEmpty()) return;
         var merged = new LinkedHashMap<String, FeatureGateLabStore.Rule>();
         for (var rule : FeatureGateLabStore.rules()) merged.put(rule.id, rule);
         for (var rule : review.accepted) {
             merged.put(rule.id, new FeatureGateLabStore.Rule(rule.id, rule.manager, rule.key,
-                    rule.type, rule.value, false, rule.updatedAtMs));
+                    rule.type, rule.value, enabled, rule.updatedAtMs));
         }
         replace(new ArrayList<>(merged.values()), FeatureGateLabStore.masterEnabled(),
                 FeatureGateLabStore.warningAcknowledged(), false);
@@ -303,7 +314,7 @@ final class FeatureGateLabUndo {
     private static JSONObject replacement(List<FeatureGateLabStore.Rule> rules, boolean master,
             boolean acknowledged) throws Exception {
         JSONObject root = new JSONObject().put("schema", 1).put("target", "TikTok global")
-                .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION);
+                .put("tiktok_version", FeatureGateLabStore.targetVersion());
         JSONArray items = new JSONArray();
         for (FeatureGateLabStore.Rule rule : rules) {
             items.put(new JSONObject().put("manager", rule.manager).put("key", rule.key)

@@ -1,10 +1,9 @@
 {
-    "version": "v1.31.0",
+    "version": "v1.34.1",
     "patches": [
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#1A237E",
                     "name": "Aphelion",
                     "packageName": "com.wave.aphelion",
@@ -28,7 +27,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#1A237E",
                     "name": "Aphelion",
                     "packageName": "com.wave.aphelion",
@@ -52,7 +50,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#3E2723",
                     "name": "Toolbox for Minecraft PE",
                     "packageName": "io.mrarm.mctoolbox",
@@ -76,7 +73,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#4CAF50",
                     "name": "Dan The Man",
                     "packageName": "com.halfbrick.dantheman",
@@ -100,7 +96,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APKM",
                     "appIconColor": "#1A237E",
                     "name": "Extreme Car Driving Simulator",
                     "packageName": "com.aim.racing",
@@ -124,7 +119,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APKM",
                     "appIconColor": "#1A237E",
                     "name": "Extreme Car Driving Simulator",
                     "packageName": "com.aim.racing",
@@ -148,7 +142,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "XAPK",
                     "appIconColor": "#2E7D32",
                     "name": "Hill Climb Racing",
                     "packageName": "com.fingersoft.hillclimb",
@@ -172,7 +165,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "XAPK",
                     "appIconColor": "#2E7D32",
                     "name": "Hill Climb Racing",
                     "packageName": "com.fingersoft.hillclimb",
@@ -196,7 +188,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "XAPK",
                     "appIconColor": "#2E7D32",
                     "name": "Hill Climb Racing",
                     "packageName": "com.fingersoft.hillclimb",
@@ -220,7 +211,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#0D47A1",
                     "name": "Hungry Shark",
                     "packageName": "com.fgol.HungrySharkEvolution",
@@ -244,7 +234,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#0D47A1",
                     "name": "Hungry Shark",
                     "packageName": "com.fgol.HungrySharkEvolution",
@@ -268,7 +257,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#3E2723",
                     "name": "Toolbox for Minecraft PE",
                     "packageName": "io.mrarm.mctoolbox",
@@ -292,7 +280,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#CC0000",
                     "name": "Red Ball 4",
                     "packageName": "com.FDGEntertainment.redball4.gp",
@@ -316,7 +303,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#00BCD4",
                     "name": "Smash Hit",
                     "packageName": "com.mediocre.smashhit",
@@ -340,7 +326,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#2E7D32",
                     "name": "Soccer Star",
                     "packageName": "com.soccer.score.star",
@@ -364,7 +349,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#2E7D32",
                     "name": "Soccer Star",
                     "packageName": "com.soccer.score.star",
@@ -388,7 +372,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#2E7D32",
                     "name": "Soccer Star",
                     "packageName": "com.soccer.score.star",
@@ -412,18 +395,23 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
                     "appIconColor": "#F9A825",
                     "name": "Subway Surfers",
                     "packageName": "com.kiloo.subwaysurf",
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "3.69.1"
+                            "version": "3.69.2",
+                            "versionCodes": {
+                                "ARM64_V8A": 96070,
+                                "ARMEABI_V7A": 96070,
+                                "X86": 96070,
+                                "X86_64": 96070
+                            }
                         }
                     ],
                     "versions": [
-                        "3.69.1"
+                        "3.69.2"
                     ]
                 }
             ],
@@ -431,6 +419,35 @@
             "dependencies": [],
             "description": "Coins and keys always report 2,147,483,647 and every purchase is always affordable.",
             "name": "Subway Surfers Currency Hack",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "appIconColor": "#F9A825",
+                    "name": "Subway Surfers",
+                    "packageName": "com.kiloo.subwaysurf",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "3.69.2",
+                            "versionCodes": {
+                                "ARM64_V8A": 96070,
+                                "ARMEABI_V7A": 96070,
+                                "X86": 96070,
+                                "X86_64": 96070
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "3.69.2"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Coins, keys and shop items are granted instantly and free without Google Play billing.",
+            "name": "Subway Surfers Free IAP",
             "options": []
         }
     ]

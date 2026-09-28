@@ -8,11 +8,15 @@ package app.morphe.extension.tiktok.download;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -194,7 +198,7 @@ public final class StickerGallerySaver {
             boolean dark = SettingsUi.isDarkContext(template.getContext());
             int textColor = SettingsUi.textPrimaryOn(dark);
             button.setTextColor(SettingsUi.enabledTextColors(textColor));
-            button.setTextSize(16);
+            button.setTextSize(SettingsUi.TEXT_TITLE);
             int paddingHorizontal = SettingsUi.dp(context, 16);
             int paddingVertical = SettingsUi.dp(context, 10);
             button.setPadding(paddingHorizontal, paddingVertical, paddingHorizontal, paddingVertical);
@@ -202,7 +206,7 @@ public final class StickerGallerySaver {
 
         Drawable background = template.getBackground();
         if (background != null && background.getConstantState() != null) {
-            button.setBackground(background.getConstantState().newDrawable().mutate());
+            button.setBackground(withHostPress(background, button.getCurrentTextColor()));
         } else {
             boolean dark = SettingsUi.isDarkContext(template.getContext());
             button.setBackground(SettingsUi.overlayAction(context, SettingsUi.RADIUS_CONTROL,
@@ -224,6 +228,35 @@ public final class StickerGallerySaver {
         button.setMinHeight(Math.max(button.getMinHeight(), minimum));
         button.setMinWidth(Math.max(button.getMinWidth(), minimum));
         return button;
+    }
+
+    /** The wash TikTok lays over a pressed sheet button: 0x21 of 0xff, about 13 percent. */
+    static final int HOST_PRESS_WASH_ALPHA = 0x21;
+
+    /**
+     * A copy of TikTok's button background that also shows TikTok's press.
+     *
+     * <p>TikTok's sheet buttons lighten while held, a flat wash of the text colour over the whole
+     * pill (#fe2c55 to #fe476b on Save, measured on 47.1.3), but not through their background:
+     * that is a GradientDrawable of one colour, so a plain copy never showed a press at all.
+     * Focus is left to the platform's default highlight, which is what TikTok's own buttons get.
+     * A background that already has states of its own is copied as it is.
+     */
+    static Drawable withHostPress(Drawable background, int tone) {
+        Drawable.ConstantState state = background.getConstantState();
+        Drawable surface = state.newDrawable().mutate();
+        if (surface.isStateful()) return surface;
+        Drawable wash = state.newDrawable().mutate();
+        // A tint, not a colour filter: a StateListDrawable mutates what it is given, and a
+        // mutated LayerDrawable rebuilds its layers from their constant state, which carries
+        // the tint and drops a filter set on the instance.
+        wash.setTintList(ColorStateList.valueOf((tone & 0x00ffffff) | (HOST_PRESS_WASH_ALPHA << 24)));
+        wash.setTintMode(PorterDuff.Mode.SRC_IN);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_pressed},
+                new LayerDrawable(new Drawable[]{state.newDrawable().mutate(), wash}));
+        states.addState(new int[0], surface);
+        return states;
     }
 
     private static void saveStickerFromButton(View button, StickerAsset asset) {

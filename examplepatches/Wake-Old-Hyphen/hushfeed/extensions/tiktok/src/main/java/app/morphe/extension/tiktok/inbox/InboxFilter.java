@@ -393,7 +393,7 @@ public final class InboxFilter {
         // to read as something you can press.
         clearAll.setTypeface(clearAll.getTypeface(), android.graphics.Typeface.BOLD);
         clearAll.setPaintFlags(clearAll.getPaintFlags() | android.graphics.Paint.UNDERLINE_TEXT_FLAG);
-        clearAll.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        clearAll.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
         clearAll.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
         clearAll.setContentDescription(L10n.t(activity, "Clear all suggested accounts"));
         clearAll.setMinimumHeight(SettingsUi.dp(activity, 48));

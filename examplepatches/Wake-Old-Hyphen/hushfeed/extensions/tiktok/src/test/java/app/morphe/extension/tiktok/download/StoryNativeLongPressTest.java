@@ -19,6 +19,11 @@ import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 
+import com.ss.android.ugc.aweme.feed.model.VideoItemParams;
+import com.ss.android.ugc.aweme.story.fake.StoryHoldFakes.Holder;
+import com.ss.android.ugc.aweme.story.fake.StoryHoldFakes.Monitor;
+import com.ss.android.ugc.aweme.story.fake.StoryHoldFakes.State;
+
 import java.lang.ref.Reference;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -93,7 +98,7 @@ public class StoryNativeLongPressTest {
         assertEquals(0, neighbor.child.handled);
 
         // The collection stays bound while its current sub-cell changes.
-        showing.child.LLJIJIL.LLJIJIL.LL = new VideoItemParams(new Story("7102"));
+        ((State) showing.child.LLJJJJLIIL.LLJJJJLIIL).LL = new VideoItemParams(new Story("7102"));
         StoryDownloads.recordStory(neighbor, 1, new Story("7202"));
         press(showing);
         assertSent("7102");
@@ -135,15 +140,15 @@ public class StoryNativeLongPressTest {
         assertEquals(0, ShadowToast.shownToastCount());
     }
 
+    /** Each step the saver can't take is named: no monitor on the view, no bound params under it. */
     @Test public void renamedCurrentStoryMembersAreVisibleInHookStatus() {
-        assertMissingStoryMember(new View(activity), "android.view.View#LLJIJIL");
-        assertMissingStoryMember(new FieldView(activity, new Object()),
-                "java.lang.Object#LLJIJIL");
-        assertMissingStoryMember(new FieldView(activity, new FieldBox(new Object())),
-                "java.lang.Object#LL");
-        assertMissingStoryMember(
-                new FieldView(activity, new FieldBox(new ParamsBox(new Object()))),
-                "java.lang.Object#getAweme");
+        assertMissingStoryMember(new View(activity), "a LongPressMonitorAbility");
+        assertMissingStoryMember(new FieldView(activity, new Holder(new Monitor(null))),
+                "a LongPressMonitorAbility");
+        assertMissingStoryMember(new FieldView(activity, new Monitor(new Holder(null))),
+                "one VideoItemParams");
+        assertMissingStoryMember(new FieldView(activity, new Monitor(new State(new Object()))),
+                "one VideoItemParams");
     }
 
     private void assertMissingStoryMember(View child, String expectedMember) {
@@ -214,9 +219,13 @@ public class StoryNativeLongPressTest {
         }
     }
 
-    /** 46.2.3 0R9T consumes touch; 0Qet's timer calls Mf and UP calls gc. */
+    /**
+     * TikTok's native story child consumes touch; its timer calls the monitor's pause and UP its
+     * resume. The monitor sits in one of its fields (46.2.3 LLJIJIL, 47.0.3 LLJJJJLIIL), and the
+     * item its cell is bound to two Assem fields under that.
+     */
     public static final class NativeLongPressView extends View {
-        public final LongPressMonitor LLJIJIL;
+        public final Monitor LLJJJJLIIL;
         final Handler handler = new Handler(Looper.getMainLooper());
         int handled, pauses, resumes;
         boolean nativePressed;
@@ -227,7 +236,7 @@ public class StoryNativeLongPressTest {
         };
         NativeLongPressView(Activity activity, Story story) {
             super(activity);
-            LLJIJIL = new LongPressMonitor(story);
+            LLJJJJLIIL = new Monitor(new State(new VideoItemParams(story)));
         }
         @Override public boolean onTouchEvent(MotionEvent event) {
             if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
@@ -243,33 +252,12 @@ public class StoryNativeLongPressTest {
         }
     }
 
-    public static final class LongPressMonitor {
-        public final ReusedState LLJIJIL;
-        LongPressMonitor(Story story) { LLJIJIL = new ReusedState(story); }
-    }
-    public static final class ReusedState {
-        public VideoItemParams LL;
-        ReusedState(Story story) { LL = new VideoItemParams(story); }
-    }
-    public static final class VideoItemParams {
-        private final Story story;
-        VideoItemParams(Story value) { story = value; }
-        public Story getAweme() { return story; }
-    }
     public static final class FieldView extends View {
-        public final Object LLJIJIL;
+        public final Object LLJJJJLIIL;
         FieldView(Activity activity, Object value) {
             super(activity);
-            LLJIJIL = value;
+            LLJJJJLIIL = value;
         }
-    }
-    public static final class FieldBox {
-        public final Object LLJIJIL;
-        FieldBox(Object value) { LLJIJIL = value; }
-    }
-    public static final class ParamsBox {
-        public final Object LL;
-        ParamsBox(Object value) { LL = value; }
     }
     public static final class Story {
         private final String aid;

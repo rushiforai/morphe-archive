@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
@@ -114,6 +115,75 @@ public class MediaTransportSecurityTest {
         assertTrue(MediaTransport.isPublicAddress(InetAddress.getByName("8.8.8.8")));
         assertTrue(MediaTransport.isPublicAddress(
                 InetAddress.getByName("2606:4700:4700::1111")));
+    }
+
+    /**
+     * IANA's special-purpose blocks that aren't globally reachable, each beside a neighbour just
+     * outside it that is, so a block drawn one bit too wide fails as well as one left out.
+     */
+    @Test public void specialPurposeBlocksAreNotMediaDestinationsAndTheirNeighboursAre()
+            throws Exception {
+        for (String address : new String[]{
+                "198.18.0.1", "198.19.255.255", "192.0.2.5", "198.51.100.7", "203.0.113.9",
+                "192.0.0.8", "192.88.99.1", "100.64.0.1", "100.127.255.254", "240.0.0.1",
+                "2001:db8::1", "2001::1", "2001:1ff:ffff::1", "2002:c000:204::1", "3fff::1",
+                "3fff:fff::1", "5f00::1", "100::1", "64:ff9b:1::1", "64:ff9b::a00:1", "64:ff9b::c612:1"
+        }) {
+            assertFalse(address, MediaTransport.isPublicAddress(InetAddress.getByName(address)));
+        }
+        for (String address : new String[]{
+                "198.17.255.255", "198.20.0.1", "100.63.255.255", "100.128.0.1", "192.0.1.1",
+                "192.0.3.1", "223.255.255.254", "2001:200::1", "2001:4860:4860::8888", "2001:db9::1",
+                "2003::1", "3fff:1000::1", "2620:4f:8000::1", "64:ff9b::808:808"
+        }) {
+            assertTrue(address, MediaTransport.isPublicAddress(InetAddress.getByName(address)));
+        }
+        // An IPv4-mapped address that stayed IPv6 is judged as the IPv4 address it names.
+        byte[] mapped = new byte[16];
+        mapped[10] = (byte) 0xff;
+        mapped[11] = (byte) 0xff;
+        mapped[12] = (byte) 198;
+        mapped[13] = 18;
+        mapped[15] = 1;
+        assertFalse(MediaTransport.isPublicAddress(Inet6Address.getByAddress(null, mapped, -1)));
+        mapped[12] = 8;
+        mapped[13] = 8;
+        mapped[14] = 8;
+        mapped[15] = 8;
+        assertTrue(MediaTransport.isPublicAddress(Inet6Address.getByAddress(null, mapped, -1)));
+    }
+
+    @Test public void aBenchmarkingAnswerBesideAPublicOneRefusesTheHostname() throws Exception {
+        AtomicInteger opened = new AtomicInteger();
+        MediaTransport.Client client = new MediaTransport.Client(host -> new InetAddress[]{
+                InetAddress.getByAddress(host, new byte[]{8, 8, 8, 8}),
+                InetAddress.getByAddress(host, new byte[]{(byte) 198, 18, 0, 1})
+        }, url -> {
+            opened.incrementAndGet();
+            return new FakeConnection(url, HTTP_OK, null, PNG);
+        });
+
+        assertThrows(IOException.class, () -> client.open(
+                "https://v16.tiktokcdn.com/media", MediaBudget.deadline(),
+                1000, 1000, null, false));
+        assertEquals(0, opened.get());
+    }
+
+    @Test public void aRedirectIntoADocumentationRangeStopsBeforeOpeningThatHop() throws Exception {
+        AtomicInteger opened = new AtomicInteger();
+        MediaTransport.Client client = new MediaTransport.Client(host -> new InetAddress[]{
+                "docs.example".equals(host)
+                        ? InetAddress.getByName("2001:db8::7")
+                        : InetAddress.getByAddress(host, new byte[]{8, 8, 8, 8})
+        }, url -> {
+            opened.incrementAndGet();
+            return new FakeConnection(url, HTTP_MOVED_TEMP, "https://docs.example/media", new byte[0]);
+        });
+
+        assertThrows(IOException.class, () -> client.open(
+                "https://v16.tiktokcdn.com/start", MediaBudget.deadline(),
+                1000, 1000, null, false));
+        assertEquals(1, opened.get());
     }
 
     @Test public void everyDnsReadMustStillBePublic() throws Exception {

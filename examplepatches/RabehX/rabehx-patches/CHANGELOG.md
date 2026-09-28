@@ -1,3 +1,9 @@
+## [0.0.4](https://github.com/RabehX/rabehx-patches/compare/v0.0.3...v0.0.4) (2026-09-27)
+
+### Bug Fixes
+
+* **webetu:** remove extend date range patch ([86cea65](https://github.com/RabehX/rabehx-patches/commit/86cea653eec1202ec716be07f41d68dfe8681137))
+
 ## [0.0.3](https://github.com/RabehX/rabehx-patches/compare/v0.0.2...v0.0.3) (2026-09-23)
 
 ### Features

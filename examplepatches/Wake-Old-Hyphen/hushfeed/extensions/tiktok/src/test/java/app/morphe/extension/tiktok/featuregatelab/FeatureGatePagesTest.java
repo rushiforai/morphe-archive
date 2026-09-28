@@ -699,7 +699,7 @@ public class FeatureGatePagesTest {
             String profile = new org.json.JSONObject()
                     .put("schema", 1)
                     .put("target", "TikTok global")
-                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("tiktok_version", FeatureGateLabStore.targetVersion())
                     .put("rules", new org.json.JSONArray().put(new org.json.JSONObject()
                             .put("manager", "abmock").put("key", entry.key)
                             .put("type", "BOOLEAN").put("value", "true")))
@@ -834,7 +834,7 @@ public class FeatureGatePagesTest {
                     "The override couldn't be applied: IllegalArgumentException: count. Edit"
                             + " the field values, or reset the override.");
             expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.NOT_IN_CATALOGUE),
-                    "This key isn't in the local catalog, so its type can't be checked. Reset"
+                    "This key isn't in Hushfeed's list, so its type can't be checked. Reset"
                             + " the override.");
             expected.put(FeatureGateFailure.of(FeatureGateFailure.Reason.TYPE_MISMATCH,
                             "INT", "STRING"),

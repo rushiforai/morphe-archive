@@ -81,6 +81,10 @@ public final class AppliedPatches {
         return false;
     }
 
+    public static boolean disableTelemetry() {
+        return false;
+    }
+
     static List<String> names() {
         final List<String> names = new ArrayList<>();
         if (accentColor()) names.add(ACCENT_COLOR);
@@ -99,6 +103,7 @@ public final class AppliedPatches {
         if (unlockConnectionPreferences()) names.add("Unlock connection preferences");
         if (unlockProfiles()) names.add("Unlock profiles");
         if (showFreeServerLocations()) names.add("Show free server locations");
+        if (disableTelemetry()) names.add("Disable telemetry");
         return names;
     }
 }

@@ -23,15 +23,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.SignedInUser;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
  * A local watch history, used to keep videos you have already seen out of the feed. It
- * never leaves the device and holds nothing but a video id and when it was watched.
+ * never leaves the device and holds nothing but an account, a video id and when it was watched.
  *
  * <p>The feed path never touches SQLite: the stored ids load once on a background thread
  * into an in-memory map, and a newly watched id goes into memory first and is written
  * behind it.</p>
+ *
+ * <p>Each TikTok account on the phone has a record of its own. Memory holds the signed-in
+ * account's, and every read and write checks the account first, so a switch replaces memory
+ * before the feed is filtered again: one account's watching never hides a video from another,
+ * and a second account never sees what the first one watched.</p>
  */
 public final class SeenVideoHistory {
     public enum UndoResult {
@@ -47,6 +53,11 @@ public final class SeenVideoHistory {
         void onComplete(UndoResult result);
     }
 
+    public interface AdoptCallback {
+        /** How many older records were added; a negative count means the write failed. */
+        void onComplete(int added);
+    }
+
     interface DatabaseFactory {
         Database create(Context context);
     }
@@ -56,16 +67,25 @@ public final class SeenVideoHistory {
     }
 
     private static final String DATABASE_NAME = "seen_videos.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String TABLE = "seen_videos";
+    private static final String COLUMN_ACCOUNT = "account";
     private static final String COLUMN_AID = "aid";
     private static final String COLUMN_LAST_SEEN = "last_seen_ms";
+
+    /**
+     * The account of the rows version 1 kept, which recorded no account. Nothing on the phone
+     * says whose they were, so they hide nothing until someone adds them to an account.
+     */
+    static final String UNOWNED = "";
+    /** Whatever is watched while nobody is signed in. A uid is digits, so it never collides. */
+    static final String SIGNED_OUT = "signed-out";
 
     private static final long UNKNOWN_DURATION_MARK_MS = 2_000L;
     private static final long MIN_MARK_MS = 1_000L;
     private static final long MAX_MARK_MS = 5_000L;
     private static final int MARK_PERCENT = 10;
-    /** How many videos the record keeps; the settings row formats this number in. */
+    /** How many videos each account's record keeps; the settings row formats this number in. */
     public static final int MAX_RECORDS = 10_000;
     private static final Object HISTORY_LOCK = new Object();
     private static int generation;
@@ -77,6 +97,11 @@ public final class SeenVideoHistory {
         return thread;
     });
     private static final AtomicBoolean LOAD_STARTED = new AtomicBoolean();
+
+    /** The account whose record memory holds, or null before the first read. */
+    private static volatile String partition;
+    /** How many unowned rows the last load counted; -1 until one has. */
+    private static volatile int unowned = -1;
 
     private static volatile Database database;
     static final DatabaseFactory DEFAULT_DATABASE_FACTORY = context -> new Database(context);
@@ -90,6 +115,8 @@ public final class SeenVideoHistory {
      * memory: memory may never have been loaded, and a clear deletes every row either way.
      */
     private static volatile Map<String, Long> undo;
+    /** The account the last clear emptied, whose rows an undo puts back. */
+    private static volatile String undoAccount;
     /**
      * Set the moment a clear is asked for, so the screen can offer the way back without
      * waiting for the copy to be read.
@@ -120,11 +147,38 @@ public final class SeenVideoHistory {
     private SeenVideoHistory() {
     }
 
+    /**
+     * The signed-in account's record, swapped into memory when the account changed. A load, a
+     * clear or an undo started for the account before is left to finish on disk and no longer
+     * touches memory, and the way back from a clear stays with the account that cleared.
+     */
+    private static String account() {
+        String id = SignedInUser.id();
+        String account = id == null ? SIGNED_OUT : id;
+        if (account.equals(partition)) return account;
+        synchronized (HISTORY_LOCK) {
+            if (!account.equals(partition)) {
+                partition = account;
+                generation++;
+                SEEN.clear();
+                LOAD_STARTED.set(false);
+                callbackAid = null;
+                callbackAidMarked = false;
+                keptAid = null;
+                undo = null;
+                undoAccount = null;
+                undoOffered = false;
+            }
+        }
+        return account;
+    }
+
     public static void onPlayProgressChange(String aid, long positionMs, long durationMs) {
         String normalizedAid = normalizeAid(aid);
         if (normalizedAid == null) {
             return;
         }
+        String account = account();
 
         if (!normalizedAid.equals(callbackAid)) {
             callbackAid = normalizedAid;
@@ -141,7 +195,7 @@ public final class SeenVideoHistory {
         }
 
         callbackAidMarked = true;
-        markSeen(normalizedAid, System.currentTimeMillis());
+        markSeen(account, normalizedAid, System.currentTimeMillis());
     }
 
     public static boolean shouldHide(String aid) {
@@ -153,6 +207,7 @@ public final class SeenVideoHistory {
         if (normalizedAid == null) {
             return false;
         }
+        String account = account();
         if (normalizedAid.equals(keptAid)) {
             return false;
         }
@@ -168,7 +223,7 @@ public final class SeenVideoHistory {
         }
 
         if (SEEN.remove(normalizedAid, lastSeen)) {
-            deleteAsync(normalizedAid, lastSeen);
+            deleteAsync(account, normalizedAid, lastSeen);
         }
         return false;
     }
@@ -182,7 +237,9 @@ public final class SeenVideoHistory {
         keptAid = callbackAid;
     }
 
+    /** Forgets the signed-in account's record. Other accounts' records and unowned rows stay. */
     public static void clear() {
+        String account = account();
         synchronized (HISTORY_LOCK) {
             final int clearGeneration = ++generation;
             SEEN.clear();
@@ -190,6 +247,7 @@ public final class SeenVideoHistory {
             callbackAidMarked = false;
             keptAid = null;
             undo = null;
+            undoAccount = account;
             undoOffered = true;
             IO.execute(() -> {
                 Map<String, Long> copy = null;
@@ -197,8 +255,9 @@ public final class SeenVideoHistory {
                 try {
                     // Read the rows before deleting them. Memory is not the source here: a
                     // load may never have run, and the delete takes every row regardless.
-                    copy = readAll();
-                    getDatabase().getWritableDatabase().delete(TABLE, null, null);
+                    copy = readAll(account);
+                    getDatabase().getWritableDatabase().delete(
+                            TABLE, COLUMN_ACCOUNT + " = ?", new String[]{account});
                 } catch (Throwable throwable) {
                     failure = throwable;
                 }
@@ -222,13 +281,13 @@ public final class SeenVideoHistory {
         }
     }
 
-    /** Every row in the database, whether or not memory has been loaded. */
-    private static Map<String, Long> readAll() {
+    /** Every row of one account in the database, whether or not memory has been loaded. */
+    private static Map<String, Long> readAll(String account) {
         Map<String, Long> rows = new HashMap<>();
         try (Cursor cursor = getDatabase().getReadableDatabase().query(
                 TABLE,
                 new String[]{COLUMN_AID, COLUMN_LAST_SEEN},
-                null, null, null, null, null)) {
+                COLUMN_ACCOUNT + " = ?", new String[]{account}, null, null, null)) {
             int aidColumn = cursor.getColumnIndexOrThrow(COLUMN_AID);
             int seenColumn = cursor.getColumnIndexOrThrow(COLUMN_LAST_SEEN);
             while (cursor.moveToNext()) {
@@ -246,6 +305,7 @@ public final class SeenVideoHistory {
      * offer next. Answered without waiting for the copy to be read off the database.
      */
     public static boolean canUndo() {
+        account();
         return undoOffered;
     }
 
@@ -271,13 +331,15 @@ public final class SeenVideoHistory {
      * only {@link UndoResult#RESTORED} means that SQLite committed it.
      */
     public static boolean undoClear(UndoCallback callback) {
+        account();
         UndoResult immediate = null;
         synchronized (HISTORY_LOCK) {
             Map<String, Long> copy = undo;
+            String account = undoAccount;
             // Null means the copy is still being read off the database, which is not the same
             // as there being nothing to put back. Spending the offer here would delete the
             // history for good, so the offer stands and the next tap can take it.
-            if (copy == null) {
+            if (copy == null || account == null) {
                 immediate = UndoResult.NOT_READY;
             } else if (copy.isEmpty()) {
                 undo = null;
@@ -319,6 +381,7 @@ public final class SeenVideoHistory {
                         try {
                             for (Map.Entry<String, Long> row : rows.entrySet()) {
                                 ContentValues values = new ContentValues();
+                                values.put(COLUMN_ACCOUNT, account);
                                 values.put(COLUMN_AID, row.getKey());
                                 values.put(COLUMN_LAST_SEEN, row.getValue());
                                 long inserted = rowWriter.insert(writable, values);
@@ -366,8 +429,74 @@ public final class SeenVideoHistory {
     }
 
     public static int size() {
+        account();
         ensureLoaded();
         return SEEN.size();
+    }
+
+    /**
+     * How many rows version 1 left without an account, as the last load counted them. They
+     * hide nothing until {@link #adoptUnowned} adds them to an account, or they age out.
+     */
+    public static int unownedCount() {
+        account();
+        ensureLoaded();
+        return Math.max(0, unowned);
+    }
+
+    /**
+     * Adds every unowned row to the signed-in account's record, keeping the newer sighting of
+     * a video both hold. Nothing on the phone says whose those rows were, so this happens only
+     * when someone asks. The callback runs on the main thread with how many were added.
+     */
+    public static void adoptUnowned(AdoptCallback callback) {
+        String account = account();
+        final int adoptGeneration;
+        synchronized (HISTORY_LOCK) {
+            adoptGeneration = generation;
+        }
+        IO.execute(() -> {
+            int added = -1;
+            try {
+                Map<String, Long> rows = readAll(UNOWNED);
+                SQLiteDatabase writable = getDatabase().getWritableDatabase();
+                writable.beginTransaction();
+                try {
+                    String[] args = {account};
+                    // A video both hold keeps the newer time. Written for the SQLite of API 23,
+                    // which has no upsert.
+                    writable.execSQL("UPDATE " + TABLE + " SET " + COLUMN_LAST_SEEN + " = (SELECT u."
+                            + COLUMN_LAST_SEEN + " FROM " + TABLE + " u WHERE u." + COLUMN_ACCOUNT + " = '' AND u."
+                            + COLUMN_AID + " = " + TABLE + "." + COLUMN_AID + ") WHERE " + COLUMN_ACCOUNT
+                            + " = ? AND " + COLUMN_LAST_SEEN + " < (SELECT u." + COLUMN_LAST_SEEN + " FROM "
+                            + TABLE + " u WHERE u." + COLUMN_ACCOUNT + " = '' AND u." + COLUMN_AID + " = "
+                            + TABLE + "." + COLUMN_AID + ")", args);
+                    writable.execSQL("INSERT OR IGNORE INTO " + TABLE + " (" + COLUMN_ACCOUNT + ", "
+                            + COLUMN_AID + ", " + COLUMN_LAST_SEEN + ") SELECT ?, " + COLUMN_AID + ", "
+                            + COLUMN_LAST_SEEN + " FROM " + TABLE + " WHERE " + COLUMN_ACCOUNT + " = ''", args);
+                    writable.delete(TABLE, COLUMN_ACCOUNT + " = ?", new String[]{UNOWNED});
+                    writable.setTransactionSuccessful();
+                } finally {
+                    writable.endTransaction();
+                }
+                added = rows.size();
+                synchronized (HISTORY_LOCK) {
+                    unowned = 0;
+                    // Memory takes them only while it still holds the account that asked.
+                    if (generation == adoptGeneration && account.equals(partition)) {
+                        for (Map.Entry<String, Long> row : rows.entrySet()) mergeSeen(row.getKey(), row.getValue());
+                        trimMemory();
+                    }
+                }
+                pruneDatabase(account, System.currentTimeMillis());
+            } catch (Throwable throwable) {
+                Logger.printException(() -> "Seen video history could not add the older records", throwable);
+            }
+            if (callback != null) {
+                int result = added;
+                Utils.runOnMainThread(() -> callback.onComplete(result));
+            }
+        });
     }
 
     /**
@@ -381,7 +510,7 @@ public final class SeenVideoHistory {
         return writesSincePrune.incrementAndGet() % WRITES_BETWEEN_PRUNES == 0;
     }
 
-    private static void markSeen(String aid, long nowMs) {
+    private static void markSeen(String account, String aid, long nowMs) {
         synchronized (HISTORY_LOCK) {
             ensureLoaded();
             SEEN.put(aid, nowMs);
@@ -389,6 +518,7 @@ public final class SeenVideoHistory {
             IO.execute(() -> {
                 try {
                     ContentValues values = new ContentValues();
+                    values.put(COLUMN_ACCOUNT, account);
                     values.put(COLUMN_AID, aid);
                     values.put(COLUMN_LAST_SEEN, nowMs);
                     getDatabase().getWritableDatabase().insertWithOnConflict(
@@ -398,7 +528,7 @@ public final class SeenVideoHistory {
                             SQLiteDatabase.CONFLICT_REPLACE
                     );
                     if (pruneIsDue()) {
-                        pruneDatabase(nowMs);
+                        pruneDatabase(account, nowMs);
                     }
                 } catch (Throwable throwable) {
                     Logger.printException(() -> "Seen video history write failed", throwable);
@@ -409,7 +539,9 @@ public final class SeenVideoHistory {
 
     private static void ensureLoaded() {
         synchronized (HISTORY_LOCK) {
-            if (!LOAD_STARTED.compareAndSet(false, true)) {
+            // Every caller asked for the account first, so memory has a partition to load.
+            final String account = partition;
+            if (account == null || !LOAD_STARTED.compareAndSet(false, true)) {
                 return;
             }
             final int loadGeneration = generation;
@@ -418,10 +550,11 @@ public final class SeenVideoHistory {
                 long cutoff = retentionCutoff(nowMs);
                 try {
                     SQLiteDatabase readable = getDatabase().getReadableDatabase();
-                    String selection = cutoff == Long.MIN_VALUE ? null : COLUMN_LAST_SEEN + " >= ?";
+                    String selection = COLUMN_ACCOUNT + " = ?"
+                            + (cutoff == Long.MIN_VALUE ? "" : " AND " + COLUMN_LAST_SEEN + " >= ?");
                     String[] selectionArgs = cutoff == Long.MIN_VALUE
-                            ? null
-                            : new String[]{String.valueOf(cutoff)};
+                            ? new String[]{account}
+                            : new String[]{account, String.valueOf(cutoff)};
                     try (Cursor cursor = readable.query(
                             TABLE,
                             new String[]{COLUMN_AID, COLUMN_LAST_SEEN},
@@ -447,7 +580,11 @@ public final class SeenVideoHistory {
                             }
                         }
                     }
-                    pruneDatabase(nowMs);
+                    pruneDatabase(account, nowMs);
+                    try (Cursor count = readable.rawQuery("SELECT COUNT(*) FROM " + TABLE + " WHERE "
+                            + COLUMN_ACCOUNT + " = ?", new String[]{UNOWNED})) {
+                        unowned = count.moveToFirst() ? count.getInt(0) : 0;
+                    }
                 } catch (Throwable throwable) {
                     synchronized (HISTORY_LOCK) {
                         // A failed open must not permanently claim that the first load
@@ -462,24 +599,30 @@ public final class SeenVideoHistory {
         }
     }
 
-    private static void pruneDatabase(long nowMs) {
+    /**
+     * The age limit holds every account's rows and the unowned ones; the size cap holds the
+     * account being written, since each account keeps up to {@link #MAX_RECORDS} of its own.
+     */
+    private static void pruneDatabase(String account, long nowMs) {
         long cutoff = retentionCutoff(nowMs);
         try {
             if (cutoff != Long.MIN_VALUE) {
-            getDatabase().getWritableDatabase().delete(
-                    TABLE,
-                    COLUMN_LAST_SEEN + " < ?",
-                    new String[]{String.valueOf(cutoff)}
-            );
+                getDatabase().getWritableDatabase().delete(
+                        TABLE,
+                        COLUMN_LAST_SEEN + " < ?",
+                        new String[]{String.valueOf(cutoff)}
+                );
             }
             getDatabase().getWritableDatabase().execSQL(
-                    "DELETE FROM " + TABLE + " WHERE " + COLUMN_AID + " NOT IN (SELECT "
-                            + COLUMN_AID + " FROM " + TABLE + " ORDER BY " + COLUMN_LAST_SEEN
-                            + " DESC LIMIT " + MAX_RECORDS + ")");
+                    "DELETE FROM " + TABLE + " WHERE " + COLUMN_ACCOUNT + " = ? AND " + COLUMN_AID
+                            + " NOT IN (SELECT " + COLUMN_AID + " FROM " + TABLE + " WHERE "
+                            + COLUMN_ACCOUNT + " = ? ORDER BY " + COLUMN_LAST_SEEN + " DESC LIMIT "
+                            + MAX_RECORDS + ")", new Object[]{account, account});
         } catch (Throwable throwable) {
             Logger.printException(() -> "Seen video history prune failed", throwable);
         }
 
+        if (!account.equals(partition)) return;
         for (Map.Entry<String, Long> entry : SEEN.entrySet()) {
             Long timestamp = entry.getValue();
             if (timestamp != null && timestamp < cutoff) {
@@ -500,13 +643,13 @@ public final class SeenVideoHistory {
         }
     }
 
-    private static void deleteAsync(String aid, long expiredTimestamp) {
+    private static void deleteAsync(String account, String aid, long expiredTimestamp) {
         IO.execute(() -> {
             try {
                 getDatabase().getWritableDatabase().delete(
                         TABLE,
-                        COLUMN_AID + " = ? AND " + COLUMN_LAST_SEEN + " <= ?",
-                        new String[]{aid, String.valueOf(expiredTimestamp)}
+                        COLUMN_ACCOUNT + " = ? AND " + COLUMN_AID + " = ? AND " + COLUMN_LAST_SEEN + " <= ?",
+                        new String[]{account, aid, String.valueOf(expiredTimestamp)}
                 );
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Seen video history delete failed", throwable);
@@ -528,15 +671,30 @@ public final class SeenVideoHistory {
         return Math.max(0, Math.min(3650, Settings.SEEN_VIDEO_RETENTION_DAYS.get()));
     }
 
-    private static boolean hasReachedSeenThreshold(long positionMs, long durationMs) {
+    /**
+     * With no percent chosen, a tenth of the video held to one to five seconds. With one, that
+     * share of the video, never less than a second and never later than a second before the
+     * end, where the last progress report may not land. A video of unknown length counts after
+     * two seconds either way, since a share of it can't be worked out.
+     */
+    static boolean hasReachedSeenThreshold(long positionMs, long durationMs) {
         long safePosition = Math.max(0L, positionMs);
         if (durationMs <= 0L) {
             return safePosition >= UNKNOWN_DURATION_MARK_MS;
         }
 
-        long percentThreshold = Math.max(0L, durationMs) * MARK_PERCENT / 100L;
-        long threshold = Math.max(MIN_MARK_MS, Math.min(MAX_MARK_MS, percentThreshold));
-        return safePosition >= threshold;
+        int chosen = markPercent();
+        if (chosen == 0) {
+            long percentThreshold = durationMs * MARK_PERCENT / 100L;
+            return safePosition >= Math.max(MIN_MARK_MS, Math.min(MAX_MARK_MS, percentThreshold));
+        }
+        long share = durationMs * chosen / 100L;
+        return safePosition >= Math.max(MIN_MARK_MS, Math.min(share, durationMs - MIN_MARK_MS));
+    }
+
+    /** 0 to 90, the range the dialog offers. A restored backup can hold anything. */
+    private static int markPercent() {
+        return Math.max(0, Math.min(90, Settings.SEEN_VIDEO_MARK_PERCENT.get()));
     }
 
     private static String normalizeAid(String aid) {
@@ -577,26 +735,41 @@ public final class SeenVideoHistory {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
+            // The account defaults to unowned, so a row an older bundle writes after a downgrade
+            // lands where version 1's rows went rather than failing the insert.
             db.execSQL(
                     "CREATE TABLE IF NOT EXISTS " + TABLE + " (" +
-                            COLUMN_AID + " TEXT PRIMARY KEY NOT NULL, " +
-                            COLUMN_LAST_SEEN + " INTEGER NOT NULL" +
+                            COLUMN_ACCOUNT + " TEXT NOT NULL DEFAULT '', " +
+                            COLUMN_AID + " TEXT NOT NULL, " +
+                            COLUMN_LAST_SEEN + " INTEGER NOT NULL, " +
+                            "PRIMARY KEY (" + COLUMN_ACCOUNT + ", " + COLUMN_AID + ")" +
                             ")"
             );
             db.execSQL(
-                    "CREATE INDEX IF NOT EXISTS seen_videos_last_seen " +
-                            "ON " + TABLE + " (" + COLUMN_LAST_SEEN + ")"
+                    "CREATE INDEX IF NOT EXISTS seen_videos_account_last_seen " +
+                            "ON " + TABLE + " (" + COLUMN_ACCOUNT + ", " + COLUMN_LAST_SEEN + ")"
             );
         }
 
         /**
-         * Version 1 is the only schema there has been, so there is nothing to move yet and
-         * the rows are left where they are. Whatever comes next adds what it needs with
-         * ALTER TABLE: dropping the table would throw away the record the whole feature
-         * exists to keep, and nothing else holds a copy of it.
+         * Version 1 kept a video id and a time, keyed on the id. Its rows move into the version 2
+         * table as unowned: dropping them would throw away the record the whole feature exists
+         * to keep, and giving them to whoever is signed in next could hand one person's
+         * watching to another. A table that already has the account column is left alone, which
+         * is the case after an older bundle ran over a version 2 database and set the version
+         * back to 1: moving it again would strip every row of its account.
          */
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            if (hasTable(db) && !hasAccountColumn(db)) {
+                db.execSQL("DROP INDEX IF EXISTS seen_videos_last_seen");
+                db.execSQL("ALTER TABLE " + TABLE + " RENAME TO " + TABLE + "_v1");
+                onCreate(db);
+                db.execSQL("INSERT OR REPLACE INTO " + TABLE + " (" + COLUMN_ACCOUNT + ", " + COLUMN_AID
+                        + ", " + COLUMN_LAST_SEEN + ") SELECT '', " + COLUMN_AID + ", " + COLUMN_LAST_SEEN
+                        + " FROM " + TABLE + "_v1");
+                db.execSQL("DROP TABLE " + TABLE + "_v1");
+            }
             onCreate(db);
         }
 
@@ -607,6 +780,23 @@ public final class SeenVideoHistory {
         @Override
         public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             onCreate(db);
+        }
+
+        private static boolean hasTable(SQLiteDatabase db) {
+            try (Cursor cursor = db.rawQuery(
+                    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", new String[]{TABLE})) {
+                return cursor.moveToFirst();
+            }
+        }
+
+        private static boolean hasAccountColumn(SQLiteDatabase db) {
+            try (Cursor cursor = db.rawQuery("PRAGMA table_info(" + TABLE + ")", null)) {
+                int name = cursor.getColumnIndexOrThrow("name");
+                while (cursor.moveToNext()) {
+                    if (COLUMN_ACCOUNT.equals(cursor.getString(name))) return true;
+                }
+            }
+            return false;
         }
     }
 }

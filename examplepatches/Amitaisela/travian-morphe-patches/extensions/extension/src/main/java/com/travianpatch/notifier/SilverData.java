@@ -73,11 +73,17 @@ final class SilverData {
         JSONObject out = new JSONObject().put("at", nowMs);
         put(out, "me", r, ME_QUERY);
         put(out, "market", r, MARKET_QUERY);
-        if (!put(out, "buy", r, BUY_QUERY)) {
+        // Once the sorted read has been refused and the plain one worked, only the plain one is sent.
+        if (plainBuyWorks) {
             put(out, "buy", r, BUY_QUERY_PLAIN);
+        } else if (!put(out, "buy", r, BUY_QUERY) && put(out, "buy", r, BUY_QUERY_PLAIN)) {
+            plainBuyWorks = true;
         }
         return out;
     }
+
+    /** Set when the game refused the sorted auction read but answered the plain one (for this app run). */
+    static volatile boolean plainBuyWorks = false;
 
     /** Everything the Silver tab shows: the alert parts plus config, my bids and sales, the bag and price history. */
     static JSONObject readAll(Reader r, long nowMs) throws Exception {

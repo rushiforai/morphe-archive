@@ -87,10 +87,11 @@ public final class DownloadFilenameFormatter {
             );
             long createdAt = readCreateTime(aweme);
             int index = photo ? nextPhotoIndex(aweme, aid, System.currentTimeMillis()) : 1;
+            String folder = hasCreatorFolder(template) ? creatorFolder(creator) : "";
 
             File target = resolveTarget(
                     original,
-                    template,
+                    filenameTemplate(template),
                     extension,
                     sanitizeToken(creator),
                     formatDate(createdAt),
@@ -98,11 +99,11 @@ public final class DownloadFilenameFormatter {
                     null,
                     index
             );
-            if (target.equals(original)) {
+            if (target.equals(original) && folder.isEmpty()) {
                 return;
             }
             synchronized (PENDING_NAMES) {
-                PENDING_NAMES.put(original.getName(), new PendingName(target.getName(), System.currentTimeMillis()));
+                PENDING_NAMES.put(original.getName(), new PendingName(target.getName(), folder, System.currentTimeMillis()));
             }
             debug("prepared type=" + (photo ? "photo" : "video") + " file=" + target.getName());
         } catch (Throwable ex) {
@@ -118,6 +119,52 @@ public final class DownloadFilenameFormatter {
 
     public static String consumeDestinationName(String originalName) {
         return resolveDestinationName(originalName, true);
+    }
+
+    public static String getVideoDestination(String originalName) {
+        return getMediaDestination(originalName, true);
+    }
+
+    public static String getPhotoDestination(String originalName) {
+        return getMediaDestination(originalName, false);
+    }
+
+    /** Read before consuming the staging-name entry; the native method keeps its own path. */
+    public static String getMediaDestination(String originalName, boolean video) {
+        String root = video ? DownloadsPatch.getVideoDownloadPath() : DownloadsPatch.getPhotoDownloadPath();
+        synchronized (PENDING_NAMES) {
+            PendingName pending = PENDING_NAMES.get(originalName);
+            if (pending == null) return root;
+            if (System.currentTimeMillis() - pending.createdAt > PENDING_NAME_TTL_MS) {
+                PENDING_NAMES.remove(originalName);
+                return root;
+            }
+            return pending.folder.isEmpty() ? root : root + "/" + pending.folder;
+        }
+    }
+
+    static String destinationPath(Object aweme, boolean photo) {
+        String root = photo ? DownloadsPatch.getPhotoDownloadPath() : DownloadsPatch.getVideoDownloadPath();
+        String template = photo ? Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.get() : Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get();
+        if (!hasCreatorFolder(template)) return root;
+        Object author = firstNonNull(invoke(aweme, "getAuthor"), readField(aweme, "author"));
+        String creator = firstNonBlank(invokeString(author, "getUniqueId"), readStringField(author, "uniqueId"),
+                invokeString(author, "getNickname"), readStringField(author, "nickname"),
+                invokeString(author, "getUid"), readStringField(author, "uid"), "unknown");
+        return root + "/" + creatorFolder(creator);
+    }
+
+    private static boolean hasCreatorFolder(String template) {
+        return template != null && template.trim().replace('\\', '/').startsWith("{creator}/");
+    }
+
+    private static String filenameTemplate(String template) {
+        return hasCreatorFolder(template) ? template.trim().substring("{creator}/".length()) : template;
+    }
+
+    private static String creatorFolder(String creator) {
+        String folder = trimToLength(sanitizeToken(creator), MAX_BASENAME_LENGTH);
+        return folder.isEmpty() ? "unknown" : folder;
     }
 
     private static String resolveDestinationName(String originalName, boolean consume) {
@@ -201,7 +248,7 @@ public final class DownloadFilenameFormatter {
         Object author = invoke(aweme, "getAuthor");
         String creator = firstNonBlank(invokeString(author, "getUniqueId"), invokeString(author, "getNickname"), "unknown");
         String id = firstNonBlank(invokeString(aweme, "getAid"), "unknown");
-        String template = photo ? Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.get() : Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get();
+        String template = filenameTemplate(photo ? Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.get() : Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get());
         if (template == null || template.trim().isEmpty()) template = "{creator}_{date}_{video_id}" + (photo ? "_{index}" : "");
         String base = template.replace("{creator}", sanitizeToken(creator))
                 .replace("{date}", formatDate(readCreateTime(aweme)))
@@ -448,10 +495,12 @@ public final class DownloadFilenameFormatter {
 
     private static final class PendingName {
         final String name;
+        final String folder;
         final long createdAt;
 
-        PendingName(String name, long createdAt) {
+        PendingName(String name, String folder, long createdAt) {
             this.name = name;
+            this.folder = folder;
             this.createdAt = createdAt;
         }
     }

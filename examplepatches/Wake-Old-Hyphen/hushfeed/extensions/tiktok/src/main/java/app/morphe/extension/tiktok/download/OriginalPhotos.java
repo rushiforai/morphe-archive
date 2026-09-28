@@ -103,6 +103,11 @@ public final class OriginalPhotos {
         String id = Reflect.string(aweme, "getAid", "aid");
         if (id == null) return false;
         List<List<String>> photoSnapshot = snapshot(photos);
+        String path = DownloadFilenameFormatter.destinationPath(aweme, true);
+        List<String> names = new ArrayList<>();
+        for (int i = 0; i < photos.size(); i++) {
+            names.add(DownloadFilenameFormatter.formatOriginalPhotoName(aweme, i + 1, "tmp"));
+        }
         if (!ACTIVE.add(id)) return true;
         Context app = context.getApplicationContext();
         Utils.showToastShort(L10n.quantity(app, chosen.size(),
@@ -121,8 +126,9 @@ public final class OriginalPhotos {
                         String extension = RemoteMedia.fetch(photoSnapshot.get(i), temp, RemoteMedia.Kind.IMAGE);
                         String mime = "jpg".equals(extension) ? "image/jpeg" : "image/" + extension;
                         // Numbered by the photo's place in the post, also when only some are saved.
-                        String name = DownloadFilenameFormatter.formatOriginalPhotoName(aweme, i + 1, extension);
-                        last[0] = MediaFileWriter.publishForResult(app, temp, name, mime, DownloadsPatch.getPhotoDownloadPath(), false);
+                        String named = names.get(i);
+                        String name = named.substring(0, named.lastIndexOf('.') + 1) + extension;
+                        last[0] = MediaFileWriter.publishForResult(app, temp, name, mime, path, false);
                     } finally {
                         if (!MediaCache.delete(temp)) Logger.printInfo(() -> "Could not remove original photo temporary file");
                     }

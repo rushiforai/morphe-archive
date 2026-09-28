@@ -38,17 +38,6 @@ final class SettingsManagerObservationRecorder {
      * trace, forever, on whatever thread the host reads settings from.
      */
     private static final ConcurrentHashMap<String, Boolean> WRAPPER_CHECKED = new ConcurrentHashMap<>();
-    /**
-     * The class the default wrapper lives in.
-     *
-     * <p>Seeded with the name on 46.2.3 so the very first read behaves as it always has, and
-     * replaced with the truth as soon as {@link #observeWithDefault} runs, because that method is
-     * injected into the wrapper and its caller therefore is the wrapper. The name is obfuscated
-     * and moves with every TikTok build; a stale one silently records every key twice, once
-     * through each wrapper, and nothing said so.
-     */
-    private static volatile String defaultWrapperClass = "X.0BZ5";
-    private static volatile boolean defaultWrapperClassLearned;
 
     private SettingsManagerObservationRecorder() {
     }
@@ -58,8 +47,6 @@ final class SettingsManagerObservationRecorder {
             OBSERVATIONS.clear();
             DEFAULT_WRAPPER_KEYS.clear();
             WRAPPER_CHECKED.clear();
-            defaultWrapperClass = "X.0BZ5";
-            defaultWrapperClassLearned = false;
         }
     }
 
@@ -109,17 +96,6 @@ final class SettingsManagerObservationRecorder {
     ) {
         if (key != null) {
             DEFAULT_WRAPPER_KEYS.put(key, Boolean.TRUE);
-        }
-        // This method is injected into the default wrapper, so its caller is the wrapper.
-        if (!defaultWrapperClassLearned) {
-            String caller = callerClassName();
-            if (caller != null) {
-                boolean changed = !caller.equals(defaultWrapperClass);
-                defaultWrapperClass = caller;
-                defaultWrapperClassLearned = true;
-                // Anything decided against the seeded name was decided against a guess.
-                if (changed) WRAPPER_CHECKED.clear();
-            }
         }
         record(
                 FeatureGateLabStore.MANAGER_SETTINGS_MANAGER,
@@ -183,7 +159,15 @@ final class SettingsManagerObservationRecorder {
     static volatile int wrapperWalks;
 
     /**
-     * Whether this read came through the default wrapper, remembered per key.
+     * Whether this read came through the getter with a default, remembered per key.
+     *
+     * <p>That getter reaches this one through TikTok's settings cache and a wrapper, and it is
+     * recorded on its own, so a read that came that way would be the same key twice. The
+     * wrapper's class used to be named here, first 46.2.3's and then whatever class hooked the
+     * getter with a default, which is SettingsManager itself: from then on every read of this
+     * getter matched, its own frame included, and nothing read without a default was recorded.
+     * What tells the two apart on every build is a second SettingsManager frame a few frames
+     * out, see {@link GateCallers#throughAnotherSettingsManagerGetter}.
      *
      * <p>The answer for a given key does not change over a process, and the walk it takes is the
      * whole cost of this path, so it is taken once. Past the observation cap nothing new is
@@ -195,34 +179,12 @@ final class SettingsManagerObservationRecorder {
             return known;
         }
         wrapperWalks++;
-        String wrapper = defaultWrapperClass;
-        boolean fromWrapper = false;
-        if (wrapper != null) {
-            for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {
-                if (wrapper.equals(frame.getClassName())) {
-                    fromWrapper = true;
-                    break;
-                }
-            }
-        }
+        boolean fromWrapper = GateCallers.throughAnotherSettingsManagerGetter(
+                Thread.currentThread().getStackTrace());
         if (WRAPPER_CHECKED.size() < MAX_OBSERVATIONS) {
             WRAPPER_CHECKED.putIfAbsent(key, fromWrapper);
         }
         return fromWrapper;
-    }
-
-    /** The first frame outside this recorder and the runtimes it is called through. */
-    private static String callerClassName() {
-        for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {
-            String className = frame.getClassName();
-            if (className.startsWith("app.morphe.extension.tiktok.featuregatelab")
-                    || className.equals("java.lang.Thread")
-                    || className.equals("dalvik.system.VMStack")) {
-                continue;
-            }
-            return className;
-        }
-        return null;
     }
 
     private static void record(
@@ -270,21 +232,7 @@ final class SettingsManagerObservationRecorder {
     }
 
     private static String captureCaller() {
-        for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {
-            String className = frame.getClassName();
-            if (className.startsWith("app.morphe.extension.tiktok.featuregatelab")
-                    || className.equals("java.lang.Thread")
-                    || className.equals("dalvik.system.VMStack")
-                    || className.equals("com.bytedance.ies.abmock.SettingsManager")
-                    || className.equals("com.bytedance.android.live_settings.SettingsManager")
-                    || className.equals("X.0BZ5")
-                    || className.equals("X.0Bb9")) {
-                continue;
-            }
-            return className + "#" + frame.getMethodName()
-                    + "(" + frame.getFileName() + ":" + frame.getLineNumber() + ")";
-        }
-        return "unknown";
+        return GateCallers.hostCallerWithLine(Thread.currentThread().getStackTrace());
     }
 
     private static String serializeJsonText(Object value) {

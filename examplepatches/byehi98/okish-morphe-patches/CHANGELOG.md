@@ -1,3 +1,46 @@
+## [1.34.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.33.1...v1.34.0) (2026-09-27)
+
+### ✨ New Features
+
+* **truecloud:** restructure patches and add new categories ([54d2a21](https://github.com/byehi98/okish-morphe-patches/commit/54d2a212ca9bf6d9abfaf37a6999e2680ab579dd))
+
+## [1.34.0-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.33.1...v1.34.0-dev.1) (2026-09-27)
+
+### ✨ New Features
+
+* **truecloud:** restructure patches and add new categories ([54d2a21](https://github.com/byehi98/okish-morphe-patches/commit/54d2a212ca9bf6d9abfaf37a6999e2680ab579dd))
+
+## [1.33.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.33.0...v1.33.1) (2026-09-27)
+
+### 🚀 Updated App Support
+
+* **adda247:** update app target version to 12.7.2 ([54d1076](https://github.com/byehi98/okish-morphe-patches/commit/54d1076f65b6ae83a2aa2b03ce6c5292936fdb91))
+* **dtm:** bump supported app version to 1.14.04 ([7fb4792](https://github.com/byehi98/okish-morphe-patches/commit/7fb4792f5623e5cbba100e7485665f63dd1c36c0))
+
+## [1.33.1-dev.2](https://github.com/byehi98/okish-morphe-patches/compare/v1.33.1-dev.1...v1.33.1-dev.2) (2026-09-27)
+
+### 🚀 Updated App Support
+
+* **adda247:** update app target version to 12.7.2 ([54d1076](https://github.com/byehi98/okish-morphe-patches/commit/54d1076f65b6ae83a2aa2b03ce6c5292936fdb91))
+
+## [1.33.1-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.33.0...v1.33.1-dev.1) (2026-09-27)
+
+### 🚀 Updated App Support
+
+* **dtm:** bump supported app version to 1.14.04 ([7fb4792](https://github.com/byehi98/okish-morphe-patches/commit/7fb4792f5623e5cbba100e7485665f63dd1c36c0))
+
+## [1.33.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.32.0...v1.33.0) (2026-09-27)
+
+### ✨ New Features
+
+* **subwaysurfers:** remove patches ([e648af7](https://github.com/byehi98/okish-morphe-patches/commit/e648af7b1795644641a6e2572300bdcb4aaaf3c9))
+
+## [1.33.0-dev.1](https://github.com/byehi98/okish-morphe-patches/compare/v1.32.0...v1.33.0-dev.1) (2026-09-27)
+
+### ✨ New Features
+
+* **subwaysurfers:** remove patches ([e648af7](https://github.com/byehi98/okish-morphe-patches/commit/e648af7b1795644641a6e2572300bdcb4aaaf3c9))
+
 ## [1.32.0](https://github.com/byehi98/okish-morphe-patches/compare/v1.31.1...v1.32.0) (2026-09-27)
 
 ### ✨ New Features

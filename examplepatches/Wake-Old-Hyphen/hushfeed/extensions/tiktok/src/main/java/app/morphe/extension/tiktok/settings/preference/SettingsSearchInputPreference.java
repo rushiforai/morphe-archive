@@ -85,7 +85,7 @@ public final class SettingsSearchInputPreference extends Preference {
         editText = new EditText(context);
         editText.setTag("settings_search_input");
         editText.setSingleLine(true);
-        editText.setTextSize(18);
+        editText.setTextSize(SettingsUi.TEXT_HEADLINE_SMALL);
         editText.setHint(L10n.t(context, "Search settings"));
         // No content description on a search box. On an editable view it replaces what was
         // typed in the announcement, so "cats" came back as the label. The hint names it.
@@ -152,7 +152,7 @@ public final class SettingsSearchInputPreference extends Preference {
         resultCount.setLetterSpacing(0.08f);
         // The home page's group labels: 12sp, and inset 18dp to line up with the text inside the
         // cards. This one sat on the card's edge, the only label on any page that did.
-        resultCount.setTextSize(12);
+        resultCount.setTextSize(SettingsUi.TEXT_CAPTION);
         int inset = SettingsUi.dp(context, 18);
         resultCount.setPaddingRelative(inset, SettingsUi.dp(context, 16),
                 inset, SettingsUi.dp(context, 6));

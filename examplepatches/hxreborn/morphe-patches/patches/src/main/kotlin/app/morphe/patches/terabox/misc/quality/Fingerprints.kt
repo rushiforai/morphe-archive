@@ -41,6 +41,14 @@ internal object MediaFileMetaDlinkFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+internal object SharedFileDlinkFingerprint : Fingerprint(
+    definingClass = "Lcom/dubox/drive/ui/preview/video/source/FeedVideoSource;",
+    name = "getDlink",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "Ljava/lang/String;",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
 internal object OnlineVideoInfoRequestFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PROTECTED),
     returnType = "V",

@@ -92,6 +92,21 @@ public final class SettingsUi {
      * feed controls, the budget cue and the hold's release control were 24, a full circle and 12
      * while sitting on the same video.
      */
+    /**
+     * The type scale, in sp. Every text size Hushfeed draws is one of these. The home group
+     * labels sit at TEXT_CAPTION and the section headings at TEXT_LABEL on purpose.
+     */
+    public static final float TEXT_CAPTION = 12;
+    public static final float TEXT_LABEL = 13;
+    public static final float TEXT_BODY_SMALL = 14;
+    public static final float TEXT_BODY = 15;
+    public static final float TEXT_TITLE = 16;
+    public static final float TEXT_TITLE_LARGE = 17;
+    public static final float TEXT_HEADLINE_SMALL = 18;
+    public static final float TEXT_HEADLINE = 20;
+    public static final float TEXT_DISPLAY_SMALL = 30;
+    public static final float TEXT_DISPLAY = 34;
+
     public static final int RADIUS_SQUARE = 0;
     public static final int RADIUS_BADGE = 4;
     public static final int RADIUS_CONTROL = 6;
@@ -239,7 +254,7 @@ public final class SettingsUi {
         android.widget.TextView glyph = new android.widget.TextView(context);
         glyph.setText(ATTENTION_GLYPH);
         glyph.setTextColor(toneColor);
-        glyph.setTextSize(14);
+        glyph.setTextSize(TEXT_BODY_SMALL);
         glyph.setPadding(0, 0, dp(context, 8), 0);
         glyph.setImportantForAccessibility(android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         row.addView(glyph, new android.widget.LinearLayout.LayoutParams(
@@ -250,7 +265,7 @@ public final class SettingsUi {
         // The tone carries the notice, so it carries the sentence as well as the glyph. Both of
         // these pairs clear 4.5:1 on surface() in either theme.
         body.setTextColor(toneColor);
-        body.setTextSize(14);
+        body.setTextSize(TEXT_BODY_SMALL);
         row.addView(body, new android.widget.LinearLayout.LayoutParams(
                 0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         return row;
@@ -275,7 +290,7 @@ public final class SettingsUi {
             if (title.getParent() instanceof View && title.getParent() != row) {
                 ((View) title.getParent()).setPadding(0, 0, 0, 0);
             }
-            title.setTextSize(30);
+            title.setTextSize(TEXT_DISPLAY_SMALL);
             title.setTypeface(Typeface.DEFAULT_BOLD);
             title.setTextColor(textPrimary());
             title.setSingleLine(false);
@@ -285,7 +300,7 @@ public final class SettingsUi {
         }
         TextView summary = row.findViewById(android.R.id.summary);
         if (summary != null) {
-            summary.setTextSize(15);
+            summary.setTextSize(TEXT_BODY);
             summary.setTextColor(textSecondary());
             summary.setSingleLine(false);
             summary.setMaxLines(Integer.MAX_VALUE);
@@ -311,7 +326,7 @@ public final class SettingsUi {
             if (title.getParent() instanceof View && title.getParent() != view) {
                 ((View) title.getParent()).setPadding(0, 0, 0, 0);
             }
-            title.setTextSize(17);
+            title.setTextSize(TEXT_TITLE_LARGE);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
             title.setTextColor(title.isEnabled() ? textPrimary() : textDisabled());
             title.setSingleLine(false);
@@ -320,7 +335,7 @@ public final class SettingsUi {
         }
         TextView summary = view.findViewById(android.R.id.summary);
         if (summary != null) {
-            summary.setTextSize(14);
+            summary.setTextSize(TEXT_BODY_SMALL);
             summary.setTextColor(summary.isEnabled() ? textSecondary() : textDisabled());
             summary.setSingleLine(false);
             summary.setMaxLines(Integer.MAX_VALUE);
@@ -741,7 +756,7 @@ public final class SettingsUi {
         TextView title = view.findViewById(android.R.id.title);
         if (title != null) {
             title.setTextColor(accent());
-            title.setTextSize(13);
+            title.setTextSize(TEXT_LABEL);
             title.setTypeface(title.getTypeface(), Typeface.BOLD);
         }
     }
@@ -750,7 +765,7 @@ public final class SettingsUi {
         TextView title = new TextView(context);
         title.setText(text);
         title.setTextColor(accent());
-        title.setTextSize(13);
+        title.setTextSize(TEXT_LABEL);
         title.setTypeface(title.getTypeface(), Typeface.BOLD);
         if (android.os.Build.VERSION.SDK_INT >= 28) {
             title.setAccessibilityHeading(true);
@@ -1603,7 +1618,7 @@ public final class SettingsUi {
     public static void styleCheckBoxRow(CompoundButton button) {
         styleCheckBox(button);
         button.setTextColor(enabledTextColors(textPrimary()));
-        button.setTextSize(16);
+        button.setTextSize(TEXT_TITLE);
     }
 
     /** Lays its children out in rows, breaking to a new one when the next child will not fit. */

@@ -83,7 +83,7 @@ public final class SettingsHeaderPreference extends Preference {
     private View createMasterHeader() {
         LinearLayout header = createHeader(getContext(), heading, backAction);
         TextView subtitle = SettingsUi.text(getContext(), L10n.t(getContext(), "Make TikTok yours."),
-                15, SettingsUi.textSecondary(), 0);
+                SettingsUi.TEXT_BODY, SettingsUi.textSecondary(), 0);
         LinearLayout.LayoutParams subtitleParams = new LinearLayout.LayoutParams(-1, -2);
         subtitleParams.topMargin = SettingsUi.dp(getContext(), 12);
         subtitleParams.setMarginStart(SettingsUi.dp(getContext(), 8));
@@ -129,7 +129,7 @@ public final class SettingsHeaderPreference extends Preference {
                 SettingsUi.focusRing(context, SettingsUi.RADIUS_CONTROL),
                 SettingsUi.roundedSurface(context, SettingsUi.RADIUS_CONTROL, false)));
         toolbar.addView(back, new LinearLayout.LayoutParams(SettingsUi.dp(context, 48), SettingsUi.dp(context, 48)));
-        TextView brand = SettingsUi.text(context, BRAND_MARK, 12, SettingsUi.accent(), 1);
+        TextView brand = SettingsUi.text(context, BRAND_MARK, SettingsUi.TEXT_CAPTION, SettingsUi.accent(), 1);
         brand.setLetterSpacing(0.12f);
         LinearLayout.LayoutParams brandParams = new LinearLayout.LayoutParams(0, -2, 1);
         brandParams.setMarginStart(SettingsUi.dp(context, 8));
@@ -149,7 +149,7 @@ public final class SettingsHeaderPreference extends Preference {
 
     private View createCaption() {
         Context context = getContext();
-        TextView caption = SettingsUi.text(context, detail, 15, SettingsUi.textSecondary(), 0);
+        TextView caption = SettingsUi.text(context, detail, SettingsUi.TEXT_BODY, SettingsUi.textSecondary(), 0);
         caption.setLineSpacing(SettingsUi.dp(context, 3), 1f);
         caption.setPadding(SettingsUi.dp(context, 8), SettingsUi.dp(context, 12),
                 SettingsUi.dp(context, 8), SettingsUi.dp(context, 32));

@@ -1,13 +1,13 @@
 package app.morphe.extension.shared.reflect.com.google.gson;
 
-import app.morphe.extension.shared.reflect.Utils;
+import app.morphe.extension.shared.util.ReflectUtils;
 import java.lang.reflect.Method;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class Gson {
   private static final Method FROM_JSON =
-      Utils.getMethod(
+      ReflectUtils.getMethod(
           com.google.gson.Gson.class, "fromJson", Object.class, String.class, Class.class);
 
   @SuppressWarnings("unchecked")

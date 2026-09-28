@@ -93,12 +93,6 @@ public final class RememberClearDisplayPatch {
         else MAIN.post(RememberClearDisplayPatch::cancel);
     }
 
-    // Kept for already-patched first-frame hooks.
-    public static boolean getClearDisplayState() {
-        clearNow = !Settings.AUTOMATIC_CLEAR_DISPLAY.get() && Settings.CLEAR_DISPLAY.get();
-        return clearNow;
-    }
-
     public static void onFirstFrame(Object controller) {
         WeakReference<Object> owner = new WeakReference<>(controller);
         MAIN.post(() -> {

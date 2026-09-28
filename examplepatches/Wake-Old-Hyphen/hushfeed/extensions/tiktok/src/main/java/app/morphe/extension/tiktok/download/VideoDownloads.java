@@ -49,23 +49,33 @@ final class VideoDownloads {
                 ? SubtitleDownloads.tracks(video, Settings.SUBTITLE_LANGUAGE.get(), Locale.getDefault()) : Collections.emptyList();
         String quality = Settings.DOWNLOAD_VIDEO_QUALITY.get();
         boolean muted = Settings.DOWNLOAD_WITHOUT_SOUND.get();
+        boolean withDetails = Settings.DOWNLOAD_DETAILS.get();
+        boolean checkSaved = Settings.CHECK_SAVED_VIDEOS.get();
+        boolean showProgress = Settings.DOWNLOAD_PROGRESS.get();
+        boolean extras = withDetails || checkSaved || showProgress;
+        // Photo posts can carry a video model too. Their own save keeps stills and live photos.
+        if (extras && Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") != null) return false;
         boolean automatic = "auto".equals(quality);
         // Automatic with nothing else asked for is TikTok's own download, which already does
         // the right thing. Taking the sound off is a reason to take it over, but not a reason
         // to fetch a different file: on Automatic the source stays the one TikTok would have
         // used and only the sound is left out of it.
-        if (captions.isEmpty() && automatic && !muted) return false;
+        if (captions.isEmpty() && automatic && !muted && !extras) return false;
         Object selected = selectedGear(video, quality, !captions.isEmpty());
-        if (selected == null && captions.isEmpty() && !muted) return false;
+        if (selected == null && captions.isEmpty() && !muted && !extras) return false;
         List<String> selectedUrls = urls(Reflect.property(selected, "getPlayAddr", "playAddr"));
         if (selected == null) {
-            selectedUrls = urls(Reflect.property(video, "getDownloadNoWatermarkAddr", "downloadNoWatermarkAddr"));
-            if (selectedUrls.isEmpty()) selectedUrls = urls(Reflect.property(video, "getDownloadAddr", "downloadAddr"));
+            selectedUrls = sourceUrls(video);
         }
         List<String> videoUrls = List.copyOf(selectedUrls);
         boolean dash = selected != null && Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"));
         List<String> audioUrls = dash ? List.copyOf(audioUrls(video, selected)) : Collections.emptyList();
-        if (videoUrls.isEmpty() || (dash && !muted && audioUrls.isEmpty())) {
+        boolean unavailable = videoUrls.isEmpty() || (dash && !muted && audioUrls.isEmpty());
+        if (unavailable && !checkSaved) {
+            if (extras) {
+                Utils.showToastLong(L10n.t("This video isn't available as a complete file. Try again later."));
+                return true;
+            }
             Utils.showToastShort(L10n.t(
                     "This quality isn't available as a complete file, so TikTok's own save runs instead"));
             return false;
@@ -74,15 +84,18 @@ final class VideoDownloads {
         if (id == null) return false;
         Context app = context.getApplicationContext();
         String name, path;
+        DownloadDetails details = withDetails ? new DownloadDetails(aweme) : null;
         try {
             name = DownloadFilenameFormatter.formatSelectedVideoName(aweme);
-            path = captions.isEmpty() ? DownloadsPatch.getVideoDownloadPath()
-                    : SubtitleDownloads.pairedPath(DownloadsPatch.getVideoDownloadPath());
+            String destination = DownloadFilenameFormatter.destinationPath(aweme, false);
+            path = withDetails ? DownloadDetails.pairedPath(destination)
+                    : captions.isEmpty() ? destination : SubtitleDownloads.pairedPath(destination);
         } catch (RuntimeException exception) {
             // Working out the name is reflection over TikTok's model, so it can throw. Leaving
             // the id in ACTIVE here would refuse every later attempt on this video in silence.
             Logger.printException(() -> "Could not work out the download name", exception);
-            return false;
+            if (extras) Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
+            return extras;
         }
         String audioName = null;
         if (AudioDownloads.enabled()) {
@@ -95,31 +108,36 @@ final class VideoDownloads {
         final String audioNameSnapshot = audioName;
         List<SubtitleDownloads.Track> captionSnapshot = List.copyOf(captions);
         if (!ACTIVE.add(id)) return true;
-        Utils.showToastShort(captions.isEmpty()
-                ? L10n.t(muted
-                        ? "Saving the selected video quality without sound"
-                        : "Saving the selected video quality")
-                : L10n.f("Saving video and subtitles to %1$s", path));
-        boolean submitted = MediaJobScheduler.submit("video", () -> {
+        Runnable save = () -> {
+            // A source is needed for a new copy, but a remembered file can still be opened
+            // after TikTok stops supplying a download address for this post.
+            if (unavailable) {
+                ACTIVE.remove(id);
+                Utils.showToastLong(L10n.t("This video isn't available as a complete file. Try again later."));
+                return;
+            }
+            Utils.showToastShort(L10n.f("Saving video to %1$s", path));
             List<File> temporary = new ArrayList<>();
             // The video, the sound beside it when wanted, then each subtitle track. From three
             // files up a row counts them and offers Cancel, which lets the file under way finish
             // and leaves the rest. The video is the save itself: when it fails nothing else is
             // tried; a sound or a track that fails is skipped, and the result says so.
-            int files = 1 + (audioNameSnapshot != null ? 1 : 0) + captionSnapshot.size();
+            int files = 1 + (details != null ? 1 : 0) + (audioNameSnapshot != null ? 1 : 0) + captionSnapshot.size();
             int firstSubtitle = files - captionSnapshot.size();
-            SaveProgress progress = SaveProgress.begin(files);
+            SaveProgress progress = SaveProgress.begin(files, showProgress);
             MediaFileWriter.Saved[] published = {null};
             File[] picture = {null};
             File[] sound = {null};
             int[] subtitles = {0};
             boolean[] soundSkipped = {false};
+            boolean[] remembered = {!checkSaved};
             try {
                 SaveProgress.Outcome outcome = progress.run(index -> {
                     if (index == 0) {
                         try {
                             picture[0] = temp(app, temporary);
-                            RemoteMedia.fetch(videoUrls, picture[0], RemoteMedia.Kind.VIDEO);
+                            RemoteMedia.fetch(videoUrls, picture[0], RemoteMedia.Kind.VIDEO, progress::transfer);
+                            progress.transfer(0, -1);
                             File result = picture[0];
                             if (dash && !muted) {
                                 // The sound is a separate stream here and the save is not
@@ -148,6 +166,16 @@ final class VideoDownloads {
                             progress.cancel();
                             throw failure;
                         }
+                        if (checkSaved) {
+                            try {
+                                SavedVideoArchive.remember(app, id, published[0]);
+                                remembered[0] = true;
+                            } catch (RuntimeException failure) {
+                                Logger.printException(() -> "Could not remember the saved video", failure);
+                            }
+                        }
+                    } else if (index == 1 && details != null) {
+                        details.save(app, published[0], path);
                     } else if (index < firstSubtitle) {
                         // The sound is already on disk: the separate stream when the video has
                         // one, otherwise the video itself, which still carries it because the
@@ -171,8 +199,11 @@ final class VideoDownloads {
                     // The video's own words when everything landed or only a track is missing,
                     // since they name the tracks that came; the count for anything else.
                     String own = subtitleResult(captionSnapshot.size(), subtitles[0], path);
-                    boolean onlyTracks = outcome.cancelled == 0 && outcome.stop == SaveProgress.Stop.NONE && !soundSkipped[0];
+                    if (details != null) own = L10n.f("Video and details saved to %1$s", path);
+                    boolean onlyTracks = details == null && outcome.cancelled == 0
+                            && outcome.stop == SaveProgress.Stop.NONE && !soundSkipped[0];
                     SaveNotice.saved(onlyTracks ? own : SaveProgress.message(outcome, own), published[0]);
+                    if (!remembered[0]) Utils.showToastLong(L10n.t("The video was saved, but its record couldn't be updated. A later save may make another copy."));
                 }
             } catch (RuntimeException exception) {
                 Logger.printException(() -> "Selected-quality download failed", exception);
@@ -181,10 +212,29 @@ final class VideoDownloads {
                 for (File file : temporary) if (!MediaCache.delete(file)) Logger.printInfo(() -> "Could not remove video temporary file");
                 ACTIVE.remove(id);
             }
+        };
+        boolean submitted = MediaJobScheduler.submit("video", () -> {
+            if (checkSaved) {
+                try {
+                    MediaFileWriter.Saved previous = SavedVideoArchive.find(app, id);
+                    if (previous != null) {
+                        SavedVideoArchive.offer(previous, () -> {
+                            if (!MediaJobScheduler.submit("video", save)) ACTIVE.remove(id);
+                        }, () -> ACTIVE.remove(id));
+                        return;
+                    }
+                } catch (RuntimeException failure) {
+                    ACTIVE.remove(id);
+                    Logger.printException(() -> "Could not check for an already-saved video", failure);
+                    Utils.showToastLong(L10n.t("The already-saved check failed. Try again."));
+                    return;
+                }
+            }
+            save.run();
         });
         if (!submitted) {
             ACTIVE.remove(id);
-            return false;
+            return extras;
         }
         return true;
     }

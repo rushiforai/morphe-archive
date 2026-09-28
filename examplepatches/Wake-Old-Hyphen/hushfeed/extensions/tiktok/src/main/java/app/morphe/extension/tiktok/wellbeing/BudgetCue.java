@@ -175,7 +175,7 @@ public final class BudgetCue {
 
         TextView cue = new TextView(activity);
         cue.setTextColor(SettingsUi.OVERLAY_TEXT);
-        cue.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        cue.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_CAPTION);
         cue.setMaxLines(1);
         int paddingX = SettingsUi.dp(activity, 10);
         int paddingY = SettingsUi.dp(activity, 4);

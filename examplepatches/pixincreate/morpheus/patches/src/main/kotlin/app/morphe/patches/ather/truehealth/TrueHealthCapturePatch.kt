@@ -94,7 +94,7 @@ internal object ComponentFingerprint : Fingerprint(
  * The classes are obfuscated, so each fingerprint pins the defining class plus the
  * exact constructor signature.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321):
+ * Equivalent smali (verified against 13.5.1, versionCode 324):
  * ```
  * .method public synthetic constructor <init>(I...)V
  *     .locals 2

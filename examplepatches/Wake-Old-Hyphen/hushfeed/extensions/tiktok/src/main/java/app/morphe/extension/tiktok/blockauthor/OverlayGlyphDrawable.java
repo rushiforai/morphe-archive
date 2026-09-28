@@ -36,6 +36,10 @@ public final class OverlayGlyphDrawable extends Drawable {
         NOTE,
         /** A horizontal bar, thicker than a font's dash: not interested. */
         MINUS,
+        /** A speaker with two sound waves: the feed plays with sound. */
+        SPEAKER,
+        /** A speaker with a cross where the waves were: the feed is muted. */
+        SPEAKER_OFF,
     }
 
     /** Each glyph sits inside this fraction of the shorter side. */
@@ -107,6 +111,32 @@ public final class OverlayGlyphDrawable extends Drawable {
                 float half = r * 0.6f;
                 canvas.drawLine(cx - half, cy, cx + half, cy, paint);
                 break;
+
+            case SPEAKER:
+            case SPEAKER_OFF: {
+                // The speaker sits left of centre so the waves or the cross balance it.
+                float mouth = cx + r * 0.05f;
+                Path speaker = new Path();
+                speaker.moveTo(cx - r * 0.9f, cy - r * 0.3f);
+                speaker.lineTo(cx - r * 0.45f, cy - r * 0.3f);
+                speaker.lineTo(mouth, cy - r * 0.75f);
+                speaker.lineTo(mouth, cy + r * 0.75f);
+                speaker.lineTo(cx - r * 0.45f, cy + r * 0.3f);
+                speaker.lineTo(cx - r * 0.9f, cy + r * 0.3f);
+                speaker.close();
+                canvas.drawPath(speaker, paint);
+                if (shape == Shape.SPEAKER) {
+                    for (float wave : new float[]{r * 0.4f, r * 0.75f}) {
+                        canvas.drawArc(mouth - wave, cy - wave, mouth + wave, cy + wave, -45, 90, false, paint);
+                    }
+                } else {
+                    float crossX = cx + r * 0.6f;
+                    float crossArm = r * 0.3f;
+                    canvas.drawLine(crossX - crossArm, cy - crossArm, crossX + crossArm, cy + crossArm, paint);
+                    canvas.drawLine(crossX - crossArm, cy + crossArm, crossX + crossArm, cy - crossArm, paint);
+                }
+                break;
+            }
         }
     }
 

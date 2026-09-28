@@ -97,7 +97,8 @@ public final class GestureActions {
         // The dialog offers at most 60. A restored backup is never asked, and a press that
         // jumps an hour is indistinguishable from the video ending.
         seconds = Math.min(60, seconds);
-        Context context = Utils.getContext();
+        // The window's width, not the display's: the press is placed against the window.
+        Context context = Utils.getWindowContext();
         if (context == null) return 0;
         int width = context.getResources().getDisplayMetrics().widthPixels;
         if (width <= 0) return 0;
@@ -435,7 +436,7 @@ public final class GestureActions {
 
     /** How far left counts as a swipe: an eighth of the screen's width. */
     static float swipeDistance() {
-        Context context = Utils.getContext();
+        Context context = Utils.getWindowContext();
         int width = context == null ? 0 : context.getResources().getDisplayMetrics().widthPixels;
         return (width > 0 ? width : 1080) / 8f;
     }

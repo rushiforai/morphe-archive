@@ -251,17 +251,31 @@ public final class FeatureGateLabFragment extends Fragment {
         // One row, one screen-reader stop: the row is the switch. It used to be two stops that
         // both read "Apply overrides", and only the 44dp switch answered a tap.
         LinearLayout masterRow = FeatureGateLabUi.switchRow(context,
-                L10n.t(context, "Apply overrides"),
-                L10n.t(context, "Replace values when TikTok asks for them"), master);
-        controls.addView(masterRow, FeatureGateLabUi.matchWrap());
-
-        View warning = SettingsUi.inlineNotice(context,
-                L10n.t(context, "A forced value applies to this copy of TikTok whichever account is signed in. It can't get past a check the server makes."),
-                SettingsUi.attentionColor());
-        LinearLayout.LayoutParams warningParams = FeatureGateLabUi.matchWrap();
-        int noticeMargin = FeatureGateLabUi.dp(context, SettingsUi.NOTICE_MARGIN);
-        warningParams.setMargins(0, noticeMargin, 0, noticeMargin);
-        controls.addView(warning, warningParams);
+                L10n.t(context, "Apply overrides"), null, master);
+        masterRow.setPadding(FeatureGateLabUi.dp(context, 12), FeatureGateLabUi.dp(context, 8),
+                FeatureGateLabUi.dp(context, 12), FeatureGateLabUi.dp(context, 8));
+        LinearLayout masterControls = new LinearLayout(context);
+        masterControls.setGravity(Gravity.CENTER_VERTICAL);
+        masterControls.addView(masterRow, new LinearLayout.LayoutParams(0, -2, 1f));
+        TextView help = FeatureGateLabUi.text(context, SettingsUi.ATTENTION_GLYPH, 20,
+                SettingsUi.attentionColor(), Typeface.NORMAL);
+        SettingsUi.styleTextAction(help, false);
+        help.setTextColor(SettingsUi.attentionColor());
+        help.setTag("feature_gate_help");
+        help.setContentDescription(L10n.t(context, "About overrides"));
+        help.setOnClickListener(view -> {
+            if (getActivity() == null) return;
+            AlertDialog notice = new AlertDialog.Builder(getActivity())
+                    .setTitle(L10n.t(context, "About overrides"))
+                    .setMessage(L10n.t(context, "Replace values when TikTok asks for them") + "\n\n"
+                            + L10n.t(context, "A forced value applies to this copy of TikTok whichever account is signed in. It can't get past a check the server makes."))
+                    .setPositiveButton(L10n.t(context, "Close"), null).create();
+            showStyled(notice);
+        });
+        masterControls.addView(help, new LinearLayout.LayoutParams(FeatureGateLabUi.dp(context, 48), -2));
+        LinearLayout.LayoutParams masterParams = FeatureGateLabUi.matchWrap();
+        masterParams.bottomMargin = FeatureGateLabUi.dp(context, 8);
+        controls.addView(masterControls, masterParams);
 
         LinearLayout searchRow = new LinearLayout(context);
         searchRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -274,7 +288,7 @@ public final class FeatureGateLabFragment extends Fragment {
         searchRow.setAddStatesFromChildren(true);
         search = new EditText(context);
         search.setSingleLine(true);
-        search.setTextSize(16);
+        search.setTextSize(SettingsUi.TEXT_TITLE);
         // No content description on a search box. On an editable view it replaces what was
         // typed in the announcement, so "cats" came back as the label. The hint names it.
         search.setHint(L10n.t(context, "Search by name or gate key"));
@@ -342,6 +356,7 @@ public final class FeatureGateLabFragment extends Fragment {
                     Typeface.BOLD
             );
             tab.setGravity(Gravity.CENTER);
+            tab.setSingleLine(true);
             tab.setMinWidth(FeatureGateLabUi.dp(context, 72));
             tab.setMinHeight(FeatureGateLabUi.dp(context, 46));
             tab.setPadding(
@@ -361,7 +376,7 @@ public final class FeatureGateLabFragment extends Fragment {
             ));
             sourceTabs.addView(tabContainer, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
-                    FeatureGateLabUi.dp(context, 48)
+                    ViewGroup.LayoutParams.WRAP_CONTENT
             ));
         }
         sourceScroller.addView(sourceTabs, new HorizontalScrollView.LayoutParams(
@@ -390,7 +405,9 @@ public final class FeatureGateLabFragment extends Fragment {
             TextView tab = FeatureGateLabUi.text(context, L10n.t(context, VIEW_LABELS[i]), 14,
                     SettingsUi.textSecondary(), Typeface.BOLD);
             tab.setGravity(Gravity.CENTER);
+            tab.setSingleLine(true);
             tab.setMinHeight(FeatureGateLabUi.dp(context, 46));
+            tab.setMinWidth(FeatureGateLabUi.dp(context, 72));
             tab.setPadding(
                     FeatureGateLabUi.dp(context, 14), 0,
                     FeatureGateLabUi.dp(context, 14), 0);
@@ -402,10 +419,14 @@ public final class FeatureGateLabFragment extends Fragment {
             tabContainer.addView(indicator, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     FeatureGateLabUi.dp(context, 2)));
-            viewTabs.addView(tabContainer, new LinearLayout.LayoutParams(0,
-                    FeatureGateLabUi.dp(context, 48), 1f));
+            viewTabs.addView(tabContainer, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         }
-        controls.addView(viewTabs, FeatureGateLabUi.matchWrap());
+        HorizontalScrollView viewScroller = new HorizontalScrollView(context);
+        viewScroller.setFillViewport(false);
+        viewScroller.setHorizontalScrollBarEnabled(false);
+        viewScroller.addView(viewTabs, new HorizontalScrollView.LayoutParams(-2, -2));
+        controls.addView(viewScroller, FeatureGateLabUi.matchWrap());
 
         LinearLayout resultRow = new LinearLayout(context);
         resultRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -413,7 +434,8 @@ public final class FeatureGateLabFragment extends Fragment {
         count = SettingsUi.resultCount(context, "feature_gate_result_count");
         count.setText(L10n.t(context, "Loading gates…"));
         count.setGravity(Gravity.CENTER_VERTICAL);
-        resultRow.addView(count, new LinearLayout.LayoutParams(0, FeatureGateLabUi.dp(context, 44), 1f));
+        count.setMinHeight(FeatureGateLabUi.dp(context, 48));
+        resultRow.addView(count, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         filterButton = FeatureGateLabUi.text(context, "", 14, SettingsUi.textPrimary(), Typeface.BOLD);
         filterButton.setTag("feature_gate_filter");
         SettingsUi.styleTextAction(filterButton, false);
@@ -430,7 +452,7 @@ public final class FeatureGateLabFragment extends Fragment {
         filterButton.setOnClickListener(view -> showFilterPicker());
         resultRow.addView(filterButton, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                FeatureGateLabUi.dp(context, 44)
+                ViewGroup.LayoutParams.WRAP_CONTENT
         ));
         controls.addView(resultRow, FeatureGateLabUi.matchWrap());
 
@@ -529,12 +551,18 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void showMigrationNoticeIfNeeded() {
         Activity activity = getActivity();
-        if (activity == null || activity.isFinishing() || !FeatureGateLabStore.consumeMigrationNotice()) {
+        if (activity == null || activity.isFinishing()) {
             return;
         }
-        Utils.showToastLong(L10n.f(Utils.getContext(),
-                "Older overrides were kept disabled. Review their values before enabling them on TikTok %1$s.",
-                FeatureGateLabStore.TARGET_VERSION));
+        int turnedOff = FeatureGateLabStore.consumeMigrationNotice();
+        if (turnedOff <= 0) {
+            return;
+        }
+        // Both forms take (count, build); the one form leaves the count unused.
+        Utils.showToastLong(L10n.quantity(Utils.getContext(), turnedOff,
+                "1 override was turned off because the Lab couldn't confirm its gate is unchanged in TikTok %2$s. Review it before turning it back on.",
+                "%1$d overrides were turned off because the Lab couldn't confirm their gates are unchanged in TikTok %2$s. Review them before turning them back on.",
+                turnedOff, FeatureGateLabStore.targetVersion()));
     }
 
     @Override
@@ -640,8 +668,8 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void load(boolean refresh) {
         count.setText(L10n.t(getContext(), refresh
-                ? "Refreshing current TikTok cache…"
-                : "Loading local catalog and current TikTok cache…"));
+                ? "Refreshing TikTok's current values…"
+                : "Loading the gate list and TikTok's current values…"));
         FeatureGateCatalog.loadAsync(refresh, new FeatureGateCatalog.Callback() {
             @Override
             public void onLoaded(FeatureGateCatalog.Snapshot loaded) {
@@ -661,7 +689,7 @@ public final class FeatureGateLabFragment extends Fragment {
             public void onError(String message) {
                 if (!isAdded() || getView() == null) return;
                 count.setText(
-                        L10n.f(getContext(), "Current cache unavailable: %1$s", message));
+                        L10n.f(getContext(), "Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.", message));
                 FeatureGateCatalog.Snapshot cached = FeatureGateCatalog.cachedSnapshot();
                 if (cached != null) {
                     snapshot = cached;
@@ -1190,6 +1218,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 // than overrides: the master switch, the acknowledgement and the recordings.
                 L10n.t(getContext(), "Remove all overrides"),
                 L10n.t(getContext(), "Clear all Lab data (overrides, switch, recordings)"),
+                L10n.t(getContext(), "Reviewed presets"),
                 L10n.t(getContext(), "Undo last Lab change"),
         };
         final int undoItem = labels.length - 1;
@@ -1228,6 +1257,7 @@ public final class FeatureGateLabFragment extends Fragment {
                         case 2: chooseLoadedValuesFile(); break;
                         case 3: reset(false); break;
                         case 4: reset(true); break;
+                        case 5: showPresets(); break;
                         default:
                             runLabChange(FeatureGateLabUndo::undo, L10n.t(getContext(),
                                     "Lab settings put back. Restart TikTok to apply this."));
@@ -1237,6 +1267,85 @@ public final class FeatureGateLabFragment extends Fragment {
                 .create();
         menu.setOnShowListener(ignored -> SettingsUi.styleStandardAlertDialog(menu));
         menu.show();
+    }
+
+    private void showPresets() {
+        if (getActivity() == null) return;
+        try {
+            JSONObject presets = FeatureGateLabStore.reviewedPresets();
+            List<String> builds = new ArrayList<>();
+            List<String> ids = new ArrayList<>();
+            List<String> labels = new ArrayList<>();
+            java.util.Iterator<String> versions = presets.keys();
+            while (versions.hasNext()) {
+                String build = versions.next();
+                JSONObject version = presets.getJSONObject(build);
+                java.util.Iterator<String> names = version.keys();
+                while (names.hasNext()) {
+                    String id = names.next();
+                    builds.add(build);
+                    ids.add(id);
+                    String title = version.getJSONObject(id).getString("title");
+                    labels.add(L10n.t(getContext(), title)
+                            + " (TikTok " + build + ")");
+                }
+            }
+            AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                    .setTitle(L10n.t(getContext(), "Reviewed presets"))
+                    .setItems(labels.toArray(new String[0]),
+                            (ignored, index) -> showPreset(builds.get(index), ids.get(index)))
+                    .setNegativeButton(L10n.t(getContext(), "Cancel"), null).create();
+            showStyled(dialog);
+        } catch (Exception error) {
+            Logger.printException(() -> "Could not read bundled Lab presets", error);
+            postToast(L10n.t(getContext(), "The presets couldn't load. Open the Lab again."));
+        }
+    }
+
+    private void showPreset(String build, String id) {
+        if (getActivity() == null) return;
+        if (snapshot == null) {
+            postToast(L10n.t(getContext(), "Loaded values are still being read. Try again in a moment."));
+            return;
+        }
+        try {
+            JSONObject preset = FeatureGateLabStore.reviewedPresets().getJSONObject(build).getJSONObject(id);
+            String title = preset.getString("title");
+            StringBuilder preview = new StringBuilder(L10n.f(getContext(),
+                    "Reviewed for TikTok %1$s", build));
+            boolean compatible = build.equals(app.morphe.extension.shared.BuildNames.runningBuild());
+            if (compatible) {
+                FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewPreset(build, id, snapshot.byIdentity);
+                for (FeatureGateLabStore.Rule rule : review.accepted) {
+                    FeatureGateLabStore.Rule existing = FeatureGateLabStore.rule(rule.manager, rule.key, rule.type);
+                    FeatureGateCatalog.Entry gate = snapshot.byIdentity.get(rule.manager + "\n" + rule.key);
+                    String before = existing != null && existing.enabled ? existing.value
+                            : gate.loaded ? gate.currentValue : L10n.t(getContext(), "Not seen yet");
+                    preview.append("\n\n").append(rule.key).append("\n")
+                            .append(rule.manager).append(" / ").append(rule.type).append("\n")
+                            .append(L10n.f(getContext(), "Value: %1$s to %2$s", before, rule.value));
+                }
+                preview.append("\n\n").append(L10n.t(getContext(), FeatureGateLabStore.masterEnabled()
+                        ? "Apply enables these overrides. Undo last Lab change restores your previous rules."
+                        : "Apply saves these overrides. Turn on overrides in the Lab to use them. Undo restores your previous rules."));
+            } else {
+                preview.append("\n\n").append(L10n.t(getContext(),
+                        "This preset isn't available for your installed TikTok version."));
+            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
+                    .setTitle(L10n.t(getContext(), title))
+                    .setMessage(preview)
+                    .setNegativeButton(L10n.t(getContext(), "Cancel"), null);
+            if (compatible) builder.setPositiveButton(L10n.t(getContext(), "Apply"), (ignored, which) ->
+                    runLabChange(() -> FeatureGateLabUndo.applyPreset(build, id, snapshot.byIdentity),
+                            L10n.t(getContext(), FeatureGateLabStore.masterEnabled()
+                                    ? "Preset applied. Restart TikTok to use it."
+                                    : "Preset saved. Turn on overrides in the Lab to use it.")));
+            showStyled(builder.create());
+        } catch (Exception error) {
+            Logger.printException(() -> "Could not review a bundled Lab preset", error);
+            postToast(L10n.t(getContext(), "This preset doesn't match the installed gates. Nothing changed."));
+        }
     }
 
     private void exportLoadedValues() {
@@ -1256,7 +1365,7 @@ public final class FeatureGateLabFragment extends Fragment {
                     .addCategory(Intent.CATEGORY_OPENABLE)
                     .setType("application/gzip")
                     .putExtra(Intent.EXTRA_TITLE,
-                            "tiktok-" + FeatureGateLabStore.TARGET_VERSION + "-loaded-feature-gates-" + timestamp + ".json.gz");
+                            "tiktok-" + FeatureGateLabStore.targetVersion() + "-loaded-feature-gates-" + timestamp + ".json.gz");
             startActivityForResult(intent, REQUEST_EXPORT_LOADED);
         } catch (Throwable throwable) {
             Utils.showToastLong(L10n.t(Utils.getContext(),
@@ -1345,7 +1454,7 @@ public final class FeatureGateLabFragment extends Fragment {
         if (!"loaded_values".equals(imported.optString("payload_kind"))) {
             throw new ImportRefused(L10n.t(context, "This file isn't a loaded-values export from the Feature Gate Lab."));
         }
-        if (!FeatureGateLabStore.TARGET_VERSION.equals(imported.optString("tiktok_version"))) {
+        if (!FeatureGateLabStore.targetVersion().equals(imported.optString("tiktok_version"))) {
             throw new ImportRefused(L10n.t(context, "These loaded values are for a different TikTok version."));
         }
 
@@ -1397,7 +1506,7 @@ public final class FeatureGateLabFragment extends Fragment {
         JSONObject profile = new JSONObject();
         profile.put("schema", 1);
         profile.put("target", "TikTok global");
-        profile.put("tiktok_version", FeatureGateLabStore.TARGET_VERSION);
+        profile.put("tiktok_version", FeatureGateLabStore.targetVersion());
         profile.put("rules", candidates);
         FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewProfile(
                 profile.toString(), currentSnapshot.byIdentity);
@@ -1502,7 +1611,7 @@ public final class FeatureGateLabFragment extends Fragment {
         root.put("schema", 1);
         root.put("payload_kind", "loaded_values");
         root.put("target", "TikTok global");
-        root.put("tiktok_version", FeatureGateLabStore.TARGET_VERSION);
+        root.put("tiktok_version", FeatureGateLabStore.targetVersion());
         root.put("exported_at_ms", System.currentTimeMillis());
         root.put("entry_count", rules.length());
         root.put("rules", rules);
@@ -1855,7 +1964,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 TextView title = FeatureGateLabUi.text(context, "", 16, SettingsUi.textPrimary(), Typeface.BOLD);
                 title.setMaxLines(2);
                 TextView key = FeatureGateLabUi.label(context, "");
-                key.setTextSize(12);
+                key.setTextSize(SettingsUi.TEXT_CAPTION);
                 key.setTypeface(Typeface.MONOSPACE);
                 key.setPadding(0, FeatureGateLabUi.dp(context, 6), 0, 0);
                 key.setSingleLine(true);

@@ -1,0 +1,118 @@
+/*
+ * Copyright 2026 Hushfeed contributors
+ * https://github.com/SysAdminDoc/hushfeed
+ *
+ * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).
+ */
+package app.morphe.extension.tiktok.feedfilter;
+
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.settings.Settings;
+
+import com.ss.android.ugc.aweme.feed.model.Aweme;
+
+/**
+ * Keeps only videos whose original caption is in a language on the reader's list. TikTok marks
+ * one caption track as the original ({@code isOriginalCaption}); the others are its translations.
+ * A video with no original track, a tag that isn't a language, or two originals that disagree
+ * is always kept: the list says which languages to keep, not what to do when nothing says.
+ *
+ * <p>Read on every batch rather than once when the feed path is built, so a change takes effect
+ * without a restart. The parse is cached by the setting's text.
+ */
+public final class CaptionLanguageFilter implements IFilter {
+    /** How many entries of a list and how many caption tracks of a video are looked at. */
+    static final int MAX_ENTRIES = 32;
+
+    private static final String SEPARATOR = "\\s*[,\\n]\\s*";
+    /** A BCP 47 primary language subtag: two or three letters. */
+    private static final Pattern PRIMARY = Pattern.compile("[a-z]{2,3}");
+
+    private static String parsedFrom;
+    private static Set<String> parsed = Collections.emptySet();
+
+    /** The languages to keep, as lower-case primary subtags. */
+    static synchronized Set<String> languages(String value) {
+        if (value == null) value = "";
+        if (value.equals(parsedFrom)) return parsed;
+        Set<String> codes = new LinkedHashSet<>();
+        for (String entry : value.trim().split(SEPARATOR)) {
+            if (codes.size() >= MAX_ENTRIES) break;
+            String code = primary(entry);
+            if (code != null) codes.add(code);
+        }
+        parsedFrom = value;
+        parsed = Collections.unmodifiableSet(codes);
+        return parsed;
+    }
+
+    /**
+     * What is wrong with a language list, for the row to say before it saves one, or null when
+     * every entry is a language code. A misspelt entry would match no video, so the feed would
+     * lose every captioned video in the languages the reader meant to keep.
+     */
+    public static String languageProblem(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) return null;
+        for (String entry : trimmed.split(SEPARATOR)) {
+            if (primary(entry) != null) continue;
+            return L10n.f(
+                    "%1$s isn't a language code, so no video would ever match it. Use two letters, like en, es or de.",
+                    entry.trim());
+        }
+        return null;
+    }
+
+    /** The primary subtag of a tag like "en", "en-US" or "pt_BR", lower case, or null. */
+    static String primary(String tag) {
+        if (tag == null) return null;
+        String value = tag.trim().toLowerCase(Locale.ROOT).replace('_', '-');
+        int dash = value.indexOf('-');
+        String first = dash < 0 ? value : value.substring(0, dash);
+        return PRIMARY.matcher(first).matches() ? first : null;
+    }
+
+    @Override
+    public boolean getEnabled() {
+        return !languages(Settings.CAPTION_LANGUAGES.get()).isEmpty();
+    }
+
+    @Override
+    public boolean getFiltered(Aweme item) {
+        Set<String> keep = languages(Settings.CAPTION_LANGUAGES.get());
+        if (keep.isEmpty()) return false;
+        String language = originalLanguage(item);
+        return language != null && !keep.contains(language);
+    }
+
+    /**
+     * The primary language of the video's original caption track, or null when there is none,
+     * its tag isn't a language, or two original tracks disagree.
+     */
+    static String originalLanguage(Aweme item) {
+        Object video = Reflect.property(item, "getVideo", "video");
+        Object model = Reflect.property(video, "getCaptionModel", "captionModel");
+        Object list = Reflect.readField(model, "captionList");
+        if (!(list instanceof List<?>)) return null;
+        String found = null;
+        int seen = 0;
+        for (Object caption : (List<?>) list) {
+            if (++seen > MAX_ENTRIES) break;
+            if (!Boolean.TRUE.equals(Reflect.property(caption, "isOriginalCaption", "isOriginalCaption"))) continue;
+            String language = primary(Reflect.string(caption, "getLanguageCode", "languageCode"));
+            if (language == null) return null;
+            if (found != null && !found.equals(language)) return null;
+            found = language;
+        }
+        return found;
+    }
+}

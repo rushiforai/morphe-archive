@@ -15,6 +15,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.FrameLayout;
 
@@ -79,6 +80,50 @@ public class ShareSheetToolsTest {
         ShareSheetTools.setCellHidden(cell, false);
         assertEquals("the recycled cell returns to its first measured width", 120,
                 cell.getLayoutParams().width);
+    }
+
+    /**
+     * One walk per root finds what findViewById finds: the first view with the id in pre-order,
+     * never one inside a nested window root, where findViewById doesn't look.
+     */
+    @Test public void oneWalkPerRootFindsWhatFindViewByIdFinds() {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            Activity activity = controller.get();
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout branch = new FrameLayout(activity);
+            View deepFirst = new View(activity);
+            deepFirst.setId(0x7f000501);
+            branch.addView(deepFirst);
+            View shallowLater = new View(activity);
+            shallowLater.setId(0x7f000501);
+            root.addView(branch);
+            root.addView(shallowLater);
+            // A dialog's window root, not shown, so it has no parent yet: the framework marks it
+            // a root namespace, and findViewById from above never enters it.
+            android.app.Dialog dialog = new android.app.Dialog(activity);
+            ViewGroup decor = (ViewGroup) dialog.getWindow().getDecorView();
+            View inside = new View(activity);
+            inside.setId(0x7f000502);
+            decor.addView(inside);
+            root.addView(decor);
+            View other = new View(activity);
+            other.setId(0x7f000503);
+            root.addView(other);
+
+            java.util.Set<Integer> ids = java.util.Set.of(0x7f000501, 0x7f000502, 0x7f000503, 0x7f000504);
+            java.util.List<Map<Integer, View>> index = ShareSheetTools.indexRoots(java.util.List.of(root), ids);
+            assertSame("the first view in pre-order", deepFirst, root.findViewById(0x7f000501));
+            assertNull("the control: findViewById skips the nested window root", root.findViewById(0x7f000502));
+            for (int id : ids) {
+                assertSame(Integer.toHexString(id), root.findViewById(id), index.get(0).get(id));
+            }
+        }
+    }
+
+    @Test public void theHiddenListSplitsOnLineBreaksAsWellAsCommas() {
+        assertEquals(java.util.List.of("sam", "whatsapp", "copy link", "repost"),
+                ShareSheetTools.entries("Sam\nWhatsApp, Copy link\r\n,,Repost\n"));
+        assertTrue(ShareSheetTools.entries(null).isEmpty());
     }
 
     @Test public void current47ContactsSectionWinsWhenOlderResourceStillResolves() {

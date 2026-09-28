@@ -7,12 +7,14 @@
 package app.morphe.extension.tiktok.featuregatelab;
 
 /**
- * Generated from TikTok 47.0.3 (version code 2024700030), from the player setting registry.
- * Do not edit: ./gradlew :patches:generateGateCatalog -Papk=<TikTok APK> writes it again.
+ * Generated from TikTok 47.0.3 (version code 2024700030) and TikTok 47.1.3 (version code 2024701030), from the player setting registry.
+ * The rows every build has are stored once; each build's other rows follow, in
+ * GeneratedGateCatalogBuilds.BUILDS order, and a build's rows are the shared ones then its own.
+ * Do not edit: ./gradlew :patches:generateGateCatalog writes it again.
  */
 final class GeneratedPlayerFeatureGateCatalog {
-    static final int ENTRY_COUNT = 614;
-    static final String[] GZIP_BASE64 = {
+    static final int[] ENTRY_COUNTS = {614, 617};
+    static final String[] SHARED_GZIP_BASE64 = {
             "H4sIAAAAAAAA/71dW6/jRnJ+dn7Gvic4Mx4bm8ddZBMY8NpBvEAeFgHRJJtSzyHZdJOUjvzrU7cmKYqSKLE0sLGepThfNftSXff6y//+7T9MXZn3/re+aXzo",
             "/m7a9++a0pxsSDJfF2733V9//fXnv/3ll+8+wT//LEzZ2v/77p/0b3yxtV3n6l0S7M61XTj9i0lDsrMGfylt1kWkc9zf/vE/P/3yXwz7pz/dx8wyAAums/8N",
             "b/xm29b5Oulbm9S+S3xdnuB/Mqsw+DxPWnOwSWfmQ34WLUuaYEtvcvyp8rktk8xke6XBdsHtdvCj0EgKT38Ots5t0CDxtW+7JAUq+y6BR7AEu1NysAFX4Nai",
@@ -96,6 +98,14 @@ final class GeneratedPlayerFeatureGateCatalog {
             "LmkZzO/sR4OOLBKIKHaAektjMTQN4eE6rUHs32x67bpoIYWlOKDgzKEDOi6SAR3l0CK6l0HQYoEx79MU39diU0cM8JH6MedC6t2qd/fDq/ATfvjyJvXDj2p9",
             "0amRcJyaMZLoZcAoKOiA/967DOsiWbhcpcKeD2pmCFJduDgbtQ6Wu0b6mmg1MKXux907eozklYPPFRgF43IdmQm/FAntdfjw/oVj6gl48TqQ0BgNWVtCcS6K",
             "JdzxYqwEJNEWE0iaAEed6qqqffyATahoRL823PvW+UVEupmuYd4vM/j/p23vBrHhAAA="
+    };
+    static final String[][] OWN_GZIP_BASE64 = {
+            {
+            },
+            {
+                    "H4sIAAAAAAAA/0tOji8tzsxLjy9OLYnPKs7Piy8z4izISaxMLYpPzs9Ly0zndPL393F19OM0BMLotMSc4tRYzmgwgikE6i0BmVGUmp5ZXFJUyZWTWZYan5uZ",
+                    "H5+en1ieWBkPZBWlphWlFmfQ0ux4oAE5SYnJ2ZRbAgBTTLDpFwEAAA=="
+            }
     };
 
     private GeneratedPlayerFeatureGateCatalog() {

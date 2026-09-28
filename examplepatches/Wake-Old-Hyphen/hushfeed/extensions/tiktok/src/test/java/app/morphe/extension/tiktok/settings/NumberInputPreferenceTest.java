@@ -84,7 +84,7 @@ public class NumberInputPreferenceTest {
             IntegerSetting setting = new IntegerSetting("unit_test_number_hint", 3)
                     .withRange(0, 10);
             Row preference = new Row(context, setting);
-            assertEquals("Enter a number", preference.getEditText().getHint().toString());
+            assertEquals("0 to 10", preference.getEditText().getHint().toString());
 
             View dialog = preference.dialogView();
             TextView title = (TextView) ((ViewGroup) dialog).getChildAt(0);

@@ -31,10 +31,15 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
 /**
- * Rebuilds the Feature Gate Lab's four offline catalogs from a TikTok APK.
+ * Rebuilds the Feature Gate Lab's offline catalogs from each TikTok build the bundle declares.
  *
- * `./gradlew :patches:generateGateCatalog -Papk=<TikTok APK>` writes the four
- * `Generated*Catalog.java` files under the extension's featuregatelab package. Every source is
+ * `./gradlew :patches:generateGateCatalog` reads the declared builds' APKs from the fixture
+ * folder (`HUSHFEED_FIXTURE_DIR`; `-Papk=<a.apk>;<b.apk>` names them instead) and writes the
+ * `Generated*Catalog.java` files and `GeneratedGateCatalogBuilds.java` under the extension's
+ * featuregatelab package. Each file stores the rows every build has once and each build's other
+ * rows beside them, since two builds share nearly every row: on 47.0.3 and 47.1.3 all but a few
+ * hundred of some 24,000. A SettingsManager row's call site is R8's name for it on one build, so
+ * the sites are a table of their own and the rest of the row is shared. Every source is
  * read by what it is rather than by a name R8 made up, so the same code runs on the next build:
  * - the AB registry: each `com.bytedance.ies.abmock.ConfigItem` TikTok puts into a map under its
  *   key, with the item's type and default;
@@ -47,7 +52,8 @@ import java.util.zip.ZipInputStream
  *   default, with the model's fields as the default shown.
  *
  * Rows the generator cannot produce, researched by hand, live in `gate-catalog-curated.tsv` and
- * are merged in unchanged.
+ * are merged into every build unchanged. GateCatalogFixturesTest holds the committed files to
+ * what this reads off each declared build.
  */
 object GateCatalogGenerator {
     private const val CONFIG_ITEM = "Lcom/bytedance/ies/abmock/ConfigItem;"
@@ -84,25 +90,80 @@ object GateCatalogGenerator {
     val CATALOG_NAMES = setOf("GeneratedFeatureGateCatalog", "GeneratedPlayerFeatureGateCatalog",
         "GeneratedVeFeatureGateCatalog", "GeneratedSettingsManagerCatalog")
 
-    /** One catalog, as the TSV lines the Lab reads, and the sentence its header gives. */
+    /** The SettingsManager rows' call sites, split off because they are R8's names for one build. */
+    const val SITES_NAME = "GeneratedSettingsManagerSites"
+    const val BUILDS_NAME = "GeneratedGateCatalogBuilds"
+
+    /** One catalog table, as the TSV lines the Lab reads, and the sentence its header gives. */
     class Catalog(val className: String, val source: String, val lines: List<String>)
 
     class Catalogs(val version: String, val versionCode: String, val catalogs: List<Catalog>)
 
+    /** One table over every build: the rows all of them have, then each build's others. */
+    class Combined(val className: String, val source: String, val shared: List<String>, val own: List<List<String>>) {
+        fun rowsOf(build: Int): List<String> = shared + own[build]
+    }
+
+    /** What a generated Java file stores: each build's row count, the shared rows and each build's own. */
+    class Stored(val counts: List<Int>, val shared: List<String>, val own: List<List<String>>) {
+        fun rowsOf(build: Int): List<String> = shared + own[build]
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
-        require(args.size >= 2) { "usage: GateCatalogGenerator <TikTok APK> <featuregatelab source folder> [curated.tsv]" }
-        val apk = File(args[0])
-        val out = File(args[1])
-        val curated = if (args.size > 2) File(args[2]).readLines() else emptyList()
-        require(apk.isFile) { "$apk is not a file" }
+        require(args.size >= 2) { "usage: GateCatalogGenerator <featuregatelab source folder> <curated.tsv> [TikTok APK ...]" }
+        val out = File(args[0])
+        val curated = File(args[1]).readLines()
         require(out.isDirectory) { "$out is not a folder" }
-        val result = generate(apk, curated)
-        for (catalog in result.catalogs) {
-            File(out, catalog.className + ".java").writeText(javaSource(catalog, result))
-            println("${catalog.className}: ${catalog.lines.size} rows")
+        val apks = args.drop(2).flatMap { it.split(File.pathSeparatorChar) }.filter { it.isNotBlank() }.map(::File)
+            .ifEmpty { app.morphe.Fixtures.declared() }
+        apks.forEach { require(it.isFile) { "$it is not a file" } }
+        val perBuild = apks.map { apk -> generate(apk, curated).also { println("read TikTok ${it.version} (${it.versionCode})") } }
+        val declared = app.morphe.Fixtures.declaredVersions()
+        check(perBuild.map { it.version }.sorted() == declared.sorted()) {
+            "the catalogs cover the builds the bundle declares, $declared, and these APKs are ${perBuild.map { it.version }}"
         }
-        println("from TikTok ${result.version} (${result.versionCode})")
+        val ordered = perBuild.sortedBy { declared.indexOf(it.version) }
+        for (table in combine(ordered)) {
+            File(out, table.className + ".java").writeText(javaSource(table, ordered))
+            println("${table.className}: ${table.shared.size} shared rows, own " +
+                ordered.indices.joinToString { "${ordered[it].version} ${table.own[it].size}" })
+        }
+        File(out, "$BUILDS_NAME.java").writeText(buildsSource(ordered))
+    }
+
+    /**
+     * Each table over [builds], oldest first: a row every build has, byte for byte, is stored
+     * once. The Lab reads a build's rows as the shared ones followed by its own, which is the
+     * order [generate] gave them when both parts are sorted.
+     */
+    fun combine(builds: List<Catalogs>): List<Combined> =
+        builds.first().catalogs.indices.map { table ->
+            val sets = builds.map { it.catalogs[table].lines }
+            val inEvery = sets.drop(1).fold(sets.first().toSet()) { kept, lines -> kept intersect lines.toSet() }
+            val first = builds.first().catalogs[table]
+            Combined(first.className, first.source, sets.first().filter { it in inEvery },
+                sets.map { lines -> lines.filter { it !in inEvery } })
+        }
+
+    /** Reads a generated catalog file back, for the test that holds it to the fixtures. */
+    fun readJavaSource(text: String): Stored {
+        val counts = Regex("""ENTRY_COUNTS = \{([^}]*)}""").find(text)!!.groupValues[1]
+            .split(',').map { it.trim() }.filter { it.isNotEmpty() }.map(String::toInt)
+        val shared = decode(chunks(text.substringAfter("SHARED_GZIP_BASE64 = {").substringBefore("};")))
+        // Base64 has no braces, so each build's block is the text between one pair.
+        val own = Regex("""\{([^{}]*)}""").findAll(text.substringAfter("OWN_GZIP_BASE64 = {"))
+            .take(counts.size).map { decode(chunks(it.groupValues[1])) }.toList()
+        check(own.size == counts.size) { "the file stores ${own.size} builds' own rows for ${counts.size} counts" }
+        return Stored(counts, shared, own)
+    }
+
+    private fun chunks(block: String): String = Regex(""""([^"]*)"""").findAll(block).joinToString("") { it.groupValues[1] }
+
+    private fun decode(base64: String): List<String> {
+        if (base64.isEmpty()) return emptyList()
+        val bytes = Base64.getDecoder().decode(base64)
+        return java.util.zip.GZIPInputStream(bytes.inputStream()).bufferedReader(Charsets.UTF_8).readLines()
     }
 
     fun generate(apk: File, curated: List<String>): Catalogs {
@@ -198,11 +259,16 @@ object GateCatalogGenerator {
             check(twice.isEmpty()) { "rows listed twice: $twice" }
         }
         scan.unknownLiveTypes.forEach { (name, count) -> println("skipped $count Live settings of type $name") }
+        // Key, model class, default and provenance, which two builds mostly share; the call site
+        // and its dex, which are R8's names on one build, go in a table of their own.
+        val settingsRows = settings.map { it.split('\t').let { f -> listOf(f[0], f[1], f[2], f[5]).joinToString("\t") } }
+        val settingsSites = settings.map { it.split('\t').let { f -> listOf(f[0], f[3], f[4]).joinToString("\t") } }
         return Catalogs(version, versionCode, listOf(
             Catalog("GeneratedFeatureGateCatalog", "the AB registry (ConfigItem) and Live SettingModel definitions", abLive),
             Catalog("GeneratedPlayerFeatureGateCatalog", "the player setting registry", player),
             Catalog("GeneratedVeFeatureGateCatalog", "VEConfigCenter.addConfig and the VE camera settings JSON", ve),
-            Catalog("GeneratedSettingsManagerCatalog", "SettingsManager reads with a key, a model class and a default", settings),
+            Catalog("GeneratedSettingsManagerCatalog", "SettingsManager reads with a key, a model class and a default", settingsRows),
+            Catalog(SITES_NAME, "the call site of each SettingsManager read in GeneratedSettingsManagerCatalog", settingsSites),
         ))
     }
 
@@ -675,24 +741,53 @@ object GateCatalogGenerator {
         error("${apk.name} has no manifest element")
     }
 
-    fun javaSource(catalog: Catalog, catalogs: Catalogs): String {
-        val text = catalog.lines.joinToString("\n", postfix = "\n")
+    private const val HEADER = "/*\n * Copyright 2026 Hushfeed contributors\n * https://github.com/SysAdminDoc/hushfeed\n *\n" +
+        " * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).\n */\n" +
+        "package app.morphe.extension.tiktok.featuregatelab;\n\n"
+
+    private fun from(builds: List<Catalogs>) =
+        builds.joinToString(" and ") { "TikTok ${it.version} (version code ${it.versionCode})" }
+
+    fun javaSource(table: Combined, builds: List<Catalogs>): String = buildString {
+        append(HEADER)
+        append("/**\n * Generated from ${from(builds)}, from ${table.source}.\n")
+        append(" * The rows every build has are stored once; each build's other rows follow, in\n")
+        append(" * $BUILDS_NAME.BUILDS order, and a build's rows are the shared ones then its own.\n")
+        append(" * Do not edit: ./gradlew :patches:generateGateCatalog writes it again.\n */\n")
+        append("final class ${table.className} {\n")
+        append("    static final int[] ENTRY_COUNTS = {")
+        append(builds.indices.joinToString(", ") { table.rowsOf(it).size.toString() }).append("};\n")
+        append("    static final String[] SHARED_GZIP_BASE64 = {\n")
+        appendChunks(this, table.shared, "            ")
+        append("    };\n")
+        append("    static final String[][] OWN_GZIP_BASE64 = {\n")
+        table.own.forEachIndexed { index, rows ->
+            append("            {\n")
+            appendChunks(this, rows, "                    ")
+            append(if (index < table.own.size - 1) "            },\n" else "            }\n")
+        }
+        append("    };\n\n    private ${table.className}() {\n    }\n}\n")
+    }
+
+    fun buildsSource(builds: List<Catalogs>): String = buildString {
+        append(HEADER)
+        append("/**\n * The TikTok builds the Feature Gate Lab's catalogs were generated from, oldest first.\n")
+        append(" * Do not edit: ./gradlew :patches:generateGateCatalog writes it again.\n */\n")
+        append("final class $BUILDS_NAME {\n")
+        append("    static final String[] BUILDS = {").append(builds.joinToString(", ") { "\"${it.version}\"" }).append("};\n\n")
+        append("    private $BUILDS_NAME() {\n    }\n}\n")
+    }
+
+    /** The rows as gzip in Base64, in 120-character string literals; nothing at all for no rows. */
+    private fun appendChunks(out: StringBuilder, rows: List<String>, indent: String) {
+        if (rows.isEmpty()) return
+        val text = rows.joinToString("\n", postfix = "\n")
         val gzip = ByteArrayOutputStream().also { buffer ->
             GZIPOutputStream(buffer).use { it.write(text.toByteArray(Charsets.UTF_8)) }
         }.toByteArray()
-        val encoded = Base64.getEncoder().encodeToString(gzip)
-        val chunks = encoded.chunked(120)
-        return buildString {
-            append("/*\n * Copyright 2026 Hushfeed contributors\n * https://github.com/SysAdminDoc/hushfeed\n *\n")
-            append(" * Built on icysymmetra/tiktok-patches-for-morphe (GPL-3.0).\n */\n")
-            append("package app.morphe.extension.tiktok.featuregatelab;\n\n")
-            append("/**\n * Generated from TikTok ${catalogs.version} (version code ${catalogs.versionCode}), from ${catalog.source}.\n")
-            append(" * Do not edit: ./gradlew :patches:generateGateCatalog -Papk=<TikTok APK> writes it again.\n */\n")
-            append("final class ${catalog.className} {\n")
-            append("    static final int ENTRY_COUNT = ${catalog.lines.size};\n")
-            append("    static final String[] GZIP_BASE64 = {\n")
-            chunks.forEachIndexed { i, chunk -> append("            \"").append(chunk).append('"').append(if (i < chunks.size - 1) ",\n" else "\n") }
-            append("    };\n\n    private ${catalog.className}() {\n    }\n}\n")
+        val chunks = Base64.getEncoder().encodeToString(gzip).chunked(120)
+        chunks.forEachIndexed { i, chunk ->
+            out.append(indent).append('"').append(chunk).append('"').append(if (i < chunks.size - 1) ",\n" else "\n")
         }
     }
 }

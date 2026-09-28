@@ -29,7 +29,7 @@ public class GateReportExportTest {
         String large = "{\"value\":\"" + "Caption \uD83C\uDF0D ".repeat(200000) + "\"}";
         ShadowToast.reset();
         assertFalse(GateReportExport.copy(context, large));
-        assertEquals("Use Save JSON for this large report",
+        assertEquals("Use Save report for this large report",
                 String.valueOf(ShadowToast.getTextOfLatestToast()));
         var clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = clipboard.getPrimaryClip();
@@ -108,7 +108,7 @@ public class GateReportExportTest {
         };
         ShadowToast.reset();
         assertFalse(GateReportExport.copy(denied, "{}"));
-        assertEquals("Couldn't copy the report. Use Save JSON instead.",
+        assertEquals("Couldn't copy the report. Use Save report instead.",
                 String.valueOf(ShadowToast.getTextOfLatestToast()));
     }
 }

@@ -1,0 +1,84 @@
+/*
+ * Selectors adapted from kveld9/kveld-morphe-patches at
+ * fcb1768620b8f98a6dd31e801074589ce9a63356 (GPL-3.0).
+ * https://github.com/kveld9/kveld-morphe-patches/tree/fcb1768620b8f98a6dd31e801074589ce9a63356
+ */
+package app.morphe.patches.tiktok.misc.optimizer
+
+import app.morphe.patcher.Fingerprint
+import com.android.tools.smali.dexlib2.AccessFlags
+
+internal const val SPLASH_SERVICE_DESCRIPTOR =
+    "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/core/SplashAdServiceImpl;"
+internal const val SPLASH_SETTING_DESCRIPTOR =
+    "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/core/SplashSettingServiceImpl;"
+internal const val REALTIME_SPLASH_DESCRIPTOR =
+    "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/realtimesplash/RealTimeSplashManagerImpl;"
+internal const val FRESCO_FRAME_CACHE_DESCRIPTOR =
+    "Lcom/facebook/fresco/animation/bitmap/cache/FrescoFrameCache;"
+
+private val publicFinal = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
+
+internal object SplashPreloadTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/SplashAdManagerPreloadTask;",
+    name = "run",
+    accessFlags = publicFinal,
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+internal object SplashPreloadEntryFingerprint : Fingerprint(
+    definingClass = "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/SplashAdManagerPreloadTaskEntry;",
+    name = "run",
+    accessFlags = publicFinal,
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+internal object BufferPreloadGateFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/video/preload/model/PreloadStrategyConfig;",
+    name = "isEnableBufferPreload",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "Z",
+    parameters = emptyList(),
+)
+
+internal object InitPushTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/legoImp/task/InitPushTask;",
+    name = "run",
+    accessFlags = publicFinal,
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+internal object LiveGiftInitViewFingerprint : Fingerprint(
+    definingClass = "Lcom/bytedance/android/livesdk/gift/base/platform/business/effect/LiveGiftEffectWidget;",
+    name = "initView",
+    accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object LiveGiftOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/bytedance/android/livesdk/gift/base/platform/business/effect/LiveGiftEffectWidget;",
+    name = "onCreate",
+    accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+internal object UpdateBackgroundTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/legoImp/task/CheckUpdateChangeDeviceIDTaskHolder\$Background;",
+    name = "run",
+    accessFlags = publicFinal,
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+internal object UpdateBootFinishedTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/legoImp/task/CheckUpdateChangeDeviceIDTaskHolder\$BootFinish;",
+    name = "run",
+    accessFlags = publicFinal,
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)

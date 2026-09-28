@@ -85,7 +85,11 @@ rather than reusing the last run's XML.
 Run `scripts/install-hooks.ps1` once per checkout. It installs a pre-push hook that runs the
 runtime tests when a push changes anything under `extensions/` or `patches/`, the release check
 when it changes `README.md`, `gradle.properties`, `patches-list.json` or `patches-bundle.json`,
-and the script contract tests when it changes anything under `scripts/`. Nothing builds on
+and the script contract tests when it changes anything under `scripts/`. A push that changes a
+patch under `patches/src/main`, or the patcher pin in `gradle/libs.versions.toml`, also builds the
+bundle and applies every patch to each TikTok build the catalog declares, all of them at once,
+with `scripts/verify-all-patches.ps1` and the desktop CLI. The tests never run the patcher, and a
+fingerprint that matched nothing once passed all of them. Nothing builds on
 GitHub, so a push is the last place any of them can run. Set `HUSHFEED_SKIP_PRE_PUSH=1` to push
 without it. Every check looks at each commit the push carries, with that commit's own copy of
 the check. It works in place only when that commit is HEAD and nothing in the working tree differs
@@ -94,7 +98,9 @@ so work that isn't part of the push can neither fail it nor pass it. An in-place
 tree again when it finishes, even after a build failure, and stops the push if anything changed
 meanwhile: a tree that moved during a build invalidates the result whether it passed or failed.
 Each commit is checked by its own copy of the check script, so a renamed or removed helper
-cannot cause one commit's check to run through another commit's code. The one exception
+cannot cause one commit's check to run through another commit's code. Don't commit to the branch
+you're pushing until the push ends: git reads the branch again after the hook, so a commit made
+meanwhile would go out unchecked, and the hook refuses the push when it sees the branch moved. The one exception
 is the push that rewrites `patches-bundle.json`: it's checked against the bundle and test results
 this checkout built, so it has to come from a clean checkout of the commit it pushes.
 
@@ -107,9 +113,11 @@ that instead, and none of them has a default:
   They're hundreds of megabytes each, so they aren't in the repository. When it's unset the
   fixture tests skip and say which variable to set. When it names a folder that holds none of
   them they fail, because a skip there would look like a pass. `scripts/patch-for-device.ps1` and
-  `scripts/verify-injected-registers.ps1` take their default APK from the same folder.
+  `scripts/verify-injected-registers.ps1` take their default APK from the same folder. The
+  pre-push hook refuses a push that changes a patch unless this folder holds one universal APK of
+  every declared build.
 - `HUSHFEED_DESKTOP_JAR` is the Morphe desktop CLI jar. `HUSHFEED_WORKDIR` or a jar under
-  `build/morphe-tools` works too.
+  `build/morphe-tools` works too, except in the pre-push hook, which reads this variable only.
 - `HUSHFEED_BUILD_WRAPPER` names a PowerShell script the pre-push hook runs Gradle through,
   called as `<wrapper> -ProjectDir <repository> -Tasks <task>...`. It helps when several builds
   share one machine and need to queue. Unset, the hook runs `gradlew.bat` itself.

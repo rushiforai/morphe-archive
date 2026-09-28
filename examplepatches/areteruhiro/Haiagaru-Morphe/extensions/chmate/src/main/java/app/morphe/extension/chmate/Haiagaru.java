@@ -165,7 +165,10 @@ public final class Haiagaru {
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGACY_THREAD_READ_PATH = Pattern.compile(
-            "^/test/read\\.cgi/([^/]+)/(\\d{9,10})(?:/.*)?$",
+            // Keep the optional response number separate from any trailing
+            // path.  ChMate uses this suffix to position the thread at the
+            // requested response after an archived DAT has been imported.
+            "^/test/read\\.cgi/([^/]+)/(\\d{9,10})(/\\d+)?(?:/.*)?$",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern ITEST_SERVER_THREAD_READ_PATH = Pattern.compile(
@@ -374,12 +377,14 @@ public final class Haiagaru {
         Context context = provider.getContext();
         if (context == null) return;
         initializeApplicationContext(context);
+        EmojiFontFallback.initialize(context);
     }
 
     /** Fallback for processes that do not create ChMate's startup provider. */
     public static void onApplicationPreCreate(Application application) {
         if (application == null) return;
         initializeApplicationContext(application);
+        EmojiFontFallback.initialize(application);
     }
 
     public static void onApplicationCreate(Application application) {
@@ -388,6 +393,12 @@ public final class Haiagaru {
         // hook.  The provider runs before ChMate creates its HTTP clients, so
         // applying the UA there is required for the first request after restart.
         initializeApplicationContext(application);
+        EmojiFontFallback.register(application);
+    }
+
+    /** Applies the bundled emoji fallback while preserving the original text. */
+    public static CharSequence processEmojiText(CharSequence source) {
+        return EmojiFontFallback.processText(source);
     }
 
     private static void initializeApplicationContext(Context context) {
@@ -1719,8 +1730,23 @@ public final class Haiagaru {
                 return normalized;
             }
 
-            return "https://itest.5ch.io/test/read.cgi/"
-                    + matcher.group(1) + "/" + matcher.group(2) + "/";
+            String responseSuffix = matcher.groupCount() >= 3
+                    ? matcher.group(3) : null;
+            StringBuilder rewrittenUrl = new StringBuilder()
+                    .append("https://itest.5ch.io/test/read.cgi/")
+                    .append(matcher.group(1)).append('/').append(matcher.group(2));
+            if (responseSuffix != null && !responseSuffix.isEmpty()) {
+                rewrittenUrl.append(responseSuffix);
+            } else {
+                rewrittenUrl.append('/');
+            }
+            if (uri.getEncodedQuery() != null) {
+                rewrittenUrl.append('?').append(uri.getEncodedQuery());
+            }
+            if (uri.getEncodedFragment() != null) {
+                rewrittenUrl.append('#').append(uri.getEncodedFragment());
+            }
+            return rewrittenUrl.toString();
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to rewrite legacy thread URL", error);
             return normalized;
@@ -1932,7 +1958,15 @@ public final class Haiagaru {
             android.widget.BaseAdapter adapter,
             int position
     ) {
-        if (view == null || adapter == null || !shouldHideAds()) return;
+        if (view == null || adapter == null) return;
+        // This adapter hook runs for every bound response, including when ad
+        // hiding is disabled. Keep emoji fallback independent of that setting.
+        try {
+            EmojiFontFallback.applyToRow(view);
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to apply emoji font fallback", error);
+        }
+        if (!shouldHideAds()) return;
         try {
             // 191 reserves the tablet banner above the filter buttons as top padding on
             // the first adapter row. It is not an ad View, so collapsing SDK Views alone

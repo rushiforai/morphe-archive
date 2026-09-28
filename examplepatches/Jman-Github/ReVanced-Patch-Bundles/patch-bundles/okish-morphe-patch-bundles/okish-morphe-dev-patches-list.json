@@ -1,5 +1,5 @@
 {
-    "version": "v1.32.0-dev.1",
+    "version": "v1.34.0-dev.1",
     "patches": [
         {
             "compatiblePackages": [
@@ -28,30 +28,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
-                    "appIconColor": "#FFC107",
-                    "name": "Subway Surfers",
-                    "packageName": "com.kiloo.subwaysurf",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "3.69.2"
-                        }
-                    ],
-                    "versions": [
-                        "3.69.2"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Removes all ads. \"Watch a video\" rewards (coins, revives, bonuses) are granted instantly, without watching anything.",
-            "name": "Ad Removal & Free Rewards",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
                     "apkFileType": "APKM",
                     "appIconColor": "#00A651",
                     "name": "Adda247",
@@ -59,11 +35,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "12.6.7"
+                            "version": "12.7.2"
                         }
                     ],
                     "versions": [
-                        "12.6.7"
+                        "12.7.2"
                     ]
                 }
             ],
@@ -83,11 +59,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "12.6.7"
+                            "version": "12.7.2"
                         }
                     ],
                     "versions": [
-                        "12.6.7"
+                        "12.7.2"
                     ]
                 }
             ],
@@ -703,30 +679,6 @@
         {
             "compatiblePackages": [
                 {
-                    "apkFileType": "APK",
-                    "appIconColor": "#FFC107",
-                    "name": "Subway Surfers",
-                    "packageName": "com.kiloo.subwaysurf",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "3.69.2"
-                        }
-                    ],
-                    "versions": [
-                        "3.69.2"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Approves every in-app purchase for free — items are added to your account instantly.",
-            "name": "IAP Grant Engine",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
                     "apkFileType": "XAPK",
                     "appIconColor": "#8B0000",
                     "name": "Into the Dead 2",
@@ -745,30 +697,6 @@
             "default": true,
             "dependencies": [],
             "description": "Wakes up that helper every time you open the game, so free purchases and subscriptions keep working.",
-            "name": "IAP Grant Trigger",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#FFC107",
-                    "name": "Subway Surfers",
-                    "packageName": "com.kiloo.subwaysurf",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "3.69.2"
-                        }
-                    ],
-                    "versions": [
-                        "3.69.2"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Starts the free-purchase helper every time you open the game.",
             "name": "IAP Grant Trigger",
             "options": []
         },
@@ -1034,30 +962,6 @@
             "dependencies": [],
             "description": "Bypasses the Pairip Play Store license check so the app launches normally.",
             "name": "Missiles License Bypass",
-            "options": []
-        },
-        {
-            "compatiblePackages": [
-                {
-                    "apkFileType": "APK",
-                    "appIconColor": "#FFC107",
-                    "name": "Subway Surfers",
-                    "packageName": "com.kiloo.subwaysurf",
-                    "targets": [
-                        {
-                            "isExperimental": false,
-                            "version": "3.69.2"
-                        }
-                    ],
-                    "versions": [
-                        "3.69.2"
-                    ]
-                }
-            ],
-            "default": true,
-            "dependencies": [],
-            "description": "Buy coins or items in the shop instantly — no Google Play popup, no payment, rewards arrive right away.",
-            "name": "No Payment Popup",
             "options": []
         },
         {
@@ -1430,11 +1334,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.14.03"
+                            "version": "1.14.04"
                         }
                     ],
                     "versions": [
-                        "1.14.03"
+                        "1.14.04"
                     ]
                 }
             ],
@@ -1733,8 +1637,104 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Consolidated patch to remove all ads, boot pages, cloud popups, and the help center robot.",
-            "name": "TrueCloud Ad Removal",
+            "description": "Removes all ads: ad service, house-ad network, ad rows, polling, and banner/popup surfaces; disables cloud boot pages, cloud prompts, and the help-center robot.",
+            "name": "TrueCloud Ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FF0045",
+                    "name": "TrueCloud",
+                    "packageName": "com.generalcomp.truecloud",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "4.6.5.13"
+                        }
+                    ],
+                    "versions": [
+                        "4.6.5.13"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Bypasses anti-emulator self-kill and disables analytics, telemetry, device-ID, and crash-reporting SDKs.",
+            "name": "TrueCloud Protection",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FF0045",
+                    "name": "TrueCloud",
+                    "packageName": "com.generalcomp.truecloud",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "4.6.5.13"
+                        }
+                    ],
+                    "versions": [
+                        "4.6.5.13"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Blocks all app update and force-update dialogs and their version checks.",
+            "name": "TrueCloud Update",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FF0045",
+                    "name": "TrueCloud",
+                    "packageName": "com.generalcomp.truecloud",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "4.6.5.13"
+                        }
+                    ],
+                    "versions": [
+                        "4.6.5.13"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Hides the in-app rating dialog and rate-us tip banner.",
+            "name": "TrueCloud UX",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#FF0045",
+                    "name": "TrueCloud",
+                    "packageName": "com.generalcomp.truecloud",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "4.6.5.13"
+                        }
+                    ],
+                    "versions": [
+                        "4.6.5.13"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks cloud/WeChat-call entitlements, extends alarm replay duration and message window, and disables 4G trial countdown gates. - Doesn't unlock Cloud Server Side Storage.",
+            "name": "TrueCloud VIP",
             "options": []
         },
         {
@@ -1771,11 +1771,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.14.03"
+                            "version": "1.14.04"
                         }
                     ],
                     "versions": [
-                        "1.14.03"
+                        "1.14.04"
                     ]
                 }
             ],
@@ -1795,11 +1795,11 @@
                     "targets": [
                         {
                             "isExperimental": false,
-                            "version": "1.14.03"
+                            "version": "1.14.04"
                         }
                     ],
                     "versions": [
-                        "1.14.03"
+                        "1.14.04"
                     ]
                 }
             ],

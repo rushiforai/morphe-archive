@@ -248,6 +248,10 @@ tasks {
     // The README tests read marketing and patch-list files outside this module. Declare those
     // inputs so Gradle reruns them when the public page or its selected artwork changes.
     test {
+        // GateCatalogFixturesTest runs the catalog generator on each declared build, and the
+        // generator holds a whole APK's dex (some 430 MB on 47.1.3, feature modules included)
+        // while it walks it. Gradle's default test heap is 512 MB, where that ran out of memory.
+        maxHeapSize = "4g"
         inputs.file(rootProject.file("README.md"))
             .withPropertyName("readme")
             .withPathSensitivity(PathSensitivity.RELATIVE)
@@ -344,19 +348,20 @@ tasks {
     publish {
         dependsOn("generatePatchesList")
     }
-    // Rebuilds the Feature Gate Lab's four offline catalogs from a TikTok APK:
-    // ./gradlew :patches:generateGateCatalog -Papk=<TikTok APK>. The generator is a test-source
-    // tool because the test classpath is the one that carries dexlib2 and apksig.
+    // Rebuilds the Feature Gate Lab's offline catalogs from every declared TikTok build:
+    // ./gradlew :patches:generateGateCatalog reads their APKs from HUSHFEED_FIXTURE_DIR, and
+    // -Papk=<a.apk>;<b.apk> names them instead. The generator is a test-source tool because the
+    // test classpath is the one that carries dexlib2 and apksig.
     register<JavaExec>("generateGateCatalog") {
-        description = "Rebuild the Feature Gate Lab catalogs from the TikTok APK given as -Papk"
+        description = "Rebuild the Feature Gate Lab catalogs from the declared TikTok builds"
         dependsOn(testClasses)
         classpath = sourceSets["test"].runtimeClasspath
         mainClass.set("app.morphe.gatecatalog.GateCatalogGenerator")
         maxHeapSize = "8g"
         args(
-            providers.gradleProperty("apk").getOrElse(""),
             rootProject.file("extensions/tiktok/src/main/java/app/morphe/extension/tiktok/featuregatelab").absolutePath,
-            file("src/test/resources/gate-catalog-curated.tsv").absolutePath
+            file("src/test/resources/gate-catalog-curated.tsv").absolutePath,
+            providers.gradleProperty("apk").getOrElse("")
         )
     }
 }

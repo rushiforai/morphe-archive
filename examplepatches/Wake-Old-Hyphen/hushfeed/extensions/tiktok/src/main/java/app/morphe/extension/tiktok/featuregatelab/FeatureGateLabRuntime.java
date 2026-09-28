@@ -828,7 +828,11 @@ public final class FeatureGateLabRuntime {
             return new Snapshot(builtAt, true, false, Collections.emptyMap());
         }
         Map<String, FeatureGateLabStore.Rule> active = new HashMap<>();
-        for (FeatureGateLabStore.Rule rule : FeatureGateLabStore.rules()) {
+        // Rules another TikTok build saved wait until the main process has checked them against
+        // this build's catalog. A secondary process opens the store without doing that.
+        boolean forThisBuild = FeatureGateLabStore.storedForRunningBuild();
+        for (FeatureGateLabStore.Rule rule : forThisBuild
+                ? FeatureGateLabStore.rules() : Collections.<FeatureGateLabStore.Rule>emptyList()) {
             if (rule.enabled && FeatureGateLabStore.supportsOverride(rule.manager, rule.type)) {
                 active.put(identity(rule.manager, rule.key, rule.type), rule);
             }
@@ -896,25 +900,7 @@ public final class FeatureGateLabRuntime {
     }
 
     private static String findCaller() {
-        for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {
-            String className = frame.getClassName();
-            if (className.startsWith("app.morphe.extension.tiktok.featuregatelab")
-                    || className.startsWith("java.lang.Thread")
-                    || className.startsWith("dalvik.system.VMStack")
-                    || className.equals("X.0BPv")
-                    || className.equals("X.0BPb")
-                    || className.equals("X.0BP8")
-                    || className.equals("X.090T")
-                    || className.equals("X.0b13")
-                    || className.equals("com.bytedance.ies.abmock.SettingsManager")
-                    || className.equals("com.bytedance.android.live_settings.SettingsManager")
-                    || className.equals("com.ss.android.vesdk.VEConfigCenter")
-                    || className.equals("com.ss.android.ugc.aweme.video.simplayer.PlayerSettingServiceImpl")) {
-                continue;
-            }
-            return className + "#" + frame.getMethodName();
-        }
-        return "unknown";
+        return GateCallers.hostCaller(Thread.currentThread().getStackTrace());
     }
 
     private static String safeLog(String value) {

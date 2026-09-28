@@ -20,8 +20,22 @@ public final class VerifyTalkDatEncoding {
 
         String smile = "日本国　貧困弁当が流行る☺️";
         String encodedSmile = new String(TalkDatEncoding.encode(smile), MS932);
-        require(encodedSmile.equals("日本国　貧困弁当が流行る&#9786;"));
+        require(encodedSmile.equals("日本国　貧困弁当が流行る&#9786;&#65039;"));
+        require(smile.equals(decodeNumericEntities(encodedSmile)));
         require(!encodedSmile.contains("�"));
+
+        String joined = "🫷👁️👄👁️‍🗨️🫸";
+        String encodedJoined = new String(TalkDatEncoding.encode(joined), MS932);
+        require(encodedJoined.contains("&#65039;&#8205;"));
+        require(encodedJoined.contains("&#128488;&#65039;"));
+        require(joined.equals(decodeNumericEntities(encodedJoined)));
+
+        String writer = "🫷👁️👄👁️‍🗨️🫸<> <>2026/09/26<>本文<>\n";
+        String encodedWriter = new String(TalkDatEncoding.encode(writer), MS932);
+        require(encodedWriter.contains("&#128065;&#65039;&#8205;&#128488;&#65039;"));
+        require(writer.equals(decodeNumericEntities(encodedWriter)));
+        require(!encodedWriter.contains("・"));
+        require(!encodedWriter.contains("�"));
 
         System.out.println("Talk DAT Unicode encoding verification passed");
     }

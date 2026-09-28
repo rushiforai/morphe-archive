@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.content.res.ColorStateList;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -25,7 +27,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A running count over a save of several files, with a way to stop it.
+ * A running count for several files and optional stream progress for a video save.
  *
  * <p>Saving a dozen original photos, a story's photos or a video with its sound and subtitles
  * ran fire-and-toast: a slow save looked like a failed one, and nothing short of killing TikTok
@@ -35,12 +37,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * the end, not on every file; the count changes silently in between.
  */
 final class SaveProgress {
-    /** Below this many files a save is over before a row would help. */
+    /** The default count row starts here; optional stream progress also covers smaller saves. */
     static final int MIN_FILES = 3;
     /** Room under the row for a banner (a block's Undo, a finished save) to appear beneath it. */
     private static final int ABOVE_BANNER_DP = 56;
-    /** Each further row of a save running at the same time sits this much higher than the last. */
-    private static final int ROW_STACK_DP = 56;
+    /** Space between simultaneous saves, in addition to each measured row height. */
+    private static final int ROW_GAP_DP = 8;
     /** The rows up right now, main thread only, so two saves at once do not share pixels. */
     private static final List<View> LIVE_ROWS = new ArrayList<>();
     /** For the tests: what the row said aloud, in order. Null keeps it to the phone. */
@@ -80,20 +82,58 @@ final class SaveProgress {
     }
 
     private final int total;
+    private final boolean showTransfer;
+    private volatile int current = 1;
+    private volatile int percent = -1;
+    private volatile ProgressBar transferBar;
     private final AtomicBoolean cancelled = new AtomicBoolean();
     private volatile boolean finished;
     private volatile View row;
     private volatile TextView count;
 
-    private SaveProgress(int total) {
+    private SaveProgress(int total, boolean showTransfer) {
         this.total = total;
+        this.showTransfer = showTransfer;
     }
 
     /** A progress row for {@code total} files, or a silent one below {@link #MIN_FILES}. */
     static SaveProgress begin(int total) {
-        SaveProgress progress = new SaveProgress(total);
-        if (total >= MIN_FILES) progress.show();
+        return begin(total, false);
+    }
+
+    static SaveProgress begin(int total, boolean showTransfer) {
+        SaveProgress progress = new SaveProgress(total, showTransfer);
+        if (total >= MIN_FILES || showTransfer) progress.show();
         return progress;
+    }
+
+    /** The current stream, not an estimate of later streams, muxing or publication. */
+    void transfer(long bytes, long expected) {
+        if (!showTransfer || finished || cancelled.get()) return;
+        int next = expected <= 0 ? -1 : (int) Math.max(0, Math.min(99, bytes * 100.0 / expected));
+        if (next == percent) return;
+        percent = next;
+        updateTransfer();
+    }
+
+    private String progressText() {
+        if (percent < 0) return total == 1 ? L10n.t("Saving video")
+                : L10n.f("Saving %1$s of %2$s", String.valueOf(current), String.valueOf(total));
+        String value = java.text.NumberFormat.getPercentInstance().format(percent / 100.0);
+        return total == 1 ? L10n.f("Saving video: %1$s", value)
+                : L10n.f("Saving %1$s of %2$s: %3$s", String.valueOf(current), String.valueOf(total), value);
+    }
+
+    private void updateTransfer() {
+        Utils.runOnMainThread(() -> {
+            if (count == null || cancelled.get() || finished) return;
+            count.setText(progressText());
+            ProgressBar bar = transferBar;
+            if (bar != null) {
+                bar.setIndeterminate(percent < 0);
+                if (percent >= 0) bar.setProgress(percent);
+            }
+        });
     }
 
     int total() {
@@ -188,18 +228,37 @@ final class SaveProgress {
                 banner.setTag("hushfeed_save_progress");
 
                 TextView label = new TextView(activity);
-                String text = L10n.f("Saving %1$s of %2$s", String.valueOf(1), String.valueOf(total));
+                String text = progressText();
                 label.setText(text);
                 label.setTextColor(SettingsUi.OVERLAY_TEXT);
-                label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-                banner.addView(label, new LinearLayout.LayoutParams(0, -2, 1f));
+                label.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
+                if (showTransfer) {
+                    LinearLayout body = new LinearLayout(activity);
+                    body.setOrientation(LinearLayout.VERTICAL);
+                    body.addView(label, new LinearLayout.LayoutParams(-1, -2));
+                    ProgressBar bar = new ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal);
+                    bar.setMax(100);
+                    bar.setIndeterminate(percent < 0);
+                    if (percent >= 0) bar.setProgress(percent);
+                    bar.setProgressTintList(ColorStateList.valueOf(SettingsUi.OVERLAY_ACCENT));
+                    bar.setIndeterminateTintList(ColorStateList.valueOf(SettingsUi.OVERLAY_ACCENT));
+                    // The adjacent text gives its value to TalkBack without per-byte announcements.
+                    bar.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                    LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(-1, SettingsUi.dp(activity, 4));
+                    barParams.topMargin = SettingsUi.dp(activity, 8);
+                    body.addView(bar, barParams);
+                    transferBar = bar;
+                    banner.addView(body, new LinearLayout.LayoutParams(0, -2, 1f));
+                } else {
+                    banner.addView(label, new LinearLayout.LayoutParams(0, -2, 1f));
+                }
 
                 TextView stop = new TextView(activity);
                 String cancelLabel = L10n.t(activity, "Cancel");
                 stop.setText(cancelLabel);
                 stop.setContentDescription(cancelLabel);
                 stop.setTextColor(SettingsUi.OVERLAY_ACCENT);
-                stop.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                stop.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
                 stop.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12),
                         SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));
                 stop.setMinimumHeight(SettingsUi.dp(activity, 48));
@@ -209,12 +268,13 @@ final class SaveProgress {
                 stop.setFocusable(true);
                 SettingsUi.markAsButton(stop);
                 stop.setOnClickListener(view -> cancel());
-                banner.addView(stop, new LinearLayout.LayoutParams(-2, -2));
+                // Cancel stops after the current file. A single file has no later work to cancel.
+                if (total > 1) banner.addView(stop, new LinearLayout.LayoutParams(-2, -2));
 
                 // Above where a banner goes, so a finished save or a block's Undo can show
                 // beneath a save still running, and above any row already up.
                 FrameLayout.LayoutParams params = BlockAuthorOverlay.bannerParams(activity, root);
-                params.bottomMargin += SettingsUi.dp(activity, ABOVE_BANNER_DP + ROW_STACK_DP * LIVE_ROWS.size());
+                params.bottomMargin += SettingsUi.dp(activity, ABOVE_BANNER_DP);
                 banner.setLayoutParams(params);
                 // Should the window it sits on go away with the save still running (a sheet
                 // closing late), the row moves to the activity's own content.
@@ -227,10 +287,15 @@ final class SaveProgress {
                         Utils.runOnMainThread(() -> rehome(activity, view));
                     }
                 });
+                banner.addOnLayoutChangeListener((view, left, top, right, bottom,
+                        oldLeft, oldTop, oldRight, oldBottom) -> {
+                    if (bottom - top != oldBottom - oldTop) placeRows();
+                });
                 root.addView(banner);
                 LIVE_ROWS.add(banner);
                 row = banner;
                 count = label;
+                placeRows();
                 // Said once here, by hand; the count is not a live region, so the files that
                 // follow change it without a word, and the result is the banner's to announce.
                 announce(banner, text);
@@ -246,14 +311,33 @@ final class SaveProgress {
         if (content == null || view.getParent() == content) return;
         if (view.getParent() instanceof ViewGroup) ((ViewGroup) view.getParent()).removeView(view);
         content.addView(view);
+        placeRows();
+    }
+
+    /** A translated label or larger text can make a row taller than the default spacing. */
+    private static void placeRows() {
+        for (View view : LIVE_ROWS) {
+            if (!(view.getParent() instanceof ViewGroup)) continue;
+            ViewGroup root = (ViewGroup) view.getParent();
+            Activity activity = (Activity) view.getContext();
+            int bottom = BlockAuthorOverlay.bannerParams(activity, root).bottomMargin
+                    + SettingsUi.dp(activity, ABOVE_BANNER_DP);
+            for (View previous : LIVE_ROWS) {
+                if (previous == view) break;
+                if (previous.getParent() == root) bottom += previous.getHeight() + SettingsUi.dp(activity, ROW_GAP_DP);
+            }
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+            if (params.bottomMargin != bottom) {
+                params.bottomMargin = bottom;
+                view.setLayoutParams(params);
+            }
+        }
     }
 
     private void showCount(int current) {
-        Utils.runOnMainThread(() -> {
-            TextView view = count;
-            if (view == null || cancelled.get()) return;
-            view.setText(L10n.f("Saving %1$s of %2$s", String.valueOf(current), String.valueOf(total)));
-        });
+        this.current = current;
+        percent = -1;
+        updateTransfer();
     }
 
     private void dismiss() {
@@ -262,9 +346,11 @@ final class SaveProgress {
             View view = row;
             row = null;
             count = null;
+            transferBar = null;
             if (view == null) return;
             LIVE_ROWS.remove(view);
             if (view.getParent() instanceof ViewGroup) ((ViewGroup) view.getParent()).removeView(view);
+            placeRows();
         });
     }
 

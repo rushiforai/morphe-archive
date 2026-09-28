@@ -4,6 +4,7 @@
 %1$d fields will be overridden when requested	İstendiğinde %1$d alan geçersiz kılınacak
 %1$d gates selected	%1$d özellik kapısı seçildi
 %1$d minutes left	%1$d dakika kaldı
+%1$d overrides were turned off because the Lab couldn't confirm their gates are unchanged in TikTok %2$s. Review them before turning them back on.	Lab, TikTok %2$s sürümünde özellik kapılarının değişmediğini doğrulayamadığı için %1$d geçersiz kılma kapatıldı. Yeniden açmadan önce gözden geçir.
 %1$d rejected	%1$d reddedildi
 %1$d results	%1$d sonuç
 %1$d results so far	Şimdiye kadar %1$d sonuç
@@ -17,14 +18,12 @@
 %1$s (custom, unverified)	%1$s (özel, doğrulanmamış)
 %1$s (override returned)	%1$s (geçersiz kılma döndürüldü)
 %1$s (will be returned when requested)	%1$s (istendiğinde döndürülecek)
-%1$s / current cache only	%1$s / yalnızca mevcut önbellek
-%1$s / generated registry	%1$s / oluşturulmuş kayıt defteri
-%1$s / generated registry and current cache	%1$s / oluşturulmuş kayıt defteri ve mevcut önbellek
-%1$s / local catalog	%1$s / yerel katalog
 %1$s and above	%1$s ve üzeri
 %1$s appears more than once in this file.	%1$s bu dosyada birden fazla kez geçiyor.
 %1$s changed	%1$s değişti
 %1$s destinations must start with %2$s	%1$s hedefleri %2$s ile başlamalı
+%1$s is too long for a settings backup. Shorten it, then save the backup again.	%1$s bir ayar yedeği için çok uzun. Kısaltın, ardından yedeği yeniden kaydedin.
+%1$s isn't a language code, so no video would ever match it. Use two letters, like en, es or de.	%1$s bir dil kodu değil, bu yüzden hiçbir video eşleşmez. en, es veya de gibi iki harf kullan.
 %1$s needs fixing. %2$s	%1$s düzeltilmeli. %2$s
 %1$s is a kind of value the Lab can't override.	%1$s, Lab'in geçersiz kılamayacağı bir değer türü.
 %1$s has type %2$s, but the file says %3$s.	%1$s türü %2$s, ama dosyada %3$s yazıyor.
@@ -36,7 +35,13 @@
 %1$s min left	%1$s dk kaldı
 %1$s to %2$s	%1$s ile %2$s arası
 %1$s videos left	%1$s video kaldı
+%1$s videos were recorded before each account kept its own list. They hide nothing until you add them here.	%1$s video, her hesap kendi listesini tutmadan önce kaydedildi. Onları buraya ekleyene kadar hiçbir şeyi gizlemezler.
 %1$s was rejected. %2$s	%1$s reddedildi. %2$s
+%1$s · Hushfeed's list only	%1$s · yalnızca Hushfeed listesinde
+%1$s · current value only	%1$s · yalnızca geçerli değer
+%1$s · declared by TikTok	%1$s · TikTok tarafından tanımlı
+%1$s · declared by TikTok, with a current value	%1$s · TikTok tarafından tanımlı, geçerli değeri var
+%1$s%%	%%%1$s
 %1$s, %2$s, %3$s, %4$s, %5$s	%1$s, %2$s, %3$s, %4$s, %5$s
 %1$s, selected	%1$s, seçili
 %1$s. %2$s	%1$s. %2$s
@@ -49,11 +54,13 @@
 1 field will be overridden when requested	İstendiğinde 1 alan geçersiz kılınacak
 1 gate selected	1 özellik kapısı seçildi
 1 min left	1 dk kaldı
+1 override was turned off because the Lab couldn't confirm its gate is unchanged in TikTok %2$s. Review it before turning it back on.	Lab, TikTok %2$s sürümünde özellik kapısının değişmediğini doğrulayamadığı için 1 geçersiz kılma kapatıldı. Yeniden açmadan önce gözden geçir.
 1 result	1 sonuç
 1 result so far	Şimdiye kadar 1 sonuç
 1 video left	1 video kaldı
 A Lab change is already running	Bir Lab değişikliği zaten sürüyor
 A diagnostic report is already being saved	Bir tanılama raporu zaten kaydediliyor
+A few seconds	Birkaç saniye
 A field value couldn't be read. Check the values and try again.	Bir alan değeri okunamadı. Değerleri kontrol edip tekrar dene.
 A good place to stop, if you want one.	İstersen, durmak için iyi bir an.
 A green square in the top corner while TikTok has the camera open, and an orange diamond while it records sound. They go when the access ends.	TikTok kamerayı açık tuttuğu sürece üst köşede yeşil bir kare, ses kaydederken turuncu bir eşkenar dörtgen görünür. Erişim bitince kaybolurlar.
@@ -67,16 +74,44 @@ A web address someone left in a comment can be tapped instead of copied out by h
 AI-generated posts	Yapay zeka ile üretilmiş gönderiler
 About	Hakkında
 A forced value applies to this copy of TikTok whichever account is signed in. It can't get past a check the server makes.	Zorlanan bir değer, hangi hesap oturum açmış olursa olsun bu TikTok kopyası için geçerlidir. Sunucunun yaptığı bir denetimi aşamaz.
+Add older seen videos to this account	Eski görülen videoları bu hesaba ekle
+Added %1$s older seen videos to this account	%1$s eski görülen video bu hesaba eklendi
+Added one older seen video to this account	Bu hesaba daha önce görülen bir video eklendi
+Added to this account.	Bu hesaba eklendi.
+Caption languages	Altyazı dilleri
+Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds, countries and caption languages, and seen videos still apply.	Virgülle ayrılmış hesap adları veya kullanıcı kimlikleri. Videoları, yalnızca gönderi türü, etiketleri, yaşı, süresi veya sayılarıyla ilgili bir filtre onları gizleyecekse kalır. Reklamlar, engellenen içerik üreticiler, kelimeler, sesler, ülkeler ve altyazı dilleri ile izlenmiş videolar geçerli olmaya devam eder.
+Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.	Virgülle ayrılmış dil kodları, örneğin en, es. Özgün altyazısı başka bir dilde olan video gizlenir. Altyazısı olmayan ya da yalnızca çevrilmiş altyazısı olan videolar her zaman kalır.
+Couldn't add the older seen videos. Try again.	Eski görülen videolar eklenemedi. Tekrar dene.
+Couldn't copy the report. Use Save report instead.	Rapor kopyalanamadı. Bunun yerine "Raporu kaydet"i kullan.
+Couldn't read TikTok's current values (%1$s). Refresh values from the menu to try again.	TikTok'un geçerli değerleri okunamadı (%1$s). Yeniden denemek için menüden değerleri yenile.
 Couldn't restart TikTok. Close it and open it again.	TikTok yeniden başlatılamadı. Kapatıp tekrar açın.
 Couldn't undo that. Try again.	Geri alınamadı. Tekrar deneyin.
+Count a video as seen after	Bir videoyu şu kadarından sonra görülmüş say
+Forget the %1$s videos @%2$s has seen.	@%2$s hesabının gördüğü %1$s videoyu unut.
+Forget the seen video.	Görülen videoyu unut.
+Forget the video @%2$s has seen.	@%2$s hesabının gördüğü videoyu unut.
 Got it	Anladım
+Hide the status bar in LIVE rooms	LIVE odalarında durum çubuğunu gizle
+How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.	Bir videonun bir dahaki sefere gizlenmesi için ne kadarını izlemen gerektiği. Sıfır, birkaç saniye sonra sayar.
 Later	Daha sonra
 Leave when TikTok says time is up	TikTok süre doldu deyince uygulamadan çık
+Let a LIVE fill the screen up to the top edge. The status bar comes back when you leave the LIVE. Swipe down from the top to peek at it.	Bir LIVE ekranı üst kenara kadar doldursun. Durum çubuğu LIVE'dan çıkınca geri gelir. Göz atmak için üstten aşağı kaydır.
+Loading the gate list and TikTok's current values…	Gate listesi ve TikTok'un geçerli değerleri yükleniyor…
+New value	Yeni değer
 No app on this phone opens that file	Bu telefonda o dosyayı açan bir uygulama yok
+One video was recorded before each account kept its own list. It hides nothing until you add it here.	Her hesabın kendi listesi olmadan önce bir video kaydedildi. Buraya ekleyene kadar hiçbir şeyi gizlemez.
+Only these caption languages	Yalnızca bu altyazı dilleri
 Open	Aç
+Photos can't be saved to the folder in that file, so your photo folder was kept	Fotoğraflar o dosyadaki klasöre kaydedilemiyor, bu yüzden fotoğraf klasörün korundu
+Preview shortened. Save report keeps the full report.	Önizleme kısaltıldı. "Raporu kaydet" raporun tamamını saklar.
+Refreshing TikTok's current values…	TikTok'un geçerli değerleri yenileniyor…
 Restart TikTok to apply this	Bunu uygulamak için TikTok'u yeniden başlat
+Save report	Raporu kaydet
+Stay on the video in full screen	Tam ekranda videoda kal
+Stickers can't be saved to the folder in that file, so your sticker folder was kept	Çıkartmalar o dosyadaki klasöre kaydedilemiyor, bu yüzden çıkartma klasörün korundu
 That creator pattern could stall the feed, so it was skipped: %1$s	Bu içerik üreticisi kalıbı akışı kilitleyebileceği için atlandı: %1$s
 That creator pattern could stall the feed, so it wasn't added: %1$s	Bu içerik üreticisi kalıbı akışı kilitleyebileceği için eklenmedi: %1$s
+This key isn't in Hushfeed's list, so its type can't be checked. Reset the override.	Bu anahtar Hushfeed listesinde yok, bu yüzden türü denetlenemiyor. Geçersiz kılmayı sıfırla.
 This key touches account safety. Forcing it can change login, region, payment or security checks.	Bu anahtar hesap güvenliğine dokunur. Zorlamak giriş, bölge, ödeme veya güvenlik denetimlerini değiştirebilir.
 Activity	Etkinlik
 Activity center (PIA)	Etkinlik merkezi (PIA)
@@ -238,7 +273,6 @@ Copy the sound link	Ses bağlantısını kopyala
 Copy the video link	Video bağlantısını kopyala
 Couldn't change the Lab settings. Try again.	Lab ayarları değiştirilemedi. Tekrar dene.
 Couldn't clear the suggested accounts. Reopen the Inbox and try again.	Önerilen hesaplar temizlenemedi. Gelen Kutusu'nu yeniden açıp tekrar dene.
-Couldn't copy the report. Use Save JSON instead.	Rapor kopyalanamadı. Bunun yerine JSON'u kaydet seçeneğini kullan.
 Couldn't open settings search. Reopen settings and try again.	Ayarlar araması açılamadı. Ayarları yeniden açıp tekrar dene.
 Couldn't open that settings section. Reopen settings and try again.	O ayarlar bölümü açılamadı. Ayarları yeniden açıp tekrar dene.
 Couldn't open the file picker to export. Try again.	Dışa aktarma dosya seçicisi açılamadı. Tekrar dene.
@@ -266,7 +300,6 @@ Creators hidden on this phone	Bu telefonda gizlenen içerik üreticileri
 Creators you hid from a video. Search the list and remove one at a time.	Bir videodan gizlediğin içerik üreticileri. Listede ara ve tek tek kaldır.
 Current	Mevcut
 Current %1$s	Mevcut %1$s
-Current cache unavailable: %1$s	Mevcut önbellek kullanılamıyor: %1$s
 Current state	Mevcut durum
 Current: %1$s	Mevcut: %1$s
 Custom SIM details	Özel SIM bilgileri
@@ -321,7 +354,6 @@ Enabled	Etkin
 Enter a JSON object or array.	Bir JSON nesnesi veya dizisi gir.
 Enter a creator handle or id	İçerik üreticisinin kullanıcı adını veya kimliğini gir
 Enter a finite number.	Sonlu bir sayı gir.
-Enter a number	Bir sayı gir
 Enter a number.	Bir sayı gir.
 Enter a valid structured value.	Geçerli bir yapılandırılmış değer gir.
 Enter a valid two-letter country code	Geçerli bir iki harfli ülke kodu gir
@@ -588,7 +620,6 @@ Loaded current values. Loading all known gates…	Geçerli değerler yüklendi. 
 Loaded values are still being read. Try again in a moment.	Yüklenen değerler hâlâ okunuyor. Birazdan yeniden dene.
 Loaded-value file export failed	Yüklenen değer dosyası dışa aktarılamadı
 Loading gates…	Kapılar yükleniyor…
-Loading local catalog and current TikTok cache…	Yerel katalog ve geçerli TikTok önbelleği yükleniyor…
 Location-tagged videos	Konum etiketli videolar
 Lock today's budget	Bugünün bütçesini kilitle
 Logging, hook status and reports	Günlük kaydı, kanca durumu ve raporlar
@@ -619,6 +650,9 @@ Likes range	Beğeni aralığı
 Shares range	Paylaşım aralığı
 TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.	TikTok'un kendi günlük ekran süresi hatırlatması, kapatılmayı beklemek yerine uygulamayı arka plana gönderir. Hemen geri dönersen hatırlatma ekranda kalır, böylece limit ulaşılabilir kalır. TikTok'un Ayarlar ve gizlilik bölümünde, Süre ve esenlik altında günlük bir limit ister.
 Try a different word or clear the search. Switches from patches you didn't tick in Morphe Manager aren't listed.	Başka bir kelime dene ya da aramayı temizle. Morphe Manager'da işaretlemediğin yamaların anahtarları burada görünmez.
+Use Save report for this large report	Bu büyük rapor için "Raporu kaydet"i kullan
+Video player settings	Video oynatıcı ayarları
+Videos can't be saved to the folder in that file, so your video folder was kept	Videolar o dosyadaki klasöre kaydedilemiyor, bu yüzden video klasörün korundu
 Views range	Görüntülenme aralığı
 Minimum	Minimum
 More options	Diğer seçenekler
@@ -681,7 +715,6 @@ Off	Kapalı
 Off forces false, on forces true. Reset hands the choice back to TikTok.	Kapalı false, açık true değerini zorlar. Sıfırla, seçimi TikTok'a geri verir.
 Offline videos	Çevrimdışı videolar
 Offline videos limit	Çevrimdışı video sınırı
-Older overrides were kept disabled. Review their values before enabling them on TikTok %1$s.	Eski geçersiz kılmalar devre dışı tutuldu. TikTok %1$s sürümünde etkinleştirmeden önce değerlerini gözden geçir.
 On	Açık
 On mobile data	Mobil veride
 On. Restore puts back the feed setup you had before.	Açık. Geri yükle, daha önceki akış düzenini geri getirir.
@@ -736,7 +769,6 @@ Pick the buttons to take off the column. The rest stay where they are.	Sütundan
 Play videos TikTok has classified without the overlay asking to be tapped through first.	TikTok'un sınıflandırdığı videoları, önce dokunup geçmeni isteyen katman olmadan oynat.
 Playback	Oynatma
 Player	Oynatıcı
-Player config	Oynatıcı yapılandırması
 Playlist posts	Oynatma listesi gönderileri
 Popular	Popüler
 Popups	Açılır pencereler
@@ -744,7 +776,6 @@ Preset	Hazır ayar
 Press and hold a profile picture to save the full size original to your photo destination.	Tam boyutlu orijinali fotoğraf kayıt konumuna kaydetmek için bir profil fotoğrafına basılı tut.
 Press and hold a story to save it. Stories have no save button of their own, and holding one is how TikTok pauses it, so this takes that gesture over.	Bir hikayeyi kaydetmek için ona basılı tut. Hikayelerin kendi kaydet düğmesi yoktur ve TikTok hikayeyi basılı tutunca duraklatır, bu yüzden bu ayar o hareketi devralır.
 Press and hold the left or right third of the screen to jump back or forward. The middle third keeps the Long press action.	Geri veya ileri atlamak için ekranın sol ya da sağ üçte birine basılı tut. Ortadaki üçte birlik bölüm Uzun basma eylemini korur.
-Preview shortened. Save JSON includes the full report.	Önizleme kısaltıldı. JSON'u kaydet, raporun tamamını içerir.
 Privacy	Gizlilik
 Privacy and system	Gizlilik ve sistem
 Profile	Profil
@@ -765,7 +796,6 @@ Recording gate reads. Use a feature, then return here to stop.	Özellik kapısı
 Put back the settings saved before the last restore or reset.	Son geri yükleme veya sıfırlamadan önce kaydedilen ayarları geri koy.
 Recovered an interrupted settings change. Restart TikTok to apply this.	Yarıda kalan bir ayar değişikliği kurtarıldı. Bunu uygulamak için TikTok'u yeniden başlat.
 Refresh values	Değerleri yenile
-Refreshing current TikTok cache…	Geçerli TikTok önbelleği yenileniyor…
 Region	Bölge
 Country filters	Ülke filtreleri
 Remember the last speed	Son hızı hatırla
@@ -820,7 +850,6 @@ SIM country preset	SIM ülke hazır ayarı
 STEM	STEM
 Sanitize sharing links	Paylaşım bağlantılarını temizle
 Save	Kaydet
-Save JSON	JSON'u kaydet
 Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.	SRT dosyalarını videoyla birlikte kaydet. Eşli kayıtlar Android 11+ sürümlerinde Movies, Android 10'da Download, daha eski sürümlerde ise video klasörünü kullanır.
 Save a profile picture on a long press	Uzun basınca profil fotoğrafını kaydet
 Save a story on a long press	Uzun basınca hikayeyi kaydet
@@ -847,10 +876,7 @@ Saving %1$s original photos	%1$s orijinal fotoğraf kaydediliyor
 Saving one original photo	Bir orijinal fotoğraf kaydediliyor
 Saving settings backup	Ayar yedeği kaydediliyor
 Saving the sticker	Çıkartma kaydediliyor
-Saving the selected video quality	Seçilen video kalitesi kaydediliyor
-Saving the selected video quality without sound	Seçilen video kalitesi sessiz olarak kaydediliyor
 Saving the story	Hikaye kaydediliyor
-Saving video and subtitles to %1$s	Video ve altyazılar %1$s konumuna kaydediliyor
 Screen	Ekran
 Screen time	Ekran süresi
 Search	Arama
@@ -902,6 +928,13 @@ Show last report	Son raporu göster
 Show search in LIVE	CANLI'da aramayı göster
 Show TikTok's feed buttons	TikTok'un akış düğmelerini göster
 Show the Not interested button	İlgilenmiyorum düğmesini göster
+Mute feed videos	Akış videolarının sesini kapat
+Muted	Sessiz
+Sound on	Ses açık
+Sound	Ses
+Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.	Akış videolarını sessiz oynatır ve telefonun ses düzeyine dokunmaz. Açıkken başka bir uygulamadaki müzik çalmaya devam eder. DM'ler, hikayeler ve LIVE yayınlar seslerini korur.
+Show the mute button on videos	Videolarda sesi kapatma düğmesini göster
+Add a button beside the block control that turns the feed's sound off and on.	Engelleme düğmesinin yanına, akışın sesini kapatıp açan bir düğme ekle.
 Show the block button on videos	Videolarda engelle düğmesini göster
 Show the block sound button	Sesi engelle düğmesini göster
 Show the country a video was posted from next to the creator's name.	Videonun paylaşıldığı ülkeyi içerik üreticisinin adının yanında göster.
@@ -1053,7 +1086,6 @@ This file has more loaded values than the Lab takes at once.	Bu dosyada Lab'in t
 This file has no loaded values in it.	Bu dosyada hiç yüklenen değer yok.
 This file isn't a loaded-values export from the Feature Gate Lab.	Bu dosya Feature Gate Lab'den alınmış bir yüklenen değerler dışa aktarımı değil.
 This gate type isn't supported.	Bu özellik kapısı türü desteklenmiyor.
-This key isn't in the local catalog, so its type can't be checked. Reset the override.	Bu anahtar yerel katalogda olmadığı için türü denetlenemiyor. Geçersiz kılmayı sıfırla.
 This line opens a rule and doesn't finish it: %1$s. Write two phrases as "a" & "b" for both, or "a" !& "b" for the first without the second.	Bu satır bir kural açıyor ama bitirmiyor: %1$s. İki ifadeyi, ikisi birden için "a" & "b", ikincisi olmadan birincisi için "a" !& "b" biçiminde yaz.
 This phone has no file picker, so there's no way to choose a file here	Bu telefonda dosya seçici yok, bu yüzden burada dosya seçmenin bir yolu yok
 This phone has no folder picker. Type the folder into the row instead.	Bu telefonda klasör seçici yok. Bunun yerine klasörü satıra yaz.
@@ -1100,7 +1132,6 @@ Today: %1$d minutes	Bugün: %1$d dakika
 Today: %1$d video	Bugün: %1$d video
 Today: %1$d videos	Bugün: %1$d video
 Tokens: {creator}, {date}, {video_id}, {index}. {index} numbers the photos of a slideshow you save with Download original photos. Anything saved through TikTok's own button is numbered by the folder instead. The file extension is kept automatically.	Belirteçler: {creator}, {date}, {video_id}, {index}. {index}, Orijinal fotoğrafları indir ile kaydettiğin bir slayt gösterisinin fotoğraflarını numaralar, TikTok'un kendi düğmesiyle kaydedilenleri ise klasör numaralar. Dosya uzantısı otomatik olarak korunur.
-Tokens: {creator}, {date}, {video_id}. The file extension is kept automatically.	Belirteçler: {creator}, {date}, {video_id}. Dosya uzantısı otomatik olarak korunur.
 Tokens: {date}, {media_id}. Works for image and video stickers.	Belirteçler: {date}, {media_id}. Görsel ve video çıkartmalarda çalışır.
 Too many media saves are already running. Try again in a moment.	Zaten çok fazla medya kaydı sürüyor. Birazdan yeniden dene.
 Tracking	İzlenme
@@ -1130,7 +1161,6 @@ Until you choose here, this sheet follows your choices under Hide share actions.
 Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.	%2$s ile %3$s arasında, virgülle ayrılmış en fazla %1$d hız. Örnek: 0.5, 1, 1.5, 2, 2.5, 3. TikTok'un listesi için boş bırak. Bunu uygulamak için TikTok'u yeniden başlat.
 Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.	TikTok'un boyutu için 0, ya da %1$d ile %2$d arasında bir değer kullan. Bir sonraki altyazıya uygulanır.
 Use Calm feed	Sakin akışı kullan
-Use Save JSON for this large report	Bu büyük rapor için JSON'u kaydet seçeneğini kullan
 Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.	Basılı tutma hızında kalmak için TikTok'un kendi basılı tut, aşağı çek ve bırak hareketini kullan. Oynatma altında başka bir hız seçilmedikçe 2x'tir.
 Use a default playback speed	Varsayılan bir oynatma hızı kullan
 Use non-personalized search	Kişiselleştirilmemiş aramayı kullan
@@ -1162,9 +1192,10 @@ Watching and sharing	İzleme ve paylaşma
 WebP, exactly as TikTok sent it	WebP, tam TikTok'un gönderdiği haliyle
 What TikTok gets	TikTok'un aldığı
 When TikTok requests this key, return the selected value below	TikTok bu anahtarı istediğinde aşağıda seçilen değeri döndür
+When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on.	Tam ekranda bir video bittiğinde bir sonrakine geçmek yerine onda kalır. Kaydırmak yine ilerletir.
 While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.	Tanılama günlüğü açıkken bir mesaj, Hushfeed'in hata veren bölümünün adını söyler. Kapalıyken hatalar yalnızca raporda kalır.
 Window width needed to enable the layout. Restart TikTok to apply this.	Düzeni etkinleştirmek için gereken pencere genişliği. Bunu uygulamak için TikTok'u yeniden başlat.
-Words and countries	Kelimeler ve ülkeler
+Words, countries and languages	Kelimeler, ülkeler ve diller
 Working	Çalışıyor
 Write the video's sound beside it as an .m4a. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.	Videonun sesini .m4a olarak videonun yanına yaz. Android 10 ve sonrası ses dosyalarını ayrı tutar, bu yüzden dosya Music altında, videolarınla aynı adlı klasöre gider.
 YTDLnis background mode	YTDLnis arka plan modu
@@ -1250,7 +1281,6 @@ Saved %1$s of %2$s, the rest ran out of time	%2$s dosyadan %1$s kaydedildi, kala
 Live photo clip saved to %1$s	Canlı fotoğraf klibi %1$s konumuna kaydedildi
 The live photo's clip couldn't be saved. Try again.	Canlı fotoğrafın klibi kaydedilemedi. Tekrar deneyin.
 Creator exceptions	İçerik üretici istisnaları
-Comma separated account handles or user ids. Their videos stay when only a filter on the kind of post, its labels, age, length or counts would hide them. Ads, blocked creators, words, sounds and countries, and seen videos still apply.	Virgülle ayrılmış hesap adları veya kullanıcı kimlikleri. Videoları, yalnızca gönderi türü, etiketleri, yaşı, süresi veya sayılarıyla ilgili bir filtre onları gizleyecekse kalır. Reklamlar, engellenen içerik üreticiler, kelimeler, sesler ve ülkeler ile izlenmiş videolar geçerli olmaya devam eder.
 An exception names one creator, so a pattern can't be one: %1$s	Bir istisna tek bir içerik üreticiyi adlandırır, bu yüzden bir kalıp istisna olamaz: %1$s
 An exception takes a handle or id, not a display name: %1$s	Bir istisna hesap adı veya kimlik alır, görünen ad değil: %1$s
 Also on a block list, so still hidden: %1$s	Bir engelleme listesinde de var, bu yüzden gizli kalır: %1$s
@@ -1263,3 +1293,34 @@ This is the video's own sound, so YouTube Music won't have it	Bu videonun kendi 
 Not a handle or id, so ignored: %1$s	Hesap adı veya kimlik değil, bu yüzden yok sayıldı: %1$s
 What's new	Yenilikler
 Changes in Hushfeed %1$s	Hushfeed %1$s sürümündeki değişiklikler
+Reviewed presets	Doğrulanmış hazır ayarlar
+Show See translation	Çeviriyi gör seçeneğini göster
+Reviewed for TikTok %1$s	TikTok %1$s için doğrulandı
+Value: %1$s to %2$s	Değer: %1$s yerine %2$s
+The presets couldn't load. Open the Lab again.	Hazır ayarlar yüklenemedi. Laboratuvarı yeniden açın.
+Apply enables these overrides. Undo last Lab change restores your previous rules.	Uygula bu geçersiz kılmaları etkinleştirir. Son laboratuvar değişikliğini geri al, önceki kurallarınızı geri yükler.
+Apply saves these overrides. Turn on overrides in the Lab to use them. Undo restores your previous rules.	Uygula bu geçersiz kılmaları kaydeder. Kullanmak için laboratuvarda geçersiz kılmaları açın. Geri al, önceki kurallarınızı geri yükler.
+This preset isn't available for your installed TikTok version.	Bu hazır ayar, yüklü TikTok sürümünüz için kullanılamıyor.
+Preset applied. Restart TikTok to use it.	Hazır ayar uygulandı. Kullanmak için TikTok'u yeniden başlatın.
+Preset saved. Turn on overrides in the Lab to use it.	Hazır ayar kaydedildi. Kullanmak için laboratuvarda geçersiz kılmaları açın.
+This preset doesn't match the installed gates. Nothing changed.	Bu hazır ayar, yüklü özelliklerle eşleşmiyor. Hiçbir şey değişmedi.
+About overrides	Geçersiz kılmalar hakkında
+Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.	Değişkenler: {creator}, {date}, {video_id}. Her üreticiye bir klasör vermek için {creator}/ ile başlayın. Dosya uzantısı otomatik olarak korunur.
+Save details beside the video	Ayrıntıları videonun yanına kaydet
+Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.	Açıklamayı, üreticiyi, bağlantıyı ve yayın tarihini bir TXT dosyasına kaydeder. Android 10 ve sonrasında iki dosya aynı klasör adıyla Download veya Documents içine kaydedilir. Burada yapılan kayıtlar için geçerlidir.
+Check for already-saved videos	Önceden kaydedilen videoları kontrol et
+Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.	Bu seçenek açıkken burada kaydedilen en fazla %1$s videoyu hatırlar. Dosya hâlâ varsa başka bir kopya indirmeden önce Aç veya Yeniden kaydet seçeneklerini sunar.
+This video is already saved. Open TikTok to save another copy.	Bu video zaten kayıtlı. Başka bir kopya kaydetmek için TikTok'u açın.
+This video is already saved	Bu video zaten kayıtlı
+Save again	Yeniden kaydet
+The saved-video choice couldn't open. Try again.	Kayıtlı video seçenekleri açılamadı. Yeniden deneyin.
+This video isn't available as a complete file. Try again later.	Bu video tam bir dosya olarak mevcut değil. Daha sonra yeniden deneyin.
+Saving video to %1$s	Video %1$s konumuna kaydediliyor
+Video and details saved to %1$s	Video ve ayrıntılar %1$s konumuna kaydedildi
+The video was saved, but its record couldn't be updated. A later save may make another copy.	Video kaydedildi, ancak kaydı güncellenemedi. Daha sonra yeniden kaydetmek başka bir kopya oluşturabilir.
+The already-saved check failed. Try again.	Önceden kaydedilen videolar kontrol edilemedi. Yeniden deneyin.
+Show download progress	İndirme ilerlemesini göster
+Show a progress bar while a video saves.	Video kaydedilirken ilerleme çubuğu gösterir.
+Saving video	Video kaydediliyor
+Saving video: %1$s	Video kaydediliyor: %1$s
+Saving %1$s of %2$s: %3$s	%1$s / %2$s kaydediliyor: %3$s

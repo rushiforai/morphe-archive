@@ -38,7 +38,7 @@ public final class BuildNames {
      * The host app's version name, read once it can be. Null until the extension has a context,
      * and then not remembered, so an early lookup can't pin "no build" for the life of the process.
      */
-    static String runningBuild() {
+    public static String runningBuild() {
         String build = runningBuild;
         if (build != null) return build;
         Context context = Utils.context;

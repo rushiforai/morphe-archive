@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewParent;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -109,15 +110,121 @@ public final class StoryDownloads {
                 WeakReference<Object> owner = OWNERS.get(ancestor);
                 owned = owner != null && owner.get() != null;
             }
-            if (owned) {
-                // 0R9T's monitor reads this same current sub-cell model when pausing it.
-                Object monitor = Reflect.requiredField(view, "LLJIJIL", HOOK_FAMILY);
-                Object state = Reflect.requiredField(monitor, "LLJIJIL", HOOK_FAMILY);
-                Object params = Reflect.requiredField(state, "LL", HOOK_FAMILY);
-                return save(view, Reflect.required(params, "getAweme", HOOK_FAMILY));
-            }
+            if (owned) return save(view, heldStory(view));
             ViewParent parent = ancestor.getParent();
             ancestor = parent instanceof View ? (View) parent : null;
+        }
+        return false;
+    }
+
+    /**
+     * TikTok's own names, which R8 leaves alone on 46.2.3, 47.0.3 and 47.1.3: the story hold's
+     * monitor is the cell component implementing this ability, and the cell it pauses is bound
+     * to a VideoItemParams. The fields between them are renamed with every build (46.2.3's
+     * view.LLJIJIL, then .LLJIJIL and .LL, exist on neither 47.x build), so those are found by
+     * what they hold.
+     */
+    static final String MONITOR_ABILITY =
+            "com.ss.android.ugc.aweme.feed.collection.sub.ability.LongPressMonitorAbility";
+    static final String CELL_PARAMS = "com.ss.android.ugc.aweme.feed.model.VideoItemParams";
+    /** Two fields down from the monitor on every declared build: its Assem state, then the bound item. */
+    static final int PARAMS_DEPTH = 2;
+
+    /** The story the pressed view's monitor is about to pause, or null when it can't be told. */
+    static Object heldStory(View view) {
+        Object monitor = null;
+        for (Object value : fieldValues(view)) {
+            if (implementsNamed(value.getClass(), MONITOR_ABILITY)) {
+                monitor = value;
+                break;
+            }
+        }
+        if (monitor == null) {
+            HookStatus.missingMember(HOOK_FAMILY, "field", view.getClass().getName(), "a LongPressMonitorAbility");
+            return null;
+        }
+        Object params = boundParams(monitor);
+        if (params == null) {
+            HookStatus.missingMember(HOOK_FAMILY, "field", monitor.getClass().getName(),
+                    "one VideoItemParams within " + PARAMS_DEPTH + " fields");
+            return null;
+        }
+        HookStatus.bound(HOOK_FAMILY, "story hold");
+        return Reflect.required(params, "getAweme", HOOK_FAMILY);
+    }
+
+    /**
+     * The VideoItemParams the monitor's cell is bound to, searched level by level through TikTok's
+     * own objects. Two at the shallowest level naming different stories is an answer nobody can
+     * trust, so it is none.
+     */
+    static Object boundParams(Object monitor) {
+        Set<Object> seen = Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+        seen.add(monitor);
+        List<Object> level = Collections.singletonList(monitor);
+        for (int depth = 0; depth < PARAMS_DEPTH && !level.isEmpty(); depth++) {
+            List<Object> next = new ArrayList<>();
+            Object found = null;
+            Object story = null;
+            for (Object holder : level) {
+                for (Object value : fieldValues(holder)) {
+                    if (!seen.add(value)) continue;
+                    if (CELL_PARAMS.equals(value.getClass().getName())) {
+                        Object aweme = Reflect.invoke(value, "getAweme");
+                        if (found != null && aweme != story) return null;
+                        found = value;
+                        story = aweme;
+                    } else if (tiktokObject(value)) {
+                        next.add(value);
+                    }
+                }
+            }
+            if (found != null) return found;
+            level = next;
+        }
+        return null;
+    }
+
+    /** Whether a value is one of TikTok's own objects rather than a platform, JDK or view type. */
+    private static boolean tiktokObject(Object value) {
+        Class<?> type = value.getClass();
+        if (type.isArray() || value instanceof View) return false;
+        String name = type.getName();
+        return name.startsWith("X.") || name.startsWith("com.ss.") || name.startsWith("com.bytedance.");
+    }
+
+    /**
+     * Every non-null instance field value of the object, its class first and then each superclass,
+     * stopping at the first platform class: a View's own fields are Android's, and hidden ones.
+     */
+    private static List<Object> fieldValues(Object target) {
+        List<Object> values = new ArrayList<>();
+        for (Class<?> type = target.getClass(); type != null && !platformClass(type); type = type.getSuperclass()) {
+            for (java.lang.reflect.Field field : type.getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(target);
+                    if (value != null) values.add(value);
+                } catch (ReflectiveOperationException | RuntimeException ignored) {
+                    // A field the runtime won't open is one this search can do without.
+                }
+            }
+        }
+        return values;
+    }
+
+    private static boolean platformClass(Class<?> type) {
+        String name = type.getName();
+        return name.startsWith("android.") || name.startsWith("androidx.") || name.startsWith("java.")
+                || name.startsWith("kotlin.");
+    }
+
+    private static boolean implementsNamed(Class<?> type, String interfaceName) {
+        for (Class<?> at = type; at != null; at = at.getSuperclass()) {
+            for (Class<?> implemented : at.getInterfaces()) {
+                if (interfaceName.equals(implemented.getName())) return true;
+            }
         }
         return false;
     }
@@ -195,12 +302,18 @@ public final class StoryDownloads {
         Utils.showToastShort(L10n.t("Saving the story"));
         try {
             String capturedAudioName = audioName;
+            String path = DownloadFilenameFormatter.destinationPath(aweme, !photoSnapshot.isEmpty());
+            String videoName = photoSnapshot.isEmpty() ? DownloadFilenameFormatter.formatSelectedVideoName(aweme) : null;
+            List<String> photoNames = new ArrayList<>();
+            for (int i = 0; i < photoSnapshot.size(); i++) {
+                photoNames.add(DownloadFilenameFormatter.formatOriginalPhotoName(aweme, i + 1, "tmp"));
+            }
             boolean submitted = MediaJobScheduler.submit("story", () -> {
                 try {
                     if (photoSnapshot.isEmpty()) {
-                        saveVideo(app, aweme, videoSnapshot, capturedAudioName);
+                        saveVideo(app, videoName, path, videoSnapshot, capturedAudioName);
                     } else {
-                        savePhotos(app, aweme, photoSnapshot);
+                        savePhotos(app, photoNames, path, photoSnapshot);
                     }
                 } catch (IOException | RuntimeException exception) {
                     Logger.printException(() -> "Story download failed", exception);
@@ -221,14 +334,13 @@ public final class StoryDownloads {
         return true;
     }
 
-    private static void saveVideo(Context app, Object aweme, List<String> urls, String audioName) throws IOException {
+    private static void saveVideo(Context app, String name, String path, List<String> urls, String audioName) throws IOException {
         MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
         File temp = MediaCache.createTempFile(app, "story-", ".mp4");
         try {
             RemoteMedia.fetch(urls, temp, RemoteMedia.Kind.VIDEO);
-            String path = DownloadsPatch.getVideoDownloadPath();
             MediaFileWriter.Saved saved = MediaFileWriter.publishForResult(app, temp,
-                    DownloadFilenameFormatter.formatSelectedVideoName(aweme), "video/mp4", path, true);
+                    name, "video/mp4", path, true);
             // The sound keeps to a toast: its banner went up first and the story's, a tick
             // later, took it down before anyone saw it (refutation review of 3d5395f2).
             if (audioName != null) AudioDownloads.write(app, audioName, temp, false);
@@ -238,8 +350,7 @@ public final class StoryDownloads {
         }
     }
 
-    private static void savePhotos(Context app, Object aweme, List<List<String>> photos) {
-        String path = DownloadsPatch.getPhotoDownloadPath();
+    private static void savePhotos(Context app, List<String> names, String path, List<List<String>> photos) {
         List<File> temporary = new ArrayList<>();
         // The banner's Open lands on the newest photo, which is where the gallery puts the rest.
         MediaFileWriter.Saved[] last = {null};
@@ -254,7 +365,8 @@ public final class StoryDownloads {
                 temporary.add(temp);
                 String extension = RemoteMedia.fetch(photos.get(index), temp, RemoteMedia.Kind.IMAGE);
                 String mime = "jpg".equals(extension) ? "image/jpeg" : "image/" + extension;
-                String name = DownloadFilenameFormatter.formatOriginalPhotoName(aweme, index + 1, extension);
+                String named = names.get(index);
+                String name = named.substring(0, named.lastIndexOf('.') + 1) + extension;
                 last[0] = MediaFileWriter.publishForResult(app, temp, name, mime, path, false);
             });
             if (outcome.saved == 0 && outcome.cancelled == 0) {

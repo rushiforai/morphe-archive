@@ -1,0 +1,57 @@
+Morphe NOTICE
+=============
+
+HushMessenger includes Messenger hook definitions adapted from
+RookieEnough/De-Vanced (0d01e3dd5ec82b6796b28b82c33fc6af4944b2e6),
+including its ReVanced contributions, and rushiranpise/morphe-patches
+(55ca6a05ea3559e95a0876316dcb7caad1f3c9cf), under GPL-3.0.
+The bubble eligibility anchor originates from NeonOrbit/ChatHeadEnabler.
+The runtime settings and checked 580 integrations are HushMessenger changes.
+
+7c. Project Name Restriction
+----------------------------
+
+This license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the name or
+primary identifying mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and
+branding that clearly differentiates it from the Morphe project and does
+not cause confusion as to source or origin.
+
+References to Morphe are permitted solely for descriptive compatibility
+purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+provided that such references:
+
+- Are accurate, factual, and non-misleading;
+- Do not suggest authorship by the Morphe project; and
+- Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Messenger Cleaner reference
+===========================
+
+The typed inbox-ad filtering approach is adapted from
+N01-r0/messenger-cleaner-lsposed at
+b235eec406f2abd49ac7db20136e3dd11bb11dc3. Its notice follows.
+
+MIT License
+
+Copyright (c) 2026 N01-r0
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -11,7 +11,8 @@ public class VerifyHissiMenu {
         String url = "http://hissi.org/read.php/{$bbs}/{$date[yyyyMMdd]}/{$id[base64_]}.html";
         String original = url + "{$host[match:[25]ch.net$]}";
         String fixed = HissiMenuCompatibility.rewriteTemplate(original);
-        check(fixed.startsWith(url), "Destination and ID/date expansion must stay intact");
+        check(fixed.startsWith("haiagaru-hissi://hissi.org/read.php/{$bbs}/{$date[yyyyMMdd]}/{$id[base64_]}.html"),
+                "Destination and ID/date expansion must stay intact");
         // Use ChMate's own placeholder grammar and regex find semantics.
         var placeholders = Pattern.compile("\\{\\$(.*?)(?:\\[(.*?)])?\\}").matcher(fixed);
         Pattern hostFilter = null;
@@ -28,6 +29,9 @@ public class VerifyHissiMenu {
             check(!hostFilter.matcher(host).find(), "Unexpected menu for " + host);
         }
         check(fixed.equals(HissiMenuCompatibility.rewriteTemplate(fixed)), "Rewrite must be idempotent");
+        check(HissiMenuCompatibility.rewriteTemplate(original.replace("http:", "https:"))
+                        .startsWith("haiagaru-hissis://hissi.org/read.php/"),
+                "HTTPS menu should keep HTTPS transport");
         check(HissiMenuCompatibility.rewriteTemplate(null) == null, "Null handling");
         String custom = original.replace("hissi.org", "example.org");
         check(custom.equals(HissiMenuCompatibility.rewriteTemplate(custom)), "Unrelated services must stay intact");

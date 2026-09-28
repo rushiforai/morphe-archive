@@ -1,0 +1,2 @@
+-keep class app.hushmessenger.extension.** { *; }
+-dontobfuscate

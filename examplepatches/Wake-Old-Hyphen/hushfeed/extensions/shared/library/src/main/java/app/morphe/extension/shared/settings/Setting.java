@@ -491,6 +491,19 @@ public abstract class Setting<T> {
     /** Apply a validated batch in one preference transaction. Call on a worker thread. */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static synchronized void saveAll(Map<Setting<?>, Object> updates) throws java.io.IOException {
+        saveAll(updates, false);
+    }
+
+    /**
+     * @param deviceState the values are this device's own earlier state: an undo copy, a rollback,
+     *                    a change put back after an interruption. A bound that refuses one of
+     *                    those is newer than the value, which was already in effect, so it goes
+     *                    back as it was rather than failing the way back. A value equal to the one
+     *                    already stored is kept the same way whoever writes it.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static synchronized void saveAll(Map<Setting<?>, Object> updates, boolean deviceState)
+            throws java.io.IOException {
         if (!Utils.isMainProcess()) {
             throw new java.io.IOException("Persistent settings are writable only from the main process");
         }
@@ -506,7 +519,14 @@ public abstract class Setting<T> {
             }
             // A backup file is not a dialog and was never asked to stay in range. Into a copy
             // rather than back into the caller's map, which need not accept being written to.
-            bounded.put(setting, setting.coerce(next));
+            Object value;
+            try {
+                value = setting.coerce(next);
+            } catch (IllegalArgumentException refused) {
+                if (!deviceState && !next.equals(setting.savedValue())) throw refused;
+                value = next;
+            }
+            bounded.put(setting, value);
             previous.put(setting, setting.savedValue());
         }
         if (!writeBatch(bounded)) {

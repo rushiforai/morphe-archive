@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -32,6 +33,7 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.notinterested.NotInterested;
+import app.morphe.extension.tiktok.playback.FeedMute;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 
@@ -73,6 +75,7 @@ public final class BlockAuthorOverlay {
     private static WeakReference<View> localHideReference = new WeakReference<>(null);
     private static WeakReference<View> soundButtonReference = new WeakReference<>(null);
     private static WeakReference<View> notInterestedReference = new WeakReference<>(null);
+    private static WeakReference<View> muteReference = new WeakReference<>(null);
 
     /** Which banner a queued dismiss belongs to. Main thread only. */
     private static int undoGeneration;
@@ -112,7 +115,7 @@ public final class BlockAuthorOverlay {
 
     /** @param author the new current author, or null when the current item has none. */
     static void onAuthorChanged(VideoAuthor author) {
-        if (!Settings.BLOCK_AUTHOR_BUTTON.get() && !notInterestedEnabled()) {
+        if (!Settings.BLOCK_AUTHOR_BUTTON.get() && !notInterestedEnabled() && !muteButtonEnabled()) {
             Utils.runOnMainThread(BlockAuthorOverlay::detach);
             return;
         }
@@ -166,6 +169,11 @@ public final class BlockAuthorOverlay {
         }
         View feedback = notInterestedReference.get();
         if (feedback != null) feedback.setVisibility(visible && notInterestedEnabled() ? View.VISIBLE : View.GONE);
+        View mute = muteReference.get();
+        if (mute != null) {
+            mute.setVisibility(visible && muteButtonEnabled() ? View.VISIBLE : View.GONE);
+            showMuteState(mute);
+        }
     }
 
     /**
@@ -229,6 +237,10 @@ public final class BlockAuthorOverlay {
             feedback.setLayoutParams(new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
             root.addView(feedback);
             notInterestedReference = new WeakReference<>(feedback);
+            View mute = createMuteButton(activity);
+            mute.setLayoutParams(new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
+            root.addView(mute);
+            muteReference = new WeakReference<>(mute);
 
             // The root has no measured size until it lays out, so the saved fraction can
             // only be turned into margins once dimensions are known.
@@ -252,7 +264,8 @@ public final class BlockAuthorOverlay {
         View localHide = localHideReference.get();
         View soundButton = soundButtonReference.get();
         View feedback = notInterestedReference.get();
-        if (button == null || localHide == null || soundButton == null || feedback == null) return;
+        View mute = muteReference.get();
+        if (button == null || localHide == null || soundButton == null || feedback == null || mute == null) return;
         // A second attach can swap these references to another activity's controls before this
         // runs, since it is posted. Positioning those against this root would read the wrong
         // width and cast layout params off a view that is not a child of it.
@@ -265,7 +278,7 @@ public final class BlockAuthorOverlay {
         // ended up, so it has to be off its own saved fraction before they are worked out.
         applySavedPosition(button, root, size, Settings.BLOCK_AUTHOR_BUTTON_POSITION,
                 DEFAULT_X_FRACTION, DEFAULT_Y_FRACTION);
-        for (View view : new View[]{localHide, soundButton, feedback}) {
+        for (View view : new View[]{localHide, soundButton, feedback, mute}) {
             float[] fractions = defaultFractions(view, root, button, size, step);
             applySavedPosition(view, root, size, positionSetting(view), fractions[0], fractions[1]);
         }
@@ -299,6 +312,11 @@ public final class BlockAuthorOverlay {
                     (blockY + step * 2f * verticalDirection) / root.getHeight()};
         }
         float horizontalDirection = blockPosition.leftMargin >= step ? -1f : 1f;
+        if (view == muteReference.get()) {
+            // Beside the local-hide control, level with it, the corner the other three leave free.
+            return new float[]{(blockX + step * horizontalDirection) / root.getWidth(),
+                    (blockY + step * verticalDirection) / root.getHeight()};
+        }
         return new float[]{(blockX + step * horizontalDirection) / root.getWidth(),
                 blockY / root.getHeight()};
     }
@@ -325,7 +343,7 @@ public final class BlockAuthorOverlay {
     private static void clampCurrentPositions(ViewGroup root) {
         if (root.getWidth() == 0 || root.getHeight() == 0) return;
         for (View view : new View[]{buttonReference.get(), localHideReference.get(),
-                soundButtonReference.get(), notInterestedReference.get()}) {
+                soundButtonReference.get(), notInterestedReference.get(), muteReference.get()}) {
             if (view == null || view.getParent() != root) continue;
             ViewGroup.MarginLayoutParams params =
                     (ViewGroup.MarginLayoutParams) view.getLayoutParams();
@@ -365,6 +383,11 @@ public final class BlockAuthorOverlay {
             ((ViewGroup) feedback.getParent()).removeView(feedback);
         }
         notInterestedReference = new WeakReference<>(null);
+        View mute = muteReference.get();
+        if (mute != null && mute.getParent() instanceof ViewGroup) {
+            ((ViewGroup) mute.getParent()).removeView(mute);
+        }
+        muteReference = new WeakReference<>(null);
         dismissUndo();
     }
 
@@ -423,6 +446,44 @@ public final class BlockAuthorOverlay {
         return button;
     }
 
+    private static boolean muteButtonEnabled() {
+        return SettingsStatus.feedMuteEnabled && Settings.FEED_MUTE_BUTTON.get();
+    }
+
+    /**
+     * Mute feed videos. The name stays "Mute feed videos" whichever way it is set, since a
+     * reader finds it by name; the state is read out as checked, and as Muted or Sound on.
+     */
+    private static View createMuteButton(Activity activity) {
+        TextView button = new TextView(activity);
+        button.setGravity(Gravity.CENTER);
+        button.setContentDescription(L10n.t(activity, "Mute feed videos"));
+        button.setFocusable(true);
+        showMuteState(button);
+        button.setOnClickListener(view -> {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            FeedMute.setMuted(!FeedMute.isMuted());
+            showMuteState(view);
+        });
+        installDrag(button, true);
+        return button;
+    }
+
+    /** The glyph and the read-out state, redrawn only when the mute changed. */
+    private static void showMuteState(View button) {
+        boolean muted = FeedMute.isMuted();
+        if (Boolean.valueOf(muted).equals(button.getTag())) return;
+        button.setTag(muted);
+        Drawable glyph = new OverlayGlyphDrawable(
+                muted ? OverlayGlyphDrawable.Shape.SPEAKER_OFF : OverlayGlyphDrawable.Shape.SPEAKER,
+                SettingsUi.OVERLAY_TEXT, SettingsUi.dp(button.getContext(), 2));
+        button.setBackground(SettingsUi.overlayControl(button.getContext(), SettingsUi.RADIUS_OVERLAY, glyph));
+        button.setSelected(muted);
+        if (Build.VERSION.SDK_INT >= 30) {
+            button.setStateDescription(L10n.t(button.getContext(), muted ? "Muted" : "Sound on"));
+        }
+    }
+
     /**
      * Records the current sound so the feed filter skips every video that uses it. Ids
      * are exact; a sound with no id is recorded by name, which also catches re-uploads.
@@ -475,11 +536,20 @@ public final class BlockAuthorOverlay {
 
     /** Gives every feed control the same independent long-press drag behavior. */
     private static void installDrag(View button) {
+        installDrag(button, false);
+    }
+
+    /** @param toggle the control is a switch, read out as checked while the feed is muted */
+    private static void installDrag(View button, boolean toggle) {
         button.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override public void onInitializeAccessibilityNodeInfo(
                     View host, android.view.accessibility.AccessibilityNodeInfo info) {
                 super.onInitializeAccessibilityNodeInfo(host, info);
                 info.setClassName(android.widget.Button.class.getName());
+                if (toggle) {
+                    info.setCheckable(true);
+                    info.setChecked(FeedMute.isMuted());
+                }
                 // Pointer drag has a release event. A standalone accessibility long-click does
                 // not, so do not advertise an action that cannot complete the gesture.
                 info.setLongClickable(false);
@@ -743,6 +813,7 @@ public final class BlockAuthorOverlay {
         if (view == localHideReference.get()) return Settings.LOCAL_HIDE_BUTTON_POSITION;
         if (view == soundButtonReference.get()) return Settings.BLOCK_SOUND_BUTTON_POSITION;
         if (view == notInterestedReference.get()) return Settings.NOT_INTERESTED_BUTTON_POSITION;
+        if (view == muteReference.get()) return Settings.FEED_MUTE_BUTTON_POSITION;
         return Settings.BLOCK_AUTHOR_BUTTON_POSITION;
     }
 
@@ -844,7 +915,7 @@ public final class BlockAuthorOverlay {
         chip.setText(L10n.t(activity, "Unblock"));
         chip.setContentDescription(L10n.f(activity, "Blocked %1$s. Unblock", author.label()));
         chip.setTextColor(SettingsUi.OVERLAY_TEXT);
-        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
         chip.setGravity(Gravity.CENTER);
         chip.setPadding(SettingsUi.dp(activity, 12), 0, SettingsUi.dp(activity, 12), 0);
         chip.setMinimumHeight(SettingsUi.dp(activity, 48));
@@ -966,7 +1037,7 @@ public final class BlockAuthorOverlay {
                 TextView label = new TextView(activity);
                 label.setText(message);
                 label.setTextColor(SettingsUi.OVERLAY_TEXT);
-                label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                label.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
                 banner.addView(label, new LinearLayout.LayoutParams(0, -2, 1f));
 
                 if (action != null) {
@@ -1084,7 +1155,7 @@ public final class BlockAuthorOverlay {
         undo.setText(label);
         undo.setContentDescription(label);
         undo.setTextColor(SettingsUi.OVERLAY_ACCENT);
-        undo.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        undo.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
         // A banner that dismisses itself is the worst place for a small target.
         undo.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12),
                 SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));

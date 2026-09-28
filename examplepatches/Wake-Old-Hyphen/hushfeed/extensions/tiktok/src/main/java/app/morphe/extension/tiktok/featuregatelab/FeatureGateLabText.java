@@ -53,7 +53,7 @@ final class FeatureGateLabText {
                 return L10n.t(context, "The override changes no fields. Edit the field values,"
                         + " or reset the override.");
             case NOT_IN_CATALOGUE:
-                return L10n.t(context, "This key isn't in the local catalog, so its type can't"
+                return L10n.t(context, "This key isn't in Hushfeed's list, so its type can't"
                         + " be checked. Reset the override.");
             case TYPE_MISMATCH:
                 return L10n.f(context, "The catalog says this key is %1$s and this override is"
@@ -149,15 +149,15 @@ final class FeatureGateLabText {
         String name = sourceName(context, entry.manager);
         if (entry.registered && entry.loaded) {
             return L10n.f(context,
-                    "%1$s / generated registry and current cache", name);
+                    "%1$s · declared by TikTok, with a current value", name);
         }
         if (entry.registered) {
-            return L10n.f(context, "%1$s / generated registry", name);
+            return L10n.f(context, "%1$s · declared by TikTok", name);
         }
         if (entry.loaded) {
-            return L10n.f(context, "%1$s / current cache only", name);
+            return L10n.f(context, "%1$s · current value only", name);
         }
-        return L10n.f(context, "%1$s / local catalog", name);
+        return L10n.f(context, "%1$s · Hushfeed's list only", name);
     }
 
     private static String sourceName(Context context, String manager) {
@@ -165,7 +165,7 @@ final class FeatureGateLabText {
             return L10n.t(context, "Activity center (PIA)");
         }
         if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) {
-            return L10n.t(context, "Player config");
+            return L10n.t(context, "Video player settings");
         }
         if (FeatureGateLabStore.MANAGER_LIVE.equals(manager)) {
             return L10n.t(context, "LIVE settings");

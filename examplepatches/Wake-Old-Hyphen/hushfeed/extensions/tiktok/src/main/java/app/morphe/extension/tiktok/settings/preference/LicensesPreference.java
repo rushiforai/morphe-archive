@@ -63,7 +63,7 @@ public final class LicensesPreference extends Preference {
         // would reach this as an anonymous TextView. A notice nobody can read against the
         // background is not provided to anybody.
         body.setTextColor(SettingsUi.textPrimary());
-        body.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
+        body.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_LABEL);
 
         ScrollView scroller = new ScrollView(context);
         scroller.addView(body, new ViewGroup.LayoutParams(

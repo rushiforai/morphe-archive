@@ -5,7 +5,7 @@
 Morpheus is a [Morphe](https://github.com/MorpheApp/morphe-patches) patch set for Android apps that assume Google Play Services.
 It patches two apps:
 
-- The Ather app (`com.athermobileapp`), verified against 13.5.0.
+- The Ather app (`com.athermobileapp`), verified against 13.5.1.
 - The Nothing X app (`com.nothing.smartcenter`), verified against 3.8.0.
 
 The repository ships patches only.
@@ -141,8 +141,9 @@ The Ather patches:
 | Patch                              | Effect                                                                                                                                                                                                                                                               |
 | ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bypass security check              | Stops the Developer Options warning and the root/Frida block.                                                                                                                                                                                                        |
+| Bypass signature guard             | Stops the native signature check that closes the app when the APK is not signed by Ather.                                                                                                                                                                            |
 | Report Ather's signing certificate | Reports the original Ather certificate hash to Google APIs, so Firebase login works after re-signing.                                                                                                                                                                |
-| Bypass PairIP licence check        | Skips the Play license check that the re-signed app cannot pass.                                                                                                                                                                                                     |
+| Bypass PairIP licence check        | Skips the Play license check that the re-signed app cannot pass. The 13.5.1 build dropped PairIP, so the patch is a no-op there.                                                                                                                                     |
 | Permission filter                  | Drops phone-location (and call log, contacts, SMS) from the request list at the single dialog choke point, so the app never asks for permissions it cannot use here. Nothing is faked; the OS permissions stay ungranted.                                            |
 | Pairing wizard                     | The setup wizard now asks only for Nearby device access, so scooter pairing can complete.                                                                                                                                                                            |
 | Analytics toggle                   | Blocks MoEngage, PostHog and Firebase events from the Morphe settings screen. Crashlytics is untouched so bugs stay reportable.                                                                                                                                      |

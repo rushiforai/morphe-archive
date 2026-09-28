@@ -77,7 +77,7 @@ public final class ReleaseNotes {
         body.setText(text(current, context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .getString(DISMISSED, null)));
         body.setTextColor(SettingsUi.textPrimary());
-        body.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15);
+        body.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY);
         body.setTextIsSelectable(true);
         int padding = SettingsUi.dp(context, 22);
         body.setPadding(padding, padding, padding, padding);

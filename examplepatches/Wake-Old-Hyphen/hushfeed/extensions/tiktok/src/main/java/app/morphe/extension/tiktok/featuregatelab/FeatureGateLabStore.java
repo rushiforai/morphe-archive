@@ -27,7 +27,6 @@ import app.morphe.extension.shared.settings.SettingsJson;
 import app.morphe.extension.tiktok.settings.L10n;
 
 public final class FeatureGateLabStore {
-    public static final String TARGET_VERSION = "47.0.3";
     public static final String MANAGER_ABMOCK = "abmock";
     public static final String MANAGER_PLAYER_CONFIG = "player_config";
     public static final String MANAGER_LIVE = "live";
@@ -41,8 +40,36 @@ public final class FeatureGateLabStore {
     private static final String RULE_IDS_KEY = "rule_ids";
     private static final String STORED_TARGET_VERSION_KEY = "stored_target_version";
     private static final String MIGRATION_NOTICE_KEY = "migration_notice_pending";
+    /** How many rules the pending notice is about. */
+    private static final String MIGRATION_TURNED_OFF_KEY = "migration_turned_off";
+    private static final String TRANSLATION_PRESET_TITLE = "Show See translation";
 
     private FeatureGateLabStore() {
+    }
+
+    /**
+     * The TikTok build the Lab is for: the one installed, which BuildNames reads the same way the
+     * view names do. Its rules, exports and backups name this build, and its catalog is the
+     * one generated from it. The version is unreadable only before the extension has a context,
+     * when nothing is stored or shown; the newest catalog build stands in for it then.
+     *
+     * <p>This was a constant, 47.0.3, carried on to 47.1.3 when that build was declared: the
+     * Lab called 47.1.3 by the older name, and every rule saved on one moved to the other
+     * unchecked.
+     */
+    public static String targetVersion() {
+        String running = app.morphe.extension.shared.BuildNames.runningBuild();
+        return running != null ? running : FeatureGateCatalog.newestCatalogBuild();
+    }
+
+    /**
+     * Whether the stored rules belong to the running build. The main process moves them to it
+     * as soon as it opens the store; a secondary process doesn't write, so until then its rules
+     * are another build's and it applies none of them.
+     */
+    static boolean storedForRunningBuild() {
+        SharedPreferences prefs = prefs();
+        return prefs != null && targetVersion().equals(prefs.getString(STORED_TARGET_VERSION_KEY, ""));
     }
 
     public static boolean masterEnabled() {
@@ -74,14 +101,21 @@ public final class FeatureGateLabStore {
         }
     }
 
-    public static boolean consumeMigrationNotice() {
+    /**
+     * How many rules were turned off because their gates could not be carried to this build,
+     * once, then zero until it happens again. A notice left by an older Hushfeed, which turned
+     * off every rule on a change of build and kept no count, reads as all of them.
+     */
+    public static int consumeMigrationNotice() {
         SharedPreferences prefs = prefs();
         if (prefs == null || !prefs.getBoolean(MIGRATION_NOTICE_KEY, false)) {
-            return false;
+            return 0;
         }
-        if (!canWrite()) return false;
-        prefs.edit().putBoolean(MIGRATION_NOTICE_KEY, false).apply();
-        return true;
+        if (!canWrite()) return 0;
+        int turnedOff = prefs.getInt(MIGRATION_TURNED_OFF_KEY, -1);
+        if (turnedOff < 0) turnedOff = ruleIds(prefs).size();
+        prefs.edit().putBoolean(MIGRATION_NOTICE_KEY, false).remove(MIGRATION_TURNED_OFF_KEY).apply();
+        return turnedOff;
     }
 
     public static Rule rule(String manager, String key, String type) {
@@ -164,7 +198,7 @@ public final class FeatureGateLabStore {
         if (prefs != null) {
             prefs.edit()
                     .clear()
-                    .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION)
+                    .putString(STORED_TARGET_VERSION_KEY, targetVersion())
                     .commit();
         }
         FeatureGateLabRuntime.clearTriggered();
@@ -176,7 +210,7 @@ public final class FeatureGateLabStore {
         JSONObject root = new JSONObject();
         root.put("schema", 1);
         root.put("target", "TikTok global");
-        root.put("tiktok_version", TARGET_VERSION);
+        root.put("tiktok_version", targetVersion());
         JSONArray rules = new JSONArray();
         for (Rule rule : rules()) {
             JSONObject item = new JSONObject();
@@ -269,7 +303,7 @@ public final class FeatureGateLabStore {
         if (prefs == null) throw new java.io.IOException("Lab storage unavailable");
         boolean saved = prefs.edit()
                 .clear()
-                .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION)
+                .putString(STORED_TARGET_VERSION_KEY, targetVersion())
                 .commit();
         if (!saved) throw new java.io.IOException("Could not clear Lab settings");
         SettingsManagerObservationRecorder.clear();
@@ -278,9 +312,18 @@ public final class FeatureGateLabStore {
         FeatureGateLabSession.markRestartNeeded();
     }
 
-    /** Decode the entire backup before any setting or rule is changed. */
+    /**
+     * Decode the entire backup before any setting or rule is changed.
+     *
+     * <p>Rules saved on another TikTok build come back as they are only where both builds'
+     * catalogs carry the gate unchanged; the rest come back turned off, marked so that storing
+     * them raises the Lab's notice. A backup, an undo copy or a journal entry can each be older
+     * than the build now running, and none of them may put another build's rule back on.
+     */
     public static List<Rule> parseSettings(JSONObject root) throws JSONException {
-        if (!Integer.valueOf(1).equals(root.get("schema")) || !TARGET_VERSION.equals(root.optString("tiktok_version"))
+        if (!Integer.valueOf(1).equals(root.get("schema"))
+                || !(root.opt("tiktok_version") instanceof String)
+                || root.getString("tiktok_version").isEmpty()
                 || !(root.get("master") instanceof Boolean)
                 || !(root.get("acknowledged") instanceof Boolean)) {
             throw new JSONException("Invalid Lab backup or TikTok version");
@@ -304,7 +347,34 @@ public final class FeatureGateLabStore {
                     || validateValue(type, value) != null) throw new JSONException("Invalid Lab rule: " + key);
             rules.add(new Rule(id, manager, key, type, value, item.getBoolean("force"), System.currentTimeMillis()));
         }
-        return rules;
+        return forRunningBuild(root.getString("tiktok_version"), rules);
+    }
+
+    /**
+     * [rules], saved on [build], as they may stand on the running build: each one whose gate the
+     * two builds' catalogs don't hold identically is turned off and marked. The same answer for
+     * the same input, so a journal's expected state and the store it is compared with agree.
+     */
+    static List<Rule> forRunningBuild(String build, List<Rule> rules) {
+        String running = targetVersion();
+        if (running.equals(build) || rules.isEmpty()) return rules;
+        java.util.Set<String> compatible = compatibleRuleIds(build, running, rules);
+        List<Rule> result = new ArrayList<>(rules.size());
+        for (Rule rule : rules) {
+            result.add(rule.enabled && !compatible.contains(rule.id) ? rule.offForThisBuild() : rule);
+        }
+        return result;
+    }
+
+    /** The rules whose gates [from] and [to] both carry, identically, or none when either can't be read. */
+    private static java.util.Set<String> compatibleRuleIds(String from, String to, List<Rule> rules) {
+        try {
+            return FeatureGateCatalog.compatibleRuleIds(from, to, rules);
+        } catch (Exception error) {
+            Logger.printException(() -> "Could not compare the Lab catalogs of TikTok " + from
+                    + " and " + to + "; every rule is turned off", error);
+            return java.util.Collections.emptySet();
+        }
     }
 
     /**
@@ -338,16 +408,22 @@ public final class FeatureGateLabStore {
         SharedPreferences.Editor editor = prefs.edit();
         for (String id : ruleIds(prefs)) removeRuleFields(editor, id);
         List<String> ids = new ArrayList<>();
+        int turnedOff = 0;
         for (Rule rule : rules) {
             ids.add(rule.id);
+            if (rule.turnedOffForBuild) turnedOff++;
             String prefix = "rule." + rule.id + ".";
             editor.putString(prefix + "manager", rule.manager).putString(prefix + "key", rule.key)
                     .putString(prefix + "type", rule.type).putString(prefix + "value", rule.value)
                     .putBoolean(prefix + "enabled", rule.enabled).putLong(prefix + "updated", rule.updatedAtMs);
         }
+        // Rules another build saved that this one could not carry say so when the Lab opens,
+        // as they do when TikTok itself changes build under them.
+        if (turnedOff > 0) editor.putInt(MIGRATION_TURNED_OFF_KEY, turnedOff);
+        else editor.remove(MIGRATION_TURNED_OFF_KEY);
         boolean saved = editor.putString(RULE_IDS_KEY, join(ids)).putBoolean(MASTER_KEY, master)
-                .putBoolean(WARNING_ACK_KEY, acknowledged).putBoolean(MIGRATION_NOTICE_KEY, false)
-                .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION).commit();
+                .putBoolean(WARNING_ACK_KEY, acknowledged).putBoolean(MIGRATION_NOTICE_KEY, turnedOff > 0)
+                .putString(STORED_TARGET_VERSION_KEY, targetVersion()).commit();
         if (!saved) throw new java.io.IOException("Could not save Lab settings");
         if (!puttingBack) FeatureGateLabRuntime.clearTriggered();
         FeatureGateLabRuntime.reloadRules();
@@ -357,8 +433,8 @@ public final class FeatureGateLabStore {
     public static ImportReview reviewProfile(String text, Map<String, FeatureGateCatalog.Entry> catalog) throws JSONException {
         JSONObject root = new JSONObject(text);
         String version = root.optString("tiktok_version", "");
-        if (!TARGET_VERSION.equals(version)) {
-            throw new JSONException("Profile targets TikTok " + version + "; this Lab requires " + TARGET_VERSION);
+        if (!targetVersion().equals(version)) {
+            throw new JSONException("Profile targets TikTok " + version + "; this Lab requires " + targetVersion());
         }
 
         JSONArray items = root.optJSONArray("rules");
@@ -418,6 +494,29 @@ public final class FeatureGateLabStore {
             accepted.add(new Rule(id, manager, key, type, value, false, System.currentTimeMillis()));
         }
         return new ImportReview(accepted, rejected);
+    }
+
+    /** Bundled JSON, since the injected extension carries code but no Android resources. */
+    static JSONObject reviewedPresets() throws JSONException {
+        return new JSONObject("{\"47.1.3\":{\"see_translation\":{"
+                + "\"title\":\"" + TRANSLATION_PRESET_TITLE + "\",\"rules\":["
+                + "{\"manager\":\"abmock\",\"key\":\"feed_translation_reverse\",\"type\":\"INT\",\"value\":\"0\"},"
+                + "{\"manager\":\"abmock\",\"key\":\"cla_translate_button_weaken_v2\",\"type\":\"INT\",\"value\":\"0\"}]}}}");
+    }
+
+    static ImportReview reviewPreset(String build, String id,
+            Map<String, FeatureGateCatalog.Entry> catalog) throws JSONException {
+        // Unknown host versions must not inherit targetVersion's early-startup fallback.
+        if (!build.equals(app.morphe.extension.shared.BuildNames.runningBuild())) {
+            throw new JSONException("Preset does not match the installed TikTok version");
+        }
+        JSONObject profile = reviewedPresets().getJSONObject(build).getJSONObject(id);
+        profile.put("tiktok_version", build);
+        ImportReview review = reviewProfile(profile.toString(), catalog);
+        if (!review.rejected.isEmpty() || review.accepted.isEmpty()) {
+            throw new JSONException("Preset gates do not match the installed catalog");
+        }
+        return review;
     }
 
     public static ValidationFailure validateValue(String type, String value) {
@@ -562,9 +661,10 @@ public final class FeatureGateLabStore {
 
     private static Rule loadRule(String id) {
         SharedPreferences prefs = prefs();
-        if (prefs == null) {
-            return null;
-        }
+        return prefs == null ? null : loadRule(prefs, id);
+    }
+
+    private static Rule loadRule(SharedPreferences prefs, String id) {
         String prefix = "rule." + id + ".";
         String key = prefs.getString(prefix + "key", null);
         if (key == null) {
@@ -616,24 +716,49 @@ public final class FeatureGateLabStore {
         return prefs;
     }
 
+    /**
+     * Moves the stored rules to the running build the first time the store is opened on it.
+     *
+     * <p>A rule stays as it was only where the catalogs of the build it was saved on and of this
+     * one carry its gate identically: the same manager, key and type, the same default and
+     * provenance, and for a SettingsManager read the same model class and default. Every other
+     * enabled rule is turned off and counted for the Lab's notice, including all of them when
+     * either build has no catalog to compare. The master switch stays as it was, so what did
+     * carry over keeps working. Until 2026-09-27 this turned everything off on any change of
+     * build, and the Lab called both declared builds 47.0.3, so it never ran on 47.1.3 at all.
+     */
     private static synchronized void ensureTargetVersion(SharedPreferences prefs) {
         String storedVersion = prefs.getString(STORED_TARGET_VERSION_KEY, "");
-        if (TARGET_VERSION.equals(storedVersion) || !Utils.isMainProcess()) {
+        String running = targetVersion();
+        if (running.equals(storedVersion) || !Utils.isMainProcess()) {
             return;
         }
 
-        List<String> ids = ruleIds(prefs);
-        boolean hadSavedState = prefs.getBoolean(MASTER_KEY, false) || !ids.isEmpty();
-        SharedPreferences.Editor editor = prefs.edit()
-                .putString(STORED_TARGET_VERSION_KEY, TARGET_VERSION)
-                .putBoolean(MASTER_KEY, false);
-        for (String id : ids) {
-            editor.putBoolean("rule." + id + ".enabled", false);
+        List<Rule> stored = new ArrayList<>();
+        for (String id : ruleIds(prefs)) {
+            Rule rule = loadRule(prefs, id);
+            if (rule != null) stored.add(rule);
         }
-        if (hadSavedState) {
-            editor.putBoolean(MIGRATION_NOTICE_KEY, true);
+        List<Rule> carried = forRunningBuild(storedVersion, stored);
+        SharedPreferences.Editor editor = prefs.edit().putString(STORED_TARGET_VERSION_KEY, running);
+        int turnedOff = 0;
+        StringBuilder names = new StringBuilder();
+        for (Rule rule : carried) {
+            if (!rule.turnedOffForBuild) continue;
+            editor.putBoolean("rule." + rule.id + ".enabled", false);
+            turnedOff++;
+            if (names.length() < 400) names.append(names.length() == 0 ? "" : ", ").append(rule.key);
+        }
+        if (turnedOff > 0) {
+            int pending = prefs.getBoolean(MIGRATION_NOTICE_KEY, false)
+                    ? Math.max(0, prefs.getInt(MIGRATION_TURNED_OFF_KEY, 0)) : 0;
+            editor.putBoolean(MIGRATION_NOTICE_KEY, true).putInt(MIGRATION_TURNED_OFF_KEY, pending + turnedOff);
         }
         editor.apply();
+        int off = turnedOff;
+        Logger.printInfo(() -> "Feature Gate Lab moved from TikTok " + (storedVersion.isEmpty() ? "(none)" : storedVersion)
+                + " to " + running + ": " + (stored.size() - off) + " rules as they were, " + off + " turned off"
+                + (off == 0 ? "" : ": " + names));
     }
 
     static boolean runtimeStorageAvailable() {
@@ -779,8 +904,18 @@ public final class FeatureGateLabStore {
         public final String value;
         public final boolean enabled;
         public final long updatedAtMs;
+        /**
+         * Turned off on the way from another TikTok build because its gate did not carry over
+         * unchanged. Not stored: whoever writes such a rule raises the Lab's notice for it.
+         */
+        final boolean turnedOffForBuild;
 
         Rule(String id, String manager, String key, String type, String value, boolean enabled, long updatedAtMs) {
+            this(id, manager, key, type, value, enabled, updatedAtMs, false);
+        }
+
+        private Rule(String id, String manager, String key, String type, String value, boolean enabled,
+                long updatedAtMs, boolean turnedOffForBuild) {
             this.id = id;
             this.manager = manager;
             this.key = key;
@@ -788,6 +923,11 @@ public final class FeatureGateLabStore {
             this.value = value;
             this.enabled = enabled;
             this.updatedAtMs = updatedAtMs;
+            this.turnedOffForBuild = turnedOffForBuild;
+        }
+
+        Rule offForThisBuild() {
+            return new Rule(id, manager, key, type, value, false, updatedAtMs, true);
         }
     }
 

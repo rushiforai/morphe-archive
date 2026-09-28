@@ -23,6 +23,47 @@ final class TravianSession {
     private TravianSession() {
     }
 
+    private static final String KEY_NAMES_LOGGED = "playerprefs_names_logged_v1";
+
+    /**
+     * Once per install, writes the NAMES of the game's own saved settings (with each value's type and
+     * length, never the value) to the phone log ("PREFS" lines). Local only: nothing is sent anywhere. Used
+     * to find out whether the game keeps its world login token, so this app could reuse it instead of
+     * signing in on its own.
+     */
+    static void logKeyNamesOnce(Context ctx) {
+        Context app = ctx.getApplicationContext();
+        SharedPreferences mine = app.getSharedPreferences(NotifierWorker.STATE_PREFS, Context.MODE_PRIVATE);
+        if (mine.getBoolean(KEY_NAMES_LOGGED, false)) {
+            return;
+        }
+        mine.edit().putBoolean(KEY_NAMES_LOGGED, true).apply();
+        try {
+            java.util.Map<String, ?> all = app.getSharedPreferences(app.getPackageName() + ".v2.playerprefs",
+                    Context.MODE_PRIVATE).getAll();
+            java.util.List<String> names = new java.util.ArrayList<String>(all.keySet());
+            java.util.Collections.sort(names);
+            Log.i(TAG, "PREFS " + names.size() + " saved settings");
+            for (String name : names) {
+                Object v = all.get(name);
+                Log.i(TAG, "PREFS " + name + " : " + (v == null ? "null" : v.getClass().getSimpleName()
+                        + (v instanceof String ? " length " + ((String) v).length() : "")));
+            }
+        } catch (Exception e) {
+            Log.i(TAG, "PREFS not readable: " + e);
+        }
+    }
+
+    /** All of the game's own saved settings (Unity PlayerPrefs); empty when unreadable. Never logged. */
+    static java.util.Map<String, ?> savedSettings(Context ctx) {
+        try {
+            Context app = ctx.getApplicationContext();
+            return app.getSharedPreferences(app.getPackageName() + ".v2.playerprefs", Context.MODE_PRIVATE).getAll();
+        } catch (Exception e) {
+            return new java.util.HashMap<String, Object>();
+        }
+    }
+
     /** Returns the game's current lobby session cookie value, or null if it isn't logged in. */
     static String readLobbySessionCookie(Context ctx) {
         Context app = ctx.getApplicationContext();

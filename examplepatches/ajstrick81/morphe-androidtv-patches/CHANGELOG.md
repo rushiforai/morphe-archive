@@ -1,3 +1,24 @@
+## [1.40.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.40.0...v1.40.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **netflix:** recover MASTER on renamed getAds builds (M1-only) — closes [#212](https://github.com/ajstrick81/morphe-androidtv-patches/issues/212) ([#223](https://github.com/ajstrick81/morphe-androidtv-patches/issues/223)) ([4f1db60](https://github.com/ajstrick81/morphe-androidtv-patches/commit/4f1db60adc663cb25c9b7a6dcf3611a963e0f20f))
+
+# [1.40.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.39.0...v1.40.0) (2026-09-28)
+
+
+### Features
+
+* **espn:** rotating live scoreboard card for ad-break slate ([#221](https://github.com/ajstrick81/morphe-androidtv-patches/issues/221)) ([c7b1dff](https://github.com/ajstrick81/morphe-androidtv-patches/commit/c7b1dffde5c606849577652771a3711c26152b42))
+
+# [1.39.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.38.0...v1.39.0) (2026-09-27)
+
+
+### Features
+
+* **raiplay:** add Skip ads patch for RaiPlay Android TV ([#217](https://github.com/ajstrick81/morphe-androidtv-patches/issues/217)) ([d19408b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/d19408bd552f60e246f502c9b73a5c639d1bdc3e))
+
 # [1.38.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.37.7...v1.38.0) (2026-09-26)
 
 

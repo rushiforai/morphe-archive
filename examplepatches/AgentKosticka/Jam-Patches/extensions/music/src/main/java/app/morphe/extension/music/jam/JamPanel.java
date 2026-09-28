@@ -10,10 +10,9 @@ package app.morphe.extension.music.jam;
 import static app.morphe.extension.shared.StringRef.str;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Typeface;
-import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -22,6 +21,9 @@ import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.theme.ThemeUtils;
+import app.morphe.extension.shared.ui.CustomDialog;
 import java.util.function.Consumer;
 import org.json.JSONObject;
 
@@ -103,20 +105,15 @@ final class JamPanel {
     Context c = activity;
     LinearLayout body = new LinearLayout(c);
     body.setOrientation(LinearLayout.VERTICAL);
-    body.setPadding(
-      JamUi.dp(c, 24),
-      JamUi.dp(c, 20),
-      JamUi.dp(c, 24),
-      JamUi.dp(c, 8)
-    );
+    body.setPadding(0, JamUi.dp(c, 4), 0, JamUi.dp(c, 8));
     TextView heading = new TextView(c);
     heading.setTextSize(24);
     heading.setTypeface(null, Typeface.BOLD);
-    heading.setTextColor(0xffeeeeee);
+    heading.setTextColor(ThemeUtils.getAppForegroundColor());
     body.addView(heading);
     TextView status = new TextView(c);
     status.setTextSize(14);
-    status.setTextColor(0xffbbbbbb);
+    status.setTextColor(ThemeUtils.getAppForegroundColor());
     status.setPadding(0, JamUi.dp(c, 8), 0, JamUi.dp(c, 20));
     status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
     body.addView(status);
@@ -130,10 +127,13 @@ final class JamPanel {
     LinearLayout actions = new LinearLayout(c);
     actions.setOrientation(LinearLayout.VERTICAL);
     body.addView(actions);
-    AlertDialog dialog = new AlertDialog.Builder(c)
-      .setView(body)
-      .setNegativeButton(str("morphe_music_jam_done"), null)
-      .create();
+    Dialog dialog = JamUi.createDialog(
+      c,
+      null,
+      null,
+      body,
+      str("morphe_music_jam_done")
+    ).first;
     final String[] previous = { "" };
     Consumer<JSONObject> observer = v -> {
       heading.setText(title(v));
@@ -160,7 +160,7 @@ final class JamPanel {
         );
         Switch edits = new Switch(c);
         edits.setText(str("morphe_music_jam_guest_edits"));
-        edits.setTextColor(0xffeeeeee);
+        edits.setTextColor(ThemeUtils.getAppForegroundColor());
         edits.setTextSize(15);
         edits.setMinHeight(JamUi.dp(c, 56));
         edits.setChecked(allowed);
@@ -188,7 +188,7 @@ final class JamPanel {
             ? str("morphe_music_jam_participant_help")
             : str("morphe_music_jam_joining_help")
         );
-        help.setTextColor(0xffbbbbbb);
+        help.setTextColor(ThemeUtils.getAppForegroundColor());
         help.setTextSize(14);
         help.setPadding(0, JamUi.dp(c, 16), 0, JamUi.dp(c, 12));
         actions.addView(help);
@@ -239,7 +239,6 @@ final class JamPanel {
     };
     dialog.setOnDismissListener(d -> JamUi.unobserve(observer));
     dialog.show();
-    JamUi.styleDialog(dialog);
     JamUi.observe(c, observer);
   }
 
@@ -251,31 +250,20 @@ final class JamPanel {
     boolean enabled,
     Runnable action
   ) {
-    Button b = new Button(c);
-    b.setText(label);
-    b.setAllCaps(false);
+    Button b = CustomDialog.createButton(c, null, label, action, false, false);
+    b.setSingleLine(false);
+    b.setEllipsize(null);
+    b.setMinHeight(JamUi.dp(c, 52));
     b.setTextSize(15);
-    b.setTextColor(destructive ? 0xffffb4ab : 0xffeeeeee);
+    if (destructive) b.setTextColor(
+      Utils.isDarkModeEnabled() ? 0xffffb4ab : 0xffa4262c
+    );
     b.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
     b.setPadding(JamUi.dp(c, 16), 0, JamUi.dp(c, 16), 0);
-    GradientDrawable fill = new GradientDrawable();
-    fill.setColor(destructive ? 0x10ffb4ab : 0x16ffffff);
-    fill.setCornerRadius(JamUi.dp(c, 16));
-    b.setBackground(
-      new android.graphics.drawable.RippleDrawable(
-        android.content.res.ColorStateList.valueOf(0x30ffffff),
-        fill,
-        null
-      )
-    );
     b.setEnabled(enabled);
     b.setAlpha(enabled ? 1f : .45f);
-    LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
-      -1,
-      JamUi.dp(c, 52)
-    );
+    LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, -2);
     p.topMargin = JamUi.dp(c, 8);
     parent.addView(b, p);
-    b.setOnClickListener(v -> action.run());
   }
 }

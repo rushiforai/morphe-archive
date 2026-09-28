@@ -86,7 +86,7 @@ public class CreatorListPreference extends DialogPreference {
         TextView title = SettingsUi.text(
                 context,
                 getTitle() == null ? "" : getTitle().toString(),
-                20,
+                SettingsUi.TEXT_HEADLINE,
                 SettingsUi.textPrimary(),
                 Typeface.BOLD
         );
@@ -100,7 +100,7 @@ public class CreatorListPreference extends DialogPreference {
             TextView summary = SettingsUi.text(
                     context,
                     getSummary().toString(),
-                    14,
+                    SettingsUi.TEXT_BODY_SMALL,
                     SettingsUi.textSecondary(),
                     Typeface.NORMAL
             );
@@ -115,7 +115,7 @@ public class CreatorListPreference extends DialogPreference {
         TextView searchLabel = SettingsUi.text(
                 context,
                 L10n.t(context, "Search hidden creators"),
-                14,
+                SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.textSecondary(),
                 Typeface.BOLD
         );
@@ -135,13 +135,13 @@ public class CreatorListPreference extends DialogPreference {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        searchParams.setMargins(0, SettingsUi.dp(context, 5), 0, SettingsUi.dp(context, 10));
+        searchParams.setMargins(0, SettingsUi.dp(context, 4), 0, SettingsUi.dp(context, 10));
         dialogView.addView(searchEditText, searchParams);
 
         TextView addLabel = SettingsUi.text(
                 context,
                 L10n.t(context, "Add a creator"),
-                14,
+                SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.textSecondary(),
                 Typeface.BOLD
         );
@@ -166,7 +166,7 @@ public class CreatorListPreference extends DialogPreference {
         addButton.setTag("creator_list_add_button");
         addButton.setText(L10n.t(context, "Add"));
         addButton.setContentDescription(L10n.t(context, "Add hidden creator"));
-        addButton.setTextSize(16);
+        addButton.setTextSize(SettingsUi.TEXT_TITLE);
         SettingsUi.styleTextAction(addButton, true);
         addButton.setOnClickListener(view -> addEntry());
         LinearLayout.LayoutParams addButtonParams = new LinearLayout.LayoutParams(
@@ -210,7 +210,7 @@ public class CreatorListPreference extends DialogPreference {
         // as a 230dp blank band with "No creators are hidden yet" below it, which is a list that
         // has failed to load rather than one with nothing in it. ShareActionChecklistPreference
         // puts its own state rows in the container for the same reason.
-        emptyState = SettingsUi.text(context, "", 14, SettingsUi.textSecondary(), Typeface.NORMAL);
+        emptyState = SettingsUi.text(context, "", SettingsUi.TEXT_BODY_SMALL, SettingsUi.textSecondary(), Typeface.NORMAL);
         emptyState.setGravity(Gravity.CENTER);
         emptyState.setPadding(SettingsUi.dp(context, 12), SettingsUi.dp(context, 18),
                 SettingsUi.dp(context, 12), SettingsUi.dp(context, 18));
@@ -305,10 +305,10 @@ public class CreatorListPreference extends DialogPreference {
         Context context = getContext();
         LinearLayout row = new LinearLayout(context);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPaddingRelative(SettingsUi.dp(context, 12), SettingsUi.dp(context, 3),
-                SettingsUi.dp(context, 4), SettingsUi.dp(context, 3));
+        row.setPaddingRelative(SettingsUi.dp(context, 12), SettingsUi.dp(context, 4),
+                SettingsUi.dp(context, 4), SettingsUi.dp(context, 4));
         row.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_FIELD, true));
-        TextView label = SettingsUi.text(context, entry, 15, SettingsUi.textPrimary(), Typeface.NORMAL);
+        TextView label = SettingsUi.text(context, entry, SettingsUi.TEXT_BODY, SettingsUi.textPrimary(), Typeface.NORMAL);
         label.setTextIsSelectable(true);
         label.setContentDescription(entry);
         row.addView(label, new LinearLayout.LayoutParams(0,

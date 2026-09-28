@@ -11,25 +11,26 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
-private const val PERMISSION_TYPE = "Lcom/ather/btconnectivity/ui/permission/u0;"
+private const val PERMISSION_TYPE = "Lcom/ather/btconnectivity/ui/permission/v0;"
 private const val PERMISSION_TYPE_ARRAY = "[$PERMISSION_TYPE"
 
 /**
  * Matches the constructor that builds the pairing wizard's permission list.
  *
  * ```
- * public z0(Application, SessionManager, e, l)
+ * public a1(Application, SessionManager, e, l)
  * ```
  *
- * The constructor builds a five-element `u0[]` with `filled-new-array`:
+ * The constructor builds a five-element `v0[]` with `filled-new-array`:
  * call logs, manage calls, contacts, SMS and Nearby device. The wizard then walks
  * that array and asks for each entry.
  *
- * Both names are obfuscated in 13.5.0, so the fingerprint pins the defining class and
- * the array type the constructor fills.
+ * Both names are obfuscated, and the 13.5.1 build renamed them (`z0` -> `a1`,
+ * `u0` -> `v0`), so the fingerprint pins the defining class and the array type the
+ * constructor fills.
  */
 internal object PairingWizardPermissionFingerprint : Fingerprint(
-    definingClass = "Lcom/ather/btconnectivity/ui/permission/z0;",
+    definingClass = "Lcom/ather/btconnectivity/ui/permission/a1;",
     name = "<init>",
     custom = { method, _ ->
         method.implementation?.instructions?.any { instruction ->
@@ -48,9 +49,9 @@ internal object PairingWizardPermissionFingerprint : Fingerprint(
  * wizard stops asking for permissions that have no use on a de-Googled or work phone.
  * Nothing is faked: the app simply never requests the other permissions.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321):
+ * Equivalent smali (verified against 13.5.1, versionCode 324):
  * ```
- * filled-new-array {v1}, [Lcom/ather/btconnectivity/ui/permission/u0;
+ * filled-new-array {v1}, [Lcom/ather/btconnectivity/ui/permission/v0;
  * ```
  *
  * `v1` holds the Nearby device entry (`PermissionType.NEARBY_DEVICE`).

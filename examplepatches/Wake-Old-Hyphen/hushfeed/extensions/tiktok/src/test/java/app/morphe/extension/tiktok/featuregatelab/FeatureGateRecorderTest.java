@@ -124,7 +124,7 @@ public class FeatureGateRecorderTest {
             assertTrue(dialog.isShowing());
             android.widget.Button save = dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE);
             android.widget.Button copy = dialog.getButton(android.app.AlertDialog.BUTTON_NEUTRAL);
-            assertTrue("Save JSON was offered for an empty recording",
+            assertTrue("Save report was offered for an empty recording",
                     save == null || save.getVisibility() != android.view.View.VISIBLE);
             assertTrue("Copy report was offered for an empty recording",
                     copy == null || copy.getVisibility() != android.view.View.VISIBLE);
@@ -147,7 +147,7 @@ public class FeatureGateRecorderTest {
             FeatureGateLabRuntime.overrideBoolean("circle_search_block", false);
             control.getOnPreferenceClickListener().onPreferenceClick(control);
             var dialog = ShadowAlertDialog.getLatestAlertDialog();
-            assertEquals("Save JSON", dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).getText().toString());
+            assertEquals("Save report", dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).getText().toString());
             assertEquals("Close", dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).getText().toString());
 
             org.robolectric.shadows.ShadowToast.reset();

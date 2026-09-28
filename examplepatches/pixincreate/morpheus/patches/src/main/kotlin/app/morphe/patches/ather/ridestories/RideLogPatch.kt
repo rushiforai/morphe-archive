@@ -25,7 +25,7 @@ private const val MONTH_ROW = "Lcom/ather/ridestories/ui/allHighlights/composabl
 private const val MONTH_ROW_DATA = "Lcom/ather/ridestories/ui/allHighlights/d;"
 private const val MONTH_ROW_FLAG = "$MONTH_ROW_DATA->d:Z"
 
-private const val PREVIOUS_RIDES = "Lcom/ather/ridestories/ui/previousRides/k;"
+private const val PREVIOUS_RIDES = "Lcom/ather/ridestories/ui/previousRides/l;"
 private const val PREVIOUS_RIDES_DATA =
     "Lcom/ather/connectedplatformlib/dataModels/responseModels/PreviousRidesData;" // keywatch:ignore
 private const val COROUTINE_CONTINUATION = "Lkotlin/coroutines/jvm/internal/c;"
@@ -52,7 +52,7 @@ internal object MonthSummaryFingerprint : Fingerprint(
  * Matches the coroutine that loads the previous rides list.
  *
  * ```
- * public static final i(k, PreviousRidesData, c): Object
+ * public static final i(l, PreviousRidesData, c): Object
  * ```
  */
 internal object PreviousRidesFingerprint : Fingerprint(
@@ -86,7 +86,7 @@ internal object PreviousRideClickFingerprint : Fingerprint(
  * [RideStats] writes, and opens its own detail screen when one of those rides is tapped, because
  * Ather's screen would ask the server for a ride id the server does not know.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321), inserted after the monthly row
+ * Equivalent smali (verified against 13.5.1, versionCode 324), inserted after the monthly row
  * data is read:
  * ```
  * invoke-static {v12, v13}, Lapp/morphe/ather/RideStats;->adjustMonth(Ljava/lang/String;Ljava/lang/Integer;)[Ljava/lang/Object;

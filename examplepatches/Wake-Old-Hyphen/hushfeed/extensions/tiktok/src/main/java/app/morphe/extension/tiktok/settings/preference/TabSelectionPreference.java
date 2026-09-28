@@ -27,6 +27,7 @@ import java.util.Set;
 import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.navigation.BottomNavigationTabOptions;
 import app.morphe.extension.tiktok.navigation.NavigationTabOptions;
+import app.morphe.extension.tiktok.navigation.TabOption;
 import app.morphe.extension.tiktok.settings.Settings;
 
 @SuppressWarnings("deprecation")
@@ -145,7 +146,7 @@ public class TabSelectionPreference extends Preference {
         title.setText(L10n.t(getContext(),
                 bottomTabs ? "Bottom tabs to keep" : "Feed tabs to keep"));
         title.setTextColor(getTitleTextColor());
-        title.setTextSize(20);
+        title.setTextSize(SettingsUi.TEXT_HEADLINE);
         title.setTypeface(title.getTypeface(), Typeface.BOLD);
         SettingsUi.markDialogHeading(title);
         dialogView.addView(title, new LinearLayout.LayoutParams(
@@ -181,7 +182,7 @@ public class TabSelectionPreference extends Preference {
                     ? "Open the feed once so Hushfeed can see which bottom tabs TikTok loaded."
                     : "Open the feed once so Hushfeed can see which tabs TikTok loaded."));
             emptyState.setTextColor(SettingsUi.textSecondary());
-            emptyState.setTextSize(14);
+            emptyState.setTextSize(SettingsUi.TEXT_BODY_SMALL);
             emptyState.setGravity(Gravity.CENTER);
             int emptyPad = SettingsUi.dp(context, 24);
             emptyState.setPadding(emptyPad, emptyPad, emptyPad, emptyPad);
@@ -254,13 +255,13 @@ public class TabSelectionPreference extends Preference {
             Set<String> observed = BottomNavigationTabOptions.parseObservedKeys(Settings.BOTTOM_NAVIGATION_OBSERVED_TABS.savedValue());
             observed.add(BottomNavigationTabOptions.HOME);
             observed.add(BottomNavigationTabOptions.PROFILE);
-            for (BottomNavigationTabOptions.Option option : BottomNavigationTabOptions.optionsForKeys(observed)) {
+            for (TabOption option : BottomNavigationTabOptions.optionsForKeys(observed)) {
                 rows.add(new OptionRow(option.key, option.label));
             }
         } else {
             Set<String> observed = NavigationTabOptions.parseObservedKeys(Settings.FEED_NAVIGATION_OBSERVED_TABS.savedValue());
             observed.add(NavigationTabOptions.HOT);
-            for (NavigationTabOptions.Option option : NavigationTabOptions.optionsForKeys(observed)) {
+            for (TabOption option : NavigationTabOptions.optionsForKeys(observed)) {
                 rows.add(new OptionRow(option.key, option.label));
             }
         }
@@ -338,14 +339,14 @@ public class TabSelectionPreference extends Preference {
         TextView label = new TextView(context);
         label.setText(L10n.t(getContext(), option.label));
         label.setTextColor(getTitleTextColor());
-        label.setTextSize(16);
+        label.setTextSize(SettingsUi.TEXT_TITLE);
         textContainer.addView(label);
 
         if (isRequiredOption(option.key)) {
             TextView summary = new TextView(context);
             summary.setText(L10n.t(getContext(), "Required"));
             summary.setTextColor(getSummaryTextColor());
-            summary.setTextSize(14);
+            summary.setTextSize(SettingsUi.TEXT_BODY_SMALL);
             textContainer.addView(summary);
         }
 

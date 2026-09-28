@@ -25,8 +25,8 @@ private const val MAP_PREF = "Lapp/morphe/ather/MapPref;"
 /** Compose slot table key of the permission dialog. Appears once in `d.smali`. */
 private const val DIALOG_SLOT_KEY = 0x357e090aL // keywatch:ignore
 
-/** Closes the Compose group that the permission dialog opens. */
-private const val DIALOG_GROUP_END = "Landroidx/compose/runtime/i0;->Y()V"
+/** Package of the Compose runtime. R8 renames the composer class every release. */
+private const val COMPOSE_RUNTIME = "Landroidx/compose/runtime/"
 
 private const val CHECK_SELF_PERMISSION = "checkSelfPermission"
 
@@ -44,21 +44,24 @@ private const val SEND_SMS = "android.permission.SEND_SMS"
  * per permission. It is the only place that renders a permission dialog, so filtering the
  * list here covers every request the app makes.
  *
- * The names are obfuscated in 13.5.0, so the fingerprint pins the defining class, the
- * signature and the slot key the composable opens its Compose group with.
+ * The names are obfuscated, so the fingerprint pins the defining class, the method name
+ * and the shape of the parameter list. The composer type is deliberately left open: R8
+ * renames it every release (`l` in 13.5.0, `h0` in 13.5.1).
  */
 internal object PermissionDialogFingerprint : Fingerprint(
     definingClass = "Lcom/ather/designsystem/components/utils/d;",
     name = "f",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf(
-        "Ljava/util/List;",
-        "Lkotlin/jvm/functions/a;",
-        "Lkotlin/jvm/functions/k;",
-        "Landroidx/compose/runtime/l;",
-        "I",
-    ),
+    custom = { method, _ ->
+        val parameters = method.parameterTypes.map { it.toString() }
+        parameters.size == 5 &&
+            parameters[0] == "Ljava/util/List;" &&
+            parameters[1] == "Lkotlin/jvm/functions/a;" &&
+            parameters[2] == "Lkotlin/jvm/functions/k;" &&
+            parameters[3].startsWith(COMPOSE_RUNTIME) &&
+            parameters[4] == "I"
+    },
 )
 
 /**
@@ -94,7 +97,7 @@ internal object PairingCapabilityFingerprint : Fingerprint(
  * The pairing probe is patched to match, so pairing a scooter no longer waits for contact
  * and SMS access.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321):
+ * Equivalent smali (verified against 13.5.1, versionCode 324):
  * ```
  * invoke-static {v1}, Lapp/morphe/ather/MapPref;->dropLocationRequests(Ljava/util/List;)Ljava/util/List;
  * move-result-object v1
@@ -132,8 +135,13 @@ val permissionFilterPatch = bytecodePatch(
             }
 
             val groupEndIndex = body.instructions.indexOfFirst { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference
                 instruction.opcode == Opcode.INVOKE_VIRTUAL &&
-                    (instruction as? ReferenceInstruction)?.reference?.toString() == DIALOG_GROUP_END
+                    reference is MethodReference &&
+                    reference.definingClass.startsWith(COMPOSE_RUNTIME) &&
+                    reference.name == "Y" &&
+                    reference.parameterTypes.isEmpty() &&
+                    reference.returnType == "V"
             }
             if (groupEndIndex < 0) {
                 throw IllegalStateException("Permission dialog group end was not found.")

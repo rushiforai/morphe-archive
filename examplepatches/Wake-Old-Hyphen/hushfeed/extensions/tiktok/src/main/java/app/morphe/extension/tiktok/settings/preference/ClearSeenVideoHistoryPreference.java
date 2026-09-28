@@ -12,6 +12,7 @@ import android.content.Context;
 import android.preference.Preference;
 import android.view.View;
 
+import app.morphe.extension.tiktok.SignedInUser;
 import app.morphe.extension.tiktok.seen.SeenVideoHistory;
 
 import java.text.NumberFormat;
@@ -75,9 +76,14 @@ public final class ClearSeenVideoHistoryPreference extends Preference
             setTitle(CLEAR_TITLE);
             int count = SeenVideoHistory.size();
             if (count > 0) {
-                setSummary(L10n.f(getContext(),
-                        "Forget the %1$s seen videos.",
-                        NumberFormat.getInstance().format(count)));
+                // The record is the signed-in account's alone, so the row says whose it forgets.
+                String handle = SignedInUser.handle();
+                String number = NumberFormat.getInstance().format(count);
+                setSummary(handle != null
+                        ? L10n.quantity(getContext(), count, "Forget the video @%2$s has seen.",
+                                "Forget the %1$s videos @%2$s has seen.", number, handle)
+                        : L10n.quantity(getContext(), count, "Forget the seen video.",
+                                "Forget the %1$s seen videos.", number));
             } else {
                 setSummary("No seen videos recorded yet.");
             }

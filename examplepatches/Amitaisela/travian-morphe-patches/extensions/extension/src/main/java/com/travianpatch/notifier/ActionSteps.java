@@ -40,9 +40,12 @@ final class ActionSteps {
                 || TroopSend.ESCAPE_KIND.equals(kind);
     }
 
-    /** Pause ranges in ms: after switching village, after opening the village (opening the building), before pressing. */
-    static final long[][] PAUSES = {{1000, 2500}, {1500, 4000}, {600, 1800}};
-    static final int AFTER_SWITCH = 0, OPEN_BUILDING = 1, PRESS = 2;
+    /**
+     * Pause ranges in ms: after switching village, after opening the village (opening the building), before
+     * pressing, and between a two-step send's preview and its confirm (reading the preview).
+     */
+    static final long[][] PAUSES = {{1000, 2500}, {1500, 4000}, {600, 1800}, {1500, 4000}};
+    static final int AFTER_SWITCH = 0, OPEN_BUILDING = 1, PRESS = 2, CONFIRM = 3;
 
     static long pauseMs(Random random, int step) {
         long[] r = PAUSES[step];

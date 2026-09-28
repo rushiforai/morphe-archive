@@ -46,8 +46,9 @@ public final class QueueCommand {
     try {
       if (data == null || data.length > 65536) return null;
       byte[] watch = field(data, WATCH_ENDPOINT_FIELD);
-      // A playlist-bearing watch request must not silently become a single song.
-      if (field(watch, 2) != null) return null;
+      // A selected song can carry radio/playlist context (Home and Speed Dial).
+      // Validate that field, but require an explicit video ID below.
+      field(watch, 2);
       byte[] video = field(watch, VIDEO_ID_FIELD);
       String id = new String(video, StandardCharsets.US_ASCII);
       return id.matches("[A-Za-z0-9_-]{11}") ? id : null;

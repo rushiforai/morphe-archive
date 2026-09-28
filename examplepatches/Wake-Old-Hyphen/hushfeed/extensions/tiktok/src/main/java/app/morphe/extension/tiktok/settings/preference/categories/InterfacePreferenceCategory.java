@@ -336,6 +336,13 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                             + "Swipe down from the top to peek at them.",
                     Settings.HIDE_STATUS_BAR
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the status bar in LIVE rooms",
+                    "Let a LIVE fill the screen up to the top edge. The status bar comes back when "
+                            + "you leave the LIVE. Swipe down from the top to peek at it.",
+                    Settings.HIDE_STATUS_BAR_IN_LIVE
+            ));
         }
     }
 

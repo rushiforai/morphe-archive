@@ -7,3 +7,7 @@
 -keep class com.google.** {
   *;
 }
+
+-keep class kotlin.coroutines.** {
+  *;
+}

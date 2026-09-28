@@ -9,7 +9,7 @@ object Constants {
         name = "Bongobdandroidtv",
         packageName = "com.bongo.bongobdandroidtv",
         apkFileType = ApkFileType.XAPK,
-        appIconColor = 0XD8062D,
+        appIconColor = 0XD21E28,
         signatures = setOf("92a69a62905e154dc817eb81d676dcb2b686aedb1346d49feb55424f96f8408e"),
         targets = listOf(
             AppTarget(version = "1.17.1", versionCode = 230011701, minSdk = 23),

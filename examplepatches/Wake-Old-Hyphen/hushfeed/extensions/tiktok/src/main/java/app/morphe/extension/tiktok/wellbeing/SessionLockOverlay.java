@@ -345,7 +345,7 @@ public final class SessionLockOverlay {
         }
         title.setText(titleText);
         title.setTextColor(SettingsUi.OVERLAY_TEXT);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_HEADLINE);
         title.setGravity(Gravity.CENTER);
         panel.addView(title);
 
@@ -361,7 +361,7 @@ public final class SessionLockOverlay {
         // flag the settings screen sets, so off the settings screen it answers for the system
         // theme rather than for this panel.
         remaining.setTextColor(SettingsUi.overlayAccentOn(true));
-        remaining.setTextSize(TypedValue.COMPLEX_UNIT_SP, 34);
+        remaining.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_DISPLAY);
         remaining.setGravity(Gravity.CENTER);
         remaining.setPadding(0, SettingsUi.dp(activity, 12), 0, SettingsUi.dp(activity, 12));
         panel.addView(remaining);
@@ -370,7 +370,7 @@ public final class SessionLockOverlay {
         TextView hint = new TextView(activity);
         hint.setText(L10n.t(activity, "Messages, profiles and search still work."));
         hint.setTextColor(SettingsUi.OVERLAY_TEXT_MUTED);
-        hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
         hint.setGravity(Gravity.CENTER);
         panel.addView(hint);
         hintReference = new WeakReference<>(hint);
@@ -382,7 +382,7 @@ public final class SessionLockOverlay {
         release.setContentDescription(L10n.t(activity, "Open the feed anyway"));
         SettingsUi.markAsButton(release);
         release.setTextColor(SettingsUi.OVERLAY_TEXT);
-        release.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        release.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY);
         release.setGravity(Gravity.CENTER);
         // A radius from the scale. It was 24 on a 48dp control, which is a pill, and it was the
         // only pill in the bundle: the four feed controls and the budget cue it sits beside all
@@ -420,7 +420,7 @@ public final class SessionLockOverlay {
         messages.setContentDescription(L10n.t(activity, "Open messages"));
         SettingsUi.markAsButton(messages);
         messages.setTextColor(SettingsUi.OVERLAY_TEXT_MUTED);
-        messages.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        messages.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY);
         messages.setGravity(Gravity.CENTER);
         messages.setPadding(padding, SettingsUi.dp(activity, 12), padding,
                 SettingsUi.dp(activity, 12));

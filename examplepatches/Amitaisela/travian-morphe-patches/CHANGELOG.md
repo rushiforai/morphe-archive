@@ -1,3 +1,36 @@
+## [1.26.5](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.26.4...v1.26.5) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** clearer patch names and short descriptions ([45faa96](https://github.com/Amitaisela/travian-morphe-patches/commit/45faa9659a52a7b6878a5bcac256f52d0befbbed))
+
+## [1.26.4](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.26.3...v1.26.4) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** name requests like the game's own network code ([d0fcc13](https://github.com/Amitaisela/travian-morphe-patches/commit/d0fcc13b1cbaaae5fd27e6e37707681d732fea2c))
+* **Travian: Legends:** no night sign-ins, escape retry, stop a read that never works ([5880e3b](https://github.com/Amitaisela/travian-morphe-patches/commit/5880e3b7e36a85e9ca4bca64fd5f1a2222cad1a8))
+
+## [1.26.3](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.26.2...v1.26.3) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** fewer and plainer requests (second review) ([f36582d](https://github.com/Amitaisela/travian-morphe-patches/commit/f36582d153e2570645d9a43e6f2d328e711a491c))
+
+## [1.26.2](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.26.1...v1.26.2) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** read the gold club every 6 hours once the game has answered ([b16ba52](https://github.com/Amitaisela/travian-morphe-patches/commit/b16ba529beebe5d2dcdadefe8c32cbf5f55ef10c))
+* **Travian: Legends:** use the game's own saved login instead of signing in separately ([20152de](https://github.com/Amitaisela/travian-morphe-patches/commit/20152de3d86fd0f0e570e0c29ede49a93f81749a))
+
+## [1.26.1](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.26.0...v1.26.1) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **Travian: Legends:** log the game's saved setting names once (local only) ([0f58aed](https://github.com/Amitaisela/travian-morphe-patches/commit/0f58aed0f1745d79f2ebb4b50054ea1be42aa48f))
+* **Travian: Legends:** send far less to the game's servers, and look more like a player ([59bca30](https://github.com/Amitaisela/travian-morphe-patches/commit/59bca305c081b3c7233c4b11e8db18a180dcaaeb))
+
 ## [1.26.0](https://github.com/Amitaisela/travian-morphe-patches/compare/v1.25.1...v1.26.0) (2026-09-26)
 
 ### ✨ New Features

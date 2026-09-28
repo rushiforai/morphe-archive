@@ -151,6 +151,14 @@ final class ActionClient {
     static Result sendTwoStep(Transport transport, GameAction action, boolean automated, Settings settings,
                               long nowMs, long nextAttackLandingMs, Map<String, Long> recentKeys, boolean stepOneOnly,
                               PreviewCheck check) {
+        return sendTwoStep(transport, action, automated, settings, nowMs, nextAttackLandingMs, recentKeys, stepOneOnly,
+                check, null);
+    }
+
+    /** beforeConfirm (if any) runs right before step 2: the pause a player takes to read the preview. */
+    static Result sendTwoStep(Transport transport, GameAction action, boolean automated, Settings settings,
+                              long nowMs, long nextAttackLandingMs, Map<String, Long> recentKeys, boolean stepOneOnly,
+                              PreviewCheck check, Runnable beforeConfirm) {
         Result refused = check(action, automated, settings, nowMs, nextAttackLandingMs, recentKeys);
         if (refused != null) {
             return refused;
@@ -182,6 +190,9 @@ final class ActionClient {
                 return new Result("REFUSED", first.code, "not confirmed: " + problem, false, first.body);
             }
         }
+        if (beforeConfirm != null) {
+            beforeConfirm.run();
+        }
         Response second;
         try {
             second = transport.send("POST", action.path, action.body.toString(), nonce);
@@ -204,7 +215,9 @@ final class ActionClient {
         in.nextAttackLandingMs = nextAttackLandingMs;
         in.attackPauseOn = settings.attackPauseOn;
         in.attackPauseMinutes = settings.attackPauseMinutes;
-        in.passesAttackPause = TroopSend.ESCAPE_KIND.equals(action.kind);
+        // A village switch is only ever sent as a step of another action that already passed the guard
+        // (e.g. a troop escape during the attack pause), so the pause doesn't stop it on its own.
+        in.passesAttackPause = TroopSend.ESCAPE_KIND.equals(action.kind) || "VILLAGE".equals(action.kind);
         in.quietNow = settings.quietNow;
         in.dedupeKey = action.dedupeKey;
         in.recentKeys = recentKeys;

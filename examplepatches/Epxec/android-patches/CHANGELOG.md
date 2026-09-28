@@ -1,3 +1,15 @@
+## [1.12.0](https://github.com/Epxec/android-patches/compare/v1.11.0...v1.12.0) (2026-09-27)
+
+### ✨ New Features
+
+* vtube studio pro ([5a9fac5](https://github.com/Epxec/android-patches/commit/5a9fac516aeb1be72cb6477bc6024c50a6ebf45b))
+
+## [1.12.0-dev.1](https://github.com/Epxec/android-patches/compare/v1.11.0...v1.12.0-dev.1) (2026-09-27)
+
+### ✨ New Features
+
+* vtube studio pro ([5a9fac5](https://github.com/Epxec/android-patches/commit/5a9fac516aeb1be72cb6477bc6024c50a6ebf45b))
+
 ## [1.11.0](https://github.com/Epxec/android-patches/compare/v1.10.0...v1.11.0) (2026-09-26)
 
 ### 🐛 Bug Fixes

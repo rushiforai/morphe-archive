@@ -8,7 +8,7 @@ object IsPaidGetterFingerprint : Fingerprint(
     name = "isPaid",
     accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "Z",
-    parameters = listOf(),
+    parameters = emptyList(),
 )
 
 object FetchStreamingUrlFingerprint : Fingerprint(

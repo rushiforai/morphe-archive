@@ -30,6 +30,9 @@ public class NetworkRequestsTest {
     @Before public void reset() {
         NetworkRequests.resetForTests();
         ShadowLog.clear();
+        // The export test reads a feed event back, so the filter has to let every category in;
+        // the setting is static and another class can leave it narrowed.
+        BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
     }
 
     @After public void debugOff() {

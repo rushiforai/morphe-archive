@@ -157,7 +157,7 @@ public class InputTextPreference extends EditTextPreference {
         TextView title = SettingsUi.text(
                 context,
                 getTitle() == null ? "" : getTitle().toString(),
-                20,
+                SettingsUi.TEXT_HEADLINE,
                 SettingsUi.textPrimary(),
                 android.graphics.Typeface.BOLD
         );
@@ -174,7 +174,7 @@ public class InputTextPreference extends EditTextPreference {
             TextView summary = SettingsUi.text(
                     context,
                     baseSummary,
-                    14,
+                    SettingsUi.TEXT_BODY_SMALL,
                     SettingsUi.textSecondary(),
                     android.graphics.Typeface.NORMAL
             );

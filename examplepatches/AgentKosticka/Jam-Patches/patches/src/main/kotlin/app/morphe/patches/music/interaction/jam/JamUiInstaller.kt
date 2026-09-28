@@ -434,7 +434,6 @@ private fun BytecodePatchContext.installArtwork(artwork: ArtworkAbi) {
       local.accessFlags,
       """
             iget-object v0, p0, ${artwork.image}
-            invoke-static {v0}, Lapp/morphe/extension/music/jam/JamArtwork;->bind(Landroid/widget/ImageView;)V
             invoke-static {v0, p1}, Lapp/morphe/extension/music/jam/JamArtwork;->choose(Landroid/widget/ImageView;Landroid/graphics/Bitmap;)Landroid/graphics/Bitmap;
             move-result-object p1
             ${invokeKind(artwork.update)} {p0, p1}, $local

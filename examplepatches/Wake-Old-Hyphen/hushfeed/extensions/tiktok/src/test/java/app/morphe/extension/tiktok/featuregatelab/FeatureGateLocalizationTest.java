@@ -75,8 +75,8 @@ public class FeatureGateLocalizationTest {
                 "Gib eine ganze Zahl ein.",
                 "Kein aktueller Wert und keine aktive Überschreibung",
                 "11 (wird bei der Abfrage zurückgegeben)",
-                "App-AB / generiertes Register und aktueller Cache",
-                "App-AB / lokaler Katalog",
+                "App-AB · von TikTok deklariert, mit aktuellem Wert",
+                "App-AB · nur in der Liste von Hushfeed",
                 "7 (Aktuell)",
                 "8 (Standard)",
                 "9 (Recherchiert)",
@@ -98,8 +98,8 @@ public class FeatureGateLocalizationTest {
                 "Masukkan bilangan bulat.",
                 "Tidak ada nilai saat ini dan tidak ada penimpaan aktif",
                 "11 (akan dikembalikan saat diminta)",
-                "AB aplikasi / registri yang dibuat dan cache saat ini",
-                "AB aplikasi / katalog lokal",
+                "AB aplikasi · dideklarasikan TikTok, dengan nilai saat ini",
+                "AB aplikasi · hanya di daftar Hushfeed",
                 "7 (Saat ini)",
                 "8 (Bawaan)",
                 "9 (Hasil riset)",
@@ -227,7 +227,7 @@ public class FeatureGateLocalizationTest {
             attach(activity, lab);
             JSONObject importFile = new JSONObject()
                     .put("payload_kind", "loaded_values")
-                    .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION)
+                    .put("tiktok_version", FeatureGateLabStore.targetVersion())
                     .put("rules", new JSONArray()
                             .put(new JSONObject()
                                     .put("manager", FeatureGateLabStore.MANAGER_ABMOCK)

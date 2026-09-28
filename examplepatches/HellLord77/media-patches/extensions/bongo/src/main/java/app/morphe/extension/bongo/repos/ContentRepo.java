@@ -1,10 +1,11 @@
 package app.morphe.extension.bongo.repos;
 
-import app.morphe.extension.bongo.utils.JSONUtil;
+import app.morphe.extension.bongo.util.JSONUtil;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import com.goebl.david.Webb;
 import com.google.gson.Gson;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONException;
@@ -74,7 +75,7 @@ public class ContentRepo {
     translatedContent.put("cast_and_crew", contentTrailerContent.get("castAndCrew"));
     translatedContent.put("genre", contentTrailerContent.get("genre"));
 
-    for (var key : new String[] {"shorts", "teaser", "vod"}) {
+    for (var key : List.of("shorts", "teaser", "vod")) {
       try {
         var urls =
             translatedContent

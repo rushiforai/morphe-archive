@@ -452,6 +452,15 @@ public class Utils {
         activityRef = new WeakReference<>(mainActivity);
     }
 
+    /**
+     * The activity when there is one, else the application: for sizes that follow the window
+     * rather than the display, such as a side by side split view's half of the screen.
+     */
+    public static Context getWindowContext() {
+        Activity activity = getActivity();
+        return activity != null ? activity : getContext();
+    }
+
     public static Context getContext() {
         if (context == null) {
             Logger.printException(() -> "Context is not set by extension hook, returning null");
@@ -490,8 +499,16 @@ public class Utils {
         // Intentionally use logger before context is set,
         // to expose any bugs in the 'no context available' logger code.
         Logger.printInfo(() -> "Set context: " + appContext);
+        // An activity is kept weakly, in getActivity(), for the callers that need one; the field
+        // holds its application, so a finished MainActivity isn't reachable from here until the
+        // next one is created. Any other context (a test's wrapper) is kept as given.
+        Context stored = appContext;
+        if (appContext instanceof Activity activity) {
+            Context application = activity.getApplicationContext();
+            if (application != null) stored = application;
+        }
         // Must initially set context to check the app language.
-        context = appContext;
+        context = stored;
 
         // Before any hook reads a setting: whether this process runs with Hushfeed paused, and
         // the record that lets three crashed starts in a row turn safe mode on.
@@ -510,9 +527,9 @@ public class Utils {
         if (language != AppLanguage.DEFAULT) {
             // Create a new context with the desired language.
             Logger.printDebug(() -> "Using app language: " + language);
-            Configuration config = new Configuration(appContext.getResources().getConfiguration());
+            Configuration config = new Configuration(stored.getResources().getConfiguration());
             config.setLocale(language.getLocale());
-            context = appContext.createConfigurationContext(config);
+            context = stored.createConfigurationContext(config);
         }
 
         setThemeLightColor(getThemeColor(getThemeLightColorResourceName(), Color.WHITE));

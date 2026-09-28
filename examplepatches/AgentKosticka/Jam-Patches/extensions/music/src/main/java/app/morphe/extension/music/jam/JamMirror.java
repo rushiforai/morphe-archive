@@ -176,7 +176,8 @@ public final class JamMirror {
         QueueModel.thumbnail(
           row.optString("thumbnail"),
           row.getString("videoId")
-        )
+        ),
+        row.optString("artwork")
       );
     } else JamArtwork.clear();
     if (refreshed || currentChanged) {

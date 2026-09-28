@@ -174,6 +174,19 @@ object Constants {
                 versionCode = 1728
             )
         )
-    ) 
+    )
+
+    val COMPATIBILITY_VTubeStudio = Compatibility(
+        name = "VTube Studio",
+        packageName = "com.denchi.vtubestudio",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xFF1ED7,
+        targets = listOf(
+            AppTarget(
+                version = "1.32.71",
+                versionCode = 181
+            )
+        )
+    )
 
 }

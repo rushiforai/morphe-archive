@@ -37,6 +37,8 @@ public final class FeatureGateCatalog {
     private static final Object LOCK = new Object();
 
     private static volatile List<Entry> staticEntries;
+    /** The build {@link #staticEntries} was read for. */
+    private static volatile String staticEntriesBuild;
     private static volatile Snapshot cachedSnapshot;
 
     /**
@@ -107,15 +109,17 @@ public final class FeatureGateCatalog {
             try {
                 Map<String, Map<String, Object>> current = readCurrentKevaMaps();
                 long currentReadyAt = System.currentTimeMillis();
-                List<Entry> base = staticEntries;
+                String build = catalogBuild();
+                List<Entry> base = build.equals(staticEntriesBuild) ? staticEntries : null;
                 if (base == null) {
                     Snapshot currentOnly = merge(Collections.emptyList(), current, false);
                     MAIN.post(() -> callback.onLoaded(currentOnly));
                     synchronized (LOCK) {
-                        base = staticEntries;
+                        base = build.equals(staticEntriesBuild) ? staticEntries : null;
                         if (base == null) {
-                            base = Collections.unmodifiableList(readStaticCatalog());
+                            base = Collections.unmodifiableList(readStaticCatalog(build));
                             staticEntries = base;
+                            staticEntriesBuild = build;
                         }
                     }
                 }
@@ -146,8 +150,165 @@ public final class FeatureGateCatalog {
 
     static void resetForTests() {
         staticEntries = null;
+        staticEntriesBuild = null;
         cachedSnapshot = null;
         cachedAbTypes = null;
+    }
+
+    /** The TikTok builds a catalog was generated from, oldest first. */
+    public static List<String> catalogBuilds() {
+        return java.util.Arrays.asList(GeneratedGateCatalogBuilds.BUILDS.clone());
+    }
+
+    /** Whether [build] has a catalog generated from it, and so one checked against it. */
+    public static boolean hasCatalogFor(String build) {
+        return build != null && catalogBuilds().contains(build);
+    }
+
+    public static String newestCatalogBuild() {
+        String[] builds = GeneratedGateCatalogBuilds.BUILDS;
+        return builds[builds.length - 1];
+    }
+
+    /**
+     * The build whose catalog the Lab shows: the one running, or, on a build no catalog was
+     * generated from, the newest one there is. Only the first is checked against the build.
+     */
+    public static String catalogBuild() {
+        String running = app.morphe.extension.shared.BuildNames.runningBuild();
+        return hasCatalogFor(running) ? running : newestCatalogBuild();
+    }
+
+    /**
+     * The rules a build change can leave as they are: those whose gate both builds' catalogs
+     * carry under the same manager, key and type with an identical row, so the same default,
+     * provenance and (for a SettingsManager read) model class and default. None when either
+     * build has no catalog, since then nothing says the gate is the same gate. Reads only the
+     * tables the rules' managers live in, off the caller's thread or not: it runs once per
+     * change of build, when the Lab store is first opened on the new one.
+     */
+    static java.util.Set<String> compatibleRuleIds(String from, String to,
+            java.util.Collection<FeatureGateLabStore.Rule> rules) throws Exception {
+        java.util.Set<String> result = new HashSet<>();
+        if (rules.isEmpty() || !hasCatalogFor(from) || !hasCatalogFor(to)) return result;
+        Set<String> identities = new HashSet<>();
+        for (FeatureGateLabStore.Rule rule : rules) identities.add(rule.manager + "\n" + rule.key);
+        Map<String, String> before = catalogRows(from, identities);
+        Map<String, String> after = from.equals(to) ? before : catalogRows(to, identities);
+        for (FeatureGateLabStore.Rule rule : rules) {
+            String identity = rule.manager + "\n" + rule.key;
+            String row = after.get(identity);
+            if (row == null || !row.equals(before.get(identity))) continue;
+            if (!FeatureGateLabStore.supportsOverride(rule.manager, rule.type)) continue;
+            String type = FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(rule.manager)
+                    ? "OBJECT" : row.split("\\t", -1)[2];
+            if (FeatureGateLabStore.normalizeType(type).equals(FeatureGateLabStore.normalizeType(rule.type))) {
+                result.add(rule.id);
+            }
+        }
+        return result;
+    }
+
+    /** [build]'s catalog row for each of [identities] (manager, newline, key) it carries. */
+    private static Map<String, String> catalogRows(String build, Set<String> identities) throws Exception {
+        boolean scalar = false, player = false, ve = false, settings = false;
+        for (String identity : identities) {
+            String manager = identity.substring(0, identity.indexOf('\n'));
+            if (FeatureGateLabStore.MANAGER_PLAYER_CONFIG.equals(manager)) player = true;
+            else if (FeatureGateLabStore.MANAGER_VE_CONFIG.equals(manager)) ve = true;
+            else if (FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) settings = true;
+            else scalar = true;
+        }
+        Map<String, String> rows = new HashMap<>();
+        RowReader typed = line -> {
+            String[] fields = line.split("\\t", -1);
+            if (fields.length == 10 && identities.contains(fields[1] + "\n" + fields[0])) {
+                rows.put(fields[1] + "\n" + fields[0], line);
+            }
+        };
+        if (scalar) Table.abLive().forEachRow(build, typed);
+        if (player) Table.player().forEachRow(build, typed);
+        if (ve) Table.ve().forEachRow(build, typed);
+        if (settings) {
+            String prefix = FeatureGateLabStore.MANAGER_SETTINGS_MANAGER + "\n";
+            Table.settings().forEachRow(build, line -> {
+                String identity = prefix + line.substring(0, Math.max(0, line.indexOf('\t')));
+                if (identities.contains(identity)) rows.put(identity, line);
+            });
+        }
+        return rows;
+    }
+
+    /**
+     * One generated table: each build's row count, the rows every build has, and each build's
+     * own, in {@link GeneratedGateCatalogBuilds#BUILDS} order. Built only when read, since
+     * naming a generated class runs its initialiser and that builds every one of its strings.
+     */
+    private static final class Table {
+        final int[] counts;
+        final String[] shared;
+        final String[][] own;
+
+        Table(int[] counts, String[] shared, String[][] own) {
+            this.counts = counts;
+            this.shared = shared;
+            this.own = own;
+        }
+
+        static Table abLive() {
+            return new Table(GeneratedFeatureGateCatalog.ENTRY_COUNTS,
+                    GeneratedFeatureGateCatalog.SHARED_GZIP_BASE64, GeneratedFeatureGateCatalog.OWN_GZIP_BASE64);
+        }
+
+        static Table player() {
+            return new Table(GeneratedPlayerFeatureGateCatalog.ENTRY_COUNTS,
+                    GeneratedPlayerFeatureGateCatalog.SHARED_GZIP_BASE64,
+                    GeneratedPlayerFeatureGateCatalog.OWN_GZIP_BASE64);
+        }
+
+        static Table ve() {
+            return new Table(GeneratedVeFeatureGateCatalog.ENTRY_COUNTS,
+                    GeneratedVeFeatureGateCatalog.SHARED_GZIP_BASE64, GeneratedVeFeatureGateCatalog.OWN_GZIP_BASE64);
+        }
+
+        static Table settings() {
+            return new Table(GeneratedSettingsManagerCatalog.ENTRY_COUNTS,
+                    GeneratedSettingsManagerCatalog.SHARED_GZIP_BASE64,
+                    GeneratedSettingsManagerCatalog.OWN_GZIP_BASE64);
+        }
+
+        static Table settingsSites() {
+            return new Table(GeneratedSettingsManagerSites.ENTRY_COUNTS,
+                    GeneratedSettingsManagerSites.SHARED_GZIP_BASE64, GeneratedSettingsManagerSites.OWN_GZIP_BASE64);
+        }
+
+        int count(String build) {
+            return counts[index(build)];
+        }
+
+        /** Each of [build]'s rows, shared ones first. */
+        void forEachRow(String build, RowReader reader) throws Exception {
+            int index = index(build);
+            for (String[] chunks : new String[][]{shared, own[index]}) {
+                if (chunks.length == 0) continue;
+                try (BufferedReader lines = openCatalog(chunks)) {
+                    String line;
+                    while ((line = lines.readLine()) != null) {
+                        reader.row(line);
+                    }
+                }
+            }
+        }
+
+        private static int index(String build) {
+            int index = java.util.Arrays.asList(GeneratedGateCatalogBuilds.BUILDS).indexOf(build);
+            if (index < 0) throw new IllegalArgumentException("No catalog for TikTok " + build);
+            return index;
+        }
+    }
+
+    private interface RowReader {
+        void row(String line) throws Exception;
     }
 
     /** The AB half of a loaded snapshot, so both paths answer a key the same way. */
@@ -167,9 +328,10 @@ public final class FeatureGateCatalog {
     private static Map<String, String> readAbTypes() throws Exception {
         Map<String, String> result = new HashMap<>();
         Map<String, String> shared = new HashMap<>();
-        appendStaticAbTypes(result, shared, GeneratedFeatureGateCatalog.GZIP_BASE64);
-        appendStaticAbTypes(result, shared, GeneratedPlayerFeatureGateCatalog.GZIP_BASE64);
-        appendStaticAbTypes(result, shared, GeneratedVeFeatureGateCatalog.GZIP_BASE64);
+        String build = catalogBuild();
+        appendStaticAbTypes(result, shared, Table.abLive(), build);
+        appendStaticAbTypes(result, shared, Table.player(), build);
+        appendStaticAbTypes(result, shared, Table.ve(), build);
 
         // A key TikTok's AB store carries that the catalogue does not becomes an entry of its own
         // in a snapshot, typed from the value that is there. The static type wins where both have
@@ -192,25 +354,23 @@ public final class FeatureGateCatalog {
     private static void appendStaticAbTypes(
             Map<String, String> result,
             Map<String, String> shared,
-            String[] chunks
+            Table table,
+            String build
     ) throws Exception {
-        try (BufferedReader reader = openCatalog(chunks)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split("\\t", -1);
-                if (fields.length != 10) {
-                    continue;
-                }
-                // The same three conditions an Entry would have to meet to reach byIdentity:
-                // the AB manager, actionable, and a type the Lab can override.
-                if (!FeatureGateLabStore.MANAGER_ABMOCK.equals(fields[1])
-                        || !"1".equals(fields[3])
-                        || !FeatureGateLabStore.supportsOverride(fields[1], fields[2])) {
-                    continue;
-                }
-                result.put(fields[0], share(shared, fields[2]));
+        table.forEachRow(build, line -> {
+            String[] fields = line.split("\t", -1);
+            if (fields.length != 10) {
+                return;
             }
-        }
+            // The same three conditions an Entry would have to meet to reach byIdentity:
+            // the AB manager, actionable, and a type the Lab can override.
+            if (!FeatureGateLabStore.MANAGER_ABMOCK.equals(fields[1])
+                    || !"1".equals(fields[3])
+                    || !FeatureGateLabStore.supportsOverride(fields[1], fields[2])) {
+                return;
+            }
+            result.put(fields[0], share(shared, fields[2]));
+        });
     }
 
     /** One instance per distinct type, rather than one per line of the catalogue. */
@@ -234,84 +394,92 @@ public final class FeatureGateCatalog {
                 StandardCharsets.UTF_8));
     }
 
-    private static List<Entry> readStaticCatalog() throws Exception {
-        List<Entry> result = new ArrayList<>(
-                GeneratedFeatureGateCatalog.ENTRY_COUNT
-                        + GeneratedPlayerFeatureGateCatalog.ENTRY_COUNT
-                        + GeneratedVeFeatureGateCatalog.ENTRY_COUNT
-                        + GeneratedSettingsManagerCatalog.ENTRY_COUNT
-        );
-        appendStaticCatalog(result, GeneratedFeatureGateCatalog.GZIP_BASE64);
-        appendStaticCatalog(result, GeneratedPlayerFeatureGateCatalog.GZIP_BASE64);
-        appendStaticCatalog(result, GeneratedVeFeatureGateCatalog.GZIP_BASE64);
-        appendStructuredStaticCatalog(result, GeneratedSettingsManagerCatalog.GZIP_BASE64);
+    /** [build]'s catalog, one of {@link #catalogBuilds}. */
+    static List<Entry> readStaticCatalog(String build) throws Exception {
+        Table abLive = Table.abLive();
+        Table player = Table.player();
+        Table ve = Table.ve();
+        Table settings = Table.settings();
+        List<Entry> result = new ArrayList<>(abLive.count(build) + player.count(build)
+                + ve.count(build) + settings.count(build));
+        appendStaticCatalog(result, abLive, build);
+        appendStaticCatalog(result, player, build);
+        appendStaticCatalog(result, ve, build);
+        appendStructuredStaticCatalog(result, settings, build);
         return result;
     }
 
-    private static void appendStaticCatalog(List<Entry> result, String[] chunks) throws Exception {
-        try (BufferedReader reader = openCatalog(chunks)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split("\\t", -1);
-                if (fields.length != 10) {
-                    continue;
-                }
-                Entry entry = new Entry(
-                        fields[0],
-                        titleFor(fields[0]),
-                        fields[1],
-                        fields[2],
-                        "1".equals(fields[3]),
-                        "1".equals(fields[4]),
-                        jsonValues(fields[5]),
-                        jsonValues(fields[6]),
-                        jsonValues(fields[7]),
-                        fields[8],
-                        fields[9],
-                        false,
-                        null,
-                        null
-                );
-                if (entry.userVisible()) {
-                    result.add(entry);
-                }
+    private static void appendStaticCatalog(List<Entry> result, Table table, String build) throws Exception {
+        table.forEachRow(build, line -> {
+            String[] fields = line.split("\t", -1);
+            if (fields.length != 10) {
+                return;
             }
-        }
+            Entry entry = new Entry(
+                    fields[0],
+                    titleFor(fields[0]),
+                    fields[1],
+                    fields[2],
+                    "1".equals(fields[3]),
+                    "1".equals(fields[4]),
+                    jsonValues(fields[5]),
+                    jsonValues(fields[6]),
+                    jsonValues(fields[7]),
+                    fields[8],
+                    fields[9],
+                    false,
+                    null,
+                    null
+            );
+            if (entry.userVisible()) {
+                result.add(entry);
+            }
+        });
     }
 
+    /**
+     * SettingsManager reads: key, model class, default and provenance, with the call site from a
+     * table of its own, since the site is R8's name for it on one build and the rest is not.
+     */
     private static void appendStructuredStaticCatalog(
             List<Entry> result,
-            String[] chunks
+            Table table,
+            String build
     ) throws Exception {
-        try (BufferedReader reader = openCatalog(chunks)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] fields = line.split("\\t", -1);
-                if (fields.length != 6) {
-                    continue;
-                }
-                if (!StructuredConfigController.hasActionableFields(fields[1])) {
-                    continue;
-                }
-                result.add(new Entry(
-                        fields[0],
-                        titleFor(fields[0]),
-                        FeatureGateLabStore.MANAGER_SETTINGS_MANAGER,
-                        "OBJECT",
-                        true,
-                        "generated_registry".equals(fields[5]),
-                        Collections.singletonList(fields[2]),
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        "",
-                        fields[3] + " in " + fields[4],
-                        false,
-                        null,
-                        null,
-                        fields[1]
-                ));
+        Map<String, String> sites = new HashMap<>();
+        Table.settingsSites().forEachRow(build, line -> {
+            String[] fields = line.split("\t", -1);
+            if (fields.length == 3) {
+                sites.put(fields[0], fields[1] + " in " + fields[2]);
             }
-        }
+        });
+        table.forEachRow(build, line -> {
+            String[] fields = line.split("\t", -1);
+            if (fields.length != 4) {
+                return;
+            }
+            if (!StructuredConfigController.hasActionableFields(fields[1])) {
+                return;
+            }
+            String site = sites.get(fields[0]);
+            result.add(new Entry(
+                    fields[0],
+                    titleFor(fields[0]),
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER,
+                    "OBJECT",
+                    true,
+                    "generated_registry".equals(fields[3]),
+                    Collections.singletonList(fields[2]),
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    "",
+                    site == null ? fields[3] : site,
+                    false,
+                    null,
+                    null,
+                    fields[1]
+            ));
+        });
     }
 
     private static Map<String, Map<String, Object>> readCurrentKevaMaps() {
@@ -714,25 +882,7 @@ public final class FeatureGateCatalog {
     }
 
     static String normalizeSearchText(String text) {
-        if (text == null || text.isEmpty()) return "";
-        String lower = text.toLowerCase(Locale.ROOT);
-        StringBuilder normalized = new StringBuilder(lower.length());
-        boolean previousWasSpace = true;
-        for (int index = 0; index < lower.length(); index++) {
-            char character = lower.charAt(index);
-            if (Character.isLetterOrDigit(character)) {
-                normalized.append(character);
-                previousWasSpace = false;
-            } else if (!previousWasSpace) {
-                normalized.append(' ');
-                previousWasSpace = true;
-            }
-        }
-        int length = normalized.length();
-        if (length > 0 && normalized.charAt(length - 1) == ' ') {
-            normalized.setLength(length - 1);
-        }
-        return normalized.toString();
+        return app.morphe.extension.tiktok.settings.SearchText.normalize(text);
     }
 
 }

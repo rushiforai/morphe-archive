@@ -58,7 +58,20 @@ public final class PlaybackQuality {
     static final String PLAYER_URL_MODEL = "SimVideoUrlModel";
     static final String PLAYER_SETTER = "setBitRate";
 
-    private static volatile JsonCache cache;
+    /**
+     * The last few models read, by getter, quality and text. It held one: TikTok reads both model
+     * getters for a video and a prefetched neighbour between them, so each switch re-parsed and
+     * re-serialised a model it had just filtered, with TikTok's own parsed cache turned off by
+     * cacheModel while a quality is set.
+     */
+    private static final int CACHE_ENTRIES = 4;
+    private static final Map<JsonKey, String> CACHE = new LinkedHashMap<JsonKey, String>(8, 0.75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<JsonKey, String> eldest) {
+            return size() > CACHE_ENTRIES;
+        }
+    };
+    /** Models actually parsed, for tests to tell a cache hit from a second parse. */
+    static volatile int parsedForTests;
     private static volatile MeteredState meteredState;
 
     /**
@@ -241,13 +254,13 @@ public final class PlaybackQuality {
     private static String filterJson(String original, String owner, String getter) {
         String mode = mode();
         if (original == null || "auto".equals(mode)) return original;
-        JsonCache previous = cache;
         // The getter is part of what is cached. Both getters can hand back the same unusable
         // string, and without this the first one to arrive answers for the second and Hook
         // status names only one of them.
-        if (previous != null && previous.getter.equals(getter)
-                && previous.mode.equals(mode) && previous.source.equals(original)) {
-            return previous.result;
+        JsonKey key = new JsonKey(getter, mode, original);
+        synchronized (CACHE) {
+            String cached = CACHE.get(key);
+            if (cached != null) return cached;
         }
 
         String result = original;
@@ -271,6 +284,7 @@ public final class PlaybackQuality {
             unusable(owner, getter, "a model that is not a JSON object");
         } else {
             try {
+                parsedForTests++;
                 JSONObject root = new JSONObject(original);
                 JSONObject dynamic = root.optJSONObject("dynamic_video");
                 JSONArray values = dynamic == null ? null : dynamic.optJSONArray("dynamic_video_list");
@@ -290,7 +304,9 @@ public final class PlaybackQuality {
                 unusable(owner, getter, "a model it could not read");
             }
         }
-        cache = new JsonCache(getter, original, mode, result);
+        synchronized (CACHE) {
+            CACHE.put(key, result);
+        }
         return result;
     }
 
@@ -310,7 +326,10 @@ public final class PlaybackQuality {
     static void resetForTests() {
         DESCRIBED.clear();
         CHOICES.clear();
-        cache = null;
+        synchronized (CACHE) {
+            CACHE.clear();
+        }
+        parsedForTests = 0;
     }
 
     private static int select(List<?> variants, String mode) {
@@ -366,10 +385,19 @@ public final class PlaybackQuality {
         MeteredState(boolean metered, long atMs) { this.metered = metered; this.atMs = atMs; }
     }
 
-    private static final class JsonCache {
-        final String getter, source, mode, result;
-        JsonCache(String getter, String source, String mode, String result) {
-            this.getter = getter; this.source = source; this.mode = mode; this.result = result;
+    /** A model by getter, quality and text; the text's hash is the String's own, computed once. */
+    private static final class JsonKey {
+        final String getter, mode, source;
+        JsonKey(String getter, String mode, String source) {
+            this.getter = getter; this.mode = mode; this.source = source;
+        }
+        @Override public boolean equals(Object other) {
+            if (!(other instanceof JsonKey)) return false;
+            JsonKey that = (JsonKey) other;
+            return getter.equals(that.getter) && mode.equals(that.mode) && source.equals(that.source);
+        }
+        @Override public int hashCode() {
+            return (getter.hashCode() * 31 + mode.hashCode()) * 31 + source.hashCode();
         }
     }
 }

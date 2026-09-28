@@ -36,7 +36,7 @@ for cancellation and foreground cleanup. See the [exact two-device test steps](d
 ## Patch catalog
 
 <!-- PATCHES_START -->
-> **[v1.0.0-dev.15](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.15)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
+> **[v1.0.0-dev.17](https://github.com/AgentKosticka/Jam-Patches/releases/tag/v1.0.0-dev.17)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;151 patches total
 <details>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;84 patches</summary>
 <br>

@@ -88,6 +88,21 @@ internal object FeedItemListGetItemsFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+/**
+ * Where TikTok parses every profile list into a FeedItemList (posts, Liked, collections, private
+ * posts, whoever's profile), before anything reads it. Only the two profile fetchers pass it
+ * FeedItemList, and the For You feed parses in FeedApi, never through here (traced on 47.0.3 and
+ * 47.1.3). The implementation keeps its real names; the headers parameter is R8's.
+ */
+internal object ProfileApiExecuteFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/services/ProfileDependentComponentImpl;",
+    name = "apiExecuteGetJSONObject",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf(
+        "I", "Ljava/lang/String;", "Ljava/lang/Class;", "Ljava/lang/String;", "L", "Z", "Ljava/lang/String;",
+    ),
+)
+
 internal object FollowFeedFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",

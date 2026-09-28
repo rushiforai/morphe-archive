@@ -17,6 +17,8 @@ import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragmen
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabRuntime;
 import app.morphe.extension.tiktok.featuregatelab.FeatureGateLabStore;
 import app.morphe.extension.tiktok.feedfilter.FeedRuleLimits;
+import android.view.View;
+import android.widget.TextView;
 import app.morphe.extension.tiktok.settings.preference.SettingsBackupPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.io.ByteArrayInputStream;
@@ -118,9 +120,34 @@ public class SettingsBackupTest {
         assertEquals(0, SettingsBackup.settingsNotInFile(legacy));
         SettingsBackup.restore(Utils.getContext(), legacy, true);
 
-        assertEquals("Pictures/Saved", Settings.DOWNLOAD_VIDEO_PATH.get());
+        // Pictures holds photos but not videos or stickers: those two keep the device's folder
+        // and the restore names them, instead of saving to DCIM/TikTok while showing Pictures.
+        assertEquals("DCIM/Somewhere", Settings.DOWNLOAD_VIDEO_PATH.get());
         assertEquals("Pictures/Saved", Settings.DOWNLOAD_PHOTO_PATH.get());
-        assertEquals("Pictures/Saved", Settings.DOWNLOAD_STICKER_PATH.get());
+        assertEquals("DCIM/TikTok", Settings.DOWNLOAD_STICKER_PATH.get());
+        assertEquals(java.util.List.of(app.morphe.extension.tiktok.download.DownloadDestination.Kind.VIDEO,
+                        app.morphe.extension.tiktok.download.DownloadDestination.Kind.STICKER),
+                SettingsBackup.foldersKept(legacy));
+    }
+
+    /** A folder that can't hold its kind keeps the device's; the rest restores; undo puts all back. */
+    @Test public void aRestoredFolderThatCantHoldItsKindKeepsTheDevicesAndUndoPutsItAllBack()
+            throws Exception {
+        Settings.DOWNLOAD_VIDEO_PATH.save("Pictures/Clips");
+        Settings.DOWNLOAD_PHOTO_PATH.save("Pictures/Hush");
+        String backup = SettingsBackup.create(false);
+        Settings.DOWNLOAD_VIDEO_PATH.save("Movies/Mine");
+        Settings.DOWNLOAD_PHOTO_PATH.save("DCIM/Before");
+
+        SettingsBackup.restore(Utils.getContext(), backup, true);
+        assertEquals("the file's Pictures folder can't hold videos", "Movies/Mine", Settings.DOWNLOAD_VIDEO_PATH.get());
+        assertEquals("Pictures/Hush", Settings.DOWNLOAD_PHOTO_PATH.get());
+        assertEquals(java.util.List.of(app.morphe.extension.tiktok.download.DownloadDestination.Kind.VIDEO),
+                SettingsBackup.foldersKept(backup));
+
+        SettingsBackup.undo(Utils.getContext());
+        assertEquals("Movies/Mine", Settings.DOWNLOAD_VIDEO_PATH.get());
+        assertEquals("DCIM/Before", Settings.DOWNLOAD_PHOTO_PATH.get());
     }
 
     /** The same file with those keys taken out of both the values and the declared inventory. */
@@ -212,6 +239,51 @@ public class SettingsBackupTest {
                         baseline, SettingsBackup.create(false));
             }
         }
+    }
+
+    /**
+     * A list stored before the 2026-09-14 limits: load() keeps what an older build saved, and the
+     * bound only runs on save. Every restore reads the device's own state first, so reading that
+     * with the limits made restore, reset and undo on such a phone all fail with the generic
+     * message. The save row refuses instead, naming the list, since every restore would refuse
+     * the file it wrote.
+     */
+    @Test public void aListKeptFromBeforeTheLimitsLeavesRestoreResetAndUndoWorking() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        String backup = SettingsBackup.create(false);
+        String oversized = ruleEntries(FeedRuleLimits.MAX_ENTRIES + 1);
+        storedByAnOlderBuild(Settings.BLOCKED_CREATORS, oversized);
+        assertEquals(oversized, Settings.BLOCKED_CREATORS.get());
+
+        SettingsBackup.restore(context, backup, true);
+        assertEquals("a file that carries the list replaces it", "", Settings.BLOCKED_CREATORS.get());
+        SettingsBackup.undo(context);
+        assertEquals("the way back puts the older list back as it was", oversized, Settings.BLOCKED_CREATORS.get());
+
+        JSONObject without = new JSONObject(backup);
+        without.getJSONObject("settings").remove(Settings.BLOCKED_CREATORS.key);
+        JSONArray keys = without.getJSONArray("setting_keys");
+        for (int index = keys.length() - 1; index >= 0; index--) {
+            if (Settings.BLOCKED_CREATORS.key.equals(keys.getString(index))) keys.remove(index);
+        }
+        SettingsBackup.restore(context, without.toString(), false);
+        assertEquals("a file without the list leaves it alone", oversized, Settings.BLOCKED_CREATORS.get());
+
+        SettingsBackup.reset(context);
+        assertEquals("", Settings.BLOCKED_CREATORS.get());
+
+        storedByAnOlderBuild(Settings.LOCAL_HIDDEN_CREATORS, oversized);
+        SettingsBackup.RuleListTooLarge refused =
+                assertThrows(SettingsBackup.RuleListTooLarge.class, SettingsBackup::export);
+        assertEquals("Creators hidden on this phone", refused.listTitle);
+        storedByAnOlderBuild(Settings.LOCAL_HIDDEN_CREATORS, "");
+        assertEquals(SettingsBackup.create(false), SettingsBackup.export());
+    }
+
+    /** Writes a value the way an older build left it, past the bound a save applies. */
+    private static void storedByAnOlderBuild(app.morphe.extension.shared.settings.StringSetting setting, String value) {
+        Setting.preferences.preferences.edit().putString(setting.key, value).commit();
+        org.robolectric.util.ReflectionHelpers.callInstanceMethod(setting, "load");
     }
 
     private static String ruleEntries(int count) {
@@ -887,7 +959,7 @@ public class SettingsBackupTest {
                         .put("type", "INT").put("value", "3").put("force", false));
         JSONObject before = FeatureGateLabStore.exportSettings();
         JSONObject after = new JSONObject().put("schema", 1).put("target", "TikTok global")
-                .put("tiktok_version", FeatureGateLabStore.TARGET_VERSION).put("rules", ordered)
+                .put("tiktok_version", FeatureGateLabStore.targetVersion()).put("rules", ordered)
                 .put("master", false).put("acknowledged", false);
         JSONArray reversed = new JSONArray().put(ordered.get(1)).put(ordered.get(0));
         JSONObject current = new JSONObject(after.toString()).put("rules", reversed);
@@ -1136,6 +1208,58 @@ public class SettingsBackupTest {
         }
     }
 
+    /**
+     * The outcome stays in the settings window as one banner: a file that left a setting out said
+     * so in a toast, and the outcome followed in a second toast that replaced it.
+     */
+    @Test public void aRestoreSaysWhatItLeftAloneAndWhatItDidInOneBanner() throws Exception {
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.captions.CaptionToolsTest.CaptionActivity.class)
+                .setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            activity.findViewById(android.R.id.content).setTag(app.morphe.extension.tiktok.settings.preference.SettingsActionBanner.CONTENT_ROOT_TAG);
+            JSONObject backup = new JSONObject(SettingsBackup.create(false));
+            backup.getJSONObject("settings").remove(Settings.MAX_VIDEO_SECONDS.key);
+            // Movies holds videos, not stickers: the device's sticker folder stays and is named.
+            String stickerBefore = Settings.DOWNLOAD_STICKER_PATH.get();
+            backup.getJSONObject("settings").put(Settings.DOWNLOAD_STICKER_PATH.key, "Movies/Stick");
+            JSONArray keys = backup.getJSONArray("setting_keys");
+            for (int index = keys.length() - 1; index >= 0; index--) {
+                if (Settings.MAX_VIDEO_SECONDS.key.equals(keys.getString(index))) keys.remove(index);
+            }
+            Uri uri = Uri.parse("content://settings-test/partial-restore.json");
+            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
+                    new ByteArrayInputStream(backup.toString().getBytes(StandardCharsets.UTF_8)));
+
+            var fragment = new TikTokPreferenceFragment();
+            Bundle arguments = new Bundle();
+            arguments.putString("morphe_settings_section", "BACKUP");
+            fragment.setArguments(arguments);
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, fragment).commit();
+            activity.getFragmentManager().executePendingTransactions();
+
+            var run = SettingsBackupPreference.class.getDeclaredMethod(
+                    "run", TikTokPreferenceFragment.class, int.class, Uri.class);
+            run.setAccessible(true);
+            ShadowToast.reset();
+            run.invoke(null, fragment, 7312, uri);
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            View banner = activity.getWindow().getDecorView().findViewWithTag("hushfeed_settings_action_banner");
+            assertNotNull("the outcome didn't reach the settings banner", banner);
+            TextView message = banner.findViewWithTag("hushfeed_settings_action_message");
+            assertEquals("1 setting wasn't in that file and was left as it is. "
+                    + "Stickers can't be saved to the folder in that file, so your sticker folder was kept. "
+                    + "Settings restored. Restart TikTok to apply all changes.", String.valueOf(message.getText()));
+            assertEquals(stickerBefore, Settings.DOWNLOAD_STICKER_PATH.get());
+            assertNotNull("a restore offers the restart", banner.findViewWithTag("hushfeed_settings_action_button"));
+            assertEquals("the outcome went to a toast as well", 0, ShadowToast.shownToastCount());
+        }
+    }
+
     private static void waitFor(String message) throws Exception {
         Utils.awaitBackgroundTasksForTests();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
@@ -1154,12 +1278,14 @@ public class SettingsBackupTest {
         JSONObject values = root.getJSONObject("settings");
         values.put("edge_seek_seconds", 100000);
         values.put("seen_video_retention_days", -12);
+        values.put("seen_video_mark_percent", 500);
         values.put("max_video_seconds", 999999999);
         values.put("caption_text_size", 400);
         SettingsBackup.restore(Utils.getContext(), root.toString(), true);
 
         assertEquals(60, (int) Settings.EDGE_SEEK_SECONDS.get());
         assertEquals(0, (int) Settings.SEEN_VIDEO_RETENTION_DAYS.get());
+        assertEquals(90, (int) Settings.SEEN_VIDEO_MARK_PERCENT.get());
         assertEquals(86400, (int) Settings.MAX_VIDEO_SECONDS.get());
         assertEquals(48, (int) Settings.CAPTION_TEXT_SIZE.get());
 

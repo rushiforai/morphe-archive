@@ -201,6 +201,132 @@ public class CommentLikeTouchTargetTest {
         }
     }
 
+    /**
+     * The control Block from comment took over reaches 48 x 48 dp where the row has room, in a
+     * halo of its own beside the heart's, and neither takes the other's taps.
+     */
+    @Test public void theBlockControlReachesFortyEightDpBesideTheHeartsHalo() {
+        boolean before = Settings.BLOCK_FROM_COMMENT.get();
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        try (Row f = new Row()) {
+            f.blockHalo();
+            f.tap(390, 150); // 10dp above the 24dp-high control.
+            f.tap(390, 193); // 9dp below it.
+            assertEquals(2, f.blocks);
+            assertEquals(0, f.likes);
+            f.tap(340, 150); // Above the heart: the heart's halo, never the block's.
+            assertEquals(1, f.likes);
+            f.tap(340, 170); // The heart itself.
+            assertEquals(2, f.likes);
+            f.tap(430, 170); // A 48dp-wide control has nothing to add beside it.
+            assertEquals(2, f.blocks);
+            if (Build.VERSION.SDK_INT >= 29) {
+                assertEquals(2, f.row.getTouchDelegate().getTouchDelegateInfo().getRegionCount());
+            }
+        } finally {
+            Settings.BLOCK_FROM_COMMENT.save(before);
+        }
+    }
+
+    /** As on the S25: about 40 x 24 dp, the heart flush on its left, so the 8dp goes to the right. */
+    @Test public void aNarrowBlockControlGrowsWhereTheRowHasRoom() {
+        boolean before = Settings.BLOCK_FROM_COMMENT.get();
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        try (Row f = new Row()) {
+            f.narrowBlock();
+            f.blockHalo();
+            assertEquals("the control itself is 40dp wide", 40, f.other.getWidth());
+            f.tap(414, 170);
+            assertEquals("6dp right of the control", 1, f.blocks);
+            f.tap(418, 170);
+            assertEquals("past 48dp across", 1, f.blocks);
+            f.tap(390, 149);
+            assertEquals("11dp above it", 2, f.blocks);
+            f.tap(390, 197);
+            assertEquals("past 48dp down", 2, f.blocks);
+            if (Build.VERSION.SDK_INT >= 29) {
+                var info = f.row.getTouchDelegate().getTouchDelegateInfo();
+                Rect reach = null;
+                for (int i = 0; i < info.getRegionCount(); i++) {
+                    if (info.getRegionAt(i).contains(390, 150)) reach = info.getRegionAt(i).getBounds();
+                }
+                assertEquals("48 x 48 in all", new Rect(368, 148, 416, 196), reach);
+            }
+        } finally {
+            Settings.BLOCK_FROM_COMMENT.save(before);
+        }
+    }
+
+    /** The next comment's text right below the control: the height it lacks all goes above it. */
+    @Test public void aShortfallOneSideCannotTakeGoesToTheOther() {
+        boolean before = Settings.BLOCK_FROM_COMMENT.get();
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        try (Row f = new Row()) {
+            f.narrowBlock();
+            TextView below = new TextView(f.activity);
+            below.setText("next comment");
+            f.add(f.row, below, 368, 184, 40, 16);
+            f.layout();
+            f.blockHalo();
+            f.tap(390, 139);
+            assertEquals("21dp above it", 1, f.blocks);
+            f.tap(390, 135);
+            assertEquals("past 48dp up", 1, f.blocks);
+            f.tap(390, 190);
+            assertEquals("the text below stays the text's", 1, f.blocks);
+        } finally {
+            Settings.BLOCK_FROM_COMMENT.save(before);
+        }
+    }
+
+    /** On the S22 a zero-height container sits right under the controls; it takes no room. */
+    @Test public void anEmptyViewBelowTheControlTakesNoRoom() {
+        boolean before = Settings.BLOCK_FROM_COMMENT.get();
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        try (Row f = new Row()) {
+            View empty = new View(f.activity);
+            f.add(f.row, empty, 0, 184, 480, 0);
+            f.layout();
+            f.blockHalo();
+            f.tap(390, 193);
+            assertEquals("9dp below it, past the empty view", 1, f.blocks);
+        } finally {
+            Settings.BLOCK_FROM_COMMENT.save(before);
+        }
+    }
+
+    @Test public void theBlockHaloFollowsItsSwitchAndLeavesWithTheControl() {
+        boolean before = Settings.BLOCK_FROM_COMMENT.get();
+        try (Row f = new Row()) {
+            Settings.BLOCK_FROM_COMMENT.save(false);
+            f.blockHalo();
+            f.tap(390, 150);
+            assertEquals("switch off", 0, f.blocks);
+            Settings.BLOCK_FROM_COMMENT.save(true);
+            CommentLikeTouchTarget.onCellBound(f.row);
+            idle();
+            f.tap(390, 150);
+            assertEquals(1, f.blocks);
+            CommentLikeTouchTarget.detachBlockHalo(f.other);
+            f.tap(390, 150);
+            assertEquals("handed back to TikTok", 1, f.blocks);
+            f.tap(340, 150);
+            assertEquals("the heart's halo stays", 1, f.likes);
+        }
+        // The block's halo stands on its own with the larger heart target off.
+        Settings.LARGER_COMMENT_LIKE_TARGET.save(false);
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        try (Row f = new Row()) {
+            f.blockHalo();
+            f.tap(390, 150);
+            assertEquals(1, f.blocks);
+            f.tap(340, 150);
+            assertEquals(0, f.likes);
+        } finally {
+            Settings.BLOCK_FROM_COMMENT.save(before);
+        }
+    }
+
     private static Rect rect(View v) { return new Rect(v.getLeft(), v.getTop(), v.getRight(), v.getBottom()); }
     private static void idle() { shadowOf(Looper.getMainLooper()).idle(); }
 
@@ -210,7 +336,7 @@ public class CommentLikeTouchTargetTest {
         final FrameLayout row = new FrameLayout(activity), actionsRow = new FrameLayout(activity);
         final View like = new View(activity), other = new View(activity);
         final List<Integer> actions = new ArrayList<>();
-        int likes, dislikes, replies;
+        int likes, dislikes, replies, blocks;
         long time;
         Row() { this(true); }
         Row(boolean bind) {
@@ -229,6 +355,23 @@ public class CommentLikeTouchTargetTest {
                 if (e.getActionMasked() == MotionEvent.ACTION_UP) likes++;
                 return true;
             });
+            CommentLikeTouchTarget.onCellBound(row);
+            idle();
+        }
+        /** As on the S25: 40dp wide, 368..408 in the row, the heart flush on its left. */
+        void narrowBlock() {
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) other.getLayoutParams();
+            params.width = 40;
+            other.setLayoutParams(params);
+            layout();
+        }
+        void blockHalo() {
+            other.setOnClickListener(null);
+            other.setOnTouchListener((v, e) -> {
+                if (e.getActionMasked() == MotionEvent.ACTION_UP) blocks++;
+                return true;
+            });
+            CommentLikeTouchTarget.attachBlockHalo(other);
             CommentLikeTouchTarget.onCellBound(row);
             idle();
         }

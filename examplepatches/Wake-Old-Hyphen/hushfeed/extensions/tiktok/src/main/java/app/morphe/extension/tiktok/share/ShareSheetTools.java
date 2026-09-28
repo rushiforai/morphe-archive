@@ -26,11 +26,15 @@ import app.morphe.extension.tiktok.settings.L10n;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -147,7 +151,13 @@ public final class ShareSheetTools {
             }
 
             List<View> roots = windowRoots(activity);
-            View contacts = find(activity, roots, CONTACTS_LIST_IDS);
+            Set<Integer> wanted = new HashSet<>();
+            addIds(activity, wanted, CONTACTS_LIST_IDS);
+            addIds(activity, wanted, CONTACTS_SECTION_IDS);
+            addIds(activity, wanted, CHANNELS_LIST_IDS);
+            addIds(activity, wanted, ACTIONS_LIST_IDS);
+            List<Map<Integer, View>> found = indexRoots(roots, wanted);
+            View contacts = find(activity, roots, found, CONTACTS_LIST_IDS);
             if (contacts == null) {
                 // The sheet is closed. Its cells are gone, so the armed state is stale.
                 disarm();
@@ -160,7 +170,7 @@ public final class ShareSheetTools {
                 disarm();
             }
 
-            View contactsSection = find(activity, roots, CONTACTS_SECTION_IDS);
+            View contactsSection = find(activity, roots, found, CONTACTS_SECTION_IDS);
             boolean hideContacts = Settings.HIDE_SHARE_CONTACTS.get();
             if (contactsSection != null) {
                 setVisible(contactsSection, !hideContacts);
@@ -173,8 +183,8 @@ public final class ShareSheetTools {
                 }
             }
 
-            hideByLabel(find(activity, roots, CHANNELS_LIST_IDS), hidden);
-            hideByLabel(find(activity, roots, ACTIONS_LIST_IDS), hidden);
+            hideByLabel(find(activity, roots, found, CHANNELS_LIST_IDS), hidden);
+            hideByLabel(find(activity, roots, found, ACTIONS_LIST_IDS), hidden);
         } catch (Throwable ex) {
             HookStatus.threw(FAMILY, "layout pass", ex);
             Logger.printException(() -> "Share sheet tools failed", ex);
@@ -525,8 +535,60 @@ public final class ShareSheetTools {
         });
     }
 
+    /**
+     * Adds the resolved ids one group can name, so one walk per root can look for all four groups.
+     * One array per call, like find(): RuntimeViewIdAnchorsTest traces every lookup's name to its
+     * literals through a helper's parameter, and a varargs call left it nothing to follow.
+     */
+    private static void addIds(Activity activity, Set<Integer> ids, String[] candidates) {
+        for (String name : candidates) {
+            int id = RESOURCE_IDS.resolve(activity.getResources(), APP_PACKAGE, name, false);
+            if (id != 0) ids.add(id);
+        }
+    }
+
+    /**
+     * The first view carrying each wanted id in each root, from one pre-order walk per root:
+     * what root.findViewById(id) returns, since that checks a view and then its children in
+     * order. findViewById never enters a child that is a root namespace, which the framework sets
+     * on a window's DecorView, so a DecorView met below a root is left out the same way. apply()
+     * used to walk every window once per group, four times on each layout pass of the main
+     * window, sheet open or not.
+     */
+    static List<Map<Integer, View>> indexRoots(List<View> roots, Set<Integer> ids) {
+        List<Map<Integer, View>> index = new ArrayList<>(roots.size());
+        ArrayDeque<View> stack = new ArrayDeque<>();
+        for (View root : roots) {
+            Map<Integer, View> found = new HashMap<>();
+            index.add(found);
+            if (root == null || ids.isEmpty()) continue;
+            stack.clear();
+            stack.push(root);
+            while (!stack.isEmpty() && found.size() < ids.size()) {
+                View view = stack.pop();
+                int id = view.getId();
+                if (id != View.NO_ID && ids.contains(id) && !found.containsKey(id)) found.put(id, view);
+                if (view instanceof ViewGroup) {
+                    ViewGroup group = (ViewGroup) view;
+                    for (int child = group.getChildCount() - 1; child >= 0; child--) {
+                        View next = group.getChildAt(child);
+                        if (next != null && !isDecorView(next)) stack.push(next);
+                    }
+                }
+            }
+        }
+        return index;
+    }
+
+    /** The window root class: com.android.internal.policy.DecorView, PhoneWindow$DecorView on API 23. */
+    private static boolean isDecorView(View view) {
+        String name = view.getClass().getName();
+        return name.equals("com.android.internal.policy.DecorView") || name.endsWith("PhoneWindow$DecorView");
+    }
+
     /** Chooses the newest candidate that occurs in one of the app's current windows. */
-    private static View find(Activity activity, List<View> roots, String[] candidates) {
+    private static View find(Activity activity, List<View> roots, List<Map<Integer, View>> index,
+            String[] candidates) {
         if (activity == null) return null;
         boolean resolvedAny = false;
         String diagnostic = String.join("|", candidates);
@@ -534,8 +596,8 @@ public final class ShareSheetTools {
             int id = RESOURCE_IDS.resolve(activity.getResources(), APP_PACKAGE, name, false);
             if (id == 0) continue;
             resolvedAny = true;
-            for (View root : roots) {
-                View found = root == null ? null : root.findViewById(id);
+            for (int root = 0; root < roots.size(); root++) {
+                View found = index.get(root).get(id);
                 if (found == null) continue;
                 HookStatus.recoveredViewId(FAMILY, diagnostic);
                 HookStatus.bound(FAMILY, name);
@@ -611,12 +673,16 @@ public final class ShareSheetTools {
                 : ((Field) windowViewsReader).get(windowGlobal);
     }
 
-    private static List<String> entries(String stored) {
+    /**
+     * The hidden list, split the way ShareModelFilter and the checklist split it: on commas and
+     * line breaks. Split on commas alone, a list typed one per line hid nothing on the sheet.
+     */
+    static List<String> entries(String stored) {
         List<String> entries = new ArrayList<>();
         if (stored == null) {
             return entries;
         }
-        for (String part : stored.split(",")) {
+        for (String part : stored.split("[,\\n]")) {
             String trimmed = part.trim();
             if (!trimmed.isEmpty()) {
                 entries.add(trimmed.toLowerCase(Locale.ROOT));

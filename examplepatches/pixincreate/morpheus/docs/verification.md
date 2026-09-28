@@ -4,7 +4,7 @@ The changes were verified at three levels: the patch sources, the patched APK, a
 
 ## Patch sources
 
-Every Ather patch records the smali it produces, checked against the Ather 13.5.0 base APK, versionCode 321.
+Every Ather patch records the smali it produces, checked against the Ather 13.5.1 base APK, versionCode 324.
 Every fingerprint pins the defining class, the method name, the access flags, the return type and the parameter list.
 When a target changes, the patch fails with an error instead of writing a broken APK.
 The Nothing X fingerprints were checked against Nothing X 3.8.0.

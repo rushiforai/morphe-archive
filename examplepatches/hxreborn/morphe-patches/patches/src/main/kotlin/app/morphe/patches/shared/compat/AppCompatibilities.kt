@@ -69,6 +69,17 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "2.7.8", versionCode = 278, minSdk = 21)),
     )
 
+    val CXXDROID = Compatibility(
+        name = "Cxxdroid",
+        packageName = "ru.iiec.cxxdroid",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x51596D,
+        targets = listOf(
+            AppTarget(version = "5.6_arm64", versionCode = 1074, minSdk = 21),
+            AppTarget(version = "6.0_arm64", versionCode = 1075, minSdk = 21),
+        ),
+    )
+
     val DWG_FASTVIEW = Compatibility(
         name = "DWG FastView",
         packageName = "com.gstarmc.android",
@@ -126,6 +137,14 @@ internal object AppCompatibilities {
             "1dc3da6664982c69c3c7326282beaf0c6f153daa7da36bd7ec4cd4313e664651",
         ),
         targets = listOf(AppTarget(version = "9.3.0", versionCode = 156, minSdk = 28)),
+    )
+
+    val JVDROID = Compatibility(
+        name = "Jvdroid",
+        packageName = "ru.iiec.jvdroid",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xE76F00,
+        targets = listOf(AppTarget(version = "2.8", versionCode = 1041, minSdk = 21)),
     )
 
     val KICK = Compatibility(
@@ -222,6 +241,7 @@ internal object AppCompatibilities {
             "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
         ),
         targets = listOf(
+            AppTarget(version = "7.11.8", versionCode = 18323, minSdk = 29),
             AppTarget(version = "7.11.5", versionCode = 18317, minSdk = 29),
             AppTarget(version = "7.10.4", versionCode = 17667, minSdk = 29),
         ),
@@ -248,6 +268,16 @@ internal object AppCompatibilities {
         ),
         targets = listOf(AppTarget(version = "5.20.39.0", versionCode = 605203900, minSdk = 26)),
     )
+
+    val PYDROID = Compatibility(
+        name = "Pydroid 3",
+        packageName = "ru.iiec.pydroid3",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x3776AB,
+        targets = listOf(AppTarget(version = "8.6_arm64", versionCode = 1133, minSdk = 23)),
+    )
+
+    val IIEC_APPS = arrayOf(CXXDROID, JVDROID, PYDROID)
 
     val QURANIFY = Compatibility(
         name = "Quranify",
@@ -382,5 +412,13 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS_REQUIRED,
         appIconColor = 0x007DFF,
         targets = listOf(AppTarget(version = "2.32.0", versionCode = 23200, minSdk = 32)),
+    )
+
+    val YI_IOT = Compatibility(
+        name = "Yi iot",
+        packageName = "com.yunyi.smartcamera",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x38D880,
+        targets = listOf(AppTarget(version = "5.1.7_20260914", versionCode = 3799, minSdk = 24)),
     )
 }

@@ -22,6 +22,9 @@ import app.morphe.util.getNode
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.returnEarly
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
@@ -189,6 +192,71 @@ val gmsCoreSupportPatch = gmsCoreSupportPatch(
             0,
             "invoke-static {p0, p1}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->onCurrentLocationMixinTintUpdated(Ljava/lang/Object;Z)V",
         )
+
+        // 8) Discover and hook photos.killswitch_info_panel_map to prevent crash when MicroG lacks location.
+        var killswitchFieldRef: FieldReference? = null
+        classDefForEach { classDef ->
+            if (killswitchFieldRef != null) return@classDefForEach
+            classDef.methods.forEach { method ->
+                if (killswitchFieldRef != null) return@forEach
+                val impl = method.implementation ?: return@forEach
+                var foundStringDistance = -1
+                for (instruction in impl.instructions) {
+                    val ref = (instruction as? ReferenceInstruction)?.reference
+                    if (ref is StringReference && ref.string == "photos.killswitch_info_panel_map") {
+                        foundStringDistance = 0
+                    } else if (foundStringDistance in 0..15 && ref is FieldReference && instruction.opcode.name.startsWith("sput", ignoreCase = true)) {
+                        killswitchFieldRef = ref
+                        println(">>> GmsCoreSupportPatch: Discovered killswitch field: ${ref.definingClass}->${ref.name}")
+                        break
+                    } else if (foundStringDistance >= 0) {
+                        foundStringDistance++
+                    }
+                }
+            }
+        }
+
+        if (killswitchFieldRef != null) {
+            val targetField = killswitchFieldRef!!
+            classDefForEach { classDef ->
+                val mutableClass by lazy { mutableClassDefBy(classDef) }
+                classDef.methods.forEach { method ->
+                    val impl = method.implementation ?: return@forEach
+                    val instructions = impl.instructions.toList()
+                    var sgetDistance = -1
+                    instructions.forEachIndexed { index, instruction ->
+                        val ref = (instruction as? ReferenceInstruction)?.reference
+                        if (ref is FieldReference && ref.definingClass == targetField.definingClass && ref.name == targetField.name && instruction.opcode.name.startsWith("sget", ignoreCase = true)) {
+                            sgetDistance = 0
+                            println(">>> GmsCoreSupportPatch: SGET matched in ${classDef.type}->${method.name} at ins $index")
+                        } else if (sgetDistance in 0..5 && ref is MethodReference && ref.returnType == "Z" && instruction.opcode.name.startsWith("invoke", ignoreCase = true)) {
+                            sgetDistance = -1
+                            val nextIndex = index + 1
+                            if (nextIndex < instructions.size) {
+                                val nextIns = instructions[nextIndex]
+                                if (nextIns is OneRegisterInstruction && nextIns.opcode.name.startsWith("move-result", ignoreCase = true)) {
+                                    val reg = nextIns.registerA
+                                    val mutableMethod = mutableClass.findMutableMethodOf(method)
+                                    mutableMethod.addInstruction(
+                                        nextIndex + 1,
+                                        "invoke-static {v$reg}, Lapp/morphe/extension/shared/patches/GmsCoreSupportPatch;->isInfoPanelMapKillswitched(Z)Z",
+                                    )
+                                    mutableMethod.addInstruction(
+                                        nextIndex + 2,
+                                        "move-result v$reg",
+                                    )
+                                    println(">>> GmsCoreSupportPatch: Successfully injected isInfoPanelMapKillswitched into ${classDef.type}->${method.name} at ins ${nextIndex + 1}")
+                                }
+                            }
+                        } else if (sgetDistance >= 0) {
+                            sgetDistance++
+                        }
+                    }
+                }
+            }
+        } else {
+            println(">>> GmsCoreSupportPatch: WARNING - killswitchFieldRef was null!")
+        }
     },
 ) {
     dependsOn(

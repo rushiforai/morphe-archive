@@ -70,6 +70,19 @@ internal val unlockHdPlaybackPatch = bytecodePatch {
             )
         }
 
+        SharedFileDlinkFingerprint.matchSingle().method.apply {
+            val returnIndex = indexOfFirstInstructionOrThrow(Opcode.RETURN_OBJECT)
+            val dlink = getInstruction<OneRegisterInstruction>(returnIndex).registerA
+
+            addInstructions(
+                returnIndex,
+                """
+                    iget-object p0, p0, Lcom/dubox/drive/ui/preview/video/source/NormalVideoSource;->mFsId:Ljava/lang/String;
+                    invoke-static { p0, v$dlink }, $EXTENSION_CLASS->recordSharedFile(Ljava/lang/String;Ljava/lang/String;)V
+                """,
+            )
+        }
+
         SetMediaUrlFingerprint.matchSingle().method.addInstructions(
             0,
             """

@@ -134,7 +134,7 @@ public final class SettingsBackupPreference extends Preference
         try { fragment.startActivityForResult(intent, action); }
         catch (RuntimeException error) {
             Logger.printException(() -> "Could not open settings file picker", error);
-            Utils.showToastLong(L10n.t(
+            SettingsActionBanner.showNotice(fragment.getActivity(), L10n.t(
                     "This phone has no file picker, so there's no way to choose a file here"));
         }
     }
@@ -150,6 +150,9 @@ public final class SettingsBackupPreference extends Preference
         if (activity == null || !BUSY.compareAndSet(false, true)) return;
         Context context = activity.getApplicationContext();
         WeakReference<TikTokPreferenceFragment> owner = new WeakReference<>(fragment);
+        // The settings window the result is shown in, as a banner that stays until it is read.
+        // The flow told its outcome in toasts, two in a row when a file left settings out.
+        WeakReference<Activity> window = new WeakReference<>(activity);
         if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = true;
         // One line per action. "Updating settings" was said for a restore, a reset and an
         // undo alike, so the one thing on screen did not say which of the three was running.
@@ -157,7 +160,7 @@ public final class SettingsBackupPreference extends Preference
                 : action == IMPORT ? "Restoring your settings"
                 : action == RESET ? "Putting the settings back to their defaults"
                 : "Undoing the last change");
-        Utils.showToastShort(running);
+        SettingsActionBanner.showNotice(activity, running);
         // A restore of a large file or a reset takes long enough to notice, and the rows used
         // to look exactly as they did before, with a second tap earning a refusal. The acting
         // row now says what is happening and all four are out of reach until it is done.
@@ -165,9 +168,11 @@ public final class SettingsBackupPreference extends Preference
         boolean accepted = Utils.runOnBackgroundThread(() -> {
             boolean labRulesSkipped = false;
             int keptAsTheyWere = 0;
+            java.util.List<app.morphe.extension.tiktok.download.DownloadDestination.Kind> foldersKept =
+                    java.util.Collections.emptyList();
             try {
                 if (action == EXPORT) {
-                    byte[] bytes = SettingsBackup.create(false).getBytes(StandardCharsets.UTF_8);
+                    byte[] bytes = SettingsBackup.export().getBytes(StandardCharsets.UTF_8);
                     try (var output = context.getContentResolver().openOutputStream(uri, "wt")) {
                         if (output == null) throw new IOException("Could not open destination");
                         output.write(bytes);
@@ -180,6 +185,7 @@ public final class SettingsBackupPreference extends Preference
                             context, context.getContentResolver().openInputStream(uri), true);
                     labRulesSkipped = SettingsBackup.labRulesWereSkipped(text);
                     keptAsTheyWere = SettingsBackup.settingsNotInFile(text);
+                    foldersKept = SettingsBackup.foldersKept(text);
                 } else if (action == RESET) SettingsBackup.reset(context);
                 else {
                     // An undo copy written before a retarget holds Lab rules for the older build,
@@ -190,17 +196,15 @@ public final class SettingsBackupPreference extends Preference
                     labRulesSkipped = SettingsBackup.labRulesWereSkipped(undone);
                     keptAsTheyWere = SettingsBackup.settingsNotInFile(undone);
                 }
-                // Said before the success line, so the success line is the one left on screen.
                 // Anything the file did not carry stayed as the device had it, which is worth
                 // saying: an older backup used to put every setting added since back to its
-                // default, download folders included, without a word.
-                if (keptAsTheyWere == 1) {
-                    Utils.showToastLong(L10n.f(
-                            "%1$d setting wasn't in that file and was left as it is", keptAsTheyWere));
-                } else if (keptAsTheyWere > 1) {
-                    Utils.showToastLong(L10n.f(
-                            "%1$d settings weren't in that file and were left as they are", keptAsTheyWere));
-                }
+                // default, download folders included, without a word. Said first, in the same
+                // banner as the outcome, since the banner shows one message at a time.
+                String kept = keptAsTheyWere == 1
+                        ? L10n.f("%1$d setting wasn't in that file and was left as it is", keptAsTheyWere)
+                        : keptAsTheyWere > 1
+                        ? L10n.f("%1$d settings weren't in that file and were left as they are", keptAsTheyWere)
+                        : null;
                 // Each of these is one literal, because the translation gate reads the literal
                 // handed to L10n and a string built from two of them is two entries it cannot find.
                 // The action decides the sentence, and only then does it matter whether Lab
@@ -209,7 +213,7 @@ public final class SettingsBackupPreference extends Preference
                 // had happened. The chain stays flat: a bracketed group around a nested ternary
                 // puts the literal inside brackets that are not L10n's, which is the one thing
                 // the translation gate reads.
-                Utils.showToastLong(L10n.t(
+                String outcome = L10n.t(
                         action == EXPORT ? "Settings backup saved"
                                 : action == IMPORT && labRulesSkipped
                                 ? "Settings restored. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
@@ -219,10 +223,31 @@ public final class SettingsBackupPreference extends Preference
                                 ? "Settings are back to their defaults. Restart TikTok to apply all changes."
                                 : labRulesSkipped
                                 ? "Last change put back. The Feature Gate Lab rules were for another TikTok version and were left out. Restart TikTok to apply all changes."
-                                : "Last change put back. Restart TikTok to apply all changes."));
+                                : "Last change put back. Restart TikTok to apply all changes.");
+                // A folder the file named that can't hold its kind was kept, which is said next:
+                // downloads would otherwise have gone to DCIM/TikTok while the row showed the file's.
+                StringBuilder notes = new StringBuilder();
+                if (kept != null) notes.append(kept).append(". ");
+                for (app.morphe.extension.tiktok.download.DownloadDestination.Kind kind : foldersKept) {
+                    notes.append(L10n.t(
+                            kind == app.morphe.extension.tiktok.download.DownloadDestination.Kind.VIDEO
+                                    ? "Videos can't be saved to the folder in that file, so your video folder was kept"
+                                    : kind == app.morphe.extension.tiktok.download.DownloadDestination.Kind.PHOTO
+                                    ? "Photos can't be saved to the folder in that file, so your photo folder was kept"
+                                    : "Stickers can't be saved to the folder in that file, so your sticker folder was kept"))
+                            .append(". ");
+                }
+                String message = notes + outcome;
+                if (action == EXPORT) SettingsActionBanner.showNotice(target(window, context), message);
+                else SettingsActionBanner.showRestart(target(window, context), message);
+            } catch (SettingsBackup.RuleListTooLarge tooLarge) {
+                // Named, since a backup with it in would be refused by every restore.
+                SettingsActionBanner.showNotice(target(window, context), L10n.f(
+                        "%1$s is too long for a settings backup. Shorten it, then save the backup again.",
+                        L10n.t(tooLarge.listTitle)));
             } catch (Exception error) {
                 Logger.printException(() -> "Settings backup operation failed", error);
-                Utils.showToastLong(L10n.t(failureMessage(action, error)));
+                SettingsActionBanner.showNotice(target(window, context), L10n.t(failureMessage(action, error)));
             } finally {
                 Utils.runOnMainThread(() -> {
                     if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = false;
@@ -237,11 +262,17 @@ public final class SettingsBackupPreference extends Preference
             if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = false;
             BUSY.set(false);
             setRowsBusy(0, null);
-            Utils.showToastLong(L10n.t(
+            SettingsActionBanner.showNotice(activity, L10n.t(
                     "Couldn't start the settings change. Try again in a moment."));
             TikTokPreferenceFragment current = owner.get();
             if (current != null && current.isAdded()) current.refreshBackupSettings();
         }
+    }
+
+    /** The settings window while it is open; the banner falls back to a toast off it. */
+    private static Context target(WeakReference<Activity> window, Context fallback) {
+        Activity activity = window.get();
+        return activity != null ? activity : fallback;
     }
 
     static String failureMessage(int action, Exception error) {

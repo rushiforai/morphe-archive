@@ -115,7 +115,7 @@ public class RangeValuePreference extends DialogPreference {
         TextView title = SettingsUi.text(
                 context,
                 getTitle() == null ? "" : getTitle().toString(),
-                20,
+                SettingsUi.TEXT_HEADLINE,
                 SettingsUi.textPrimary(),
                 Typeface.BOLD
         );
@@ -128,7 +128,7 @@ public class RangeValuePreference extends DialogPreference {
         TextView helper = SettingsUi.text(
                 context,
                 L10n.t(context, "Leave maximum empty to keep it unlimited."),
-                14,
+                SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.textSecondary(),
                 Typeface.NORMAL
         );
@@ -139,7 +139,7 @@ public class RangeValuePreference extends DialogPreference {
         helperParams.setMargins(0, SettingsUi.dp(context, 14), 0, SettingsUi.dp(context, 12));
         dialogView.addView(helper, helperParams);
 
-        TextView min = SettingsUi.text(context, L10n.t(context, "Minimum"), 13, SettingsUi.textSecondary(), Typeface.BOLD);
+        TextView min = SettingsUi.text(context, L10n.t(context, "Minimum"), SettingsUi.TEXT_LABEL, SettingsUi.textSecondary(), Typeface.BOLD);
         dialogView.addView(min);
 
         EditText minEditText = new EditText(context);
@@ -147,7 +147,8 @@ public class RangeValuePreference extends DialogPreference {
         // accepts 1.5M has to be typeable.
         minEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         minEditText.setSingleLine(true);
-        minEditText.setHint(L10n.t(context, "Minimum"));
+        // What an empty field means, not its name again: the heading above says that.
+        minEditText.setHint(java.text.NumberFormat.getInstance().format(0));
         minEditText.setText(minValue);
         SettingsUi.styleEditText(minEditText);
         SettingsUi.labelEditor(min, minEditText);
@@ -156,7 +157,7 @@ public class RangeValuePreference extends DialogPreference {
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
 
-        TextView max = SettingsUi.text(context, L10n.t(context, "Maximum"), 13, SettingsUi.textSecondary(), Typeface.BOLD);
+        TextView max = SettingsUi.text(context, L10n.t(context, "Maximum"), SettingsUi.TEXT_LABEL, SettingsUi.textSecondary(), Typeface.BOLD);
         LinearLayout.LayoutParams maxLabelParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -167,7 +168,7 @@ public class RangeValuePreference extends DialogPreference {
         EditText maxEditText = new EditText(context);
         maxEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         maxEditText.setSingleLine(true);
-        maxEditText.setHint(L10n.t(context, "Maximum"));
+        maxEditText.setHint(L10n.t(context, "No limit"));
         maxEditText.setText(Long.toString(Long.MAX_VALUE).equals(maxValue) ? "" : maxValue);
         SettingsUi.styleEditText(maxEditText);
         SettingsUi.labelEditor(max, maxEditText);

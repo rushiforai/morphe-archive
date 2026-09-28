@@ -4,7 +4,7 @@ morphe-patches-library = "1.6.2"
 smali = "d92701d947"
 gson = "2.14.0"
 hiddenapi = "6.1"
-annotation = "1.10.0"
+annotation = "1.11.0"
 okhttp = "5.5.0"
 volley = "1.2.1"
 

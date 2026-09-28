@@ -44,6 +44,9 @@ public final class NativeQueueList extends AbstractList<Object> {
     JamMirror.move(this, from, to);
   }
 
+  // JamMirror refreshes YTM's outer display list after replacing these items or
+  // applying an optimistic edit. That native list notifies its own listeners;
+  // this backing list must not send a second notification for the same update.
   public void addListener(Object listener) {}
 
   public void removeListener(Object listener) {}

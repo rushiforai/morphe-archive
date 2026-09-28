@@ -15,5 +15,7 @@ public class FeedItemList {
     public int hasMore;
     public long cursor;
     public String requestId;
+    /** The uid of the profile a list belongs to, stamped by TikTok's profile model; unset on the main feed. */
+    public String dataUserId;
 }
 

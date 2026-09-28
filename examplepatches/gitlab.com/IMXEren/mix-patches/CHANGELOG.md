@@ -1,3 +1,22 @@
+## [1.7.2](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.1...v1.7.2) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency androidx.annotation:annotation to v1.11.0 ([86b603d](https://gitlab.com/IMXEren/mix-patches/commit/86b603db27f31b29502099517773d13424753c1f))
+* **reddit-sync:** prevent random response crash ([91c7458](https://gitlab.com/IMXEren/mix-patches/commit/91c745829ed5d087d83564bd4f4b0c2ce9fd6f10))
+
+## [1.7.2-dev.2](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.2-dev.1...v1.7.2-dev.2) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency androidx.annotation:annotation to v1.11.0 ([86b603d](https://gitlab.com/IMXEren/mix-patches/commit/86b603db27f31b29502099517773d13424753c1f))
+
+## [1.7.2-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.1...v1.7.2-dev.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* **reddit-sync:** prevent random response crash ([91c7458](https://gitlab.com/IMXEren/mix-patches/commit/91c745829ed5d087d83564bd4f4b0c2ce9fd6f10))
+
 ## [1.7.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.0...v1.7.1) (2026-09-11)
 
 ### 🔧 Improvements

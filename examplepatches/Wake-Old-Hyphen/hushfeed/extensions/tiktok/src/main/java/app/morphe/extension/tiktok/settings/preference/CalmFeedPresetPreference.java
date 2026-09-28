@@ -68,13 +68,13 @@ public final class CalmFeedPresetPreference extends Preference implements Immedi
         heading.setOrientation(stack ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
         heading.setGravity(stack ? Gravity.NO_GRAVITY : Gravity.CENTER_VERTICAL);
 
-        TextView title = SettingsUi.text(context, String.valueOf(getTitle()), 18,
+        TextView title = SettingsUi.text(context, String.valueOf(getTitle()), SettingsUi.TEXT_HEADLINE_SMALL,
                 SettingsUi.textPrimary(), Typeface.BOLD);
         title.setTag(TITLE_TAG);
         title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
 
-        TextView status = SettingsUi.text(context, "", 12, SettingsUi.badgeText(), Typeface.BOLD);
+        TextView status = SettingsUi.text(context, "", SettingsUi.TEXT_CAPTION, SettingsUi.badgeText(), Typeface.BOLD);
         status.setTag(STATUS_TAG);
         status.setGravity(Gravity.CENTER);
         status.setPadding(SettingsUi.dp(context, 10), SettingsUi.dp(context, 5),
@@ -90,7 +90,7 @@ public final class CalmFeedPresetPreference extends Preference implements Immedi
         heading.addView(status, statusParams);
         card.addView(heading, new LinearLayout.LayoutParams(-1, -2));
 
-        TextView summary = SettingsUi.text(context, String.valueOf(getSummary()), 14,
+        TextView summary = SettingsUi.text(context, String.valueOf(getSummary()), SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.textSecondary(), Typeface.NORMAL);
         summary.setTag(SUMMARY_TAG);
         summary.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -98,7 +98,7 @@ public final class CalmFeedPresetPreference extends Preference implements Immedi
         summaryParams.topMargin = SettingsUi.dp(context, 8);
         card.addView(summary, summaryParams);
 
-        TextView action = SettingsUi.text(context, "", 14, SettingsUi.accent(), Typeface.BOLD);
+        TextView action = SettingsUi.text(context, "", SettingsUi.TEXT_BODY_SMALL, SettingsUi.accent(), Typeface.BOLD);
         action.setTag(ACTION_TAG);
         action.setGravity(Gravity.CENTER);
         action.setMinimumWidth(SettingsUi.dp(context, 48));
@@ -203,7 +203,7 @@ public final class CalmFeedPresetPreference extends Preference implements Immedi
             AbstractPreferenceFragment.settingImportInProgress = false;
             busy = false;
             notifyChanged();
-            Utils.showToastLong(L10n.t(getContext(),
+            SettingsActionBanner.showNotice(getContext(), L10n.t(getContext(),
                     "Calm feed couldn't start. Try again in a moment."));
         }
     }
@@ -223,10 +223,13 @@ public final class CalmFeedPresetPreference extends Preference implements Immedi
                         ? "Calm feed is on."
                         : "Calm feed is on. Restart TikTok to apply all changes.";
             }
-            Utils.showToastLong(L10n.t(getContext(), message));
+            // In the settings window rather than a toast, with the restart one tap away when
+            // anything changed needs it.
+            if (result.restartChangedCount == 0) SettingsActionBanner.showNotice(getContext(), L10n.t(getContext(), message));
+            else SettingsActionBanner.showRestart(getContext(), L10n.t(getContext(), message));
         } else {
             Logger.printInfo(() -> "Calm feed preset operation failed", error);
-            Utils.showToastLong(L10n.t(getContext(), restoring
+            SettingsActionBanner.showNotice(getContext(), L10n.t(getContext(), restoring
                     ? "Your previous feed setup couldn't be restored. Nothing was changed."
                     : "Calm feed couldn't be applied. Nothing was changed."));
         }

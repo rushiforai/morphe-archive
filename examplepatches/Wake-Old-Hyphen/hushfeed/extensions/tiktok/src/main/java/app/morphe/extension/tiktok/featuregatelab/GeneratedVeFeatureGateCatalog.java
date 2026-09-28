@@ -7,12 +7,14 @@
 package app.morphe.extension.tiktok.featuregatelab;
 
 /**
- * Generated from TikTok 47.0.3 (version code 2024700030), from VEConfigCenter.addConfig and the VE camera settings JSON.
- * Do not edit: ./gradlew :patches:generateGateCatalog -Papk=<TikTok APK> writes it again.
+ * Generated from TikTok 47.0.3 (version code 2024700030) and TikTok 47.1.3 (version code 2024701030), from VEConfigCenter.addConfig and the VE camera settings JSON.
+ * The rows every build has are stored once; each build's other rows follow, in
+ * GeneratedGateCatalogBuilds.BUILDS order, and a build's rows are the shared ones then its own.
+ * Do not edit: ./gradlew :patches:generateGateCatalog writes it again.
  */
 final class GeneratedVeFeatureGateCatalog {
-    static final int ENTRY_COUNT = 687;
-    static final String[] GZIP_BASE64 = {
+    static final int[] ENTRY_COUNTS = {687, 688};
+    static final String[] SHARED_GZIP_BASE64 = {
             "H4sIAAAAAAAA/719eZPcxnLn38+fouJthFeyOTxGh9+jQo4ghzMUbZJDc0ZS7NoOGI2u7oaIBiAc3Rw5vJ9986rC0UChquldH+9xZpD5SxTqyMzK4zqPV5m+",
             "XqdNUd2U9dti+6eDjpIi36TbP728vX17/eL9n57B//7rJs5q/e9/+lf6v4OOV42um6isdK3zJtrEddNRRvF6Lf/8m2tCeLOPt/pef27aSl/FyU57wSzSngK9",
             "a7Mmvd9VOl6/0kmx1tefy8sAMLVHBqohDmpNLJT+XOoq3cOLqksX+J3Wn27LxguuhmdVUTaq0gdd1c6Xujv+dPn9t/w+N3GavYyTTyHvdHdUyEAxB4UsVsBC",
@@ -208,6 +210,14 @@ final class GeneratedVeFeatureGateCatalog {
             "1VUG6ahE1cLpcCrSggwU8hbty2+92yoShQKKxag1LELH5rKtWeEZakNW8s5egSwC7KlHNKWm+djjS5SnKJvNHtX2QaH1rmPrvshhHubzoRUTWQrMUQ54y0pN",
             "sDqVBsNZsI/kyfE39cHQbY1hLKbHNXWg5CxiF4ataOOhf/MfqKY7Z1l1ZTC5EpDYKE5PC4LiqYVbXsIhBp4HO76h8Rzifpk0s/H+BoSv2Sq9bz9j+YyyXWWp",
             "Z8jo6KKOeMzAcU8Aaebnr887yPrsj1i5VMJ30/5WNQgwunhmQ4yQwNTIMbnkM/dp/xdJei+pxFUBAA=="
+    };
+    static final String[][] OWN_GZIP_BASE64 = {
+            {
+            },
+            {
+                    "H4sIAAAAAAAA/0XNXQrCMBAE4Od4ir2CR1DwTewBiiz5mTbBkEC2ptdvbFpk52Fg4NsKRtImgn2YPRcI+9XBZgeedIxG24+qYJvTFGZ1H4bn4/ZS13Zj2wVv",
+                    "Ne7pCv0UakqO3yXkRCdGJ0arRyJBqSjUt0JdpyCkjSAt/4+snTvqZQPz9t+brAAAAA=="
+            }
     };
 
     private GeneratedVeFeatureGateCatalog() {

@@ -19,9 +19,8 @@ import app.morphe.patcher.patch.resourcePatch
  * as a safety guard, which silently overrode this until it was scoped to Travian specifically.
  */
 val manifestPatch = resourcePatch(
-    name = "Travian notifier manifest entry",
-    description = "Adds the permission needed to ask for a battery optimization exemption, the " +
-        "Travian Tools screens and its home-screen widget.",
+    name = "Travian Tools setup",
+    description = "Required by Travian Tools. Registers its screens and widget. Keep this on.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TRAVIAN_LEGENDS)

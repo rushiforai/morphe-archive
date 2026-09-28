@@ -1,3 +1,28 @@
+## [1.34.1](https://github.com/legendsciber/morphe-patches/compare/v1.34.0...v1.34.1) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* remove apkFileType declarations so web-search accepts any file type ([4819735](https://github.com/legendsciber/morphe-patches/commit/48197359fc4dce585e5f27e7d7dee17aac35af2d))
+
+## [1.34.0](https://github.com/legendsciber/morphe-patches/compare/v1.33.1...v1.34.0) (2026-09-27)
+
+### ✨ New Features
+
+* **subwaysurfers:** declare versionCode 96070 for 3.69.2 target ([19f372c](https://github.com/legendsciber/morphe-patches/commit/19f372c412e319b50d2a8d1bfe6ead80ebc73204))
+* **subwaysurfers:** show 3.69.2 APK link in dialogs ([b13c790](https://github.com/legendsciber/morphe-patches/commit/b13c790ac9d26e6eecef7b214b15d30fbefbd1f1))
+
+## [1.33.1](https://github.com/legendsciber/morphe-patches/compare/v1.33.0...v1.33.1) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **subwaysurfers:** make free IAP work offline ([ef314d4](https://github.com/legendsciber/morphe-patches/commit/ef314d4235a09eb6f02aefd7c1ca8d526602715d))
+
+## [1.33.0](https://github.com/legendsciber/morphe-patches/compare/v1.32.1...v1.33.0) (2026-09-27)
+
+### ✨ New Features
+
+* **subwaysurfers:** add free IAP patch ([5797d94](https://github.com/legendsciber/morphe-patches/commit/5797d94226cb9f594e853d0cf9824c77a7c65b97))
+
 ## [1.32.1](https://github.com/legendsciber/morphe-patches/compare/v1.32.0...v1.32.1) (2026-09-27)
 
 ### 🐛 Bug Fixes

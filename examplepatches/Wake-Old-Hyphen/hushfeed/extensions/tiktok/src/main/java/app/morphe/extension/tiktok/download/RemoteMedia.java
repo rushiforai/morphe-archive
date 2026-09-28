@@ -26,6 +26,14 @@ final class RemoteMedia {
      */
     enum Kind { IMAGE, VIDEO, AUDIO }
 
+    interface Progress {
+        void copied(long bytes, long expected);
+    }
+
+    static String fetch(List<String> urls, File target, Kind kind, Progress progress) throws IOException {
+        return fetch(urls, target, kind, MediaTransport.DEFAULT, progress);
+    }
+
     static String fetch(List<String> urls, File target, Kind kind) throws IOException {
         return fetch(urls, target, kind, MediaTransport.DEFAULT);
     }
@@ -36,6 +44,11 @@ final class RemoteMedia {
             Kind kind,
             MediaTransport.Client transport
     ) throws IOException {
+        return fetch(urls, target, kind, transport, null);
+    }
+
+    static String fetch(List<String> urls, File target, Kind kind,
+            MediaTransport.Client transport, Progress progress) throws IOException {
         IOException failure = new IOException("No media URL succeeded");
         MediaBudget.Deadline deadline = MediaBudget.deadline();
         for (String url : urls == null ? Collections.<String>emptyList() : urls) {
@@ -64,9 +77,11 @@ final class RemoteMedia {
                         String extension = extensionFor(kind, header);
                         if (extension == null) throw new IOException("Media server returned an unsupported format");
                         long count;
+                        if (progress != null) progress.copied(0, expected);
                         try (FileOutputStream output = new FileOutputStream(target)) {
                             count = MediaFileWriter.copy(input, output,
-                                    MediaBudget.MAX_TRANSFER_BYTES, deadline, targetDirectory);
+                                    MediaBudget.MAX_TRANSFER_BYTES, deadline, targetDirectory,
+                                    progress == null ? null : countSoFar -> progress.copied(countSoFar, expected));
                         }
                         if (expected >= 0 && count != expected) throw new IOException("Media download is incomplete");
                         return extension;

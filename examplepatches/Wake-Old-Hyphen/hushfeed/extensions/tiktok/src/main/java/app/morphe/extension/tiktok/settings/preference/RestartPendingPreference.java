@@ -64,7 +64,7 @@ public final class RestartPendingPreference extends Preference {
     @Override
     protected View onCreateView(ViewGroup parent) {
         Context context = getContext();
-        TextView row = SettingsUi.text(context, label(context), 15, SettingsUi.accent(),
+        TextView row = SettingsUi.text(context, label(context), SettingsUi.TEXT_BODY, SettingsUi.accent(),
                 Typeface.BOLD);
         row.setTag(ROW_TAG);
         int side = SettingsUi.dp(context, 16);

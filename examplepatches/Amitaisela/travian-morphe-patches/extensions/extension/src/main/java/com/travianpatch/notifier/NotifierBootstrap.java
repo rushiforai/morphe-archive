@@ -52,6 +52,9 @@ public final class NotifierBootstrap {
 
     public static void start(Context ctx) {
         try {
+            if (ctx instanceof Activity) {
+                GameScreen.watch((Activity) ctx);
+            }
             createChannel(ctx);
             askPermissionsOnce(ctx);
             schedulePeriodicCheck(ctx);

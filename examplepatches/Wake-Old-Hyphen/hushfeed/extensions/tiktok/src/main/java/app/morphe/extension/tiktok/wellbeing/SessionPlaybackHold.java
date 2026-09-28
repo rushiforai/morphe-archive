@@ -13,6 +13,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.playback.FeedMute;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -108,6 +109,8 @@ public final class SessionPlaybackHold {
     }
 
     private static boolean hasNativeFocus() {
+        // Muted, the feed's focus is turned down on purpose and no grant is coming to wait for.
+        if (FeedMute.isHoldingFocus()) return true;
         synchronized (nativeFocusListeners) {
             return nativeFocusOwner.get() != null;
         }

@@ -10,7 +10,7 @@ package app.morphe.extension.music.jam;
 import static app.morphe.extension.shared.StringRef.str;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -23,17 +23,22 @@ import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.Pair;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.theme.ThemeUtils;
+import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.jam.ipc.BridgeProtocol;
 import app.morphe.jam.ipc.IJamCompanion;
 import app.morphe.jam.ipc.Trust;
-import java.lang.ref.WeakReference;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -61,7 +66,6 @@ public final class JamUi {
     new CompletableFuture<>();
   private static boolean binding, polling, inFlight;
   private static ServiceConnection connection;
-  private static WeakReference<Activity> current = new WeakReference<>(null);
   static volatile JSONObject latest = new JSONObject();
   private static volatile long stateEpoch;
   private static volatile boolean joining;
@@ -85,6 +89,11 @@ public final class JamUi {
 
   private static void publish(JSONObject value) {
     latest = value;
+    JSONObject session = value.optJSONObject("session");
+    if (session != null && !"Participant".equals(session.optString("role"))) {
+      // Restore immediately even if the native queue bridge was recreated or is unavailable.
+      JamArtwork.clear();
+    }
     JamClock.accept(value);
     JamMirror.accept(application, value);
     notifyState();
@@ -128,7 +137,7 @@ public final class JamUi {
   }
 
   static void configureCompanion(Context c) {
-    EditText input = new EditText(c);
+    EditText input = CustomDialog.createEditText(c);
     input.setSingleLine();
     input.setText(companionPackage(c));
     input.setSelectAllOnFocus(true);
@@ -139,33 +148,31 @@ public final class JamUi {
       dp(c, 24),
       input.getPaddingBottom()
     );
-    AlertDialog dialog = new AlertDialog.Builder(c)
-      .setTitle(str("morphe_music_jam_companion_package_title"))
-      .setMessage(str("morphe_music_jam_package_message"))
-      .setView(input)
-      .setNegativeButton(str("morphe_music_jam_cancel"), null)
-      .setPositiveButton(str("morphe_music_jam_use_package"), null)
-      .create();
-    dialog.setOnShowListener(d ->
-      dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-        String value = input.getText().toString().trim();
-        if (!validPackage(value)) {
-          input.setError(str("morphe_music_jam_invalid_package"));
-          return;
-        }
-        resetCompanion(c);
-        c.getSharedPreferences("jam", 0)
-          .edit()
-          .putString(COMPANION_PACKAGE, value)
-          .remove("cap")
-          .apply();
-        latest = new JSONObject();
-        dialog.dismiss();
-        Utils.showToastLong(str("morphe_music_jam_package_saved"));
-      })
+    Pair<Dialog, LinearLayout> ui = createDialog(
+      c,
+      str("morphe_music_jam_companion_package_title"),
+      str("morphe_music_jam_package_message"),
+      input,
+      str("morphe_music_jam_cancel")
     );
+    Dialog dialog = ui.first;
+    addDialogButton(ui, str("morphe_music_jam_use_package"), false, () -> {
+      String value = input.getText().toString().trim();
+      if (!validPackage(value)) {
+        input.setError(str("morphe_music_jam_invalid_package"));
+        return;
+      }
+      resetCompanion(c);
+      c.getSharedPreferences("jam", 0)
+        .edit()
+        .putString(COMPANION_PACKAGE, value)
+        .remove("cap")
+        .apply();
+      latest = new JSONObject();
+      dialog.dismiss();
+      Utils.showToastLong(str("morphe_music_jam_package_saved"));
+    });
     dialog.show();
-    styleDialog(dialog);
   }
 
   private static void resetCompanion(Context c) {
@@ -187,7 +194,7 @@ public final class JamUi {
       if (c instanceof Activity) return (Activity) c;
       c = ((ContextWrapper) c).getBaseContext();
     }
-    return current.get();
+    return Utils.getActivity();
   }
 
   public static boolean enabled() {
@@ -198,7 +205,6 @@ public final class JamUi {
     if (!ENABLED) return;
     Utils.runOnMainThread(() -> {
       try {
-        current = new WeakReference<>(a);
         application = a.getApplicationContext();
         if (!capability(a).isEmpty()) {
           bind(a);
@@ -468,23 +474,81 @@ public final class JamUi {
     });
   }
 
-  static void styleDialog(AlertDialog dialog) {
-    android.view.Window window = dialog.getWindow();
-    if (window == null) return;
-    Context c = dialog.getContext();
-    android.graphics.drawable.GradientDrawable surface =
-      new android.graphics.drawable.GradientDrawable();
-    surface.setColor(0xff212121);
-    surface.setCornerRadius(dp(c, 28));
-    window.setBackgroundDrawable(surface);
-    window.getDecorView().setClipToOutline(true);
-    window.setLayout(
-      Math.min(
-        c.getResources().getDisplayMetrics().widthPixels - dp(c, 32),
-        dp(c, 520)
-      ),
-      android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+  /** Shared dialog styling with custom content and actions that may keep validation open. */
+  static Pair<Dialog, LinearLayout> createDialog(
+    Context c,
+    String title,
+    String message,
+    View content,
+    String closeLabel
+  ) {
+    Pair<Dialog, LinearLayout> ui = CustomDialog.create(
+      c,
+      title,
+      message,
+      null,
+      closeLabel,
+      () -> {},
+      null,
+      null,
+      null,
+      false
     );
+    if (content != null) {
+      ScrollView scroll = new ScrollView(c);
+      scroll.setFillViewport(true);
+      scroll.addView(content);
+      // Insert before the helper's closing button row.
+      ui.second.addView(
+        scroll,
+        ui.second.getChildCount() - 1,
+        new LinearLayout.LayoutParams(-1, -2)
+      );
+    }
+    return ui;
+  }
+
+  static Button addDialogButton(
+    Pair<Dialog, LinearLayout> ui,
+    String label,
+    boolean dismiss,
+    Runnable action
+  ) {
+    Button button = CustomDialog.createButton(
+      ui.second.getContext(),
+      ui.first,
+      label,
+      action,
+      false,
+      dismiss
+    );
+    button.setMinHeight(dp(ui.second.getContext(), 48));
+    button.setSingleLine(false);
+    button.setEllipsize(null);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+    params.topMargin = dp(ui.second.getContext(), 8);
+    ui.second.addView(button, ui.second.getChildCount() - 1, params);
+    return button;
+  }
+
+  static Dialog choiceDialog(
+    Context c,
+    String title,
+    String[] labels,
+    java.util.function.IntConsumer selected
+  ) {
+    Pair<Dialog, LinearLayout> ui = createDialog(
+      c,
+      title,
+      null,
+      null,
+      str("morphe_music_jam_cancel")
+    );
+    for (int i = 0; i < labels.length; i++) {
+      final int index = i;
+      addDialogButton(ui, labels[i], true, () -> selected.accept(index));
+    }
+    return ui.first;
   }
 
   private static void startLayer(Context c) {
@@ -554,13 +618,14 @@ public final class JamUi {
   static void join(Context c) {
     LinearLayout content = new LinearLayout(c);
     content.setOrientation(LinearLayout.VERTICAL);
-    content.setPadding(dp(c, 24), dp(c, 8), dp(c, 24), 0);
+    content.setPadding(0, dp(c, 8), 0, 0);
     TextView hint = new TextView(c);
     hint.setText(str("morphe_music_jam_join_hint"));
     hint.setTextSize(14);
+    hint.setTextColor(ThemeUtils.getAppForegroundColor());
     hint.setPadding(0, 0, 0, dp(c, 16));
     content.addView(hint);
-    EditText input = new EditText(c);
+    EditText input = CustomDialog.createEditText(c);
     input.setHint(str("morphe_music_jam_code_example"));
     input.setSingleLine();
     input.setTextSize(22);
@@ -570,53 +635,52 @@ public final class JamUi {
       new android.text.InputFilter.LengthFilter(512),
     });
     content.addView(input, new LinearLayout.LayoutParams(-1, dp(c, 56)));
-    AlertDialog dialog = new AlertDialog.Builder(c)
-      .setTitle(str("morphe_music_jam_join_with_code"))
-      .setView(content)
-      .setPositiveButton(str("morphe_music_jam_join"), null)
-      .setNeutralButton(str("morphe_music_jam_scan_qr"), (d, w) -> {
-        try {
-          Activity a = activity(c);
-          if (a != null) a.startActivityForResult(
-            new Intent("app.morphe.jam.SCAN")
-              .setComponent(companionComponent(c, COMPANION_ACTIVITY))
-              .putExtra("cap", capability(c)),
-            18432
-          );
-        } catch (Exception e) {
-          setup(c);
-        }
-      })
-      .setNegativeButton(str("morphe_music_jam_cancel"), null)
-      .create();
-    dialog.setOnShowListener(d ->
-      dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-        String value = input.getText().toString().trim();
-        String normalized = value
-          .replace("-", "")
-          .replace(" ", "")
-          .toUpperCase(Locale.ROOT);
-        if (
-          !value.startsWith("morphejam://") &&
-          !normalized.matches("[A-HJ-NP-Z2-9]{8}")
-        ) {
-          input.setError(str("morphe_music_jam_invalid_invite"));
-          return;
-        }
-        try {
-          startLayer(c);
-          call(c, command("JOIN").put("invite", value), r -> {
-            if (!r.optBoolean("ok")) Utils.showToastLong(r.optString("error"));
-          });
-          dialog.dismiss();
-          open(c);
-        } catch (Exception e) {
-          setup(c);
-        }
-      })
+    Pair<Dialog, LinearLayout> ui = createDialog(
+      c,
+      str("morphe_music_jam_join_with_code"),
+      null,
+      content,
+      str("morphe_music_jam_cancel")
     );
+    Dialog dialog = ui.first;
+    addDialogButton(ui, str("morphe_music_jam_scan_qr"), true, () -> {
+      try {
+        Activity a = activity(c);
+        if (a != null) a.startActivityForResult(
+          new Intent("app.morphe.jam.SCAN")
+            .setComponent(companionComponent(c, COMPANION_ACTIVITY))
+            .putExtra("cap", capability(c)),
+          18432
+        );
+      } catch (Exception e) {
+        setup(c);
+      }
+    });
+    addDialogButton(ui, str("morphe_music_jam_join"), false, () -> {
+      String value = input.getText().toString().trim();
+      String normalized = value
+        .replace("-", "")
+        .replace(" ", "")
+        .toUpperCase(Locale.ROOT);
+      if (
+        !value.startsWith("morphejam://") &&
+        !normalized.matches("[A-HJ-NP-Z2-9]{8}")
+      ) {
+        input.setError(str("morphe_music_jam_invalid_invite"));
+        return;
+      }
+      try {
+        startLayer(c);
+        call(c, command("JOIN").put("invite", value), r -> {
+          if (!r.optBoolean("ok")) Utils.showToastLong(r.optString("error"));
+        });
+        dialog.dismiss();
+        open(c);
+      } catch (Exception e) {
+        setup(c);
+      }
+    });
     dialog.show();
-    styleDialog(dialog);
   }
 
   static void invite(Context c) {
@@ -639,26 +703,25 @@ public final class JamUi {
           (r.optLong("codeExpires") - System.currentTimeMillis() + 59999) /
             60000
         );
-        AlertDialog popup = new AlertDialog.Builder(c)
-          .setTitle(str("morphe_music_jam_join_your_jam"))
-          .setMessage(
-            String.format(str("morphe_music_jam_code_expires"), minutes)
+        text.setTextColor(ThemeUtils.getAppForegroundColor());
+        Pair<Dialog, LinearLayout> ui = createDialog(
+          c,
+          str("morphe_music_jam_join_your_jam"),
+          String.format(str("morphe_music_jam_code_expires"), minutes),
+          text,
+          str("morphe_music_jam_done")
+        );
+        addDialogButton(ui, str("morphe_music_jam_copy_code"), true, () ->
+          (
+            (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE)
+          ).setPrimaryClip(
+            ClipData.newPlainText(str("morphe_music_jam_code_clip"), code)
           )
-          .setView(text)
-          .setPositiveButton(str("morphe_music_jam_copy_code"), (d, w) ->
-            (
-              (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE)
-            ).setPrimaryClip(
-              ClipData.newPlainText(str("morphe_music_jam_code_clip"), code)
-            )
-          )
-          .setNeutralButton(str("morphe_music_jam_show_qr"), (d, w) ->
-            showQr(c, r)
-          )
-          .setNegativeButton(str("morphe_music_jam_done"), null)
-          .create();
-        popup.show();
-        styleDialog(popup);
+        );
+        addDialogButton(ui, str("morphe_music_jam_show_qr"), true, () ->
+          showQr(c, r)
+        );
+        ui.first.show();
       } else showQr(c, r);
     });
   }
@@ -672,24 +735,24 @@ public final class JamUi {
     image.setImageBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
     image.setAdjustViewBounds(true);
     image.setPadding(24, 24, 24, 24);
-    AlertDialog popup = new AlertDialog.Builder(c)
-      .setTitle(str("morphe_music_jam_invite_title"))
-      .setMessage(str("morphe_music_jam_invite_message"))
-      .setView(image)
-      .setPositiveButton(str("morphe_music_jam_done"), null)
-      .setNeutralButton(str("morphe_music_jam_copy_link"), (d, w) ->
-        (
-          (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE)
-        ).setPrimaryClip(
-          ClipData.newPlainText(
-            str("morphe_music_jam_invitation_clip"),
-            r.optString("invite")
-          )
+    Pair<Dialog, LinearLayout> ui = createDialog(
+      c,
+      str("morphe_music_jam_invite_title"),
+      str("morphe_music_jam_invite_message"),
+      image,
+      str("morphe_music_jam_done")
+    );
+    addDialogButton(ui, str("morphe_music_jam_copy_link"), true, () ->
+      (
+        (ClipboardManager) c.getSystemService(Context.CLIPBOARD_SERVICE)
+      ).setPrimaryClip(
+        ClipData.newPlainText(
+          str("morphe_music_jam_invitation_clip"),
+          r.optString("invite")
         )
       )
-      .create();
-    popup.show();
-    styleDialog(popup);
+    );
+    ui.first.show();
   }
 
   public static boolean offer(YtmBridge.QueueAccess access, byte[] bytes) {
@@ -711,7 +774,7 @@ public final class JamUi {
   ) {
     if (!ENABLED) return false;
     String[] decoded = QueueCommand.decode(bytes);
-    Activity a = current.get();
+    Activity a = Utils.getActivity();
     if (participant()) {
       if (decoded == null) {
         unsupported();

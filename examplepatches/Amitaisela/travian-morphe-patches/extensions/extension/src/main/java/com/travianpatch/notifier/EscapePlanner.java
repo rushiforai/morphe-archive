@@ -101,12 +101,19 @@ final class EscapePlanner {
         if (handled != null && handled.contains(first)) {
             return new Plan("none", 0, first, last, "this attack was already handled");
         }
-        long leadMs = Math.max(1, s.leadMinutes) * 60_000L;
+        // Up to a minute earlier than the set lead, picked per wave (the same on every check of that wave),
+        // so escapes don't always leave at the exact same moment before impact.
+        long leadMs = Math.max(1, s.leadMinutes) * 60_000L + leadJitterMs(first);
         if (first - nowMs > leadMs) {
             return new Plan("wait", first - leadMs, first, last, "attack lands in " + ((first - nowMs) / 60_000L)
                     + " min; acting " + s.leadMinutes + " min before");
         }
         return new Plan("go", 0, first, last, "attack lands in " + Math.max(0, (first - nowMs) / 1000) + " s");
+    }
+
+    /** 0-60 s extra lead, fixed for one wave (seeded by its first impact time). */
+    static long leadJitterMs(long firstImpactMs) {
+        return (long) (new java.util.Random(firstImpactMs).nextDouble() * 60_000L);
     }
 
     /**
@@ -186,5 +193,17 @@ final class EscapePlanner {
             b.append(t).append(',');
         }
         return b.append(impactMs).toString();
+    }
+
+    /** The handled list as saved text ("123,456"). */
+    static String joinHandled(List<Long> handled) {
+        StringBuilder b = new StringBuilder();
+        for (Long t : handled) {
+            if (b.length() > 0) {
+                b.append(',');
+            }
+            b.append(t);
+        }
+        return b.toString();
     }
 }

@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.32.1](https://github.com/legendsciber/morphe-patches/releases/tag/v1.32.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v1.34.1](https://github.com/legendsciber/morphe-patches/releases/tag/v1.34.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary>📦 Aphelion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -154,7 +154,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 </details>
 
 <details open>
-<summary>📦 Subway Surfers&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Subway Surfers&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -165,6 +165,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Subway Surfers Currency Hack](#subway-surfers-currency-hack) | Coins and keys always report 2,147,483,647 and every purchase is always affordable. |  |
+| [Subway Surfers Free IAP](#subway-surfers-free-iap) | Coins, keys and shop items are granted instantly and free without Google Play billing. |  |
 
 </details>
 

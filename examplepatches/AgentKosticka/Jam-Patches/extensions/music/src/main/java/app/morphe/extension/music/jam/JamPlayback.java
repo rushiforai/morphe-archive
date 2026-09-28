@@ -10,7 +10,7 @@ package app.morphe.extension.music.jam;
 import static app.morphe.extension.shared.StringRef.str;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.view.View;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -74,11 +74,7 @@ public final class JamPlayback {
           try {
             view.patch_jamRefreshNow();
           } catch (Exception error) {
-            android.util.Log.w(
-              "MorpheJam",
-              "Now-playing refresh failed",
-              error
-            );
+            Logger.printInfo(() -> "Now-playing refresh failed", error);
           }
         }
         JamMetadata.refresh();
@@ -267,13 +263,13 @@ public final class JamPlayback {
           str("morphe_music_jam_add_to_queue"),
           str("morphe_music_jam_quit_and_play"),
         };
-    AlertDialog popup = new AlertDialog.Builder(activity)
-      .setTitle(
-        queue
-          ? str("morphe_music_jam_play_track")
-          : str("morphe_music_jam_choose_playback")
-      )
-      .setItems(labels, (d, index) -> {
+    Dialog popup = JamUi.choiceDialog(
+      activity,
+      queue
+        ? str("morphe_music_jam_play_track")
+        : str("morphe_music_jam_choose_playback"),
+      labels,
+      index -> {
         if (index == labels.length - 1) {
           JamUi.call(activity, JamUi.command("END"), response -> {
             if (!response.optBoolean("ok")) {
@@ -281,13 +277,7 @@ public final class JamPlayback {
               return;
             }
             try {
-              JSONObject idle = new JSONObject().put(
-                "session",
-                new JSONObject().put("role", "Idle")
-              );
-              JamUi.latest = idle;
-              JamClock.clear();
-              JamMirror.accept(activity, idle);
+              // JamUi.call has already published the acknowledged state and cleared the mirror.
               Utils.runOnMainThread(() -> {
                 try {
                   playLocal.run();
@@ -314,12 +304,10 @@ public final class JamPlayback {
         } catch (Exception e) {
           Utils.showToastLong(e.getMessage());
         }
-      })
-      .setNegativeButton(str("morphe_music_jam_cancel"), null)
-      .setOnDismissListener(d -> releaseDialog())
-      .create();
+      }
+    );
+    popup.setOnDismissListener(d -> releaseDialog());
     popup.show();
-    JamUi.styleDialog(popup);
   }
 
   static void leaveAndPlay(Activity activity, String video, long position) {
@@ -329,13 +317,7 @@ public final class JamPlayback {
         return;
       }
       try {
-        JSONObject idle = new JSONObject().put(
-          "session",
-          new JSONObject().put("role", "Idle")
-        );
-        JamUi.latest = idle;
-        JamClock.clear();
-        JamMirror.accept(activity, idle);
+        // JamUi.call has already published the acknowledged state and cleared the mirror.
         Utils.runOnMainThread(() -> {
           try {
             local(video);

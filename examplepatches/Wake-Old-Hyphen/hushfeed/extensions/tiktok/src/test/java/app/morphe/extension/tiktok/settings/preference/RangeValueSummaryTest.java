@@ -139,8 +139,9 @@ public class RangeValueSummaryTest {
 
             // TalkBack used to read these as "edit box" and "edit box, Unlimited": the visible
             // headings are separate views and the only hint was a value, not a label.
-            assertEquals("Minimum", String.valueOf(fields.get(0).getHint()));
-            assertEquals("Maximum", String.valueOf(fields.get(1).getHint()));
+            // The placeholders say what an empty field means; the spoken names stay the headings.
+            assertEquals("0", String.valueOf(fields.get(0).getHint()));
+            assertEquals("No limit", String.valueOf(fields.get(1).getHint()));
             assertEquals("Minimum", String.valueOf(describe(fields.get(0)).getHintText()));
             assertEquals("Maximum", String.valueOf(describe(fields.get(1)).getHintText()));
         }

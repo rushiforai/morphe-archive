@@ -8,6 +8,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.app.AppOpsManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentProvider;
@@ -297,6 +298,79 @@ public class PrivacySwitchesTest {
             assertTrue("the status bar has a height to clear", bar > 0);
             int top = ((android.widget.FrameLayout.LayoutParams) dot.getLayoutParams()).topMargin;
             assertTrue("the mark starts below the status bar (" + top + " px, bar " + bar + " px)", top > bar);
+        }
+    }
+
+    /**
+     * TikTok records a story's sound natively, so the recorder calls the patch counts only flash
+     * at its start (the S25, 2026-09-26: 120 ms of a four-second recording). The system's own op
+     * report holds the mark for as long as the recording runs.
+     */
+    @Config(sdk = 35)
+    @Test public void theMarkStaysForAsLongAsTheSystemSaysTheAppIsRecording() {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            CameraMicIndicator.install(activity);
+            Settings.CAMERA_MIC_INDICATOR.save(true);
+            int uid = android.os.Process.myUid();
+            String own = activity.getPackageName();
+
+            CameraMicIndicator.onMicStart();
+            CameraMicIndicator.onOpActiveChanged(AppOpsManager.OPSTR_RECORD_AUDIO, uid, own, true);
+            CameraMicIndicator.onMicStop();
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals(0, CameraMicIndicator.microphones());
+            assertNotNull("the system still reports the recording, so the mark stays", CameraMicIndicator.shownDot());
+            assertTrue(CameraMicIndicator.shownDot().microphone());
+            assertFalse(CameraMicIndicator.shownDot().camera());
+
+            CameraMicIndicator.onOpActiveChanged(AppOpsManager.OPSTR_CAMERA, uid, own, true);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue("a camera the system reports shows the square", CameraMicIndicator.shownDot().camera());
+
+            CameraMicIndicator.onOpActiveChanged(AppOpsManager.OPSTR_RECORD_AUDIO, uid, own, false);
+            CameraMicIndicator.onOpActiveChanged(AppOpsManager.OPSTR_CAMERA, uid, own, false);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertNull("the recording ended, so the mark goes", CameraMicIndicator.shownDot());
+        }
+    }
+
+    /** Another app's op, or another uid's, never lights this app's mark. */
+    @Config(sdk = 35)
+    @Test public void onlyThisAppsOwnOpsCount() {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            CameraMicIndicator.install(activity);
+            Settings.CAMERA_MIC_INDICATOR.save(true);
+            int uid = android.os.Process.myUid();
+
+            CameraMicIndicator.onOpActiveChanged(AppOpsManager.OPSTR_RECORD_AUDIO, uid + 1, activity.getPackageName(), true);
+            CameraMicIndicator.onOpActiveChanged(AppOpsManager.OPSTR_CAMERA, uid, "com.example.other", true);
+            CameraMicIndicator.onOpActiveChanged(AppOpsManager.OPSTR_FINE_LOCATION, uid, activity.getPackageName(), true);
+            Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertNull("nothing of this app's is live", CameraMicIndicator.shownDot());
+        }
+    }
+
+    /** A recording already running when TikTok's screen is created shows at once. */
+    @Config(sdk = 35)
+    @Test public void aRecordingUnderwayWhenTheWatchStartsShowsAtOnce() {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            Settings.CAMERA_MIC_INDICATOR.save(true);
+            AppOpsManager ops = activity.getSystemService(AppOpsManager.class);
+            ops.startOpNoThrow(AppOpsManager.OPSTR_RECORD_AUDIO, android.os.Process.myUid(), activity.getPackageName());
+            try {
+                CameraMicIndicator.install(activity);
+                Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+                assertNotNull("the recording was running before the watch began", CameraMicIndicator.shownDot());
+                assertTrue(CameraMicIndicator.shownDot().microphone());
+            } finally {
+                ops.finishOp(AppOpsManager.OPSTR_RECORD_AUDIO, android.os.Process.myUid(), activity.getPackageName());
+            }
         }
     }
 

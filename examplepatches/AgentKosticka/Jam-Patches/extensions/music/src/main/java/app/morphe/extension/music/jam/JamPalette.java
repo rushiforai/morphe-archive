@@ -8,6 +8,7 @@
 package app.morphe.extension.music.jam;
 
 import android.graphics.Bitmap;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
@@ -55,7 +56,7 @@ public final class JamPalette {
           target.patch_jamPublish(result);
         });
       } catch (Exception error) {
-        android.util.Log.w("MorpheJam", "Host palette unavailable", error);
+        Logger.printInfo(() -> "Host palette unavailable", error);
       }
     });
   }

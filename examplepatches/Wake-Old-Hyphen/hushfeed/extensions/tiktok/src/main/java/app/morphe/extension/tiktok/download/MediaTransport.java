@@ -155,41 +155,79 @@ final class MediaTransport {
         }
     }
 
+    /**
+     * The IPv4 blocks IANA's special-purpose registry marks as not globally reachable, as
+     * {first address, prefix length}, with the deprecated 6to4 relay block and everything from
+     * 224.0.0.0 up (multicast, reserved, broadcast). None can be a public CDN endpoint, and each
+     * one accepted widens the local-network boundary. Checked 2026-09-27 against
+     * https://www.iana.org/assignments/iana-ipv4-special-registry.
+     */
+    private static final int[][] NOT_GLOBAL_V4 = {
+            {0x00000000, 8},    // this network
+            {0x0A000000, 8},    // private
+            {0x64400000, 10},   // shared address space, carrier NAT
+            {0x7F000000, 8},    // loopback
+            {0xA9FE0000, 16},   // link-local
+            {0xAC100000, 12},   // private
+            {0xC0000000, 24},   // IETF protocol assignments
+            {0xC0000200, 24},   // documentation, TEST-NET-1
+            {0xC0586300, 24},   // deprecated 6to4 relay anycast
+            {0xC0A80000, 16},   // private
+            {0xC6120000, 15},   // benchmarking
+            {0xC6336400, 24},   // documentation, TEST-NET-2
+            {0xCB007100, 24},   // documentation, TEST-NET-3
+            {0xE0000000, 3},    // multicast, reserved and broadcast
+    };
+
     static boolean isPublicAddress(InetAddress address) {
-        if (address == null
-                || address.isAnyLocalAddress()
-                || address.isLoopbackAddress()
-                || address.isLinkLocalAddress()
-                || address.isSiteLocalAddress()
-                || address.isMulticastAddress()) {
-            return false;
-        }
-
+        if (address == null) return false;
         byte[] bytes = address.getAddress();
-        if (bytes.length == 4) {
-            int first = bytes[0] & 255;
-            int second = bytes[1] & 255;
-            // Also refuse shared carrier space and non-routable address blocks. Neither can be
-            // a public CDN endpoint, and accepting them would widen the local-network boundary.
-            return first != 0
-                    && first != 10
-                    && first != 127
-                    && !(first == 100 && second >= 64 && second <= 127)
-                    && !(first == 169 && second == 254)
-                    && !(first == 172 && second >= 16 && second <= 31)
-                    && !(first == 192 && second == 168)
-                    && first < 224;
-        }
+        if (bytes.length == 4) return isGlobalV4(ipv4At(bytes, 0));
+        if (bytes.length == 16) return isGlobalV6(bytes);
+        return false;
+    }
 
-        if (bytes.length == 16) {
-            int first = bytes[0] & 255;
-            int second = bytes[1] & 255;
-            // Java does not classify RFC 4193 unique-local addresses as site-local.
-            if ((first & 0xfe) == 0xfc) return false;
-            if (first == 0xfe && (second & 0xc0) == 0x80) return false;
-            if (first == 0xff) return false;
+    private static boolean isGlobalV4(int address) {
+        for (int[] block : NOT_GLOBAL_V4) {
+            int mask = -1 << (32 - block[1]);
+            if ((address & mask) == (block[0] & mask)) return false;
         }
         return true;
+    }
+
+    /**
+     * Global unicast (2000::/3) only, which leaves out the unspecified and loopback addresses, the
+     * discard-only, SRv6, unique-local, link-local and multicast blocks at once, and then the
+     * special blocks inside it. An IPv4 address carried in IPv6 is judged as that IPv4 address.
+     * Checked 2026-09-27 against https://www.iana.org/assignments/iana-ipv6-special-registry.
+     */
+    private static boolean isGlobalV6(byte[] bytes) {
+        boolean zeroTo80 = true;
+        for (int i = 0; i < 10; i++) zeroTo80 &= bytes[i] == 0;
+        // IPv4-mapped, ::ffff:0:0/96.
+        if (zeroTo80 && bytes[10] == (byte) 0xff && bytes[11] == (byte) 0xff) {
+            return isGlobalV4(ipv4At(bytes, 12));
+        }
+        // The NAT64 well-known prefix, 64:ff9b::/96, which DNS64 answers with on IPv6-only mobile
+        // networks for a host that has only an IPv4 address: as global as the address inside it.
+        if (bytes[0] == 0 && bytes[1] == 0x64 && bytes[2] == (byte) 0xff && bytes[3] == (byte) 0x9b) {
+            boolean zeroTo96 = true;
+            for (int i = 4; i < 12; i++) zeroTo96 &= bytes[i] == 0;
+            if (zeroTo96) return isGlobalV4(ipv4At(bytes, 12));
+        }
+        if ((bytes[0] & 0xe0) != 0x20) return false;
+        int first = ((bytes[0] & 255) << 8) | (bytes[1] & 255);
+        int second = ((bytes[2] & 255) << 8) | (bytes[3] & 255);
+        if (first == 0x2001 && (second & 0xfe00) == 0) return false;   // IETF protocol assignments, Teredo among them
+        if (first == 0x2001 && second == 0x0db8) return false;         // documentation
+        if (first == 0x2002) return false;                             // 6to4
+        if (first == 0x3fff && (second & 0xf000) == 0) return false;   // documentation, 3fff::/20
+        return true;
+    }
+
+    private static int ipv4At(byte[] bytes, int offset) {
+        return ((bytes[offset] & 255) << 24) | ((bytes[offset + 1] & 255) << 16)
+                | ((bytes[offset + 2] & 255) << 8) | (bytes[offset + 3] & 255);
     }
 
     private static void requirePublicAddresses(String host, Resolver resolver) throws IOException {

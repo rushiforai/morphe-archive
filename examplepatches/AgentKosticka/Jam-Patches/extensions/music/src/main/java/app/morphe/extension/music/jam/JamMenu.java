@@ -12,8 +12,6 @@ import static app.morphe.extension.shared.StringRef.str;
 import android.view.View;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -25,8 +23,6 @@ public final class JamMenu {
     void patch_jamShowMenu(View anchor, Object item);
   }
 
-  private static final ExecutorService loader =
-    Executors.newSingleThreadExecutor();
   private static boolean loading;
 
   public static void bind(View view, Row row, Object item) {
@@ -36,7 +32,7 @@ public final class JamMenu {
       if (loading) return true;
       loading = true;
       Utils.showToastLong(str("morphe_music_jam_loading_song_options"));
-      loader.execute(() -> {
+      Utils.runOnBackgroundThread(() -> {
         Object resolved = null;
         Future<?> request = null;
         try {

@@ -35,7 +35,7 @@ Direct URL:
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.32.0](https://github.com/byehi98/okish-morphe-patches/releases/tag/v1.32.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;76 patches total
+> **[v1.34.0](https://github.com/byehi98/okish-morphe-patches/releases/tag/v1.34.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;76 patches total
 <details>
 <summary>📦 Into the Dead 2&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -55,30 +55,12 @@ Direct URL:
 </details>
 
 <details>
-<summary>📦 Subway Surfers&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 3.69.2 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Ad Removal & Free Rewards](#ad-removal-free-rewards) | Removes all ads. "Watch a video" rewards (coins, revives, bonuses) are granted instantly, without watching anything. |  |
-| [IAP Grant Engine](#iap-grant-engine) | Approves every in-app purchase for free — items are added to your account instantly. |  |
-| [IAP Grant Trigger](#iap-grant-trigger) | Starts the free-purchase helper every time you open the game. |  |
-| [No Payment Popup](#no-payment-popup) | Buy coins or items in the shop instantly — no Google Play popup, no payment, rewards arrive right away. |  |
-
-</details>
-
-<details>
 <summary>📦 Adda247&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 12.6.7 |
+| 12.7.2 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -423,7 +405,7 @@ Direct URL:
 
 **🎯 Supported versions:**
 
-| 1.14.03 |
+| 1.14.04 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -544,7 +526,7 @@ Direct URL:
 </details>
 
 <details>
-<summary>📦 TrueCloud&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 TrueCloud&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -554,7 +536,11 @@ Direct URL:
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [TrueCloud Ad Removal](#truecloud-ad-removal) | Consolidated patch to remove all ads, boot pages, cloud popups, and the help center robot. |  |
+| [TrueCloud Ads](#truecloud-ads) | Removes all ads: ad service, house-ad network, ad rows, polling, and banner/popup surfaces; disables cloud boot pages, cloud prompts, and the help-center robot. |  |
+| [TrueCloud Protection](#truecloud-protection) | Bypasses anti-emulator self-kill and disables analytics, telemetry, device-ID, and crash-reporting SDKs. |  |
+| [TrueCloud UX](#truecloud-ux) | Hides the in-app rating dialog and rate-us tip banner. |  |
+| [TrueCloud Update](#truecloud-update) | Blocks all app update and force-update dialogs and their version checks. |  |
+| [TrueCloud VIP](#truecloud-vip) | Unlocks cloud/WeChat-call entitlements, extends alarm replay duration and message window, and disables 4G trial countdown gates. - Doesn't unlock Cloud Server Side Storage. |  |
 
 </details>
 

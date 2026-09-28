@@ -1,32 +1,48 @@
 # Ather patches
 
-Every patch on this page declares `compatibleWith("com.athermobileapp")` and was verified against Ather 13.5.0, versionCode 321.
+Every patch on this page declares `compatibleWith("com.athermobileapp")` and was verified against Ather 13.5.1, versionCode 324.
 Each patch records the smali it produces in its source file.
 
 ## Bypass security check
 
 **What it does.** Stops the Developer Options warning and the root and Frida detection that otherwise block the app from starting.
 
-**Target.** `com.ather.common.utils.coreUtils.SecurityCheck.performSecurityCheck(boolean)` returns `SecurityCheck$CheckResult`.
-The class name is stable across 13.x builds.
-The fingerprint pins the defining class and the exact signature.
+**Target.** `com.ather.common.utils.coreUtils.w.b(boolean)` returns `com.ather.common.utils.coreUtils.v`.
+The names are obfuscated: `w` is the check factory, `v` its result base, `u` the `Secure` result, `s` the `Compromised` result and `t` the `DeveloperOptionsEnabled` result.
+The fingerprint pins the defining class, the method name and the signature.
 
 **Smali.** The patch inserts this at index 0.
 The original body stays behind the return and is unreachable.
 
 ```smali
-sget-object v0, Lcom/ather/common/utils/coreUtils/SecurityCheck$CheckResult$Secure;->INSTANCE:Lcom/ather/common/utils/coreUtils/SecurityCheck$CheckResult$Secure;
+sget-object v0, Lcom/ather/common/utils/coreUtils/u;->a:Lcom/ather/common/utils/coreUtils/u;
 return-object v0
 ```
 
-**Verified.** `dexdump` of the patched APK shows `performSecurityCheck` starting with the `Secure` `sget-object` and `return-object`.
+**Verified.** `dexdump` of the patched APK shows `w.b` starting with the `Secure` `sget-object` and `return-object`.
+
+## Bypass signature guard
+
+**What it does.** Stops the native signature check that closes the app when the APK is not signed by Ather.
+
+**Target.** `com.ather.common.utils.coreUtils.SignatureGuard.a(navigation.c)` returns `boolean`.
+`MainActivity.onCreate` calls the guard before it does anything else and returns when the guard returns false.
+
+**Smali.** The patch replaces the whole body with a `true` return.
+
+```smali
+const/4 p0, 0x1
+return p0
+```
+
+**Verified.** `dexdump` of the patched APK shows `SignatureGuard.a` starting with `const/4 p0, #int 1` and `return p0`.
 
 ## Report Ather's signing certificate
 
 **What it does.** Reports Ather's own signing-certificate hash to Google's APIs, so Firebase login and live vehicle data keep working after the app is re-signed.
 
 **Target.** `com.google.android.gms.common.util.c.e(Context, String)` returns `byte[]`.
-Both the class and the method name are obfuscated in 13.5.0, so the fingerprint pins the defining class and the exact signature.
+Both the class and the method name are obfuscated, so the fingerprint pins the defining class and the exact signature.
 The method is the helper every Google SDK call funnels its `X-Android-Cert` header through.
 
 **Smali.** The patch inserts this at index 0.
@@ -53,6 +69,7 @@ return-object v0
 **Target.** `com.pairip.application.Application.attachBaseContext(Context)`.
 PairIP injects this class as the app's real `Application`, and its `attachBaseContext` is where the licence check starts.
 The class name survives obfuscation because the manifest references it.
+The 13.5.1 build dropped PairIP, so the patch matches nothing there and leaves the app untouched.
 
 **Smali.** The patch replaces the whole body with the super call and a return.
 
@@ -62,7 +79,7 @@ invoke-super {p0, p1}, Lcom/pairip/application/Application;->attachBaseContext(L
 return-void
 ```
 
-**Verified.** `dexdump` of the patched APK shows the method is four code units: one `invoke-super` and one `return-void`.
+**Verified.** `dexdump` of the patched 13.5.0 APK shows the method is four code units: one `invoke-super` and one `return-void`.
 
 ## Permission filter
 
@@ -71,7 +88,7 @@ Nothing is faked: the app never requests the permissions, and the features that 
 
 **Target.** Two methods:
 
-- `com.ather.designsystem.components.utils.d.f(List, a, k, l, int)` is the composable that renders the permission dialog.
+- `com.ather.designsystem.components.utils.d.f(List, a, k, <composer>, int)` is the composable that renders the permission dialog.
   It is the only place that shows a permission request, so filtering the list there covers every request the app makes.
 - `com.ather.btcore.utils.e.a()` is the pairing capability probe.
   It returns true only when contacts, Nearby device, call and SMS access are all granted.
@@ -97,14 +114,14 @@ The extension drops the location permissions and the call, contact, SMS and call
 
 **What it does.** Makes the setup wizard ask only for Nearby device access, so scooter pairing completes without call log, contact or SMS permissions.
 
-**Target.** `com.ather.btconnectivity.ui.permission.z0.<init>`.
-The constructor builds a five-element `u0[]` with `filled-new-array`: call logs, manage calls, contacts, SMS and Nearby device.
+**Target.** `com.ather.btconnectivity.ui.permission.a1.<init>`.
+The constructor builds a five-element `v0[]` with `filled-new-array`: call logs, manage calls, contacts, SMS and Nearby device.
 
 **Smali.** The patch replaces the five-element array with the Nearby device entry alone.
 `v1` holds `PermissionType.NEARBY_DEVICE`.
 
 ```smali
-filled-new-array {v1}, [Lcom/ather/btconnectivity/ui/permission/u0;
+filled-new-array {v1}, [Lcom/ather/btconnectivity/ui/permission/v0;
 ```
 
 **Verified.** `dexdump` of the patched APK shows the one-element array, and the register holds the `PermissionType.NEARBY_DEVICE` entry.
@@ -205,8 +222,8 @@ The extension inserts a "Morphe" section above the section that holds the `set_a
 **Target.** Three methods:
 
 - `com.ather.ridestories.ui.allHighlights.composables.a.invoke` draws the "Your month so far" row.
-- `com.ather.ridestories.ui.previousRides.k.i` loads the previous rides list.
-- `com.ather.ridestories.ui.previousRides.k.a` handles a ride click.
+- `com.ather.ridestories.ui.previousRides.l.i` loads the previous rides list.
+- `com.ather.ridestories.ui.previousRides.l.a` handles a ride click.
 
 **Smali.** Inserted after the monthly row data is read.
 
@@ -248,7 +265,7 @@ return-void
 :morphe_not_ours
 ```
 
-**Verified.** `dexdump` of the patched APK shows `RideStats.adjustMonth` and `adjustChart` in `a.invoke`, and `withLocalRides` and `handleRideClick` in `k`.
+**Verified.** `dexdump` of the patched APK shows `RideStats.adjustMonth` and `adjustChart` in `a.invoke`, and `withLocalRides` and `handleRideClick` in `l`.
 
 ## Enable ride stats
 

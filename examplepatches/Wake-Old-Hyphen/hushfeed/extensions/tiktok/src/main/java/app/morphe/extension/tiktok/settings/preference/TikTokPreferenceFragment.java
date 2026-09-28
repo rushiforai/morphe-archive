@@ -6,6 +6,7 @@
 
 package app.morphe.extension.tiktok.settings.preference;
 
+import app.morphe.extension.tiktok.playback.FeedMute;
 import app.morphe.extension.tiktok.settings.L10n;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
@@ -30,10 +31,8 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -243,7 +242,12 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 && (setting == Settings.BLOCK_AUTHOR_BUTTON
                 || setting == Settings.LOCAL_HIDE_BUTTON
                 || setting == Settings.BLOCK_SOUND_BUTTON
-                || setting == Settings.NOT_INTERESTED_BUTTON)) {
+                || setting == Settings.NOT_INTERESTED_BUTTON
+                || setting == Settings.FEED_MUTE_BUTTON)) {
+            BlockAuthorOverlay.refresh();
+        }
+        if (!applySettingToPreference && setting == Settings.FEED_MUTED) {
+            FeedMute.refresh();
             BlockAuthorOverlay.refresh();
         }
         if (!applySettingToPreference && setting == Settings.COMMENT_SEARCH) {
@@ -462,9 +466,13 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             }
         }
         if (parentTitle == null) return;
-        String reason = " " + L10n.f(context, "Turn on %1$s first.", parentTitle);
+        String note = L10n.f(context, "Turn on %1$s first.", parentTitle);
         CharSequence summary = pref.getSummary();
         String body = summary == null ? "" : summary.toString();
+        // A number row's summary is lines ("0 to 1,000 videos", "Current: Off"), and a space ran
+        // the note into the last of them; it gets a line of its own there, and follows the
+        // sentence on a prose row.
+        String reason = body.isEmpty() ? note : (body.contains("\n") ? "\n" : " ") + note;
         if (body.endsWith(reason)) return;
         pref.setSummary(body + reason);
         reasonSummaries.put(key, reason);
@@ -903,8 +911,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     private static String normalizeSearchText(String value) {
-        String normalized = Normalizer.normalize(value == null ? "" : value, Normalizer.Form.NFD);
-        return normalized.replaceAll("\\p{M}+", "").toLowerCase(Locale.ROOT);
+        return app.morphe.extension.tiktok.settings.SearchText.normalize(value);
     }
 
     private static PreferenceCategory createCategory(

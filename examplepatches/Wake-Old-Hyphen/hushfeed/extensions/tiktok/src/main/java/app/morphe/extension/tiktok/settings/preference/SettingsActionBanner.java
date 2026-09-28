@@ -88,7 +88,7 @@ public final class SettingsActionBanner {
                 banner.setElevation(SettingsUi.dp(activity, 8));
                 banner.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
 
-                TextView label = SettingsUi.text(activity, message, 14,
+                TextView label = SettingsUi.text(activity, message, SettingsUi.TEXT_BODY_SMALL,
                         SettingsUi.textPrimary(), Typeface.NORMAL);
                 label.setTag(MESSAGE_TAG);
                 label.setLineSpacing(SettingsUi.dp(activity, 2), 1f);
@@ -120,7 +120,7 @@ public final class SettingsActionBanner {
 
     private static void addAction(Activity activity, LinearLayout banner, String actionLabel,
             Runnable action, String failure) {
-        TextView button = SettingsUi.text(activity, actionLabel, 14,
+        TextView button = SettingsUi.text(activity, actionLabel, SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.accent(), Typeface.BOLD);
         button.setTag(ACTION_TAG);
         button.setContentDescription(actionLabel);

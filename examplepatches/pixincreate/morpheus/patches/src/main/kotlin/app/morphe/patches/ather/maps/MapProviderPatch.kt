@@ -74,7 +74,7 @@ internal object ScooterShadowMapProviderFingerprint : Fingerprint(
  * which returns the forced provider when the user picked one and otherwise swaps the two
  * unusable providers for OpenStreetMap.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321), inserted before the return of
+ * Equivalent smali (verified against 13.5.1, versionCode 324), inserted before the return of
  * each lookup:
  * ```
  * invoke-static {p0}, Lapp/morphe/ather/MapPref;->apply(Lcom/ather/maps/a0;)Lcom/ather/maps/a0;

@@ -42,13 +42,12 @@
 </details>
 
 <details>
-<summary>📦 Webetu&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 Webetu&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **Package name:** `app.progres.webetu`
 
 - Allow screenshots
-- Enable 30-day Resto reservations
 - Fix screen freeze after resume
 - Remove PairIP protection
 

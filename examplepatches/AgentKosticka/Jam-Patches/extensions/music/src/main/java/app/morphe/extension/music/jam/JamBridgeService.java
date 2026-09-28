@@ -146,6 +146,10 @@ public final class JamBridgeService extends Service {
           a.patch_jamVideoId(items[current])
         )
       );
+    if (current >= 0 && current < items.length) {
+      String artwork = JamClock.artwork(a.patch_jamVideoId(items[current]));
+      if (!artwork.isEmpty()) rows.getJSONObject(current).put("artwork", artwork);
+    }
     JSONArray suggested = new JSONArray();
     key.append("|autoplay|");
     for (Object item : autoplay) {

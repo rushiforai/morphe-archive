@@ -23,6 +23,9 @@ import app.morphe.patcher.patch.bytecodePatch
  * body is replaced instead of patched in place, which keeps the method valid no matter
  * how the obfuscated class is laid out.
  *
+ * The 13.5.1 build no longer bundles PairIP, so the fingerprint matches nothing there
+ * and the patch leaves the app untouched.
+ *
  * Equivalent smali (verified against 13.5.0, versionCode 321):
  * ```
  * .method protected attachBaseContext(Landroid/content/Context;)V
@@ -43,7 +46,8 @@ val pairIpLicensePatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        PairIpAttachBaseContextFingerprint.method.apply {
+        // 13.5.1 dropped PairIP, so the fingerprint matches nothing and the patch is a no-op.
+        PairIpAttachBaseContextFingerprint.matchOrNull()?.method?.apply {
             val body = implementation ?: throw IllegalStateException(
                 "PairIP Application.attachBaseContext has no body to replace.",
             )

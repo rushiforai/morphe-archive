@@ -38,6 +38,10 @@ public class LogBufferRedactionTest {
     @After public void tearDown() {
         LogBufferManager.clearLogBuffer();
         HookStatus.clear();
+        // The filter lives in a static registry that outlives this class. Left on "downloads",
+        // a later class in the same JVM that exported a feed event got an empty report
+        // (NetworkRequestsTest, whenever the run order put this class first).
+        BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
     }
 
     @Test public void selectedEventsAreRedactedAtExport() {

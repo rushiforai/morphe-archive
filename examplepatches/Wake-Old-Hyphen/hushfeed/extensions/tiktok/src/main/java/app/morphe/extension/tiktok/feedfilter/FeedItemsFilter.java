@@ -8,6 +8,7 @@ import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.tiktok.SignedInUser;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import com.ss.android.ugc.aweme.feed.model.AwemeBizExtKt;
@@ -26,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,6 +60,7 @@ public final class FeedItemsFilter {
         new AdvancedFeedRules.PromotionalMusicFilter(),
         new AdvancedFeedRules.LiveReplayFilter(),
         new RegionFilter(),
+        new CaptionLanguageFilter(),
         new AdvancedFeedRules.PublicationAgeFilter(),
         new AdvancedFeedRules.QualityFilter()
     );
@@ -89,9 +92,6 @@ public final class FeedItemsFilter {
     private static final Set<String> NOT_VIDEO_CLASSES =
             Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final int MAX_NOT_VIDEO_CLASSES = 16;
-    private static final boolean FILTER_CALL_PROBE_ENABLED = true;
-    private static final boolean FILTER_CALL_PROBE_STACKS = false;
-    private static final boolean FILTER_CALL_PROBE_SUMMARY_ENABLED = true;
     private static final int FILTER_CALL_PROBE_AID_SAMPLE_SIZE = 5;
     private static final int FILTER_CALL_PROBE_MAX_SEEN_LISTS = 256;
     private static final int FILTER_CALL_PROBE_SLOW_MS = 8;
@@ -172,6 +172,11 @@ public final class FeedItemsFilter {
             if (verbose) {
                 logNullItems("FeedItemList", feedItemListNullItemsLogCount);
             }
+            return;
+        }
+
+        if (isProfileList(feedItemList)) {
+            filterProfileList(feedItemList);
             return;
         }
 
@@ -281,6 +286,93 @@ public final class FeedItemsFilter {
 
     public static List filterProfileAds(List items) {
         return filterAdOnlyAwemeList("ProfileAwemeList", items);
+    }
+
+    /**
+     * Profile lists as TikTok parses them. The profile's model stamps dataUserId only after the
+     * advance request and the feed author preload have read getItems, so on 47.x the stamp alone
+     * let the feed's preferences empty page after page of someone else's profile, and every empty
+     * page made TikTok load the next one at once. FeedItemList keeps Object's equals and hashCode,
+     * so the map keys by identity, and an entry goes when its list does.
+     */
+    private static final Map<FeedItemList, Boolean> PARSED_PROFILE_LISTS = new WeakHashMap<>();
+
+    /**
+     * Called with what ProfileDependentComponentImpl.apiExecuteGetJSONObject returns: posts,
+     * Liked, collections, private posts, whoever's profile. Only the two profile fetchers pass it
+     * FeedItemList, and the For You feed parses elsewhere (both traced on 47.0.3 and 47.1.3).
+     * Runs inside TikTok's own parse, so it never throws.
+     */
+    public static void markProfileResponse(Object result) {
+        try {
+            if (!(result instanceof FeedItemList)) return;
+            HookStatus.bound("main feed", "profile list parse");
+            synchronized (PARSED_PROFILE_LISTS) {
+                PARSED_PROFILE_LISTS.put((FeedItemList) result, Boolean.TRUE);
+            }
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not mark a profile list", ex);
+        }
+    }
+
+    /** Marked where TikTok parsed it, or stamped with a profile's uid (a clone keeps only the stamp). */
+    static boolean isProfileList(FeedItemList list) {
+        String profile = list.dataUserId;
+        if (profile != null && !profile.isEmpty()) return true;
+        synchronized (PARSED_PROFILE_LISTS) {
+            return PARSED_PROFILE_LISTS.containsKey(list);
+        }
+    }
+
+    /** The counter line for a profile's list read through FeedItemList.getItems. */
+    static final String PROFILE_LIST_SOURCE = "FeedItemList:profile";
+
+    /**
+     * A profile's list: its posts, favorites or reposts, whoever it belongs to. TikTok parses a
+     * profile's posts from /aweme/v1/aweme/post/ straight into a FeedItemList and its profile model
+     * stamps the profile's uid on it, so every read went through the main feed's getItems filter,
+     * and the feed's preferences emptied pages the reader chose to open: a place badge took an
+     * owner's recent posts off their own grid (#35), and a minimum view count thinned out a small
+     * creator's page. A profile gets what the profile routes give it, ads only.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void filterProfileList(FeedItemList feedItemList) {
+        List items = feedItemList.items;
+        List kept = filterAdOnlyAwemeList(PROFILE_LIST_SOURCE, items);
+        if (kept == items) return;
+        try {
+            items.clear();
+            items.addAll(kept);
+        } catch (RuntimeException immutable) {
+            feedItemList.items = new ArrayList(kept);
+        }
+    }
+
+    /**
+     * The signed-in reader's own posts, which no route takes out: nothing on your own profile is
+     * a feed preference, and TikTok reads your profile's first page through the main feed's
+     * getItems before it stamps the profile's uid on the list (#35). The account is read once per
+     * list, and only once an item would go.
+     */
+    private static final class OwnPosts {
+        private String self;
+        private boolean read;
+        private int kept;
+
+        boolean owns(Aweme item) {
+            if (!read) {
+                read = true;
+                self = SignedInUser.id();
+            }
+            if (self == null || !self.equals(CreatorIdentity.uidOf(item))) return false;
+            kept++;
+            return true;
+        }
+
+        /** Says in Hook status that the check kept something, so an export shows it ran. */
+        void report() {
+            if (kept > 0) HookStatus.bound("main feed", "own posts kept");
+        }
     }
 
     /**
@@ -687,6 +779,7 @@ public final class FeedItemsFilter {
         int removed = 0;
         int notVideos = 0;
         String lastReason = null;
+        OwnPosts own = new OwnPosts();
         for (int index = 0; index < items.size(); index++) {
             Object container = items.get(index);
             Aweme item = container instanceof Aweme ? (Aweme) container : null;
@@ -695,6 +788,7 @@ public final class FeedItemsFilter {
                 nameNotVideo(source, container);
             }
             String reason = item == null ? null : getFilterReason(AD_ONLY_FILTERS, item);
+            if (reason != null && own.owns(item)) reason = null;
             if (reason == null) {
                 if (kept != null) kept.add(container);
                 if (item != null) logKeptItem(source, item, verbose);
@@ -710,6 +804,7 @@ public final class FeedItemsFilter {
             logItem(item, reason, verbose);
         }
 
+        own.report();
         FeedFilterCounters.removed(source, removed, lastReason);
         FeedFilterCounters.unreadable(source, notVideos);
         if (kept == null) return items;
@@ -914,7 +1009,7 @@ public final class FeedItemsFilter {
 
         String filterMask = getFilterMask(activeContentFilters, activeRangeFilters);
         ListFingerprint beforeFingerprint = ListFingerprint.from(list, extractor);
-        boolean probeEnabled = verbose && FILTER_CALL_PROBE_ENABLED;
+        boolean probeEnabled = verbose;
         int callId = probeEnabled ? filterCallProbeCount.incrementAndGet() : 0;
         long startNs = probeEnabled ? System.nanoTime() : 0;
         int ownerId = probeEnabled ? System.identityHashCode(owner) : 0;
@@ -944,6 +1039,7 @@ public final class FeedItemsFilter {
         List rangeKept = new ArrayList(snapshot.size());
         Object qualityFallback = null;
         double closestDistance = Double.POSITIVE_INFINITY;
+        OwnPosts own = new OwnPosts();
         for (Object container : snapshot) {
             Aweme item = extractor.extract(container);
             if (item == null) {
@@ -952,6 +1048,11 @@ public final class FeedItemsFilter {
             }
 
             String contentReason = getFilterReason(activeContentFilters, item);
+            String rangeReason = contentReason == null ? getFilterReason(activeRangeFilters, item) : null;
+            if ((contentReason != null || rangeReason != null) && own.owns(item)) {
+                rangeKept.add(container);
+                continue;
+            }
             if (contentReason != null) {
                 if (contentReason.equals("QualityFilter") && getFilterReason(activeRangeFilters, item) == null) {
                     double distance = AdvancedFeedRules.QualityFilter.distance(item);
@@ -966,7 +1067,6 @@ public final class FeedItemsFilter {
                 continue;
             }
 
-            String rangeReason = getFilterReason(activeRangeFilters, item);
             if (rangeReason != null) {
                 rangeRejected++;
                 incrementReason(reasonCounts, rangeReason);
@@ -977,6 +1077,7 @@ public final class FeedItemsFilter {
             rangeKept.add(container);
         }
 
+        own.report();
         // Never restore ads, blocked creators/words, seen videos, or other hard rejects.
         if (rangeKept.isEmpty() && qualityFallback != null) rangeKept.add(qualityFallback);
         List kept = rangeKept;
@@ -1335,8 +1436,6 @@ public final class FeedItemsFilter {
     }
 
     private static void recordProbeCall(int listId, String filterMask) {
-        if (!FILTER_CALL_PROBE_SUMMARY_ENABLED) return;
-
         synchronized (filterCallProbeSummaryLock) {
             filterCallProbeSummary.calls++;
             filterCallProbeSummary.uniqueListIds.add(listId);
@@ -1345,8 +1444,6 @@ public final class FeedItemsFilter {
     }
 
     private static void recordProbeCacheHit(int listId) {
-        if (!FILTER_CALL_PROBE_SUMMARY_ENABLED) return;
-
         String summary = null;
         synchronized (filterCallProbeSummaryLock) {
             filterCallProbeSummary.cacheHits++;
@@ -1357,8 +1454,6 @@ public final class FeedItemsFilter {
     }
 
     private static void recordProbeCacheMiss(String reason) {
-        if (!FILTER_CALL_PROBE_SUMMARY_ENABLED) return;
-
         synchronized (filterCallProbeSummaryLock) {
             if ("newList".equals(reason)) {
                 filterCallProbeSummary.missNewList++;
@@ -1377,8 +1472,6 @@ public final class FeedItemsFilter {
     }
 
     private static void recordProbeScan(int listId, int removed, long elapsedNs) {
-        if (!FILTER_CALL_PROBE_SUMMARY_ENABLED) return;
-
         String summary = null;
         long elapsedMs = elapsedNs / 1_000_000L;
         synchronized (filterCallProbeSummaryLock) {
@@ -1487,7 +1580,6 @@ public final class FeedItemsFilter {
         if (!interesting) return;
 
         String counts = reasonCounts == null || reasonCounts.isEmpty() ? "none" : reasonCounts.toString();
-        String stack = FILTER_CALL_PROBE_STACKS ? " stack=" + getProbeStack() : "";
 
         Logger.printInfo(() -> "[Morphe TikTok FeedFilterProbe]"
             + " call=" + callId
@@ -1504,8 +1596,7 @@ public final class FeedItemsFilter {
             + " filters=\"" + filterMask + "\""
             + " before=\"" + beforeSample + "\""
             + " after=\"" + afterSample + "\""
-            + " elapsedMs=" + elapsedMs
-            + stack);
+            + " elapsedMs=" + elapsedMs);
     }
 
     private static ProbeSeenList updateSeenList(
@@ -1535,24 +1626,6 @@ public final class FeedItemsFilter {
             seen.lastAfterSize = afterSize;
             return seen;
         }
-    }
-
-    private static String getProbeStack() {
-        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-        StringBuilder builder = new StringBuilder();
-        int added = 0;
-        for (StackTraceElement frame : stack) {
-            String className = frame.getClassName();
-            if (className.startsWith("app.morphe.extension.tiktok.feedfilter.")
-                || className.startsWith("java.lang.Thread")) {
-                continue;
-            }
-
-            if (builder.length() > 0) builder.append(" <- ");
-            builder.append(className).append('#').append(frame.getMethodName()).append(':').append(frame.getLineNumber());
-            if (++added >= 4) break;
-        }
-        return builder.length() == 0 ? "none" : builder.toString();
     }
 
     private enum FilterPhase {

@@ -528,9 +528,7 @@ public final class LogBufferManager {
 
     /** The same stamp the report header carries, so one report does not hold two formats. */
     private static String utcOf(long epochMillis) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return format.format(new Date(epochMillis));
+        return DiagnosticEvent.utc(epochMillis);
     }
 
     public static String snapshotForCrash(int maxChars) {
@@ -753,9 +751,7 @@ public final class LogBufferManager {
     }
 
     private static String utcNow() {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US);
-        format.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return format.format(new Date());
+        return DiagnosticEvent.utc(System.currentTimeMillis());
     }
 
     /** The stamp every Hushfeed export is named with. UTC, so two exports sort together. */

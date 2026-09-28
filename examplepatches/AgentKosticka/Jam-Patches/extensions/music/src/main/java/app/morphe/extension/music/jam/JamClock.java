@@ -10,7 +10,7 @@ package app.morphe.extension.music.jam;
 import static app.morphe.extension.shared.StringRef.str;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import android.app.Dialog;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
@@ -188,6 +188,73 @@ public final class JamClock {
       task.get(5, TimeUnit.SECONDS);
     } finally {
       task.cancel(false);
+    }
+  }
+
+  private static android.graphics.Bitmap exportedArtwork;
+  private static String exportedArtworkData = "";
+  private static String exportedArtworkVideo = "";
+
+  /** Use the host's actual player cover, not a padded video-thumbnail fallback. */
+  static String artwork(String video) {
+    MediaController current = controller;
+    if (
+      current == null || !video.equals(VideoInformation.getVideoId())
+    ) return "";
+    MediaMetadata metadata = current.getMetadata();
+    if (metadata == null) return "";
+    android.graphics.Bitmap bitmap = metadata.getBitmap(
+      MediaMetadata.METADATA_KEY_ALBUM_ART
+    );
+    if (bitmap == null) bitmap = metadata.getBitmap(
+      MediaMetadata.METADATA_KEY_ART
+    );
+    if (bitmap == null) bitmap = metadata.getBitmap(
+      MediaMetadata.METADATA_KEY_DISPLAY_ICON
+    );
+    if (bitmap == null || bitmap.isRecycled()) return "";
+    if (
+      bitmap == exportedArtwork && video.equals(exportedArtworkVideo)
+    ) return exportedArtworkData;
+    try {
+      int width = bitmap.getWidth(),
+        height = bitmap.getHeight();
+      float scale = Math.min(1f, 512f / Math.max(width, height));
+      android.graphics.Bitmap sized =
+        android.graphics.Bitmap.createScaledBitmap(
+          bitmap,
+          Math.max(1, Math.round(width * scale)),
+          Math.max(1, Math.round(height * scale)),
+          true
+        );
+      java.io.ByteArrayOutputStream output =
+        new java.io.ByteArrayOutputStream();
+      try {
+        for (int quality = 85; quality >= 25; quality -= 20) {
+          output.reset();
+          if (
+            !sized.compress(
+              android.graphics.Bitmap.CompressFormat.JPEG,
+              quality,
+              output
+            )
+          ) return "";
+          if (output.size() <= 128000) break;
+        }
+        if (output.size() > 128000) return "";
+        exportedArtworkData = android.util.Base64.encodeToString(
+          output.toByteArray(),
+          android.util.Base64.NO_WRAP
+        );
+        exportedArtwork = bitmap;
+        exportedArtworkVideo = video;
+        return exportedArtworkData;
+      } finally {
+        if (sized != bitmap) sized.recycle();
+      }
+    } catch (Exception error) {
+      Logger.printInfo(() -> "Could not export host player artwork", error);
+      return "";
     }
   }
 
@@ -385,33 +452,28 @@ public final class JamClock {
         at / 60000,
         (at / 1000) % 60
       );
-      AlertDialog d = new AlertDialog.Builder(a)
-        .setTitle(String.format(str("morphe_music_jam_seek_to"), time))
-        .setItems(
-          new String[] {
-            str("morphe_music_jam_move_host_here"),
-            str("morphe_music_jam_quit_and_play"),
-          },
-          (w, index) -> {
-            if (index == 0) {
-              try {
-                JamUi.edit(
-                  a,
-                  JamUi.command("SEEK")
-                    .put("videoId", video)
-                    .put("position", at)
-                );
-              } catch (Exception error) {
-                Logger.printInfo(() -> "Could not send Jam seek", error);
-              }
-            } else JamPlayback.leaveAndPlay(a, video, at);
-          }
-        )
-        .setNegativeButton(str("morphe_music_jam_cancel"), null)
-        .setOnDismissListener(w -> JamPlayback.releaseDialog())
-        .create();
+      Dialog d = JamUi.choiceDialog(
+        a,
+        String.format(str("morphe_music_jam_seek_to"), time),
+        new String[] {
+          str("morphe_music_jam_move_host_here"),
+          str("morphe_music_jam_quit_and_play"),
+        },
+        index -> {
+          if (index == 0) {
+            try {
+              JamUi.edit(
+                a,
+                JamUi.command("SEEK").put("videoId", video).put("position", at)
+              );
+            } catch (Exception error) {
+              Logger.printInfo(() -> "Could not send Jam seek", error);
+            }
+          } else JamPlayback.leaveAndPlay(a, video, at);
+        }
+      );
+      d.setOnDismissListener(w -> JamPlayback.releaseDialog());
       d.show();
-      JamUi.styleDialog(d);
     });
     return true;
   }
@@ -432,7 +494,11 @@ public final class JamClock {
       return null;
     });
     Utils.runOnMainThread(task);
-    task.get(5, TimeUnit.SECONDS);
+    try {
+      task.get(5, TimeUnit.SECONDS);
+    } finally {
+      task.cancel(false);
+    }
   }
 
   static void seekLocalWhenReady(String video, long position, int attempts) {

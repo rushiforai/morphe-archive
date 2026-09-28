@@ -33,7 +33,7 @@ private const val APP_COMPAT_MODE_NIGHT_NO = 1
 private const val APP_COMPAT_MODE_NIGHT_YES = 2
 
 internal object CoreNightModeFingerprint : Fingerprint(
-    custom = { _, classDef -> classDef.type.startsWith(CORE_COMPOSE_THEME_PACKAGE) },
+    custom = { method, _ -> method.hasCoreComposeThemeType() },
     filters = listOf(
         anyInstruction(
             fieldAccess(opcode = Opcode.SGET, type = "I"),

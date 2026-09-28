@@ -24,29 +24,37 @@ public final class TeraboxHdUnlock {
             return size() > RECORDED_FILES;
         }
     };
-    private static volatile String streamingPath;
+    private static final String SHARED_FILE_PREFIX = "share:";
+
+    private static volatile String streamingFileKey;
     private static volatile boolean playingOriginal;
 
     private TeraboxHdUnlock() {
     }
 
-    public static void recordOriginalFile(String path, String dlink) {
-        if (path != null && dlink != null && !dlink.isEmpty()) {
+    public static void recordOriginalFile(String fileKey, String dlink) {
+        if (fileKey != null && dlink != null && !dlink.isEmpty()) {
             synchronized (originalLinks) {
-                originalLinks.put(path, dlink);
+                originalLinks.put(fileKey, dlink);
             }
+        }
+    }
+
+    public static void recordSharedFile(String fsId, String dlink) {
+        if (fsId != null) {
+            recordOriginalFile(SHARED_FILE_PREFIX + fsId, dlink);
         }
     }
 
     public static String selectPlaybackUrl(Object vastView, String url) {
         playingOriginal = false;
-        streamingPath = null;
-        if (url == null || !url.contains("/api/streaming")) {
+        streamingFileKey = null;
+        if (url == null || !(url.contains("/api/streaming") || url.contains("/share/streaming"))) {
             return url;
         }
         Uri uri = Uri.parse(url);
-        streamingPath = uri.getQueryParameter("path");
-        String dlink = originalLink(streamingPath);
+        streamingFileKey = fileKey(uri);
+        String dlink = originalLink(streamingFileKey);
         if (dlink == null || !isHdTier(uri.getQueryParameter("type"))) {
             return url;
         }
@@ -64,15 +72,24 @@ public final class TeraboxHdUnlock {
     }
 
     public static boolean requiresReload(Enum<?> resolution) {
-        return isHdTier(resolution.name()) ? originalLink(streamingPath) != null : playingOriginal;
+        return isHdTier(resolution.name()) ? originalLink(streamingFileKey) != null : playingOriginal;
     }
 
-    private static String originalLink(String path) {
-        if (path == null) {
+    private static String fileKey(Uri uri) {
+        String path = uri.getQueryParameter("path");
+        if (path != null && !path.isEmpty()) {
+            return path;
+        }
+        String fsId = uri.getQueryParameter("fid");
+        return fsId == null ? null : SHARED_FILE_PREFIX + fsId;
+    }
+
+    private static String originalLink(String fileKey) {
+        if (fileKey == null) {
             return null;
         }
         synchronized (originalLinks) {
-            return originalLinks.get(path);
+            return originalLinks.get(fileKey);
         }
     }
 

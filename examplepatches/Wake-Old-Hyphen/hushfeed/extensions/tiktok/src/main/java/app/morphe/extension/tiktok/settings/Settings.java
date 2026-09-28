@@ -95,6 +95,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DOWNLOAD_AUDIO_TRACK = new BooleanSetting("download_audio_track", FALSE);
     public static final BooleanSetting DOWNLOAD_WITHOUT_SOUND =
             new BooleanSetting("download_without_sound", FALSE);
+    public static final BooleanSetting DOWNLOAD_PROGRESS = new BooleanSetting("download_progress", false);
+    public static final BooleanSetting DOWNLOAD_DETAILS = new BooleanSetting("download_details", FALSE);
+    public static final BooleanSetting CHECK_SAVED_VIDEOS = new BooleanSetting("check_saved_videos", FALSE);
     public static final StringSetting EXTERNAL_DOWNLOADER_PACKAGE =
             new StringSetting("external_downloader_package", "");
     /** The only package whose documented intent extras Hushfeed knows how to request. */
@@ -186,6 +189,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting CREATOR_FILTER_EXCEPTIONS =
             new FeedRuleStringSetting("creator_filter_exceptions", true);
     public static final StringSetting REGION_ONLY_FROM = new StringSetting("region_only_from", "", true);
+    /** Caption languages to keep, by the video's original caption track; empty keeps every language. */
+    public static final StringSetting CAPTION_LANGUAGES = new StringSetting("caption_languages", "");
     public static final StringSetting REGION_NEVER_FROM = new StringSetting("region_never_from", "", true);
     public static final IntegerSetting MAX_VIDEO_SECONDS =
             new IntegerSetting("max_video_seconds", 0).withRange(0, 86400);
@@ -309,6 +314,8 @@ public class Settings extends BaseSettings {
             TRUE
     );
     public static final BooleanSetting STOP_VIDEO_LOOPING = new BooleanSetting("stop_video_looping", FALSE, true);
+    /** Keeps the full-screen viewer on a video when it ends; the Stay on the video in full screen patch. */
+    public static final BooleanSetting FULL_SCREEN_HOLD = new BooleanSetting("full_screen_hold", FALSE, true);
     public static final BooleanSetting RESUME_VIDEO_AFTER_SCROLL = new BooleanSetting(
             "resume_video_after_scroll",
             TRUE,
@@ -441,6 +448,12 @@ public class Settings extends BaseSettings {
 
     public static final BooleanSetting ENABLE_LONG_PRESS_SPEED_LOCK = new BooleanSetting("enable_long_press_speed_lock", FALSE, true);
     public static final BooleanSetting NOT_INTERESTED_BUTTON = new BooleanSetting("not_interested_button", FALSE);
+    /**
+     * Mute feed videos. Whether the feed is muted right now is the phone's state, like the volume,
+     * so a backup doesn't carry it; paused, Hushfeed plays the feed with sound as TikTok would.
+     */
+    public static final BooleanSetting FEED_MUTED = new BooleanSetting("feed_muted", FALSE, false, false);
+    public static final BooleanSetting FEED_MUTE_BUTTON = new BooleanSetting("feed_mute_button", TRUE);
     public static final BooleanSetting HIDE_FEED_CAPTION = new BooleanSetting("hide_feed_caption", FALSE);
     public static final BooleanSetting HIDE_FEED_MUSIC = new BooleanSetting("hide_feed_music", FALSE);
     public static final BooleanSetting HIDE_FEED_ACTION_BAR = new BooleanSetting("hide_feed_action_bar", FALSE);
@@ -454,6 +467,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_RAIL_SHARE = new BooleanSetting("hide_rail_share", FALSE);
     public static final BooleanSetting HIDE_RAIL_COUNTS = new BooleanSetting("hide_rail_counts", FALSE);
     public static final BooleanSetting HIDE_STATUS_BAR = new BooleanSetting("hide_status_bar", FALSE);
+    /** LIVE rooms are an activity of their own, which Hide the status bar never reached (#38). */
+    public static final BooleanSetting HIDE_STATUS_BAR_IN_LIVE = new BooleanSetting("hide_status_bar_in_live", FALSE);
     public static final StringSetting TOUCH_TARGET_SCALE = new StringSetting("touch_target_scale", "1");
     public static final BooleanSetting HIDE_SENSITIVE_WARNINGS = new BooleanSetting("hide_sensitive_warnings", FALSE);
     public static final BooleanSetting SHOW_AUTHOR_REGION = new BooleanSetting("show_author_region", FALSE);
@@ -472,6 +487,8 @@ public class Settings extends BaseSettings {
             new StringSetting("block_sound_button_position", "");
     public static final StringSetting NOT_INTERESTED_BUTTON_POSITION =
             new StringSetting("not_interested_button_position", "");
+    public static final StringSetting FEED_MUTE_BUTTON_POSITION =
+            new StringSetting("feed_mute_button_position", "");
     public static final BooleanSetting HIDE_INBOX_STORIES = new BooleanSetting("hide_inbox_stories", FALSE);
     public static final BooleanSetting HIDE_INBOX_NEW_FOLLOWERS = new BooleanSetting("hide_inbox_new_followers", FALSE);
     public static final BooleanSetting HIDE_INBOX_ACTIVITY = new BooleanSetting("hide_inbox_activity", FALSE);
@@ -506,6 +523,13 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SEEN_VIDEOS = new BooleanSetting("hide_seen_videos", FALSE, true);
     public static final IntegerSetting SEEN_VIDEO_RETENTION_DAYS =
             new IntegerSetting("seen_video_retention_days", 30).withRange(0, 3650);
+    /**
+     * How much of a video, in percent, has to play before it counts as seen. Zero keeps the
+     * original rule (a tenth of the video, one to five seconds). 90 is the top because the
+     * last progress report before a loop can land anywhere in the final second.
+     */
+    public static final IntegerSetting SEEN_VIDEO_MARK_PERCENT =
+            new IntegerSetting("seen_video_mark_percent", 0).withRange(0, 90);
     public static final BooleanSetting HIDE_PLAYLIST_BAR = new BooleanSetting("hide_playlist_bar", FALSE, true);
     public static final BooleanSetting HIDE_EVENT_BADGE = new BooleanSetting("hide_event_badge", FALSE, true);
     public static final BooleanSetting HIDE_INSERTED_CARDS = new BooleanSetting("hide_inserted_cards", FALSE, true);
@@ -615,6 +639,7 @@ public class Settings extends BaseSettings {
                 BOTTOM_NAVIGATION_OBSERVED_TABS, DOWNLOAD_PATH, DOWNLOAD_PATHS_MIGRATED,
                 REMEMBERED_SPEED, SESSION_BUDGET_STATE, BLOCK_AUTHOR_BUTTON_POSITION,
                 LOCAL_HIDE_BUTTON_POSITION, BLOCK_SOUND_BUTTON_POSITION, NOT_INTERESTED_BUTTON_POSITION,
+                FEED_MUTE_BUTTON_POSITION,
                 SHARE_ACTION_CATALOG, DIAGNOSTIC_REPORT_SALT,
                 // The budget's day is worked out from this hour. Paused, the budget counts
                 // nothing and holds nothing, but its record still has to name the right day.

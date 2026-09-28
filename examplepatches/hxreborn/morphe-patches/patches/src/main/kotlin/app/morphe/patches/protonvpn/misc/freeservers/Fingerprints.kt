@@ -15,18 +15,14 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
+import app.morphe.patches.protonvpn.misc.restrictions.FreeServerCheckFingerprint
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val UI = "Lcom/protonvpn/android/redesign/countries/ui"
 private const val FILTER_TYPE = "$UI/ServerFilterType;"
 
-internal object ServerListFilterFingerprint : Fingerprint(
+internal object ServerListFilterFingerprint : FreeServerCheckFingerprint(
     definingClass = "$UI/ServerListViewModelDataAdapterLegacy;",
-    returnType = "Z",
-    filters = listOf(
-        methodCall(definingClass = "Lcom/protonvpn/android/servers/Server;", name = "isFreeServer"),
-        opcode(Opcode.MOVE_RESULT, MatchAfterImmediately()),
-    ),
 )
 
 internal object ServerGroupItemStateFingerprint : Fingerprint(

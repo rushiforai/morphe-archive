@@ -8,5 +8,5 @@ internal object KabbikApplicationOnCreateFingerprint : Fingerprint(
     name = "onCreate",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf()
+    parameters = emptyList(),
 )

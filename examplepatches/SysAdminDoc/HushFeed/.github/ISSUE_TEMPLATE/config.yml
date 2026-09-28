@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/SysAdminDoc/hushfeed/discussions/categories/q-a
+    about: Setup help, how a switch works, whether a TikTok version is supported. Answers there help the next person too.
+  - name: Talk about Hushfeed
+    url: https://github.com/SysAdminDoc/hushfeed/discussions
+    about: Ideas that aren't a concrete request yet, tips, and anything else. Release news is posted under Announcements.

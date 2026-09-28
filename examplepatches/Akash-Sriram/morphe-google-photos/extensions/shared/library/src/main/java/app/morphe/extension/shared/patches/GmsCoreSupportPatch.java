@@ -145,6 +145,9 @@ public class GmsCoreSupportPatch {
                 // Ignore Android Automotive devices (Google built-in) and Google Photos,
                 // as Photos does not require persistent background GmsCore services.
                 Logger.printDebug(() -> "Skipping battery optimization check (Automotive or Google Photos)");
+                if (isGooglePhotos(context)) {
+                    checkMicroGLocationPermission(context);
+                }
             } else if (batteryOptimizationsEnabled(context)) {
                 Logger.printInfo(() -> "GmsCore is not whitelisted from battery optimizations");
 
@@ -259,6 +262,115 @@ public class GmsCoreSupportPatch {
 
     private static String getGmsCoreVendorGroupId() {
         return "app.revanced"; // Modified during patching.
+    }
+
+    private static final String PREF_IGNORE_MICROG_LOCATION_PROMPT = "morphe_ignore_microg_location_prompt";
+    private static final String MORPHE_PREFERENCES_NAME = "morphe_preferences";
+
+    /**
+     * Checks whether MicroG / GmsCore currently has location permissions granted.
+     */
+    public static boolean isMicroGLocationGranted(Context context) {
+        if (context == null) context = Utils.getContext();
+        if (context == null) return true;
+        try {
+            PackageManager pm = context.getPackageManager();
+            boolean fine = pm.checkPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, GMS_CORE_PACKAGE_NAME) == PackageManager.PERMISSION_GRANTED;
+            boolean coarse = pm.checkPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION, GMS_CORE_PACKAGE_NAME) == PackageManager.PERMISSION_GRANTED;
+            return fine || coarse;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public static boolean isMicroGLocationPromptIgnored(Context context) {
+        if (context == null) context = Utils.getContext();
+        if (context == null) return false;
+        try {
+            return context.getSharedPreferences(MORPHE_PREFERENCES_NAME, Context.MODE_PRIVATE)
+                    .getBoolean(PREF_IGNORE_MICROG_LOCATION_PROMPT, false);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    public static void setMicroGLocationPromptIgnored(Context context, boolean ignored) {
+        if (context == null) context = Utils.getContext();
+        if (context == null) return;
+        try {
+            context.getSharedPreferences(MORPHE_PREFERENCES_NAME, Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(PREF_IGNORE_MICROG_LOCATION_PROMPT, ignored)
+                    .apply();
+        } catch (Throwable ignoredException) {}
+    }
+
+    private static void checkMicroGLocationPermission(Activity context) {
+        try {
+            if (isMicroGLocationGranted(context)) {
+                return;
+            }
+            if (isMicroGLocationPromptIgnored(context)) {
+                Logger.printInfo(() -> "MicroG location permission not granted, but user previously selected Ignore");
+                return;
+            }
+
+            Utils.runOnMainThreadDelayed(() -> {
+                try {
+                    if (context.isFinishing()) return;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && context.isDestroyed()) return;
+
+                    Pair<Dialog, LinearLayout> dialogPair = CustomDialog.create(
+                            context,
+                            "MicroG Location Permission",
+                            "MicroG requires Location permission to display photo location maps and extra info.\n\nWithout this permission, location maps in Google Photos are temporarily disabled to prevent crashes.",
+                            null,
+                            "Open Settings",
+                            () -> {
+                                try {
+                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                    intent.setData(Uri.fromParts("package", GMS_CORE_PACKAGE_NAME, null));
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    context.startActivity(intent);
+                                } catch (Throwable t) {
+                                    Logger.printException(() -> "Failed to open MicroG settings", t);
+                                }
+                            },
+                            null,
+                            "Ignore",
+                            () -> {
+                                Logger.printInfo(() -> "User selected Ignore on MicroG location prompt");
+                                setMicroGLocationPromptIgnored(context, true);
+                            },
+                            true
+                    );
+
+                    Dialog dialog = dialogPair.first;
+                    dialog.setCancelable(true);
+                    Utils.showDialog(context, dialog);
+                } catch (Throwable t) {
+                    Logger.printException(() -> "Failed to display MicroG location permission dialog", t);
+                }
+            }, 1000);
+        } catch (Throwable t) {
+            Logger.printException(() -> "checkMicroGLocationPermission error", t);
+        }
+    }
+
+    /**
+     * Interceptor for photos.killswitch_info_panel_map.
+     * When MicroG lacks location permission, killswitches the map to gracefully
+     * prevent crash when pulling up photo details.
+     */
+    public static boolean isInfoPanelMapKillswitched(boolean originalValue) {
+        if (originalValue) {
+            return true;
+        }
+        if (!isMicroGLocationGranted(Utils.getContext())) {
+            Logger.printInfo(() -> "MicroG lacks location permission: killswitching Info Panel map to prevent crash");
+            return true;
+        }
+        return false;
     }
 
     private interface LocationApplier {
@@ -818,6 +930,10 @@ public class GmsCoreSupportPatch {
     public static void initMapLocation(Object mixinObj) {
         if (mixinObj == null) return;
         try {
+            if (!isMicroGLocationGranted(Utils.getContext())) {
+                android.util.Log.d("MorpheLocation", "initMapLocation skipped: MicroG location permission not granted");
+                return;
+            }
             android.util.Log.d("MorpheLocation", "initMapLocation called for: " + mixinObj.getClass().getName());
             sCurrentMixinRef = new java.lang.ref.WeakReference<>(mixinObj);
             if (sMapExploreController == null) {
@@ -1139,6 +1255,23 @@ public class GmsCoreSupportPatch {
                             android.util.Log.e("MorpheLocation", "Failed to request location permissions", t);
                         }
                     });
+                }
+                return;
+            }
+
+            if (!isMicroGLocationGranted(context)) {
+                android.util.Log.w("MorpheLocation", "Location permission not granted to MicroG");
+                Activity activity = null;
+                Context cur = context;
+                while (cur instanceof android.content.ContextWrapper) {
+                    if (cur instanceof Activity) {
+                        activity = (Activity) cur;
+                        break;
+                    }
+                    cur = ((android.content.ContextWrapper) cur).getBaseContext();
+                }
+                if (activity != null) {
+                    checkMicroGLocationPermission(activity);
                 }
                 return;
             }

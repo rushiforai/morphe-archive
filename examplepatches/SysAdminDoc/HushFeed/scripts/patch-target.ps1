@@ -1,0 +1,95 @@
+<#
+.SYNOPSIS
+    Read the app package and the exact versions every patch in a generated catalog declares.
+
+.DESCRIPTION
+    Device patching, fixture verification, heap measurements and release validation all need
+    the package and versions that the bundle supports. Keeping that fact in patches-list.json,
+    which is generated from AppCompatibilities.kt, prevents those callers from drifting apart.
+    Every patch has to declare the same versions: the bundle is held to each of them, and a
+    patch that left one out would be missing from that build in the Manager without a word.
+    PackageVersions lists them oldest first; PackageVersion is the newest, for one-line text.
+#>
+
+function Get-PatchTarget {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][object]$PatchList)
+
+    $patches = @($PatchList.patches)
+    if ($patches.Count -eq 0) { throw 'patches-list.json contains no patches.' }
+
+    $targets = @{}
+    $versionSets = @{}
+    foreach ($patch in $patches) {
+        if ($null -eq $patch) { throw 'patches-list.json contains a null patch.' }
+        $nameProperty = $patch.PSObject.Properties['name']
+        $patchName = if ($null -ne $nameProperty -and -not [string]::IsNullOrWhiteSpace([string]$nameProperty.Value)) {
+            [string]$nameProperty.Value
+        } else {
+            '<unnamed patch>'
+        }
+        $compatible = $patch.PSObject.Properties['compatiblePackages']
+        if ($null -eq $compatible -or $null -eq $compatible.Value) {
+            throw "$patchName has no compatible package in patches-list.json."
+        }
+        $packages = @($compatible.Value.PSObject.Properties)
+        if ($packages.Count -eq 0) {
+            throw "$patchName has no compatible package in patches-list.json."
+        }
+        foreach ($property in $packages) {
+            $versions = @($property.Value | ForEach-Object { [string]$_ } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            if ($versions.Count -eq 0) {
+                throw "$patchName has no exact compatible version for $($property.Name)."
+            }
+            if (-not $targets.ContainsKey($property.Name)) { $targets[$property.Name] = @() }
+            $targets[$property.Name] += $versions
+            $set = (@($versions | Sort-Object -Unique) -join ', ')
+            if (-not $versionSets.ContainsKey($set)) { $versionSets[$set] = $patchName }
+        }
+    }
+
+    $packages = @($targets.Keys | Sort-Object)
+    if ($packages.Count -ne 1) {
+        throw "Expected one compatible package, found $($packages -join ', ')."
+    }
+    $packageName = $packages[0]
+    if ($versionSets.Count -ne 1) {
+        $sets = @($versionSets.Keys | Sort-Object | ForEach-Object { "$($versionSets[$_]) declares $_" })
+        throw "Expected every patch to declare the same versions of ${packageName}: $($sets -join '; ')."
+    }
+    $versions = @($targets[$packageName] | Sort-Object -Unique | Sort-Object { [version]$_ })
+    return [pscustomobject]@{
+        PackageName = $packageName
+        PackageVersions = $versions
+        PackageVersion = $versions[-1]
+    }
+}
+
+<#
+.SYNOPSIS
+    Versions as a sentence names them: "47.0.3", "47.0.3 and 47.1.3", "a, b and c".
+#>
+function Format-VersionList {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Versions)
+
+    $list = @($Versions)
+    if ($list.Count -le 1) { return ($list -join '') }
+    return (@($list[0..($list.Count - 2)]) -join ', ') + ' and ' + $list[-1]
+}
+
+<#
+.SYNOPSIS
+    The declared version a patching report is held to: the one it names, when the catalog
+    declares it, and otherwise the newest declared one, so a run on any other build fails the
+    report check by name instead of passing as though it were declared.
+#>
+function Get-DeclaredReportVersion {
+    [CmdletBinding()]
+    param([AllowNull()][object]$Report, [Parameter(Mandatory = $true)][object]$Target)
+
+    $named = if ($null -ne $Report) { [string]$Report.packageVersion } else { '' }
+    if ($named -cin @($Target.PackageVersions)) { return $named }
+    return [string]$Target.PackageVersion
+}

@@ -5,6 +5,7 @@
 package app.morphe.extension.tiktok.privacy;
 
 import android.app.Activity;
+import android.app.AppOpsManager;
 import android.app.Application;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -12,11 +13,14 @@ import android.graphics.Paint;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Process;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
+
+import androidx.annotation.RequiresApi;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,17 +34,29 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 /**
  * A dot in the top corner while TikTok holds the camera or records sound.
  *
- * <p>A green square for the camera, an orange diamond for the microphone, both when both. The counts come from the
- * patched call sites: a camera counts from the moment it opens until it is released or closed,
- * a recorder from start until stop or release. The dot sits on the decor view of whichever
- * activity is on top, follows the top activity while an access is live, and takes no touches.
- * With the switch off nothing is drawn; the counts are still kept so turning it on mid-access
- * shows the truth.
+ * <p>A green square for the camera, an orange diamond for the microphone, both when both. Two
+ * sources decide it. On Android 11 and up, the system's own record of this app's active camera
+ * and recording ops, which is what the status bar's privacy dots read, so a recording TikTok
+ * makes natively counts too. And on every version, the patched call sites: a camera counts from
+ * the moment it opens until it is released or closed, a recorder from start until stop or
+ * release. The dot sits on the decor view of whichever activity is on top, follows the top
+ * activity while an access is live, and takes no touches. With the switch off nothing is drawn;
+ * both sources are still kept so turning it on mid-access shows the truth.
  */
 @SuppressWarnings({"unused", "deprecation"})
 public final class CameraMicIndicator {
     private static final AtomicInteger CAMERAS = new AtomicInteger();
     private static final AtomicInteger MICROPHONES = new AtomicInteger();
+    /**
+     * What the system says this app is doing right now, on API 30 and up. TikTok records a story's
+     * sound natively, never through the Java recorder calls the patch counts, so on the S25
+     * (2026-09-26) the diamond flashed for 120 ms at the start of a four-second recording.
+     */
+    private static volatile boolean systemCamera;
+    private static volatile boolean systemMicrophone;
+    /** The package the system's reports are held to; null until the watch starts. */
+    private static volatile String ownPackage;
+    private static boolean watching;
     private static WeakReference<Activity> top = new WeakReference<>(null);
     private static WeakReference<Activity> shownOn = new WeakReference<>(null);
     private static DotView dot;
@@ -53,7 +69,56 @@ public final class CameraMicIndicator {
      * and the mark went onto the main activity underneath it (the S25, 2026-09-26).
      */
     public static void install(Activity activity) {
-        if (activity != null) follow(activity.getApplication());
+        if (activity == null) return;
+        follow(activity.getApplication());
+        if (!watching && Build.VERSION.SDK_INT >= 30) {
+            watching = true;
+            SystemOps.watch(activity.getApplicationContext());
+        }
+    }
+
+    /**
+     * The system's report that one of this app's ops started or stopped. Only this uid and package
+     * count: without the WATCH_APPOPS permission the system reports nothing else, and the check
+     * keeps it that way whatever a ROM does.
+     */
+    static void onOpActiveChanged(String op, int uid, String packageName, boolean active) {
+        String own = ownPackage;
+        if (uid != Process.myUid() || own == null || !own.equals(packageName)) return;
+        if (AppOpsManager.OPSTR_CAMERA.equals(op)) {
+            systemCamera = active;
+        } else if (AppOpsManager.OPSTR_RECORD_AUDIO.equals(op)) {
+            systemMicrophone = active;
+        } else {
+            return;
+        }
+        Logger.printInfo(() -> "Camera/mic indicator: system reports " + op + (active ? " active" : " inactive"));
+        Utils.runOnMainThreadNowOrLater(CameraMicIndicator::refresh);
+    }
+
+    /** Kept apart so no API 30 type is loaded on an older phone. */
+    @RequiresApi(30)
+    private static final class SystemOps {
+        static void watch(Context context) {
+            if (context == null) return;
+            try {
+                AppOpsManager ops = context.getSystemService(AppOpsManager.class);
+                if (ops == null) return;
+                String own = context.getPackageName();
+                ownPackage = own;
+                String[] watched = {AppOpsManager.OPSTR_CAMERA, AppOpsManager.OPSTR_RECORD_AUDIO};
+                ops.startWatchingActive(watched, context.getMainExecutor(), CameraMicIndicator::onOpActiveChanged);
+                // After the watch starts, so an access that ends in between is reported, not lost.
+                int uid = Process.myUid();
+                for (String op : watched) {
+                    if (ops.isOpActive(op, uid, own)) onOpActiveChanged(op, uid, own, true);
+                }
+            } catch (Throwable error) {
+                // Inside TikTok's onCreate, so nothing may escape. The call sites still count, so
+                // this is a weaker mark, not a broken one.
+                Logger.printInfo(() -> "Camera/mic indicator could not watch the system's camera and microphone state: " + error);
+            }
+        }
     }
 
     /** The camera opened and came back non-null; a failed open shows nothing. */
@@ -96,8 +161,8 @@ public final class CameraMicIndicator {
 
     private static void refresh() {
         try {
-            boolean camera = CAMERAS.get() > 0;
-            boolean microphone = MICROPHONES.get() > 0;
+            boolean camera = CAMERAS.get() > 0 || systemCamera;
+            boolean microphone = MICROPHONES.get() > 0 || systemMicrophone;
             boolean wanted = (camera || microphone) && switchOn();
             Activity activity = wanted ? currentActivity() : null;
             Activity previous = shownOn.get();
@@ -188,7 +253,7 @@ public final class CameraMicIndicator {
     }
 
     private static int dp(Context context, int value) {
-        return Math.round(value * context.getResources().getDisplayMetrics().density);
+        return SettingsUi.dp(context, value);
     }
 
     /**
@@ -285,6 +350,10 @@ public final class CameraMicIndicator {
     static void resetForTests() {
         CAMERAS.set(0);
         MICROPHONES.set(0);
+        systemCamera = false;
+        systemMicrophone = false;
+        ownPackage = null;
+        watching = false;
         remove(shownOn.get());
         shownOn = new WeakReference<>(null);
         top = new WeakReference<>(null);

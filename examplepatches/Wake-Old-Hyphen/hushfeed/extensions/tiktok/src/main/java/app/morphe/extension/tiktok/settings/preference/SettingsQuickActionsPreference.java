@@ -118,7 +118,7 @@ public final class SettingsQuickActionsPreference extends Preference {
                 SettingsUi.dp(context, 32), SettingsUi.dp(context, 32)));
 
         TextView label = SettingsUi.text(
-                context, action.title, 14, SettingsUi.textPrimary(),
+                context, action.title, SettingsUi.TEXT_BODY_SMALL, SettingsUi.textPrimary(),
                 android.graphics.Typeface.BOLD);
         label.setSingleLine(false);
         label.setMaxLines(2);

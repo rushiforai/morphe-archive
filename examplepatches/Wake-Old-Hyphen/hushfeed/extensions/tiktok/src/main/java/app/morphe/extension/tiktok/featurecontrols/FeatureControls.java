@@ -76,7 +76,10 @@ public final class FeatureControls {
      * switch keeps its stored value and both mechanisms answer to it.
      */
     public static boolean hideFeedLiveButtonEnabled(boolean originalEnabled) {
-        return !Settings.HIDE_LIVE_ENTRANCE.get() && originalEnabled;
+        boolean hide = Settings.HIDE_LIVE_ENTRANCE.get();
+        LiveButtonReport.record(hide ? LiveButtonReport.Route.SWITCH_HID
+                : originalEnabled ? LiveButtonReport.Route.SHOWN : LiveButtonReport.Route.TIKTOK_OFF);
+        return !hide && originalEnabled;
     }
 
     /** The same question for the search button: false hides it. */

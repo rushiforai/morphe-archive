@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="feat(subwaysurfers): add free IAP patch"
+MSG="fix: remove apkFileType declarations so web-search accepts any file type"
 
 cd "$DIR"
 

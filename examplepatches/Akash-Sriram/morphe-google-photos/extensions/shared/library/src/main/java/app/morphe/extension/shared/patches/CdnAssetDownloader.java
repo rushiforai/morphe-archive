@@ -1,5 +1,6 @@
 package app.morphe.extension.shared.patches;
 
+import android.os.Build;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -100,7 +101,22 @@ public final class CdnAssetDownloader {
                     }
 
                     if (responseCode >= 200 && responseCode < 300) {
-                        long expectedLength = conn.getContentLengthLong();
+                        final long expectedLength;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            expectedLength = conn.getContentLengthLong();
+                        } else {
+                            long clVal = -1;
+                            String cl = conn.getHeaderField("Content-Length");
+                            if (cl != null && !cl.isEmpty()) {
+                                try {
+                                    clVal = Long.parseLong(cl.trim());
+                                } catch (Exception ignored) {}
+                            }
+                            if (clVal <= 0) {
+                                clVal = conn.getContentLength();
+                            }
+                            expectedLength = clVal;
+                        }
                         long totalBytesRead = 0;
 
                         try (InputStream is = new BufferedInputStream(conn.getInputStream());

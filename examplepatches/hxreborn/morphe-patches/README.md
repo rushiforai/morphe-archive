@@ -7,6 +7,7 @@
 [![Release badge](https://img.shields.io/github/v/release/hxreborn/morphe-patches?style=for-the-badge&label=Release&color=D29922&logo=github&logoColor=white)](https://github.com/hxreborn/morphe-patches/releases/latest)
 [![Downloads badge](https://img.shields.io/github/downloads/hxreborn/morphe-patches/total?style=for-the-badge&label=Downloads&color=2F81F7&logo=github&logoColor=white)](https://github.com/hxreborn/morphe-patches/releases/latest)
 [![Updated badge](https://img.shields.io/github/release-date/hxreborn/morphe-patches?style=for-the-badge&label=Updated&color=3FB950&logo=clockify&logoColor=white)](https://github.com/hxreborn/morphe-patches/releases/latest)
+[![Stars badge](https://img.shields.io/github/stars/hxreborn/morphe-patches?style=for-the-badge&label=Stars&color=E3B341&logo=github&logoColor=white)](https://github.com/hxreborn/morphe-patches/stargazers)
 [![Patches badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fhxreborn%2Fmorphe-patches%2Fmain%2Fpatches-list.json&query=%24.patches.length&style=for-the-badge&label=Patches&color=DB61A2&logo=android&logoColor=white)](#-patches-list)
 
 [![Build badge](https://img.shields.io/github/actions/workflow/status/hxreborn/morphe-patches/release.yml?branch=main&style=for-the-badge&label=Build&logo=githubactions&logoColor=white)](https://github.com/hxreborn/morphe-patches/actions/workflows/release.yml)
@@ -26,15 +27,11 @@ I also accept [requests for other apps](https://github.com/hxreborn/morphe-patch
 Based on prior work by [ReVanced](https://github.com/ReVanced). Changes and their dates are
 recorded in the Git history.
 
-App icons in the patches list belong to their respective developers and are used only to
-identify each app. They are not covered by this repository's licence. See
-[the icon notice](.github/assets/icons/README.md).
-
 &nbsp;
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.31.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.31.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;88 patches total
+> **[v1.33.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.33.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;99 patches total
 <details open>
 <summary><img src=".github/assets/icons/cx.png" width="18" align="top">&nbsp;&nbsp;Cx File Explorer&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -49,6 +46,57 @@ identify each app. They are not covered by this repository's licence. See
 | <a id="cx-file-explorer-amoled-dark-theme"></a>[AMOLED dark theme](patches/src/main/kotlin/app/morphe/patches/cx/misc/theme/AmoledThemePatch.kt) | Adds a pure black option to the dark theme. |
 | <a id="cx-file-explorer-dark-theme"></a>[Dark theme](patches/src/main/kotlin/app/morphe/patches/cx/misc/theme/DarkThemePatch.kt) | Renders the app's dark theme and adds it to the settings. |
 | <a id="cx-file-explorer-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/cx/misc/premium/UnlockPremiumPatch.kt) | Unlocks premium and removes ads. |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/icons/cxxdroid.png" width="18" align="top">&nbsp;&nbsp;Cxxdroid&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.6_arm64 | 6.0_arm64 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="cxxdroid-amoled-dark-theme"></a>AMOLED dark theme | Adds an AMOLED option to Settings > Appearance > Editor theme (dark). Applies only while the Dark theme is active. |
+| <a id="cxxdroid-disable-tracking"></a>Disable tracking | Stops Firebase Analytics from collecting usage data. |
+| <a id="cxxdroid-unlock-premium"></a>Unlock premium | Unlocks premium and removes ads. |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/icons/jvdroid.png" width="18" align="top">&nbsp;&nbsp;Jvdroid&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.8 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="jvdroid-amoled-dark-theme"></a>AMOLED dark theme | Adds an AMOLED option to Settings > Appearance > Editor theme (dark). Applies only while the Dark theme is active. |
+| <a id="jvdroid-disable-tracking"></a>Disable tracking | Stops Firebase Analytics from collecting usage data. |
+| <a id="jvdroid-unlock-premium"></a>Unlock premium | Unlocks premium and removes ads. |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/icons/pydroid.png" width="18" align="top">&nbsp;&nbsp;Pydroid 3&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 8.6_arm64 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="pydroid-3-amoled-dark-theme"></a>AMOLED dark theme | Adds an AMOLED option to Settings > Appearance > Editor theme (dark). Applies only while the Dark theme is active. |
+| <a id="pydroid-3-disable-tracking"></a>Disable tracking | Stops Firebase Analytics from collecting usage data. |
+| <a id="pydroid-3-unlock-premium"></a>Unlock premium | Unlocks premium and removes ads. |
 
 </details>
 
@@ -88,8 +136,8 @@ identify each app. They are not covered by this repository's licence. See
 
 **🎯 Supported versions:**
 
-| 7.11.5 | 7.10.4 |
-| :---: | :---: |
+| 7.11.8 | 7.11.5 | 7.10.4 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
@@ -122,7 +170,7 @@ identify each app. They are not covered by this repository's licence. See
 </details>
 
 <details open>
-<summary><img src=".github/assets/icons/protonvpn.png" width="18" align="top">&nbsp;&nbsp;Proton VPN&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
+<summary><img src=".github/assets/icons/protonvpn.png" width="18" align="top">&nbsp;&nbsp;Proton VPN&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -134,6 +182,7 @@ identify each app. They are not covered by this repository's licence. See
 |----------|----------------|
 | <a id="proton-vpn-amoled-dark-theme"></a>[AMOLED dark theme](patches/src/main/kotlin/app/morphe/patches/protonvpn/misc/theme/AmoledThemePatch.kt) | Replaces the dark theme background with pure black. |
 | <a id="proton-vpn-custom-accent-color"></a>[Custom accent color](patches/src/main/kotlin/app/morphe/patches/protonvpn/misc/theme/AccentColorPatch.kt) | Changes the accent color. Choose a color in the patches menu. |
+| <a id="proton-vpn-disable-telemetry"></a>[Disable telemetry](patches/src/main/kotlin/app/morphe/patches/protonvpn/misc/telemetry/DisableTelemetryPatch.kt) | Stops sending usage statistics and diagnostics to Proton. |
 | <a id="proton-vpn-hide-upgrade-promotions"></a>[Hide upgrade promotions](patches/src/main/kotlin/app/morphe/patches/protonvpn/misc/upselling/HideUpgradePromotionsPatch.kt) | Hides settings that need a paid plan, upgrade banners, the Discover VPN Plus carousel and special offers. |
 | <a id="proton-vpn-remove-server-change-delay"></a>[Remove server change delay](patches/src/main/kotlin/app/morphe/patches/protonvpn/misc/delay/RemoveServerChangeDelayPatch.kt) | Removes the wait between server changes on free plans. |
 | <a id="proton-vpn-show-free-server-locations"></a>[Show free server locations](patches/src/main/kotlin/app/morphe/patches/protonvpn/misc/freeservers/ShowFreeServerLocationsPatch.kt) | Lists free server locations in Countries and Search and connects to the one you pick. Applies only to free plans. |
@@ -423,6 +472,21 @@ identify each app. They are not covered by this repository's licence. See
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | <a id="trainline-hide-ads"></a>[Hide ads](patches/src/main/kotlin/app/morphe/patches/trainline/ads/HideAdsPatch.kt) | Removes the adverts shown between search results. |
+
+</details>
+
+<details open>
+<summary><img src=".github/assets/icons/yiiot.png" width="18" align="top">&nbsp;&nbsp;Yi iot&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.1.7_20260914 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="yi-iot-hide-ads"></a>[Hide ads](patches/src/main/kotlin/app/morphe/patches/yiiot/ads/HideAdsPatch.kt) | Removes splash, interstitial, banner and native ads. Keeps the optional ad that unlocks an alarm video. |
 
 </details>
 
@@ -735,3 +799,7 @@ additional conditions under GPLv3 Section 7 inherited from Morphe:
   brand this project, which is a third-party bundle *for use with* Morphe.
 
 See [NOTICE](NOTICE) for the full conditions.
+
+App icons in the patches list belong to their respective developers and are used only to
+identify each app. They are not covered by this repository's licence. See
+[the icon notice](.github/assets/icons/README.md).

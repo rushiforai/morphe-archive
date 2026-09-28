@@ -71,7 +71,7 @@ internal object AccountRowClickFingerprint : Fingerprint(
  * toggle and the ride log. It sits in a section of its own, so a rename or a reorder of the
  * server-driven rows cannot collide with it.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321), inserted at the end of the
+ * Equivalent smali (verified against 13.5.1, versionCode 324), inserted at the end of the
  * section list builder and at the start of the row click handler:
  * ```
  * :cond_4

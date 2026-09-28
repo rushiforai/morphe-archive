@@ -28,7 +28,7 @@ final class GateReportExport {
 
     static boolean copy(Context context, String report) {
         if (report.length() > MAX_CLIPBOARD_CHARS) {
-            Utils.showToastShort(L10n.t("Use Save JSON for this large report"));
+            Utils.showToastShort(L10n.t("Use Save report for this large report"));
             return false;
         }
         try {
@@ -37,7 +37,7 @@ final class GateReportExport {
             return true;
         } catch (RuntimeException error) {
             Logger.printException(() -> "Could not copy gate report", error);
-            Utils.showToastShort(L10n.t("Couldn't copy the report. Use Save JSON instead."));
+            Utils.showToastShort(L10n.t("Couldn't copy the report. Use Save report instead."));
             return false;
         }
     }

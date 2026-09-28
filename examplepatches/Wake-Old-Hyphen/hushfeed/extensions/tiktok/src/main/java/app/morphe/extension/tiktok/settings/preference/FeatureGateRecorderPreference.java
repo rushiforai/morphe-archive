@@ -87,7 +87,7 @@ public final class FeatureGateRecorderPreference extends Preference implements I
         String shown = report.length() <= GateReportExport.MAX_CLIPBOARD_CHARS ? report
                 : report.substring(0, GateReportExport.MAX_CLIPBOARD_CHARS) + "\n\n"
                         + L10n.t(context,
-                                "Preview shortened. Save JSON includes the full report.");
+                                "Preview shortened. Save report keeps the full report.");
         // Nothing read is a sentence, not a JSON object with an empty array to puzzle over.
         text.setText(empty
                 ? L10n.t(context, "No gate reads were recorded. Use a TikTok feature while recording.")
@@ -95,7 +95,7 @@ public final class FeatureGateRecorderPreference extends Preference implements I
                 : shown);
         text.setTextIsSelectable(true);
         text.setTextColor(SettingsUi.textPrimary());
-        text.setTextSize(13);
+        text.setTextSize(SettingsUi.TEXT_LABEL);
         text.setTypeface(android.graphics.Typeface.MONOSPACE);
         text.setLineSpacing(SettingsUi.dp(context, 3), 1f);
         text.setBackground(SettingsUi.borderedSurface(context, SettingsUi.RADIUS_FIELD, false));
@@ -109,7 +109,7 @@ public final class FeatureGateRecorderPreference extends Preference implements I
         TextView title = SettingsUi.text(context,
                 L10n.f(context, "Recorded gate reads (%1$d)",
                         FeatureGateLearnMode.lastCandidateCount()),
-                20, SettingsUi.textPrimary(), 1);
+                SettingsUi.TEXT_HEADLINE, SettingsUi.textPrimary(), 1);
         SettingsUi.markDialogHeading(title);
         title.setPadding(padding, padding, padding, SettingsUi.dp(context, 12));
         // Save JSON is the accented action and sits last, like every other dialog's. Copy and
@@ -121,7 +121,7 @@ public final class FeatureGateRecorderPreference extends Preference implements I
                 .setView(scroll)
                 .setNegativeButton(L10n.t(context, "Close"), null);
         if (!empty) {
-            builder.setPositiveButton(L10n.t(context, "Save JSON"), null);
+            builder.setPositiveButton(L10n.t(context, "Save report"), null);
             if (report.length() <= GateReportExport.MAX_CLIPBOARD_CHARS) {
                 builder.setNeutralButton(L10n.t(context, "Copy report"), null);
             }

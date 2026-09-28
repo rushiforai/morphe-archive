@@ -1,5 +1,5 @@
 {
-    "version": "v1.5.0-dev.1",
+    "version": "v1.5.0-dev.4",
     "patches": [
         {
             "compatiblePackages": [
@@ -160,6 +160,36 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APK",
+                    "appIconColor": "#26A69A",
+                    "name": "Futbin",
+                    "packageName": "com.futbin",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "27.02",
+                            "versionCodes": {
+                                "ARM64_V8A": 7002,
+                                "ARMEABI_V7A": 7002,
+                                "X86": 7002,
+                                "X86_64": 7002
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "27.02"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Disables banner, interstitial, native, app-open and rewarded ads.",
+            "name": "Disable ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "APKM",
                     "appIconColor": "#1976D2",
                     "name": "IPTV",
@@ -238,6 +268,36 @@
                     ],
                     "versions": [
                         "15.142.0"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Disables banner, interstitial, native, app-open and rewarded ads.",
+            "name": "Disable ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#9C27B0",
+                    "name": "Pocket Color Wheel",
+                    "packageName": "com.pocketcolorwheel.PCW",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "3.26",
+                            "versionCodes": {
+                                "ARM64_V8A": 57,
+                                "ARMEABI_V7A": 57,
+                                "X86": 57,
+                                "X86_64": 57
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "3.26"
                     ]
                 }
             ],
@@ -1057,7 +1117,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Unlocks Unified Remote Full via the RevenueCat entitlement.",
+            "description": "Unlocks Unified Remote Full by forcing the local license status check.",
             "name": "Enable Pro",
             "options": []
         },

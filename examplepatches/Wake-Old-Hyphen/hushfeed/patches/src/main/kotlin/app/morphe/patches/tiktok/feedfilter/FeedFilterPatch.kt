@@ -5,9 +5,9 @@
 package app.morphe.patches.tiktok.feedfilter
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.addInstruction
+import app.morphe.util.addInstructions
+import app.morphe.util.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -61,10 +61,11 @@ val feedFilterPatch = bytecodePatch(
         "labeled videos, location-tagged videos, verified accounts, series, mini dramas, playlists, " +
         "the playlist bar, the floating event badge and inserted cards. Videos can also be " +
         "filtered by your own caption words, creator handles or patterns, sound names, length, " +
-        "the country they were posted from and their view, like, comment, favorite and share " +
-        "counts. A short list of creator exceptions lets chosen accounts through the filters on " +
-        "the kind of post, its labels, age, length and counts. Ads, blocked creators, words, " +
-        "sounds and countries, paid and Shop content, LIVE and seen videos still apply to them. " +
+        "the country they were posted from, the language of their original caption and their " +
+        "view, like, comment, favorite and share counts. A short list of creator exceptions lets " +
+        "chosen accounts through the filters on the kind of post, its labels, age, length and " +
+        "counts. Ads, blocked creators, words, sounds, countries and caption languages, paid and " +
+        "Shop content, LIVE and seen videos still apply to them. " +
         "Sponsored cards are dropped from the profile video viewer, the search grids " +
         "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
         "into a video pager after the list has loaded and the ads a creator's video pager asks " +
@@ -156,6 +157,28 @@ val feedFilterPatch = bytecodePatch(
             "invoke-static/range {p0 .. p0}, " +
                 "$EXTENSION_CLASS_DESCRIPTOR->filterOnRead(Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;)V",
         )
+
+        // A profile's list is read before its model stamps dataUserId on it (the advance request
+        // and the feed author preload read getItems first), so it is marked where it is parsed.
+        // Unmarked, the feed's preferences emptied someone else's profile page by page, and each
+        // empty page made TikTok load the next.
+        ProfileApiExecuteFingerprint.method.let { method ->
+            val returnIndices = method.implementationOrPatchException("Feed filter").instructions.withIndex()
+                .filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                .map { it.index }
+                .toList()
+            if (returnIndices.isEmpty()) {
+                throw PatchException("Feed filter: apiExecuteGetJSONObject returns nothing to mark")
+            }
+            returnIndices.asReversed().forEach { returnIndex ->
+                val register = (method.getInstruction(returnIndex) as OneRegisterInstruction).registerA
+                method.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    "invoke-static/range {v$register .. v$register}, " +
+                        "$EXTENSION_CLASS_DESCRIPTOR->markProfileResponse(Ljava/lang/Object;)V",
+                )
+            }
+        }
 
         FollowFeedFingerprint.method.let { method ->
             val returnIndices =

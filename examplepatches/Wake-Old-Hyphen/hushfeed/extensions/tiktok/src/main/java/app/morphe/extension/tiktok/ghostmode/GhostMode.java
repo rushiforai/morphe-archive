@@ -11,6 +11,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,6 +46,11 @@ public final class GhostMode {
     private static final String STORY_VIEW = "story view";
     private static final String PROFILE_VIEW = "profile view";
     private static final String TYPING_STATUS = "typing status";
+    private static final String STORY_PLAY_STATS = "story play stats";
+
+    /** TikTok's aweme types for a story; getIsTikTokStory covers the rest. */
+    private static final int STORY_TYPE = 40;
+    private static final int STORY_TYPE_SHARED = 45;
 
     private static final String BLOCKED = "blocked";
     private static final String SENT = "sent";
@@ -80,6 +86,31 @@ public final class GhostMode {
 
     public static boolean shouldBlockTypingStatus() {
         return answer(TYPING_STATUS);
+    }
+
+    /**
+     * TikTok's play report (/aweme/v1/aweme/stats/), asked for every video and story that plays.
+     * A story's carries its aid, play_delta=1 and story_consumption_type beside the
+     * reportStoryViewed call above, and with only that call blocked a second account still saw
+     * the viewer (#39). Only a story's report is held back; a feed video's goes as before, and
+     * asks nothing of the export.
+     */
+    public static boolean shouldBlockStoryStats(Aweme aweme) {
+        if (!isStory(aweme)) return false;
+        return answer(STORY_PLAY_STATS);
+    }
+
+    static boolean isStory(Aweme aweme) {
+        if (aweme == null) return false;
+        try {
+            if (aweme.getIsTikTokStory()) return true;
+            int type = aweme.getAwemeType();
+            return type == STORY_TYPE || type == STORY_TYPE_SHARED;
+        } catch (Throwable unreadable) {
+            // Inside TikTok's own reporter: a renamed getter sends the report rather than crash.
+            HookStatus.threw(HOOK_FAMILY, STORY_PLAY_STATS, unreadable);
+            return false;
+        }
     }
 
     /** The setting, recorded against the call site that asked for it. */

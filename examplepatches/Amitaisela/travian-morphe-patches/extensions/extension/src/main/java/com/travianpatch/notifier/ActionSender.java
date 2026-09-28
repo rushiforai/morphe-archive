@@ -33,10 +33,29 @@ final class ActionSender {
     private ActionSender() {
     }
 
+    private static final String KEY_QUIET_SALT = "quiet_salt";
+
+    /** The Auto-build timing settings, with this install's own random number mixed into the quiet hours. */
+    static synchronized AutomationSettings.Config timing(Context ctx) {
+        SharedPreferences t = ctx.getSharedPreferences(AutomationSettings.PREFS, Context.MODE_PRIVATE);
+        AutomationSettings.Config c = AutomationSettings.fromJson(t.getString(AutomationSettings.KEY, null));
+        long salt = t.getLong(KEY_QUIET_SALT, 0);
+        if (salt == 0) {
+            salt = new java.security.SecureRandom().nextLong() | 1L;
+            t.edit().putLong(KEY_QUIET_SALT, salt).commit();
+        }
+        return new AutomationSettings.Config(c.bufferPercent, c.minDelayMs, c.maxDelayMs, c.quietHours.withSalt(salt),
+                c.serverSpeed);
+    }
+
+    /** Inside today's quiet hours right now (Settings → Auto-build timing). */
+    static boolean quietNow(Context ctx) {
+        return QuietHours.isQuietNow(timing(ctx).quietHours, System.currentTimeMillis());
+    }
+
     static ActionClient.Settings settings(Context ctx) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        AutomationSettings.Config timing = AutomationSettings.fromJson(ctx.getSharedPreferences(
-                AutomationSettings.PREFS, Context.MODE_PRIVATE).getString(AutomationSettings.KEY, null));
+        AutomationSettings.Config timing = timing(ctx);
         return new ActionClient.Settings(p.getBoolean(KEY_MASTER, ActionClient.DEFAULT_SETTINGS.masterOn),
                 p.getBoolean(KEY_DRY_RUN, ActionClient.DEFAULT_SETTINGS.dryRun),
                 p.getBoolean(KEY_PAUSE_ON, ActionClient.DEFAULT_SETTINGS.attackPauseOn),
@@ -129,6 +148,10 @@ final class ActionSender {
         long now = System.currentTimeMillis();
         long nextAttack = ActionClient.effectiveNextAttack(state.getLong(NotifierWorker.KEY_NEXT_ATTACK_AT, 0),
                 state.getLong(NotifierWorker.KEY_ATTACKS_KNOWN_AT, 0), now);
+        if (automated && GameScreen.busy(now)) {
+            return finish(ctx, p, recent, now, action, new ActionClient.Result("REFUSED", 0,
+                    "the game is open (automatic actions wait until it has been closed for 2 minutes)", false, null));
+        }
 
         if (ActionSteps.inVillage(action.kind)) {
             int villages = villageCount(state);
@@ -141,7 +164,11 @@ final class ActionSender {
             if (pre != null) {
                 return finish(ctx, p, recent, now, action, pre);
             }
-            if (villages > 1) {
+            // The game's current village (build and train act on it). Read first so the switch is skipped
+            // when it is already the right one, and put back afterwards so the game's own next tap isn't
+            // aimed at a village the player didn't pick.
+            String before = villages > 1 && !settings.dryRun ? currentVillage(transport) : null;
+            if (villages > 1 && !action.villageId.equals(before)) {
                 ActionClient.Result switched;
                 try {
                     switched = ActionClient.sendWith(transport, GameActions.changeVillage(action.villageId), automated,
@@ -154,30 +181,96 @@ final class ActionSender {
                             "not sent: switching to the village failed (" + switched.describe() + ")", false, null));
                 }
                 pause(ActionSteps.AFTER_SWITCH);
-            }
-            if (!settings.dryRun) {
-                // Open the village the way the game does and check its fresh answer before going on.
-                String why;
-                try {
-                    ActionClient.Response view = transport.send("POST", "/graphql", ActionSteps.villageViewBody(action.villageId), null);
-                    why = view.code == 200 ? ActionSteps.check(view.body, action)
-                            : "the game didn't open the village (HTTP " + view.code + ")";
-                } catch (Exception e) {
-                    why = "couldn't open the village (" + e.getClass().getSimpleName() + ")";
+                if (before != null) {
+                    try {
+                        return inVillage(ctx, p, state, transport, action, automated, check, settings, nextAttack,
+                                recent);
+                    } finally {
+                        switchBack(transport, before, automated, settings, nextAttack, recent);
+                    }
                 }
-                if (why != null) {
-                    return finish(ctx, p, recent, now, action, new ActionClient.Result("REFUSED", 0,
-                            "not sent: " + why, false, null));
-                }
-                pause(ActionSteps.OPEN_BUILDING);
-                pause(ActionSteps.PRESS);
-                now = System.currentTimeMillis();
             }
+            return inVillage(ctx, p, state, transport, action, automated, check, settings, nextAttack, recent);
         }
+        return sendAction(ctx, p, state, transport, action, automated, check, settings, System.currentTimeMillis(),
+                nextAttack, recent);
+    }
+
+    /** The village steps after the switch: open the village the way the game does, check it, press. */
+    private static ActionClient.Result inVillage(Context ctx, SharedPreferences p, SharedPreferences state,
+                                                 ActionClient.Transport transport, GameAction action, boolean automated,
+                                                 ActionClient.PreviewCheck check, ActionClient.Settings settings,
+                                                 long nextAttack, Map<String, Long> recent) {
+        long now = System.currentTimeMillis();
+        if (!settings.dryRun) {
+            // Open the village the way the game does and check its fresh answer before going on.
+            String why;
+            try {
+                ActionClient.Response view = transport.send("POST", "/graphql", ActionSteps.villageViewBody(action.villageId), null);
+                why = view.code == 200 ? ActionSteps.check(view.body, action)
+                        : "the game didn't open the village (HTTP " + view.code + ")";
+            } catch (Exception e) {
+                why = "couldn't open the village (" + e.getClass().getSimpleName() + ")";
+            }
+            if (why != null) {
+                return finish(ctx, p, recent, now, action, new ActionClient.Result("REFUSED", 0,
+                        "not sent: " + why, false, null));
+            }
+            pause(ActionSteps.OPEN_BUILDING);
+            pause(ActionSteps.PRESS);
+            now = System.currentTimeMillis();
+        }
+        return sendAction(ctx, p, state, transport, action, automated, check, settings, now, nextAttack, recent);
+    }
+
+    /**
+     * The game's current village id (ownPlayer.currentVillageId, a field the game's own player query asks
+     * for), or null when it can't be read; then the switch isn't undone afterwards.
+     */
+    private static String currentVillage(ActionClient.Transport transport) {
+        try {
+            ActionClient.Response r = transport.send("POST", "/graphql",
+                    new JSONObject().put("query", "query { ownPlayer { currentVillageId } }").toString(), null);
+            JSONObject data = r.code == 200 ? new JSONObject(r.body).optJSONObject("data") : null;
+            JSONObject player = data == null ? null : data.optJSONObject("ownPlayer");
+            String id = player == null || player.isNull("currentVillageId") ? null
+                    : String.valueOf(player.opt("currentVillageId"));
+            Log.i(TAG, "current village before the action: " + id);
+            return id == null || id.isEmpty() ? null : id;
+        } catch (Exception e) {
+            Log.i(TAG, "current village not read: " + e);
+            return null;
+        }
+    }
+
+    /** Puts the game's current village back to what it was, after a short pause. Logged, never throws. */
+    private static void switchBack(ActionClient.Transport transport, String villageId, boolean automated,
+                                   ActionClient.Settings settings, long nextAttack, Map<String, Long> recent) {
+        pause(ActionSteps.PRESS);
+        try {
+            ActionClient.Result r = ActionClient.sendWith(transport, GameActions.changeVillage(villageId), automated,
+                    settings, System.currentTimeMillis(), nextAttack, recent);
+            Log.i(TAG, "switched back to village " + villageId + ": " + r.describe());
+        } catch (Exception e) {
+            Log.w(TAG, "switching back to village " + villageId + " failed: " + e);
+        }
+    }
+
+    /** The press itself: one request, or the two steps of a troop send / item sale. */
+    private static ActionClient.Result sendAction(Context ctx, SharedPreferences p, SharedPreferences state,
+                                                  ActionClient.Transport transport, GameAction action,
+                                                  boolean automated, ActionClient.PreviewCheck check,
+                                                  ActionClient.Settings settings, long now, long nextAttack,
+                                                  Map<String, Long> recent) {
         boolean troops = TroopSend.KIND.equals(action.kind) || TroopSend.ESCAPE_KIND.equals(action.kind);
         ActionClient.Result result = troops || SilverActions.SELL.equals(action.kind)
                 ? ActionClient.sendTwoStep(transport, action, automated, settings, now, nextAttack, recent,
-                troops ? TroopSend.STEP_ONE_ONLY : SilverActions.SELL_STEP_ONE_ONLY, check)
+                troops ? TroopSend.STEP_ONE_ONLY : SilverActions.SELL_STEP_ONE_ONLY, check, new Runnable() {
+                    @Override
+                    public void run() {
+                        pause(ActionSteps.CONFIRM);
+                    }
+                })
                 : ActionClient.sendWith(transport, action, automated, settings, now, nextAttack, recent);
         if (result.sessionExpired) {
             state.edit().remove(NotifierWorker.KEY_WORLD_HOST).remove(NotifierWorker.KEY_WORLD_TOKEN)

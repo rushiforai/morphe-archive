@@ -21,6 +21,14 @@ private val PURCHASE_GUARD = byteArrayOf(
 private val PURCHASE_GUARD_PATCHED = byteArrayOf(
     0x68, 0x82.toByte(), 0x40, 0x39, 0x1E, 0x00, 0x00, 0x14,
 )
+private val IAP_LOOKUP_GUARD = byteArrayOf(
+    0x80.toByte(), 0x07, 0x00, 0xB4.toByte(), 0x08, 0x0C, 0x40, 0xF9.toByte(),
+    0x48, 0x07, 0x00, 0xB4.toByte(), 0x80.toByte(), 0x16, 0x40, 0xF9.toByte(),
+)
+private val IAP_LOOKUP_GUARD_PATCHED = byteArrayOf(
+    0x60, 0x09, 0x00, 0xB4.toByte(), 0x08, 0x0C, 0x40, 0xF9.toByte(),
+    0x48, 0x07, 0x00, 0xB4.toByte(), 0x80.toByte(), 0x16, 0x40, 0xF9.toByte(),
+)
 
 @Suppress("unused")
 val subwaySurfersFreeIapPatch = rawResourcePatch(
@@ -38,6 +46,7 @@ val subwaySurfersFreeIapPatch = rawResourcePatch(
             STATE1_ERROR to STATE1_ERROR_PATCHED,
             STATE1_GRANT to STATE1_GRANT_PATCHED,
             PURCHASE_GUARD to PURCHASE_GUARD_PATCHED,
+            IAP_LOOKUP_GUARD to IAP_LOOKUP_GUARD_PATCHED,
         )
 
         for ((from, to) in sites) {

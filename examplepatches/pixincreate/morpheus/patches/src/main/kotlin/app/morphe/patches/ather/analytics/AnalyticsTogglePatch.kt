@@ -120,7 +120,7 @@ internal object PostHogInitFingerprint : Fingerprint(
  * PostHog is initialised from the app's startup path, so the patch skips its initialiser too.
  * Crashlytics is left alone, so crashes stay reportable.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321), inserted at the start of each
+ * Equivalent smali (verified against 13.5.1, versionCode 324), inserted at the start of each
  * entry point:
  * ```
  * invoke-static {}, Lapp/morphe/ather/MapPref;->analyticsEnabled()Z

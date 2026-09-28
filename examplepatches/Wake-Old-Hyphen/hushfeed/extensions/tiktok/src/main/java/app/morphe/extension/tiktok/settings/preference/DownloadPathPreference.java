@@ -116,7 +116,7 @@ public class DownloadPathPreference extends DialogPreference {
         TextView title = SettingsUi.text(
                 context,
                 getTitle() == null ? "" : getTitle().toString(),
-                20,
+                SettingsUi.TEXT_HEADLINE,
                 SettingsUi.textPrimary(),
                 Typeface.BOLD
         );
@@ -130,7 +130,7 @@ public class DownloadPathPreference extends DialogPreference {
                 context,
                 L10n.f(context, "Choose a subfolder under %1$s.",
                         DownloadDestination.allowedRoots(kind)),
-                14,
+                SettingsUi.TEXT_BODY_SMALL,
                 SettingsUi.textSecondary(),
                 Typeface.NORMAL
         );

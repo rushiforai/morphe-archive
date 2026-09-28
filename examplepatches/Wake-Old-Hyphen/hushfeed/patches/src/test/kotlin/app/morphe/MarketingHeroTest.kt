@@ -9,6 +9,7 @@ package app.morphe
 
 import java.io.File
 import java.security.MessageDigest
+import java.util.HexFormat
 import javax.imageio.ImageIO
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -51,14 +52,11 @@ class MarketingHeroTest {
         )
     }
 
-    /** 7fcbb946 took the button out along with this test; both are back, and the button sits above the title. */
+    /** The installation cleanup explicitly retires the inherited donation button. */
     @Test
-    fun `the README keeps the canonical Ko-fi support link`() {
+    fun `the README leaves out inherited donation links`() {
         val readme = File(root, "README.md").readText()
-        val link = readme.indexOf("https://ko-fi.com/X8K126YVER")
-
-        assertTrue("the README must keep the project support link", link >= 0)
-        assertTrue("the support button belongs above the title", link < readme.indexOf("\n# Hushfeed"))
+        assertFalse("the retired donation link returned", readme.contains("ko-fi.com", ignoreCase = true))
     }
 
     @Test
@@ -75,13 +73,17 @@ class MarketingHeroTest {
     }
 
     @Test
-    fun `the approved H and selected files stay byte exact`() {
-        val approved = digest(File(root, "patches-bundle.png"))
-        assertArrayEquals(approved, digest(File(root, "concepts/marketing/2026-09-12/source/user-approved-logo.png")))
-        assertArrayEquals(approved, digest(File(root, "concepts/marketing/2026-09-12/selected/logo-h.png")))
+    fun `the approved H and hero stay byte exact`() {
+        // The concept archive's duplicate images were removed; pin the reviewed bytes themselves.
         assertArrayEquals(
+            "the approved H changed",
+            HexFormat.of().parseHex("950a4ebd6361b01153abbd44040b6616ceea49344c8ceb55b53425246baedf15"),
+            digest(File(root, "patches-bundle.png")),
+        )
+        assertArrayEquals(
+            "the selected hero changed",
+            HexFormat.of().parseHex("5a2a2fd68c5e01dc199d558e8f546b0335f27d7da6d6b7b3463f2e99d8058df9"),
             digest(File(root, "assets/readme-hero.png")),
-            digest(File(root, "concepts/marketing/2026-09-12/selected/hero-final.png")),
         )
     }
 

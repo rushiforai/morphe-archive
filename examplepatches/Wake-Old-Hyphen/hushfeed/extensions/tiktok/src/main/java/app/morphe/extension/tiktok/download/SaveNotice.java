@@ -113,6 +113,22 @@ final class SaveNotice {
         }
     }
 
+    static void open(MediaFileWriter.Saved saved) {
+        if (saved.uri != null) {
+            open(saved.uri);
+        } else if (saved.file != null) {
+            // Give the viewer a media URI even on old Android, never a file:// URI.
+            android.media.MediaScannerConnection.scanFile(Utils.getContext(),
+                    new String[]{saved.file.getAbsolutePath()}, new String[]{"video/mp4"},
+                    (path, uri) -> Utils.runOnMainThread(() -> {
+                        if (uri == null) Utils.showToastShort(L10n.t("No app on this phone opens that file"));
+                        else open(uri);
+                    }));
+        } else {
+            Utils.showToastShort(L10n.t("No app on this phone opens that file"));
+        }
+    }
+
     private static void open(Uri uri) {
         try {
             Intent view = new Intent(Intent.ACTION_VIEW, uri);
@@ -130,6 +146,7 @@ final class SaveNotice {
             Utils.showToastShort(L10n.t("No app on this phone opens that file"));
         } catch (RuntimeException failure) {
             Logger.printException(() -> "Could not open the saved file", failure);
+            Utils.showToastShort(L10n.t("No app on this phone opens that file"));
         }
     }
 }

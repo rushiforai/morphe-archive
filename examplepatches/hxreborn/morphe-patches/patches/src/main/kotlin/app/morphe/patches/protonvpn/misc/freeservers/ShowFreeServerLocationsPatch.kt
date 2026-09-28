@@ -25,6 +25,7 @@ import app.morphe.patches.all.misc.resources.getResourceId
 import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.protonvpn.misc.restrictions.filterReturnValue
 import app.morphe.patches.protonvpn.misc.restrictions.freeAccountStatePatch
+import app.morphe.patches.protonvpn.misc.restrictions.invertFreeServerCheckForFreeAccount
 import app.morphe.patches.protonvpn.misc.settings.patchesSettingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.misc.proton.markPatchApplied
@@ -50,17 +51,7 @@ val showFreeServerLocationsPatch = bytecodePatch(
 
         val freeLocationsHeader = getResourceId(ResourceType.STRING, "free_connections_info_server_locations")
             ?: throw PatchException("Missing string: free_connections_info_server_locations")
-        ServerListFilterFingerprint.matchSingle().run {
-            val isFreeServerResult = instructionMatches.last()
-            val register = isFreeServerResult.getInstruction<OneRegisterInstruction>().registerA
-            method.addInstructions(
-                isFreeServerResult.index + 1,
-                """
-                    invoke-static { v$register }, $FREE_SERVER_LOCATIONS->shouldExcludeServer(Z)Z
-                    move-result v$register
-                """,
-            )
-        }
+        invertFreeServerCheckForFreeAccount(ServerListFilterFingerprint)
 
         ServerGroupItemStateFingerprint.matchSingle().method.addInstructions(
             0,

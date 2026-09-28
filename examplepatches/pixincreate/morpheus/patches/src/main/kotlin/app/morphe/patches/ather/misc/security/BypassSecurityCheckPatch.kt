@@ -11,22 +11,23 @@ import app.morphe.patcher.patch.bytecodePatch
 /**
  * Neutralises Ather's client-side environment gate.
  *
- * `SecurityCheck.performSecurityCheck(Z)` normally returns:
- *  - `DeveloperOptionsEnabled` when Settings.Global `development_settings_enabled` is 1,
- *  - `Compromised` when root or Frida indicators are found,
- *  - `Secure` otherwise.
+ * The 13.5.1 build hides the check behind obfuscated names. `w.b(Z)` returns the
+ * check result `v` and normally returns:
+ *  - `t` (`DeveloperOptionsEnabled`) when Settings.Global `development_settings_enabled` is 1,
+ *  - `s` (`Compromised`) when root, LSPosed or Frida indicators are found,
+ *  - `u` (`Secure`) otherwise.
  *
- * MainActivity blocks the UI on anything other than `Secure`. This patch rewrites
- * the method to return `Secure.INSTANCE` unconditionally, so the app stops nagging
- * about Developer Options and no longer refuses to run on rooted / GrapheneOS
- * devices.
+ * `MainActivity.s()` stores that result in the Compose state behind the
+ * `developerOptionsGate` screen. This patch rewrites the method to return `Secure`
+ * unconditionally, so the app stops nagging about Developer Options and no longer
+ * refuses to run on rooted / GrapheneOS devices.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321):
+ * Equivalent smali (verified against 13.5.1, versionCode 324):
  * ```
- * .method public final performSecurityCheck(Z)L.../SecurityCheck$CheckResult;
+ * .method public static b(Z)Lcom/ather/common/utils/coreUtils/v;
  *     .locals 0
- *     sget-object p0, L.../SecurityCheck$CheckResult$Secure;->INSTANCE:L.../SecurityCheck$CheckResult$Secure;
- *     return-object p0
+ *     sget-object v0, Lcom/ather/common/utils/coreUtils/u;->a:Lcom/ather/common/utils/coreUtils/u;
+ *     return-object v0
  * .end method
  * ```
  */
@@ -39,10 +40,10 @@ val bypassSecurityCheckPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        PerformSecurityCheckFingerprint.method.addInstructions(
+        SecurityCheckFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Lcom/ather/common/utils/coreUtils/SecurityCheck${'$'}CheckResult${'$'}Secure;->INSTANCE:Lcom/ather/common/utils/coreUtils/SecurityCheck${'$'}CheckResult${'$'}Secure;
+                sget-object v0, Lcom/ather/common/utils/coreUtils/u;->a:Lcom/ather/common/utils/coreUtils/u;
                 return-object v0
             """,
         )

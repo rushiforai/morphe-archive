@@ -109,6 +109,46 @@ class RuntimeViewIdAnchorsTest {
         }
     }
 
+    @Test
+    fun `layout backed view ids keep their element shape across declared targets`() {
+        val anchors = anchors()
+        val appPackage = checkNotNull(AppCompatibilities.tiktok().single().packageName)
+        val versions = Fixtures.declaredVersions()
+        val shapesByVersion = versions.associateWith { version ->
+            val apk = Fixtures.apkOf(version)
+            val ids = ResourceIds.read(apk)
+            val selected = anchors.associateWith { anchor ->
+                anchor.namesOn(version).firstNotNullOfOrNull { name ->
+                    ids[packageOf(anchor, appPackage)]?.get(name)?.singleOrNull()
+                }
+            }
+            val wanted = selected.values.filterNotNull().toSet()
+            val shapes = mutableMapOf<Int, MutableSet<Pair<String?, String?>>>()
+            val paths = ResourceIds.files(apk, "layout").values
+                .flatMap { it.values.flatMap { paths -> paths } }.distinct()
+            ZipFile(apk).use { zip ->
+                for (path in paths) for (use in elementsSetIn(zip, path)) {
+                    if (use.id !in wanted) continue
+                    val tag = use.tag?.let { if (it.matches(OBFUSCATED)) "<obfuscated>" else it }
+                    val parent = use.parentTag?.let { if (it.matches(OBFUSCATED)) "<obfuscated>" else it }
+                    shapes.getOrPut(use.id) { mutableSetOf() } += tag to parent
+                }
+            }
+            anchors.associateWith { anchor -> selected[anchor]?.let { shapes[it]?.toSet() }.orEmpty() }
+        }
+        val first = versions.first()
+        val reference = shapesByVersion.getValue(first)
+        val layoutBacked = anchors.count { reference.getValue(it).isNotEmpty() }
+        assertTrue("only $layoutBacked anchors have layout elements on $first", layoutBacked > 30)
+        for (version in versions.drop(1)) for (anchor in anchors) {
+            val before = reference.getValue(anchor)
+            val after = shapesByVersion.getValue(version).getValue(anchor)
+            if (before.isNotEmpty() || after.isNotEmpty()) {
+                assertEquals("${anchor.lookup}: layout element and parent on $first and $version", before, after)
+            }
+        }
+    }
+
     /**
      * TikTok hands its short names out again on every build, mostly to other views: on 46.7.3 to
      * 46.9.3 no owner loads the id of any name its group lists, and only the ids with real names
@@ -276,7 +316,7 @@ class RuntimeViewIdAnchorsTest {
     }
 
     /** One place an owner loads an id: the view type it reaches, or the class it is handed to. */
-    private class IdUse(val id: Int, val type: String?, val to: String?, val tag: String?)
+    private class IdUse(val id: Int, val type: String?, val to: String?, val tag: String?, val parentTag: String? = null)
 
     private enum class State { OWNED, UNOWNED, BROKEN }
 
@@ -588,19 +628,24 @@ class RuntimeViewIdAnchorsTest {
     /** Every android:id a compiled layout sets, on any element. */
     private fun idsSetIn(zip: ZipFile, path: String): Set<Int> = elementsSetIn(zip, path).map { it.id }.toSet()
 
-    /** Every android:id a compiled layout sets, with the tag of the element carrying it, in document order. */
+    /** Every android:id a compiled layout sets, with its element and parent tags, in document order. */
     private fun elementsSetIn(zip: ZipFile, path: String): List<IdUse> {
         val entry = zip.getEntry(path) ?: return emptyList()
         val parser = AndroidBinXmlParser(ByteBuffer.wrap(zip.getInputStream(entry).use { it.readBytes() }))
         val elements = mutableListOf<IdUse>()
+        val parents = ArrayDeque<String>()
         while (true) {
             when (parser.next()) {
                 AndroidBinXmlParser.EVENT_END_DOCUMENT -> return elements
-                AndroidBinXmlParser.EVENT_START_ELEMENT -> for (i in 0 until parser.attributeCount) {
-                    if (parser.getAttributeNameResourceId(i) == ANDROID_ID &&
-                        parser.getAttributeValueType(i) == AndroidBinXmlParser.VALUE_TYPE_REFERENCE
-                    ) elements += IdUse(parser.getAttributeIntValue(i), null, null, parser.name)
+                AndroidBinXmlParser.EVENT_START_ELEMENT -> {
+                    for (i in 0 until parser.attributeCount) {
+                        if (parser.getAttributeNameResourceId(i) == ANDROID_ID &&
+                            parser.getAttributeValueType(i) == AndroidBinXmlParser.VALUE_TYPE_REFERENCE
+                        ) elements += IdUse(parser.getAttributeIntValue(i), null, null, parser.name, parents.lastOrNull())
+                    }
+                    parents.addLast(parser.name)
                 }
+                AndroidBinXmlParser.EVENT_END_ELEMENT -> parents.removeLast()
             }
         }
     }

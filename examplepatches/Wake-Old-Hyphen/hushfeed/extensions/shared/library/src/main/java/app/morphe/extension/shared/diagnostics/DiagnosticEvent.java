@@ -28,6 +28,15 @@ public final class DiagnosticEvent {
         }
     };
 
+    /**
+     * An instant in the one form every Hushfeed report writes, ISO 8601 in UTC with
+     * milliseconds, from this thread's formatter. The log, the report header and the crash
+     * capture each built their own formatter for it on every call.
+     */
+    public static String utc(long epochMillis) {
+        return TIMESTAMP.get().format(new Date(epochMillis));
+    }
+
     public final DiagnosticCategory category;
     public final long timestamp;
     public final String thread;
@@ -63,7 +72,7 @@ public final class DiagnosticEvent {
         this.source = source;
         this.level = level;
         this.message = message;
-        this.formatted = category.value + " | " + TIMESTAMP.get().format(new Date(timestamp))
+        this.formatted = category.value + " | " + utc(timestamp)
                 + " | " + thread + " | " + source + " | " + level + " | " + message;
     }
 

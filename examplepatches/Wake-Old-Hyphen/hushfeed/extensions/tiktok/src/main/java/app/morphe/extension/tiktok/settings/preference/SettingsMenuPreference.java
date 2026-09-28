@@ -121,13 +121,13 @@ public final class SettingsMenuPreference extends Preference {
         labels.setGravity(Gravity.CENTER_VERTICAL);
         labels.setOrientation(LinearLayout.VERTICAL);
 
-        TextView title = SettingsUi.text(context, "", 16, SettingsUi.textPrimary(), 1);
+        TextView title = SettingsUi.text(context, "", SettingsUi.TEXT_TITLE, SettingsUi.textPrimary(), 1);
         title.setId(android.R.id.title);
         title.setSingleLine(false);
         title.setEllipsize(null);
         labels.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
-        TextView summary = SettingsUi.text(context, "", 14, SettingsUi.textSecondary(), 0);
+        TextView summary = SettingsUi.text(context, "", SettingsUi.TEXT_BODY_SMALL, SettingsUi.textSecondary(), 0);
         summary.setId(android.R.id.summary);
         summary.setSingleLine(false);
         summary.setEllipsize(null);
@@ -224,10 +224,10 @@ public final class SettingsMenuPreference extends Preference {
             );
             badge.setGravity(Gravity.CENTER);
             badge.setPadding(
-                    SettingsUi.dp(getContext(), 9),
-                    SettingsUi.dp(getContext(), 5),
-                    SettingsUi.dp(getContext(), 9),
-                    SettingsUi.dp(getContext(), 5)
+                    SettingsUi.dp(getContext(), 8),
+                    SettingsUi.dp(getContext(), 4),
+                    SettingsUi.dp(getContext(), 8),
+                    SettingsUi.dp(getContext(), 4)
             );
             android.graphics.drawable.GradientDrawable badgeBackground = SettingsUi.roundedSurface(getContext(), SettingsUi.RADIUS_BADGE, true);
             badgeBackground.setColor(SettingsUi.badgeFill());

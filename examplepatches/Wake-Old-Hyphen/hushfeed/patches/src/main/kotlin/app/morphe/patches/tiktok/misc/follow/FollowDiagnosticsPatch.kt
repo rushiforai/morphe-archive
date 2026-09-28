@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.tiktok.misc.follow
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod

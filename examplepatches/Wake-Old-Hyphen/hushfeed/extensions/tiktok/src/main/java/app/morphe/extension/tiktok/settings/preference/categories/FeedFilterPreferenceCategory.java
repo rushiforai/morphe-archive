@@ -17,6 +17,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.RangeValuePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.AdoptSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.CreatorListPreference;
@@ -202,8 +203,8 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
             addPreference(new InputTextPreference(context, "Creator exceptions",
                     "Comma separated account handles or user ids. Their videos stay when only a "
                             + "filter on the kind of post, its labels, age, length or counts would "
-                            + "hide them. Ads, blocked creators, words, sounds and countries, and "
-                            + "seen videos still apply.",
+                            + "hide them. Ads, blocked creators, words, sounds, countries and caption "
+                            + "languages, and seen videos still apply.",
                     Settings.CREATOR_FILTER_EXCEPTIONS)
                     .withCheck(CreatorExceptions::entryProblem)
                     .withNote(CreatorExceptions::conflictNote));
@@ -260,7 +261,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
     }
 
     private void addWordsAndCountries(Context context) {
-        addPreference(new SectionHeadingPreference(context, "Words and countries"));
+        addPreference(new SectionHeadingPreference(context, "Words, countries and languages"));
         addPreference(new InputTextPreference(context, "Blocked caption words",
                 "Comma separated words or phrases. Videos whose caption matches are hidden. Case doesn't matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
                 Settings.BLOCKED_CAPTION_WORDS)
@@ -273,6 +274,10 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Comma separated country codes. Videos posted from these are hidden, whatever the list above says.",
                 Settings.REGION_NEVER_FROM)
                 .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem));
+        addPreference(new InputTextPreference(context, "Only these caption languages",
+                "Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.",
+                Settings.CAPTION_LANGUAGES)
+                .withCheck(app.morphe.extension.tiktok.feedfilter.CaptionLanguageFilter::languageProblem));
     }
 
     private void addSeenVideoRules(Context context) {
@@ -291,7 +296,15 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                         NumberFormat.getInstance().format(SeenVideoHistory.MAX_RECORDS)),
                 Settings.SEEN_VIDEO_RETENTION_DAYS, "%1$s day", "%1$s days"
         ).zeroMeansOff());
+        addPreference(new NumberInputPreference(
+                context,
+                "Count a video as seen after",
+                "How much of a video you watch before it's hidden next time. Zero counts it after a few seconds.",
+                Settings.SEEN_VIDEO_MARK_PERCENT, "%1$s%%"
+        ).zeroMeans("A few seconds"));
         addPreference(new ClearSeenVideoHistoryPreference(context));
+        int unowned = SeenVideoHistory.unownedCount();
+        if (unowned > 0) addPreference(new AdoptSeenVideoHistoryPreference(context, unowned));
     }
 
     private void addAdvanced(Context context) {

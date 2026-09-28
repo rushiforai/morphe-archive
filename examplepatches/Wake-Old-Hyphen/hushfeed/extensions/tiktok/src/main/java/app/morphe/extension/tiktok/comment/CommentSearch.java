@@ -336,7 +336,7 @@ public final class CommentSearch {
         box.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
         box.setInputType(InputType.TYPE_CLASS_TEXT);
         box.setGravity(Gravity.CENTER_VERTICAL);
-        box.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        box.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
         boolean dark = isDarkSheet(context);
         box.setTextColor(SettingsUi.textPrimaryOn(dark));
         box.setHintTextColor(SettingsUi.textSecondaryOn(dark));

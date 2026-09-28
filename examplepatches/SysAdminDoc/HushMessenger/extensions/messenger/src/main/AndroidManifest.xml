@@ -1,0 +1,28 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:label="HushMessenger UI preview" android:allowBackup="false" android:supportsRtl="true" android:theme="@android:style/Theme.Material.NoActionBar">
+        <meta-data android:name="hush.preview" android:value="true" />
+        <meta-data android:name="hush.feature.ads" android:value="true" />
+        <meta-data android:name="hush.feature.people" android:value="true" />
+        <meta-data android:name="hush.feature.friend_requests" android:value="true" />
+        <meta-data android:name="hush.feature.growth" android:value="true" />
+        <meta-data android:name="hush.feature.inbox_promotions" android:value="true" />
+        <meta-data android:name="hush.feature.stories" android:value="true" />
+        <meta-data android:name="hush.feature.subtabs" android:value="true" />
+        <meta-data android:name="hush.feature.facebook" android:value="true" />
+        <meta-data android:name="hush.feature.meta_ai" android:value="true" />
+        <meta-data android:name="hush.feature.moments" android:value="true" />
+        <meta-data android:name="hush.feature.reels_badge" android:value="true" />
+        <meta-data android:name="hush.feature.ai_stickers" android:value="true" />
+        <meta-data android:name="hush.feature.avatar_stickers" android:value="true" />
+        <meta-data android:name="hush.feature.chat_promotions" android:value="true" />
+        <meta-data android:name="hush.feature.suggested_replies" android:value="true" />
+        <meta-data android:name="hush.feature.business_suggestions" android:value="true" />
+        <meta-data android:name="hush.feature.event_prompts" android:value="true" />
+        <meta-data android:name="hush.feature.typing" android:value="true" />
+        <meta-data android:name="hush.feature.external_browser" android:value="true" />
+        <meta-data android:name="hush.feature.bubbles" android:value="true" />
+        <provider android:name="app.hushmessenger.extension.SettingsProvider" android:authorities="${applicationId}.hush.settings" android:exported="false" />
+        <activity android:name="app.hushmessenger.extension.SettingsActivity" android:icon="@android:drawable/ic_menu_preferences" android:exported="true" />
+        <activity android:name="app.hushmessenger.extension.RestartActivity" android:exported="true" android:excludeFromRecents="true" android:noHistory="true" android:configChanges="orientation|screenSize|keyboardHidden" />
+    </application>
+</manifest>

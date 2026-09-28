@@ -6,12 +6,14 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.SignedInUser;
 import app.morphe.extension.tiktok.feedfilter.SeenVideoFilter;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,12 +32,61 @@ import org.robolectric.annotation.Config;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class SeenVideoHistoryTest {
+    /** The account most tests are signed in as. */
+    private static final String ME = "me";
+
     @Before public void setUp() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
+        SignedInUser.idForTests = ME;
         Settings.HIDE_SEEN_VIDEOS.save(true);
         Settings.SEEN_VIDEO_RETENTION_DAYS.save(30);
+        Settings.SEEN_VIDEO_MARK_PERCENT.save(0);
         SeenVideoHistory.clear();
         drain();
+        // Other accounts' rows outlive a clear on purpose, so the table is emptied by hand.
+        database().execSQL("DELETE FROM seen_videos");
+        SeenVideoHistory.size();
+        drain();
+    }
+
+    @After public void tearDown() {
+        SignedInUser.idForTests = null;
+        SignedInUser.handleForTests = null;
+    }
+
+    @Test public void aChosenShareDecidesWhenALongVideoCountsAsSeen() throws Exception {
+        // Five seconds used to hide a ten-minute video for good. At half, it takes five minutes.
+        Settings.SEEN_VIDEO_MARK_PERCENT.save(50);
+        SeenVideoHistory.onPlayProgressChange("long", 5_000, 600_000);
+        SeenVideoHistory.onPlayProgressChange("long", 299_999, 600_000);
+        drain();
+        assertFalse(SeenVideoHistory.shouldHide("long"));
+        SeenVideoHistory.onPlayProgressChange("long", 300_000, 600_000);
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("long"));
+    }
+
+    @Test public void withNoShareChosenTheFewSecondsRuleStays() throws Exception {
+        SeenVideoHistory.onPlayProgressChange("long", 5_000, 600_000);
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("long"));
+        assertFalse(SeenVideoHistory.hasReachedSeenThreshold(999, 5_000));
+        assertTrue(SeenVideoHistory.hasReachedSeenThreshold(1_000, 5_000));
+        assertFalse(SeenVideoHistory.hasReachedSeenThreshold(4_999, 600_000));
+    }
+
+    @Test public void aShareIsHeldInsideTheClipAndUnknownLengthsKeepTwoSeconds() {
+        Settings.SEEN_VIDEO_MARK_PERCENT.save(90);
+        // 90% of three seconds is 2.7 s, past the last second, where a report may never land.
+        assertFalse(SeenVideoHistory.hasReachedSeenThreshold(1_999, 3_000));
+        assertTrue(SeenVideoHistory.hasReachedSeenThreshold(2_000, 3_000));
+        Settings.SEEN_VIDEO_MARK_PERCENT.save(10);
+        // A tenth of a four-second clip is under the one-second floor.
+        assertFalse(SeenVideoHistory.hasReachedSeenThreshold(999, 4_000));
+        assertTrue(SeenVideoHistory.hasReachedSeenThreshold(1_000, 4_000));
+        // No length, no share of it: two seconds, as before.
+        assertFalse(SeenVideoHistory.hasReachedSeenThreshold(1_999, 0));
+        assertTrue(SeenVideoHistory.hasReachedSeenThreshold(2_000, -1));
     }
 
     @Test public void clearingKeepsAWayBackUntilTheNextClear() throws Exception {
@@ -256,7 +308,7 @@ public class SeenVideoHistoryTest {
     }
 
     private static void insert(String aid, long seenAt) throws Exception {
-        database().execSQL("INSERT INTO seen_videos VALUES (?, ?)", new Object[]{aid, seenAt});
+        database().execSQL("INSERT INTO seen_videos (account, aid, last_seen_ms) VALUES (?, ?, ?)", new Object[]{ME, aid, seenAt});
     }
 
     private static void resetLoadedMemory() throws Exception {
@@ -266,14 +318,24 @@ public class SeenVideoHistoryTest {
 
     private static Set<String> persistedIds() throws Exception {
         Set<String> result = new HashSet<>();
-        try (android.database.Cursor cursor = database().rawQuery("SELECT aid FROM seen_videos", null)) {
+        try (android.database.Cursor cursor = database().rawQuery(
+                "SELECT aid FROM seen_videos WHERE account = ?", new String[]{ME})) {
             while (cursor.moveToNext()) result.add(cursor.getString(0));
         }
         return result;
     }
 
+    /** Every row on disk as "account|aid", unowned rows with an empty account. */
+    private static Set<String> rows() throws Exception {
+        Set<String> result = new HashSet<>();
+        try (android.database.Cursor cursor = database().rawQuery("SELECT account, aid FROM seen_videos", null)) {
+            while (cursor.moveToNext()) result.add(cursor.getString(0) + "|" + cursor.getString(1));
+        }
+        return result;
+    }
+
     @Test public void pendingLoadCannotRestoreClearedHistory() throws Exception {
-        database().execSQL("INSERT INTO seen_videos VALUES ('old', ?)",
+        database().execSQL("INSERT INTO seen_videos (account, aid, last_seen_ms) VALUES ('me', 'old', ?)",
                 new Object[]{System.currentTimeMillis()});
         ((AtomicBoolean) field("LOAD_STARTED")).set(false);
         CountDownLatch ready = new CountDownLatch(1);
@@ -320,7 +382,7 @@ public class SeenVideoHistoryTest {
                     ((AtomicBoolean) field("LOAD_STARTED")).get());
 
             // The failed helper remains usable once the transient open error is gone.
-            database().execSQL("INSERT OR REPLACE INTO seen_videos VALUES ('retry', ?)",
+            database().execSQL("INSERT OR REPLACE INTO seen_videos (account, aid, last_seen_ms) VALUES ('me', 'retry', ?)",
                     new Object[]{System.currentTimeMillis()});
             SeenVideoHistory.size();
             drain();
@@ -415,10 +477,10 @@ public class SeenVideoHistoryTest {
 
     @Test public void staleExpiryCannotDeleteARefreshedRecord() throws Exception {
         long now = System.currentTimeMillis();
-        database().execSQL("INSERT INTO seen_videos VALUES ('42', ?)", new Object[]{now});
-        Method delete = SeenVideoHistory.class.getDeclaredMethod("deleteAsync", String.class, long.class);
+        database().execSQL("INSERT INTO seen_videos (account, aid, last_seen_ms) VALUES ('me', '42', ?)", new Object[]{now});
+        Method delete = SeenVideoHistory.class.getDeclaredMethod("deleteAsync", String.class, String.class, long.class);
         delete.setAccessible(true);
-        delete.invoke(null, "42", now - 1000);
+        delete.invoke(null, ME, "42", now - 1000);
         drain();
         try (android.database.Cursor c = database().rawQuery("SELECT aid FROM seen_videos", null)) {
             assertEquals(1, c.getCount());
@@ -431,7 +493,7 @@ public class SeenVideoHistoryTest {
         db.beginTransaction();
         try {
             for (int i = 0; i < 10005; i++) {
-                db.execSQL("INSERT INTO seen_videos VALUES (?, ?)", new Object[]{"id" + i, (long) i});
+                db.execSQL("INSERT INTO seen_videos (account, aid, last_seen_ms) VALUES (?, ?, ?)", new Object[]{ME, "id" + i, (long) i});
             }
             db.setTransactionSuccessful();
         } finally { db.endTransaction(); }
@@ -538,7 +600,7 @@ public class SeenVideoHistoryTest {
         // And what went back to the database is the newer time too, or the next load would
         // quietly undo the merge.
         try (android.database.Cursor c = database().rawQuery(
-                "SELECT last_seen_ms FROM seen_videos WHERE aid = '55'", null)) {
+                "SELECT last_seen_ms FROM seen_videos WHERE account = 'me' AND aid = '55'", null)) {
             assertTrue(c.moveToFirst());
             assertEquals("the row on disk must match memory", watchedAgain, c.getLong(0));
         }
@@ -554,19 +616,164 @@ public class SeenVideoHistoryTest {
 
     @Test public void aSchemaChangeKeepsWhatWasAlreadyWatched() throws Exception {
         long watched = System.currentTimeMillis();
-        database().execSQL("INSERT INTO seen_videos VALUES ('kept', ?)", new Object[]{watched});
+        insert("kept", watched);
 
         // What SQLiteOpenHelper calls when the version moves in either direction. Neither is
-        // allowed to take the record with it.
+        // allowed to take the record with it, or the account it belongs to.
         SQLiteOpenHelper helper = (SQLiteOpenHelper) field("database");
         helper.onUpgrade(database(), 1, 2);
-        helper.onDowngrade(database(), 2, 1);
+        helper.onDowngrade(database(), 3, 2);
 
         try (android.database.Cursor c = database().rawQuery(
-                "SELECT last_seen_ms FROM seen_videos WHERE aid = 'kept'", null)) {
+                "SELECT last_seen_ms FROM seen_videos WHERE account = 'me' AND aid = 'kept'", null)) {
             assertTrue("the row survived the migration", c.moveToFirst());
             assertEquals(watched, c.getLong(0));
         }
+    }
+
+    /** One account's watching hides nothing from another, from the first read after a switch. */
+    @Test public void eachAccountKeepsARecordOfItsOwn() throws Exception {
+        SignedInUser.idForTests = "111";
+        SeenVideoHistory.onPlayProgressChange("a1", 5000, 10000);
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("a1"));
+
+        SignedInUser.idForTests = "222";
+        assertFalse("the first account's record reached the feed after the switch",
+                SeenVideoHistory.shouldHide("a1"));
+        assertEquals(0, SeenVideoHistory.size());
+        SeenVideoHistory.onPlayProgressChange("b1", 5000, 10000);
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("b1"));
+
+        SignedInUser.idForTests = "111";
+        SeenVideoHistory.size();
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("a1"));
+        assertFalse(SeenVideoHistory.shouldHide("b1"));
+        assertEquals(Set.of("111|a1", "222|b1"), rows());
+
+        // Signed out is a record of its own too.
+        SignedInUser.idForTests = "";
+        assertFalse(SeenVideoHistory.shouldHide("a1"));
+        SeenVideoHistory.onPlayProgressChange("g1", 5000, 10000);
+        drain();
+        assertTrue(rows().contains(SeenVideoHistory.SIGNED_OUT + "|g1"));
+    }
+
+    @Test public void clearingForgetsOnlyTheSignedInAccountAndItsWayBackStaysWithIt() throws Exception {
+        SignedInUser.idForTests = "111";
+        SeenVideoHistory.onPlayProgressChange("a1", 5000, 10000);
+        drain();
+        SignedInUser.idForTests = "222";
+        SeenVideoHistory.onPlayProgressChange("b1", 5000, 10000);
+        drain();
+
+        SeenVideoHistory.clear();
+        drain();
+        assertTrue(SeenVideoHistory.canUndo());
+        assertEquals(1, SeenVideoHistory.undoSize());
+        assertEquals(Set.of("111|a1"), rows());
+
+        SignedInUser.idForTests = "111";
+        assertFalse("the other account was offered a way back to a record that isn't its own",
+                SeenVideoHistory.canUndo());
+        SeenVideoHistory.size();
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("a1"));
+    }
+
+    /**
+     * Version 1 recorded no account. Its rows hide nothing, for anyone, until they're added to
+     * an account on purpose, and then the newer sighting of a video both hold wins.
+     */
+    @Test public void versionOneRowsHideNothingUntilTheyAreAddedToAnAccount() throws Exception {
+        long now = System.currentTimeMillis();
+        replaceWithVersionOne(Map.of("old1", now - 5000, "both", now - 1000, "stale", now - 9000));
+        SignedInUser.idForTests = "111";
+        SeenVideoHistory.size();
+        drain();
+        assertFalse("an unowned row hid a video", SeenVideoHistory.shouldHide("old1"));
+        assertEquals(3, SeenVideoHistory.unownedCount());
+        assertEquals(Set.of("|old1", "|both", "|stale"), rows());
+
+        // The account already holds two of them: "both" at an older time, "stale" at a newer one.
+        database().execSQL("INSERT INTO seen_videos (account, aid, last_seen_ms) VALUES ('111', 'both', ?)",
+                new Object[]{now - 3000});
+        database().execSQL("INSERT INTO seen_videos (account, aid, last_seen_ms) VALUES ('111', 'stale', ?)",
+                new Object[]{now - 2000});
+
+        AtomicInteger added = new AtomicInteger(-2);
+        CountDownLatch done = new CountDownLatch(1);
+        SeenVideoHistory.adoptUnowned(count -> {
+            added.set(count);
+            done.countDown();
+        });
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertTrue(done.await(5, TimeUnit.SECONDS));
+        assertEquals(3, added.get());
+        assertEquals(0, SeenVideoHistory.unownedCount());
+        assertEquals(Set.of("111|old1", "111|both", "111|stale"), rows());
+        assertTrue(SeenVideoHistory.shouldHide("old1"));
+        assertEquals("the newer unowned sighting wins", now - 1000, lastSeen("111", "both"));
+        assertEquals("the newer account sighting stays", now - 2000, lastSeen("111", "stale"));
+
+        // Another account never sees them.
+        SignedInUser.idForTests = "222";
+        SeenVideoHistory.size();
+        drain();
+        assertFalse(SeenVideoHistory.shouldHide("old1"));
+    }
+
+    /**
+     * An older bundle opens a version 2 database as version 1: it writes rows without an account
+     * and sets the version back. Coming back to this bundle must not take the accounts off the
+     * rows it wrote before.
+     */
+    @Test public void anOlderBundleRunningInBetweenLeavesEveryAccountOnItsRows() throws Exception {
+        SignedInUser.idForTests = "111";
+        SeenVideoHistory.onPlayProgressChange("mine", 5000, 10000);
+        drain();
+        SQLiteDatabase db = database();
+        db.execSQL("INSERT OR REPLACE INTO seen_videos (aid, last_seen_ms) VALUES ('legacy', ?)",
+                new Object[]{System.currentTimeMillis()});
+        db.setVersion(1);
+        ((SQLiteOpenHelper) field("database")).onUpgrade(db, 1, 2);
+        assertEquals(Set.of("111|mine", "|legacy"), rows());
+    }
+
+    private static long lastSeen(String account, String aid) throws Exception {
+        try (android.database.Cursor c = database().rawQuery(
+                "SELECT last_seen_ms FROM seen_videos WHERE account = ? AND aid = ?", new String[]{account, aid})) {
+            assertTrue("no row for " + account + "|" + aid, c.moveToFirst());
+            return c.getLong(0);
+        }
+    }
+
+    /** Swaps the database for one version 1 wrote, holding these rows, and forgets memory. */
+    private static void replaceWithVersionOne(Map<String, Long> watched) throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        Field databaseField = SeenVideoHistory.class.getDeclaredField("database");
+        databaseField.setAccessible(true);
+        ((SQLiteOpenHelper) databaseField.get(null)).close();
+        databaseField.set(null, null);
+        context.deleteDatabase("seen_videos.db");
+        SQLiteDatabase v1 = context.openOrCreateDatabase("seen_videos.db", Context.MODE_PRIVATE, null);
+        try {
+            v1.execSQL("CREATE TABLE seen_videos (aid TEXT PRIMARY KEY NOT NULL, last_seen_ms INTEGER NOT NULL)");
+            v1.execSQL("CREATE INDEX seen_videos_last_seen ON seen_videos (last_seen_ms)");
+            for (Map.Entry<String, Long> row : watched.entrySet()) {
+                v1.execSQL("INSERT INTO seen_videos VALUES (?, ?)", new Object[]{row.getKey(), row.getValue()});
+            }
+            v1.setVersion(1);
+        } finally {
+            v1.close();
+        }
+        resetLoadedMemory();
+        Field partition = SeenVideoHistory.class.getDeclaredField("partition");
+        partition.setAccessible(true);
+        partition.set(null, null);
     }
 
     private static Object field(String name) throws Exception {

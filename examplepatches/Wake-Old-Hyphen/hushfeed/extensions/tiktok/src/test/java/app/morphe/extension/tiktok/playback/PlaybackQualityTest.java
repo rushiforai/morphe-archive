@@ -76,6 +76,29 @@ public class PlaybackQualityTest {
         assertSame(original, PlaybackQuality.filterMap(original));
     }
 
+    /**
+     * TikTok reads both model getters for a video and a prefetched neighbour between them. The
+     * cache held one entry, so every switch parsed and wrote the model again; each is parsed once
+     * now, and a change of quality is still its own entry.
+     */
+    @Test public void alternatingGettersAndANeighbourParseEachModelOnce() throws Exception {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        PlaybackQuality.resetForTests();
+        Settings.PLAYBACK_QUALITY.save("lowest");
+        String playing = new JSONObject(model()).toString();
+        String neighbour = playing.replace("\"one\"", "\"two\"");
+        String first = PlaybackQuality.filterVideoModelJson(playing);
+        for (int round = 0; round < 3; round++) {
+            assertEquals(first, PlaybackQuality.filterVideoModelJson(playing));
+            PlaybackQuality.filterDashVideoModelJson(playing);
+            PlaybackQuality.filterVideoModelJson(neighbour);
+        }
+        assertEquals("one parse per getter and model", 3, PlaybackQuality.parsedForTests);
+        Settings.PLAYBACK_QUALITY.save("highest");
+        PlaybackQuality.filterVideoModelJson(playing);
+        assertEquals("a new quality is read again", 4, PlaybackQuality.parsedForTests);
+    }
+
     @Test public void adaptiveJsonTracksSettingChangesAndPreservesAudioMetadata() throws Exception {
         Utils.setContext(RuntimeEnvironment.getApplication());
         String original = new JSONObject(model()).toString();

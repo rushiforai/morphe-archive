@@ -10,8 +10,9 @@
     Called by .git/hooks/pre-push with the remote name and URL, reading the pushed refs from
     standard input the way git supplies them. Run scripts/install-hooks.ps1 once to wire it up.
 
-    Only what changed is checked: runtime tests when extension or patch sources move, and the
-    release facts when a published file moves. Set HUSHFEED_SKIP_PRE_PUSH=1 to push anyway.
+    Only what changed is checked: runtime tests when extension or patch sources move, every patch
+    applied to each declared TikTok build when patch sources move, and the release facts when a
+    published file moves. Set HUSHFEED_SKIP_PRE_PUSH=1 to push anyway.
 #>
 [CmdletBinding()]
 param(
@@ -33,6 +34,8 @@ $ErrorActionPreference = 'Stop'
 # wherever pwsh is off the PATH: a git hook runs with git's environment, so that is the ordinary
 # case rather than the rare one.
 if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
+# Get-PatchTarget and Format-VersionList: the declared builds the fixture gate applies patches to.
+. (Join-Path $PSScriptRoot 'patch-target.ps1')
 
 # A hook runs with git's own environment. User environment variables set after the shell
 # launched, or set in the user scope only, may be absent. Import the four this script and
@@ -50,6 +53,9 @@ $zeroObject = '0' * 40
 # The commits this push carries, peeled, filled in by Get-PushedPaths. The build gate builds each
 # of these, and never whatever else the working tree holds.
 $script:pushedCommits = New-Object System.Collections.Generic.List[string]
+# Each pushed local ref with the object the gates were given for it, checked again at the end.
+# Not $pushedRefs: variable names ignore case, and that one is a parameter of this script.
+$script:checkedRefs = New-Object System.Collections.Generic.List[object]
 
 function Write-Step {
     param([string]$Message)
@@ -111,6 +117,7 @@ function Get-PushedPaths {
         foreach ($name in @((@($names) -join "`n") -split "`0")) {
             if (-not [string]::IsNullOrWhiteSpace($name)) { [void]$paths.Add($name.Trim()) }
         }
+        $script:checkedRefs.Add([pscustomobject]@{ LocalRef = $parts[0]; LocalSha = $localSha })
         $commit = Invoke-GitQuietly @('rev-parse', '--verify', "$localSha^{commit}")
         if ($LASTEXITCODE -eq 0 -and $commit -and -not $script:pushedCommits.Contains(([string]$commit).Trim())) {
             $script:pushedCommits.Add(([string]$commit).Trim())
@@ -240,6 +247,90 @@ function Get-GateWorktree {
     return $tree
 }
 
+function Get-DeclaredFixtures {
+    <#
+        The universal APK of each TikTok build the pushed commit's catalog declares, from the folder
+        HUSHFEED_FIXTURE_DIR names, found the way the fixture tests find one (Fixtures.apkOf): the
+        APKMirror name holds "_<version>-" and the short one is "tiktok-<version>.apk". A declared
+        build without exactly one stops the push, since a skipped build is the gap this closes.
+    #>
+    param([Parameter(Mandatory = $true)][string]$GateRoot)
+    $folder = $env:HUSHFEED_FIXTURE_DIR
+    if (-not $folder -or -not (Test-Path -LiteralPath $folder -PathType Container)) {
+        throw ('Patch sources changed, so every patch is applied to each declared TikTok build, and ' +
+            "HUSHFEED_FIXTURE_DIR names no folder ('$folder'). Point it at the vendor APKs.")
+    }
+    if (-not $env:HUSHFEED_DESKTOP_JAR -or -not (Test-Path -LiteralPath $env:HUSHFEED_DESKTOP_JAR -PathType Leaf)) {
+        throw ('Patch sources changed, so every patch is applied to each declared TikTok build, and ' +
+            "HUSHFEED_DESKTOP_JAR names no file ('$env:HUSHFEED_DESKTOP_JAR'). Point it at the Morphe desktop CLI.")
+    }
+    $catalogPath = Join-Path $GateRoot 'patches-list.json'
+    if (-not (Test-Path -LiteralPath $catalogPath -PathType Leaf)) { throw "No patch list at $catalogPath." }
+    $target = Get-PatchTarget -PatchList (Get-Content -LiteralPath $catalogPath -Raw | ConvertFrom-Json)
+    $apks = @(Get-ChildItem -LiteralPath $folder -Filter '*.apk' -File)
+    foreach ($version in @($target.PackageVersions)) {
+        $found = @($apks | Where-Object { $_.Name.Contains("_$version-") -or $_.Name -eq "tiktok-$version.apk" })
+        if ($found.Count -ne 1) {
+            throw ("HUSHFEED_FIXTURE_DIR ($folder) holds $($found.Count) universal APKs of TikTok $version, " +
+                'not one, and the pushed catalog declares that build.')
+        }
+        [pscustomobject]@{ Version = $version; Apk = $found[0].FullName }
+    }
+}
+
+function Invoke-FixturePatching {
+    <#
+        Applies every patch of the bundle :patches:buildAndroid just left in the gate root to each
+        declared build, with that root's own verify-all-patches.ps1 and the desktop CLI, all builds
+        at once. No test under patches/src/test runs the patcher: de43a43e passed the whole gate with
+        a fingerprint that matched nothing on 47.0.3, and only the release receipt would have applied
+        it. Every build is waited for, so one failure doesn't hide another.
+    #>
+    param([Parameter(Mandatory = $true)][string]$GateRoot, [Parameter(Mandatory = $true)][object[]]$Fixtures)
+    $verify = Join-Path $GateRoot 'scripts/verify-all-patches.ps1'
+    if (-not (Test-Path -LiteralPath $verify -PathType Leaf)) { throw "The pushed commit has no $verify to apply its patches with." }
+    $bundles = @(Get-ChildItem -LiteralPath (Join-Path $GateRoot 'patches/build/release') -Filter '*.mpp' -File -ErrorAction SilentlyContinue)
+    if ($bundles.Count -ne 1) {
+        throw "patches/build/release in $GateRoot holds $($bundles.Count) bundles after :patches:buildAndroid, not one."
+    }
+    $patchList = Join-Path $GateRoot 'patches-list.json'
+    $work = Join-Path ([IO.Path]::GetTempPath()) ('hushfeed-pre-push-apply-' + [guid]::NewGuid().ToString('N'))
+    Write-Step ("patch sources changed, applying $($bundles[0].Name) to TikTok " +
+        (Format-VersionList -Versions @($Fixtures | ForEach-Object { $_.Version })) + ' with the desktop CLI')
+    $runs = @(Invoke-WithoutGitEnvironment {
+        foreach ($fixture in $Fixtures) {
+            $job = Start-Job -ArgumentList $verify, $fixture.Apk, $env:HUSHFEED_DESKTOP_JAR,
+                (Join-Path $work $fixture.Version), $bundles[0].FullName, $patchList -ScriptBlock {
+                param($Verify, $Apk, $Jar, $WorkDir, $Bundle, $PatchList)
+                $global:LASTEXITCODE = 0
+                try {
+                    & $Verify -Apk $Apk -DesktopJar $Jar -WorkDir $WorkDir -Bundle $Bundle -PatchList $PatchList *>&1 |
+                        ForEach-Object { "$_" }
+                    $code = $LASTEXITCODE
+                } catch {
+                    "$_"
+                    $code = 1
+                }
+                [pscustomobject]@{ ExitCode = $code }
+            }
+            [pscustomobject]@{ Version = $fixture.Version; Job = $job }
+        }
+    })
+    $failed = @()
+    foreach ($run in $runs) {
+        $code = 1
+        foreach ($item in @(Receive-Job -Job $run.Job -Wait -AutoRemoveJob -ErrorAction Continue)) {
+            if ($null -ne $item -and $item.PSObject.Properties['ExitCode']) { $code = [int]$item.ExitCode } else { Write-Host "[$($run.Version)] $item" }
+        }
+        if ($code -ne 0) { $failed += $run.Version }
+    }
+    if ($failed.Count -gt 0) {
+        throw ("The bundle this push builds did not apply to TikTok $(Format-VersionList -Versions $failed). " +
+            "Read the [verify] lines above; the results are in $work. Push anyway with HUSHFEED_SKIP_PRE_PUSH=1.")
+    }
+    Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 if ($env:HUSHFEED_SKIP_PRE_PUSH -eq '1') {
     Write-Step 'skipped by HUSHFEED_SKIP_PRE_PUSH'
     exit 0
@@ -281,6 +372,14 @@ try {
         $_ -eq 'patches-bundle.png' -or $_ -like 'assets/readme-*' -or $_ -like 'concepts/marketing/*'
     }).Count -gt 0
     $touchesScripts = @($paths | Where-Object { $_ -like 'scripts/*' }).Count -gt 0
+    # What decides whether a patch still applies to TikTok: the patches themselves, and the patcher
+    # pin, which decides how their fingerprints match.
+    # Not on an index push: its release check compares the bundle in patches/build/release byte for
+    # byte with the published one, a rebuild here would stamp it with this commit's time, and the
+    # release receipt already applied that bundle to every declared build.
+    $touchesPatches = @($paths | Where-Object {
+        $_ -like 'patches/src/main/*' -or $_ -eq 'gradle/libs.versions.toml'
+    }).Count -gt 0 -and -not $paths.Contains('patches-bundle.json')
     $injectedRegisterVerifierPaths = @(
         'scripts/DexDiff.java',
         'scripts/injected-register-contracts.ps1',
@@ -456,6 +555,10 @@ try {
             ':extensions:shared:library:lint',
             ':extensions:tiktok:lint'
         )
+        # The bundle the fixture gate applies. Last, because :patches:test reruns :patches:jar, and
+        # buildAndroid's verifyBundle also fails a catalog that no longer matches the patches. It
+        # writes patches/build/release only, never the tracked patches-list.json.
+        if ($touchesPatches) { $tasks += ':patches:buildAndroid' }
         # HUSHFEED_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
         # CPU and memory between several builds points it at a governor. Unset, the Gradle
@@ -476,6 +579,9 @@ try {
                     Write-Step "building $gateCommit in $gateRoot"
                 }
                 try {
+                # Before the build, so a missing fixture stops the push in seconds, not after it.
+                $fixtures = @()
+                if ($touchesPatches) { $fixtures = @(Get-DeclaredFixtures -GateRoot $gateRoot) }
                 $global:LASTEXITCODE = 0
                 Invoke-WithoutGitEnvironment {
                     if ($wrapper) {
@@ -489,6 +595,7 @@ try {
                         'test failed, an API level above the payload floor was reached, or the build could ' +
                         'not start. Push anyway with HUSHFEED_SKIP_PRE_PUSH=1.')
                 }
+                if ($fixtures.Count -gt 0) { Invoke-FixturePatching -GateRoot $gateRoot -Fixtures $fixtures }
                 } finally {
                     if ($gateRoot -eq $Root) { Assert-TreeUnchanged 'the runtime test build' }
                 }
@@ -586,6 +693,18 @@ try {
 
     if (-not $touchesScripts -and -not $touchesCode -and -not $touchesRelease) {
         Write-Step 'no code or published file changed'
+    }
+    # Over HTTPS git starts send-pack only after this hook returns, and send-pack reads a named
+    # branch again then. Commits made on it while the gates ran went out unchecked on 2026-09-27
+    # (55556b10 to 64d2844e, behind a gate that had checked abda9b30), with the tracking ref
+    # still saying abda9b30. So every pushed branch still has to name what was checked.
+    foreach ($pushed in $script:checkedRefs) {
+        if ($pushed.LocalRef -notlike 'refs/*') { continue }
+        $now = ([string](Invoke-GitQuietly @('rev-parse', '--verify', '--quiet', $pushed.LocalRef))).Trim()
+        if ($now -ne $pushed.LocalSha) {
+            throw ("$($pushed.LocalRef) moved from $($pushed.LocalSha) to $now while the checks ran, and git " +
+                'would push the new commits unchecked. Push again, and leave the branch alone until the push ends.')
+        }
     }
     Write-Step 'ok'
     exit 0

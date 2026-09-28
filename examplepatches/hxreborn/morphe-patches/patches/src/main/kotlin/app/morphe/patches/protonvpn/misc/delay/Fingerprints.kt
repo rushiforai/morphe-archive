@@ -12,11 +12,12 @@ package app.morphe.patches.protonvpn.misc.delay
 
 import app.morphe.patcher.Fingerprint
 
-private const val APP_CONFIG = "Lcom/protonvpn/android/appconfig/AppConfigResponse;"
-private const val LEGACY_APP_CONFIG = "Lcom/protonvpn/android/appconfig/AppConfigResponseLegacyStorage;"
-
-internal val changeServerDelayFingerprints = listOf(APP_CONFIG, LEGACY_APP_CONFIG).flatMap { config ->
+internal val changeServerDelayFingerprints =
     listOf("getChangeServerLongDelayInSeconds", "getChangeServerShortDelayInSeconds").map { getter ->
-        Fingerprint(definingClass = config, name = getter, returnType = "I", parameters = emptyList())
+        Fingerprint(
+            definingClass = "Lcom/protonvpn/android/appconfig/AppConfigResponse;",
+            name = getter,
+            returnType = "I",
+            parameters = emptyList(),
+        )
     }
-}

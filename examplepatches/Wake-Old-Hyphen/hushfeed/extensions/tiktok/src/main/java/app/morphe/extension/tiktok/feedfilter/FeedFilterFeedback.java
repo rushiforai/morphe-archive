@@ -330,6 +330,7 @@ final class FeedFilterFeedback {
         if ("PromotionalMusicFilter".equals(reason)) return "Promotional music";
         if ("LiveReplayFilter".equals(reason)) return "LIVE replays";
         if ("RegionFilter".equals(reason)) return "Country filters";
+        if ("CaptionLanguageFilter".equals(reason)) return "Caption languages";
         if ("PublicationAgeFilter".equals(reason)) return "Post age";
         if ("QualityFilter".equals(reason)) return "Length and views per like";
         return OTHER_REASON;

@@ -21,7 +21,7 @@ import app.morphe.patcher.patch.bytecodePatch
  * original certificate, so the re-signed build is accepted. The value is public
  * information (it is part of every Ather APK) and cannot be used to sign anything.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321):
+ * Equivalent smali (verified against 13.5.1, versionCode 324):
  * ```
  * .method public static e(Landroid/content/Context;Ljava/lang/String;)[B
  *     .locals 1

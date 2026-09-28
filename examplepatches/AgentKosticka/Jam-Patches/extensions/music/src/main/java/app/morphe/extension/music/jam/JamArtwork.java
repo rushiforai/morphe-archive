@@ -9,15 +9,17 @@ package app.morphe.extension.music.jam;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 import androidx.annotation.Nullable;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.requests.Requester;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -30,74 +32,107 @@ import java.util.concurrent.Executors;
 public final class JamArtwork {
 
   private static final Map<ImageView, Drawable> originals = new WeakHashMap<>();
+  private static final Map<ImageView, Drawable> localArtwork =
+    new WeakHashMap<>();
   private static final Set<ImageView> views = Collections.newSetFromMap(
     new WeakHashMap<>()
   );
   private static final ExecutorService loader =
     Executors.newSingleThreadExecutor();
   private static String url = "";
+  private static long generation;
 
   @Nullable
   private static Bitmap picture;
 
   private static void retain(ImageView view) {
-    if (!originals.containsKey(view)) originals.put(view, view.getDrawable());
-  }
-
-  public static void bind(ImageView view) {
-    views.add(view);
-    if (!JamMirror.active()) return;
-    retain(view);
-    if (picture != null) view.setImageBitmap(picture);
+    if (!originals.containsKey(view)) originals.put(
+      view,
+      localArtwork.containsKey(view)
+        ? localArtwork.get(view)
+        : view.getDrawable()
+    );
   }
 
   public static Bitmap choose(ImageView view, Bitmap local) {
     views.add(view);
-    if (!JamMirror.active()) return local;
-    retain(view);
+    if (!"Participant".equals(JamPanel.role(JamUi.latest))) {
+      localArtwork.put(
+        view,
+        local == null ? null : new BitmapDrawable(view.getResources(), local)
+      );
+      return local;
+    }
+    // Native refreshes can now refer to the mirrored item. Keep the pre-Jam image,
+    // not the incoming bitmap for that host item, as the restoration source.
+    if (!originals.containsKey(view)) originals.put(
+      view,
+      localArtwork.get(view)
+    );
     return picture == null ? local : picture;
   }
 
   static void clear() {
+    if (url.isEmpty() && picture == null && originals.isEmpty()) return;
+    generation++;
     url = "";
     picture = null;
-    JamPalette.clear();
+    try {
+      JamPalette.clear();
+    } catch (Exception error) {
+      Logger.printInfo(() -> "Could not restore local palette", error);
+    }
     for (Map.Entry<ImageView, Drawable> entry : new ArrayList<>(
       originals.entrySet()
     )) {
-      entry.getKey().setImageDrawable(entry.getValue());
+      try {
+        entry.getKey().setImageDrawable(entry.getValue());
+      } catch (Exception error) {
+        Logger.printInfo(() -> "Could not restore local artwork", error);
+      }
     }
     originals.clear();
   }
 
-  static void update(String value) {
+  static void update(String value, String encoded) {
+    if (!encoded.isEmpty()) value = "data:" + encoded;
     if (value.equals(url)) return;
     url = value;
+    final String requested = value;
+    final long token = ++generation;
     picture = null;
     loader.execute(() -> {
       try {
-        HttpURLConnection connection = (HttpURLConnection) new URL(
-          value
-        ).openConnection();
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(5000);
-        connection.setInstanceFollowRedirects(false);
         byte[] bytes;
-        try (
-          InputStream input = connection.getInputStream();
-          ByteArrayOutputStream out = new ByteArrayOutputStream()
-        ) {
-          byte[] buffer = new byte[8192];
-          int count;
-          while ((count = input.read(buffer)) != -1) {
-            if (out.size() + count > 2097152) throw new IOException(
-              "Artwork too large"
-            );
-            out.write(buffer, 0, count);
+        if (requested.startsWith("data:")) {
+          if (encoded.length() > 180000) throw new IOException(
+            "Artwork too large"
+          );
+          bytes = android.util.Base64.decode(
+            encoded,
+            android.util.Base64.DEFAULT
+          );
+        } else {
+          HttpURLConnection connection = Requester.openConnection(requested);
+          connection.setConnectTimeout(5000);
+          connection.setReadTimeout(5000);
+          connection.setInstanceFollowRedirects(false);
+          try (
+            InputStream input = connection.getInputStream();
+            ByteArrayOutputStream out = new ByteArrayOutputStream()
+          ) {
+            byte[] buffer = new byte[8192];
+            int count;
+            while ((count = input.read(buffer)) != -1) {
+              if (out.size() + count > 2097152) throw new IOException(
+                "Artwork too large"
+              );
+              out.write(buffer, 0, count);
+            }
+            bytes = out.toByteArray();
+          } finally {
+            connection.disconnect();
           }
-          bytes = out.toByteArray();
-        } finally {
-          connection.disconnect();
         }
 
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -124,7 +159,11 @@ public final class JamArtwork {
           options
         );
         Utils.runOnMainThread(() -> {
-          if (!value.equals(url) || !JamMirror.active()) return;
+          if (
+            token != generation ||
+            !"Participant".equals(JamPanel.role(JamUi.latest)) ||
+            !JamMirror.active()
+          ) return;
           picture = result;
           JamPalette.update(result);
           for (ImageView view : new ArrayList<>(views)) {
@@ -133,7 +172,7 @@ public final class JamArtwork {
           }
         });
       } catch (Exception e) {
-        android.util.Log.i("MorpheJam", "Host artwork unavailable");
+        Logger.printInfo(() -> "Host artwork unavailable", e);
       }
     });
   }

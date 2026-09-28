@@ -35,6 +35,9 @@ body:
         - "BetterSleep (another version, type it below)"
         - "Cx File Explorer 2.7.8"
         - "Cx File Explorer (another version, type it below)"
+        - "Cxxdroid 5.6_arm64"
+        - "Cxxdroid 6.0_arm64"
+        - "Cxxdroid (another version, type it below)"
         - "DWG FastView 5.19.4"
         - "DWG FastView 5.19.6"
         - "DWG FastView 5.20.0"
@@ -48,6 +51,8 @@ body:
         - "ForusApp (another version, type it below)"
         - "Hindu Calendar 9.3.0"
         - "Hindu Calendar (another version, type it below)"
+        - "Jvdroid 2.8"
+        - "Jvdroid (another version, type it below)"
         - "Kick (another version, type it below)"
         - "Klassik Radio+ p5.11.1"
         - "Klassik Radio+ (another version, type it below)"
@@ -69,11 +74,14 @@ body:
         - "Projectivy Launcher (another version, type it below)"
         - "Proton Mail 7.10.4"
         - "Proton Mail 7.11.5"
+        - "Proton Mail 7.11.8"
         - "Proton Mail (another version, type it below)"
         - "Proton Pass 1.40.3"
         - "Proton Pass (another version, type it below)"
         - "Proton VPN 5.20.39.0"
         - "Proton VPN (another version, type it below)"
+        - "Pydroid 3 8.6_arm64"
+        - "Pydroid 3 (another version, type it below)"
         - "QR & Barcode Scanner 2.2.221"
         - "QR & Barcode Scanner (another version, type it below)"
         - "Quranify 2.2.8"
@@ -115,6 +123,8 @@ body:
         - "vpnify 2.2.9.9"
         - "vpnify 2.3.0"
         - "vpnify (another version, type it below)"
+        - "Yi iot 5.1.7_20260914"
+        - "Yi iot (another version, type it below)"
         # /generated
     validations:
       required: true
@@ -131,12 +141,12 @@ body:
       description: Newest first.
       options:
         # generated:versions
+        - "1.33.0"
+        - "1.32.0"
         - "1.31.0"
         - "1.30.0"
         - "1.29.0"
         - "1.28.0"
-        - "1.27.1"
-        - "1.27.0"
         - "Older than these"
         # /generated
     validations:
@@ -200,6 +210,9 @@ body:
         - "Cx File Explorer \u00b7 AMOLED dark theme"
         - "Cx File Explorer \u00b7 Dark theme"
         - "Cx File Explorer \u00b7 Unlock premium"
+        - "Cxxdroid \u00b7 AMOLED dark theme"
+        - "Cxxdroid \u00b7 Disable tracking"
+        - "Cxxdroid \u00b7 Unlock premium"
         - "DWG FastView \u00b7 Block telemetry"
         - "DWG FastView \u00b7 Hide rating dialog"
         - "DWG FastView \u00b7 Unlock premium"
@@ -208,6 +221,9 @@ body:
         - "ForusApp \u00b7 Unlock premium"
         - "Hindu Calendar \u00b7 Disable tracking"
         - "Hindu Calendar \u00b7 Hide ads"
+        - "Jvdroid \u00b7 AMOLED dark theme"
+        - "Jvdroid \u00b7 Disable tracking"
+        - "Jvdroid \u00b7 Unlock premium"
         - "Kick \u00b7 AMOLED dark theme"
         - "Klassik Radio+ \u00b7 Unlock premium"
         - "MovieBox \u00b7 All-In-One"
@@ -236,6 +252,7 @@ body:
         - "Proton Pass \u00b7 Hide upgrade promotions"
         - "Proton VPN \u00b7 AMOLED dark theme"
         - "Proton VPN \u00b7 Custom accent color"
+        - "Proton VPN \u00b7 Disable telemetry"
         - "Proton VPN \u00b7 Hide upgrade promotions"
         - "Proton VPN \u00b7 Remove server change delay"
         - "Proton VPN \u00b7 Show free server locations"
@@ -245,6 +262,9 @@ body:
         - "Proton VPN \u00b7 Unlock NetShield"
         - "Proton VPN \u00b7 Unlock profiles"
         - "Proton VPN \u00b7 Unlock split tunneling"
+        - "Pydroid 3 \u00b7 AMOLED dark theme"
+        - "Pydroid 3 \u00b7 Disable tracking"
+        - "Pydroid 3 \u00b7 Unlock premium"
         - "QR & Barcode Scanner \u00b7 Hide ads"
         - "Quranify \u00b7 Unlock premium"
         - "RateGlance \u00b7 Unlock premium"
@@ -272,6 +292,7 @@ body:
         - "VPN Super Unlimited Proxy \u00b7 Unlock premium"
         - "vpnify \u00b7 Disable rating prompt"
         - "vpnify \u00b7 Unlock premium"
+        - "Yi iot \u00b7 Hide ads"
         - "Not narrowed down yet"
         # /generated
   - type: input

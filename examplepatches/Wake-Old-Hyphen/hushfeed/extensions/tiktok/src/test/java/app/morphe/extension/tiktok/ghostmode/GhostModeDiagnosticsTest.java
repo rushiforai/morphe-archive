@@ -15,6 +15,7 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.settings.Settings;
+import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -138,6 +139,48 @@ public class GhostModeDiagnosticsTest {
      * The per-call-site memory, emptied the way a fresh process starts. Reflection rather than a
      * reset method, because a method only a test calls would ship in the payload on every phone.
      */
+    /**
+     * The play report every story view also sends (#39): held back for a story, whichever way
+     * TikTok marks it, and left alone for a feed video, which says nothing in the export.
+     */
+    @Test
+    public void onlyAStorysPlayReportIsHeldBack() {
+        Settings.GHOST_MODE.save(true);
+        assertTrue("a story TikTok flags", GhostMode.shouldBlockStoryStats(aweme(true, 0)));
+        assertTrue("a story by its type", GhostMode.shouldBlockStoryStats(aweme(false, 40)));
+        assertTrue("a shared story by its type", GhostMode.shouldBlockStoryStats(aweme(false, 45)));
+        assertTrue(LogBufferManager.buildExportText().contains("Ghost mode story play stats: blocked"));
+
+        forgetWhatWasReported();
+        LogBufferManager.clearLogBuffer();
+        assertFalse("a feed video's play report was held back", GhostMode.shouldBlockStoryStats(aweme(false, 0)));
+        assertFalse(GhostMode.shouldBlockStoryStats(null));
+        assertFalse("a feed video asked about the story report",
+                LogBufferManager.buildExportText().contains("story play stats"));
+
+        Settings.GHOST_MODE.save(false);
+        assertFalse(GhostMode.shouldBlockStoryStats(aweme(true, 40)));
+        assertTrue(LogBufferManager.buildExportText().contains("Ghost mode story play stats: sent"));
+    }
+
+    @Test
+    public void aStoryGetterThatFailsSendsTheReportAndSaysWhy() {
+        Settings.GHOST_MODE.save(true);
+        Aweme renamed = new Aweme() {
+            @Override public boolean getIsTikTokStory() { throw new NoSuchMethodError("getIsTikTokStory"); }
+        };
+        assertFalse(GhostMode.shouldBlockStoryStats(renamed));
+        assertTrue(HookStatus.missing("ghost mode").toString(),
+                HookStatus.missing("ghost mode").toString().contains("NoSuchMethodError"));
+    }
+
+    private static Aweme aweme(boolean story, int type) {
+        return new Aweme() {
+            @Override public boolean getIsTikTokStory() { return story; }
+            @Override public int getAwemeType() { return type; }
+        };
+    }
+
     private static void forgetWhatWasReported() {
         try {
             java.lang.reflect.Field field = GhostMode.class.getDeclaredField("reported");

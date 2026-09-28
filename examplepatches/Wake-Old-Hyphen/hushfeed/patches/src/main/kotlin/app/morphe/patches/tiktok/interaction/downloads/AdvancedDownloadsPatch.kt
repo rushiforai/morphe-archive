@@ -7,8 +7,8 @@
 package app.morphe.patches.tiktok.interaction.downloads
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.addInstruction
+import app.morphe.util.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -235,7 +235,7 @@ private object PhotoSaveJobFingerprint : Fingerprint(
 @Suppress("unused")
 val advancedDownloadsPatch = bytecodePatch(
     name = "Advanced downloads",
-    description = "Adds download quality choices, saves Photo Mode images directly from their source URLs, keeps a video's sound as its own audio file, and saves a profile picture or a story from a long press. Switch: Hushfeed settings > Downloads.",
+    description = "Adds download quality choices, original Photo Mode images, separate audio files and optional video details. It can check for an existing saved video before downloading another copy. Long presses save profile pictures and stories. Switch: Hushfeed settings > Downloads.",
     default = false,
 ) {
     category("Downloads")

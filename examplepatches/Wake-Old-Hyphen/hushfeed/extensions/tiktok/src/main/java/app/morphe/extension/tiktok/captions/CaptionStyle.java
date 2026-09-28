@@ -72,9 +72,10 @@ public final class CaptionStyle {
     public static Layout layout(Layout original) {
         int size = size();
         if (original == null || size == 0) return original;
-        // On the host's render path, so nothing here may throw. The context is set in
-        // attachBaseContext, long before a caption is drawn, but a null answer costs one line.
-        android.content.Context context = Utils.getContext();
+        // On the host's render path, so nothing here may throw. The context is set long before
+        // a caption is drawn, but a null answer costs one line. The window's width caps it, so
+        // a split view's half of the screen isn't given the whole display's.
+        android.content.Context context = Utils.getWindowContext();
         if (context == null) return original;
         TextPaint paint = new TextPaint(original.getPaint());
         android.util.DisplayMetrics metrics = context.getResources().getDisplayMetrics();

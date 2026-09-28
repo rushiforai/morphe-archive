@@ -1,0 +1,51 @@
+name: Build MPP
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    name: Build patch bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Test and build MPP
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          ./gradlew
+          :extensions:extension:testDebugUnitTest
+          :extensions:offlinegames:testDebugUnitTest
+          :patches:generatePatchesList
+          --no-daemon
+
+      - name: Show bundle
+        run: ls -lh patches/build/libs/*.mpp
+
+      - name: Upload MPP artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ggyasin-morphe-patches
+          path: |
+            patches/build/libs/*.mpp
+            patches-list.json
+          if-no-files-found: error
+          retention-days: 14

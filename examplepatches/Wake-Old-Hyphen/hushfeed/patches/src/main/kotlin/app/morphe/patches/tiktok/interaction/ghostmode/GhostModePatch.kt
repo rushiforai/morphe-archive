@@ -8,7 +8,7 @@
 package app.morphe.patches.tiktok.interaction.ghostmode
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.util.addInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -18,6 +18,7 @@ import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.util.numberOfParameterRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
 
 /** Reports that a story was seen, opened or interacted with. */
 private object StoryViewReportFingerprint : Fingerprint(
@@ -42,6 +43,22 @@ private object TypingStatusSenderFingerprint : Fingerprint(
             method.parameterTypes[0] == "Ljava/lang/String;" &&
             method.returnType == "V"
     },
+)
+
+/**
+ * TikTok's play report sender (/aweme/v1/aweme/stats/). Every story view sends one with the
+ * story's aid, play_delta=1 and story_consumption_type, beside the StoryApi report above, so a
+ * viewer list still filled with only that one blocked (#39). R8 names it on every build (47.0.3
+ * LX/09gS.LIZIZ, 47.1.3 LX/09b8.LIZIZ); its monitor string and its shape find it.
+ */
+internal object AwemeStatsSenderFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;", "I", "Ljava/lang/String;", "I",
+        "Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function1;",
+    ),
+    strings = listOf("aweme_stats_monitor"),
+    custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
 )
 
 /**
@@ -118,5 +135,19 @@ val ghostModePatch = bytecodePatch(
             }
             if (lazy.isNotEmpty()) skipReportsAtEveryCallSite(lazy, guard)
         }
+
+        // The play report a story view also sends. The guard asks about the Aweme (p4) and lets
+        // every feed video's report through; it returns before the report is built, so the
+        // callback that stamps the story's consumption type never runs either.
+        val statsSenders = AwemeStatsSenderFingerprint.matchAllOrNull().orEmpty().map { it.method }
+        if (statsSenders.size != 1) {
+            throw PatchException("Ghost mode: expected one play report sender, found ${statsSenders.size}.")
+        }
+        statsSenders.single().guardAtEntry(
+            "Ghost mode",
+            "invoke-static/range {p4 .. p4}, " +
+                "$GHOST_MODE_EXTENSION->shouldBlockStoryStats(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z",
+            "return-void",
+        )
     }
 }

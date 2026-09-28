@@ -43,13 +43,21 @@ final class CreatorIdentity {
 
     static CreatorIdentity of(Aweme item) {
         Object author = Reflect.property(item, "getAuthor", "author");
-        String uid = Reflect.firstNonBlank(
-                Reflect.string(author, "getUid", "uid"),
-                Reflect.string(item, "getAuthorUid", "authorUid"));
-        return new CreatorIdentity(uid,
+        return new CreatorIdentity(uid(item, author),
                 Reflect.string(author, "getSecUid", "secUid"),
                 Reflect.string(author, "getUniqueId", "uniqueId"),
                 Reflect.string(author, "getNickname", "nickname"));
+    }
+
+    /** The author's uid alone, for a check that needs nothing else. */
+    static String uidOf(Aweme item) {
+        return uid(item, Reflect.property(item, "getAuthor", "author"));
+    }
+
+    private static String uid(Aweme item, Object author) {
+        return Reflect.firstNonBlank(
+                Reflect.string(author, "getUid", "uid"),
+                Reflect.string(item, "getAuthorUid", "authorUid"));
     }
 
     /** Whether one of the ids is on the list, exactly. The display name never counts. */

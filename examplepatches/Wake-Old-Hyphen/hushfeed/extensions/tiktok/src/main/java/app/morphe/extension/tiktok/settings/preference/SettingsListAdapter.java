@@ -86,7 +86,7 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
         if (preference instanceof SettingsMenuPreference) {
             row.setPaddingRelative(SettingsUi.dp(row.getContext(), 18), SettingsUi.dp(row.getContext(), 14),
                     SettingsUi.dp(row.getContext(), 18), SettingsUi.dp(row.getContext(), 14));
-            ((TextView) row.findViewById(android.R.id.title)).setTextSize(18);
+            ((TextView) row.findViewById(android.R.id.title)).setTextSize(SettingsUi.TEXT_HEADLINE_SMALL);
             return row;
         }
 

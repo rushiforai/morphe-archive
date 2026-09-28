@@ -23,7 +23,7 @@ private const val MARKER_FIELD = "$SCOOTERS->users:Ljava/util/Map;"
  * sites instead of a method signature. Three constructors end on that field: the
  * synthetic one the serialiser uses and the two the app calls directly.
  *
- * Equivalent smali (verified against 13.5.0, versionCode 321):
+ * Equivalent smali (verified against 13.5.1, versionCode 324):
  * ```
  * iput-object p15, p0, Lcom/ather/common/datastore/models/ScooterShadow$Scooters;->users:Ljava/util/Map;
  *

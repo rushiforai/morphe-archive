@@ -25,12 +25,26 @@ final class QuietHours {
         final int startRangeEndMin;
         final int minDurationMin;
         final int maxDurationMin;
+        /**
+         * A random number picked once per install and mixed into each day's pick, so two phones with the
+         * same settings don't go quiet and wake at the same minute. 0 = none (tests).
+         */
+        final long salt;
 
         Config(int startRangeStartMin, int startRangeEndMin, int minDurationMin, int maxDurationMin) {
+            this(startRangeStartMin, startRangeEndMin, minDurationMin, maxDurationMin, 0L);
+        }
+
+        Config(int startRangeStartMin, int startRangeEndMin, int minDurationMin, int maxDurationMin, long salt) {
             this.startRangeStartMin = startRangeStartMin;
             this.startRangeEndMin = startRangeEndMin;
             this.minDurationMin = minDurationMin;
             this.maxDurationMin = maxDurationMin;
+            this.salt = salt;
+        }
+
+        Config withSalt(long newSalt) {
+            return new Config(startRangeStartMin, startRangeEndMin, minDurationMin, maxDurationMin, newSalt);
         }
     }
 
@@ -53,7 +67,7 @@ final class QuietHours {
      * seed derived from that day (same day in, same window out; a different day picks differently).
      */
     static Window windowStartingAt(Config config, long localMidnightMs) {
-        Random random = new Random(localMidnightMs / 86_400_000L);
+        Random random = new Random((localMidnightMs / 86_400_000L) ^ config.salt);
         int startSpan = config.startRangeEndMin - config.startRangeStartMin;
         int startMin = config.startRangeStartMin + (startSpan > 0 ? random.nextInt(startSpan + 1) : 0);
         int durationSpan = config.maxDurationMin - config.minDurationMin;

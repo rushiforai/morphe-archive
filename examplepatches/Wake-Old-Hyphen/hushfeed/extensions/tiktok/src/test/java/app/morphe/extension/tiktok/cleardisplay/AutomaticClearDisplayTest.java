@@ -140,7 +140,7 @@ public class AutomaticClearDisplayTest {
         RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
         assertEquals(List.of(false, true), events);
-        assertFalse(RememberClearDisplayPatch.getClearDisplayState());
+        assertFalse("an automatic clear was stored as the reader's own choice", Settings.CLEAR_DISPLAY.get());
     }
     @Test public void newVideoAndManualRestoreCancelPendingWork() {
         List<Boolean> old = new ArrayList<>(), next = new ArrayList<>();
@@ -169,7 +169,8 @@ public class AutomaticClearDisplayTest {
         assertEquals(List.of(false, false), events);
         RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(true, 0));
         RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 3));
-        assertTrue(RememberClearDisplayPatch.getClearDisplayState());
+        assertTrue("the reader's clear display wasn't remembered", Settings.CLEAR_DISPLAY.get());
+        assertTrue("an ignored event type took the live state away", RememberClearDisplayPatch.isClearDisplayNow());
         RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
         assertEquals(List.of(false, false, true), events);
     }

@@ -3,6 +3,7 @@ package app.morphe.extension.chmate;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
 import android.widget.Toast;
@@ -15,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -155,7 +157,9 @@ final class ArchivedThreadImporter {
     }
 
     private static boolean isTabletActivity(Activity activity) {
-        return activity.getClass().getName().endsWith(".TabletHomeActivity");
+        String name = activity.getClass().getName();
+        return name.endsWith(".TabletHomeActivity")
+                || name.endsWith(".Hilt_TabletHomeActivity");
     }
 
     private static boolean consumeRecentFailure(String importKey) {
@@ -328,6 +332,20 @@ final class ArchivedThreadImporter {
             if (message != null && !message.isEmpty()) {
                 Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
             }
+
+            // TabletHomeActivity owns all panes in one task.  Starting a new
+            // ResListActivity here makes its tablet forwarding path recreate
+            // TabletHomeActivity, which reloads every open tab and loses search
+            // state, scroll positions, and unread markers.  Feed the completed
+            // DAT back through the existing tablet navigation method instead.
+            if (isTabletActivity(activity)) {
+                Bundle retry = new Bundle();
+                retry.putString("_data", url);
+                retry.putBoolean("haiagaru.archive.retry", true);
+                if (openTabletThreadInPlace(activity, retry)) return;
+                Log.w(LOG_TAG, "Unable to reopen imported thread in the existing tablet panes");
+            }
+
             Intent retry = new Intent(activity.getIntent());
             // TabletHomeActivity normally keeps thread navigation in-process.
             // Re-enter through ResListActivity after the asynchronous import so
@@ -342,6 +360,47 @@ final class ArchivedThreadImporter {
             activity.startActivity(retry);
             activity.finish();
         });
+    }
+
+    /**
+     * Invokes TabletHomeActivity's existing in-process thread router.  The
+     * method is obfuscated differently in supported generations (191: Sq_,
+     * 226: d, 243: c), so the signature is validated before invocation.
+     */
+    private static boolean openTabletThreadInPlace(Activity activity, Bundle bundle) {
+        String[] candidates = {"Sq_", "d", "c"};
+        Class<?> type = activity.getClass();
+        while (type != null) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (!java.lang.reflect.Modifier.isPublic(method.getModifiers())
+                        || method.getReturnType() != void.class
+                        || method.getParameterTypes().length != 3
+                        || method.getParameterTypes()[1] != int.class
+                        || method.getParameterTypes()[2] != Bundle.class) {
+                    continue;
+                }
+                boolean nameMatches = false;
+                for (String candidate : candidates) {
+                    if (candidate.equals(method.getName())) {
+                        nameMatches = true;
+                        break;
+                    }
+                }
+                if (!nameMatches) continue;
+                try {
+                    method.setAccessible(true);
+                    method.invoke(activity, null, 0, bundle);
+                    Log.i(LOG_TAG, "Reopened imported thread in existing tablet panes via "
+                            + method.getName());
+                    return true;
+                } catch (Throwable error) {
+                    Log.w(LOG_TAG, "Tablet in-place thread navigation failed via "
+                            + method.getName(), error);
+                }
+            }
+            type = type.getSuperclass();
+        }
+        return false;
     }
 
     /**

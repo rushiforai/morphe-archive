@@ -106,7 +106,7 @@ public class SimPresetPreference extends Preference {
         TextView title = new TextView(context);
         title.setText(L10n.t(getContext(), "SIM country preset"));
         title.setTextColor(getTitleTextColor());
-        title.setTextSize(20);
+        title.setTextSize(SettingsUi.TEXT_HEADLINE);
         title.setTypeface(title.getTypeface(), android.graphics.Typeface.BOLD);
         SettingsUi.markDialogHeading(title);
         dialogView.addView(title, new LinearLayout.LayoutParams(
@@ -175,7 +175,7 @@ public class SimPresetPreference extends Preference {
         // Over the empty list rather than inside it. Nothing here is selectable, so it takes no
         // focus and is not a second live region: the count above already announces the change,
         // and two of them would say the same thing twice.
-        emptyState = SettingsUi.text(context, "", 14, getSummaryTextColor(),
+        emptyState = SettingsUi.text(context, "", SettingsUi.TEXT_BODY_SMALL, getSummaryTextColor(),
                 android.graphics.Typeface.NORMAL);
         emptyState.setGravity(Gravity.CENTER);
         emptyState.setTag("sim_preset_empty_state");

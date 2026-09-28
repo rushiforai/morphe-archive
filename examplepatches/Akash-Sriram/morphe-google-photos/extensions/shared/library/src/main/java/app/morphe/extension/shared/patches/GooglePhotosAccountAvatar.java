@@ -90,8 +90,12 @@ public final class GooglePhotosAccountAvatar {
     private static final AtomicBoolean WINDOW_SCAN_ERROR_LOGGED = new AtomicBoolean();
     private static final Set<View> OBSERVED_WINDOW_ROOTS = Collections.newSetFromMap(new WeakHashMap<>());
     private static final Set<View> WATCHED_TOOLBAR_VIEWS = Collections.newSetFromMap(new WeakHashMap<>());
+    private static final Map<ImageView, Integer> APPLIED_AVATAR_HASHES = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<String, Integer> RES_ID_CACHE = new ConcurrentHashMap<>();
 
     private static volatile long lastWindowScanUptime;
+    private static volatile long lastGlobalLayoutUptime;
+    private static final long GLOBAL_LAYOUT_THROTTLE_MILLIS = 300L;
     private static volatile String activeSelectedEmail = null;
     private static boolean lifecycleRegistered = false;
 
@@ -270,6 +274,10 @@ public final class GooglePhotosAccountAvatar {
 
         ViewTreeObserver observer = root.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(() -> {
+            long now = SystemClock.uptimeMillis();
+            if (now - lastGlobalLayoutUptime < GLOBAL_LAYOUT_THROTTLE_MILLIS) return;
+            lastGlobalLayoutUptime = now;
+
             refresh(activity, root);
             scanAllWindowRoots(activity, false);
         });
@@ -745,8 +753,14 @@ public final class GooglePhotosAccountAvatar {
             collectAvatarImageViews(activity, (ViewGroup) view, targets);
         }
 
+        int bmpHash = bitmap.hashCode();
         for (ImageView target : targets) {
             if (isExcluded(activity, target)) continue;
+            Integer lastHash = APPLIED_AVATAR_HASHES.get(target);
+            if (lastHash != null && lastHash == bmpHash) {
+                continue;
+            }
+
             int size = Math.min(target.getWidth(), target.getHeight());
             Bitmap scaled = (size > 0 && (bitmap.getWidth() != size || bitmap.getHeight() != size))
                     ? Bitmap.createScaledBitmap(bitmap, size, size, true)
@@ -755,16 +769,9 @@ public final class GooglePhotosAccountAvatar {
             target.setImageDrawable(new BitmapDrawable(target.getResources(), scaled));
             if (target.getForeground() != null) target.setForeground(null);
             target.setVisibility(View.VISIBLE);
-            target.bringToFront();
             target.invalidate();
+            APPLIED_AVATAR_HASHES.put(target, bmpHash);
         }
-
-        if (view instanceof ViewGroup) {
-            ViewGroup vg = (ViewGroup) view;
-            if (vg.getForeground() != null) vg.setForeground(null);
-            vg.invalidate();
-        }
-        view.invalidate();
     }
 
     private static void collectAvatarImageViews(Activity activity, ViewGroup group, List<ImageView> out) {
@@ -981,9 +988,17 @@ public final class GooglePhotosAccountAvatar {
     // ─────────────────────────────────────────────────────────────────────────
 
     private static int getResId(Activity activity, String name) {
+        Integer cached = RES_ID_CACHE.get(name);
+        if (cached != null) return cached;
+
         int id = activity.getResources().getIdentifier(name, "id", activity.getPackageName());
-        if (id != 0) return id;
-        return activity.getResources().getIdentifier(name, "id", "com.google.android.apps.photos");
+        if (id == 0) {
+            id = activity.getResources().getIdentifier(name, "id", "com.google.android.apps.photos");
+        }
+        if (id != 0) {
+            RES_ID_CACHE.put(name, id);
+        }
+        return id;
     }
 
     @Nullable

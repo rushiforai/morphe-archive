@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.BlockGlyphDrawable;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -115,6 +116,43 @@ public class CommentControlOwnershipTest {
         bind(cell);
         assertSame("TikTok's own icon did not come back with the control",
                 nativeIcon, cell.nativeRow.icon.getDrawable());
+    }
+
+    /**
+     * The symbol takes the grey TikTok gives most of the row's text, whatever the Android theme
+     * says: TikTok's dark mode is its own, and the theme's secondary colour put a near black
+     * symbol on the S25's near black sheet (2026-09-26).
+     */
+    @Test public void theBlockSymbolTakesTheColourOfTheRowsOwnSecondaryText() {
+        int grey = 0xFF8A8B91;
+        Cell cell = new Cell();
+        cell.itemView.addView(text("poster", grey));
+        cell.itemView.addView(text("a comment in the primary colour", Color.WHITE));
+        cell.itemView.addView(text("2h", grey));
+        cell.itemView.addView(text("Reply", grey));
+        cell.itemView.addView(text("12", Color.RED));
+        // Empty and hidden text says nothing about the sheet. Either kind counted, red would win.
+        for (int i = 0; i < 3; i++) {
+            cell.itemView.addView(text("", Color.RED));
+            TextView hidden = text("hidden", Color.RED);
+            hidden.setVisibility(View.GONE);
+            cell.itemView.addView(hidden);
+        }
+        CommentTools.setDislikeTouchListener(cell.nativeRow.button, cell.nativeRow);
+
+        Settings.BLOCK_FROM_COMMENT.save(true);
+        bind(cell);
+        assertTrue(cell.nativeRow.icon.getDrawable() instanceof BlockGlyphDrawable);
+        android.graphics.Paint paint = ReflectionHelpers.getField(cell.nativeRow.icon.getDrawable(), "paint");
+        assertEquals("the symbol wasn't drawn in the row's own secondary grey",
+                Integer.toHexString(grey), Integer.toHexString(paint.getColor()));
+    }
+
+    private static TextView text(String value, int colour) {
+        TextView view = new TextView(RuntimeEnvironment.getApplication());
+        view.setText(value);
+        view.setTextColor(colour);
+        return view;
     }
 
     @Test public void olderBuildNamesAreNeverTakenForTheThumbsDown() {

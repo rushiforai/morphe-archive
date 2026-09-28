@@ -1124,6 +1124,31 @@ try {
     $catalogVersion = ((Get-Content -LiteralPath (Join-Path $factsRoot 'gradle.properties')) `
         -match '^version\s*=' | Select-Object -First 1) -replace '^version\s*=\s*', ''
 
+    # The lagging path: a published index behind the catalog, here in its patch count and its
+    # targets at the same version, which is a release hold with a patch added. There the published
+    # facts decide what the description and the bug form have to say, and the description is read
+    # from -DescriptionText instead of gh. Every other case syncs the index up to the catalog, so
+    # this branch only ever ran on a real push; on 2026-09-26 it held two bugs the contracts passed:
+    # one published target read as a string ("TikTok 4"), and a lookahead that refused "47.0.3." at
+    # the end of a sentence.
+    Set-FactsFile 'patches-bundle.json' {
+        param($text)
+        [regex]::Replace(($text -replace '\b\d+ patches\b', '90 patches'),
+            'TikTok\s+\d+(?:\.\d+)+(?:(?:,\s*|,?\s+and\s+)\d+(?:\.\d+)+)*', 'TikTok 47.0.3')
+    }
+    Set-FactsFile $bugFormRelative {
+        param($text) $text -replace ('Version ' + [regex]::Escape($catalogVersion) + ' for TikTok \d+(?:\.\d+)+'), "Version $catalogVersion for TikTok 47.0.3"
+    }
+    $lagging = @{ Root = $factsRoot; SkipDescriptionTestCount = $true; SkipUrlCheck = $true; AllowPublishedIndexLag = $true }
+    & $factsScript @lagging -DescriptionText "Hushfeed v$($catalogVersion): TikTok with less noise. 90 patches for TikTok 47.0.3." 6> $null
+    Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+        'A release hold with a patch added, its index still on the published facts, was refused.'
+    $catalogCount = @((Get-Content -LiteralPath (Join-Path $factsRoot 'patches-list.json') -Raw | ConvertFrom-Json).patches).Count
+    Assert-Throws { & $factsScript @lagging -DescriptionText "Hushfeed v$($catalogVersion): $catalogCount patches for TikTok 47.0.3 and 47.1.3." 6> $null } `
+        '*does not say 90 patches*' 'While the index lags, the description was held to the catalog instead of the published index.'
+    Reset-FactsFile 'patches-bundle.json'
+    Reset-FactsFile $bugFormRelative
+
     # Manager decodes created_at as kotlinx.datetime.LocalDateTime, not Instant.
     # A trailing Z produces its generic "remote metadata file is unavailable" error,
     # even when both the JSON and bundle download answer HTTP 200.
@@ -1558,6 +1583,116 @@ try {
         Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('patches/build.gradle.kts') 6> $null } `
             '*HUSHFEED_BUILD_WRAPPER*' 'A build wrapper that is not there was ignored rather than reported.'
 
+        # A patch source reaches TikTok itself. The build gains :patches:buildAndroid, last, and the
+        # bundle it leaves is applied to each declared build's fixture by the root's own
+        # verify-all-patches.ps1. de43a43e passed every test with a fingerprint that matched nothing.
+        # The stub build leaves a bundle; the stub verify records each call in a file of its own,
+        # since the builds are applied at once, and fails while the fail marker exists.
+        $savedFixtureDir = $env:HUSHFEED_FIXTURE_DIR
+        $savedDesktopJar = $env:HUSHFEED_DESKTOP_JAR
+        try {
+            $applyCalls = Join-Path $hookRoot 'apply-calls'
+            $applyFails = Join-Path $hookRoot 'apply-fails.txt'
+            $fixtureStub = Join-Path $hookRoot 'fixtures'
+            New-Item -ItemType Directory -Path $applyCalls, $fixtureStub -Force | Out-Null
+            # Both file names the fixture tests take, a bundle file that isn't an APK, and a build
+            # the catalog doesn't declare.
+            foreach ($name in @('com.zhiliaoapp.musically_1.0.3-100_apkmirror.com.apk', 'tiktok-1.1.3.apk',
+                    'tiktok-1.1.3-bundle.apkm', 'tiktok-0.9.3.apk')) {
+                Set-Content -LiteralPath (Join-Path $fixtureStub $name) -Value 'stub' -Encoding ASCII
+            }
+            $env:HUSHFEED_FIXTURE_DIR = $fixtureStub
+            $env:HUSHFEED_DESKTOP_JAR = Join-Path $hookRoot 'morphe-desktop.jar'
+            Set-Content -LiteralPath $env:HUSHFEED_DESKTOP_JAR -Value 'stub' -Encoding ASCII
+            $stubCatalog = Join-Path $hookRoot 'patches-list.json'
+            Set-Content -LiteralPath $stubCatalog -Encoding UTF8 -Value (@{ patches = @(
+                    @{ name = 'A'; compatiblePackages = @{ 'com.zhiliaoapp.musically' = @('1.0.3', '1.1.3') } },
+                    @{ name = 'B'; compatiblePackages = @{ 'com.zhiliaoapp.musically' = @('1.0.3', '1.1.3') } })
+                } | ConvertTo-Json -Depth 5)
+            $bundleStub = [System.IO.Path]::GetFullPath((Join-Path $hookRoot 'patches/build/release/patches-9.9.9.mpp'))
+            Set-Content -LiteralPath $wrapperStub -Encoding UTF8 -Value @(
+                'param([string]$ProjectDir, [string[]]$Tasks)',
+                "Set-Content -LiteralPath '$wrapperMarker' -Value (`"dir=`$ProjectDir tasks=`" + (`$Tasks -join ','))",
+                'if ($Tasks -contains '':patches:buildAndroid'') {',
+                "    New-Item -ItemType Directory -Path '$(Split-Path -Parent $bundleStub)' -Force | Out-Null",
+                "    Set-Content -LiteralPath '$bundleStub' -Value 'bundle' -Encoding ASCII",
+                '}',
+                'exit 0')
+            $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
+            Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/verify-all-patches.ps1') -Encoding UTF8 -Value @(
+                'param([string]$Apk, [string]$DesktopJar, [string]$WorkDir, [string]$Bundle, [string]$PatchList)',
+                "Set-Content -LiteralPath (Join-Path '$applyCalls' ([guid]::NewGuid().ToString('N') + '.txt')) -Value (",
+                '    "apk=$(Split-Path -Leaf $Apk) jar=$DesktopJar bundle=$Bundle list=$PatchList")',
+                "if (Test-Path -LiteralPath '$applyFails') { Write-Host '[verify] FAILED stub'; exit 1 }",
+                'exit 0')
+            function Get-ApplyCalls { return @(Get-ChildItem -LiteralPath $applyCalls -File | ForEach-Object { (Get-Content -LiteralPath $_.FullName -Raw).Trim() } | Sort-Object) }
+            function Reset-Apply {
+                Remove-Item -LiteralPath $wrapperMarker, $applyFails -Force -ErrorAction SilentlyContinue
+                Get-ChildItem -LiteralPath $applyCalls -File | Remove-Item -Force
+                Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            $patchSource = 'patches/src/main/kotlin/app/morphe/patches/tiktok/Any.kt'
+
+            Reset-Apply
+            & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource) 6> $null
+            Assert-True ($LASTEXITCODE -eq 0) "A patch source push failed with every stub passing (exit $LASTEXITCODE)."
+            $wrapped = Get-Content -LiteralPath $wrapperMarker -Raw
+            Assert-True ($wrapped.Trim() -like '*:patches:test*,:patches:buildAndroid') `
+                "A patch source push did not end its build with :patches:buildAndroid: $wrapped"
+            $calls = Get-ApplyCalls
+            $expected = @('com.zhiliaoapp.musically_1.0.3-100_apkmirror.com.apk', 'tiktok-1.1.3.apk') | ForEach-Object {
+                "apk=$_ jar=$env:HUSHFEED_DESKTOP_JAR bundle=$bundleStub list=$stubCatalog"
+            }
+            Assert-True (($calls -join "`n") -eq ($expected -join "`n")) `
+                ("A patch source push did not apply the built bundle to each declared build once, and only those: " + ($calls -join '; '))
+
+            # The patcher pin decides how fingerprints match, so it reaches the fixtures too.
+            Reset-Apply
+            & $prePushScript -Root $hookRoot -ChangedPaths @('gradle/libs.versions.toml') 6> $null
+            Assert-True ((Get-ApplyCalls).Count -eq 2) 'A patcher pin change applied nothing to the fixtures.'
+
+            # The control: extension sources build and test, and apply nothing.
+            Reset-Apply
+            & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/main/java/Any.java') 6> $null
+            Assert-True ($LASTEXITCODE -eq 0 -and (Get-ApplyCalls).Count -eq 0) `
+                "An extension-only push applied the patches: $((Get-ApplyCalls) -join '; ')"
+            Assert-True ((Get-Content -LiteralPath $wrapperMarker -Raw) -notlike '*buildAndroid*') `
+                'An extension-only push built the bundle.'
+
+            # An index push is compared byte for byte with the published bundle, which a rebuild
+            # here would restamp, so it leaves the bundle alone.
+            Reset-Apply
+            & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource, 'patches-bundle.json') 6> $null
+            Assert-True ((Get-ApplyCalls).Count -eq 0 -and (Get-Content -LiteralPath $wrapperMarker -Raw) -notlike '*buildAndroid*') `
+                'An index push rebuilt the bundle it is compared against.'
+
+            # The positive control: a bundle that fails to apply stops the push, after every build ran.
+            Reset-Apply
+            Set-Content -LiteralPath $applyFails -Value 'fail' -Encoding ASCII
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource) 6> $null } `
+                '*did not apply to TikTok 1.0.3 and 1.1.3*' 'A bundle that failed to apply to the fixtures was pushed.'
+            Assert-True ((Get-ApplyCalls).Count -eq 2) 'A failure on one build kept the other from being applied.'
+
+            # A declared build with no fixture stops the push before the build starts.
+            Reset-Apply
+            Remove-Item -LiteralPath (Join-Path $fixtureStub 'tiktok-1.1.3.apk') -Force
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource) 6> $null } `
+                '*0 universal APKs of TikTok 1.1.3*' 'A declared build without a fixture was skipped.'
+            Assert-True (-not (Test-Path -LiteralPath $wrapperMarker)) 'The build started before the fixtures were found.'
+            Set-Content -LiteralPath (Join-Path $fixtureStub 'tiktok-1.1.3.apk') -Value 'stub' -Encoding ASCII
+
+            # And no desktop CLI stops it by name.
+            Reset-Apply
+            $env:HUSHFEED_DESKTOP_JAR = Join-Path $hookRoot 'no-such.jar'
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @($patchSource) 6> $null } `
+                '*HUSHFEED_DESKTOP_JAR*' 'A patch source push without the desktop CLI applied nothing and passed.'
+        } finally {
+            $env:HUSHFEED_FIXTURE_DIR = $savedFixtureDir
+            $env:HUSHFEED_DESKTOP_JAR = $savedDesktopJar
+            Remove-Item -LiteralPath (Join-Path $hookRoot 'patches'), (Join-Path $hookRoot 'patches-list.json'),
+                (Join-Path $hookRoot 'scripts/verify-all-patches.ps1') -Recurse -Force -ErrorAction SilentlyContinue
+        }
+
         # The gate builds what is pushed, not what happens to be in the working tree. A stub build
         # fails on any tree whose marker says broken, and records the tree it was handed.
         $gateRepo = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-gate-" + [guid]::NewGuid().ToString('N'))
@@ -1697,6 +1832,26 @@ try {
             # The control: the same child push, with the lock free, goes through.
             $free = Invoke-ChildPush
             Assert-True ($LASTEXITCODE -eq 0) "The child push failed with the gate lock free: $free"
+
+            # A commit on the pushed branch while the gate runs. Over HTTPS git reads the branch
+            # again after the hook, so the new commit would go out unchecked. The stub build
+            # commits to the branch in this repository while it builds the worktree; the tree is
+            # dirty so the build runs in the worktree and nothing else notices.
+            $mover = Join-Path $hookRoot 'gate-wrapper-commits.ps1'
+            Set-Content -LiteralPath $mover -Encoding UTF8 -Value @(
+                'param([string]$ProjectDir, [string[]]$Tasks)',
+                "& git -C '$gateRepo' commit --quiet --allow-empty -m 'made during the gate'",
+                'exit 0')
+            Set-Content -LiteralPath (Join-Path $gateRepo 'README.md') -Value 'uncommitted' -Encoding ASCII
+            $env:HUSHFEED_BUILD_WRAPPER = $mover
+            try {
+                Assert-Throws { & $prePushScript -Root $gateRepo -PushedRefs "refs/heads/main $fixed refs/heads/main $broken" 6> $null } `
+                    '*refs/heads/main moved from*' 'A branch that moved while the gate ran was pushed with its unchecked commit.'
+            } finally {
+                $env:HUSHFEED_BUILD_WRAPPER = $gateStub
+                & git -C $gateRepo update-ref refs/heads/main $fixed
+                Remove-Item -LiteralPath (Join-Path $gateRepo 'README.md') -Force -ErrorAction SilentlyContinue
+            }
 
             # The release facts half checks the files a push carries as well. A stub check, committed
             # the way the real one is, fails on a README that says broken and records where it ran

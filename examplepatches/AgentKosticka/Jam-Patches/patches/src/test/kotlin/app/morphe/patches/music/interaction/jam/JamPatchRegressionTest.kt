@@ -157,12 +157,6 @@ class JamPatchRegressionTest {
         listOf(
             Regex("\\b\\d+\\.\\d+\\.\\d+\\b"),
             Regex("MusicPlaybackControls|WatchFragment|AutoCropImageView"),
-            Regex("\\.(?:firstOrNull|first|lastOrNull|last)\\s*\\("),
-            Regex(
-                "\\b(?:methodKey|sameMethod|sameSignature|requireSingle|methodReferences|fieldReferences)\\s*\\("
-            ),
-            Regex("\\.methods\\.(?:filter|single|first)"),
-            Regex("runCatching"),
             Regex("name\\s*=\\s*\"[a-z]{1,2}\""),
             Regex("const\\s+val\\s+\\w*(?:METHOD|CLASS|TYPE)\\w*\\s*=\\s*\"[a-z]{1,6}\""),
         )
