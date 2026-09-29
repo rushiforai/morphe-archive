@@ -1,0 +1,29 @@
+# Changelog
+
+## 0.2.0 — 2026-09-28
+
+- Add optional MicroG sign-in with account-access setup in Morphe settings.
+- Route account operations and Trusted Vault verification through Morphe MicroG.
+- Require MicroG 7.1.1 or newer to avoid the older provider's incorrect account capabilities and missing key-retrieval service.
+- Document recovery for earlier test builds; signed-in Incognito, bookmarks and homepage articles were confirmed on the S26.
+- Make Google Password Manager offer Google's password website, with a clear native saving/autofill limitation.
+
+## 0.1.2 — 2026-09-28
+
+- Rename the installed app, patch source and release bundle to Chrome Morphe.
+- Mark the tested 153.0.8010.53 (801005304) target as supported instead of experimental.
+- Preserve the existing package ID for updates and retain exact-build rejection.
+
+## 0.1.1 — 2026-09-28
+
+- Keep tab search visible when rotating between portrait and landscape.
+
+## 0.1.0 — 2026-09-28
+
+- Add a persistent Morphe settings screen with switches for the Incognito toolbar button, Black mode, true bottom controls and Incognito defaults.
+- Apply Black mode to Chrome backgrounds, settings cards, suggested articles, popup and long-press menus.
+- Move tab-view action controls and search to the bottom with true bottom enabled.
+- Preserve native Incognito locking, explicit regular tabs and embedded Custom Tabs.
+- Publish an MIT-licensed source tree, Manager bundle metadata and build/release workflows.
+
+Supports Chrome 153.0.8010.53 (801005304, ARM64) only.

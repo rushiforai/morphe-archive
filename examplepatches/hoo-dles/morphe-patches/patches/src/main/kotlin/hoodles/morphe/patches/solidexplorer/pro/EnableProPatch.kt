@@ -9,14 +9,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
-import hoodles.morphe.patches.solidexplorer.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.SOLID_EXPLORER)
 
     execute {
         LicenseDetailsCtorFingerprint.method.apply {

@@ -246,12 +246,12 @@ public class PatchFamilyTest {
                         + "the background",
                 "not in this build: Hide suggested and promoted posts, Hide Stories tray, Hide Reels in the feed, "
                         + "Block background-return feed refresh, Hide AI-detected posts, Hide posts by words, "
-                        + "Hide sponsored stories, Hide suggested stories, Stop Story auto-advance, Hide sponsored search results, "
-                        + "Hide sponsored profile posts, Hide sponsored Marketplace listings, Clean up Reels, Don't send reel watch history, Default comment order, "
+                        + "Hide sponsored stories, Hide suggested stories, Stop Story auto-advance, View stories anonymously, Hide sponsored search results, "
+                        + "Hide sponsored profile posts, Hide sponsored Marketplace listings, Clean up Reels, Don't send reel watch history, Turn off double tap to like, Default comment order, "
                         + "Tag suggestions only after @, Tap to play, Resume long videos, "
                         + "Use the system font, Use the phone's emoji, Open links in "
                         + "external browser, Sanitize sharing links, Stop update prompts, Download any story, Download any reel, "
-                        + "Download any video, Open on a chosen tab, Marketplace only, Hide the Get Messenger card, Hide Menu promotions, Hide Meta AI in search, Block promotional notifications, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material You theme, "
+                        + "Download any video, Open on a chosen tab, Marketplace only, Hide the Get Messenger card, Open Messenger from the top bar, Hide Menu promotions, Hide Meta AI in search, Block promotional notifications, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material You theme, "
                         + "Restore screens on re-signed builds, Install beside Meta's apps, Hushfacebook in the Menu"),
                 running);
         // Clean up Reels has three switches, and the report names each one.

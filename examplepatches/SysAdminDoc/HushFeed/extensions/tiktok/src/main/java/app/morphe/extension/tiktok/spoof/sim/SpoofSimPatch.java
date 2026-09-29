@@ -48,7 +48,7 @@ public class SpoofSimPatch {
                 Logger.printInfo(() -> "Ignoring an unusable SIM country: " + iso);
                 return value;
             }
-            Logger.printDebug(() -> "Spoofing countryIso from: " + value + " to: " + iso);
+            Logger.printDebug(() -> "Spoofing countryIso to: " + iso);
             return iso;
         }
 
@@ -64,7 +64,7 @@ public class SpoofSimPatch {
                 Logger.printInfo(() -> "Ignoring an unusable MCC/MNC: " + mccMnc);
                 return value;
             }
-            Logger.printDebug(() -> "Spoofing sim MCC-MNC from: " + value + " to: " + mccMnc);
+            Logger.printDebug(() -> "Spoofing sim MCC-MNC to: " + mccMnc);
             return mccMnc;
         }
 
@@ -76,7 +76,7 @@ public class SpoofSimPatch {
 
         if (Settings.SIM_SPOOF.get()) {
             String operator = Settings.SIMSPOOF_OP_NAME.get();
-            Logger.printDebug(() -> "Spoofing sim operatorName from: " + value + " to: " + operator);
+            Logger.printDebug(() -> "Spoofing sim operatorName to: " + operator);
             return operator;
         }
 
@@ -123,7 +123,7 @@ public class SpoofSimPatch {
 
         String replacement = mcc ? combined.substring(0, 3) : combined.substring(3);
         Logger.printDebug(() -> "Spoofing " + (mcc ? "cell MCC" : "cell MNC")
-                + " from: " + value + " to: " + replacement);
+                + " to: " + replacement);
         return replacement;
     }
 }

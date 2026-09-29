@@ -161,6 +161,7 @@ Attention	Dikkat
 Audio	Ses
 Auto translate comments	Yorumları otomatik çevir
 Auto-advance	Otomatik geçiş
+Staying on a video	Videoda kalmak
 Auto-advance session limit	Otomatik geçiş oturum sınırı
 Auto-advance stopped after %1$d videos	Otomatik geçiş %1$d videodan sonra durdu
 Auto-advance stopped after one video	Otomatik geçiş bir videodan sonra durdu
@@ -222,7 +223,15 @@ Choose which rows and controls appear	Hangi satırların ve kontrollerin görün
 Clear all	Tümünü temizle
 Clear all Lab data (overrides, switch, recordings)	Tüm Lab verilerini temizle (geçersiz kılmalar, anahtar, kayıtlar)
 Clear all suggested accounts	Önerilen tüm hesapları temizle
-Clear the recent events, saved crash reports and the hook status above.	Son olayları, kaydedilen çökme raporlarını ve yukarıdaki kanca durumunu temizle.
+Clear the recent events, saved crash reports, a recorded screen layout and the hook status above.	Son olayları, kaydedilen çökme raporlarını, kaydedilmiş bir ekran düzenini ve yukarıdaki kanca durumunu temizle.
+Record a screen's layout	Bir ekranın düzenini kaydet
+Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report.	Dokun, sonra gizlemek istediğin şeyin olduğu ekrana git. %1$d saniye sonra Hushfeed o ekranın nasıl kurulduğunu, metnini almadan, tanılama raporu için kaydeder.
+Waiting to record. Go to the screen you want recorded.	Kayıt bekleniyor. Kaydedilmesini istediğin ekrana git.
+A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.	Bir ekran düzeni kaydedildi. Göndermek için tanılama raporunu dışa aktar ya da başka birini kaydetmek için dokun.
+Go to the screen now. Hushfeed records its layout in %1$d seconds.	Şimdi ekrana git. Hushfeed %1$d saniye içinde düzenini kaydeder.
+Screen layout recorded. Export the diagnostic report to send it.	Ekran düzeni kaydedildi. Göndermek için tanılama raporunu dışa aktar.
+Nothing was recorded because Hushfeed settings were still open. Start again, then leave settings.	Hushfeed ayarları hâlâ açık olduğu için hiçbir şey kaydedilmedi. Yeniden başlat, sonra ayarlardan çık.
+Couldn't record the screen's layout. Start again from Diagnostics.	Ekranın düzeni kaydedilemedi. Tanılama bölümünden yeniden başlat.
 Clear diagnostic data	Tanılama verilerini temizle
 Clear display	Temiz ekran
 Clear display delay	Temiz ekran gecikmesi
@@ -280,6 +289,8 @@ Couldn't put back the diagnostic data. Try again.	Tanılama verileri geri konama
 Couldn't read who posted this comment. Open their profile and block them there.	Bu yorumu kimin yazdığı okunamadı. Profilini açıp oradan engelle.
 Couldn't reset this override. Try again.	Bu geçersiz kılma sıfırlanamadı. Tekrar dene.
 Couldn't restore the settings. Try again.	Ayarlar geri yüklenemedi. Tekrar dene.
+Couldn't reset the settings. Try again.	Ayarlar sıfırlanamadı. Tekrar dene.
+Couldn't undo the last change. Try again.	Son değişiklik geri alınamadı. Tekrar dene.
 Couldn't save the settings backup. Try again.	Ayar yedeği kaydedilemedi. Tekrar dene.
 Couldn't save this override. Try again.	Bu geçersiz kılma kaydedilemedi. Tekrar dene.
 Couldn't send the feedback. Try again in a moment.	Geri bildirim gönderilemedi. Birazdan tekrar dene.
@@ -323,6 +334,8 @@ Diagnostic report copied to the clipboard	Tanılama raporu panoya kopyalandı
 Diagnostics	Tanılama
 Disable	Devre dışı bırak
 Stop analytics and tracking	Analitiği ve izlemeyi durdur
+Long-press Home for Hushfeed settings	Hushfeed ayarları için Ana Sayfa'ya basılı tut
+Press and hold the Home tab to open these settings. A tap on Home works as before.	Bu ayarları açmak için Ana Sayfa sekmesine basılı tut. Ana Sayfa'ya dokunmak eskisi gibi çalışır.
 Keep For You on a Home tap	Ana Sayfa'ya dokununca Senin İçin'i koru
 Keep For You on a pull down	Aşağı çekince Senin İçin'i koru
 Keep long press from quick sharing	Uzun basma hızlı paylaşmasın
@@ -354,6 +367,7 @@ Enter a JSON object or array.	Bir JSON nesnesi veya dizisi gir.
 Enter a creator handle or id	İçerik üreticisinin kullanıcı adını veya kimliğini gir
 Enter a finite number.	Sonlu bir sayı gir.
 Enter a number.	Bir sayı gir.
+Enter an hour, like 6 or 06:00.	Bir saat gir, örneğin 6 veya 06:00.
 Enter a valid structured value.	Geçerli bir yapılandırılmış değer gir.
 Enter a valid two-letter country code	Geçerli bir iki harfli ülke kodu gir
 Enter a whole number, or one like 20K, 1.5M or 2B	Bir tam sayı ya da 20K, 1.5M veya 2B gibi bir değer gir
@@ -832,6 +846,10 @@ Restart now	Şimdi yeniden başlat
 Restart pending	Yeniden başlatma bekleniyor
 Put every setting back to its default straight away. Your current settings are kept for Undo.	Her ayarı hemen varsayılanına döndür. Geçerli ayarların Geri al için saklanır.
 Restore failed. Some settings may still be changed.	Geri yükleme başarısız oldu. Bazı ayarlar yine de değişmiş olabilir.
+Reset didn't finish. Some settings may still be changed. Use Undo to put them back.	Sıfırlama tamamlanmadı. Bazı ayarlar yine de değişmiş olabilir. Geri koymak için Geri al'ı kullan.
+Reset didn't finish. Some settings may still be changed.	Sıfırlama tamamlanmadı. Bazı ayarlar yine de değişmiş olabilir.
+Undo didn't finish. Some settings may still be changed. Try Undo again.	Geri alma tamamlanmadı. Bazı ayarlar yine de değişmiş olabilir. Geri al'ı tekrar dene.
+Undo didn't finish. Some settings may still be changed.	Geri alma tamamlanmadı. Bazı ayarlar yine de değişmiş olabilir.
 Restore failed. Some settings may still be changed. Use Undo to put them back.	Geri yükleme başarısız oldu. Bazı ayarlar yine de değişmiş olabilir. Geri koymak için Geri al'ı kullan.
 Restore settings	Ayarları geri yükle
 Restore setup	Düzeni geri yükle
@@ -849,7 +867,7 @@ SIM country preset	SIM ülke hazır ayarı
 STEM	STEM
 Sanitize sharing links	Paylaşım bağlantılarını temizle
 Save	Kaydet
-Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.	SRT dosyalarını videoyla birlikte kaydet. Eşli kayıtlar Android 11+ sürümlerinde Movies, Android 10'da Download, daha eski sürümlerde ise video klasörünü kullanır.
+Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.	SRT dosyalarını videoyla birlikte kaydet. Android 11+ sürümlerinde Movies'e, Android 10'da Download'a, daha eski sürümlerde video klasörüne gider. Android 11+ sürümlerinde Ayrıntıları kaydet açıkken video Download veya Documents'a taşınır ve SRT dosyaları Movies'de kalır.
 Save a profile picture on a long press	Uzun basınca profil fotoğrafını kaydet
 Save a story on a long press	Uzun basınca hikayeyi kaydet
 Save every photo in the post as TikTok received it, not as the screen shows it.	Gönderideki her fotoğrafı ekranın gösterdiği gibi değil, TikTok'un aldığı gibi kaydet.
@@ -876,6 +894,9 @@ Saving one original photo	Bir orijinal fotoğraf kaydediliyor
 Saving settings backup	Ayar yedeği kaydediliyor
 Saving the sticker	Çıkartma kaydediliyor
 Saving the story	Hikaye kaydediliyor
+Saving the sound	Ses kaydediliyor
+Saving the profile picture	Profil fotoğrafı kaydediliyor
+Saving the live photo's clip	Canlı fotoğraf klibi kaydediliyor
 Screen	Ekran
 Screen time	Ekran süresi
 Search	Arama
@@ -978,6 +999,7 @@ Sticker saved to %1$s	Çıkartma şuraya kaydedildi: %1$s
 Still here. Nothing is waiting.	Hâlâ burada. Bekleyen bir şey yok.
 Still reading the record. Tap again in a moment.	Kayıt hâlâ okunuyor. Birazdan yeniden dokun.
 Still saving the last one	Bir önceki hâlâ kaydediliyor
+The last one is still waiting to start	Bir önceki hâlâ başlamayı bekliyor
 Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.	ByteDance AppLog olaylarının, AppsFlyer ilişkilendirmesinin, açık Firebase ekran raporlarının ve çökme raporlarının gönderilmesini durdur. TikTok'un kendi tanılaması da bunlarla birlikte susar.
 Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.	TikTok'un ekrandan, oynattığı videonun kare hızında çalışmasını istemesini durdur. 90 veya 120 Hz'lik bir telefonda bu istek, kaydırma dahil tüm uygulamayı videonun hızına düşürür.
 Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone. Saves the battery they wake.	TikTok'un ivmeölçeri, jiroskopu, manyetometreyi ve telefonun parmak izini çıkarmak için kullandığı diğer hareket sensörlerini dinlemesini durdur. Bu sensörlerin uyandıkça harcadığı pili korur.
@@ -1138,6 +1160,7 @@ Transparent	Saydam
 Try a different word or clear the search.	Başka bir kelime dene ya da aramayı temizle.
 Try again, or go back to TikTok.	Yeniden dene ya da TikTok'a geri dön.
 Turn on %1$s first.	Önce %1$s ayarını aç.
+Put %1$s in %2$s first.	Önce %2$s alanına %1$s yaz.
 Turn on overrides	Geçersiz kılmaları aç
 Turned off %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.	%1$d / %2$d özellik kapısı kapatıldı. Geri kalanı true veya false değeri almıyor. Bunu uygulamak için TikTok'u yeniden başlat.
 Turned off %1$d gates. Restart TikTok to apply this.	%1$d özellik kapısı kapatıldı. Bunu uygulamak için TikTok'u yeniden başlat.
@@ -1269,6 +1292,28 @@ Swipe left	Sola kaydır
 TikTok default (open the creator's profile)	TikTok varsayılanı (içerik üreticisinin profilini aç)
 Saving %1$s of %2$s	%2$s dosyadan %1$s. kaydediliyor
 Stopping after this file	Bu dosyadan sonra durduruluyor
+Waiting to save %1$s files	%1$s dosya kaydedilmeyi bekliyor
+Save cancelled. Nothing was saved.	Kaydetme iptal edildi. Hiçbir şey kaydedilmedi.
+One more save waiting	Bir kayıt daha bekliyor
+%1$s more saves waiting	%1$s kayıt daha bekliyor
+Starts after one other save	Başka bir kayıttan sonra başlar
+Starts after %1$s other saves	Diğer %1$s kayıttan sonra başlar
+# context: the banner the next start shows when TikTok closed before some saves ended. A heading, then one line per save: the kind of save, a colon, and how many of its files didn't finish. It must not promise the save will carry on by itself.
+TikTok closed during these saves	TikTok bu kayıtlar sırasında kapandı
+%1$s: didn't finish	%1$s: tamamlanmadı
+%1$s: one of %3$s files didn't finish	%1$s: %3$s dosyadan biri tamamlanmadı
+%1$s: %2$s of %3$s files didn't finish	%1$s: %3$s dosyadan %2$s tanesi tamamlanmadı
+%1$s: might not have finished	%1$s: tamamlanmamış olabilir
+%1$s: one of %3$s files might not have finished	%1$s: %3$s dosyadan biri tamamlanmamış olabilir
+%1$s: %2$s of %3$s files might not have finished	%1$s: %3$s dosyadan %2$s tanesi tamamlanmamış olabilir
+And one more save	Ve bir kayıt daha
+And %1$s more saves	Ve %1$s kayıt daha
+Original photos	Orijinal fotoğraflar
+Story	Hikaye
+Original sound	Orijinal ses
+Profile picture	Profil fotoğrafı
+Live photo clip	Canlı fotoğraf klibi
+Media save	Medya kaydı
 Saved %1$s of %2$s, the rest cancelled	%2$s dosyadan %1$s kaydedildi, kalanlar iptal edildi
 Saved %1$s of %2$s, %3$s skipped	%2$s dosyadan %1$s kaydedildi, %3$s atlandı
 Saved %1$s of %2$s, %3$s skipped and the rest cancelled	%2$s dosyadan %1$s kaydedildi, %3$s atlandı ve kalanlar iptal edildi
@@ -1293,10 +1338,11 @@ Changes in Hushfeed %1$s	Hushfeed %1$s sürümündeki değişiklikler
 Reviewed presets	Doğrulanmış hazır ayarlar
 Show See translation	Çeviriyi gör seçeneğini göster
 Reviewed for TikTok %1$s	TikTok %1$s için doğrulandı
+%1$s (TikTok %2$s)	%1$s (TikTok %2$s)
 Value: %1$s to %2$s	Değer: %1$s yerine %2$s
 The presets couldn't load. Open the Lab again.	Hazır ayarlar yüklenemedi. Laboratuvarı yeniden açın.
-Apply enables these overrides. Undo last Lab change restores your previous rules.	Uygula bu geçersiz kılmaları etkinleştirir. Son laboratuvar değişikliğini geri al, önceki kurallarınızı geri yükler.
-Apply saves these overrides. Turn on overrides in the Lab to use them. Undo restores your previous rules.	Uygula bu geçersiz kılmaları kaydeder. Kullanmak için laboratuvarda geçersiz kılmaları açın. Geri al, önceki kurallarınızı geri yükler.
+Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.	Uygula bu geçersiz kılmaları etkinleştirir. Son Lab değişikliğini geri al, Lab'da başka bir şey değiştirene kadar önceki kurallarını geri getirir.
+Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back.	Uygula bu geçersiz kılmaları kaydeder. Kullanmak için Lab'da geçersiz kılmaları aç. Onları açmak da bir Lab değişikliğidir, bu yüzden ondan sonra Geri al önceki kurallarını geri getirmek yerine onları kapatır.
 This preset isn't available for your installed TikTok version.	Bu hazır ayar, yüklü TikTok sürümünüz için kullanılamıyor.
 Preset applied. Restart TikTok to use it.	Hazır ayar uygulandı. Kullanmak için TikTok'u yeniden başlatın.
 Preset saved. Turn on overrides in the Lab to use it.	Hazır ayar kaydedildi. Kullanmak için laboratuvarda geçersiz kılmaları açın.
@@ -1306,11 +1352,24 @@ Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creato
 Save details beside the video	Ayrıntıları videonun yanına kaydet
 Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.	Açıklamayı, üreticiyi, bağlantıyı ve yayın tarihini bir TXT dosyasına kaydeder. Android 10 ve sonrasında iki dosya aynı klasör adıyla Download veya Documents içine kaydedilir. Burada yapılan kayıtlar için geçerlidir.
 Check for already-saved videos	Önceden kaydedilen videoları kontrol et
+Forget saved videos	Kaydedilen videoları unut
+Undo forgetting saved videos	Kaydedilen videoları unutmayı geri al
+Forget which videos Hushfeed saved here, so the already-saved check starts over. The saved files and your settings stay. Turning the check off doesn't erase this record.	Hushfeed'in burada hangi videoları kaydettiğini unutur, böylece zaten kaydedilmiş kontrolü baştan başlar. Kaydedilen dosyalar ve ayarların kalır. Kontrolü kapatmak bu kaydı silmez.
+Forgetting saved videos	Kaydedilen videolar unutuluyor
+Putting the saved videos back	Kaydedilen videolar geri getiriliyor
+Forgotten. Tap to put them back.	Unutuldu. Geri getirmek için dokun.
+Saved videos forgotten. The files are still there.	Kaydedilen videolar unutuldu. Dosyalar hâlâ orada.
+There were no saved videos to forget	Unutulacak kaydedilmiş video yoktu
+Couldn't forget the saved videos. Try again.	Kaydedilen videolar unutulamadı. Tekrar dene.
+Saved videos put back	Kaydedilen videolar geri getirildi
+Couldn't put the saved videos back. Try again.	Kaydedilen videolar geri getirilemedi. Tekrar dene.
+Too late to put the saved videos back	Kaydedilen videoları geri getirmek için artık çok geç
 Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.	Bu seçenek açıkken burada kaydedilen en fazla %1$s videoyu hatırlar. Dosya hâlâ varsa başka bir kopya indirmeden önce Aç veya Yeniden kaydet seçeneklerini sunar.
 This video is already saved. Open TikTok to save another copy.	Bu video zaten kayıtlı. Başka bir kopya kaydetmek için TikTok'u açın.
 This video is already saved	Bu video zaten kayıtlı
 Save again	Yeniden kaydet
 The saved-video choice couldn't open. Try again.	Kayıtlı video seçenekleri açılamadı. Yeniden deneyin.
+The saved-video choice is still open	Kayıtlı video seçenekleri hâlâ açık
 This video isn't available as a complete file. Try again later.	Bu video tam bir dosya olarak mevcut değil. Daha sonra yeniden deneyin.
 Saving video to %1$s	Video %1$s konumuna kaydediliyor
 Video and details saved to %1$s	Video ve ayrıntılar %1$s konumuna kaydedildi
@@ -1319,6 +1378,7 @@ The already-saved check failed. Try again.	Önceden kaydedilen videolar kontrol 
 Show download progress	İndirme ilerlemesini göster
 Show a progress bar while a video saves.	Video kaydedilirken ilerleme çubuğu gösterir.
 Saving video	Video kaydediliyor
+Waiting to save video	Video kaydedilmeyi bekliyor
 Saving video: %1$s	Video kaydediliyor: %1$s
 Saving %1$s of %2$s: %3$s	%1$s / %2$s kaydediliyor: %3$s
 Couldn't save the change. Try again.	Değişiklik kaydedilemedi. Tekrar dene.

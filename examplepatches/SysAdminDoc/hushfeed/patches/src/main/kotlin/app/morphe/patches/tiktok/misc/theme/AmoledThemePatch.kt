@@ -17,7 +17,7 @@ import org.w3c.dom.Element
 @Suppress("unused")
 val amoledThemePatch = resourcePatch(
     name = "AMOLED dark theme",
-    description = "Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so patching with it on needs the memory limit raised to 768 MB.",
+    description = "Replaces TikTok's dark background palette with black or a chosen color. The light theme keeps its colors. It is the one patch that rewrites resources, so it takes the most memory to patch. Give the manager 768 MB or more. At 640 MB it still finishes, just slowly.",
     default = false,
 ) {
     category("Performance")

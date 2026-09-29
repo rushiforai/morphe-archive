@@ -62,9 +62,9 @@ val restoreTrustPatch = bytecodePatch(
 }
 
 /**
- * For Facebook itself, answer with the original certificate and skip the body. For any other
- * package, the extension answers null and the body runs as before. The two flags are false, as the
- * body sets them for a single signer.
+ * For the running app, under Facebook's name or a clone's, answer with the original certificate and
+ * skip the body. For any other package, the extension answers null and the body runs as before. The
+ * two flags are false, as the body sets them for a single signer.
  *
  * The injection is at index 0, where no local is live yet, so v0 to v2 are free once the method is
  * known to have three locals. `iget-object` takes 4-bit registers, so `this` is copied down into v0

@@ -7,12 +7,20 @@
 #   no-call <method reference> outside <package prefix>
 #   next-call <method reference> after <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
 #   sole-call <method reference> replacing <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
-# A start-call, next-call or sole-call rule picks its method by every string it names and its
-# shape, and exactly one of Facebook's methods may answer that; name as much as the patch itself
-# finds the method by.
+#   once-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+# A start-call, next-call, sole-call or once-call rule picks its method by every string it names
+# and its shape, and exactly one of Facebook's methods may answer that; name as much as the patch
+# itself finds the method by.
 # Two feed guards stacked on addNewEdgeToCollection is the shape that broke builds before, and a
 # guard anywhere else filters nothing.
 single-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideEdge(Ljava/lang/Object;Ljava/lang/Object;)Z in addNewEdgeToCollection
+# An edge swapped in over another one never reaches that funnel. The runnable that makes the swap,
+# FeedUnitCollectionManager's onEdgeSwapped, asks the extension about the incoming edge once, after
+# reading it and before the swap, so the guard can't come first. Its run() holds the swap log line's
+# "Edge swap dropped", which a rule can't name for its spaces, and the two sizes the line reports,
+# which no other method of 580 or 577 loads. Left out, every ad Facebook hot-swaps into the feed goes
+# in unchecked; twice or anywhere else, it's no longer the one guard the patch wrote.
+once-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z in instance ()V holding sizeBefore sizeAfter
 # Each story-flag stub has to call GraphQLStory's renamed accessor before it returns. A patch that
 # stops filling one leaves the stub answering its marker, and the rule keeps every post.
 first-call Lapp/morphe/extension/facebook/feed/GenAiLabel;->detectedInfo(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
@@ -53,6 +61,23 @@ start-call Lapp/morphe/extension/facebook/emoji/SystemEmoji;->typeface()Landroid
 # static method answering a String that holds the base address of Meta's emoji pictures. Left out
 # or put later, a chat's big emoji keeps Meta's picture whatever the switch says.
 start-call Lapp/morphe/extension/facebook/emoji/SystemEmoji;->skipRemoteEmoji()Z in static (Ljava/lang/String;*)Ljava/lang/String; holding https://www.facebook.com/images/mobileemoji
+# Open Messenger from the top bar asks the extension first thing in the tap of the top bar's
+# Messenger icon, the one method holding both of its entry points, and in the Messenger button
+# handler the tap goes on to behind a MobileConfig flag, the one static method of the handler's
+# shape holding "long_press" (161 other methods hold it on 580, none with that shape). Left out or
+# put later, the icon opens Facebook's Chats whatever the switch says.
+start-call Lapp/morphe/extension/facebook/chats/MessengerIcon;->open(Landroid/content/Context;Z)Z in static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;*)V holding entry_point_navbar_global_icon_ entry_point_navbar_global_icon_reels_tab
+start-call Lapp/morphe/extension/facebook/chats/MessengerIcon;->open(Landroid/content/Context;Z)Z in static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;ZZ)V holding long_press
+# Turn off double tap to like asks the extension first thing in the reel like helper's like, the
+# one method in 580 and 577 holding FbShortsMutationUtil's trace, an instance method taking the
+# session first and the like's source last. Left out or put later, the players whose own double-tap
+# listener likes a reel still like it whatever the switch says.
+start-call Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackLike(Ljava/lang/String;)Z in instance (Lcom/facebook/auth/usersession/FbUserSession;*)V holding FbShortsMutationUtil.mutateViewerLikeReaction
+# It also asks first thing in the onDoubleTap of the feed attachment that chains into Reels, the
+# one instance (MotionEvent)Z method of either build loading "translationY", the property its own
+# heart rises by. Left out or put later, the attachment plays its heart for a double tap the switch
+# keeps from liking.
+start-call Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackTap()Z in instance (Landroid/view/MotionEvent;)Z holding translationY
 # Facebook ranks its own launcher shortcuts ahead of the Hushfacebook one with these calls, so the
 # settings patch sends every one to SettingsEntry, which makes it and puts the Hushfacebook shortcut
 # back in front (#2). One left in Facebook's code would let it drop out of the long-press menu.

@@ -7,9 +7,11 @@ package app.morphe.extension.facebook.theme;
 import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,8 +34,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * and anything this class doesn't recognise, is left as Facebook sent it.
  *
  * <p>Light mode is left alone. A colour token is only recoloured when it arrives with the exact
- * colour Facebook's dark theme gives that token ({@link #FDS_DARK}), and a literal or a server
- * colour only when it is one of the dark surfaces no light screen uses ({@link #SURFACES}).
+ * colour Facebook's dark theme gives that token ({@link #FDS_DARK}), and a literal, a server colour
+ * or a colour resource only when it is one of the dark surfaces no light screen uses
+ * ({@link #SURFACES}). The Video tab is the exception that takes the rest: it stays dark in light
+ * mode, built from the same dark style, so every route also asks Facebook's own answer for dark
+ * mode ({@link DarkMode}). The system bars ask Facebook's dark check for the window
+ * ({@link #statusBar}, {@link #navigationBar}).
  *
  * <p>With the AMOLED black theme in the same build, AMOLED goes first. Its black backgrounds
  * reach this class as black, which is no dark-theme colour, so they stay black, and this class
@@ -85,13 +91,15 @@ public final class MaterialYouTheme {
     private static final int[] SURFACE_VALUES = parseSurfaces(SURFACES);
 
     // Route three: the patch replaces "const vX, 0xFF252728" with a read of DARK_252728, and so on.
-    // They start as Facebook's own colours and hold the palette's once it has loaded.
-    public static int DARK_101011;
-    public static int DARK_18191A;
-    public static int DARK_1C1C1D;
-    public static int DARK_242526;
-    public static int DARK_252728;
-    public static int DARK_3E4042;
+    // In Facebook's dark mode they hold the palette's colours, and in light mode Facebook's own, for
+    // the Video tab that stays dark there. Volatile: the thread that gets Facebook's answer writes
+    // them, and the UI thread reads them.
+    public static volatile int DARK_101011;
+    public static volatile int DARK_18191A;
+    public static volatile int DARK_1C1C1D;
+    public static volatile int DARK_242526;
+    public static volatile int DARK_252728;
+    public static volatile int DARK_3E4042;
 
     /** The palette in use: {@link TonePalette#fallback()} until the context is there. */
     private static volatile TonePalette palette;
@@ -99,9 +107,13 @@ public final class MaterialYouTheme {
     /** Whether the palette follows the phone's, and is read again when its colours change. */
     private static volatile boolean bound;
 
+    /** Held while route three's fields are written, so two writes can't interleave. */
+    private static final Object PUBLISHING = new Object();
+
     static {
         palette = TonePalette.fallback();
-        publish(palette);
+        publish();
+        DarkMode.changed = MaterialYouTheme::publish;
         bind();
     }
 
@@ -113,7 +125,7 @@ public final class MaterialYouTheme {
      */
     public static int fds(int color, Object token) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        if ((color >>> 24) != 0xFF || !(token instanceof Enum)) return color;
+        if ((color >>> 24) != 0xFF || !(token instanceof Enum) || !DarkMode.on()) return color;
         int[] dark = FDS.get(((Enum<?>) token).name());
         if (dark == null) return color;
         for (int value : dark) {
@@ -123,12 +135,12 @@ public final class MaterialYouTheme {
     }
 
     /**
-     * Route one, for Mig: a colour the Mig dark scheme returns. That scheme only answers for dark
-     * mode, so its greys and blues are recoloured whatever the token.
+     * Route one, for Mig: a colour the Mig dark scheme returns. That scheme only answers for a dark
+     * surface, so its greys and blues are recoloured whatever the token, in Facebook's dark mode.
      */
     public static int mig(int color, Object token) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        return (color >>> 24) == 0xFF ? recolour(palette(), color) : color;
+        return (color >>> 24) == 0xFF && DarkMode.on() ? recolour(palette(), color) : color;
     }
 
     /**
@@ -139,8 +151,95 @@ public final class MaterialYouTheme {
      */
     public static int parseColor(String text) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
-        int color = SettingsStatus.amoledTheme() ? AmoledTheme.parseColor(text) : Color.parseColor(text);
-        return isSurface(color) ? palette().sameLightness(TonePalette.NEUTRAL, color) : color;
+        return darkSurface(SettingsStatus.amoledTheme() ? AmoledTheme.parseColor(text) : Color.parseColor(text));
+    }
+
+    /**
+     * Route two's counterpart: Facebook reading a colour resource with {@code Context.getColor}. The
+     * patch sends every such call here, including the ones AMOLED already sent to its own, and
+     * AMOLED goes first.
+     *
+     * <p>Material You's resource half only recolours night colours, and Facebook keeps its dark
+     * palette in the default configuration, where light mode reads it too. The Video tab's bottom
+     * bar is {@code getColor} of that palette's #252728 (580 {@code LX/4KA}, 577 {@code LX/4Bb}),
+     * in both modes. So one of the dark surfaces takes the palette here, in Facebook's dark mode only.
+     */
+    public static int getColor(Context context, int id) {
+        return getColor(context, id, SettingsStatus.amoledTheme());
+    }
+
+    static int getColor(Context context, int id, boolean amoled) {
+        return darkSurface(amoled ? AmoledTheme.getColor(context, id) : context.getColor(id));
+    }
+
+    /** The same for {@code Resources.getColor(int)}. */
+    public static int getColor(Resources resources, int id) {
+        return getColor(resources, id, SettingsStatus.amoledTheme());
+    }
+
+    @SuppressWarnings("deprecation")
+    static int getColor(Resources resources, int id, boolean amoled) {
+        return darkSurface(amoled ? AmoledTheme.getColor(resources, id) : resources.getColor(id));
+    }
+
+    /** The same for {@code Resources.getColor(int, Theme)}. */
+    public static int getColor(Resources resources, int id, @Nullable Resources.Theme theme) {
+        return getColor(resources, id, theme, SettingsStatus.amoledTheme());
+    }
+
+    static int getColor(Resources resources, int id, @Nullable Resources.Theme theme, boolean amoled) {
+        return darkSurface(amoled ? AmoledTheme.getColor(resources, id, theme) : resources.getColor(id, theme));
+    }
+
+    /** The palette's neutral at the same lightness for one of the {@link #SURFACES}, in dark mode. */
+    private static int darkSurface(int color) {
+        return isSurface(color) && DarkMode.on() ? palette().sameLightness(TonePalette.NEUTRAL, color) : color;
+    }
+
+    /**
+     * The status bar: the colour Facebook is about to paint it, and whether Facebook's theme is dark.
+     *
+     * <p>On Android 15 and newer Facebook paints the bar itself, and the patch calls this first thing
+     * in that method. A tab's bar colour often comes from a token that isn't a dark-theme colour at
+     * all: back from Recent Apps the Video tab asks for {@code #333334}, which it asks for in light
+     * mode too. So the colour alone can't say which theme is on, and the patch passes Facebook's own
+     * answer for the window. One of Facebook's dark chrome greys (the band AMOLED blackens) takes the
+     * palette's neutral at the same lightness, as every grey this class recolours does.
+     *
+     * <p>With AMOLED in the build, the patch calls this in place of AMOLED's own hook and AMOLED's
+     * rule goes first. Its black stays black, since black is the palette's darkest tone.
+     *
+     * @return the palette's colour for a dark chrome grey in the dark theme, otherwise {@code color}
+     */
+    public static int statusBar(int color, boolean dark) {
+        return statusBar(color, dark, SettingsStatus.amoledTheme());
+    }
+
+    static int statusBar(int color, boolean dark, boolean amoled) {
+        HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
+        if (amoled) color = AmoledTheme.statusBar(color, dark);
+        if (!dark || !AmoledTheme.isDarkNeutral(color, AmoledTheme.MAX_BAR_CHANNEL)) return color;
+        return palette().sameLightness(TonePalette.NEUTRAL, color);
+    }
+
+    /**
+     * The navigation bar, as {@link #statusBar} does it: the Video tab writes its bars'
+     * {@code #252728} into code for both themes, and route three leaves a colour a method hands to
+     * a system bar for this hook. A dark grey in AMOLED's band for the bar takes the palette's
+     * neutral at the same lightness in the dark theme only. With AMOLED in the build its rule goes
+     * first.
+     *
+     * @return the palette's colour for a dark grey in the dark theme, otherwise {@code color}
+     */
+    public static int navigationBar(int color, boolean dark) {
+        return navigationBar(color, dark, SettingsStatus.amoledTheme());
+    }
+
+    static int navigationBar(int color, boolean dark, boolean amoled) {
+        HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
+        if (amoled) color = AmoledTheme.navigationBar(color, dark);
+        if (!dark || !AmoledTheme.isDarkNeutral(color, AmoledTheme.MAX_CHANNEL)) return color;
+        return palette().sameLightness(TonePalette.NEUTRAL, color);
     }
 
     /** A grey becomes the palette's neutral, a Facebook blue its accent, both at the same lightness. */
@@ -211,29 +310,38 @@ public final class MaterialYouTheme {
     }
 
     static void reload(Context context) {
-        TonePalette next = TonePalette.of(context);
-        palette = next;
-        publish(next);
+        palette = TonePalette.of(context);
+        publish();
     }
 
     /** Package-visible for tests: puts a palette in use and writes the route three fields from it. */
     static void use(TonePalette next, boolean followPhone) {
         palette = next;
-        publish(next);
+        publish();
         bound = !followPhone;
     }
 
-    private static void publish(TonePalette p) {
-        DARK_101011 = surface(p, 0x101011);
-        DARK_18191A = surface(p, 0x18191A);
-        DARK_1C1C1D = surface(p, 0x1C1C1D);
-        DARK_242526 = surface(p, 0x242526);
-        DARK_252728 = surface(p, 0x252728);
-        DARK_3E4042 = surface(p, 0x3E4042);
+    /**
+     * Writes route three's fields from the palette in use: its surfaces in Facebook's dark mode,
+     * Facebook's own in light mode. It runs after every change of either, on the thread that made
+     * it. One write at a time, each reading the answer and the palette once, so the last one leaves
+     * all six fields in the mode and the palette that stand.
+     */
+    private static void publish() {
+        synchronized (PUBLISHING) {
+            TonePalette p = DarkMode.on() ? palette : null;
+            DARK_101011 = surface(p, 0x101011);
+            DARK_18191A = surface(p, 0x18191A);
+            DARK_1C1C1D = surface(p, 0x1C1C1D);
+            DARK_242526 = surface(p, 0x242526);
+            DARK_252728 = surface(p, 0x252728);
+            DARK_3E4042 = surface(p, 0x3E4042);
+        }
     }
 
-    private static int surface(TonePalette p, int rgb) {
-        return p.sameLightness(TonePalette.NEUTRAL, 0xFF000000 | rgb);
+    /** The palette's neutral at the lightness of Facebook's surface {@code rgb}, or Facebook's own without a palette. */
+    private static int surface(@Nullable TonePalette p, int rgb) {
+        return p == null ? 0xFF000000 | rgb : p.sameLightness(TonePalette.NEUTRAL, 0xFF000000 | rgb);
     }
 
     private static Map<String, int[]> parseTokens(String table) {

@@ -11,7 +11,7 @@ import app.morphe.util.findFreeRegister
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import hoodles.morphe.patches.nomone.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.nomone.shared.tamper.disableAntiTamperPatch
 
 @Suppress("unused")
@@ -20,7 +20,7 @@ val removeTrialLimitPatch = bytecodePatch(
     description = "Removes the imposed 6-hour trial usage limit."
 ) {
 
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.NOMONE)
 
     dependsOn(disableAntiTamperPatch)
 

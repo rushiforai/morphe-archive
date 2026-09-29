@@ -40,6 +40,18 @@ public final class SettingsActionBanner {
     static final String MESSAGE_TAG = "hushfeed_settings_action_message";
     static final String ACTION_TAG = "hushfeed_settings_action_button";
     static final long VISIBLE_MS = 10_000L;
+    /** The longest a banner stays, however long its message. */
+    static final long LONGEST_VISIBLE_MS = 30_000L;
+
+    /**
+     * How long a banner with {@code message} stays: {@link #VISIBLE_MS} for a short one, longer
+     * for a long one, at about a second per fifteen characters. A restore result that listed what
+     * it changed was gone after ten seconds, before it could be read.
+     */
+    static long visibleMs(CharSequence message) {
+        int length = message == null ? 0 : message.length();
+        return Math.min(LONGEST_VISIBLE_MS, Math.max(VISIBLE_MS, 3_000L + length * 70L));
+    }
 
     private static int generation;
     private static WeakReference<View> current = new WeakReference<>(null);
@@ -110,7 +122,7 @@ public final class SettingsActionBanner {
                 final int token = ++generation;
                 Utils.runOnMainThreadDelayed(() -> {
                     if (token == generation) dismissCurrent();
-                }, SettingsUi.feedbackTimeout(activity, (int) VISIBLE_MS, action != null));
+                }, SettingsUi.feedbackTimeout(activity, (int) visibleMs(message), action != null));
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Could not show the settings action banner", throwable);
                 Utils.showToastShort(message);

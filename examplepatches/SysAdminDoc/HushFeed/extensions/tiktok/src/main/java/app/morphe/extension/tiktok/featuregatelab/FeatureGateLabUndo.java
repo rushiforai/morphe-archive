@@ -303,6 +303,19 @@ final class FeatureGateLabUndo {
         }
     }
 
+    /**
+     * A settings restore, reset or undo rewrote the Lab. This copy still held the rules from
+     * before the Lab's own last change, and pressed after the restore it took back every rule
+     * the restore had written. The settings Undo carries the Lab half instead.
+     */
+    static synchronized void discardAfterSettingsChange() {
+        try {
+            file().delete();
+        } catch (Exception error) {
+            Logger.printException(() -> "Could not discard the Lab undo a settings change replaced", error);
+        }
+    }
+
     private static void discardUndoAfterRecovery() {
         try {
             file().delete();

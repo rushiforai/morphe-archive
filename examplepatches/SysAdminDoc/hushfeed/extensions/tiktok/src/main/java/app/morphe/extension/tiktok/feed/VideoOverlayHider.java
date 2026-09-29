@@ -7,7 +7,9 @@
 package app.morphe.extension.tiktok.feed;
 
 import android.app.Activity;
+import android.app.Application;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +22,7 @@ import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 import app.morphe.extension.tiktok.navigation.NavigationTabsFilter;
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -197,6 +200,8 @@ public final class VideoOverlayHider {
      */
     static final long STATUS_BAR_PEEK_MS = 4000L;
 
+    private static WeakReference<Application> followed = new WeakReference<>(null);
+
     private static WeakReference<Activity> activityReference = new WeakReference<>(null);
     /** Whether this class, rather than TikTok, is the one holding the status bar away. */
     private static boolean statusBarHiddenHere;
@@ -229,12 +234,35 @@ public final class VideoOverlayHider {
             boolean installed = LAYOUT_HOOK.install(root, VideoOverlayHider::apply);
             activityReference = new WeakReference<>(activity);
             LiveStatusBar.follow(activity);
+            follow(activity.getApplication());
             if (installed) {
-                Logger.printDebug(() -> "Video overlay hider installed");
+                Logger.printDebug(() -> "Video overlay hider installed on " + activity.getClass().getSimpleName());
             }
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not install the video overlay hider", ex);
         }
+    }
+
+    /**
+     * Moves the one layout listener to whichever feed window comes to the front: a detail pager
+     * as it opens, the main activity again as the user comes back to it. Registered once per
+     * application, from the main activity's own install.
+     */
+    private static void follow(Application application) {
+        if (application == null || followed.get() == application) return;
+        followed = new WeakReference<>(application);
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override public void onActivityResumed(Activity resumed) {
+                if (FeedVisibility.isFeedWindow(resumed)) installNow(resumed);
+            }
+
+            @Override public void onActivityCreated(Activity created, Bundle state) { }
+            @Override public void onActivityStarted(Activity started) { }
+            @Override public void onActivityPaused(Activity paused) { }
+            @Override public void onActivityStopped(Activity stopped) { }
+            @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
+            @Override public void onActivityDestroyed(Activity destroyed) { }
+        });
     }
 
     private static void apply() {
@@ -264,7 +292,10 @@ public final class VideoOverlayHider {
                 hide(activity, SEARCH_MODULE_PACKAGE, VISUAL_SEARCH_LAYER_IDS);
                 hide(activity, SEARCH_MODULE_PACKAGE, VISUAL_SEARCH_PILL_IDS);
             }
-            if (Settings.HIDE_LIVE_ENTRANCE.get()) {
+            boolean detailPager = FeedVisibility.isDetailPager(activity);
+            // The LIVE entrance is the main feed's; looked for in the detail pager it was reported
+            // missing on every pass, and the hook table called the overlay hooks broken.
+            if (Settings.HIDE_LIVE_ENTRANCE.get() && !detailPager) {
                 hide(activity, APP_PACKAGE, LIVE_ENTRANCE_IDS);
             }
 
@@ -283,7 +314,7 @@ public final class VideoOverlayHider {
             // the first swipe. Following the live state keeps it away until the tap that ends
             // the mode. The persisted setting cannot be used here: the automatic path never
             // writes it, so it would answer false for exactly the case this is meant to fix.
-            boolean tabStrip = RememberClearDisplayPatch.isClearDisplayNow();
+            boolean tabStrip = !detailPager && RememberClearDisplayPatch.isClearDisplayNow();
             boolean counts = Settings.HIDE_RAIL_COUNTS.get();
             boolean[] rail = TRAVERSAL.rail;
             updateRailButtonsWanted(rail);
@@ -382,7 +413,7 @@ public final class VideoOverlayHider {
                 }
             }
 
-            setStatusBarHidden(activity, Settings.HIDE_STATUS_BAR.get());
+            if (!detailPager) setStatusBarHidden(activity, Settings.HIDE_STATUS_BAR.get());
         } catch (Throwable ex) {
             Logger.printException(() -> "Video overlay hider failed", ex);
         }

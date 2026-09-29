@@ -19,6 +19,15 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 /**
  * The Material You theme's rules: what it recolours, that a colour keeps its lightness, and that
  * everything else, light mode included, is left as Facebook sent it.
@@ -53,6 +62,7 @@ public class MaterialYouThemeTest {
 
     @After
     public void restore() {
+        DarkMode.answer(true);
         MaterialYouTheme.use(TonePalette.fallback(), false);
     }
 
@@ -110,6 +120,68 @@ public class MaterialYouThemeTest {
         assertEquals("black stays black", 0xFF000000, MaterialYouTheme.mig(0xFF000000, null));
     }
 
+    /**
+     * The status bar on Android 15 and newer. Facebook's dark chrome greys take the palette at the
+     * same lightness, whichever token they came from, and only when Facebook's own check says the
+     * theme is dark: light mode asks the Video tab's token for the same #333334.
+     */
+    @Test
+    public void theStatusBarTakesThePaletteInTheDarkThemeOnly() {
+        for (int grey : new int[]{0xFF252728, 0xFF333334, 0xFF3A3B3C, 0xFF18191A}) {
+            int painted = MaterialYouTheme.statusBar(grey, true, false);
+            assertNotEquals(Integer.toHexString(grey) + " kept Facebook's grey", grey, painted);
+            assertEquals(Integer.toHexString(grey), palette.sameLightness(TonePalette.NEUTRAL, grey), painted);
+            assertSameLightness(Integer.toHexString(grey), grey, painted);
+            assertEquals(Integer.toHexString(grey) + " changed in light mode", grey, MaterialYouTheme.statusBar(grey, false, false));
+        }
+        assertEquals("black stays black", 0xFF000000, MaterialYouTheme.statusBar(0xFF000000, true, false));
+    }
+
+    /** The controls: what isn't one of Facebook's dark chrome greys keeps its colour in the dark theme too. */
+    @Test
+    public void aStatusBarColourItDoesntKnowFailsOpen() {
+        assertEquals("edge to edge", 0x00000000, MaterialYouTheme.statusBar(0x00000000, true, false));
+        assertEquals("a translucent scrim", 0x80333334, MaterialYouTheme.statusBar(0x80333334, true, false));
+        assertEquals("above the bar threshold", 0xFF4B4C4F, MaterialYouTheme.statusBar(0xFF4B4C4F, true, false));
+        assertEquals("a dark colour with a hue", 0xFF1A2A10, MaterialYouTheme.statusBar(0xFF1A2A10, true, false));
+        assertEquals("a blue bar", 0xFF0866FF, MaterialYouTheme.statusBar(0xFF0866FF, true, false));
+        assertEquals("a white bar", 0xFFFFFFFF, MaterialYouTheme.statusBar(0xFFFFFFFF, true, false));
+    }
+
+    /** With AMOLED in the build its rule goes first, and its black is no grey the palette takes. */
+    @Test
+    public void withAmoledTheStatusBarKeepsAmoledsBlack() {
+        assertEquals("the Video tab's bar", 0xFF000000, MaterialYouTheme.statusBar(0xFF333334, true, true));
+        assertEquals("the home bar", 0xFF000000, MaterialYouTheme.statusBar(0xFF252728, true, true));
+        assertEquals("light mode", 0xFF333334, MaterialYouTheme.statusBar(0xFF333334, false, true));
+        assertEquals("unpatched, the hook runs as without AMOLED", MaterialYouTheme.statusBar(0xFF333334, true, false),
+                MaterialYouTheme.statusBar(0xFF333334, true));
+    }
+
+    /**
+     * The Video tab writes #252728 for its bars in both themes, and route three leaves it for the bar
+     * hooks: light mode keeps Facebook's colour, the dark theme takes the palette's.
+     */
+    @Test
+    public void theVideoTabsWrittenBarColourKeepsFacebooksColourInLightMode() {
+        assertEquals("status bar", 0xFF252728, MaterialYouTheme.statusBar(0xFF252728, false, false));
+        assertEquals("navigation bar", 0xFF252728, MaterialYouTheme.navigationBar(0xFF252728, false, false));
+        assertEquals("with AMOLED", 0xFF252728, MaterialYouTheme.navigationBar(0xFF252728, false, true));
+        assertEquals("navigation bar, dark", palette.sameLightness(TonePalette.NEUTRAL, 0xFF252728),
+                MaterialYouTheme.navigationBar(0xFF252728, true, false));
+    }
+
+    /** The navigation bar keeps route three's band: a sheet's lighter grey and anything else keep theirs. */
+    @Test
+    public void aNavigationBarColourOutsideTheBandFailsOpen() {
+        assertEquals("a sheet's grey", 0xFF333334, MaterialYouTheme.navigationBar(0xFF333334, true, false));
+        assertEquals("translucent", 0x26C9CCD1, MaterialYouTheme.navigationBar(0x26C9CCD1, true, false));
+        assertEquals("a dark colour with a hue", 0xFF1A2A10, MaterialYouTheme.navigationBar(0xFF1A2A10, true, false));
+        assertEquals("a white bar", 0xFFFFFFFF, MaterialYouTheme.navigationBar(0xFFFFFFFF, true, false));
+        assertEquals("black stays black", 0xFF000000, MaterialYouTheme.navigationBar(0xFF000000, true, false));
+        assertEquals("with AMOLED, its black", 0xFF000000, MaterialYouTheme.navigationBar(0xFF252728, true, true));
+    }
+
     @Test
     public void aServerColourIsRecolouredOnlyWhenItIsAKnownDarkSurface() {
         assertEquals(palette.sameLightness(TonePalette.NEUTRAL, 0xFF252728), MaterialYouTheme.parseColor("#FF252728"));
@@ -143,6 +215,100 @@ public class MaterialYouThemeTest {
         MaterialYouTheme.use(other, false);
         assertEquals("the fields follow a new palette", other.sameLightness(TonePalette.NEUTRAL, 0xFF252728),
                 MaterialYouTheme.DARK_252728);
+    }
+
+    /**
+     * Facebook answers whether dark mode is on from whatever thread asks, a feed request or an app
+     * job as well as the UI, and the answer's thread writes route three's fields that the UI thread
+     * reads. So each field is volatile.
+     */
+    @Test
+    public void routeThreesFieldsAreSafeToReadFromAnyThread() throws Exception {
+        for (String field : MaterialYouTheme.SURFACES.split(" ")) {
+            int modifiers = MaterialYouTheme.class.getField("DARK_" + field).getModifiers();
+            assertTrue("DARK_" + field + " isn't volatile", Modifier.isVolatile(modifiers));
+        }
+    }
+
+    /**
+     * Answers that change dark mode at the same moment, from several threads: once they're done, all
+     * six fields hold the colours of the answer that stands, none of them left from the other mode.
+     */
+    @Test
+    public void routeThreesFieldsFollowTheAnswerThatStandsWhenAnswersRace() throws Exception {
+        int threads = 4;
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        try {
+            for (int round = 0; round < 10000; round++) {
+                CyclicBarrier start = new CyclicBarrier(threads);
+                List<Future<?>> answers = new ArrayList<>();
+                for (int t = 0; t < threads; t++) {
+                    boolean first = t % 2 == 0;
+                    answers.add(pool.submit(() -> {
+                        start.await();
+                        for (int i = 0; i < 200; i++) DarkMode.answer(first == (i % 2 == 0));
+                        return null;
+                    }));
+                }
+                for (Future<?> answer : answers) answer.get();
+
+                boolean dark = DarkMode.on();
+                int[] read = {MaterialYouTheme.DARK_101011, MaterialYouTheme.DARK_18191A, MaterialYouTheme.DARK_1C1C1D,
+                        MaterialYouTheme.DARK_242526, MaterialYouTheme.DARK_252728, MaterialYouTheme.DARK_3E4042};
+                String[] surfaces = MaterialYouTheme.SURFACES.split(" ");
+                for (int i = 0; i < read.length; i++) {
+                    int facebook = 0xFF000000 | Integer.parseInt(surfaces[i], 16);
+                    assertEquals("round " + round + ", " + (dark ? "dark" : "light") + " mode, #" + surfaces[i],
+                            dark ? palette.sameLightness(TonePalette.NEUTRAL, facebook) : facebook, read[i]);
+                }
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    /**
+     * Light mode on the Video tab. The tab stays dark there: its themed context asks FDS's dark style,
+     * whose surface is the #252728 of dark mode, its bottom bar reads that colour's resource, and its
+     * top bar writes it into code. With Facebook's own dark mode off, a colour from the forced-dark
+     * Video context keeps its value on every route.
+     */
+    @Test
+    public void lightModeKeepsAColourFromTheForcedDarkVideoContext() {
+        DarkMode.answer(false);
+        Context context = ColourResources.context(Collections.singletonMap(ColourResources.VIDEO_BAR, 0xFF252728));
+
+        assertEquals("a resolver's colour", 0xFF252728, MaterialYouTheme.fds(0xFF252728, Token.SURFACE_BACKGROUND));
+        assertEquals("the Mig dark scheme", 0xFF3A3B3C, MaterialYouTheme.mig(0xFF3A3B3C, null));
+        assertEquals("the bottom bar, Context.getColor", 0xFF252728,
+                MaterialYouTheme.getColor(context, ColourResources.VIDEO_BAR, false));
+        assertEquals("Resources.getColor", 0xFF252728,
+                MaterialYouTheme.getColor(context.getResources(), ColourResources.VIDEO_BAR, false));
+        assertEquals("a server colour", 0xFF252728, MaterialYouTheme.parseColor("#FF252728"));
+        assertEquals("a colour written in code", 0xFF252728, MaterialYouTheme.DARK_252728);
+        assertEquals("another written in code", 0xFF101011, MaterialYouTheme.DARK_101011);
+    }
+
+    /**
+     * Dark mode on the Video tab: the bottom bar Facebook reads straight from its #252728 resource
+     * takes the palette, as Home's bar does through a token. With AMOLED in the build its black stays.
+     */
+    @Test
+    public void darkModeTintsTheVideoTabsBottomBar() {
+        DarkMode.answer(false);
+        DarkMode.answer(true);
+        Context context = ColourResources.context(Collections.singletonMap(ColourResources.VIDEO_BAR, 0xFF252728));
+        int tinted = palette.sameLightness(TonePalette.NEUTRAL, 0xFF252728);
+
+        assertEquals("the bottom bar", tinted, MaterialYouTheme.getColor(context, ColourResources.VIDEO_BAR, false));
+        assertEquals("Resources.getColor with a theme", tinted,
+                MaterialYouTheme.getColor(context.getResources(), ColourResources.VIDEO_BAR, context.getTheme(), false));
+        assertEquals("the fields hold the palette's again", tinted, MaterialYouTheme.DARK_252728);
+        assertEquals("a colour that is no dark surface", 0xFFFFFFFF,
+                MaterialYouTheme.getColor(context, android.R.color.white, false));
+
+        Context amoled = ColourResources.context(Collections.singletonMap(ColourResources.VIDEO_BAR, 0xFF000000));
+        assertEquals("AMOLED's black", 0xFF000000, MaterialYouTheme.getColor(amoled, ColourResources.VIDEO_BAR, true));
     }
 
     @Test

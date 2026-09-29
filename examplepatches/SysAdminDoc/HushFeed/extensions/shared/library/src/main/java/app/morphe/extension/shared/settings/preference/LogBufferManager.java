@@ -99,24 +99,27 @@ public final class LogBufferManager {
         final app.morphe.extension.shared.diagnostics.FeedFilterCounters.Snapshot feedFilter;
         final String javaCrash;
         final String nativeCrash;
+        final List<String> layout;
 
         ClearSnapshot(
                 List<DiagnosticEvent> events,
                 app.morphe.extension.shared.diagnostics.HookStatus.Snapshot hooks,
                 app.morphe.extension.shared.diagnostics.FeedFilterCounters.Snapshot feedFilter,
                 String javaCrash,
-                String nativeCrash
+                String nativeCrash,
+                List<String> layout
         ) {
             this.events = events;
             this.hooks = hooks;
             this.feedFilter = feedFilter;
             this.javaCrash = javaCrash;
             this.nativeCrash = nativeCrash;
+            this.layout = layout;
         }
 
         boolean isEmpty() {
             return events.isEmpty() && hooks.isEmpty() && feedFilter.isEmpty()
-                    && javaCrash.isEmpty() && nativeCrash.isEmpty();
+                    && javaCrash.isEmpty() && nativeCrash.isEmpty() && layout.isEmpty();
         }
     }
 
@@ -362,7 +365,11 @@ public final class LogBufferManager {
         // A table with a miss in it is different. Those events are the oldest in the buffer and
         // are the first evicted, so on a badly broken build the table is exactly what would be
         // dropped, and it is the thing the report exists to carry.
+        // A recorded screen layout is something the reader asked for by name, so it makes a
+        // report worth sending on its own and ignores "Included diagnostics".
+        List<String> layout = app.morphe.extension.shared.diagnostics.ScreenLayout.lines();
         boolean worthReporting = paused || !crash.isEmpty() || !npthCrash.isEmpty() || events.length() > 0
+                || !layout.isEmpty()
                 || (hooks.length() > 0
                         && app.morphe.extension.shared.diagnostics.HookStatus.anyMissing());
         if (!worthReporting) return "";
@@ -426,6 +433,14 @@ public final class LogBufferManager {
             report.append("\n\n[SELECTED EVENTS]\n")
                     .append("category | timestamp | thread | source | level | message\n")
                     .append(events);
+        }
+        // Last, because the quick copy keeps the end of a long report: the layout is bounded
+        // below the clipboard limit, so a copied report always carries all of it.
+        if (!layout.isEmpty()) {
+            report.append("\n\n[SCREEN LAYOUT]\n");
+            for (String line : layout) {
+                report.append(DiagnosticRedactor.redact(line)).append('\n');
+            }
         }
         return report.toString();
     }
@@ -650,7 +665,8 @@ public final class LogBufferManager {
                     app.morphe.extension.shared.diagnostics.HookStatus.snapshotAndClear(),
                     app.morphe.extension.shared.diagnostics.FeedFilterCounters.snapshotAndClear(),
                     readCrashReport(context),
-                    readNpthCrashReport(context)
+                    readNpthCrashReport(context),
+                    app.morphe.extension.shared.diagnostics.ScreenLayout.snapshotAndClear()
             );
             clearLogBufferData();
             clearCrashReports(context);
@@ -684,6 +700,7 @@ public final class LogBufferManager {
                     restoreLogBufferData(saved.events);
                     app.morphe.extension.shared.diagnostics.HookStatus.restore(saved.hooks);
                     app.morphe.extension.shared.diagnostics.FeedFilterCounters.restore(saved.feedFilter);
+                    app.morphe.extension.shared.diagnostics.ScreenLayout.restore(saved.layout);
                     lastClear = null;
                     result = UndoResult.RESTORED;
                 } catch (Exception error) {

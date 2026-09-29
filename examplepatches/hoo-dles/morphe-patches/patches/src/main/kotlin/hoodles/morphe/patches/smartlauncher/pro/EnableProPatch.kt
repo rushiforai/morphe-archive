@@ -12,15 +12,15 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import hoodles.morphe.patches.smartlauncher.misc.signature.disableSignatureCheckPatch
-import hoodles.morphe.patches.smartlauncher.shared.Constants
+import hoodles.morphe.compatibility.Compat
+import hoodles.morphe.patches.smartlauncher.shared.signature.disableSignatureCheckPatch
 
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.SMART_LAUNCHER)
 
     dependsOn(disableSignatureCheckPatch)
 

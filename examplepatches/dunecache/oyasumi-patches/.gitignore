@@ -134,3 +134,4 @@ reference/*
 # Ignore IDEA files
 .idea/
 local.properties
+.scratch/

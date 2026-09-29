@@ -1,1 +1,16 @@
-<manifest/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+      Android 11+ (API 30+) package visibility: getPackageInfo() by exact
+      name for another app returns NameNotFoundException unless that
+      package is declared here, regardless of what Letterboxd's own
+      manifest declares. Needed so StremioExtension.isPackageInstalled()
+      can reliably tell Stremio and Nuvio apart. Does NOT affect
+      startActivity() itself (blind implicit-intent launches, and
+      explicit-package launches via setPackage(), work without a <queries>
+      entry either way) — only the direct-by-name existence check.
+    -->
+    <queries>
+        <package android:name="com.stremio.one" />
+        <package android:name="com.nuvio.app" />
+    </queries>
+</manifest>

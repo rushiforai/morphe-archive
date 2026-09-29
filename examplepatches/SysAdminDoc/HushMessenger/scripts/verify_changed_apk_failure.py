@@ -15,6 +15,7 @@ from zipfile import BadZipFile, ZipFile
 STOCK_SHA256 = {
     "128ec75e836f24328d2b28777091c03b20abba0adc536e7ee911ee5fe52e70bc",
     "e7d3c64227a7d9a26adda4e89321a87a49c85ee9e9f28f2fa7ed7fa79ae15cf6",
+    "55636f34a49173f5607011a6dfdf635597f435047a8c105cb7fe420665a38c24",
 }
 OLD_LITERAL = b"com.facebook.permission.prod.FB_APP_COMMUNICATION"
 CHANGED_LITERAL = b"com.facebook.permission.proX.FB_APP_COMMUNICATION"
@@ -72,8 +73,14 @@ def check(args: argparse.Namespace) -> int:
             timeout=300,
             check=False,
         )
-        report = json.loads(report_path.read_text(encoding="utf-8"))
         log = run.stdout + run.stderr
+        if not report_path.is_file():
+            # Java failing to start Desktop (bad jar path, old JDK) never writes a report.
+            print(log[-4000:])
+            raise RuntimeError(
+                f"Desktop exited {run.returncode} without writing a patch report"
+            )
+        report = json.loads(report_path.read_text(encoding="utf-8"))
         if not isinstance(report, dict):
             raise TypeError("Desktop did not write a patch result object")
         failed = report.get("failedPatches")
@@ -118,7 +125,7 @@ def check(args: argparse.Namespace) -> int:
                 for line in patch_failure["reason"].splitlines()
                 if re.search(
                     r"\bexpected 6 permission loads, found 4\b.*"
-                    r"\bversion code 346013387 or 346013440\b",
+                    r"\bversion code 346013387 or 346013440 or 346013442\b",
                     line,
                 )
             ),

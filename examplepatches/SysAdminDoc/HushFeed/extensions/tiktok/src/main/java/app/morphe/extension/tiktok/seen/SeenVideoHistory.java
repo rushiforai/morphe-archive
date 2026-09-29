@@ -729,13 +729,16 @@ public final class SeenVideoHistory {
             return safePosition >= UNKNOWN_DURATION_MARK_MS;
         }
 
+        // A clip shorter than the second itself never reaches it: its position stops at its
+        // length and loops, so the floor is half the clip for those.
+        long floor = durationMs < MIN_MARK_MS ? durationMs / 2L : MIN_MARK_MS;
         int chosen = markPercent();
         if (chosen == 0) {
             long percentThreshold = durationMs * MARK_PERCENT / 100L;
-            return safePosition >= Math.max(MIN_MARK_MS, Math.min(MAX_MARK_MS, percentThreshold));
+            return safePosition >= Math.max(floor, Math.min(MAX_MARK_MS, percentThreshold));
         }
         long share = durationMs * chosen / 100L;
-        return safePosition >= Math.max(MIN_MARK_MS, Math.min(share, durationMs - MIN_MARK_MS));
+        return safePosition >= Math.max(floor, Math.min(share, durationMs - MIN_MARK_MS));
     }
 
     /** 0 to 90, the range the dialog offers. A restored backup can hold anything. */

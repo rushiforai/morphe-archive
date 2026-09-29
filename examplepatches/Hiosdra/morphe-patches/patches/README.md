@@ -1,6 +1,7 @@
-# F1 TV Morphe Patches
+# Hiosdra Patches
 
-This repository contains Morphe patches for the F1 TV Android app (`com.formulaone.production`).
+This repository contains Morphe patches for the F1 TV Android app
+(`com.formulaone.production`) and Movie Paradise (`com.techkitlabs.movieparadise`).
 
 ## 📋 Available Patches
 
@@ -8,19 +9,22 @@ This repository contains Morphe patches for the F1 TV Android app (`com.formulao
 **File:** `F1TvPictureInPicturePatch.kt`  
 **Target:** `BasePlayerActivity` (Bitmovin player)
 
-Enables PiP for the standard Bitmovin player by removing the player pause call
-from `onPause()`, adding a guarded `onUserLeaveHint()` entry point, and adding
-the required `supportsPictureInPicture` and `resizeableActivity` manifest
-attributes. The manifest edit is included automatically as a dependency.
+Enables PiP for the standard Bitmovin player. On Android 12 and newer it sets
+the system auto-enter flag only while playback is active and not casting; on
+Android 10 and 11 it uses a guarded `onUserLeaveHint()` entry point. It also
+enables the PiP flag used by Tiledmedia multiview and adds the required
+`supportsPictureInPicture` and `resizeableActivity` manifest attributes. The
+manifest edit is included automatically as a dependency.
 
 ### 2. F1 TV - Background playback
 **File:** `F1TvBackgroundPlaybackPatch.kt`  
 **Target:** `BasePlayerActivity`
 
-Keeps playback attached when the activity stops by removing the player-view
-`onPause()`, `PlayerSwitcher.onStop()`, and playback-use-case `detach()` calls.
-This allows audio to continue while the app remains alive. Pair it with the
-foreground-service patch below for stronger process lifetime protection.
+Keeps Bitmovin playback attached when the activity stops by removing the
+player-view `onPause()`, `PlayerSwitcher.onStop()`, and playback-use-case
+`detach()` calls. For multiview, it enables ClearVR's background-audio session
+and its Media3 service. Pair it with the foreground-service patch below for
+stronger process lifetime protection on the Bitmovin path.
 
 ### 3. F1 TV - Foreground playback service
 **File:** `F1TvForegroundServicePatch.kt`
@@ -72,12 +76,35 @@ Outputs:
 
 2. Enable desired patches in Morphe's patch list
 
-The F1 TV bundle includes standalone F1 TV copies of Morphe's `Disable Play
+The patch bundle includes standalone F1 TV copies of Morphe's `Disable Play
 Store updates` and `Clone app`/`Change package name` patches. Select `F1 TV -
 Disable Play Store updates` or `F1 TV - Change package name` directly from
 this source; they do not require selecting the corresponding universal patch
 from the official Morphe bundle. Their source files retain the required
 Morphe/ReVanced attribution and GPLv3 notices.
+
+### 6. F1 TV - Dismiss forced update prompt
+**File:** `F1TvDismissForcedUpgradePatch.kt`
+**Target:** F1 TV `GenericActivity` forced-update dialog
+
+Allows closing the forced-update dialog without exiting F1 TV. The update
+button remains available. This patch targets F1 TV 3.0.49.4.
+
+### 7. Movie Paradise - GmsCore support (microG login)
+**File:** `MovieParadiseGmsCoreSupportPatch.kt`
+**Target:** Movie Paradise 5.2.0
+
+Routes Google Play Services calls through MicroG-RE, adds the manifest entries
+needed for package visibility and signature spoofing, and warns when MicroG-RE
+is missing. The patch is disabled by default and depends on the PairIP license
+bypass patch. Google sign-in has not been verified on a device.
+
+### 8. Movie Paradise - PairIP license bypass
+**File:** `MovieParadisePairipBypassPatch.kt`
+**Target:** Movie Paradise 5.2.0
+
+Neutralises the PairIP license check that otherwise terminates a repackaged
+build. This is a prerequisite for the Movie Paradise GmsCore patch.
 
 ## 🐞 Debugging on a device
 
@@ -103,8 +130,8 @@ adb shell dumpsys package com.formulaone.production | grep -i -E 'picture|foregr
 ## 🎯 Target App Details
 
 - **Package:** `com.formulaone.production`
-- **Version:** 3.0.48.1-SP157.6.0-release-R52-mobile
-- **Version Code:** 30481000
+- **Version:** 3.0.49.4-SP166.4.1-release-R54.2-mobile
+- **Version Code:** 30494002
 - **Min SDK:** 29 (Android 10)
 - **Target SDK:** 35 (Android 15)
 
@@ -117,7 +144,11 @@ F1 TV is a commercial service by Formula One. Only use these patches if:
 - You are modifying your own installed app for personal use
 - You comply with F1 TV's Terms of Service and applicable laws
 
-The patches do not bypass DRM, authentication, or subscription checks. They only modify playback behavior (PiP, background audio) for content you're already authorized to access.
+The F1 TV patches modify playback behavior and the forced-update dialog for
+content you are already authorized to access; they do not bypass F1 TV's DRM,
+authentication, or subscription checks. Movie Paradise's optional GmsCore
+patch uses the PairIP prerequisite described above; Google sign-in has not
+been verified on a device.
 
 ## 🔧 Technical Details
 
@@ -127,7 +158,9 @@ The F1 TV app uses two separate player implementations:
 1. **Bitmovin Player** (`BasePlayerActivity`) - Standard live/VOD playback with dual PlayerView for seamless channel switching
 2. **Tiledmedia/ClearVR** (`TiledPlayerActivity`) - Multiview (multiple onboard cameras)
 
-These patches target only the Bitmovin player path (`BasePlayerActivity`).
+The PiP and background-playback patches cover both Bitmovin
+(`BasePlayerActivity`) and Tiledmedia (`TiledPlayerFactoryMobile`). The
+foreground-service patch applies to the Bitmovin path.
 
 ### Key Classes Patched
 
@@ -147,7 +180,7 @@ the decoded `AndroidManifest.xml` with the standard resource-patch API.
 
 | F1 TV Version | Patch Version | Status |
 |---------------|---------------|--------|
-| 3.0.48.1-SP157.6.0-release-R52-mobile (30481000) | current main | ✅ Applied and rebuilt |
+| 3.0.49.4-SP166.4.1-release-R54.2-mobile (30494002) | current main | ✅ Six F1 TV patches; the forced-update dismiss patch was reported working by the user |
 | Other F1 TV versions | — | ⚠️ Fingerprints may need updates |
 
 Patches use fingerprints to target the exact player lifecycle calls. Update the

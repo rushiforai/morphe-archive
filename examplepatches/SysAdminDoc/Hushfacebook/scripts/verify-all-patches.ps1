@@ -95,8 +95,9 @@ New-Item -ItemType Directory -Force -Path $runDir | Out-Null
 $stockApk = Get-BaseApk -Apk $Apk -Destination (Resolve-WithinRoot -Path (Join-Path $runDir 'stock-base.apk') -Root $workRoot)
 
 # The version the result is held to: the stock APK's own, read the same way the receipt reads
-# it. The catalog declares more than one version, so a declared one is patched as a user's Manager
-# patches it, and any other only with -Force, which tells the CLI to go ahead with -f.
+# it. The catalog declares more than one build, so a declared one (its version name and the code the
+# catalog pins it to) is patched as a user's Manager patches it, and any other only with -Force,
+# which tells the CLI to go ahead with -f.
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
 $Aapt2 = Resolve-Aapt2 -Explicit $Aapt2 -Root $root
 $stock = Get-ApkManifestFacts -Apk $stockApk -Aapt2 $Aapt2
@@ -106,16 +107,17 @@ if ($stock.package -ne $expectedTarget.PackageName) {
 if ([string]::IsNullOrWhiteSpace($stock.versionName)) {
     throw "$(Split-Path -Leaf $Apk) carries no versionName, so there is nothing to hold the result to."
 }
-$declared = [System.Collections.Generic.HashSet[string]]::new(
-    [string[]]$expectedTarget.PackageVersions, [System.StringComparer]::Ordinal)
 $expectedVersion = $stock.versionName
-$forced = -not $declared.Contains([string]$stock.versionName)
+# A declared build by version code too: another arm64 build of a declared version has its own dex.
+$forced = -not (Test-DeclaredBuild -Target $expectedTarget -VersionName ([string]$stock.versionName) `
+    -VersionCode ([string]$stock.versionCode))
 if ($forced -and -not $Force) {
-    throw ("$(Split-Path -Leaf $Apk) is $($stock.versionName), which the bundle does not declare " +
-        "($($expectedTarget.PackageVersions -join ', ')). Pass -Force to patch it anyway.")
+    throw ("$(Split-Path -Leaf $Apk) is $($stock.versionName), which the bundle does not declare, at version code " +
+        "$($stock.versionCode). It declares $(Format-DeclaredBuilds -Target $expectedTarget). Pass -Force to patch it anyway.")
 }
 if ($forced) {
-    Write-Host "[verify] forcing the bundle onto $($stock.package) $($stock.versionName); it declares $($expectedTarget.PackageVersions -join ', ')"
+    Write-Host ("[verify] forcing the bundle onto $($stock.package) $($stock.versionName) ($($stock.versionCode)); " +
+        "it declares $(Format-DeclaredBuilds -Target $expectedTarget)")
 } else {
     Write-Host "[verify] $($stock.package) $($stock.versionName) is a declared target, so nothing is forced"
 }
@@ -139,8 +141,17 @@ try {
     if ($forced) { $arguments += '-f' }
     $arguments = $arguments + $enable + @($patchInput)
 
-    $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
-    $cliExitCode = $LASTEXITCODE
+    # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+    # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code decide.
+    $preference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = -1
+        $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
+        $cliExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $preference
+    }
     # WARNING lines are the patches' own: a patch that works down a list of targets names each one
     # the build lacks there, and still applies.
     $cliOutput | ForEach-Object {
@@ -198,10 +209,18 @@ try {
         # stock side is the APK the CLI patched, a split bundle's merge among them: that is the
         # table the patched APK was rebuilt from.
         $resourceReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-resources-$runId.txt") -Root $workRoot
-        $global:LASTEXITCODE = 0
-        $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
-            $patchInput $out $resourceReport 2>&1)
-        $resourceExitCode = $LASTEXITCODE
+        # Continue for the call alone, as for the CLI: a JDK note or a stack trace on stderr would
+        # otherwise end the run under Windows PowerShell 5.1 before the exit code is read.
+        $preference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $global:LASTEXITCODE = -1
+            $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
+                $patchInput $out $resourceReport 2>&1)
+            $resourceExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
         $resourceOutput | ForEach-Object { Write-Host "[verify] $_" }
         Write-Host "[verify] resource report: $resourceReport"
         if ($resourceExitCode -eq 0) {

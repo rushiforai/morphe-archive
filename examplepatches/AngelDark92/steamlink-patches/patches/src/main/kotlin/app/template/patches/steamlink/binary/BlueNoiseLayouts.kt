@@ -2,6 +2,66 @@ package app.template.patches.steamlink.binary
 
 // Exact decoded-base guards. Evidence: diagnostics/steamlink-blue-noise-ditering/native-layouts.json.
 internal val BLUE_NOISE_LAYOUTS = listOf(
+    BlueNoiseLayout("2.0.20", "5001812", 2220872,
+        "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a", 0x9b3ca, 0xa6503, 0xf1b48L,
+        listOf(
+            BlueNoiseSite(0x6f5a8, "libGLESv3.so", "libgxd.so"),
+            BlueNoiseSite(0x4a127, "glShaderSource", "gxShaderSource"),
+            BlueNoiseSite(0x31842, "glDrawArrays", "gxDrawArrays"),
+            BlueNoiseSite(0x49a69, "eglCreateContext", "gxdCreateContext"),
+            BlueNoiseSite(0x49ae1, "eglDestroyContext", "gxdDestroyContext"),
+            BlueNoiseSite(0x49a9e, "eglMakeCurrent", "gxdMakeCurrent"),
+            BlueNoiseSite(0x49b05, "eglTerminate", "gxdTerminate"),
+            BlueNoiseSite(0xa5928, "glCompileShader", "gxCompileShader"),
+            BlueNoiseSite(0xab0eb, "glLinkProgram", "gxLinkProgram"),
+            BlueNoiseSite(0x983ea, "glDeleteShader", "gxDeleteShader"),
+            BlueNoiseSite(0xaa53e, "glDeleteProgram", "gxDeleteProgram"),
+        ), listOf(
+            BlueNoiseGuard(0x16caa4, 160, "27665b6b32526da7ee2144518fa9c91710b3675a8454e3a026bb456825d8c305"),
+            BlueNoiseGuard(0xf19f4, 616, "7355446ebb31eaef3be2a38e0667ede67af3c281e3194ecc211eca3837bf45da"),
+            BlueNoiseGuard(0xf1848, 428, "850d7d0fc0d277307080122b5b6fab1aa8ee82ba69d0c13839d22b109c01da8d"),
+            BlueNoiseGuard(0x9d182, 29, "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"),
+            BlueNoiseGuard(0xa6503, 296, "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623"),
+            BlueNoiseGuard(0x16c838, 16, "f0682fbf23421ea32a6312055204938c77bbe31b5ff3d02f03f9f341ef1c1612"),
+            BlueNoiseGuard(0x16c898, 16, "f3709394e8fd077e540f3e4121e9de867977e8caf267a258ceac4c883bcddfc2"),
+            BlueNoiseGuard(0x16c878, 16, "dc7f3c98223353e774d9ad008b4a640ad7ab88d16c8c355be73b32ad71fcd12f"),
+            BlueNoiseGuard(0x16c868, 16, "87492e58e2450198c9d18a9bd7c6bba2169593735055f05870cb69a34a6d071c"),
+            BlueNoiseGuard(0x2f8, 118848, "4afc06b386ac5f31bf727a161d7834fa2064f884bf6211486f7c0da4ed5c6790"), // .dynsym
+            BlueNoiseGuard(0x218c60, 560, "70baad2fe243b77e889359d86ec6451e5699025563b26efa97cbfd645e4855f4"), // .dynamic
+            BlueNoiseGuard(0x6f5c8, 122064, "7d343743c1d64f72b69fb7f17b4515a3c1f3ba2fce2022896f4604e89c867b4a"), // .rela.dyn
+            BlueNoiseGuard(0x8d298, 40968, "72090fed064f1e301f572f13ae08959f5e4969feaf1ca5895867c18414101017"), // .rela.plt
+            BlueNoiseGuard(0x1fa68, 30888, "a8e32860ef33903e4ea5baf1f8823422ab440e932166a509a92bf71b3a9b3350"), // .gnu.hash
+        )),
+    BlueNoiseLayout("2.0.21", "5001968", 2234048,
+        "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192", 0x94fdd, 0xa0677, 0xed478L,
+        listOf(
+            BlueNoiseSite(0x68178, "libGLESv3.so", "libgxd.so"),
+            BlueNoiseSite(0x41525, "glShaderSource", "gxShaderSource"),
+            BlueNoiseSite(0x28bb2, "glDrawArrays", "gxDrawArrays"),
+            BlueNoiseSite(0x40e67, "eglCreateContext", "gxdCreateContext"),
+            BlueNoiseSite(0x40edf, "eglDestroyContext", "gxdDestroyContext"),
+            BlueNoiseSite(0x40e9c, "eglMakeCurrent", "gxdMakeCurrent"),
+            BlueNoiseSite(0x40f03, "eglTerminate", "gxdTerminate"),
+            BlueNoiseSite(0x9fa86, "glCompileShader", "gxCompileShader"),
+            BlueNoiseSite(0xa5402, "glLinkProgram", "gxLinkProgram"),
+            BlueNoiseSite(0x91e82, "glDeleteShader", "gxDeleteShader"),
+            BlueNoiseSite(0xa4855, "glDeleteProgram", "gxDeleteProgram"),
+        ), listOf(
+            BlueNoiseGuard(0x16f5c8, 160, "9b81003caefa4d53cf14f01d8c0513ab96e37d55be6cad5f077310895413aec7"),
+            BlueNoiseGuard(0xed324, 616, "9e296fa85155786d2b91e1eb7405e0659a6ed15737d30653932a203d2a543faf"),
+            BlueNoiseGuard(0xed178, 428, "e73e380340915a83c6716379be1cffb0d73db55f6b8fae51ceaf0354d6516a26"),
+            BlueNoiseGuard(0x96e5b, 29, "93158a53e85fde1af61ce449f16c91b3b4213c93101cb98da42e5cc5bdca3f4c"),
+            BlueNoiseGuard(0xa0677, 296, "2bad22b297f2016866482551483c0ecd44f629ce4d9df1848eb55d6a03008623"),
+            BlueNoiseGuard(0x16f35c, 16, "c013576a2b087445eb2f2e7fd1b5195ae68bce26b3d36ce4c90adba7cb4bba0b"),
+            BlueNoiseGuard(0x16f3bc, 16, "db5ca69af59e0004b9a1d147a97f614620012be44c2621029c619ceab7569115"),
+            BlueNoiseGuard(0x16f39c, 16, "6716f4703aa6fb22021971f658c13b2dbcc531305119978df46f65458d09a47e"),
+            BlueNoiseGuard(0x16f38c, 16, "bd9973367249a9b4731d752b2a69c7faf607d3ad01edc421ff9338e77221ddd3"),
+            BlueNoiseGuard(0x2f8, 121704, "bdcec14f0ab282a7a554df0feebb4b5b8d02721efceec044b6abfe01769b33d2"), // .dynsym
+            BlueNoiseGuard(0x21bd70, 544, "85bcaf2b499ceee8d661568272ec65be3c7d93225b3beed93f8bad5076ef3a08"), // .dynamic
+            BlueNoiseGuard(0x68198, 124752, "7597131317aae915b41bc89a6d4a4ca04d905089689d4fc56cc6a6682c3e7291"), // .rela.dyn
+            BlueNoiseGuard(0x868e8, 42000, "aedc9b37573d75f6d7ef85c7bd7799b82811c7f8f1a270b25a7f77277b5a9a81"), // .rela.plt
+            BlueNoiseGuard(0x20680, 31432, "725e78bb4e8ac8d8c8d91e3461527dbca798ae65255edf25a903fdb20d8ff89a"), // .gnu.hash
+        )),
     BlueNoiseLayout("2.0.20", "5001712", 2221072,
         "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495", 0x9b4b8, 0xa6582, 0xf1c48L,
         listOf(

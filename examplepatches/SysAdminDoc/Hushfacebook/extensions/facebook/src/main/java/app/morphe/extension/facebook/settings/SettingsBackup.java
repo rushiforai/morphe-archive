@@ -94,6 +94,7 @@ public final class SettingsBackup {
             Settings.HIDE_STORIES_TRAY,
             Settings.HIDE_FEED_REELS,
             Settings.BLOCK_RETURN_REFRESH,
+            Settings.RETURN_REFRESH_NO_LIMIT,
             Settings.HIDE_AI_DETECTED_POSTS,
             Settings.HIDE_AI_LABELLED_POSTS,
             Settings.HIDE_AI_DETECTED_REELS,
@@ -101,6 +102,7 @@ public final class SettingsBackup {
             Settings.HIDE_SPONSORED_STORIES,
             Settings.HIDE_SUGGESTED_STORIES,
             Settings.BLOCK_STORY_AUTO_ADVANCE,
+            Settings.VIEW_STORIES_ANONYMOUSLY,
             Settings.HIDE_SPONSORED_REELS,
             Settings.HIDE_SPONSORED_SEARCH_RESULTS,
             Settings.HIDE_SPONSORED_PROFILE_POSTS,
@@ -109,6 +111,7 @@ public final class SettingsBackup {
             Settings.HIDE_REEL_FOLLOW_BUTTON,
             Settings.HIDE_REEL_SOCIAL_FOOTER,
             Settings.DONT_SEND_REEL_WATCH_HISTORY,
+            Settings.TURN_OFF_DOUBLE_TAP_LIKE,
             Settings.DEFAULT_COMMENT_ORDER,
             Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT,
             Settings.TAP_TO_PLAY,
@@ -127,6 +130,7 @@ public final class SettingsBackup {
             Settings.MARKETPLACE_QUIET_NOTIFICATIONS,
             Settings.MARKETPLACE_SKIP_FEED_PREFETCH,
             Settings.HIDE_GET_MESSENGER_CARD,
+            Settings.OPEN_MESSENGER_APP,
             Settings.HIDE_MENU_UPGRADES,
             Settings.HIDE_MENU_ALSO_FROM_META,
             Settings.HIDE_META_AI_IN_SEARCH,
@@ -480,7 +484,8 @@ public final class SettingsBackup {
                 buffered.write(buffer, 0, count);
             }
             bytes = buffered.toByteArray();
-        } catch (IOException error) {
+        } catch (IOException | RuntimeException error) {
+            // A provider's stream can fail with a runtime exception as readily as an IOException.
             // The class only: a provider's message can carry the document's name or address.
             throw new Rejected(Reason.UNREADABLE, error.getClass().getSimpleName());
         }
@@ -619,25 +624,20 @@ public final class SettingsBackup {
      *
      * @return how many settings changed, each setting that isn't a switch counted as one.
      * @throws ApplyFailed when the commit failed. {@link Setting#saveAll} puts the switches
-     *                     back; {@link ApplyFailed#rolledBack} says whether that worked.
+     *                     back, live and stored; {@link ApplyFailed#rolledBack} says whether that
+     *                     worked for every one of them.
      */
     static int apply(Snapshot snapshot) throws ApplyFailed {
         Map<Setting<?>, Object> changes = snapshot.changes();
         if (changes.isEmpty()) return 0;
-        Map<String, ?> before = new HashMap<>(Setting.preferences.preferences.getAll());
         try {
             Setting.saveAll(changes);
             return changes.size();
-        } catch (IOException | RuntimeException error) {
-            throw new ApplyFailed(storeMatches(before), error);
-        }
-    }
-
-    private static boolean storeMatches(Map<String, ?> expected) {
-        try {
-            return expected.equals(Setting.preferences.preferences.getAll());
-        } catch (RuntimeException error) {
-            return false;
+        } catch (Setting.BatchFailed failed) {
+            throw new ApplyFailed(failed.restored, failed);
+        } catch (IOException | RuntimeException refused) {
+            // Refused before anything was written.
+            throw new ApplyFailed(true, refused);
         }
     }
 }

@@ -7,16 +7,16 @@ package hoodles.morphe.patches.camscanner.misc.telemetry
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.all.misc.fix.changepackageinstaller.changePackageInstallerPatch
+import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch
 import app.morphe.util.returnEarly
-import hoodles.morphe.patches.all.signature.spoofSignaturePatch
-import hoodles.morphe.patches.camscanner.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val disableTelemetryPatch = bytecodePatch(
     name = "Disable telemetry",
     description = "Disables CamScanner's custom telemetry system."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.CAM_SCANNER)
 
     dependsOn(spoofSignaturePatch, changePackageInstallerPatch())
 

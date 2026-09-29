@@ -92,6 +92,27 @@ public class BudgetRestoreTest {
         assertEquals(0, BudgetChanges.appliesAt());
     }
 
+    @Test public void aRestoreCannotCommitWithoutItsDelayedBudgetChanges() throws Exception {
+        Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(60);
+        Settings.REGION_SPOOF.save(true);
+        String looser = SettingsBackup.create(false);
+        Settings.SESSION_BUDGET_MINUTES.save(30);
+        Settings.REGION_SPOOF.save(false);
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(
+                keys -> keys.contains(Settings.SESSION_BUDGET_PENDING.key), false)) {
+            org.junit.Assert.assertThrows(SettingsBackup.RestoreException.class,
+                    () -> SettingsBackup.restore(Utils.getContext(), looser, true));
+            org.junit.Assert.assertFalse("the ordinary half of the failed restore stayed applied",
+                    Settings.REGION_SPOOF.savedValue());
+            assertEquals(30, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+            assertNull(BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+        }
+        SettingsBackup.restore(Utils.getContext(), looser, true);
+        assertTrue(Settings.REGION_SPOOF.savedValue());
+        assertEquals(60, BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+    }
+
     /** Reset puts every default back, and the defaults are no budget and no wait at all. */
     @Test public void resettingWaitsForTheNextDayToDropTheBudget() throws Exception {
         Settings.SESSION_BUDGET_MINUTES.save(30);
@@ -147,6 +168,25 @@ public class BudgetRestoreTest {
      * it reads anything, so the undo copy carries it, and a restore that fails puts it back rather
      * than the value it replaced, whose record would already be gone.
      */
+    /**
+     * An Undo keeps what it replaces so a second one can bring it back. A change that had fallen
+     * due belongs to that, as it does to what a restore finds; taken before it applied, the copy
+     * held the old limit and a second Undo lost the change.
+     */
+    @Test public void aChangeAlreadyDueIsPartOfWhatAnUndoReplaces() throws Exception {
+        Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(30);
+        SettingsBackup.restore(Utils.getContext(), SettingsBackup.create(false), true);
+        BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get());
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 5, 0));
+
+        SettingsBackup.undo(Utils.getContext());
+
+        JSONObject replaced = new JSONObject(SettingsBackup.undo(Utils.getContext())).getJSONObject("settings");
+        assertEquals("the undo's copy missed a change that had fallen due",
+                60, replaced.getInt(Settings.SESSION_BUDGET_MINUTES.key));
+    }
+
     @Test public void aChangeAlreadyDueIsPartOfWhatARestoreFinds() throws Exception {
         Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(true);
         Settings.SESSION_BUDGET_MINUTES.save(30);
@@ -194,6 +234,44 @@ public class BudgetRestoreTest {
         assertEquals(60, BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
         assertEquals(SettingsOperationJournal.Recovery.ALREADY_COMMITTED,
                 SettingsOperationJournal.consumeRecoveryNotice());
+    }
+
+    @Test public void recoveringAPartialRestorePutsBackItsEarlierWaitingChanges() throws Exception {
+        Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(60);
+        Settings.REGION_SPOOF.save(true);
+        String looser = SettingsBackup.create(false);
+        Settings.SESSION_BUDGET_MINUTES.save(30);
+        Settings.REGION_SPOOF.save(false);
+        BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 45, now.get());
+        String before = Settings.SESSION_BUDGET_PENDING.savedValue();
+        SettingsOperationJournal.failCommittedDeletesForTests(true);
+        try {
+            SettingsBackup.restore(Utils.getContext(), looser, true);
+        } finally {
+            SettingsOperationJournal.failCommittedDeletesForTests(false);
+        }
+        assertEquals(60, BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+        // Simulate only the ordinary half surviving an interrupted rollback. The retained
+        // journal must restore the delayed half too, not leave tomorrow's unwanted loosening.
+        Settings.REGION_SPOOF.save(false);
+        SettingsOperationJournal.acquire(Utils.getContext()).complete();
+        assertEquals(before, Settings.SESSION_BUDGET_PENDING.savedValue());
+        assertEquals(45, BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+        assertEquals(SettingsOperationJournal.Recovery.RECOVERED_PRIOR,
+                SettingsOperationJournal.consumeRecoveryNotice());
+    }
+
+    @Test public void anImportedFileCannotSupplyAnInternalDelayedBudgetRecord() throws Exception {
+        Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(30);
+        JSONObject file = new JSONObject(SettingsBackup.create(false));
+        file.put("local_budget_pending", new JSONObject().put("at", now.get() - 1)
+                .put("values", new JSONObject().put(Settings.SESSION_BUDGET_MINUTES.key, 0)).toString());
+        SettingsBackup.restore(Utils.getContext(), file.toString(), true);
+        BudgetChanges.applyDue(now.get());
+        assertEquals(30, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+        assertEquals("", Settings.SESSION_BUDGET_PENDING.savedValue());
     }
 
     private static long at(int year, int month, int day, int hour, int minute) {

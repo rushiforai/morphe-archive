@@ -18,6 +18,18 @@ internal data class VdSdrFoveaLayout(
 // Independently measured from the exact decoded inputs: constructor assigns separate
 // opaque/base and masked/fovea Shader objects; RenderSpecific selects them at +0x20/+0x28.
 internal val VD_SDR_FOVEA_LAYOUTS = listOf(
+    VdSdrFoveaLayout("2.0.20", "5001812", 2220872,
+        "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a", 0xa6503, 0x9d182,
+        listOf(
+            VdSdrFoveaGuard(0xf12f4, 504, "9034f2c468943d5e842d148b8621cfebe692494b93ac1f072fc39524910284e5"),
+            VdSdrFoveaGuard(0xf19f4, 616, "7355446ebb31eaef3be2a38e0667ede67af3c281e3194ecc211eca3837bf45da"),
+        )),
+    VdSdrFoveaLayout("2.0.21", "5001968", 2234048,
+        "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192", 0xa0677, 0x96e5b,
+        listOf(
+            VdSdrFoveaGuard(0xecc24, 504, "2bda1127ae2709f55be574528dde1f0d34fae3e228f6fd1e0bf419437989103a"),
+            VdSdrFoveaGuard(0xed324, 616, "9e296fa85155786d2b91e1eb7405e0659a6ed15737d30653932a203d2a543faf"),
+        )),
     VdSdrFoveaLayout("2.0.20", "5001712", 2221072,
         "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495", 0xa6582, 0x9d23d,
         listOf(

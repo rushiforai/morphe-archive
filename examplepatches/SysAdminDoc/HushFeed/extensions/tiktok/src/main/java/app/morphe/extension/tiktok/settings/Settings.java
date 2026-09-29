@@ -63,22 +63,27 @@ public class Settings extends BaseSettings {
             "region_store_spoof",
             FALSE,
             true,
-            // Both switches, and the nearer one is the one the row names: Match locale is itself
-            // greyed until Override SIM details is on, so a reader is never sent two steps back.
+            // Both switches, and the row names the one to turn on: Match locale while it is off,
+            // which is itself greyed until Override SIM details is on, so a reader is never sent
+            // two steps back; Override SIM details when Match locale is on and SIM is the one
+            // off. Naming Match locale then sent the reader to a switch that was already on.
             new Setting.Availability() {
                 @Override public boolean isAvailable() {
                     return SIM_SPOOF.savedValue() && REGION_SPOOF.savedValue();
                 }
 
                 @Override public java.util.List<Setting<?>> getParentSettings() {
-                    return java.util.Collections.singletonList(REGION_SPOOF);
+                    return java.util.Collections.singletonList(REGION_SPOOF.savedValue() ? SIM_SPOOF : REGION_SPOOF);
                 }
             }
     );
     public static final BooleanSetting FOLDABLE_SPLIT_VIEW = new BooleanSetting("foldable_split_view", FALSE, true);
     public static final IntegerSetting FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP = new IntegerSetting("foldable_split_view_min_width_dp", 600, true).withRange(320, 1600);
     public static final BooleanSetting DOWNLOAD_SUBTITLES = new BooleanSetting("download_subtitles", FALSE);
-    public static final StringSetting SUBTITLE_LANGUAGE = new StringSetting("subtitle_language", "original");
+    // Each value below is read only while the switch above it is on, so its row greys with it
+    // and says which switch to turn on, instead of taking a choice that does nothing.
+    public static final StringSetting SUBTITLE_LANGUAGE = new StringSetting(
+            "subtitle_language", "original", false, Setting.parent(DOWNLOAD_SUBTITLES));
     public static final IntegerSetting CAPTION_TEXT_SIZE =
             new IntegerSetting("caption_text_size", 0).withRange(0, 48);
     public static final StringSetting CAPTION_BACKGROUND = new StringSetting("caption_background", "default");
@@ -87,7 +92,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SYSTEM_FONT = new BooleanSetting("system_font", FALSE, true);
     public static final BooleanSetting AUTOMATIC_CLEAR_DISPLAY = new BooleanSetting("automatic_clear_display", FALSE);
     public static final IntegerSetting AUTOMATIC_CLEAR_DISPLAY_DELAY =
-            new IntegerSetting("automatic_clear_display_delay", 1000).withRange(0, 30000);
+            new IntegerSetting("automatic_clear_display_delay", 1000, false,
+                    Setting.parent(AUTOMATIC_CLEAR_DISPLAY)).withRange(0, 30000);
     public static final StringSetting PLAYBACK_QUALITY = new StringSetting("playback_quality", "auto");
     public static final StringSetting PLAYBACK_QUALITY_METERED = new StringSetting("playback_quality_metered", "off");
     public static final StringSetting DOWNLOAD_VIDEO_QUALITY = new StringSetting("download_video_quality", "auto");
@@ -174,7 +180,7 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hide_message_streaks", FALSE);
         // Zero is meaningful, and the dialog takes it: it turns edge seeking off on its own.
     public static final IntegerSetting EDGE_SEEK_SECONDS =
-            new IntegerSetting("edge_seek_seconds", 5).withRange(0, 60);
+            new IntegerSetting("edge_seek_seconds", 5, false, Setting.parent(EDGE_SEEK)).withRange(0, 60);
     public static final BooleanSetting CONFIRM_FOLLOW = new BooleanSetting("confirm_follow", FALSE);
     public static final BooleanSetting CONFIRM_LIKE = new BooleanSetting("confirm_like", FALSE);
     public static final BooleanSetting CONFIRM_COMMENT_LIKE = new BooleanSetting("confirm_comment_like", FALSE);
@@ -267,6 +273,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_TAB_BADGES = new BooleanSetting("hide_tab_badges", FALSE, true);
     public static final BooleanSetting KEEP_FOR_YOU_ON_TAB_TAP = new BooleanSetting("keep_for_you_on_tab_tap", FALSE);
     public static final BooleanSetting KEEP_FOR_YOU_ON_PULL_DOWN = new BooleanSetting("keep_for_you_on_pull_down", FALSE);
+    /** A long press on the Home tab opens Hushfeed's settings (#45). TikTok gives that press nothing of its own. */
+    public static final BooleanSetting HOME_TAB_OPENS_SETTINGS = new BooleanSetting("home_tab_opens_settings", TRUE);
     /** The tab TikTok opens on from its icon: tiktok (its own pick), for_you, following, friends, inbox or profile. */
     public static final StringSetting START_PAGE = new StringSetting("start_page", "tiktok");
     /** TikTok's previous, pause and next buttons on the feed, shown without a screen reader. Off by default. */
@@ -328,7 +336,8 @@ public class Settings extends BaseSettings {
     public static final FloatSetting REMEMBERED_SPEED = new FloatSetting("remembered_speed_v2", 1.0f);
     public static final BooleanSetting REMEMBER_SPEED = new BooleanSetting("remember_playback_speed", TRUE);
     public static final BooleanSetting DEFAULT_SPEED_ENABLED = new BooleanSetting("default_speed_enabled", FALSE);
-    public static final StringSetting DEFAULT_SPEED = new StringSetting("default_speed", "1.5");
+    public static final StringSetting DEFAULT_SPEED = new StringSetting(
+            "default_speed", "1.5", false, Setting.parent(DEFAULT_SPEED_ENABLED));
     public static final StringSetting CUSTOM_SPEEDS = new StringSetting("custom_speeds", "", true);
     /** The speed the hold gesture plays at and its pull-down lock keeps; TikTok's own is 2x (upstream #52). */
     public static final StringSetting HOLD_SPEED = new StringSetting("hold_speed", "2");

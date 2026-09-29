@@ -45,6 +45,8 @@ object VdSdrMorpheAudit {
             data class Base(val version: String, val code: String, val size: Int, val hash: String)
             val layout = listOf(
                 Base("2.0.20", "5001712", 2221072, "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495"),
+                Base("2.0.20", "5001812", 2220872, "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a"),
+                Base("2.0.21", "5001968", 2234048, "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192"),
                 Base("2.0.22", "5002244", 2251920, "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12"),
                 Base("2.0.23", "5002363", 2292008, "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"),
             ).single { it.size == sourceScene.size && it.hash == sourceHash }
@@ -111,6 +113,8 @@ object VdSdrMorpheAudit {
                 }
                 val formatOffsets = when (layout.code) {
                     "5001712" -> intArrayOf(0x10a9c4, 0x10aa34)
+                    "5001812" -> intArrayOf(0x10ab24, 0x10ab94)
+                    "5001968" -> intArrayOf(0x106a94, 0x106b04)
                     "5002244" -> intArrayOf(0x10826c, 0x1082dc, 0x10834c)
                     "5002363" -> intArrayOf(0x10c840, 0x10c8b0, 0x10c920)
                     else -> error("No independently verified sRGB8 sites")

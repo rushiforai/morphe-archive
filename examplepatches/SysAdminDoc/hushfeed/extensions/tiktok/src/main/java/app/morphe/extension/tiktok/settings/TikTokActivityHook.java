@@ -127,6 +127,11 @@ public class TikTokActivityHook {
         startSettingsActivity(null, null);
     }
 
+    /** Opens the extension settings at their home page. */
+    public static void openSettings() {
+        startSettingsActivity(null, null);
+    }
+
     /** Opens the extension settings directly at the feed-filter page. */
     public static void openFeedFilterSettings() {
         startSettingsActivity("FEED_FILTER", null);

@@ -11,8 +11,16 @@ function Remove-AndroidPackageIfInstalled {
         [Parameter(Mandatory = $true)][string]$PackageName
     )
 
-    $pathOutput = @(& $Adb -s $Serial shell pm path $PackageName 2>&1)
-    $pathExitCode = $LASTEXITCODE
+    # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop,
+    # even redirected, and adb's "daemon not running; starting now" is on stderr.
+    $preference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $pathOutput = @(& $Adb -s $Serial shell pm path $PackageName 2>&1)
+        $pathExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $preference
+    }
     if ($pathExitCode -ne 0) {
         $detail = @($pathOutput | ForEach-Object { [string]$_ }) -join ' '
         if ([string]::IsNullOrWhiteSpace($detail)) { $detail = "exit $pathExitCode" }

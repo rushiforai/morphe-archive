@@ -10,8 +10,6 @@ import android.os.Build;
 import android.os.Process;
 import android.util.Log;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -95,7 +93,8 @@ public final class JavaCrashCapture {
             );
         } catch (Throwable throwable) {
             npthCallback = null;
-            Log.w("morphe:NpthCrashCapture", "Could not register TikTok crash callback", throwable);
+            Log.w("morphe:NpthCrashCapture", "Could not register TikTok crash callback\n"
+                    + DiagnosticRedactor.redactThrowable(throwable));
         }
     }
 
@@ -146,7 +145,7 @@ public final class JavaCrashCapture {
         if (!recent.isEmpty()) {
             report.append("\n[RECENT MORPHE EVENTS]\n").append(redact(recent));
         }
-        return report.toString();
+        return redact(report.toString());
     }
 
     private static String sanitizeNpthDetail(String detail) {
@@ -208,9 +207,7 @@ public final class JavaCrashCapture {
             Throwable throwable,
             Thread.UncaughtExceptionHandler delegate
     ) {
-        StringWriter stack = new StringWriter();
-        throwable.printStackTrace(new PrintWriter(stack));
-        String sanitizedStack = redact(stack.toString());
+        String sanitizedStack = DiagnosticRedactor.redactThrowable(throwable);
 
         StringBuilder report = new StringBuilder();
         report.append("schema: 1\n")
@@ -228,7 +225,7 @@ public final class JavaCrashCapture {
                 .append("thread: ").append(thread.getName()).append('\n')
                 .append("thread_id: ").append(thread.getId()).append('\n')
                 .append("exception: ").append(throwable.getClass().getName()).append('\n')
-                .append("message: ").append(redact(safe(throwable.getMessage()))).append('\n')
+                .append("message: ").append(throwableMessage(throwable)).append('\n')
                 .append("delegate: ").append(delegate == null ? "none" : delegate.getClass().getName())
                 .append("\n\n[STACK TRACE]\n")
                 .append(sanitizedStack);
@@ -238,7 +235,15 @@ public final class JavaCrashCapture {
             // Log lines carry addresses too: a download names the URL it could not reach.
             report.append("\n[RECENT MORPHE EVENTS]\n").append(redact(recent));
         }
-        return report.toString();
+        return redact(report.toString());
+    }
+
+    private static String throwableMessage(Throwable throwable) {
+        try {
+            return safe(redact(throwable.getMessage()));
+        } catch (Throwable unavailable) {
+            return "[message unavailable]";
+        }
     }
 
     private static String processName(Context context) {

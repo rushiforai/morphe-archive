@@ -38,6 +38,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class HookStatus {
     /** Enough detail to describe a broken build; past this a family says it stopped counting. */
     private static final int MAX_ENTRIES_PER_FAMILY = 200;
+    /** Named counts a family keeps; a caller has a handful of fixed ones, never a growing set. */
+    private static final int MAX_COUNTS_PER_FAMILY = 16;
     /** Serializes first observations with diagnostic snapshot, clear, and restore. */
     private static final Object STATE_LOCK = new Object();
 
@@ -63,6 +65,9 @@ public final class HookStatus {
         final List<Miss> order = new CopyOnWriteArrayList<>();
         /** How many times a hook of this family ran, whatever it then found. */
         final AtomicLong invoked = new AtomicLong();
+        /** What a hook decided, counted under the caller's fixed names, in the order first counted. */
+        final ConcurrentHashMap<String, AtomicLong> counts = new ConcurrentHashMap<>();
+        final List<String> countOrder = new CopyOnWriteArrayList<>();
         volatile boolean truncated;
         volatile boolean boundTruncated;
 
@@ -107,6 +112,8 @@ public final class HookStatus {
         final List<String> bound;
         final List<Miss> misses;
         final long invoked;
+        final List<String> countNames;
+        final List<Long> countValues = new ArrayList<>();
         final boolean truncated;
         final boolean boundTruncated;
 
@@ -115,6 +122,8 @@ public final class HookStatus {
             this.bound = new ArrayList<>(family.bound);
             this.misses = new ArrayList<>(family.order);
             this.invoked = family.invoked.get();
+            this.countNames = new ArrayList<>(family.countOrder);
+            for (String count : countNames) countValues.add(family.counts.get(count).get());
             this.truncated = family.truncated;
             this.boundTruncated = family.boundTruncated;
         }
@@ -206,6 +215,42 @@ public final class HookStatus {
         } catch (Throwable ignored) {
             // A count that can't be kept is not worth failing the host's call over.
         }
+    }
+
+    /**
+     * One more of something a hook decided, under a name the caller holds as a constant: a reel
+     * sidebar built with its button, or without it and why. It says which way a hook went where
+     * nothing else is counted, such as a button that was never drawn and so never tapped (#18).
+     *
+     * <p>The name is written into the report as it is, so it is fixed text, never anything read
+     * from Facebook. A family keeps sixteen names at most. Like
+     * {@link #invoked}, a repeat costs a hash lookup and an increment, and it never throws.
+     */
+    public static void counted(String family, String what) {
+        if (family == null || what == null) return;
+        try {
+            Family entry = FAMILIES.get(family);
+            AtomicLong count = entry == null ? null : entry.counts.get(what);
+            if (count == null) {
+                synchronized (STATE_LOCK) {
+                    count = countLocked(family(family), what);
+                }
+                if (count == null) return;
+            }
+            count.incrementAndGet();
+        } catch (Throwable ignored) {
+            // A count that can't be kept is not worth failing the host's call over.
+        }
+    }
+
+    /** The counter for [what], made if there is room, or null past the family's limit. */
+    private static AtomicLong countLocked(Family entry, String what) {
+        AtomicLong count = entry.counts.get(what);
+        if (count != null || entry.countOrder.size() >= MAX_COUNTS_PER_FAMILY) return count;
+        count = new AtomicLong();
+        entry.counts.put(what, count);
+        entry.countOrder.add(what);
+        return count;
     }
 
     /**
@@ -400,6 +445,15 @@ public final class HookStatus {
                         entry.order.size() - ambiguous,
                         entry.truncated || entry.boundTruncated,
                         first == null ? null : first.detail);
+                if (!entry.countOrder.isEmpty()) {
+                    StringBuilder counted = new StringBuilder(line).append(". Counted: ");
+                    for (int i = 0; i < entry.countOrder.size(); i++) {
+                        String count = entry.countOrder.get(i);
+                        if (i > 0) counted.append(", ");
+                        counted.append(count).append(' ').append(entry.counts.get(count).get());
+                    }
+                    line = counted.toString();
+                }
                 lines.add(pausedMark != null && !RUNS_WHILE_PAUSED.contains(name) ? line + pausedMark : line);
             }
             return lines;
@@ -491,6 +545,21 @@ public final class HookStatus {
                 // Runs since the clear happened as well as before it, so both are kept, bar one
                 // counted in the instant of the clear itself (see invoked()).
                 current.invoked.addAndGet(saved.invoked);
+                // Counts too. Names first counted before the clear go back in front of newer ones.
+                List<String> laterCounts = new ArrayList<>(current.countOrder);
+                current.countOrder.clear();
+                for (int i = 0; i < saved.countNames.size(); i++) {
+                    String count = saved.countNames.get(i);
+                    AtomicLong value = current.counts.get(count);
+                    if (value == null) current.counts.put(count, value = new AtomicLong());
+                    value.addAndGet(saved.countValues.get(i));
+                    current.countOrder.add(count);
+                }
+                for (String count : laterCounts) {
+                    if (current.countOrder.contains(count)) continue;
+                    if (current.countOrder.size() >= MAX_COUNTS_PER_FAMILY) current.counts.remove(count);
+                    else current.countOrder.add(count);
+                }
             }
 
             // The restored families were observed first. Keep newer families after them.

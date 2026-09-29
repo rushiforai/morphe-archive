@@ -7,7 +7,7 @@ import java.security.MessageDigest
 /** Read-only exercise of production OLED helpers on hash-pinned decoded libraries.
  * Does not rebuild an APK, run the Morphe DSL, or establish headset format support.
  *
- * Covers the 3 exact color-supported Steam Link bases. A base whose decoded input is
+ * Covers the 5 exact color-supported Steam Link bases. A base whose decoded input is
  * unavailable is reported as an explicit BLOCKED row (with its exact prerequisite),
  * never silently skipped or substituted with a neighbor-derived fixture.
  *
@@ -26,6 +26,8 @@ object OledDecodedCompatibilityAudit {
 
     private val bases = listOf(
         Base("2.0.20", "5001712", 2_221_072, "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495", intArrayOf(0x10a9c4, 0x10aa34)),
+        Base("2.0.20", "5001812", 2220872, "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a", intArrayOf(0x10ab24, 0x10ab94)),
+        Base("2.0.21", "5001968", 2234048, "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192", intArrayOf(0x106a94, 0x106b04)),
         Base("2.0.22", "5002244", 2_251_920, "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12", intArrayOf(0x10826c, 0x1082dc, 0x10834c)),
         Base("2.0.23", "5002363", 2_292_008, "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0", intArrayOf(0x10c840, 0x10c8b0, 0x10c920)),
     )
@@ -139,6 +141,8 @@ object OledDecodedCompatibilityAudit {
                 VideoDitherMode.OFF, profile), base.version, base.code, mode)
         val suffix = when (base.code) {
             "5001712" -> 0xa6582
+            "5001812" -> 0xa6503
+            "5001968" -> 0xa0677
             "5002244" -> 0xa11d7
             "5002363" -> 0xa31bb
             else -> error("Unverified masked suffix")

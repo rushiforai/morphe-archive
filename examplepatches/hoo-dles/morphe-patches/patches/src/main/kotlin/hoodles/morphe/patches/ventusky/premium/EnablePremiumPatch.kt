@@ -6,24 +6,18 @@
 package hoodles.morphe.patches.ventusky.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.getReference
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import hoodles.morphe.compatibility.Compat
 
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        name = "Ventusky",
-        packageName = "cz.ackee.ventusky",
-        appIconColor = 0X4D71DE,
-        targets = listOf(AppTarget("53.1"))
-    ))
+    compatibleWith(Compat.VENTUSKY)
 
     execute {
         SignatureCheckFingerprint.method.returnEarly(true)

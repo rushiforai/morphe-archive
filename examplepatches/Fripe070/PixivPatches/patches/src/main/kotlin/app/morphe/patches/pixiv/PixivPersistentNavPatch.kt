@@ -33,6 +33,16 @@ val pixivPersistentNavPatch: BytecodePatch = bytecodePatch(
             "invoke-static {p0}, Lapp/morphe/extension/pixiv/navigation/PersistentNavHelper;->attachBottomNav(Landroid/app/Activity;)V"
         )
 
+        // --- Hook 1b: Also hook onResume to re-attach nav after adblock has had time to run ---
+        // onResume fires after the window is fully attached and adblock overlay constructors have
+        // already executed in onCreate, so the deferred handler.post() inside attachBottomNav
+        // will always win the race against adblock hiding.
+        val onResumeMethod = rClass.methods.firstOrNull { it.name == "onResume" && it.parameterTypes.isEmpty() }
+        onResumeMethod?.addInstructions(
+            1,
+            "invoke-static {p0}, Lapp/morphe/extension/pixiv/navigation/PersistentNavHelper;->attachBottomNav(Landroid/app/Activity;)V"
+        )
+
         // --- Hook 2: ComponentActivity.onNewIntent (zj1.onNewIntent) for dynamic tab switching ---
         // Handles CLEAR_TOP | SINGLE_TOP intents dispatched from submenu persistent nav bars to MainActivity.
         val componentActivityClass = mutableClassDefByOrNull("Lzj1;")

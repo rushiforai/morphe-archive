@@ -51,8 +51,12 @@ internal object StoreRegionInitTaskRunFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;"),
 )
 
+// The Home tab's long press into Hushfeed's settings follows the main activity from here; it
+// stays inert unless Feed tab navigation is in the bundle.
 private val initHook = ExtensionHook(
     fingerprint = MainActivityOnCreateFingerprint,
+    postContextClassDescriptor = "Lapp/morphe/extension/tiktok/navigation/HomeTabSettingsShortcut;",
+    postContextMethodName = "install",
 )
 
 private val hostApplicationInitHook = ExtensionHook(

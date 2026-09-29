@@ -44,6 +44,8 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
 import android.widget.Switch;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -80,6 +82,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -122,6 +125,10 @@ public final class Haiagaru {
     private static final String CHMATE_COPIPE_NG2_KEY = "copipeNg2";
     private static final String CHMATE_ARASHI_NG_KEY = "arashiNg";
     private static final String NG_REGISTRATION_LIMIT_KEY = "ngRegistrationLimit";
+    private static final String HISSI_CHECKER_MODE_KEY = "hissiCheckerMode";
+    private static final String HISSI_VIEWER_THEME_KEY = "hissiViewerTheme";
+    private static final String HISSI_VIEWER_TEXT_ZOOM_KEY = "hissiViewerTextZoom";
+    private static final String HISSI_VIEWER_FULLSCREEN_KEY = "hissiViewerFullscreen";
     private static final int DEFAULT_NG_REGISTRATION_LIMIT = 300;
     private static final int MAX_NG_REGISTRATION_LIMIT = 100_000;
     /** ChMate's own bounded post-history store (postDataList.json). */
@@ -394,11 +401,29 @@ public final class Haiagaru {
         // applying the UA there is required for the first request after restart.
         initializeApplicationContext(application);
         EmojiFontFallback.register(application);
+        HaiagaruMegaSync.maybeBackupOnStartup(application);
     }
 
     /** Applies the bundled emoji fallback while preserving the original text. */
     public static CharSequence processEmojiText(CharSequence source) {
         return EmojiFontFallback.processText(source);
+    }
+
+    /** Leaves the editor/history intact and adapts only the outgoing post copy. */
+    public static Object prepareExternalEmojiPost(Object postData) {
+        return ExternalEmojiPost.prepare(postData);
+    }
+
+    /** 191 constructs its outgoing post directly from editor strings. */
+    public static String prepareExternalEmojiBody(String url, String body) {
+        return ExternalEmojiPost.prepareBody(url, body);
+    }
+
+    /** The legacy constructor passes nine adjacent strings; keep a range invoke valid. */
+    public static String prepareExternalEmojiBodyFromPostFields(
+            String url, String first, String second, String third, String body,
+            String fifth, String sixth, String seventh, String eighth) {
+        return ExternalEmojiPost.prepareBody(url, body);
     }
 
     private static void initializeApplicationContext(Context context) {
@@ -1800,8 +1825,26 @@ public final class Haiagaru {
                 .replace("://img.5ch.net/", "://img.5ch.io/");
     }
 
+    /** Normalize only the retired BE token before ChMate builds its text and attachment models. */
+    public static String normalizeLegacyBeBody(String original) {
+        if (original == null || !original.contains("sssp://img.5ch.net/premium/")) {
+            return original;
+        }
+        return original.replace(
+                "sssp://img.5ch.net/premium/",
+                "sssp://img.5ch.io/premium/");
+    }
+
     public static String prepareLegacyBeParsing(String original) {
         if (original == null) return null;
+        // ChMate 191 parses the same legacy row twice: once for the compact
+        // header and once for the expanded body. The expanded pass contains
+        // the complete row (including links) and would draw the BE token a
+        // second time. Keep the compact token and suppress only that repeated
+        // long-body token; ordinary short posts still use the native icon.
+        if (original.length() > 80 && LEGACY_PREMIUM_BE_URL.matcher(original).find()) {
+            original = LEGACY_PREMIUM_BE_URL.matcher(original).replaceAll("");
+        }
         // The 191 parser only routes sssp://img.5ch.net/ico/... through its
         // inline icon renderer. Normalize every public spelling, including
         // ordinary https://, protocol-relative, and control-character encoded
@@ -1813,6 +1856,70 @@ public final class Haiagaru {
                 .replaceAll("sssp://img.5ch.net/ico/_be$1");
         return LEGACY_BE_ICO_URL.matcher(prepared)
                 .replaceAll("sssp://img.5ch.net/ico/$1");
+    }
+
+    /** Avoid drawing the same legacy BE icon twice when the row already owns its span. */
+    public static String prepareLegacyBeParsing(Object renderBuffer, String original) {
+        if (original == null || renderBuffer == null || !LEGACY_PREMIUM_BE_URL.matcher(original).find()) {
+            return prepareLegacyBeParsing(original);
+        }
+        if (original.length() > 80) return prepareLegacyBeParsing(original);
+        Matcher matcher = LEGACY_PREMIUM_BE_URL.matcher(original);
+        StringBuffer unique = null;
+        while (matcher.find()) {
+            if (!hasMatchingBeIconSpan(renderBuffer, matcher.group(1))) continue;
+            if (unique == null) unique = new StringBuffer(original.length());
+            matcher.appendReplacement(unique, "");
+        }
+        if (unique == null) return prepareLegacyBeParsing(original);
+        matcher.appendTail(unique);
+        return prepareLegacyBeParsing(unique.toString());
+    }
+
+    private static boolean hasMatchingBeIconSpan(Object renderBuffer, String fileName) {
+        String bufferClass = renderBuffer.getClass().getName();
+        String listField;
+        String spanField;
+        String iconClass;
+        String urlField;
+        if ("o.o8".equals(bufferClass)) {
+            listField = "b";
+            spanField = "d";
+            iconClass = "o.oa";
+            urlField = "e";
+        } else if ("o.getFlexLinesInternal".equals(bufferClass)) {
+            listField = "a";
+            spanField = "a";
+            iconClass = "o.getFlexDirection";
+            urlField = "b";
+        } else {
+            return false;
+        }
+        try {
+            Field recordsField = renderBuffer.getClass().getDeclaredField(listField);
+            recordsField.setAccessible(true);
+            Object records = recordsField.get(renderBuffer);
+            if (!(records instanceof List<?>)) return false;
+            String target = fileName.toLowerCase(Locale.ROOT);
+            for (Object record : (List<?>) records) {
+                if (record == null) continue;
+                Field drawableField = record.getClass().getDeclaredField(spanField);
+                drawableField.setAccessible(true);
+                Object drawable = drawableField.get(record);
+                if (drawable == null || !iconClass.equals(drawable.getClass().getName())) continue;
+                Field iconUrlField = drawable.getClass().getDeclaredField(urlField);
+                iconUrlField.setAccessible(true);
+                Object value = iconUrlField.get(drawable);
+                if (!(value instanceof String)) continue;
+                String url = ((String) value).toLowerCase(Locale.ROOT);
+                if (url.endsWith("/premium/" + target)
+                        || url.endsWith("/ico/_be" + target)
+                        || url.endsWith("/ico/_be_" + target)) return true;
+            }
+        } catch (ReflectiveOperationException | SecurityException ignored) {
+            return false;
+        }
+        return false;
     }
 
     public static String stripLegacyBeAttachmentTokens(String original) {
@@ -2345,6 +2452,42 @@ public final class Haiagaru {
                 "chtoio",
                 preferences.getBoolean("chtoio", true)
         );
+        Spinner hissiCheckerMode = addSpinner(
+                layout,
+                activity,
+                text("ID長押しの必死チェッカー", "ID long-press checker"),
+                new String[]{
+                        text("自動（5chはhissi.org／外部板はKyodemo）", "Automatic (hissi.org for 5ch, Kyodemo for external boards)"),
+                        text("hissi.orgを使用", "Use hissi.org"),
+                        text("Kyodemoを使用", "Use Kyodemo"),
+                        text("両方（画面上で切り替え）", "Both (switch on the checker screen)")
+                },
+                preferences.getInt(HISSI_CHECKER_MODE_KEY, 0)
+        );
+        Spinner hissiViewerTheme = addSpinner(
+                layout,
+                activity,
+                text("必死チェッカーの表示テーマ", "Checker viewer theme"),
+                new String[]{
+                        text("端末設定に合わせる", "Follow system"),
+                        text("ダーク", "Dark"),
+                        text("AMOLEDブラック", "AMOLED black")
+                },
+                preferences.getInt(HISSI_VIEWER_THEME_KEY, 0)
+        );
+        Spinner hissiViewerTextZoom = addSpinner(
+                layout,
+                activity,
+                text("必死チェッカーの文字サイズ", "Checker viewer text size"),
+                new String[]{"100%", "115%", "130%"},
+                viewerTextZoomIndex(preferences.getInt(HISSI_VIEWER_TEXT_ZOOM_KEY, 100))
+        );
+        Switch hissiViewerFullscreen = addSwitch(
+                layout,
+                activity,
+                text("必死チェッカーを全画面で表示", "Fullscreen checker viewer"),
+                preferences.getBoolean(HISSI_VIEWER_FULLSCREEN_KEY, false)
+        );
         Switch edgeReporterId = addSwitch(
                 layout,
                 activity,
@@ -2523,6 +2666,10 @@ public final class Haiagaru {
                 "programmable NG",
                 () -> ProgrammableNgController.addSettingsButton(layout, activity)
         );
+        addOptionalSettingsSection(
+                "MEGA backup",
+                () -> HaiagaruMegaSync.addSettingsButton(layout, activity)
+        );
 
         ScrollView scrollView = new ScrollView(activity);
         scrollView.addView(layout);
@@ -2605,6 +2752,12 @@ public final class Haiagaru {
                             .putString("prefMonaKeyName", value(monaKeyName))
                             .putString("adClass", value(adClass).trim())
                             .putBoolean("chtoio", chtoio.isChecked())
+                            .putInt(HISSI_CHECKER_MODE_KEY, hissiCheckerMode.getSelectedItemPosition())
+                            .putInt(HISSI_VIEWER_THEME_KEY, hissiViewerTheme.getSelectedItemPosition())
+                            .putInt(HISSI_VIEWER_TEXT_ZOOM_KEY, new int[]{100, 115, 130}[
+                                    Math.max(0, Math.min(2, hissiViewerTextZoom.getSelectedItemPosition()))
+                            ])
+                            .putBoolean(HISSI_VIEWER_FULLSCREEN_KEY, hissiViewerFullscreen.isChecked())
                             .putBoolean("edgeReporterId", edgeReporterId.isChecked())
                             .putBoolean("forceHttps", forceHttps.isChecked())
                             .putBoolean("automaticDat", automaticDat.isChecked())
@@ -3201,6 +3354,24 @@ public final class Haiagaru {
         return editText;
     }
 
+    private static Spinner addSpinner(
+            LinearLayout layout,
+            Context context,
+            String title,
+            String[] values,
+            int selected
+    ) {
+        TextView label = new TextView(context);
+        label.setText(title);
+        layout.addView(label, rowParams(context));
+        Spinner spinner = new Spinner(context);
+        spinner.setAdapter(new ArrayAdapter<>(context,
+                android.R.layout.simple_spinner_dropdown_item, values));
+        spinner.setSelection(Math.max(0, Math.min(selected, values.length - 1)));
+        layout.addView(spinner, rowParams(context));
+        return spinner;
+    }
+
     private static LinearLayout.LayoutParams rowParams(Context context) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -3272,6 +3443,68 @@ public final class Haiagaru {
     private static SharedPreferences preferencesOrNull() {
         Context context = applicationContext;
         return context == null ? null : preferences(context);
+    }
+
+    /** 0=automatic, 1=hissi.org, 2=Kyodemo, 3=both. Shared by all supported ChMate versions. */
+    public static int hissiCheckerMode() {
+        SharedPreferences prefs = preferencesOrNull();
+        if (prefs == null) return 0;
+        int mode = prefs.getInt(HISSI_CHECKER_MODE_KEY, 0);
+        return mode < 0 || mode > 3 ? 0 : mode;
+    }
+
+    /** Returns whether the patch-time dedicated checker Activity was registered. */
+    public static boolean dedicatedCheckerViewerAvailable() {
+        Context context = applicationContext;
+        if (context == null) return false;
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("haiagaru-hissi://hissi.org/read.php/test/1/1.html"));
+            intent.setPackage(context.getPackageName());
+            return context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY) != null;
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to detect the dedicated checker viewer", error);
+            return false;
+        }
+    }
+
+    static Context applicationContextForExtension() {
+        return applicationContext;
+    }
+
+    public static int hissiViewerTheme() {
+        SharedPreferences prefs = preferencesOrNull();
+        if (prefs == null) return 0;
+        int value = prefs.getInt(HISSI_VIEWER_THEME_KEY, 0);
+        return value < 0 || value > 2 ? 0 : value;
+    }
+
+    public static void setHissiViewerTheme(int value) {
+        SharedPreferences prefs = preferencesOrNull();
+        if (prefs != null) prefs.edit().putInt(HISSI_VIEWER_THEME_KEY,
+                Math.max(0, Math.min(2, value))).apply();
+    }
+
+    public static int hissiViewerTextZoom() {
+        SharedPreferences prefs = preferencesOrNull();
+        if (prefs == null) return 100;
+        int value = prefs.getInt(HISSI_VIEWER_TEXT_ZOOM_KEY, 100);
+        return value == 115 || value == 130 ? value : 100;
+    }
+
+    public static void setHissiViewerTextZoom(int value) {
+        SharedPreferences prefs = preferencesOrNull();
+        int zoom = value == 115 || value == 130 ? value : 100;
+        if (prefs != null) prefs.edit().putInt(HISSI_VIEWER_TEXT_ZOOM_KEY, zoom).apply();
+    }
+
+    public static boolean hissiViewerFullscreen() {
+        SharedPreferences prefs = preferencesOrNull();
+        return prefs != null && prefs.getBoolean(HISSI_VIEWER_FULLSCREEN_KEY, false);
+    }
+
+    private static int viewerTextZoomIndex(int zoom) {
+        return zoom == 115 ? 1 : zoom == 130 ? 2 : 0;
     }
 
     private static final class ConfigSnapshot {

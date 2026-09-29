@@ -10,3 +10,6 @@
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
 
+# The historical receipt fixture is verified by its published byte digest.
+/scripts/fixtures/legacy-receipt-0.61.0.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+

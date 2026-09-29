@@ -65,7 +65,6 @@ A field value couldn't be read. Check the values and try again.	Não foi possív
 A good place to stop, if you want one.	Uma boa hora para parar, se você quiser uma.
 A green square in the top corner while TikTok has the camera open, and an orange diamond while it records sound. They go when the access ends.	Um quadrado verde no canto superior enquanto o TikTok está com a câmera aberta, e um losango laranja enquanto grava som. Eles somem quando o acesso termina.
 A host to put in place of tiktok.com when you share or copy a link, like vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok links are changed, and only the host: nothing is sent anywhere new.	Um host para colocar no lugar de tiktok.com ao compartilhar ou copiar um link, como vxtiktok.com. Deixe vazio para compartilhar os links do próprio TikTok. Só os links do TikTok mudam, e só o host: nada é enviado para nenhum lugar novo.
-A newer clear replaced that undo. Tap the row again to undo.	Uma limpeza mais recente substituiu esse desfazer. Toque na linha de novo para desfazer.
 A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.	Um rótulo pequeno no feed mostra os minutos ou vídeos restantes do orçamento de hoje.
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.	Tocar em Início ou na aba Para você enquanto Para você está aberto não recarrega mais o feed. O vídeo que você está vendo continua.
 A tap on a person in the Send to row only selects them. A second tap on the same person within %1$d seconds sends the video.	Tocar em alguém na linha Enviar para apenas seleciona a pessoa. Um segundo toque na mesma pessoa dentro de %1$d segundos envia o vídeo.
@@ -166,6 +165,7 @@ Auto translate comments	Traduzir comentários automaticamente
 Auto-advance session limit	Limite de avanço automático por sessão
 Automatic	Automático
 Auto-advance	Avanço automático
+Staying on a video	Ficar em um vídeo
 Auto-advance stopped after %1$d videos	O avanço automático parou depois de %1$d vídeos
 Auto-advance stopped after one video	O avanço automático parou depois de um vídeo
 Automatic clear display	Limpar a tela automaticamente
@@ -218,7 +218,15 @@ Choose which rows and controls appear	Escolha quais linhas e controles aparecem
 Clear all	Limpar tudo
 Clear all Lab data (overrides, switch, recordings)	Limpar todos os dados do Lab (substituições, interruptor, gravações)
 Clear all suggested accounts	Limpar todas as contas sugeridas
-Clear the recent events, saved crash reports and the hook status above.	Limpa os eventos recentes, os relatórios de falha salvos e o estado dos ganchos acima.
+Clear the recent events, saved crash reports, a recorded screen layout and the hook status above.	Limpa os eventos recentes, os relatórios de falha salvos, um layout de tela gravado e o estado dos ganchos acima.
+Record a screen's layout	Gravar o layout de uma tela
+Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report.	Toque aqui e vá até a tela com o que você quer ocultar. Depois de %1$d segundos, o Hushfeed grava como essa tela é montada, sem nenhum texto dela, para o relatório de diagnóstico.
+Waiting to record. Go to the screen you want recorded.	Aguardando para gravar. Vá até a tela que você quer gravar.
+A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.	Há um layout de tela gravado. Exporte o relatório de diagnóstico para enviá-lo, ou toque para gravar outro.
+Go to the screen now. Hushfeed records its layout in %1$d seconds.	Vá até a tela agora. O Hushfeed grava o layout dela em %1$d segundos.
+Screen layout recorded. Export the diagnostic report to send it.	Layout da tela gravado. Exporte o relatório de diagnóstico para enviá-lo.
+Nothing was recorded because Hushfeed settings were still open. Start again, then leave settings.	Nada foi gravado porque as configurações do Hushfeed ainda estavam abertas. Comece de novo e depois saia das configurações.
+Couldn't record the screen's layout. Start again from Diagnostics.	Não foi possível gravar o layout da tela. Comece de novo em Diagnóstico.
 Clear diagnostic data	Limpar os dados de diagnóstico
 Clear display	Tela limpa
 Clear display delay	Espera para limpar a tela
@@ -275,6 +283,8 @@ Couldn't put back the diagnostic data. Try again.	Não foi possível trazer de v
 Couldn't read who posted this comment. Open their profile and block them there.	Não foi possível ler quem publicou este comentário. Abra o perfil da pessoa e bloqueie por lá.
 Couldn't reset this override. Try again.	Não foi possível redefinir esta substituição. Tente de novo.
 Couldn't restore the settings. Try again.	Não foi possível restaurar as configurações. Tente de novo.
+Couldn't reset the settings. Try again.	Não foi possível redefinir as configurações. Tente de novo.
+Couldn't undo the last change. Try again.	Não foi possível desfazer a última alteração. Tente de novo.
 Couldn't save the settings backup. Try again.	Não foi possível salvar o backup das configurações. Tente de novo.
 Couldn't save this override. Try again.	Não foi possível salvar esta substituição. Tente de novo.
 Couldn't send the feedback. Try again in a moment.	Não foi possível enviar o comentário. Tente de novo em instantes.
@@ -314,6 +324,8 @@ Diagnostic report copied to the clipboard	Relatório de diagnóstico copiado par
 Diagnostics	Diagnóstico
 Disable	Desligar
 Stop analytics and tracking	Parar a análise de uso e o rastreamento
+Long-press Home for Hushfeed settings	Toque e segure Início para abrir as configurações do Hushfeed
+Press and hold the Home tab to open these settings. A tap on Home works as before.	Toque e segure a aba Início para abrir estas configurações. Tocar em Início funciona como antes.
 Keep For You on a Home tap	Manter Para você ao tocar em Início
 Keep For You on a pull down	Manter Para você ao puxar para baixo
 Keep long press from quick sharing	Não deixar o toque longo compartilhar rápido
@@ -345,6 +357,7 @@ Enter a JSON object or array.	Digite um objeto ou uma matriz JSON.
 Enter a creator handle or id	Digite um nome de usuário ou id de criador
 Enter a finite number.	Digite um número finito.
 Enter a number.	Digite um número.
+Enter an hour, like 6 or 06:00.	Digite uma hora, como 6 ou 06:00.
 Enter a valid structured value.	Digite um valor estruturado válido.
 Enter a valid two-letter country code	Digite um código de país válido de duas letras
 Enter a whole number, or one like 20K, 1.5M or 2B	Digite um número inteiro, ou um como 20K, 1.5M ou 2B
@@ -801,6 +814,10 @@ Restart TikTok to apply this.	Reinicie o TikTok para aplicar.
 Restart pending	Reinício pendente
 Put every setting back to its default straight away. Your current settings are kept for Undo.	Voltar cada configuração ao padrão agora mesmo. Suas configurações atuais ficam guardadas para Desfazer.
 Restore failed. Some settings may still be changed.	A restauração falhou. Algumas configurações podem ter mudado mesmo assim.
+Reset didn't finish. Some settings may still be changed. Use Undo to put them back.	A redefinição não terminou. Algumas configurações podem ter mudado mesmo assim. Use Desfazer para trazê-las de volta.
+Reset didn't finish. Some settings may still be changed.	A redefinição não terminou. Algumas configurações podem ter mudado mesmo assim.
+Undo didn't finish. Some settings may still be changed. Try Undo again.	Desfazer não terminou. Algumas configurações podem ter mudado mesmo assim. Tente Desfazer de novo.
+Undo didn't finish. Some settings may still be changed.	Desfazer não terminou. Algumas configurações podem ter mudado mesmo assim.
 Restore failed. Some settings may still be changed. Use Undo to put them back.	A restauração falhou. Algumas configurações podem ter mudado mesmo assim. Use Desfazer para trazê-las de volta.
 Restore settings	Restaurar as configurações
 Lab settings put back. Restart TikTok to apply this.	Configurações do Lab trazidas de volta. Reinicie o TikTok para aplicar.
@@ -816,7 +833,7 @@ SIM country preset	País predefinido do SIM
 STEM	STEM
 Sanitize sharing links	Limpar os links ao compartilhar
 Save	Salvar
-Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.	Salvar os arquivos SRT junto com o vídeo. Os salvamentos em par usam Movies no Android 11 ou superior, Download no Android 10, e sua pasta de vídeos em versões mais antigas.
+Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.	Salvar os arquivos SRT junto com o vídeo. Eles vão para Movies no Android 11 ou superior, para Download no Android 10 e para sua pasta de vídeos em versões mais antigas. No Android 11 ou superior, com Salvar detalhes ativado, o vídeo vai para Download ou Documents e os arquivos SRT ficam em Movies.
 Save a profile picture on a long press	Salvar uma foto de perfil com um toque longo
 Save a story on a long press	Salvar um story com um toque longo
 Save every photo in the post as TikTok received it, not as the screen shows it.	Salvar cada foto da publicação como o TikTok a recebeu, não como a tela a mostra.
@@ -843,6 +860,9 @@ Saving one original photo	Salvando uma foto original
 Saving settings backup	Salvando o backup das configurações
 Saving the sticker	Salvando o sticker
 Saving the story	Salvando o story
+Saving the sound	Salvando o som
+Saving the profile picture	Salvando a foto de perfil
+Saving the live photo's clip	Salvando o clipe da foto ao vivo
 Screen	Tela
 Screen time	Tempo de tela
 Search	Pesquisa
@@ -942,11 +962,11 @@ Sticker saved to %1$s	Sticker salvo em %1$s
 Still here. Nothing is waiting.	Você ainda está aqui. Nada está esperando.
 Still reading the record. Tap again in a moment.	O registro ainda está sendo lido. Toque de novo daqui a pouco.
 Still saving the last one	O anterior ainda está sendo salvo
+The last one is still waiting to start	O anterior ainda está esperando para começar
 Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.	Impedir o envio dos eventos AppLog da ByteDance, da atribuição do AppsFlyer, dos relatórios explícitos de tela do Firebase e dos relatórios de falha. Os diagnósticos do próprio TikTok se calam junto.
 Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.	Impedir que o TikTok peça à tela para rodar na taxa de quadros do vídeo que está tocando. Num celular de 90 ou 120 Hz esse pedido derruba o app inteiro para a taxa do vídeo, inclusive a rolagem.
 Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone. Saves the battery they wake.	Impede que o TikTok escute o acelerômetro, o giroscópio, o magnetômetro e os outros sensores de movimento que usa para identificar o telefone. Poupa a bateria que eles gastam.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	Impede que o TikTok leia o que você copiou. Copiar um link do TikTok continua funcionando.
-Stop TikTok reporting that you viewed a story or a profile, or that you're typing. Online status is unchanged. It can't undo what the server has already recorded.	Impede que o TikTok informe que você viu um story ou um perfil, ou que está digitando. O status on-line não muda. Não dá para desfazer o que o servidor já registrou.
 Stop a long press on Like from opening TikTok's repost action.	Impedir que segurar Curtir abra a ação de repostar do TikTok.
 Stop a long press on Share from opening TikTok's quick share action.	Impedir que segurar Compartilhar abra a ação de compartilhamento rápido do TikTok.
 Stop feature gate recording	Parar de gravar os gates
@@ -1009,7 +1029,6 @@ The catalog says this key is %1$s and this override is %2$s. Reset the override 
 The diagnostic report couldn't be saved yet. Try again in a moment.	O relatório de diagnóstico ainda não pôde ser salvo. Tente de novo em instantes.
 The diagnostic report couldn't be saved. Try again.	Não foi possível salvar o relatório de diagnóstico. Tente de novo.
 The downloader app you chose isn't installed. Check Send links to another app under Downloads.	O aplicativo de download que voce escolheu nao esta instalado. Verifique Enviar links para outro aplicativo em Downloads.
-The export failed and the partial file couldn't be removed. Delete it from your Downloads folder.	A exportação falhou e o arquivo incompleto não pôde ser removido. Apague-o da sua pasta Downloads.
 The feed dims over the last three quarters of a minute before the hold, so you arrive at it rather than land on it. Needs a time budget and a hold to arrive at.	O feed escurece nos últimos três quartos de minuto antes da pausa, para que você chegue a ela em vez de cair nela. Precisa de um orçamento de tempo e uma pausa.
 The feed doesn't end. This is a fine time to leave it.	O feed não acaba. Esta é uma boa hora para largá-lo.
 The feed is open again	O feed está aberto de novo
@@ -1105,6 +1124,7 @@ Transparent	Transparente
 Try a different word or clear the search.	Tente outra palavra ou limpe a busca.
 Try again, or go back to TikTok.	Tente novamente ou volte ao TikTok.
 Turn on %1$s first.	Ative %1$s primeiro.
+Put %1$s in %2$s first.	Coloque %1$s em %2$s primeiro.
 Turn on overrides	Ativar as substituições
 Turned off %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.	%1$d de %2$d gates desligados. Os demais não aceitam um valor true ou false. Reinicie o TikTok para aplicar.
 Turned off %1$d gates. Restart TikTok to apply this.	%1$d gates desligados. Reinicie o TikTok para aplicar.
@@ -1272,6 +1292,28 @@ Swipe left	Deslizar para a esquerda
 TikTok default (open the creator's profile)	Padrão do TikTok (abrir o perfil do criador)
 Saving %1$s of %2$s	Salvando %1$s de %2$s
 Stopping after this file	Parando depois deste arquivo
+Waiting to save %1$s files	Aguardando para salvar %1$s arquivos
+Save cancelled. Nothing was saved.	Salvamento cancelado. Nada foi salvo.
+One more save waiting	Mais um salvamento aguardando
+%1$s more saves waiting	Mais %1$s salvamentos aguardando
+Starts after one other save	Começa depois de outro salvamento
+Starts after %1$s other saves	Começa depois de outros %1$s salvamentos
+# context: the banner the next start shows when TikTok closed before some saves ended. A heading, then one line per save: the kind of save, a colon, and how many of its files didn't finish. It must not promise the save will carry on by itself.
+TikTok closed during these saves	O TikTok fechou durante estes salvamentos
+%1$s: didn't finish	%1$s: não terminou
+%1$s: one of %3$s files didn't finish	%1$s: um de %3$s arquivos não terminou
+%1$s: %2$s of %3$s files didn't finish	%1$s: %2$s de %3$s arquivos não terminaram
+%1$s: might not have finished	%1$s: pode não ter terminado
+%1$s: one of %3$s files might not have finished	%1$s: um de %3$s arquivos pode não ter terminado
+%1$s: %2$s of %3$s files might not have finished	%1$s: %2$s de %3$s arquivos podem não ter terminado
+And one more save	E mais um salvamento
+And %1$s more saves	E mais %1$s salvamentos
+Original photos	Fotos originais
+Story	Story
+Original sound	Som original
+Profile picture	Foto de perfil
+Live photo clip	Clipe da foto ao vivo
+Media save	Salvamento de mídia
 Saved %1$s of %2$s, the rest cancelled	%1$s de %2$s salvos, o restante cancelado
 Saved %1$s of %2$s, %3$s skipped	%1$s de %2$s salvos, %3$s ignorados
 Saved %1$s of %2$s, %3$s skipped and the rest cancelled	%1$s de %2$s salvos, %3$s ignorados e o restante cancelado
@@ -1296,10 +1338,11 @@ Changes in Hushfeed %1$s	Mudanças no Hushfeed %1$s
 Reviewed presets	Predefinições verificadas
 Show See translation	Mostrar a opção de tradução
 Reviewed for TikTok %1$s	Verificado para o TikTok %1$s
+%1$s (TikTok %2$s)	%1$s (TikTok %2$s)
 Value: %1$s to %2$s	Valor: de %1$s para %2$s
 The presets couldn't load. Open the Lab again.	Não foi possível carregar as predefinições. Abra o laboratório novamente.
-Apply enables these overrides. Undo last Lab change restores your previous rules.	Aplicar ativa essas substituições. Desfazer a última alteração do laboratório restaura suas regras anteriores.
-Apply saves these overrides. Turn on overrides in the Lab to use them. Undo restores your previous rules.	Aplicar salva essas substituições. Ative as substituições no laboratório para usá-las. Desfazer restaura suas regras anteriores.
+Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.	Aplicar ativa essas substituições. Desfazer a última mudança do Lab traz suas regras anteriores de volta até você mudar outra coisa no Lab.
+Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back.	Aplicar salva essas substituições. Ative as substituições no Lab para usá-las. Ativá-las também é uma mudança do Lab, então depois Desfazer as desativa em vez de trazer suas regras anteriores de volta.
 This preset isn't available for your installed TikTok version.	Esta predefinição não está disponível para sua versão instalada do TikTok.
 Preset applied. Restart TikTok to use it.	Predefinição aplicada. Reinicie o TikTok para usá-la.
 Preset saved. Turn on overrides in the Lab to use it.	Predefinição salva. Ative as substituições no laboratório para usá-la.
@@ -1309,11 +1352,24 @@ Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creato
 Save details beside the video	Salvar detalhes junto ao vídeo
 Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.	Salva a legenda, o criador, o link e a data de publicação em um TXT. No Android 10 ou posterior, os dois arquivos usam Download ou Documents com o mesmo nome de pasta. Vale para vídeos salvos aqui.
 Check for already-saved videos	Verificar vídeos já salvos
+Forget saved videos	Esquecer os vídeos salvos
+Undo forgetting saved videos	Desfazer o esquecimento dos vídeos salvos
+Forget which videos Hushfeed saved here, so the already-saved check starts over. The saved files and your settings stay. Turning the check off doesn't erase this record.	Esquece quais vídeos o Hushfeed salvou aqui, para que a verificação de vídeos já salvos comece de novo. Os arquivos salvos e suas configurações continuam. Desligar a verificação não apaga este registro.
+Forgetting saved videos	Esquecendo os vídeos salvos
+Putting the saved videos back	Trazendo os vídeos salvos de volta
+Forgotten. Tap to put them back.	Esquecidos. Toque para trazê-los de volta.
+Saved videos forgotten. The files are still there.	Vídeos salvos esquecidos. Os arquivos continuam lá.
+There were no saved videos to forget	Não havia vídeos salvos para esquecer
+Couldn't forget the saved videos. Try again.	Não foi possível esquecer os vídeos salvos. Tente novamente.
+Saved videos put back	Vídeos salvos trazidos de volta
+Couldn't put the saved videos back. Try again.	Não foi possível trazer os vídeos salvos de volta. Tente novamente.
+Too late to put the saved videos back	Tarde demais para trazer os vídeos salvos de volta
 Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.	Lembra até %1$s vídeos salvos aqui enquanto a opção estiver ligada. Se o arquivo ainda existir, oferece Abrir ou Salvar novamente antes de baixar outra cópia.
 This video is already saved. Open TikTok to save another copy.	Este vídeo já está salvo. Abra o TikTok para salvar outra cópia.
 This video is already saved	Este vídeo já está salvo
 Save again	Salvar novamente
 The saved-video choice couldn't open. Try again.	Não foi possível abrir as opções do vídeo salvo. Tente novamente.
+The saved-video choice is still open	As opções do vídeo salvo ainda estão abertas
 This video isn't available as a complete file. Try again later.	Este vídeo não está disponível como arquivo completo. Tente mais tarde.
 Saving video to %1$s	Salvando vídeo em %1$s
 Video and details saved to %1$s	Vídeo e detalhes salvos em %1$s
@@ -1322,5 +1378,19 @@ The already-saved check failed. Try again.	Falha ao verificar os vídeos já sal
 Show download progress	Mostrar progresso do download
 Show a progress bar while a video saves.	Mostra uma barra de progresso enquanto um vídeo é salvo.
 Saving video	Salvando vídeo
+Waiting to save video	Aguardando para salvar o vídeo
 Saving video: %1$s	Salvando vídeo: %1$s
 Saving %1$s of %2$s: %3$s	Salvando %1$s de %2$s: %3$s
+Couldn't save the change. Try again.	Não foi possível salvar a alteração. Tente novamente.
+Off. TikTok can report views and typing.	Desativado. O TikTok pode informar visualizações e quando você está digitando.
+Hushfeed is paused. Ghost mode isn't active.	O Hushfeed está pausado. O modo fantasma não está ativo.
+Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until TikTok restarts.	Um problema foi detectado. As visualizações de stories ainda podem ser informadas. Consulte o diagnóstico do modo fantasma. O aviso permanece até reiniciar o TikTok.
+Reporting calls were blocked here. Viewer-list privacy hasn't been verified. Online status is unchanged.	As chamadas de notificação foram bloqueadas aqui. A privacidade na lista de espectadores não foi verificada. O status online não muda.
+On. No reporting call has been observed in this process. Online status is unchanged.	Ativado. Nenhuma chamada de notificação foi observada neste processo. O status online não muda.
+Ghost mode diagnostics	Diagnóstico do modo fantasma
+The partial file couldn't be removed. Delete it from the folder you chose.	Não foi possível remover o arquivo incompleto. Exclua-o da pasta que você escolheu.
+The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.	O backup não foi iniciado e não foi possível remover o arquivo incompleto. Exclua-o da pasta que você escolheu.
+Problem detected.	Um problema foi detectado.
+Couldn't save these choices. Try again.	Não foi possível salvar essas opções. Tente novamente.
+Clearing seen videos	Limpando vídeos assistidos
+Couldn't clear seen videos. Try again.	Não foi possível limpar os vídeos assistidos. Tente novamente.

@@ -36,13 +36,43 @@ object AiDetectionHelper {
         return null
     }
 
+    fun unwrapIllust(item: Any?): Any? {
+        if (item == null) return null
+        val fieldD = runCatching {
+            var c: Class<*>? = item.javaClass
+            var f: Field? = null
+            while (c != null && f == null) {
+                f = runCatching { c.getDeclaredField("d") }.getOrNull()
+                c = c.superclass
+            }
+            f?.apply { isAccessible = true }
+        }.getOrNull()
+
+        val inner = fieldD?.get(item)
+        if (inner != null) {
+            val hasAiField = runCatching {
+                var c: Class<*>? = inner.javaClass
+                var f: Field? = null
+                while (c != null && f == null) {
+                    f = runCatching { c.getDeclaredField("illustAiType") }.getOrNull()
+                    c = c.superclass
+                }
+                f != null
+            }.getOrDefault(false)
+
+            if (hasAiField) return inner
+        }
+        return item
+    }
+
     @JvmStatic
     fun isAi(illust: Any?): Boolean {
         if (illust == null) return false
+        val actualIllust = unwrapIllust(illust) ?: illust
         val context = getContext()
 
         return try {
-            checkIllust(context, illust)
+            checkIllust(context, actualIllust)
         } catch (t: Throwable) {
             // Safety fallback: never crash app
             false

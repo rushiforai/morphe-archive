@@ -122,6 +122,16 @@ final class ScreenColors {
         }
     }
 
+    /**
+     * The thumb of a switch that's off, read against its track. On a dark wallpaper palette the
+     * title's light tone sat at 2.46:1 on the neutral track, under the 3:1 a control's state
+     * needs; the dark tone that fills the on thumb reads above 5:1 there. The black page's white
+     * and the light page's dark title already clear 3:1.
+     */
+    int offThumb() {
+        return light ? title : onAccent;
+    }
+
     static ScreenColors of(TonePalette palette, boolean light) {
         return new ScreenColors(palette, light);
     }
@@ -202,7 +212,7 @@ final class ScreenColors {
             toggle.setThumbDrawable(thumb);
             toggle.setTrackDrawable(track);
             toggle.setSwitchMinWidth(dp(row, 44));
-            toggle.setThumbTintList(new ColorStateList(states, new int[]{half(onAccent), half(this.title), onAccent, this.title}));
+            toggle.setThumbTintList(new ColorStateList(states, new int[]{half(onAccent), half(offThumb()), onAccent, offThumb()}));
             toggle.setTrackTintList(new ColorStateList(states, new int[]{half(accent), half(switchOff), accent, switchOff}));
         }
         paintChevron(row, preference);
@@ -432,7 +442,9 @@ final class ScreenColors {
         HushfacebookPreferenceFragment.showAllText(row);
         TextView title = row.findViewById(android.R.id.title);
         TextView summary = row.findViewById(android.R.id.summary);
+        // Centred across the row: text wrapped to its own width has nothing to centre in.
         if (title != null) {
+            fillWidth(title);
             title.setGravity(android.view.Gravity.CENTER);
             title.setTextSize(22);
             title.setTextColor(palette.title);
@@ -443,12 +455,20 @@ final class ScreenColors {
             title.setCompoundDrawablePadding(dp(row, 24));
         }
         if (summary != null) {
+            fillWidth(summary);
             summary.setGravity(android.view.Gravity.CENTER);
             summary.setTextColor(palette.summary);
             summary.setTextSize(16);
             summary.setPadding(0, dp(row, 12), 0, 0);
         }
         row.setPadding(dp(row, 32), dp(row, 100), dp(row, 32), dp(row, 56));
+    }
+
+    private static void fillWidth(View text) {
+        ViewGroup.LayoutParams size = text.getLayoutParams();
+        if (size == null) return;
+        size.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        text.setLayoutParams(size);
     }
 
     /**
@@ -496,8 +516,12 @@ final class ScreenColors {
             surface.setColor(primary ? accent : this.dialog);
             surface.setCornerRadius(dp(button, 8));
             if (primary) surface.setStroke(dp(button, 1), accent);
-            button.setBackground(new RippleDrawable(ColorStateList.valueOf(half(primary ? onAccent : accent)),
-                    surface, null));
+            RippleDrawable background = new RippleDrawable(ColorStateList.valueOf(half(primary ? onAccent : accent)),
+                    surface, null);
+            // The framework button's own insets: the 48dp touch height keeps a 36dp fill, clear of
+            // the dialog's edge like every Material button.
+            background.setLayerInsetRelative(0, dp(button, 4), dp(button, 6), dp(button, 4), dp(button, 6));
+            button.setBackground(background);
             button.setTextColor(primary ? onAccent : secondaryActionText());
             button.setAllCaps(false);
             button.setMinHeight(dp(button, 48));

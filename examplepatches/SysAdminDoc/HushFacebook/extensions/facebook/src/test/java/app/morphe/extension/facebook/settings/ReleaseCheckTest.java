@@ -59,6 +59,7 @@ import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.WorkerPoolForTests;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.FailingStore;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
@@ -227,6 +228,23 @@ public class ReleaseCheckTest {
         assertEquals("UNREADABLE", Stored.RESULT.get());
         assertEquals("what the last good answer found stays", "0.2.0", Stored.NEWEST.get());
         assertEquals("GitHub's answer couldn't be used. Try again later.", ReleaseCheck.checkNowSummary());
+        assertEquals(NEWER, ReleaseCheck.statusLine());
+    }
+
+    /** An answer the store can't keep leaves the last one on the card, as a restart would find it. */
+    @Test
+    public void anAnswerTheStoreCanNotKeepLeavesTheLastOneOnTheCard() {
+        github.then(Reply.release("v0.2.0", null));
+        ReleaseCheck.run(NOW);
+        assertEquals(NEWER, ReleaseCheck.statusLine());
+
+        github.then(Reply.release("v0.3.0", null));
+        // The first editor keeps the time of the try; the second is the answer's one commit.
+        try (FailingStore ignored = FailingStore.install(FailingStore.Fault.NONE, FailingStore.Fault.COMMIT_THROWS)) {
+            ReleaseCheck.run(NOW + DAY);
+        }
+        assertEquals(NOW + DAY, (long) Stored.CHECKED_AT.get());
+        assertEquals("0.2.0", Stored.NEWEST.get());
         assertEquals(NEWER, ReleaseCheck.statusLine());
     }
 

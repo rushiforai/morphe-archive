@@ -40,6 +40,12 @@ import app.morphe.extension.tiktok.settings.Settings;
  * and a second account never sees what the first one watched.</p>
  */
 public final class SeenVideoHistory {
+    public enum ClearResult { CLEARED, FAILED, SUPERSEDED }
+
+    public interface ClearCallback {
+        void onComplete(ClearResult result);
+    }
+
     public enum UndoResult {
         NOT_READY,
         EMPTY,
@@ -122,6 +128,7 @@ public final class SeenVideoHistory {
      * waiting for the copy to be read.
      */
     private static volatile boolean undoOffered;
+    private static volatile boolean clearPending;
     private static volatile String callbackAid;
     private static volatile boolean callbackAidMarked;
     /**
@@ -168,6 +175,7 @@ public final class SeenVideoHistory {
                 undo = null;
                 undoAccount = null;
                 undoOffered = false;
+                clearPending = false;
             }
         }
         return account;
@@ -239,9 +247,18 @@ public final class SeenVideoHistory {
 
     /** Forgets the signed-in account's record. Other accounts' records and unowned rows stay. */
     public static void clear() {
+        clear(null);
+    }
+
+    /** Reports the database result on the main thread; a queued clear is not a completed clear. */
+    public static void clear(ClearCallback callback) {
         String account = account();
         synchronized (HISTORY_LOCK) {
             final int clearGeneration = ++generation;
+            Map<String, Long> before = new HashMap<>(SEEN);
+            Map<String, Long> previousUndo = undo;
+            String previousUndoAccount = undoAccount;
+            boolean previousOffer = undoOffered && previousUndo != null;
             SEEN.clear();
             callbackAid = null;
             callbackAidMarked = false;
@@ -249,6 +266,7 @@ public final class SeenVideoHistory {
             undo = null;
             undoAccount = account;
             undoOffered = true;
+            clearPending = true;
             IO.execute(() -> {
                 Map<String, Long> copy = null;
                 Throwable failure = null;
@@ -261,24 +279,52 @@ public final class SeenVideoHistory {
                 } catch (Throwable throwable) {
                     failure = throwable;
                 }
+                ClearResult result = ClearResult.SUPERSEDED;
                 synchronized (HISTORY_LOCK) {
                     // A newer clear owns the offer. Do not let an older worker replace its
                     // copy after the user has asked to clear again.
                     if (generation == clearGeneration) {
-                        if (copy != null) {
+                        clearPending = false;
+                        if (failure == null) {
                             undo = copy;
+                            result = ClearResult.CLEARED;
                         } else {
-                            // Only a missing copy withdraws the offer. The read can succeed
-                            // and the delete still fail, and then the way back is worth keeping.
-                            undoOffered = false;
+                            // Neither a failed read nor a failed delete erased the durable record.
+                            // Keep newer sightings made while the worker was pending.
+                            Map<String, Long> retained = copy == null ? before : copy;
+                            for (Map.Entry<String, Long> row : retained.entrySet()) {
+                                mergeSeen(row.getKey(), row.getValue());
+                            }
+                            trimMemory();
+                            LOAD_STARTED.set(false);
+                            undo = previousUndo;
+                            undoAccount = previousUndoAccount;
+                            undoOffered = previousOffer;
+                            result = ClearResult.FAILED;
                         }
                     }
                 }
                 if (failure != null) {
                     Logger.printException(() -> "Seen video history clear failed", failure);
                 }
+                notifyClear(callback, result, clearGeneration);
             });
         }
+    }
+
+    public static boolean isClearing() {
+        account();
+        return clearPending;
+    }
+
+    private static void notifyClear(ClearCallback callback, ClearResult result, int clearGeneration) {
+        if (callback == null) return;
+        Utils.runOnMainThread(() -> {
+            account();
+            boolean current;
+            synchronized (HISTORY_LOCK) { current = generation == clearGeneration; }
+            callback.onComplete(current ? result : ClearResult.SUPERSEDED);
+        });
     }
 
     /** Every row of one account in the database, whether or not memory has been loaded. */
@@ -683,13 +729,16 @@ public final class SeenVideoHistory {
             return safePosition >= UNKNOWN_DURATION_MARK_MS;
         }
 
+        // A clip shorter than the second itself never reaches it: its position stops at its
+        // length and loops, so the floor is half the clip for those.
+        long floor = durationMs < MIN_MARK_MS ? durationMs / 2L : MIN_MARK_MS;
         int chosen = markPercent();
         if (chosen == 0) {
             long percentThreshold = durationMs * MARK_PERCENT / 100L;
-            return safePosition >= Math.max(MIN_MARK_MS, Math.min(MAX_MARK_MS, percentThreshold));
+            return safePosition >= Math.max(floor, Math.min(MAX_MARK_MS, percentThreshold));
         }
         long share = durationMs * chosen / 100L;
-        return safePosition >= Math.max(MIN_MARK_MS, Math.min(share, durationMs - MIN_MARK_MS));
+        return safePosition >= Math.max(floor, Math.min(share, durationMs - MIN_MARK_MS));
     }
 
     /** 0 to 90, the range the dialog offers. A restored backup can hold anything. */

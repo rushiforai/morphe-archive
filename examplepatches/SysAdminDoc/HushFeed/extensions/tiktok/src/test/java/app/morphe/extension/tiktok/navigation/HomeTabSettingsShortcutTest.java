@@ -1,0 +1,163 @@
+package app.morphe.extension.tiktok.navigation;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.FrameLayout;
+
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
+import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
+import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+/** A long press on the Home tab opens Hushfeed's settings, and nothing else about the tab moves (#45). */
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 28)
+public class HomeTabSettingsShortcutTest {
+    private static final int HOME_ID = 0x7f0a4b89;
+
+    private ActivityController<Activity> owner;
+    private Activity activity;
+    private View home;
+    private final AtomicInteger taps = new AtomicInteger();
+
+    @Before public void setUp() {
+        HomeTabSettingsShortcut.resetForTests();
+        ReflectionHelpers.setStaticField(SettingsStatus.class, "feedNavigationEnabled", true);
+        owner = Robolectric.buildActivity(Activity.class).setup().visible();
+        activity = owner.get();
+        Utils.setContext(activity);
+        FrameLayout content = new FrameLayout(activity);
+        FrameLayout bar = new FrameLayout(activity);
+        home = new View(activity);
+        home.setId(HOME_ID);
+        home.setOnClickListener(view -> taps.incrementAndGet());
+        bar.addView(home, new FrameLayout.LayoutParams(216, 138));
+        content.addView(bar, new FrameLayout.LayoutParams(-1, 138, Gravity.BOTTOM));
+        activity.setContentView(content);
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:omq", HOME_ID);
+    }
+
+    @After public void tearDown() {
+        HomeTabSettingsShortcut.resetForTests();
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:omq", 0);
+        ReflectionHelpers.setStaticField(SettingsStatus.class, "feedNavigationEnabled", false);
+        Settings.HOME_TAB_OPENS_SETTINGS.resetToDefault();
+        owner.pause().stop().destroy();
+    }
+
+    @Test public void aLongPressOnHomeOpensHushfeedSettings() {
+        installAndResume();
+
+        assertTrue("the long press was not handled", home.performLongClick());
+        Intent opened = nextStarted();
+        assertNotNull("nothing was opened", opened);
+        assertEquals("morphe_settings", opened.getAction());
+        assertEquals("it opened settings somewhere other than their home page", null,
+                opened.getStringExtra("morphe_settings_section"));
+        assertEquals("a long press also counted as a tap", 0, taps.get());
+        assertTrue("a tap on Home stopped reaching TikTok", home.performClick());
+        assertEquals(1, taps.get());
+        assertNull("a tap opened the settings", nextStarted());
+    }
+
+    @Test public void switchedOffTheTabIsLeftAsItWasAndOnAgainItComesBack() {
+        Settings.HOME_TAB_OPENS_SETTINGS.save(false);
+        installAndResume();
+        assertFalse(home.isLongClickable());
+
+        Settings.HOME_TAB_OPENS_SETTINGS.save(true);
+        layoutPass();
+        assertTrue(home.performLongClick());
+        assertNotNull(nextStarted());
+
+        Settings.HOME_TAB_OPENS_SETTINGS.save(false);
+        layoutPass();
+        assertFalse("switched off, the tab kept a long press", home.isLongClickable());
+        home.performLongClick();
+        assertNull(nextStarted());
+    }
+
+    @Test public void aHomeTabWithALongPressOfItsOwnKeepsIt() {
+        AtomicInteger own = new AtomicInteger();
+        home.setOnLongClickListener(view -> {
+            own.incrementAndGet();
+            return true;
+        });
+        installAndResume();
+
+        assertTrue(home.performLongClick());
+        assertEquals("TikTok's own long press was replaced", 1, own.get());
+        assertNull(nextStarted());
+    }
+
+    /** A tab view whose parent takes the tap would swallow that tap once it is long-clickable. */
+    @Test public void aHomeViewThatDoesNotTakeTheTapIsLeftAlone() {
+        home.setOnClickListener(null);
+        home.setClickable(false);
+        FrameLayout bar = (FrameLayout) home.getParent();
+        bar.setOnClickListener(view -> taps.incrementAndGet());
+        installAndResume();
+
+        assertFalse(home.isLongClickable());
+        assertFalse(home.performLongClick());
+        assertNull(nextStarted());
+    }
+
+    @Test public void withoutFeedTabNavigationNothingIsAttached() {
+        ReflectionHelpers.setStaticField(SettingsStatus.class, "feedNavigationEnabled", false);
+        installAndResume();
+
+        assertFalse(home.isLongClickable());
+    }
+
+    @Test public void aRebuiltTabGetsTheLongPressAndTheOldOneLetsItGo() {
+        installAndResume();
+        FrameLayout bar = (FrameLayout) home.getParent();
+        View rebuilt = new View(activity);
+        rebuilt.setId(HOME_ID);
+        // A rebuilt tab takes its taps like the one it replaces.
+        rebuilt.setOnClickListener(view -> taps.incrementAndGet());
+        bar.removeView(home);
+        bar.addView(rebuilt, new FrameLayout.LayoutParams(216, 138));
+        layoutPass();
+
+        assertTrue(rebuilt.performLongClick());
+        assertNotNull(nextStarted());
+        assertFalse("the old tab kept the long press", home.isLongClickable());
+    }
+
+    private void installAndResume() {
+        HomeTabSettingsShortcut.install(activity);
+        owner.pause().resume();
+    }
+
+    private void layoutPass() {
+        activity.getWindow().getDecorView().getViewTreeObserver().dispatchOnGlobalLayout();
+    }
+
+    private static Intent nextStarted() {
+        return Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity();
+    }
+}

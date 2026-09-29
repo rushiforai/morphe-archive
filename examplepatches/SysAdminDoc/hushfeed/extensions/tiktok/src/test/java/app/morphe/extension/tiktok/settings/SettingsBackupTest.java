@@ -130,6 +130,35 @@ public class SettingsBackupTest {
                 SettingsBackup.foldersKept(legacy));
     }
 
+    /**
+     * A restore that kept a device folder wrote less than its file carries. Its journal, left
+     * behind by a failed delete, used to read at the next start as an interrupted restore and put
+     * the old settings back over a restore that had finished.
+     */
+    @Test public void aJournalLeftByARestoreThatKeptAFolderReadsAsCommitted() throws Exception {
+        Settings.DOWNLOAD_VIDEO_PATH.save("Pictures/Clips");
+        Settings.REGION_SPOOF.save(true);
+        String backup = SettingsBackup.create(false);
+        Settings.DOWNLOAD_VIDEO_PATH.save("Movies/Mine");
+        Settings.REGION_SPOOF.save(false);
+
+        SettingsOperationJournal.failCommittedDeletesForTests(true);
+        try {
+            SettingsBackup.restore(Utils.getContext(), backup, true);
+        } finally {
+            SettingsOperationJournal.failCommittedDeletesForTests(false);
+        }
+        assertTrue("no journal was left behind, so this checks nothing",
+                new java.io.File(Utils.getContext().getFilesDir(), "hushfeed-settings-operation.json").isFile());
+
+        SettingsOperationJournal.acquire(Utils.getContext()).complete();
+
+        assertTrue("the next start put a committed restore back", Settings.REGION_SPOOF.get());
+        assertEquals("Movies/Mine", Settings.DOWNLOAD_VIDEO_PATH.get());
+        assertEquals(SettingsOperationJournal.Recovery.ALREADY_COMMITTED,
+                SettingsOperationJournal.consumeRecoveryNotice());
+    }
+
     /** A folder that can't hold its kind keeps the device's; the rest restores; undo puts all back. */
     @Test public void aRestoredFolderThatCantHoldItsKindKeepsTheDevicesAndUndoPutsItAllBack()
             throws Exception {
@@ -168,6 +197,24 @@ public class SettingsBackupTest {
         return root.put("setting_keys", kept).toString();
     }
 
+    /**
+     * Undo used to leave its copy as it was and keep nothing of what it replaced, so an Undo a
+     * week after a restore wiped the week's changes with no way back. A second Undo brings them.
+     */
+    @Test public void aSecondUndoBringsBackWhatTheFirstReplaced() throws Exception {
+        Settings.MAX_VIDEO_SECONDS.save(11);
+        String restored = SettingsBackup.create(false);
+        Settings.MAX_VIDEO_SECONDS.save(22);
+        SettingsBackup.restore(Utils.getContext(), restored, true);
+        assertEquals(11, (int) Settings.MAX_VIDEO_SECONDS.get());
+        Settings.MAX_VIDEO_SECONDS.save(33);
+
+        SettingsBackup.undo(Utils.getContext());
+        assertEquals(22, (int) Settings.MAX_VIDEO_SECONDS.get());
+        SettingsBackup.undo(Utils.getContext());
+        assertEquals("the changes made after the restore were lost", 33, (int) Settings.MAX_VIDEO_SECONDS.get());
+    }
+
     @Test public void malformedLateValuesNeverPartiallyApplyOrReplaceUndo() throws Exception {
         Settings.MAX_VIDEO_SECONDS.save(42);
         SettingsBackup.reset(Utils.getContext());
@@ -197,6 +244,24 @@ public class SettingsBackupTest {
             assertThrows(Exception.class, () -> SettingsBackup.restore(Utils.getContext(), invalid, true));
             assertEquals(baseline, SettingsBackup.create(false));
         }
+    }
+
+    /**
+     * The Lab's own undo copy held the rules from before its last change. Pressed after a
+     * restore that wrote the Lab, it took back every rule the restore had put there.
+     */
+    @Test public void aRestoreThatWritesTheLabRetiresTheLabsOwnUndo() throws Exception {
+        java.io.File labUndo = new java.io.File(Utils.getContext().getFilesDir(), "feature-gate-lab-undo.json");
+        java.nio.file.Files.write(labUndo.toPath(), "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        JSONObject backup = new JSONObject(SettingsBackup.create(false));
+        backup.getJSONObject("lab").getJSONArray("rules").put(new JSONObject().put("manager", "abmock")
+                .put("key", "restored_gate").put("type", "BOOLEAN").put("value", "true").put("force", true));
+
+        SettingsBackup.restore(Utils.getContext(), backup.toString(), true);
+
+        assertEquals(1, FeatureGateLabStore.rules().size());
+        assertFalse("the Lab kept an undo that would take the restored rules back", labUndo.exists());
+        FeatureGateLabStore.resetAllLabData();
     }
 
     @Test public void aBackupWithMoreLabRulesThanTheLabKeepsIsRefusedByName() throws Exception {
@@ -481,6 +546,71 @@ public class SettingsBackupTest {
                 preference.getDeclaredMethod("failureMessage", int.class, Exception.class);
         message.setAccessible(true);
         return (String) message.invoke(null, 7312 /* IMPORT */, refusal);
+    }
+
+    /**
+     * A reset sets the setup Calm feed saved aside, and Undo brings it back with the settings.
+     * The card went on offering "Restore setup" after a reset, which would have put back what
+     * the reset had just cleared; dropping the setup instead lost it for good on Undo.
+     */
+    @Test public void aResetSetsTheCalmFeedSetupAsideAndUndoBringsItBack() throws Exception {
+        android.content.Context context = Utils.getContext();
+        Settings.HIDE_LIVE.save(false);
+        CalmFeedPreset.apply(context);
+        assertEquals(CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+
+        SettingsBackup.reset(context);
+        assertFalse("the Calm feed card still offers the setup from before the reset",
+                CalmFeedPreset.hasSnapshot(context));
+
+        SettingsBackup.undo(context);
+        assertEquals("Undo brought the settings back without the setup they came with",
+                CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+        CalmFeedPreset.restore(context);
+        assertFalse("the setup put back is not the one saved before Calm feed", Settings.HIDE_LIVE.get());
+
+        // Undo swaps with what it replaced: once more puts the reset back, with no setup to
+        // offer, and once more after that brings Calm feed back with the setup saved for it.
+        CalmFeedPreset.apply(context);
+        SettingsBackup.undo(context);
+        assertFalse("the reset came back with a setup from before it", CalmFeedPreset.hasSnapshot(context));
+        SettingsBackup.undo(context);
+        assertEquals(CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+    }
+
+    /**
+     * A restore that fails after writing the undo copy leaves Undo on offer, and the banner asks
+     * for it when putting things back needs it. The Calm feed setup went aside only once a
+     * restore had worked, so that Undo swapped in whatever an earlier reset had left there, or
+     * nothing, and took the current setup away; a reset and Undo after that lost it for good.
+     */
+    @Test public void anUndoAfterAFailedImportKeepsTheCalmFeedSetup() throws Exception {
+        android.content.Context context = Utils.getContext();
+        Settings.HIDE_LIVE.save(false);
+        CalmFeedPreset.apply(context);
+        JSONObject next = new JSONObject(SettingsBackup.create(false));
+        next.getJSONObject("settings").put(Settings.REGION_SPOOF.key, true);
+        var original = Setting.preferences.preferences;
+        var field = app.morphe.extension.shared.settings.preference.SharedPrefCategory.class
+                .getDeclaredField("preferences");
+        field.setAccessible(true);
+        field.set(Setting.preferences, failingCommits(original, () -> true, () -> {}));
+        try {
+            assertThrows(Exception.class, () -> SettingsBackup.restore(context, next.toString(), true));
+        } finally {
+            field.set(Setting.preferences, original);
+        }
+        assertEquals(CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+
+        SettingsBackup.undo(context);
+        assertEquals("the Undo after a failed import took the Calm feed setup away",
+                CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+        SettingsBackup.reset(context);
+        SettingsBackup.undo(context);
+        assertEquals("a reset and its Undo lost the setup",
+                CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+        CalmFeedPreset.restore(context);
+        assertFalse("the setup put back is not the one saved before Calm feed", Settings.HIDE_LIVE.get());
     }
 
     @Test public void resetAndUndoRestoreBothStoresAndSurviveAnUnrelatedSettingChange() throws Exception {

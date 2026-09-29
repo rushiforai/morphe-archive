@@ -61,6 +61,17 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "26.15", versionCode = 26799, minSdk = 26)),
     )
 
+    val BLURWALL = Compatibility(
+        name = "BlurWall",
+        packageName = "apps.automan.blurwallpaper",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x101010,
+        signatures = setOf(
+            "9f2432d1e831e49c5fbfc4d8a089062ee6ad42f3e3f1402e9085c0973a71ef24",
+        ),
+        targets = listOf(AppTarget(version = "2.9.8", versionCode = 31, minSdk = 23)),
+    )
+
     val CX_FILE_EXPLORER = Compatibility(
         name = "Cx File Explorer",
         packageName = "com.cxinventor.file.explorer",

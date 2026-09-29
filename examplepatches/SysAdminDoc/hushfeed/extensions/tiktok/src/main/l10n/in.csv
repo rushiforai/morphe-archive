@@ -164,6 +164,7 @@ Auto translate comments,Terjemahkan komentar otomatis
 Auto-advance session limit,Batas lanjut otomatis per sesi
 Automatic,Otomatis
 Auto-advance,Lanjut otomatis
+Staying on a video,Tetap di video
 Auto-advance stopped after %1$d videos,Lanjut otomatis dihentikan setelah %1$d video
 Auto-advance stopped after one video,Lanjut otomatis dihentikan setelah satu video
 Automatic clear display,Tampilan bersih otomatis
@@ -216,7 +217,15 @@ Choose which rows and controls appear,Pilih baris dan kontrol yang muncul
 Clear all,Hapus semua
 "Clear all Lab data (overrides, switch, recordings)","Hapus semua data Lab (penggantian, sakelar, rekaman)"
 Clear all suggested accounts,Hapus semua akun yang disarankan
-"Clear the recent events, saved crash reports and the hook status above.","Hapus peristiwa terbaru, laporan crash yang tersimpan, dan status hook di atas."
+"Clear the recent events, saved crash reports, a recorded screen layout and the hook status above.","Hapus peristiwa terbaru, laporan crash yang tersimpan, tata letak layar yang direkam, dan status hook di atas."
+Record a screen's layout,Rekam tata letak layar
+"Tap, then go to the screen with what you want hidden. After %1$d seconds Hushfeed records how that screen is built, without any of its text, for the diagnostic report.","Ketuk, lalu buka layar yang berisi hal yang ingin kamu sembunyikan. Setelah %1$d detik Hushfeed merekam susunan layar itu, tanpa teksnya sama sekali, untuk laporan diagnostik."
+Waiting to record. Go to the screen you want recorded.,Menunggu untuk merekam. Buka layar yang ingin kamu rekam.
+"A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.","Tata letak sebuah layar sudah direkam. Ekspor laporan diagnostik untuk mengirimnya, atau ketuk untuk merekam yang lain."
+Go to the screen now. Hushfeed records its layout in %1$d seconds.,Buka layarnya sekarang. Hushfeed merekam tata letaknya dalam %1$d detik.
+Screen layout recorded. Export the diagnostic report to send it.,Tata letak layar direkam. Ekspor laporan diagnostik untuk mengirimnya.
+"Nothing was recorded because Hushfeed settings were still open. Start again, then leave settings.","Tidak ada yang direkam karena pengaturan Hushfeed masih terbuka. Mulai lagi, lalu keluar dari pengaturan."
+Couldn't record the screen's layout. Start again from Diagnostics.,Tata letak layar tidak dapat direkam. Mulai lagi dari Diagnostik.
 Clear diagnostic data,Hapus data diagnostik
 Clear display,Tampilan bersih
 Clear display delay,Jeda tampilan bersih
@@ -273,6 +282,8 @@ Couldn't put back the diagnostic data. Try again.,Data diagnostik tidak bisa dik
 Couldn't read who posted this comment. Open their profile and block them there.,Tidak bisa membaca siapa yang menulis komentar ini. Buka profilnya dan blokir dari sana.
 Couldn't reset this override. Try again.,Penggantian ini tidak bisa diatur ulang. Coba lagi.
 Couldn't restore the settings. Try again.,Pengaturan tidak bisa dipulihkan. Coba lagi.
+Couldn't reset the settings. Try again.,Pengaturan tidak bisa diatur ulang. Coba lagi.
+Couldn't undo the last change. Try again.,Perubahan terakhir tidak bisa diurungkan. Coba lagi.
 Couldn't save the settings backup. Try again.,Cadangan pengaturan tidak bisa disimpan. Coba lagi.
 Couldn't save this override. Try again.,Penggantian ini tidak bisa disimpan. Coba lagi.
 Couldn't send the feedback. Try again in a moment.,Masukan tidak dapat dikirim. Coba lagi sebentar lagi.
@@ -312,6 +323,8 @@ Diagnostic report copied to the clipboard,Laporan diagnostik disalin ke papan kl
 Diagnostics,Diagnostik
 Disable,Matikan
 Stop analytics and tracking,Hentikan analitik dan pelacakan
+Long-press Home for Hushfeed settings,Tekan lama Beranda untuk pengaturan Hushfeed
+Press and hold the Home tab to open these settings. A tap on Home works as before.,Tekan lama tab Beranda untuk membuka pengaturan ini. Mengetuk Beranda tetap berfungsi seperti biasa.
 Keep For You on a Home tap,Pertahankan Untuk Kamu saat mengetuk Beranda
 Keep For You on a pull down,Pertahankan Untuk Kamu saat tarik ke bawah
 Keep long press from quick sharing,Jangan biarkan tekan lama membagikan cepat
@@ -343,6 +356,7 @@ Enter a JSON object or array.,Masukkan objek atau larik JSON.
 Enter a creator handle or id,Masukkan handle atau ID kreator
 Enter a finite number.,Masukkan angka terbatas.
 Enter a number.,Masukkan angka.
+"Enter an hour, like 6 or 06:00.","Masukkan jam, misalnya 6 atau 06:00."
 Enter a valid structured value.,Masukkan nilai terstruktur yang valid.
 Enter a valid two-letter country code,Masukkan kode negara dua huruf yang sah
 "Enter a whole number, or one like 20K, 1.5M or 2B","Masukkan bilangan bulat, atau seperti 20K, 1.5M atau 2B"
@@ -800,6 +814,10 @@ Restart TikTok to apply this.,Mulai ulang TikTok agar berlaku.
 Restart pending,Menunggu mulai ulang
 Put every setting back to its default straight away. Your current settings are kept for Undo.,Kembalikan setiap pengaturan ke bawaannya sekarang juga. Pengaturanmu yang sekarang disimpan untuk Urungkan.
 Restore failed. Some settings may still be changed.,Pemulihan gagal. Beberapa pengaturan mungkin masih berubah.
+Reset didn't finish. Some settings may still be changed. Use Undo to put them back.,Atur ulang tidak selesai. Beberapa pengaturan mungkin masih berubah. Gunakan Urungkan untuk mengembalikannya.
+Reset didn't finish. Some settings may still be changed.,Atur ulang tidak selesai. Beberapa pengaturan mungkin masih berubah.
+Undo didn't finish. Some settings may still be changed. Try Undo again.,Urungkan tidak selesai. Beberapa pengaturan mungkin masih berubah. Coba Urungkan lagi.
+Undo didn't finish. Some settings may still be changed.,Urungkan tidak selesai. Beberapa pengaturan mungkin masih berubah.
 Restore failed. Some settings may still be changed. Use Undo to put them back.,Pemulihan gagal. Beberapa pengaturan mungkin masih berubah. Gunakan Urungkan untuk mengembalikannya.
 Restore settings,Pulihkan pengaturan
 Lab settings put back. Restart TikTok to apply this.,Pengaturan Lab dikembalikan. Mulai ulang TikTok agar berlaku.
@@ -815,7 +833,7 @@ SIM country preset,Praset negara SIM
 STEM,STEM
 Sanitize sharing links,Bersihkan tautan berbagi
 Save,Simpan
-"Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.","Simpan berkas SRT bersama videonya. Penyimpanan berpasangan memakai Movies di Android 11+, Download di Android 10, dan folder videomu di versi lama."
+"Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.","Simpan berkas SRT bersama videonya. Berkas masuk ke Movies di Android 11+, Download di Android 10, dan folder videomu di versi lama. Di Android 11+ dengan Simpan detail aktif, video pindah ke Download atau Documents dan berkas SRT tetap di Movies."
 Save a profile picture on a long press,Simpan foto profil dengan tekan lama
 Save a story on a long press,Simpan Story dengan tekan lama
 "Save every photo in the post as TikTok received it, not as the screen shows it.","Simpan setiap foto dalam unggahan seperti yang diterima TikTok, bukan seperti yang ditampilkan layar."
@@ -842,6 +860,9 @@ Saving one original photo,Menyimpan satu foto asli
 Saving settings backup,Menyimpan cadangan pengaturan
 Saving the sticker,Menyimpan stiker
 Saving the story,Menyimpan Story
+Saving the sound,Menyimpan suara
+Saving the profile picture,Menyimpan foto profil
+Saving the live photo's clip,Menyimpan klip foto langsung
 Screen,Layar
 Screen time,Waktu layar
 Search,Pencarian
@@ -941,6 +962,7 @@ Sticker saved to %1$s,Stiker disimpan ke %1$s
 Still here. Nothing is waiting.,Masih di sini. Tidak ada yang menunggu.
 Still reading the record. Tap again in a moment.,Catatannya masih dibaca. Ketuk lagi sebentar lagi.
 Still saving the last one,Yang sebelumnya masih disimpan
+The last one is still waiting to start,Yang sebelumnya masih menunggu untuk dimulai
 "Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.","Hentikan pengiriman peristiwa AppLog ByteDance, atribusi AppsFlyer, laporan layar Firebase, dan laporan mogok. Diagnostik milik TikTok ikut diam bersamanya."
 "Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.","Hentikan TikTok meminta layar berjalan pada laju bingkai video yang sedang diputar. Di ponsel 90 atau 120 Hz, permintaan itu memperlambat seluruh aplikasi sampai ke laju videonya, termasuk saat menggulir."
 "Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone. Saves the battery they wake.","Mencegah TikTok mendengarkan akselerometer, giroskop, magnetometer, dan sensor gerak lain yang dipakainya untuk mengenali ponsel. Menghemat baterai yang mereka bangunkan."
@@ -1103,6 +1125,7 @@ Transparent,Transparan
 Try a different word or clear the search.,Coba kata lain atau hapus pencarian.
 "Try again, or go back to TikTok.","Coba lagi, atau kembali ke TikTok."
 Turn on %1$s first.,Nyalakan %1$s dulu.
+Put %1$s in %2$s first.,Isi %2$s dengan %1$s dulu.
 Turn on overrides,Nyalakan penimpaan
 Turned off %1$d gates of %2$d. The rest don't take a true or false value. Restart TikTok to apply this.,%1$d dari %2$d gate dimatikan. Sisanya tidak menerima nilai true atau false. Mulai ulang TikTok agar berlaku.
 Turned off %1$d gates. Restart TikTok to apply this.,%1$d gate dimatikan. Mulai ulang TikTok agar berlaku.
@@ -1267,6 +1290,27 @@ Swipe left,Geser ke kiri
 TikTok default (open the creator's profile),Bawaan TikTok (buka profil kreator)
 Saving %1$s of %2$s,Menyimpan %1$s dari %2$s
 Stopping after this file,Berhenti setelah berkas ini
+Waiting to save %1$s files,Menunggu untuk menyimpan %1$s berkas
+Save cancelled. Nothing was saved.,Penyimpanan dibatalkan. Tidak ada yang disimpan.
+One more save waiting,Satu penyimpanan lagi menunggu
+%1$s more saves waiting,%1$s penyimpanan lagi menunggu
+Starts after one other save,Dimulai setelah satu penyimpanan lain
+Starts after %1$s other saves,Dimulai setelah %1$s penyimpanan lain
+TikTok closed during these saves,TikTok tertutup saat penyimpanan ini berjalan
+%1$s: didn't finish,%1$s: tidak selesai
+%1$s: one of %3$s files didn't finish,%1$s: satu dari %3$s berkas tidak selesai
+%1$s: %2$s of %3$s files didn't finish,%1$s: %2$s dari %3$s berkas tidak selesai
+%1$s: might not have finished,%1$s: mungkin tidak selesai
+%1$s: one of %3$s files might not have finished,%1$s: satu dari %3$s berkas mungkin tidak selesai
+%1$s: %2$s of %3$s files might not have finished,%1$s: %2$s dari %3$s berkas mungkin tidak selesai
+And one more save,Dan satu penyimpanan lain
+And %1$s more saves,Dan %1$s penyimpanan lain
+Original photos,Foto asli
+Story,Story
+Original sound,Suara asli
+Profile picture,Foto profil
+Live photo clip,Klip foto langsung
+Media save,Penyimpanan media
 "Saved %1$s of %2$s, the rest cancelled","%1$s dari %2$s tersimpan, sisanya dibatalkan"
 "Saved %1$s of %2$s, %3$s skipped","%1$s dari %2$s tersimpan, %3$s dilewati"
 "Saved %1$s of %2$s, %3$s skipped and the rest cancelled","%1$s dari %2$s tersimpan, %3$s dilewati, dan sisanya dibatalkan"
@@ -1291,10 +1335,11 @@ Changes in Hushfeed %1$s,Perubahan di Hushfeed %1$s
 Reviewed presets,Preset teruji
 Show See translation,Tampilkan Lihat terjemahan
 Reviewed for TikTok %1$s,Diuji untuk TikTok %1$s
+%1$s (TikTok %2$s),%1$s (TikTok %2$s)
 Value: %1$s to %2$s,Nilai: %1$s menjadi %2$s
 The presets couldn't load. Open the Lab again.,Preset tidak dapat dimuat. Buka Lab lagi.
-Apply enables these overrides. Undo last Lab change restores your previous rules.,Terapkan mengaktifkan penggantian ini. Urungkan perubahan Lab terakhir memulihkan aturan sebelumnya.
-Apply saves these overrides. Turn on overrides in the Lab to use them. Undo restores your previous rules.,Terapkan menyimpan penggantian ini. Aktifkan penggantian di Lab untuk menggunakannya. Urungkan memulihkan aturan sebelumnya.
+Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.,Terapkan mengaktifkan penggantian ini. Batalkan perubahan Lab terakhir mengembalikan aturan sebelumnya sampai kamu mengubah hal lain di Lab.
+"Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back.","Terapkan menyimpan penggantian ini. Aktifkan penggantian di Lab untuk menggunakannya. Mengaktifkannya juga perubahan Lab, jadi setelah itu Urungkan mematikannya, bukan mengembalikan aturan sebelumnya."
 This preset isn't available for your installed TikTok version.,Preset ini tidak tersedia untuk versi TikTok yang terpasang.
 Preset applied. Restart TikTok to use it.,Preset diterapkan. Mulai ulang TikTok untuk menggunakannya.
 Preset saved. Turn on overrides in the Lab to use it.,Preset disimpan. Aktifkan penggantian di Lab untuk menggunakannya.
@@ -1304,11 +1349,24 @@ About overrides,Tentang penggantian
 Save details beside the video,Simpan detail di samping video
 "Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.","Simpan keterangan, kreator, tautan, dan tanggal terbit dalam file TXT. Pada Android 10 ke atas, kedua file memakai Download atau Documents dengan nama folder yang sama. Berlaku untuk penyimpanan di sini."
 Check for already-saved videos,Periksa video yang sudah disimpan
+Forget saved videos,Lupakan video tersimpan
+Undo forgetting saved videos,Batalkan melupakan video tersimpan
+"Forget which videos Hushfeed saved here, so the already-saved check starts over. The saved files and your settings stay. Turning the check off doesn't erase this record.","Melupakan video mana saja yang disimpan Hushfeed di sini, sehingga pemeriksaan video yang sudah disimpan dimulai lagi. File tersimpan dan pengaturanmu tetap ada. Mematikan pemeriksaan tidak menghapus catatan ini."
+Forgetting saved videos,Melupakan video tersimpan
+Putting the saved videos back,Mengembalikan video tersimpan
+Forgotten. Tap to put them back.,Sudah dilupakan. Ketuk untuk mengembalikannya.
+Saved videos forgotten. The files are still there.,Video tersimpan dilupakan. File-nya masih ada.
+There were no saved videos to forget,Tidak ada video tersimpan untuk dilupakan
+Couldn't forget the saved videos. Try again.,Video tersimpan tidak dapat dilupakan. Coba lagi.
+Saved videos put back,Video tersimpan dikembalikan
+Couldn't put the saved videos back. Try again.,Video tersimpan tidak dapat dikembalikan. Coba lagi.
+Too late to put the saved videos back,Sudah terlambat untuk mengembalikan video tersimpan
 "Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.","Ingat hingga %1$s video yang disimpan di sini saat opsi ini aktif. Jika file masih ada, tawarkan Buka atau Simpan lagi sebelum mengunduh salinan baru."
 This video is already saved. Open TikTok to save another copy.,Video ini sudah disimpan. Buka TikTok untuk menyimpan salinan lain.
 This video is already saved,Video ini sudah disimpan
 Save again,Simpan lagi
 The saved-video choice couldn't open. Try again.,Pilihan untuk video tersimpan tidak dapat dibuka. Coba lagi.
+The saved-video choice is still open,Pilihan untuk video tersimpan masih terbuka
 This video isn't available as a complete file. Try again later.,Video ini belum tersedia sebagai file lengkap. Coba lagi nanti.
 Saving video to %1$s,Menyimpan video ke %1$s
 Video and details saved to %1$s,Video dan detail disimpan ke %1$s
@@ -1317,6 +1375,7 @@ The already-saved check failed. Try again.,Pemeriksaan video tersimpan gagal. Co
 Show download progress,Tampilkan progres unduhan
 Show a progress bar while a video saves.,Tampilkan bilah progres saat video disimpan.
 Saving video,Menyimpan video
+Waiting to save video,Menunggu untuk menyimpan video
 Saving video: %1$s,Menyimpan video: %1$s
 Saving %1$s of %2$s: %3$s,Menyimpan %1$s dari %2$s: %3$s
 Couldn't save the change. Try again.,Perubahan tidak dapat disimpan. Coba lagi.

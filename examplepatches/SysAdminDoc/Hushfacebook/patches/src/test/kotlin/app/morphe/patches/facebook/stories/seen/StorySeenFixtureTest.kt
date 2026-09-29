@@ -1,0 +1,112 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ */
+package app.morphe.patches.facebook.stories.seen
+
+import app.morphe.Fixtures
+import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * The anchor of View stories anonymously on every Facebook build the bundle declares: one query
+ * class for the seen mutation, one builder creating it, and one sender, which the hook goes first
+ * in. Nothing else in the APK creates the mutation or calls the builder, so returning from the
+ * sender is the only report of viewed stories stopped; the sender's one caller is the seen
+ * helper's flush; and replies and reactions are built in another class. Reads the fixture bundles
+ * from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
+ */
+class StorySeenFixtureTest {
+    private val Instruction.call: MethodReference?
+        get() = (this as? ReferenceInstruction)?.reference as? MethodReference
+
+    private fun calls(method: Method, target: Method): Boolean =
+        method.implementation?.instructions?.any { instruction ->
+            val ref = instruction.call
+            ref != null && ref.definingClass == target.definingClass && ref.name == target.name &&
+                ref.parameterTypes.map { it.toString() } == target.parameterTypes.map { it.toString() }
+        } == true
+
+    private fun locals(method: Method): Int {
+        val self = if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1
+        return method.implementation!!.registerCount - self - method.parameterTypes.sumOf {
+            if (it.toString() == "J" || it.toString() == "D") 2 else 1
+        }
+    }
+
+    @Test
+    fun `each declared build sends viewed stories from one sender, the only way the seen mutation goes out`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        assertTrue("the bundle declares no Facebook build", versions.isNotEmpty())
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                val mutations = FixtureDex.classesHolding(bundle, SEEN_ROOT_FIELD).filter(::isSeenMutation)
+                assertEquals("$name: query classes naming $SEEN_MUTATION", 1, mutations.size)
+                val mutation = mutations.single().type
+
+                val owners = FixtureDex.classesHolding(bundle, STORY_IDS)
+                val senders = owners.mapNotNull { seenSender(it, mutation) }
+                assertEquals("$name: seen senders", 1, senders.size)
+                val sender = senders.single()
+                assertTrue("$name: the sender has no local register", locals(sender) >= 1)
+                val owner = owners.single { it.type == sender.definingClass }
+                val builder = owner.methods.single { isRequestBuilder(it, mutation) }
+
+                // Nothing else creates the mutation, and nothing else calls the builder, so the
+                // sender is the one way the report of viewed stories goes out.
+                val creators = FixtureDex.methodsWhere(bundle, dexFilter = { dex -> dex.typeSection.any { it == mutation } }) {
+                    method -> method.implementation?.instructions?.any { instruction ->
+                        instruction.opcode == Opcode.NEW_INSTANCE &&
+                            ((instruction as ReferenceInstruction).reference as TypeReference).type == mutation
+                    } == true
+                }
+                assertEquals("$name: methods creating $mutation", listOf(builder.name), creators.map { it.name })
+                assertEquals("$name: ${creators.single().definingClass} isn't the builder's class", owner.type,
+                    creators.single().definingClass)
+                val builderCallers = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
+                    dex.methodSection.any { it.definingClass == owner.type && it.name == builder.name }
+                }) { calls(it, builder) }
+                assertEquals("$name: callers of the builder", listOf(sender.name), builderCallers.map { it.name })
+
+                // Facebook's own way out of the sender comes before the builder: an empty set of
+                // cards returns without sending, which is the path the hook takes too.
+                val code = sender.implementation!!.instructions.toList()
+                val isEmpty = code.indexOfFirst { it.call?.let { c -> c.definingClass == "Ljava/util/Set;" && c.name == "isEmpty" } == true }
+                val build = code.indexOfFirst { it.call?.name == builder.name && it.call?.definingClass == owner.type }
+                assertTrue("$name: the sender doesn't ask whether it has cards before building", isEmpty in 0 until build)
+                assertTrue("$name: the sender has no return-void", code.any { it.opcode == Opcode.RETURN_VOID })
+
+                // One caller: the seen helper's flush, which takes the reason it flushes for.
+                val senderCallers = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
+                    dex.methodSection.any { it.definingClass == owner.type && it.name == sender.name }
+                }) { calls(it, sender) }
+                assertEquals("$name: callers of the sender", 1, senderCallers.size)
+                val flush = senderCallers.single()
+                assertEquals("$name: the flush's shape", listOf("Ljava/lang/String;"), flush.parameterTypes.map { it.toString() })
+                assertEquals("$name: the flush's shape", "V", flush.returnType)
+
+                // Replies and reactions go out from a class of their own, which the hook leaves alone.
+                val viewerMutations = FixtureDex.classesHolding(bundle, "surface=story_viewer")
+                assertEquals("$name: classes building story viewer mutations", 2, viewerMutations.size)
+                val replies = viewerMutations.single { it.type != owner.type }
+                assertTrue("$name: the other story viewer mutation isn't the reply one",
+                    replies.methods.any { holdsString(it, "reply_target_users") })
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+}

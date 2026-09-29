@@ -99,6 +99,32 @@ public class FeatureGatePresetsTest {
         assertFalse(FeatureGateLabUndo.canUndo());
     }
 
+    /**
+     * The first snapshot holds only TikTok's stored values. Reviewed against it, a preset whose
+     * gates TikTok never sent was refused as not matching; it waits for the whole catalog.
+     */
+    @Test public void aPresetWaitsForTheWholeCatalog() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var lab = new FeatureGateLabFragment();
+            activity.getFragmentManager().beginTransaction().replace(android.R.id.content, lab).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            var field = FeatureGateLabFragment.class.getDeclaredField("snapshot");
+            field.setAccessible(true);
+            field.set(lab, new FeatureGateCatalog.Snapshot(List.copyOf(catalog.values()), catalog, 0, 0, false));
+            org.robolectric.shadows.ShadowToast.reset();
+            var show = FeatureGateLabFragment.class.getDeclaredMethod("showPreset", String.class, String.class);
+            show.setAccessible(true);
+            show.invoke(lab, "47.1.3", "see_translation");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("Loaded values are still being read. Try again in a moment.",
+                    org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+            assertTrue(FeatureGateLabStore.rules().isEmpty());
+        }
+    }
+
     @Test public void previewShowsBothChangesBeforeApplyAndMismatchOffersNoApply() throws Exception {
         try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
             var activity = owner.get();

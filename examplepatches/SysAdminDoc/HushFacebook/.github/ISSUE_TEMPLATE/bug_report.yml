@@ -18,14 +18,14 @@ body:
     attributes:
       label: Hushfacebook and Facebook versions
       description: Long-press Facebook's icon and tap Hushfacebook. Copy the version below its status. If you have the new category pages, open More settings, then About, and copy the Version line.
-      placeholder: Version 0.3.4 for Facebook 580.0.0.51.74
+      placeholder: Version 0.4.0 for Facebook 580.0.0.51.74
     validations:
       required: true
   - type: input
     id: variant
     attributes:
       label: Which Facebook file did you patch?
-      description: The APKMirror variant, if you know it. Most bugs on a build that should work come from a different variant.
+      description: The APKMirror variant, and whether the file you gave the patcher was an .apkm bundle or a single .apk, if you know them. Most bugs on a build that should work come from a different variant.
       placeholder: arm64-v8a, Android 11+, 240-640dpi (.apkm)
   - type: dropdown
     id: manager
@@ -59,7 +59,7 @@ body:
     id: device
     attributes:
       label: Phone and Android version
-      description: Both are in your phone's Settings, under About phone.
+      description: Both are in your phone's Settings, under About phone. If this Facebook is a clone, say which kind too, such as one renamed by Morphe's Clone app patch, Dual Apps, Second space or a work profile.
       placeholder: Samsung Galaxy S25, Android 16
     validations:
       required: true
@@ -99,7 +99,7 @@ body:
     id: reproduction
     attributes:
       label: What did you tap, in order?
-      description: Start from opening Facebook. Include every Hushfacebook switch you changed before it went wrong, and say whether it still happens after you close Facebook and open it again.
+      description: Start from opening Facebook. Include every Hushfacebook switch you changed before it went wrong, and say whether it still happens after you close Facebook and open it again. For a reel, story or video, say where you opened it, such as the Reels tab, a reel in the news feed, a profile, Watch or a shared link.
       placeholder: |
         1. Opened Facebook
         2. Scrolled the news feed
@@ -111,8 +111,8 @@ body:
     attributes:
       label: Diagnostic report
       description: |
-        This answers most of our questions, so please add it if you can. Long-press Facebook's icon, tap Hushfacebook, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. If you have the new category pages, these controls are under More settings, then Pause, backup and diagnostics. That saves a text file in Download/Morphe on your phone. Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
-        The report filters common links and private values, but structured credentials and other private text can escape that filtering. Review it and remove anything private before you post it.
+        This answers most of our questions, so please add it if you can. It works with Debug logging off and then still names your build, the patches in it and what each one has counted. For the most detail, long-press Facebook's icon, tap Hushfacebook, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. If you have the new category pages, these controls are under More settings, then Pause, backup and diagnostics. That saves a text file in Download/Morphe on your phone. Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
+        The report leaves out links, Facebook addresses, long ID numbers, cookies, sign-in tokens and Authorization headers, JSON included. It can't spot a name or message written anywhere else, so read it and remove anything private before you post it.
   - type: textarea
     id: additional_context
     attributes:

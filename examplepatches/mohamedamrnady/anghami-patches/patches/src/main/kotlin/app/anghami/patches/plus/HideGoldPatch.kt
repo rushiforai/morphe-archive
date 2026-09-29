@@ -20,6 +20,7 @@ val hideGoldPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
+    category("Hide Gold features")
 
     execute {
         IsGoldFingerprint.method.addInstructions(

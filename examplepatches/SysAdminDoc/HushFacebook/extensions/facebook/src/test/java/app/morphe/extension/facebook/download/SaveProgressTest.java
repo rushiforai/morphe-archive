@@ -6,11 +6,13 @@ package app.morphe.extension.facebook.download;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -45,7 +47,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
@@ -90,6 +94,8 @@ public class SaveProgressTest {
             }
         };
         context = RuntimeEnvironment.getApplication();
+        // A save of one file reads its policy through MediaDownload, as every save does.
+        MediaDownload.policyForTests = policy;
         gallery = Robolectric.setupContentProvider(Gallery.class, MediaStore.AUTHORITY);
         LogBufferManager.clearLogBuffer();
         // Every save here is the first of its process, as a save after a restart would be.
@@ -106,9 +112,17 @@ public class SaveProgressTest {
 
     /** A save on the feature's own worker, as a tap starts one, of [path] into the gallery. */
     private Thread save(String path) {
-        File folder = DashSave.workFolder(context);
-        return MediaDownload.start(context, true, (writer, progress) -> Downloader.save(server.origin() + path,
-                Downloader.Kind.VIDEO, folder, writer, policy, Downloader.MAX_BYTES, progress));
+        return save(path, new CompletableFuture<>());
+    }
+
+    /** The same, completing [ended] with the save's result as it ends. */
+    private Thread save(String path, CompletableFuture<Downloader.Result> ended) {
+        MediaDownload.Job job = MediaDownload.fileJob(context, server.origin() + path, Downloader.Kind.VIDEO);
+        return MediaDownload.start(context, true, (writer, progress) -> {
+            Downloader.Result result = job.run(writer, progress);
+            ended.complete(result);
+            return result;
+        });
     }
 
     private void finish(Thread worker) throws InterruptedException {
@@ -222,10 +236,14 @@ public class SaveProgressTest {
      */
     @Test
     public void cancelOnOneOfTwoSavesStopsThatOne() throws Exception {
-        server.serveGenerated("/one.mp4", "video/mp4", MP4_HEAD, 100 * MIB, 4 * MIB, release);
-        server.serveGenerated("/two.mp4", "video/mp4", MP4_HEAD, 100 * MIB, 4 * MIB, release);
-        Thread first = save("/one.mp4");
-        Thread second = save("/two.mp4");
+        server.serveGenerated("/one.mp4", "video/mp4", MP4_HEAD, 16 * MIB, MIB, release);
+        server.serveGenerated("/two.mp4", "video/mp4", MP4_HEAD, 16 * MIB, MIB, release);
+        Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(1), published);
+        Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(2), published);
+        CompletableFuture<Downloader.Result> firstEnded = new CompletableFuture<>();
+        CompletableFuture<Downloader.Result> secondEnded = new CompletableFuture<>();
+        Thread first = save("/one.mp4", firstEnded);
+        Thread second = save("/two.mp4", secondEnded);
         List<Integer> ids = new ArrayList<>();
         for (android.service.notification.StatusBarNotification up : notifications().getActiveNotifications()) {
             if (SaveControl.TAG.equals(up.getTag())) ids.add(up.getId());
@@ -239,14 +257,87 @@ public class SaveProgressTest {
 
         firstShown.actions[0].actionIntent.send();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        first.join(15_000);
-        assertFalse("Cancel on the first save's notification didn't stop it", first.isAlive());
-        assertTrue("Cancel on the first save's notification stopped the second", second.isAlive());
         assertFalse(shown(SaveControl.TAG, ids.get(0)));
         assertTrue("the second save's notification went with the first", shown(SaveControl.TAG, ids.get(1)));
 
-        assertTrue(SaveControl.cancel(ids.get(1)));
+        // The server sends everything it held back, so a save that Cancel didn't stop runs to the
+        // end and saves. What decides the test is how each save ended, not how soon: a join of a
+        // fixed length once failed a save that did stop, only later than a busy machine allowed.
+        release.countDown();
+        assertEquals("Cancel on the first save's notification didn't stop it",
+                Downloader.Status.CANCELLED, firstEnded.get(60, TimeUnit.SECONDS).status);
+        assertEquals("Cancel on the first save's notification stopped the second",
+                Downloader.Status.OK, secondEnded.get(60, TimeUnit.SECONDS).status);
+        finish(first);
         finish(second);
+    }
+
+    /**
+     * A Cancel pressed as the save opens its connection. Its close came before the connection
+     * existed and closed nothing, on the JDK and on Android alike, so the save went on to wait for
+     * an answer for as long as the read timeout allowed. The test server answers one connection at
+     * a time, and here it's busy with another fetch, the way it was when two saves ran at once and
+     * the second got in first.
+     */
+    @Test
+    public void aCancelAsTheConnectionOpensStopsASaveTheServerHasNotAnswered() throws Exception {
+        server.serveHeld("/busy.mp4", "video/mp4", MP4_HEAD, 2 * MIB, MIB, release);
+        server.serveGenerated("/late.mp4", "video/mp4", MP4_HEAD, 2 * MIB, Long.MAX_VALUE, null);
+        // No read timeout: a save that waits for the answer waits until the server is free.
+        Downloader.readTimeoutMs = 0;
+        File other = File.createTempFile("busy", ".part", context.getCacheDir());
+        Thread busy = new Thread(() -> Downloader.fetch(server.origin() + "/busy.mp4", Downloader.Kind.VIDEO, other,
+                policy, Downloader.MAX_BYTES, Downloader.SILENT));
+        busy.setDaemon(true);
+        try {
+            busy.start();
+            long until = System.currentTimeMillis() + 20_000;
+            while (server.hits("/busy.mp4") == 0 && System.currentTimeMillis() < until) Thread.sleep(20);
+            assertEquals("the server never took the other fetch", 1, server.hits("/busy.mp4"));
+
+            CompletableFuture<Downloader.Result> ended = new CompletableFuture<>();
+            MediaDownload.Job job = MediaDownload.fileJob(context, server.origin() + "/late.mp4", Downloader.Kind.VIDEO);
+            Thread worker = MediaDownload.start(context, true, (writer, progress) -> {
+                SaveControl.Save save = (SaveControl.Save) progress;
+                CountDownLatch closed = new CountDownLatch(1);
+                Downloader.Result result = job.run(writer, new Downloader.Progress() {
+                    @Override public void transferred(long done, long total) {
+                        save.transferred(done, total);
+                    }
+
+                    // Cancel is pressed here, and its close runs before the connection opens.
+                    @Override public void reading(Runnable close) {
+                        save.reading(() -> {
+                            close.run();
+                            closed.countDown();
+                        });
+                        SaveControl.cancel(save.id);
+                        try {
+                            closed.await(20, TimeUnit.SECONDS);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+
+                    @Override public boolean cancelled() {
+                        return save.cancelled();
+                    }
+                });
+                ended.complete(result);
+                return result;
+            });
+
+            assertEquals("a save cancelled as its connection opened waited for the server",
+                    Downloader.Status.CANCELLED, ended.get(30, TimeUnit.SECONDS).status);
+            finish(worker);
+            assertEquals("Save cancelled", ShadowToast.getTextOfLatestToast());
+            assertEquals(0, gallery.inserts.size());
+        } finally {
+            release.countDown();
+            busy.join(30_000);
+            Downloader.readTimeoutMs = 20_000;
+            Downloader.delete(other);
+        }
     }
 
     /**
@@ -329,6 +420,44 @@ public class SaveProgressTest {
     }
 
     /**
+     * A save that can't show its notification says where else it can be cancelled as it starts:
+     * with Facebook's notifications off, or with only the saves channel switched off. With its
+     * notification showing, the start says only that it's saving.
+     */
+    @Test
+    public void aSaveWithNoNotificationSaysWhereToCancelIt() throws Exception {
+        String elsewhere = "Saving... Cancel: Downloads in Hushfacebook.";
+        assertEquals("Saving...", startMessage());
+
+        Shadows.shadowOf(notifications()).setNotificationsEnabled(false);
+        assertEquals(elsewhere, startMessage());
+
+        Shadows.shadowOf(notifications()).setNotificationsEnabled(true);
+        notifications().createNotificationChannel(new NotificationChannel(SaveControl.CHANNEL, "Hushfacebook saves",
+                NotificationManager.IMPORTANCE_NONE));
+        assertEquals(elsewhere, startMessage());
+    }
+
+    /** What a save says as it starts. It runs until that's been read, then ends cancelled. */
+    private String startMessage() throws InterruptedException {
+        ShadowToast.reset();
+        CountDownLatch read = new CountDownLatch(1);
+        Thread worker = MediaDownload.start(context, true, (writer, progress) -> {
+            try {
+                read.await(20, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return Downloader.Result.fail(Downloader.Status.CANCELLED, "cancelled");
+        });
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        String said = ShadowToast.getTextOfLatestToast();
+        read.countDown();
+        finish(worker);
+        return said;
+    }
+
+    /**
      * What a process Android ended mid-save leaves: work files, a row still pending, and a row it
      * had published but not yet crossed off. The next process's first save removes the first two
      * and keeps the finished file; a later save in the same process doesn't sweep again.
@@ -374,6 +503,95 @@ public class SaveProgressTest {
         Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(4), published);
         finish(save("/next.mp4"));
         assertTrue("a second save in the same process swept again", new File(folder, "video9.part").exists());
+    }
+
+    /**
+     * Android ended Facebook in the middle of a save, and Facebook is opened again with no save
+     * after it. Its start removes what that save left, on a worker: the start doesn't wait on the
+     * gallery, a save tapped meanwhile waits for the sweep, and that save's own notification and
+     * work file stay, through a second start too. A finished file, the rest of the cache and a
+     * start in another of Facebook's processes are left alone.
+     */
+    @Test
+    public void startingFacebookRemovesWhatAStoppedSaveLeft() throws Exception {
+        File folder = DashSave.workFolder(context);
+        File partial = new File(folder, "video1.part");
+        File joined = new File(folder, "joined2.mp4");
+        assertTrue(partial.createNewFile());
+        assertTrue(joined.createNewFile());
+        File unrelated = new File(context.getCacheDir(), "image_cache.bin");
+        assertTrue(unrelated.createNewFile());
+        Uri pending = row(1);
+        Uri finished = row(0);
+        SaveLeftovers.pending(context, pending);
+        SaveLeftovers.pending(context, finished);
+        SaveControl.Save stopped = SaveControl.begin(context, true);
+        int stoppedId = stopped.id;
+        stopped.end();
+        notifications().notify(SaveControl.TAG, stoppedId, new Notification.Builder(context, SaveControl.CHANNEL)
+                .setSmallIcon(android.R.drawable.stat_sys_download).setContentTitle("Saving a video")
+                .setOngoing(true).build());
+
+        // A start in another of Facebook's processes leaves it all: only the main one saves.
+        android.content.pm.ApplicationInfo info = context.getApplicationInfo();
+        String mainProcess = info.processName;
+        info.processName = context.getPackageName() + ":adnw";
+        try {
+            app.morphe.extension.facebook.settings.SettingsEntry.onApplicationCreate(context);
+            app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+        } finally {
+            info.processName = mainProcess;
+        }
+        assertTrue("a start in another process swept", gallery.rows.containsKey(ContentUris.parseId(pending)));
+        assertTrue(partial.exists());
+
+        gallery.holdDeletes = new CountDownLatch(1);
+        long before = System.nanoTime();
+        app.morphe.extension.facebook.settings.SettingsEntry.onApplicationCreate(context);
+        long tookMs = (System.nanoTime() - before) / 1_000_000;
+        assertTrue("starting Facebook left what the stopped save left",
+                gallery.deleteAsked.await(10, java.util.concurrent.TimeUnit.SECONDS));
+        assertTrue("Facebook's start waited " + tookMs + " ms on the gallery", tookMs < 2_000);
+
+        server.serveGenerated("/next.mp4", "video/mp4", MP4_HEAD, 100 * MIB, 4 * MIB, release);
+        Thread worker = save("/next.mp4");
+        int runningId = -1;
+        for (android.service.notification.StatusBarNotification up : notifications().getActiveNotifications()) {
+            if (SaveControl.TAG.equals(up.getTag()) && up.getId() != stoppedId) runningId = up.getId();
+        }
+        assertNotEquals("the new save showed no notification", -1, runningId);
+        Thread.sleep(300);
+        assertEquals("a save tapped during the sweep didn't wait for it", 0, server.hits("/next.mp4"));
+
+        gallery.holdDeletes.countDown();
+        long until = System.currentTimeMillis() + 20_000;
+        while (server.hits("/next.mp4") == 0 && System.currentTimeMillis() < until) Thread.sleep(50);
+        assertEquals("the save never went on after the sweep", 1, server.hits("/next.mp4"));
+
+        assertFalse("the pending row a stopped save left is still there", gallery.rows.containsKey(ContentUris.parseId(pending)));
+        assertTrue("a finished file was taken for a leftover", gallery.rows.containsKey(ContentUris.parseId(finished)));
+        assertFalse(partial.exists());
+        assertFalse(joined.exists());
+        assertTrue("a cache file of Facebook's was removed", unrelated.exists());
+        assertTrue(pendingList().isEmpty());
+        assertFalse("the stopped save's notification is still up", shown(SaveControl.TAG, stoppedId));
+        assertTrue("the running save's notification was taken for a leftover", shown(SaveControl.TAG, runningId));
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("removed what a stopped save left: 2 work file(s), 1 pending gallery "
+                + "row(s), 1 notification(s)"));
+
+        // A second start in the same process sweeps nothing: what's there now is the running save's.
+        until = System.currentTimeMillis() + 20_000;
+        while (workFiles() == 0 && System.currentTimeMillis() < until) Thread.sleep(50);
+        assertEquals(1, workFiles());
+        app.morphe.extension.facebook.settings.SettingsEntry.onApplicationCreate(context);
+        app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+        assertEquals("a second start took the running save's work file", 1, workFiles());
+        assertTrue("a second start took the running save's notification", shown(SaveControl.TAG, runningId));
+
+        assertTrue(SaveControl.cancel(runningId));
+        finish(worker);
+        assertEquals(0, workFiles());
     }
 
     /** Whether a notification with [tag] and [id] is up. */
@@ -642,10 +860,14 @@ public class SaveProgressTest {
 
     /** MediaStore's video table, as a save and the leftover sweep use it. */
     public static final class Gallery extends ContentProvider {
-        final Map<Long, ContentValues> rows = new HashMap<>();
+        /** Read on the test's thread while a sweep deletes from it on a worker. */
+        final Map<Long, ContentValues> rows = new java.util.concurrent.ConcurrentHashMap<>();
         final List<Uri> inserts = new ArrayList<>();
         boolean refuseDeletion;
         boolean throwOnDelete;
+        /** While set, a deletion waits for it: a gallery that's slow while Facebook starts. */
+        volatile CountDownLatch holdDeletes;
+        final CountDownLatch deleteAsked = new CountDownLatch(1);
         private long nextId = 1;
 
         Uri videoUri(long id) {
@@ -678,6 +900,15 @@ public class SaveProgressTest {
 
         /** Honours the one selection the sweep uses, the way MediaStore does for a row named by id. */
         @Override public int delete(Uri uri, String selection, String[] selectionArgs) {
+            deleteAsked.countDown();
+            CountDownLatch hold = holdDeletes;
+            if (hold != null) {
+                try {
+                    hold.await(20, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
             if (throwOnDelete) throw new IllegalStateException("gallery unavailable");
             if (refuseDeletion) return 0;
             long id = ContentUris.parseId(uri);

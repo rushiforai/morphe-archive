@@ -66,7 +66,8 @@ public final class SessionBudget {
                 return thread;
             });
 
-    private static Clock clock = System::currentTimeMillis;
+    /** Volatile so {@link #now()} can read it without the lock a write to the record holds. */
+    private static volatile Clock clock = System::currentTimeMillis;
 
     /**
      * Read without the monitor by {@link #isLocked()}, which runs from the player's progress
@@ -162,6 +163,11 @@ public final class SessionBudget {
      * nothing to count and nothing to write, and this is checked before any lock is taken so the
      * off case costs one settings read.
      */
+    /** Whether any budget or reminder is set, so the player's per-second report has anything to ask. */
+    public static boolean isCounting() {
+        return counting();
+    }
+
     private static boolean counting() {
         return Settings.SESSION_BUDGET_VIDEOS.get() > 0
                 || Settings.SESSION_BUDGET_MINUTES.get() > 0
@@ -848,9 +854,7 @@ public final class SessionBudget {
 
     /** Now, on the budget's own clock, which a test can replace. */
     public static long now() {
-        synchronized (LOCK) {
-            return clock.now();
-        }
+        return clock.now();
     }
 
     // ------------------------------------------------------------------------------- for tests

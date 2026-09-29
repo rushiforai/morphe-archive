@@ -1,4 +1,4 @@
-rootProject.name = "goodnight-patches"
+rootProject.name = "morphe-patches"
 
 pluginManagement {
     repositories {

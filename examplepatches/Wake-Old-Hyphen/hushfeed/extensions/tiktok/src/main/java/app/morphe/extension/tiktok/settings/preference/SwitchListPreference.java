@@ -12,8 +12,11 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.Utils;
 import app.morphe.extension.tiktok.settings.L10n;
 
@@ -93,16 +96,56 @@ public final class SwitchListPreference extends Preference {
                 // Apply, not Save: one of the boxes in this dialog is the save button itself,
                 // and a dialog whose confirm action reads the same as one of its rows is a
                 // dialog people misread. The diagnostics picker says Apply for the same reason.
-                .setPositiveButton(L10n.t(context, "Apply"), (ignored, which) -> {
-                    for (int i = 0; i < items.size(); i++) {
-                        BooleanSetting setting = items.get(i).setting;
-                        if (setting.savedValue() != checked[i]) setting.save(checked[i]);
-                    }
-                    notifyChanged();
-                })
+                .setPositiveButton(L10n.t(context, "Apply"), null)
                 .setNegativeButton(L10n.t(context, "Cancel"), null)
                 .show();
         SettingsUi.styleStandardAlertDialog(dialog);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+            if (!view.isEnabled()) return;
+            Map<Setting<?>, Object> changes = new LinkedHashMap<>();
+            for (int i = 0; i < items.size(); i++) {
+                BooleanSetting setting = items.get(i).setting;
+                if (setting.savedValue() != checked[i]) changes.put(setting, checked[i]);
+            }
+            if (changes.isEmpty()) {
+                dialog.dismiss();
+                return;
+            }
+            setChoicesEnabled(dialog, false);
+            boolean accepted = app.morphe.extension.shared.Utils.runOnBackgroundThread(() -> {
+                boolean saved = false;
+                try {
+                    Setting.saveAll(changes);
+                    saved = true;
+                } catch (java.io.IOException failure) {
+                    app.morphe.extension.shared.Logger.printException(
+                            () -> "Could not save checklist choices", failure);
+                }
+                boolean success = saved;
+                app.morphe.extension.shared.Utils.runOnMainThread(() -> {
+                    setChoicesEnabled(dialog, true);
+                    if (success) {
+                        notifyChanged();
+                        dialog.dismiss();
+                    } else reportSaveFailure();
+                });
+            });
+            if (!accepted) {
+                setChoicesEnabled(dialog, true);
+                reportSaveFailure();
+            }
+        });
+    }
+
+    private static void setChoicesEnabled(AlertDialog dialog, boolean enabled) {
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(enabled);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(enabled);
+        dialog.getListView().setEnabled(enabled);
+    }
+
+    private void reportSaveFailure() {
+        app.morphe.extension.shared.Utils.showToastShort(L10n.t(getContext(),
+                "Couldn't save these choices. Try again."));
     }
 
     @Override

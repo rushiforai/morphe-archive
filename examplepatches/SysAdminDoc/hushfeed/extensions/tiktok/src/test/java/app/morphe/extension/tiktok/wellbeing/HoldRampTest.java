@@ -163,6 +163,52 @@ public class HoldRampTest {
         }
     }
 
+    /**
+     * The cover leaves the tab row readable, and goes when the reader takes it to Profile or
+     * Inbox. Leaving stops the player, whose callback draws the cover, so a layout pass is what
+     * takes it down; before, a nearly black cover stayed over those tabs.
+     */
+    @Test public void theCoverStopsAboveTheTabsAndLeavesWithTheFeed() {
+        Settings.SESSION_BUDGET_RAMP.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(10);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            android.widget.LinearLayout bar = new android.widget.LinearLayout(activity);
+            View home = new View(activity);
+            bar.addView(home, new android.widget.LinearLayout.LayoutParams(80, 60));
+            root.addView(bar, new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 60, android.view.Gravity.BOTTOM));
+            home.setSelected(true);
+            seedHomeTab(home);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            watch(30_000L);
+            sync();
+            View cover = HoldRamp.coverForTests();
+            assertNotNull("nothing covered the feed with thirty seconds left", cover);
+            int tabs = SessionLockOverlay.navigationHeight(activity, root);
+            assertTrue("the fixture has no tab row to keep clear: " + tabs, tabs > 0);
+            assertEquals("the cover ran over the tabs", tabs,
+                    ((ViewGroup.MarginLayoutParams) cover.getLayoutParams()).bottomMargin);
+
+            home.setSelected(false);
+            root.getViewTreeObserver().dispatchOnGlobalLayout();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertNull("the cover stayed over Inbox", HoldRamp.coverForTests());
+        } finally {
+            seedHomeTab(null);
+        }
+    }
+
+    private static void seedHomeTab(View homeTab) {
+        org.robolectric.util.ReflectionHelpers.setStaticField(
+                app.morphe.extension.tiktok.blockauthor.FeedVisibility.class,
+                "homeTabReference", new java.lang.ref.WeakReference<>(homeTab));
+    }
+
     /** And the ramp gets out of the way once the hold itself is up. */
     @Test public void theCoverGoesWhenTheHoldTakesOver() {
         Settings.SESSION_BUDGET_RAMP.save(true);

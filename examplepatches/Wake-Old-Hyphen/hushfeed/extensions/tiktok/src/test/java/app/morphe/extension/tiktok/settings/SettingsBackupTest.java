@@ -130,6 +130,35 @@ public class SettingsBackupTest {
                 SettingsBackup.foldersKept(legacy));
     }
 
+    /**
+     * A restore that kept a device folder wrote less than its file carries. Its journal, left
+     * behind by a failed delete, used to read at the next start as an interrupted restore and put
+     * the old settings back over a restore that had finished.
+     */
+    @Test public void aJournalLeftByARestoreThatKeptAFolderReadsAsCommitted() throws Exception {
+        Settings.DOWNLOAD_VIDEO_PATH.save("Pictures/Clips");
+        Settings.REGION_SPOOF.save(true);
+        String backup = SettingsBackup.create(false);
+        Settings.DOWNLOAD_VIDEO_PATH.save("Movies/Mine");
+        Settings.REGION_SPOOF.save(false);
+
+        SettingsOperationJournal.failCommittedDeletesForTests(true);
+        try {
+            SettingsBackup.restore(Utils.getContext(), backup, true);
+        } finally {
+            SettingsOperationJournal.failCommittedDeletesForTests(false);
+        }
+        assertTrue("no journal was left behind, so this checks nothing",
+                new java.io.File(Utils.getContext().getFilesDir(), "hushfeed-settings-operation.json").isFile());
+
+        SettingsOperationJournal.acquire(Utils.getContext()).complete();
+
+        assertTrue("the next start put a committed restore back", Settings.REGION_SPOOF.get());
+        assertEquals("Movies/Mine", Settings.DOWNLOAD_VIDEO_PATH.get());
+        assertEquals(SettingsOperationJournal.Recovery.ALREADY_COMMITTED,
+                SettingsOperationJournal.consumeRecoveryNotice());
+    }
+
     /** A folder that can't hold its kind keeps the device's; the rest restores; undo puts all back. */
     @Test public void aRestoredFolderThatCantHoldItsKindKeepsTheDevicesAndUndoPutsItAllBack()
             throws Exception {
@@ -168,6 +197,24 @@ public class SettingsBackupTest {
         return root.put("setting_keys", kept).toString();
     }
 
+    /**
+     * Undo used to leave its copy as it was and keep nothing of what it replaced, so an Undo a
+     * week after a restore wiped the week's changes with no way back. A second Undo brings them.
+     */
+    @Test public void aSecondUndoBringsBackWhatTheFirstReplaced() throws Exception {
+        Settings.MAX_VIDEO_SECONDS.save(11);
+        String restored = SettingsBackup.create(false);
+        Settings.MAX_VIDEO_SECONDS.save(22);
+        SettingsBackup.restore(Utils.getContext(), restored, true);
+        assertEquals(11, (int) Settings.MAX_VIDEO_SECONDS.get());
+        Settings.MAX_VIDEO_SECONDS.save(33);
+
+        SettingsBackup.undo(Utils.getContext());
+        assertEquals(22, (int) Settings.MAX_VIDEO_SECONDS.get());
+        SettingsBackup.undo(Utils.getContext());
+        assertEquals("the changes made after the restore were lost", 33, (int) Settings.MAX_VIDEO_SECONDS.get());
+    }
+
     @Test public void malformedLateValuesNeverPartiallyApplyOrReplaceUndo() throws Exception {
         Settings.MAX_VIDEO_SECONDS.save(42);
         SettingsBackup.reset(Utils.getContext());
@@ -197,6 +244,24 @@ public class SettingsBackupTest {
             assertThrows(Exception.class, () -> SettingsBackup.restore(Utils.getContext(), invalid, true));
             assertEquals(baseline, SettingsBackup.create(false));
         }
+    }
+
+    /**
+     * The Lab's own undo copy held the rules from before its last change. Pressed after a
+     * restore that wrote the Lab, it took back every rule the restore had put there.
+     */
+    @Test public void aRestoreThatWritesTheLabRetiresTheLabsOwnUndo() throws Exception {
+        java.io.File labUndo = new java.io.File(Utils.getContext().getFilesDir(), "feature-gate-lab-undo.json");
+        java.nio.file.Files.write(labUndo.toPath(), "{}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        JSONObject backup = new JSONObject(SettingsBackup.create(false));
+        backup.getJSONObject("lab").getJSONArray("rules").put(new JSONObject().put("manager", "abmock")
+                .put("key", "restored_gate").put("type", "BOOLEAN").put("value", "true").put("force", true));
+
+        SettingsBackup.restore(Utils.getContext(), backup.toString(), true);
+
+        assertEquals(1, FeatureGateLabStore.rules().size());
+        assertFalse("the Lab kept an undo that would take the restored rules back", labUndo.exists());
+        FeatureGateLabStore.resetAllLabData();
     }
 
     @Test public void aBackupWithMoreLabRulesThanTheLabKeepsIsRefusedByName() throws Exception {
@@ -481,6 +546,71 @@ public class SettingsBackupTest {
                 preference.getDeclaredMethod("failureMessage", int.class, Exception.class);
         message.setAccessible(true);
         return (String) message.invoke(null, 7312 /* IMPORT */, refusal);
+    }
+
+    /**
+     * A reset sets the setup Calm feed saved aside, and Undo brings it back with the settings.
+     * The card went on offering "Restore setup" after a reset, which would have put back what
+     * the reset had just cleared; dropping the setup instead lost it for good on Undo.
+     */
+    @Test public void aResetSetsTheCalmFeedSetupAsideAndUndoBringsItBack() throws Exception {
+        android.content.Context context = Utils.getContext();
+        Settings.HIDE_LIVE.save(false);
+        CalmFeedPreset.apply(context);
+        assertEquals(CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+
+        SettingsBackup.reset(context);
+        assertFalse("the Calm feed card still offers the setup from before the reset",
+                CalmFeedPreset.hasSnapshot(context));
+
+        SettingsBackup.undo(context);
+        assertEquals("Undo brought the settings back without the setup they came with",
+                CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+        CalmFeedPreset.restore(context);
+        assertFalse("the setup put back is not the one saved before Calm feed", Settings.HIDE_LIVE.get());
+
+        // Undo swaps with what it replaced: once more puts the reset back, with no setup to
+        // offer, and once more after that brings Calm feed back with the setup saved for it.
+        CalmFeedPreset.apply(context);
+        SettingsBackup.undo(context);
+        assertFalse("the reset came back with a setup from before it", CalmFeedPreset.hasSnapshot(context));
+        SettingsBackup.undo(context);
+        assertEquals(CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+    }
+
+    /**
+     * A restore that fails after writing the undo copy leaves Undo on offer, and the banner asks
+     * for it when putting things back needs it. The Calm feed setup went aside only once a
+     * restore had worked, so that Undo swapped in whatever an earlier reset had left there, or
+     * nothing, and took the current setup away; a reset and Undo after that lost it for good.
+     */
+    @Test public void anUndoAfterAFailedImportKeepsTheCalmFeedSetup() throws Exception {
+        android.content.Context context = Utils.getContext();
+        Settings.HIDE_LIVE.save(false);
+        CalmFeedPreset.apply(context);
+        JSONObject next = new JSONObject(SettingsBackup.create(false));
+        next.getJSONObject("settings").put(Settings.REGION_SPOOF.key, true);
+        var original = Setting.preferences.preferences;
+        var field = app.morphe.extension.shared.settings.preference.SharedPrefCategory.class
+                .getDeclaredField("preferences");
+        field.setAccessible(true);
+        field.set(Setting.preferences, failingCommits(original, () -> true, () -> {}));
+        try {
+            assertThrows(Exception.class, () -> SettingsBackup.restore(context, next.toString(), true));
+        } finally {
+            field.set(Setting.preferences, original);
+        }
+        assertEquals(CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+
+        SettingsBackup.undo(context);
+        assertEquals("the Undo after a failed import took the Calm feed setup away",
+                CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+        SettingsBackup.reset(context);
+        SettingsBackup.undo(context);
+        assertEquals("a reset and its Undo lost the setup",
+                CalmFeedPreset.State.ACTIVE, CalmFeedPreset.state(context));
+        CalmFeedPreset.restore(context);
+        assertFalse("the setup put back is not the one saved before Calm feed", Settings.HIDE_LIVE.get());
     }
 
     @Test public void resetAndUndoRestoreBothStoresAndSurviveAnUnrelatedSettingChange() throws Exception {
@@ -1372,6 +1502,215 @@ public class SettingsBackupTest {
                     String.valueOf(reset.getSummary()));
             assertEquals(restingExport, String.valueOf(export.getSummary()));
         }
+    }
+
+    @Test public void aFailedSafBackupOpenRemovesOnlyItsCreatedDocument() throws Exception {
+        assertFailedSafBackupRemoved("open");
+    }
+
+    @Test public void aFailedSafBackupWriteRemovesOnlyItsCreatedDocument() throws Exception {
+        assertFailedSafBackupRemoved("write");
+    }
+
+    @Test public void aFailedSafBackupCloseRemovesOnlyItsCreatedDocument() throws Exception {
+        assertFailedSafBackupRemoved("close");
+    }
+
+    @Test public void aBackupRefusedBeforeSerializationRemovesItsCreatedDocument() throws Exception {
+        assertFailedSafBackupRemoved("serialize");
+    }
+
+    private void assertFailedSafBackupRemoved(String failure) throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            if (failure.equals("open")) provider.failOpen = true;
+            else if (failure.equals("serialize")) {
+                storedByAnOlderBuild(Settings.LOCAL_HIDDEN_CREATORS,
+                        ruleEntries(FeedRuleLimits.MAX_ENTRIES + 1));
+            } else {
+                Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(provider.uri,
+                        new java.io.OutputStream() {
+                            @Override public void write(int value) throws java.io.IOException {
+                                if (failure.equals("write")) throw new java.io.IOException("injected write failure");
+                            }
+                            @Override public void close() throws java.io.IOException {
+                                if (failure.equals("close")) throw new java.io.IOException("injected close failure");
+                            }
+                        });
+            }
+            fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(failure + " left the file created by the picker behind", provider.awaitDeletion());
+            assertFalse(provider.exists);
+            assertEquals(1, provider.deleteCalls);
+        }
+    }
+
+    @Test public void aSuccessfulSafBackupIsKeptAndCanBeReadAsJson() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(provider.exists);
+            assertEquals(0, provider.deleteCalls);
+            assertEquals("hushfeed-settings", new JSONObject(new String(java.nio.file.Files.readAllBytes(
+                    provider.file.toPath()), StandardCharsets.UTF_8)).getString("format"));
+            Preference undo = fragment.findPreference("settings_backup_7314");
+            assertFalse("an export must not create a settings Undo", undo.isEnabled());
+            assertEquals("completion replaced the missing-Undo explanation", "Nothing to undo yet.",
+                    undo.getSummary().toString());
+        }
+    }
+
+    @Test public void failedSafCleanupNamesTheChosenFileWithoutAssumingDownloads() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            provider.failOpen = true;
+            provider.refuseDeletion = true;
+            ShadowToast.reset();
+            fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("cleanup was never attempted", provider.awaitDeletion());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            String message = ShadowToast.getTextOfLatestToast();
+            assertNotNull(message);
+            assertTrue("the abandoned file was not disclosed: " + message,
+                    message.contains("partial file") && message.contains("couldn't be removed"));
+            assertFalse("the picker may have selected a cloud folder", message.contains("Downloads"));
+            assertTrue(provider.exists);
+        }
+    }
+
+    @Test public void aRejectedBackupWorkerStillCleansItsNewSafDocument() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            try (BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill()) {
+                fragment.onActivityResult(7311, android.app.Activity.RESULT_OK,
+                        new Intent().setData(provider.uri));
+                assertTrue("worker rejection leaked the picker-created document", provider.awaitDeletion());
+                assertFalse(provider.exists);
+            }
+        }
+    }
+
+    @Test public void aDetachedBackupResultStillCleansItsNewSafDocument() throws Exception {
+        var application = RuntimeEnvironment.getApplication();
+        Utils.setContext(application);
+        var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(application);
+        SettingsBackupPreference.onResult(new TikTokPreferenceFragment(), 7311,
+                android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+        assertTrue("a detached result abandoned its new file", provider.awaitDeletion());
+        assertFalse(provider.exists);
+    }
+
+    @Test public void aBusyBackupResultCleansOnlyItsFileWithoutUnlockingTheOtherRun() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            var field = SettingsBackupPreference.class.getDeclaredField("BUSY");
+            field.setAccessible(true);
+            var busy = (java.util.concurrent.atomic.AtomicBoolean) field.get(null);
+            busy.set(true);
+            try {
+                fragment.onActivityResult(7311, android.app.Activity.RESULT_OK,
+                        new Intent().setData(provider.uri));
+                assertTrue("a second result leaked its new file", provider.awaitDeletion());
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertTrue("cleanup released another operation's guard", busy.get());
+            } finally {
+                busy.set(false);
+            }
+        }
+    }
+
+    @Test public void aFailedImportNeverDeletesTheSelectedSourceDocument() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            provider.failOpen = true;
+            fragment.onActivityResult(7312, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(provider.exists);
+            assertEquals(0, provider.deleteCalls);
+        }
+    }
+
+    @Test public void backupRowsStayDisabledAfterRebindingAndRecreationDuringAWrite() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            SettingsBackup.reset(activity);
+            assertTrue("fixture needs an existing Undo", SettingsBackup.hasUndo(activity));
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            var entered = new java.util.concurrent.CountDownLatch(1);
+            var release = new java.util.concurrent.CountDownLatch(1);
+            Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(provider.uri,
+                    new ByteArrayOutputStream() {
+                        @Override public synchronized void write(byte[] bytes, int offset, int count) {
+                            entered.countDown();
+                            try {
+                                if (!release.await(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                                    throw new IllegalStateException("test never released export");
+                                }
+                            } catch (InterruptedException failure) {
+                                throw new IllegalStateException(failure);
+                            }
+                            super.write(bytes, offset, count);
+                        }
+                    });
+            fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+            try {
+                assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+                Preference undo = fragment.findPreference("settings_backup_7314");
+                undo.getView(null, null);
+                assertFalse("binding Undo re-enabled it while export was still writing", undo.isEnabled());
+                activity.getFragmentManager().beginTransaction().remove(fragment).commit();
+                activity.getFragmentManager().executePendingTransactions();
+                var replacement = attachBackupPage(activity);
+                for (int action = 7311; action <= 7314; action++) {
+                    Preference row = replacement.findPreference("settings_backup_" + action);
+                    row.getView(null, null);
+                    assertFalse("a recreated row ignored the running operation: " + action, row.isEnabled());
+                }
+            } finally {
+                release.countDown();
+                Utils.awaitBackgroundTasksForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+            }
+        }
+    }
+
+    private static TikTokPreferenceFragment attachBackupPage(android.app.Activity activity) {
+        var fragment = new TikTokPreferenceFragment();
+        Bundle arguments = new Bundle();
+        arguments.putString("morphe_settings_section", "BACKUP");
+        fragment.setArguments(arguments);
+        activity.getFragmentManager().beginTransaction()
+                .replace(android.R.id.content, fragment).commit();
+        activity.getFragmentManager().executePendingTransactions();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        return fragment;
     }
 
     private static Preference backupRow(TikTokPreferenceFragment fragment, String title) {

@@ -36,14 +36,15 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
  * it keeps that tab. Each reads and writes only registers Facebook's own code already uses there.
  *
  * Off in the default selection: it changes where Facebook opens, which is a choice to make. Picked,
- * its switch starts on and the tab starts as Marketplace.
+ * its switch still starts off and the tab starts as Marketplace.
  */
 @Suppress("unused")
 val openOnChosenTabPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Open on a chosen tab",
     description = "Opens Facebook on the tab you pick in Hushfacebook's settings when you start it from its icon. " +
-        "It's Marketplace unless you change it. Notifications and links still open where they lead.",
+        "It's Marketplace unless you change it. Notifications and links still open where they lead. " +
+        "Its switch starts off, so turn it on under Opening Facebook.",
     default = false,
 ) {
     category("Interface")

@@ -21,11 +21,23 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.json.JSONObject;
 
 final class VideoDownloads {
     private static final Set<String> ACTIVE = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    /** The videos whose already-saved choice is on screen, a subset of {@link #ACTIVE}. */
+    private static final Set<String> ASKING = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     private VideoDownloads() {}
+
+    /**
+     * One save of a video, into the row that follows it. Not Consumer: java.util.function arrived
+     * at API 24 and D8 can't backport a type, so on Android 6 every save through here threw
+     * NoClassDefFoundError with the video's id still held. Lint doesn't flag it.
+     */
+    private interface Save {
+        void accept(SaveProgress progress);
+    }
 
     /**
      * The rendition a download takes: the chosen quality, or on Automatic the highest when
@@ -51,6 +63,8 @@ final class VideoDownloads {
         boolean muted = Settings.DOWNLOAD_WITHOUT_SOUND.get();
         boolean withDetails = Settings.DOWNLOAD_DETAILS.get();
         boolean checkSaved = Settings.CHECK_SAVED_VIDEOS.get();
+        // Read as the save is accepted: a forget in settings while it runs leaves it unrecorded.
+        long archiveGeneration = SavedVideoArchive.generation();
         boolean showProgress = Settings.DOWNLOAD_PROGRESS.get();
         boolean extras = withDetails || checkSaved || showProgress;
         // Photo posts can carry a video model too. Their own save keeps stills and live photos.
@@ -65,14 +79,16 @@ final class VideoDownloads {
         if (selected == null && captions.isEmpty() && !muted && !extras) return false;
         List<String> selectedUrls = urls(Reflect.property(selected, "getPlayAddr", "playAddr"));
         if (selected == null) {
-            selectedUrls = sourceUrls(video);
+            selectedUrls = automaticUrls(video);
         }
         List<String> videoUrls = List.copyOf(selectedUrls);
         boolean dash = selected != null && Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"));
         List<String> audioUrls = dash ? List.copyOf(audioUrls(video, selected)) : Collections.emptyList();
         boolean unavailable = videoUrls.isEmpty() || (dash && !muted && audioUrls.isEmpty());
         if (unavailable && !checkSaved) {
-            if (extras) {
+            // A details file can't come from TikTok's own save, so that save is refused here. A
+            // progress row alone is no reason to refuse one TikTok could still have made.
+            if (withDetails) {
                 Utils.showToastLong(L10n.t("This video isn't available as a complete file. Try again later."));
                 return true;
             }
@@ -107,24 +123,38 @@ final class VideoDownloads {
         }
         final String audioNameSnapshot = audioName;
         List<SubtitleDownloads.Track> captionSnapshot = List.copyOf(captions);
-        if (!ACTIVE.add(id)) return true;
-        Runnable save = () -> {
+        String key = "video " + id;
+        if (!ACTIVE.add(id)) {
+            // Said rather than swallowed, so a second tap doesn't read as a broken button.
+            Utils.showToastShort(ASKING.contains(id) ? L10n.t("The saved-video choice is still open")
+                    : MediaJobScheduler.busyMessage(key));
+            return true;
+        }
+        // Everything from here is one save of this video until it lets go of the id: its wait in
+        // line, the already-saved check, the choice that check may ask for and the save itself.
+        // Whichever of them ends it lets go, and letting go a second time does nothing.
+        AtomicBoolean held = new AtomicBoolean(true);
+        Runnable release = () -> {
+            if (!held.compareAndSet(true, false)) return;
+            ASKING.remove(id);
+            ACTIVE.remove(id);
+        };
+        // The video, the sound beside it when wanted, then each subtitle track. From three files
+        // up, or with progress asked for, a row follows the save from the moment it is accepted.
+        int files = 1 + (details != null ? 1 : 0) + (audioNameSnapshot != null ? 1 : 0) + captionSnapshot.size();
+        Save save = progress -> {
             // A source is needed for a new copy, but a remembered file can still be opened
             // after TikTok stops supplying a download address for this post.
             if (unavailable) {
-                ACTIVE.remove(id);
                 Utils.showToastLong(L10n.t("This video isn't available as a complete file. Try again later."));
                 return;
             }
             Utils.showToastShort(L10n.f("Saving video to %1$s", path));
             List<File> temporary = new ArrayList<>();
-            // The video, the sound beside it when wanted, then each subtitle track. From three
-            // files up a row counts them and offers Cancel, which lets the file under way finish
-            // and leaves the rest. The video is the save itself: when it fails nothing else is
-            // tried; a sound or a track that fails is skipped, and the result says so.
-            int files = 1 + (details != null ? 1 : 0) + (audioNameSnapshot != null ? 1 : 0) + captionSnapshot.size();
+            // The row offers Cancel, which lets the file under way finish and leaves the rest.
+            // The video is the save itself: when it fails nothing else is tried; a sound or a
+            // track that fails is skipped, and the result says so.
             int firstSubtitle = files - captionSnapshot.size();
-            SaveProgress progress = SaveProgress.begin(files, showProgress);
             MediaFileWriter.Saved[] published = {null};
             File[] picture = {null};
             File[] sound = {null};
@@ -163,12 +193,12 @@ final class VideoDownloads {
                             }
                             published[0] = MediaFileWriter.publishForResult(app, result, name, "video/mp4", path, true);
                         } catch (IOException | RuntimeException failure) {
-                            progress.cancel();
+                            progress.stop();
                             throw failure;
                         }
                         if (checkSaved) {
                             try {
-                                SavedVideoArchive.remember(app, id, published[0]);
+                                SavedVideoArchive.remember(app, id, published[0], archiveGeneration);
                                 remembered[0] = true;
                             } catch (RuntimeException failure) {
                                 Logger.printException(() -> "Could not remember the saved video", failure);
@@ -184,7 +214,7 @@ final class VideoDownloads {
                         // isn't taken down.
                         // The writer says a failure by toast and answers false; the count has
                         // to know, or a lost sound would read as a save with everything in it.
-                        if (!AudioDownloads.write(app, audioNameSnapshot, sound[0] == null ? picture[0] : sound[0], false)) {
+                        if (!AudioDownloads.write(app, audioNameSnapshot, sound[0] == null ? picture[0] : sound[0], path, false)) {
                             soundSkipped[0] = true;
                             throw new IOException("The sound beside the video was not saved");
                         }
@@ -210,32 +240,44 @@ final class VideoDownloads {
                 Utils.showToastLong(L10n.t("The video couldn't be saved. Try again, or choose Automatic."));
             } finally {
                 for (File file : temporary) if (!MediaCache.delete(file)) Logger.printInfo(() -> "Could not remove video temporary file");
-                ACTIVE.remove(id);
             }
         };
-        boolean submitted = MediaJobScheduler.submit("video", () -> {
+        // Save again on the already-saved choice, on the main thread. The choice keeps the id
+        // held for this second job, which lets go when it ends, or at once when the line is full.
+        Runnable saveAgain = () -> {
+            ASKING.remove(id);
+            SaveProgress again = SaveProgress.queued(files, showProgress);
+            again.submit("video", key, () -> save.accept(again), release);
+            again.acknowledge(null, L10n.t("Waiting to save video"));
+        };
+        SaveProgress first = SaveProgress.queued(files, showProgress);
+        AtomicBoolean asking = new AtomicBoolean();
+        MediaJobScheduler.Job job = first.submit("video", key, () -> {
             if (checkSaved) {
                 try {
                     MediaFileWriter.Saved previous = SavedVideoArchive.find(app, id);
                     if (previous != null) {
-                        SavedVideoArchive.offer(previous, () -> {
-                            if (!MediaJobScheduler.submit("video", save)) ACTIVE.remove(id);
-                        }, () -> ACTIVE.remove(id));
+                        // The choice owns the save from here, so the end of this job leaves
+                        // the id held, and a row that came up for a save goes before it asks.
+                        first.dismiss();
+                        asking.set(true);
+                        ASKING.add(id);
+                        SavedVideoArchive.offer(previous, saveAgain, release);
                         return;
                     }
                 } catch (RuntimeException failure) {
-                    ACTIVE.remove(id);
                     Logger.printException(() -> "Could not check for an already-saved video", failure);
                     Utils.showToastLong(L10n.t("The already-saved check failed. Try again."));
                     return;
                 }
             }
-            save.run();
+            save.accept(first);
+        }, () -> {
+            if (!asking.get()) release.run();
         });
-        if (!submitted) {
-            ACTIVE.remove(id);
-            return extras;
-        }
+        if (job == null) return extras;
+        // The save's own start says where it is going a moment later; only a wait needs a word now.
+        first.acknowledge(null, L10n.t("Waiting to save video"));
         return true;
     }
 
@@ -259,6 +301,17 @@ final class VideoDownloads {
     }
 
     /** Every address the video itself can be fetched from, best first. */
+    /**
+     * Automatic, taken over for a switch like details or progress, keeps to the file TikTok's
+     * own save would have made: the stamped one while Remove watermark is off. It fetched the
+     * clean one whatever that switch said.
+     */
+    static List<String> automaticUrls(Object video) {
+        if (DownloadsPatch.shouldRemoveWatermark()) return sourceUrls(video);
+        List<String> stamped = urls(Reflect.property(video, "getDownloadAddr", "downloadAddr"));
+        return stamped.isEmpty() ? sourceUrls(video) : stamped;
+    }
+
     static List<String> sourceUrls(Object video) {
         List<String> found = urls(Reflect.property(video, "getDownloadNoWatermarkAddr", "downloadNoWatermarkAddr"));
         if (found.isEmpty()) found = urls(Reflect.property(video, "getDownloadAddr", "downloadAddr"));

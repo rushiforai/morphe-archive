@@ -131,6 +131,27 @@ public final class FeedVisibility {
     }
 
     /**
+     * The pager a video opened from a profile, a hashtag, a sound or search plays in. It is an
+     * activity of its own, holding the same feed cell with the same right column ids (read off
+     * the S22 on 47.0.3, 2026-09-28, and named in both builds' manifests). The overlay hides,
+     * Hushfeed's own controls over the video and Mute feed videos follow it there (#47). The tab
+     * strip and the status bar belong to the main feed and are left as TikTok sets them here.
+     */
+    static final String DETAIL_PAGER = "com.ss.android.ugc.aweme.detail.ui.DetailActivity";
+    private static final String MAIN_ACTIVITY = "com.ss.android.ugc.aweme.main.MainActivity";
+
+    /** The main feed, or a detail pager playing the same kind of cell. */
+    public static boolean isFeedWindow(Activity activity) {
+        if (activity == null) return false;
+        String name = activity.getClass().getName();
+        return MAIN_ACTIVITY.equals(name) || DETAIL_PAGER.equals(name);
+    }
+
+    public static boolean isDetailPager(Object activity) {
+        return activity instanceof Activity && DETAIL_PAGER.equals(activity.getClass().getName());
+    }
+
+    /**
      * @return true when the feed is showing. Unknown states report true so a TikTok build
      *         that renames the tab loses the hiding behaviour rather than the button.
      *

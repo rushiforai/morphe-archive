@@ -11,6 +11,8 @@ class ConstantsTest {
         assertEquals(
             listOf(
                 "2.0.20" to 5001712,
+                "2.0.20" to 5001812,
+                "2.0.21" to 5001968,
                 "2.0.22" to 5002244,
             ),
             Constants.COMPATIBILITIES_STEAM_LINK_LEGACY.targets(),
@@ -48,11 +50,11 @@ class ConstantsTest {
         assertFalse(Constants.isEarlierStartupSteamLinkBuild("2.0.22", "5002322"))
         assertFalse(Constants.isLegacyXrFoundationSteamLinkBuild("2.0.22", "5001712"))
         assertEquals(
-            listOf(5001712, 5002244, 5002363),
+            listOf(5001712, 5001812, 5001968, 5002244, 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK.versionCodes(),
         )
         assertEquals(
-            listOf(5001712, 5002244, 5002363),
+            listOf(5001712, 5001812, 5001968, 5002244, 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.versionCodes(),
         )
         assertEquals(
@@ -60,7 +62,7 @@ class ConstantsTest {
             Constants.COMPATIBILITIES_STEAM_LINK_5002363.targets(),
         )
         assertEquals(
-            listOf(5001712, 5002244),
+            listOf(5001712, 5001812, 5001968, 5002244),
             Constants.COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE.versionCodes(),
         )
         assertEquals(
@@ -87,7 +89,7 @@ class ConstantsTest {
             Constants.COMPATIBILITIES_STEAM_LINK_LEGACY_RECOMMENDED.versionCodes(),
         )
         assertEquals(
-            listOf(5001712, 5002244, 5002363),
+            listOf(5001712, 5001812, 5001968, 5002244, 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.versionCodes(),
         )
     }

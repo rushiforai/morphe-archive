@@ -50,7 +50,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
-        run: ./gradlew :patches:buildAndroid --no-daemon --stacktrace
+        run: |
+          VERSION_FLAG=""
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            TAG_VER="${GITHUB_REF#refs/tags/v}"
+            VERSION_FLAG="-Pversion=${TAG_VER}"
+          fi
+          ./gradlew :patches:buildAndroid $VERSION_FLAG --no-daemon --stacktrace
 
       - name: Upload MPP Patch Bundle Artifact
         uses: actions/upload-artifact@v4

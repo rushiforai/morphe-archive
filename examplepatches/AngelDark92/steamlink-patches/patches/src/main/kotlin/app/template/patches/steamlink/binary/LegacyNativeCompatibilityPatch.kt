@@ -133,6 +133,44 @@ private val NATIVE_LAYOUTS = listOf(
         ),
     ),
     NativeLayoutEdits(
+        versionName = "2.0.20",
+        versionCode = 5001812,
+        fileSize = 2_220_872,
+        stockSha256 = "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a",
+        permissionNames = permissionNameEdits(0x99862, 0xA1985, locateByPattern = false),
+        hmdInitialization = listOf(
+            NativeEdit(0xFFC5C, byteArrayOf(0xe0.toByte(), 0x00, 0x00, 0x36), NOP),
+            NativeEdit(0xFFC64, byteArrayOf(0xa8.toByte(), 0x00, 0x00, 0x34), NOP),
+        ),
+        lobbyPermissionState = listOf(
+            NativeEdit(0x10DC70, byteArrayOf(0x14, 0x04, 0x00, 0x36), NOP),
+        ),
+        streamInitialization = listOf(
+            NativeEdit(0x1166C4, byteArrayOf(0x68, 0x00, 0x00, 0x35), NOP),
+            NativeEdit(0x1166CC, byteArrayOf(0x68, 0x05, 0x00, 0x34), NOP),
+            NativeEdit(0x116780, byteArrayOf(0xa8.toByte(), 0x05, 0x00, 0x34), NOP),
+        ),
+    ),
+    NativeLayoutEdits(
+        versionName = "2.0.21",
+        versionCode = 5001968,
+        fileSize = 2_234_048,
+        stockSha256 = "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192",
+        permissionNames = permissionNameEdits(0x9334F, 0x9B7AB, locateByPattern = false),
+        hmdInitialization = listOf(
+            NativeEdit(0xFBC04, byteArrayOf(0xe0.toByte(), 0x00, 0x00, 0x36), NOP),
+            NativeEdit(0xFBC0C, byteArrayOf(0xa8.toByte(), 0x00, 0x00, 0x34), NOP),
+        ),
+        lobbyPermissionState = listOf(
+            NativeEdit(0x109BF0, byteArrayOf(0x14, 0x04, 0x00, 0x36), NOP),
+        ),
+        streamInitialization = listOf(
+            NativeEdit(0x112644, byteArrayOf(0x68, 0x00, 0x00, 0x35), NOP),
+            NativeEdit(0x11264C, byteArrayOf(0x68, 0x05, 0x00, 0x34), NOP),
+            NativeEdit(0x112700, byteArrayOf(0xa8.toByte(), 0x05, 0x00, 0x34), NOP),
+        ),
+    ),
+    NativeLayoutEdits(
         versionName = "2.0.22",
         versionCode = 5002244,
         fileSize = 2_251_920,
@@ -170,6 +208,7 @@ private fun applyLayoutNativeEdits(
                 "expected ${layout.fileSize}, stockSha256=${layout.stockSha256}",
         )
     }
+    verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
     return applyNativeEdits(
         bytes,
         "$patchName (versionCode ${layout.versionCode})",
@@ -220,6 +259,7 @@ internal fun patchNativePermissionNames(
         )
     }
     if (layout == null && NATIVE_LAYOUTS.any { it.fileSize == bytes.size }) return bytes.copyOf()
+    verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
     return applyNativeEdits(
         bytes,
         layout?.let {
@@ -260,7 +300,7 @@ internal fun patchStreamXrGates(
 @Suppress("unused")
 val androidXrNativePermissionNamesPatch = rawResourcePatch(
     name = "Android XR native permission names",
-    description = "Replaces native Oculus face/eye permission checks with the Android XR permission names used by Galaxy XR, including the verified Steam Link 5001712 layout.",
+    description = "Replaces native Oculus face/eye permission checks with the Android XR permission names used by Galaxy XR on exact Steam Link 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, and 2.0.22/5002244 layouts.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -280,7 +320,7 @@ val androidXrNativePermissionNamesPatch = rawResourcePatch(
 @Suppress("unused")
 val forceHmdInitializationGatesPatch = rawResourcePatch(
     name = "Force HMD initialization gates",
-    description = "Bypasses the two verified capability gates in QSVLDeviceHmd::Init for Steam Link builds 5001712 and 5002244.",
+    description = "Bypasses the 2 verified capability gates in QSVLDeviceHmd::Init for exact Steam Link 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, and 2.0.22/5002244 layouts.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -298,7 +338,7 @@ val forceHmdInitializationGatesPatch = rawResourcePatch(
 @Suppress("unused")
 val forceLobbyPermissionStateGatePatch = rawResourcePatch(
     name = "Force lobby permission-state gate",
-    description = "Bypasses the verified permission-state gate in XrSceneLobby for Steam Link builds 5001712 and 5002244.",
+    description = "Bypasses the verified permission-state gate in XrSceneLobby for exact Steam Link 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, and 2.0.22/5002244 layouts.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())
@@ -316,7 +356,7 @@ val forceLobbyPermissionStateGatePatch = rawResourcePatch(
 @Suppress("unused")
 val forceStreamXrGatesPatch = rawResourcePatch(
     name = "Force stream XR gates",
-    description = "Bypasses the three verified XR gates in builds 5001712 and 5002244.",
+    description = "Bypasses the 3 verified XR gates in exact Steam Link 2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, and 2.0.22/5002244 layouts.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_LEGACY.toTypedArray())

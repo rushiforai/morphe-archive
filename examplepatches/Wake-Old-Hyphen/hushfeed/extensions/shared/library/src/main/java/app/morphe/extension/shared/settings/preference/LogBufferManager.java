@@ -99,24 +99,27 @@ public final class LogBufferManager {
         final app.morphe.extension.shared.diagnostics.FeedFilterCounters.Snapshot feedFilter;
         final String javaCrash;
         final String nativeCrash;
+        final List<String> layout;
 
         ClearSnapshot(
                 List<DiagnosticEvent> events,
                 app.morphe.extension.shared.diagnostics.HookStatus.Snapshot hooks,
                 app.morphe.extension.shared.diagnostics.FeedFilterCounters.Snapshot feedFilter,
                 String javaCrash,
-                String nativeCrash
+                String nativeCrash,
+                List<String> layout
         ) {
             this.events = events;
             this.hooks = hooks;
             this.feedFilter = feedFilter;
             this.javaCrash = javaCrash;
             this.nativeCrash = nativeCrash;
+            this.layout = layout;
         }
 
         boolean isEmpty() {
             return events.isEmpty() && hooks.isEmpty() && feedFilter.isEmpty()
-                    && javaCrash.isEmpty() && nativeCrash.isEmpty();
+                    && javaCrash.isEmpty() && nativeCrash.isEmpty() && layout.isEmpty();
         }
     }
 
@@ -143,10 +146,10 @@ public final class LogBufferManager {
         DiagnosticEvent event = new DiagnosticEvent(
                 category,
                 System.currentTimeMillis(),
-                Thread.currentThread().getName(),
-                safe(source),
-                safe(level),
-                safe(message)
+                DiagnosticRedactor.redact(Thread.currentThread().getName()),
+                DiagnosticRedactor.redact(source),
+                DiagnosticRedactor.redact(level),
+                DiagnosticRedactor.redact(message)
         );
         int eventSize = event.format().length();
         synchronized (CLEAR_UNDO_LOCK) {
@@ -362,7 +365,11 @@ public final class LogBufferManager {
         // A table with a miss in it is different. Those events are the oldest in the buffer and
         // are the first evicted, so on a badly broken build the table is exactly what would be
         // dropped, and it is the thing the report exists to carry.
+        // A recorded screen layout is something the reader asked for by name, so it makes a
+        // report worth sending on its own and ignores "Included diagnostics".
+        List<String> layout = app.morphe.extension.shared.diagnostics.ScreenLayout.lines();
         boolean worthReporting = paused || !crash.isEmpty() || !npthCrash.isEmpty() || events.length() > 0
+                || !layout.isEmpty()
                 || (hooks.length() > 0
                         && app.morphe.extension.shared.diagnostics.HookStatus.anyMissing());
         if (!worthReporting) return "";
@@ -426,6 +433,14 @@ public final class LogBufferManager {
             report.append("\n\n[SELECTED EVENTS]\n")
                     .append("category | timestamp | thread | source | level | message\n")
                     .append(events);
+        }
+        // Last, because the quick copy keeps the end of a long report: the layout is bounded
+        // below the clipboard limit, so a copied report always carries all of it.
+        if (!layout.isEmpty()) {
+            report.append("\n\n[SCREEN LAYOUT]\n");
+            for (String line : layout) {
+                report.append(DiagnosticRedactor.redact(line)).append('\n');
+            }
         }
         return report.toString();
     }
@@ -563,11 +578,15 @@ public final class LogBufferManager {
     /** Writes while the diagnostic generation lock is already held. */
     private static void persistCrashReportLocked(Context context, String fileName, String report)
             throws Exception {
-        byte[] bytes = safe(report).getBytes(StandardCharsets.UTF_8);
+        String sanitized = DiagnosticRedactor.redact(report);
+        if (sanitized.contains("[diagnostic text truncated]")) {
+            sanitized = sanitized.replaceFirst("(?m)^complete: true$", "complete: false");
+        }
+        byte[] bytes = sanitized.getBytes(StandardCharsets.UTF_8);
         if (bytes.length > CRASH_MAX_BYTES) {
             // The header's own claim goes with the cut. The marker at the end said the report
             // was cut while its first lines still said it was complete.
-            bytes = safe(report).replaceFirst("(?m)^complete: true$", "complete: false")
+            bytes = sanitized.replaceFirst("(?m)^complete: true$", "complete: false")
                     .getBytes(StandardCharsets.UTF_8);
         }
         int length = Math.min(bytes.length, CRASH_MAX_BYTES);
@@ -646,7 +665,8 @@ public final class LogBufferManager {
                     app.morphe.extension.shared.diagnostics.HookStatus.snapshotAndClear(),
                     app.morphe.extension.shared.diagnostics.FeedFilterCounters.snapshotAndClear(),
                     readCrashReport(context),
-                    readNpthCrashReport(context)
+                    readNpthCrashReport(context),
+                    app.morphe.extension.shared.diagnostics.ScreenLayout.snapshotAndClear()
             );
             clearLogBufferData();
             clearCrashReports(context);
@@ -680,6 +700,7 @@ public final class LogBufferManager {
                     restoreLogBufferData(saved.events);
                     app.morphe.extension.shared.diagnostics.HookStatus.restore(saved.hooks);
                     app.morphe.extension.shared.diagnostics.FeedFilterCounters.restore(saved.feedFilter);
+                    app.morphe.extension.shared.diagnostics.ScreenLayout.restore(saved.layout);
                     lastClear = null;
                     result = UndoResult.RESTORED;
                 } catch (Exception error) {

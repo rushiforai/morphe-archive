@@ -4,10 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Looper;
 import android.preference.DialogPreference;
@@ -17,6 +19,7 @@ import android.preference.PreferenceScreen;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.InputCheckTest;
@@ -28,10 +31,12 @@ import java.util.Calendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -50,6 +55,8 @@ import org.robolectric.shadows.ShadowToast;
 @Config(sdk = 28)
 @SuppressWarnings("deprecation")
 public class BudgetWaitSettingsTest {
+    @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+
     private final AtomicLong now = new AtomicLong();
     private final Map<Field, Boolean> statuses = new LinkedHashMap<>();
 
@@ -129,6 +136,132 @@ public class BudgetWaitSettingsTest {
 
         assertEquals(60, (int) Settings.SESSION_BUDGET_MINUTES.get());
         assertEquals(0, BudgetChanges.appliesAt());
+    }
+
+    @Test public void aFailedPendingWriteKeepsTheNumberDialogOpenForRetry() throws Exception {
+        Preference row = savingPage().findPreference(Settings.SESSION_BUDGET_MINUTES.key);
+        AlertDialog dialog;
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(keys -> true, false)) {
+            dialog = typeAndSave(row, "60");
+            assertTrue("an unsaved change closed its editor", dialog.isShowing());
+            assertEquals("60", ((EditTextPreference) row).getEditText().getText().toString());
+            assertSaveFailureIsVisible(dialog);
+            assertNull(BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+        }
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(dialog.isShowing());
+        assertEquals(60, BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+    }
+
+    @Test public void aFailedPendingRemovalCannotLetATighteningAppearSaved() throws Exception {
+        BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get());
+        Preference row = savingPage().findPreference(Settings.SESSION_BUDGET_MINUTES.key);
+        AlertDialog dialog;
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(
+                keys -> keys.contains(Settings.SESSION_BUDGET_PENDING.key), false)) {
+            dialog = typeAndSave(row, "20");
+            assertTrue("the old loosening still waits, so the tightening must be refused", dialog.isShowing());
+            assertEquals(30, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+            assertEquals(60, BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+            assertSaveFailureIsVisible(dialog);
+        }
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(dialog.isShowing());
+        assertEquals(20, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+        assertNull(BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+    }
+
+    @Test public void aFailedTighteningWriteKeepsItsCurrentValueAndPendingChangeForRetry() throws Exception {
+        BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get());
+        String pending = Settings.SESSION_BUDGET_PENDING.savedValue();
+        Preference row = savingPage().findPreference(Settings.SESSION_BUDGET_MINUTES.key);
+        AlertDialog dialog;
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(
+                keys -> keys.contains(Settings.SESSION_BUDGET_MINUTES.key), false)) {
+            dialog = typeAndSave(row, "20");
+            assertEquals(30, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+            assertEquals("the failed replacement discarded tomorrow's change", 60,
+                    BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+            assertEquals(pending, Settings.SESSION_BUDGET_PENDING.savedValue());
+            assertTrue("the failed replacement closed its editor", dialog.isShowing());
+            assertEquals("20", ((EditTextPreference) row).getEditText().getText().toString());
+            assertSaveFailureIsVisible(dialog);
+        }
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(dialog.isShowing());
+        assertEquals(20, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+        assertNull(BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+        assertFalse(row.getSummary().toString().contains("Changes to"));
+    }
+
+    @Test public void savingADefaultNumberDoesNotWriteItBackOrCancelOtherWaitingChanges() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(10);
+        long at = BudgetChanges.keep(Settings.SESSION_BUDGET_VIDEOS, 20, now.get());
+        BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get());
+        Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(false);
+        Preference otherRow = savingPage().findPreference(Settings.SESSION_BUDGET_MINUTES.key);
+        Preference row = savingPage().findPreference(Settings.SESSION_BUDGET_MINUTES.key);
+        SharedPreferences preferences = Setting.preferences.preferences;
+        AtomicInteger changes = new AtomicInteger();
+        SharedPreferences.OnSharedPreferenceChangeListener listener = (store, key) -> {
+            if (Settings.SESSION_BUDGET_MINUTES.key.equals(key)) changes.incrementAndGet();
+        };
+        preferences.registerOnSharedPreferenceChangeListener(listener);
+        try {
+            AlertDialog dialog = typeAndSave(row, "0");
+
+            assertFalse(dialog.isShowing());
+            assertEquals(0, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+            assertFalse("refreshing the row wrote an explicit default back to storage",
+                    preferences.contains(Settings.SESSION_BUDGET_MINUTES.key));
+            assertEquals("the save caused a second persistence change", 1, changes.get());
+            assertNull(BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+            assertEquals(20, BudgetChanges.waiting(Settings.SESSION_BUDGET_VIDEOS));
+            assertEquals(at, BudgetChanges.appliesAt());
+            assertTrue(row.getSummary().toString().contains("Current: Off"));
+            assertTrue(otherRow.getSummary().toString().contains("Current: Off"));
+        } finally {
+            preferences.unregisterOnSharedPreferenceChangeListener(listener);
+        }
+    }
+
+    @Test public void anAtomicallySavedNumberStillExplainsItsRangeAdjustment() throws Exception {
+        Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(false);
+        Preference row = savingPage().findPreference(Settings.SESSION_BUDGET_MINUTES.key);
+
+        AlertDialog dialog = typeAndSave(row, "5000");
+
+        assertFalse(dialog.isShowing());
+        assertEquals(600, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+        assertEquals("Kept to 600, the nearest value this row allows", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aConsumedNumberSaveLeavesLockingToTheLockSwitch() throws Exception {
+        Settings.SESSION_BUDGET_VIDEOS.save(2);
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        SessionBudget.noteVideo("one");
+        PreferenceScreen screen = savingPage();
+
+        AlertDialog dialog = typeAndSave(screen.findPreference(Settings.SESSION_BUDGET_VIDEOS.key), "1");
+
+        assertFalse(dialog.isShowing());
+        assertEquals(1, (int) Settings.SESSION_BUDGET_VIDEOS.savedValue());
+        assertFalse("lowering a number locked a day that had not been spent", SessionBudget.lockedToday());
+        Preference lock = screen.findPreference(Settings.SESSION_BUDGET_LOCK.key);
+        assertTrue("the lock switch lost its accepted-change path",
+                lock.getOnPreferenceChangeListener().onPreferenceChange(lock, true));
+        assertTrue("the switch did not lock the spent day", SessionBudget.lockedToday());
+    }
+
+    private static void assertSaveFailureIsVisible(AlertDialog dialog) {
+        android.widget.TextView error = dialog.getWindow().getDecorView()
+                .findViewWithTag("hushfeed_field_error");
+        assertNotNull("the failed save has no explanation", error);
+        assertEquals(android.view.View.VISIBLE, error.getVisibility());
+        assertTrue(error.getText().toString(), error.getText().toString().contains("Couldn't save"));
     }
 
     @Test public void aLongerHoldAppliesAndAShorterOneWaits() throws Exception {
@@ -235,6 +368,9 @@ public class BudgetWaitSettingsTest {
                 .replace(android.R.id.content, fragment).commit();
         activity.getFragmentManager().executePendingTransactions();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertSame("the settings page and its writes must share the same store",
+                Setting.preferences.preferences,
+                fragment.getPreferenceManager().getSharedPreferences());
         return fragment.getPreferenceScreen();
     }
 

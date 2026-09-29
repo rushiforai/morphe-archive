@@ -52,7 +52,7 @@ public class SwitchListPreferenceTest {
                         new SwitchListPreference.Item("Share", Settings.HIDE_RAIL_SHARE)));
     }
 
-    @Test public void theSecondLineNamesWhatIsHiddenAndSaveWritesTheTicks() {
+    @Test public void theSecondLineNamesWhatIsHiddenAndSaveWritesTheTicks() throws Exception {
         try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = owner.get();
             SwitchListPreference row = row(activity);
@@ -77,6 +77,7 @@ public class SwitchListPreferenceTest {
             list.performItemClick(null, 0, 0);
             list.performItemClick(null, 1, 1);
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            Utils.awaitBackgroundTasksForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
 
             assertTrue("Like was ticked and saved", Settings.HIDE_RAIL_LIKE.get());
@@ -98,5 +99,56 @@ public class SwitchListPreferenceTest {
             assertFalse("Cancel wrote a tick", Settings.HIDE_RAIL_LIKE.get());
             assertEquals(DESCRIPTION + "\nNothing hidden.", row.getSummary().toString());
         }
+    }
+
+    @Test @Config(qualifiers = "night")
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void aFailedChecklistBatchChangesNothingAndKeepsAWorkingRetry() throws Exception {
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.settings.SettingsPagesTest.PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            SettingsUi.syncDarkMode(activity);
+            String theme = SettingsUi.isDarkMode() ? "dark" : "light";
+            SwitchListPreference row = row(activity);
+            var failOnce = new java.util.concurrent.atomic.AtomicBoolean(true);
+            try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(
+                    keys -> keys.contains(Settings.HIDE_RAIL_SHARE.key)
+                            && failOnce.getAndSet(false), false)) {
+                row.onClick();
+                AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+                ListView list = dialog.getListView();
+                list.performItemClick(null, 0, 0);
+                list.performItemClick(null, 1, 1);
+                org.robolectric.shadows.ShadowToast.reset();
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                Utils.awaitBackgroundTasksForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertFalse("the first setting survived a failed batch", Settings.HIDE_RAIL_LIKE.get());
+                assertFalse(Settings.HIDE_RAIL_SHARE.get());
+                assertTrue("the failed batch discarded the choices", dialog.isShowing());
+                assertTrue(list.isItemChecked(0));
+                assertTrue(list.isItemChecked(1));
+                assertNotNull("the write failed silently",
+                        org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                View decor = dialog.getWindow().getDecorView();
+                decor.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.AT_MOST));
+                app.morphe.extension.tiktok.UiCapture.save(decor,
+                        "audit/switch-list-save-failure-" + theme + ".png", 480, decor.getMeasuredHeight());
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                Utils.awaitBackgroundTasksForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertTrue(Settings.HIDE_RAIL_LIKE.get());
+                assertTrue(Settings.HIDE_RAIL_SHARE.get());
+                assertFalse(dialog.isShowing());
+            }
+        }
+    }
+
+    @Test @Config(qualifiers = "notnight")
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void aLightChecklistKeepsItsFailedBatchAndRetry() throws Exception {
+        aFailedChecklistBatchChangesNothingAndKeepsAWorkingRetry();
     }
 }

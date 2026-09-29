@@ -1353,22 +1353,24 @@ public final class SettingsUi {
         control.setEnabled(!busy);
         if (android.os.Build.VERSION.SDK_INT >= 30) {
             control.setStateDescription(busy ? busyLabel : null);
-        } else {
-            if (busy) {
-                if (control.getTag(android.R.id.text1) == null) {
-                    control.setTag(android.R.id.text1, control.getContentDescription());
-                }
-                control.setContentDescription(busyLabel);
-            } else {
-                CharSequence saved = control.getTag(android.R.id.text1) instanceof CharSequence
-                        ? (CharSequence) control.getTag(android.R.id.text1) : null;
-                if (saved != null) {
-                    control.setContentDescription(saved);
-                    control.setTag(android.R.id.text1, null);
-                }
+        } else if (busy) {
+            if (!DESCRIPTION_BEFORE_BUSY.containsKey(control)) {
+                DESCRIPTION_BEFORE_BUSY.put(control, control.getContentDescription());
             }
+            control.setContentDescription(busyLabel);
+        } else if (DESCRIPTION_BEFORE_BUSY.containsKey(control)) {
+            control.setContentDescription(DESCRIPTION_BEFORE_BUSY.remove(control));
         }
     }
+
+    /**
+     * What each busy control said before it went busy, on Android 10 and older, where there's no
+     * state description to carry the busy word. A view tag can't hold it: a view only takes tag
+     * keys from the app's own resource ids, and the framework id this once used threw on every
+     * busy press there. A control with no description of its own is put back to none. Weak, so
+     * a control that goes away while busy takes its entry with it; main thread only.
+     */
+    private static final java.util.Map<View, CharSequence> DESCRIPTION_BEFORE_BUSY = new java.util.WeakHashMap<>();
 
     /** What a dialog's Save has to satisfy before the dialog is allowed to close. */
     public interface DialogCheck {

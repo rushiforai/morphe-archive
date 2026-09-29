@@ -10,6 +10,13 @@ internal val pluginGates = mapOf(
         ),
         setOf("LX/1pm;->A0C()Z", "LX/2Wl;->A04()Z"),
     ),
+    // The same suggestions repeated after the last chat; selected by the people control.
+    "people_list_end" to PluginGate(
+        setOf(
+            "com.facebook.messaging.friending.plugins.inboxthreadlistend.InboxPYMKThreadListEndKillSwitch",
+        ),
+        setOf("LX/1pm;->A0B()Z", "LX/2Wl;->A03()Z"),
+    ),
     "friend_requests" to PluginGate(
         setOf(
             "com.facebook.messaging.friending.plugins.friendrequestinboxunit.FriendingFriendrequestinboxunitKillSwitch",

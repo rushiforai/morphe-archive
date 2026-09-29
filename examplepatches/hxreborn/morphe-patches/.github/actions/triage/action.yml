@@ -44,7 +44,7 @@ runs:
         close=$(jq -r --arg l "$LABEL" '.[$l].close' "$RESPONSES")
         printf '%s\n' "$message" > "$RUNNER_TEMP/comment.md"
         if [ "$close" = "true" ]; then
-          printf '\n_Posted by a bot on behalf of the maintainer. If this was closed by mistake, comment below._\n' >> "$RUNNER_TEMP/comment.md"
+          printf '\n_Posted automatically on behalf of the maintainer. If this closure seems wrong, please comment below._\n' >> "$RUNNER_TEMP/comment.md"
         fi
         gh issue comment "$ISSUE" --repo "$REPO" --body-file "$RUNNER_TEMP/comment.md"
         labels=$(jq -r --arg l "$LABEL" '.[$l].labels // [] | join(",")' "$RESPONSES")
@@ -116,7 +116,7 @@ runs:
             fi
           elif [ "$verdict" = pass ] && [ -n "$existing" ] && [ ! -s comment.md ]; then
             gh issue edit "$n" --repo "$REPO" --remove-label "needs info" || true
-            printf '<!-- app-request-bot -->\nResolved: nothing left to flag.\n' > comment.md
+            printf '<!-- app-request-bot -->\nThe request now passes the automatic checks.\n' > comment.md
             gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@comment.md >/dev/null
           fi
         done
@@ -154,7 +154,7 @@ runs:
           dupes=$(gh search issues "$app" --repo "$REPO" --limit 4 --json number,title --jq \
             "map(select(.number != $ISSUE)) | .[0:3] | map(\"- #\(.number): \(.title)\") | join(\"\n\")")
           if [ -n "$dupes" ]; then
-            printf '\n---\nThis may overlap with reports that already exist:\n%s\n' "$dupes" >> comment.md
+            printf '\n---\nPossibly related issues:\n%s\n' "$dupes" >> comment.md
           fi
         fi
 
@@ -187,10 +187,10 @@ runs:
               --remove-label "untargeted version" || true
             if [ "$WAS_CLOSED_BY_BOT" = "true" ]; then
               gh issue reopen "$ISSUE" --repo "$REPO"
-              printf '<!-- triage-bot -->\nReopened: the report now has what it needs.\n' > comment.md
+              printf '<!-- triage-bot -->\nReopened: the report now passes the automatic checks.\n' > comment.md
               upsert_comment
             elif [ -n "$existing" ]; then
-              printf '<!-- triage-bot -->\nResolved: the report now has what it needs.\n' > comment.md
+              printf '<!-- triage-bot -->\nThe report now passes the automatic checks.\n' > comment.md
               upsert_comment
             fi
             ;;

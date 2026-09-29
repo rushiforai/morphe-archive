@@ -1,0 +1,694 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2712
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ * https://gitlab.com/ReVanced/revanced-patches/-/merge_requests/4881
+ * https://gitlab.com/ReVanced/revanced-patches/-/merge_requests/5806
+ * https://gitlab.com/ReVanced/revanced-patches/-/merge_requests/5838
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
+package app.morphe.extension.shared.settings.search;
+
+import static app.morphe.extension.shared.StringRef.str;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
+import android.preference.Preference;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceScreen;
+import android.text.TextUtils;
+import android.view.Gravity;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ListView;
+import android.widget.SearchView;
+import android.widget.Toolbar;
+
+import androidx.annotation.ColorInt;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ResourceType;
+import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.AppLanguage;
+import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.shared.settings.preference.NoTitlePreferenceCategory;
+import app.morphe.extension.shared.theme.ThemeUtils;
+import app.morphe.extension.shared.ui.Dim;
+
+/**
+ * Abstract controller for managing the overlay search view in Morphe settings.
+ * Subclasses must implement app-specific preference handling.
+ */
+@SuppressWarnings("deprecation")
+public abstract class BaseSearchViewController {
+    protected SearchResultsAdapter searchResultsAdapter;
+    protected boolean isSearchActive;
+    protected boolean isShowingSearchHistory;
+    protected final Activity activity;
+    protected final BasePreferenceFragment fragment;
+    protected final CharSequence originalTitle;
+    protected final InputMethodManager inputMethodManager;
+    protected final List<BaseSearchResultItem> allSearchItems;
+    protected final List<BaseSearchResultItem> filteredSearchItems;
+    protected final Map<String, BaseSearchResultItem> keyToSearchItem;
+    protected final Toolbar toolbar;
+    protected FrameLayout overlayContainer;
+    protected FrameLayout searchContainer;
+    protected Object nativeBackCallback;
+    protected SearchHistoryManager searchHistoryManager;
+    protected SearchView searchView;
+
+    /**
+     * The query the result rows highlight, or null when nothing is being searched.
+     */
+    @Nullable
+    protected Pattern currentQueryPattern;
+
+    /**
+     * Result rows read the preferences when they are bound, so any preference that updates itself
+     * at runtime only needs the list to be told to rebind.
+     */
+    private final SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener =
+            (sharedPreferences, key) -> Utils.runOnMainThread(this::refreshSearchResults);
+
+    protected static final int MAX_SEARCH_RESULTS = 50; // Maximum number of search results displayed.
+
+    protected static final int ID_MORPHE_SEARCH_VIEW = ResourceUtils.getIdentifierOrThrow(
+            ResourceType.ID, "morphe_search_view");
+    protected static final int ID_MORPHE_SEARCH_VIEW_CONTAINER = ResourceUtils.getIdentifierOrThrow(
+            ResourceType.ID, "morphe_search_view_container");
+    protected static final int ID_ACTION_SEARCH = ResourceUtils.getIdentifierOrThrow(
+            ResourceType.ID, "action_search");
+    protected static final int ID_MORPHE_SETTINGS_FRAGMENTS = ResourceUtils.getIdentifierOrThrow(
+            ResourceType.ID, "morphe_settings_fragments");
+    protected static final int MENU_MORPHE_SEARCH_MENU = ResourceUtils.getIdentifierOrThrow(
+            ResourceType.MENU, "morphe_search_menu");
+
+    /**
+     * @return The search icon, bold or not depending on the Morphe UI setting, and colored like
+     *         everything else Morphe draws. The drawable follows the text color of the platform,
+     *         which is not the foreground color of the app.
+     */
+    public static Drawable getSearchIconDrawable() {
+        Drawable icon = ResourceUtils.getDrawableOrThrow(
+                Utils.appIsUsingBoldIcons()
+                        ? "morphe_settings_search_icon_bold"
+                        : "morphe_settings_search_icon");
+
+        // Mutate, otherwise every user of the same drawable is colored as well.
+        Drawable mutated = icon.mutate();
+        mutated.setTint(ThemeUtils.getAppForegroundColor());
+        return mutated;
+    }
+
+    /**
+     * Constructs a new BaseSearchViewController instance.
+     *
+     * @param activity The activity hosting the search view.
+     * @param toolbar  The toolbar containing the search action.
+     * @param fragment The preference fragment to manage search preferences.
+     */
+    protected BaseSearchViewController(Activity activity, Toolbar toolbar, BasePreferenceFragment fragment) {
+        this.activity = activity;
+        this.toolbar = toolbar;
+        this.fragment = fragment;
+        this.originalTitle = toolbar.getTitle();
+        this.allSearchItems = new ArrayList<>();
+        this.filteredSearchItems = new ArrayList<>();
+        this.keyToSearchItem = new HashMap<>();
+        this.inputMethodManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        this.isShowingSearchHistory = false;
+
+        // Initialize components
+        initializeSearchView();
+        initializeOverlayContainer();
+        initializeSearchHistoryManager();
+        setupToolbarMenu();
+        setupListeners();
+    }
+
+    /**
+     * Initializes the search view with proper configurations, such as background, query hint, and RTL support.
+     */
+    private void initializeSearchView() {
+        // Retrieve SearchView and container from XML.
+        searchView = activity.findViewById(ID_MORPHE_SEARCH_VIEW);
+        EditText searchEditText = searchView.findViewById(ResourceUtils.getIdentifierOrThrow(
+                null, "android:id/search_src_text"));
+        // Disable fullscreen keyboard mode.
+        searchEditText.setImeOptions(searchEditText.getImeOptions() | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+
+        searchContainer = activity.findViewById(ID_MORPHE_SEARCH_VIEW_CONTAINER);
+
+        // Set background and query hint.
+        searchView.setBackground(createBackgroundDrawable());
+        searchView.setQueryHint(str("morphe_settings_search_hint"));
+
+        // Set text size.
+        searchEditText.setTextSize(16);
+
+        // Set cursor color.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            setCursorColor(searchEditText);
+        }
+
+        // Configure RTL support based on app language.
+        AppLanguage appLanguage = BaseSettings.MORPHE_LANGUAGE.get();
+        if (Utils.isRightToLeftLocale(appLanguage.getLocale())) {
+            searchView.setTextDirection(View.TEXT_DIRECTION_RTL);
+            searchView.setTextAlignment(View.TEXT_ALIGNMENT_INHERIT);
+        }
+    }
+
+    /**
+     * Sets the cursor color (for Android 10+ devices).
+     */
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void setCursorColor(EditText editText) {
+        // Get the cursor color based on the current theme.
+        final int cursorColor = Utils.isDarkModeEnabled() ? Color.WHITE : Color.BLACK;
+
+        // Create cursor drawable.
+        GradientDrawable cursorDrawable = new GradientDrawable();
+        cursorDrawable.setShape(GradientDrawable.RECTANGLE);
+        cursorDrawable.setSize(Dim.dp2, -1); // Width: 2dp, Height: match text height.
+        cursorDrawable.setColor(cursorColor);
+
+        // Set cursor drawable.
+        editText.setTextCursorDrawable(cursorDrawable);
+    }
+
+    /**
+     * Initializes the overlay container for displaying search results and history.
+     */
+    private void initializeOverlayContainer() {
+        // Create overlay container for search results and history.
+        overlayContainer = new FrameLayout(activity);
+        overlayContainer.setVisibility(View.GONE);
+        overlayContainer.setBackgroundColor(ThemeUtils.getAppBackgroundColor());
+        overlayContainer.setElevation(Dim.dp8);
+
+        // Container for search results.
+        FrameLayout searchResultsContainer = new FrameLayout(activity);
+        searchResultsContainer.setVisibility(View.VISIBLE);
+
+        // Create a ListView for the results.
+        ListView searchResultsListView = new ListView(activity);
+        searchResultsListView.setDivider(null);
+        searchResultsListView.setDividerHeight(0);
+        searchResultsAdapter = new SearchResultsAdapter(activity, filteredSearchItems, fragment, this);
+        searchResultsListView.setAdapter(searchResultsAdapter);
+
+        // Add results list into container.
+        searchResultsContainer.addView(searchResultsListView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+
+        // Add results container into overlay.
+        overlayContainer.addView(searchResultsContainer, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+
+        // Add overlay to the main content container.
+        FrameLayout mainContainer = activity.findViewById(ID_MORPHE_SETTINGS_FRAGMENTS);
+        if (mainContainer != null) {
+            FrameLayout.LayoutParams overlayParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT);
+            overlayParams.gravity = Gravity.TOP;
+            mainContainer.addView(overlayContainer, overlayParams);
+        }
+    }
+
+    /**
+     * Initializes the search history manager with the specified overlay container and listener.
+     */
+    private void initializeSearchHistoryManager() {
+        searchHistoryManager = new SearchHistoryManager(activity, overlayContainer, query -> {
+            searchView.setQuery(query, true);
+            hideSearchHistory();
+        });
+    }
+
+    // Abstract interface for preference fragments.
+    public interface BasePreferenceFragment {
+        PreferenceScreen getPreferenceScreenForSearch();
+        android.view.View getView();
+        Activity getActivity();
+    }
+
+    /**
+     * Determines whether a preference should be included in the search index.
+     *
+     * @param preference   The preference to evaluate.
+     * @param currentDepth The current depth in the preference hierarchy.
+     * @param includeDepth The maximum depth to include in the search index.
+     * @return True if the preference should be included, false otherwise.
+     */
+    protected boolean shouldIncludePreference(Preference preference, int currentDepth, int includeDepth) {
+        return includeDepth <= currentDepth
+                && !(preference instanceof PreferenceCategory)
+                && !(preference instanceof PreferenceScreen);
+    }
+
+    /**
+     * Sets up the toolbar menu for the search action.
+     */
+    protected void setupToolbarMenu() {
+        toolbar.inflateMenu(MENU_MORPHE_SEARCH_MENU);
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == ID_ACTION_SEARCH && !isSearchActive) {
+                openSearch();
+                return true;
+            }
+            return false;
+        });
+
+        // Set bold icon if needed.
+        MenuItem search = toolbar.getMenu().findItem(ID_ACTION_SEARCH);
+        search.setIcon(getSearchIconDrawable());
+    }
+
+    /**
+     * Configures listeners for the search view and toolbar navigation.
+     */
+    protected void setupListeners() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                try {
+                    String queryTrimmed = query.trim();
+                    if (!queryTrimmed.isEmpty()) {
+                        searchHistoryManager.saveSearchQuery(queryTrimmed);
+                    }
+                } catch (Exception ex) {
+                    Logger.printException(() -> "onQueryTextSubmit failure", ex);
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                try {
+                    Logger.printDebug(() -> "Search query: " + newText);
+
+                    String trimmedText = newText.trim();
+                    if (!isSearchActive) {
+                        Logger.printDebug(() -> "Search is not active, skipping query processing");
+                        return true;
+                    }
+
+                    if (trimmedText.isEmpty()) {
+                        // If empty query: show history.
+                        hideSearchResults();
+                        showSearchHistory();
+                    } else {
+                        // If it has search text: hide history and show search results.
+                        hideSearchHistory();
+                        filterAndShowResults(newText);
+                    }
+                } catch (Exception ex) {
+                    Logger.printException(() -> "onQueryTextChange failure", ex);
+                }
+                return true;
+            }
+        });
+        // Set navigation click listener.
+        toolbar.setNavigationOnClickListener(view -> {
+            if (isSearchActive) {
+                closeSearch();
+            } else {
+                activity.finish();
+            }
+        });
+    }
+
+    /**
+     * Initializes search data by collecting all searchable preferences from the fragment.
+     * This method should be called after the preference fragment is fully loaded.
+     * Runs on the UI thread to ensure proper access to preference components.
+     */
+    public void initializeSearchData() {
+        allSearchItems.clear();
+        keyToSearchItem.clear();
+        // Wait until fragment is properly initialized.
+        activity.runOnUiThread(() -> {
+            try {
+                PreferenceScreen screen = fragment.getPreferenceScreenForSearch();
+                if (screen != null) {
+                    collectSearchablePreferences(screen);
+                    for (BaseSearchResultItem item : allSearchItems) {
+                        if (item instanceof BaseSearchResultItem.PreferenceSearchItem prefItem) {
+                            String key = prefItem.preference.getKey();
+                            if (key != null) {
+                                keyToSearchItem.put(key, item);
+                            }
+                        }
+                    }
+                    Logger.printDebug(() -> "Collected " + allSearchItems.size() + " searchable preferences");
+                }
+            } catch (Exception ex) {
+                Logger.printException(() -> "Failed to initialize search data", ex);
+            }
+        });
+    }
+
+    /**
+     * Collects searchable preferences from a preference group.
+     */
+    protected void collectSearchablePreferences(PreferenceGroup group) {
+        collectSearchablePreferencesWithKeys(group, "", new ArrayList<>(), 1, 0);
+    }
+
+    /**
+     * Collects searchable preferences with their navigation paths and keys.
+     *
+     * @param group        The preference group to collect from.
+     * @param parentPath   The navigation path of the parent group.
+     * @param parentKeys   The keys of parent preferences.
+     * @param includeDepth The maximum depth to include in the search index.
+     * @param currentDepth The current depth in the preference hierarchy.
+     */
+    protected void collectSearchablePreferencesWithKeys(PreferenceGroup group, String parentPath,
+                                                        List<String> parentKeys, int includeDepth, int currentDepth) {
+        if (group == null) return;
+
+        for (int i = 0, count = group.getPreferenceCount(); i < count; i++) {
+            Preference preference = group.getPreference(i);
+
+            // Add to search results only if it is not a category, special group, or PreferenceScreen.
+            if (shouldIncludePreference(preference, currentDepth, includeDepth)) {
+                allSearchItems.add(new BaseSearchResultItem.PreferenceSearchItem(
+                        preference, parentPath, parentKeys));
+            }
+
+            // If the preference is a group, recurse into it.
+            if (preference instanceof PreferenceGroup subGroup) {
+                String newPath = parentPath;
+                List<String> newKeys = new ArrayList<>(parentKeys);
+
+                // Append the group title to the path and save key for navigation.
+                if (!(preference instanceof NoTitlePreferenceCategory)) {
+                    CharSequence title = preference.getTitle();
+                    if (!TextUtils.isEmpty(title)) {
+                        newPath = TextUtils.isEmpty(parentPath)
+                                ? title.toString()
+                                : parentPath + " > " + title;
+                    }
+
+                    // Add key for navigation if this is a PreferenceScreen or group with navigation capability.
+                    String key = preference.getKey();
+                    if (!TextUtils.isEmpty(key) && (preference instanceof PreferenceScreen
+                            || searchResultsAdapter.hasNavigationCapability(preference))) {
+                        newKeys.add(key);
+                    }
+                }
+
+                collectSearchablePreferencesWithKeys(subGroup, newPath, newKeys, includeDepth, currentDepth + 1);
+            }
+        }
+    }
+
+    /**
+     * Filters all search items based on the provided query and displays results in the overlay.
+     * Applies highlighting to matching text and shows a "no results" message if nothing matches.
+     */
+    protected void filterAndShowResults(String query) {
+        hideSearchHistory();
+        filteredSearchItems.clear();
+
+        String queryLower = Utils.normalizeTextToLowercase(query);
+        currentQueryPattern = Pattern.compile(Pattern.quote(queryLower), Pattern.CASE_INSENSITIVE);
+
+        // Collect matched items first.
+        List<BaseSearchResultItem> matched = new ArrayList<>();
+        int matchCount = 0;
+        for (BaseSearchResultItem item : allSearchItems) {
+            if (matchCount >= MAX_SEARCH_RESULTS) break; // Stop after collecting max results.
+            if (item.matchesQuery(queryLower)) {
+                matched.add(item);
+                matchCount++;
+            }
+        }
+
+        // Build filteredSearchItems, inserting parent enablers for disabled dependents.
+        Set<String> addedParentKeys = new HashSet<>(2 * matched.size());
+        for (BaseSearchResultItem item : matched) {
+            if (item instanceof BaseSearchResultItem.PreferenceSearchItem prefItem) {
+                String key = prefItem.preference.getKey();
+                Setting<?> setting = (key != null) ? Setting.getSettingFromPath(key) : null;
+                if (setting != null && !setting.isAvailable()) {
+                    List<Setting<?>> parentSettings = setting.getParentSettings();
+                    for (Setting<?> parentSetting : parentSettings) {
+                        BaseSearchResultItem parentItem = keyToSearchItem.get(parentSetting.key);
+                        if (parentItem != null && !addedParentKeys.contains(parentSetting.key)) {
+                            if (!parentItem.matchesQuery(queryLower)) {
+                                filteredSearchItems.add(parentItem);
+                            }
+                            addedParentKeys.add(parentSetting.key);
+                        }
+                    }
+                }
+                filteredSearchItems.add(item);
+                if (key != null) {
+                    addedParentKeys.add(key);
+                }
+            }
+        }
+
+        if (!filteredSearchItems.isEmpty()) {
+            //noinspection ComparatorCombinators
+            filteredSearchItems.sort((o1, o2) -> o1.navigationPath.compareTo(o2.navigationPath));
+            List<BaseSearchResultItem> displayItems = new ArrayList<>();
+            String currentPath = null;
+            for (BaseSearchResultItem item : filteredSearchItems) {
+                if (!item.navigationPath.equals(currentPath)) {
+                    BaseSearchResultItem header = new BaseSearchResultItem.GroupHeaderItem(item.navigationPath, item.navigationKeys);
+                    displayItems.add(header);
+                    currentPath = item.navigationPath;
+                }
+                displayItems.add(item);
+            }
+            filteredSearchItems.clear();
+            filteredSearchItems.addAll(displayItems);
+        }
+        // Show "No results found" if search results are empty.
+        if (filteredSearchItems.isEmpty()) {
+            Preference noResultsPreference = new Preference(activity);
+            noResultsPreference.setKey("no_results_placeholder");
+            noResultsPreference.setTitle(str("morphe_settings_search_no_results_title", query));
+            noResultsPreference.setSummary(str("morphe_settings_search_no_results_summary"));
+            noResultsPreference.setSelectable(false);
+            noResultsPreference.setIcon(getSearchIconDrawable());
+            filteredSearchItems.add(new BaseSearchResultItem.PreferenceSearchItem(noResultsPreference, "", Collections.emptyList()));
+        }
+
+        searchResultsAdapter.notifyDataSetChanged();
+        overlayContainer.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Opens the search interface by showing the search view and hiding the menu item.
+     * Configures the UI for search mode, shows the keyboard, and displays search suggestions.
+     */
+    protected void openSearch() {
+        isSearchActive = true;
+        Setting.preferences.preferences.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && nativeBackCallback == null) {
+            nativeBackCallback = PredictiveBackHandler.register(activity, this::handleBackPress);
+        }
+
+        toolbar.getMenu().findItem(ID_ACTION_SEARCH).setVisible(false);
+        toolbar.setTitle("");
+        searchContainer.setVisibility(View.VISIBLE);
+        searchView.requestFocus();
+        // Configure soft input mode to adjust layout and show keyboard.
+        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
+                | WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        inputMethodManager.showSoftInput(searchView, InputMethodManager.SHOW_IMPLICIT);
+        // Always show search history when opening search.
+        showSearchHistory();
+    }
+
+    /**
+     * Closes the search interface and restores the normal UI state.
+     * Hides the overlay, clears search results, dismisses the keyboard, and removes highlighting.
+     */
+    public void closeSearch() {
+        isSearchActive = false;
+        isShowingSearchHistory = false;
+        Setting.preferences.preferences.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && nativeBackCallback != null) {
+            PredictiveBackHandler.unregister(activity, nativeBackCallback);
+            nativeBackCallback = null;
+        }
+
+        searchHistoryManager.hideSearchHistoryContainer();
+        overlayContainer.setVisibility(View.GONE);
+
+        filteredSearchItems.clear();
+
+        searchContainer.setVisibility(View.GONE);
+        toolbar.getMenu().findItem(ID_ACTION_SEARCH).setVisible(true);
+        toolbar.setTitle(originalTitle);
+        searchView.setQuery("", false);
+        // Hide keyboard and reset soft input mode.
+        inputMethodManager.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        currentQueryPattern = null;
+
+        searchResultsAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Shows the search history if enabled.
+     */
+    protected void showSearchHistory() {
+        if (searchHistoryManager.isSearchHistoryEnabled()) {
+            overlayContainer.setVisibility(View.VISIBLE);
+            searchHistoryManager.showSearchHistory();
+            isShowingSearchHistory = true;
+        } else {
+            hideAllOverlays();
+        }
+    }
+
+    /**
+     * Hides the search history container.
+     */
+    protected void hideSearchHistory() {
+        searchHistoryManager.hideSearchHistoryContainer();
+        isShowingSearchHistory = false;
+    }
+
+    /**
+     * Hides all overlay containers, including search results and history.
+     */
+    protected void hideAllOverlays() {
+        hideSearchHistory();
+        hideSearchResults();
+    }
+
+    /**
+     * Hides the search results overlay and clears the filtered results.
+     */
+    protected void hideSearchResults() {
+        overlayContainer.setVisibility(View.GONE);
+        filteredSearchItems.clear();
+        currentQueryPattern = null;
+        searchResultsAdapter.notifyDataSetChanged();
+    }
+
+    /**
+     * Refreshes the search results display if the search is active and history is not shown.
+     */
+    protected void refreshSearchResults() {
+        if (isSearchActive && !isShowingSearchHistory) {
+            searchResultsAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Nullable
+    public Pattern getCurrentQueryPattern() {
+        return currentQueryPattern;
+    }
+
+    /**
+     * Gets the background color for search view components based on current theme.
+     */
+    @ColorInt
+    public static int getSearchViewBackground() {
+        return Utils.adjustColorBrightness(ThemeUtils.getDialogBackgroundColor(), Utils.isDarkModeEnabled() ? 1.11f : 0.95f);
+    }
+
+    /**
+     * Creates a rounded background drawable for the main search view.
+     */
+    protected static GradientDrawable createBackgroundDrawable() {
+        GradientDrawable background = new GradientDrawable();
+        background.setShape(GradientDrawable.RECTANGLE);
+        background.setCornerRadius(Dim.dp28);
+        background.setColor(getSearchViewBackground());
+        return background;
+    }
+
+    /**
+     * Handles the back press logic intelligently.
+     * If the keyboard is open, it hides the keyboard. Otherwise, it closes the search.
+     *
+     * @return true if the back press was handled.
+     */
+    public boolean handleBackPress() {
+        if (!isSearchActive) return false;
+
+        boolean isKeyboardVisible = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.view.WindowInsets insets = activity.getWindow().getDecorView().getRootWindowInsets();
+            if (insets != null) {
+                isKeyboardVisible = insets.isVisible(android.view.WindowInsets.Type.ime());
+            }
+        }
+
+        if (isKeyboardVisible) {
+            inputMethodManager.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+        } else {
+            closeSearch();
+        }
+        return true;
+    }
+
+    /**
+     * Return if a search is currently active.
+     */
+    public boolean isSearchActive() {
+        return isSearchActive;
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private static class PredictiveBackHandler {
+        static Object register(Activity activity, Runnable onBackAction) {
+            android.window.OnBackInvokedCallback callback = onBackAction::run;
+            activity.getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    android.window.OnBackInvokedDispatcher.PRIORITY_OVERLAY,
+                    callback
+            );
+            return callback;
+        }
+
+        static void unregister(Activity activity, Object callbackObj) {
+            if (callbackObj instanceof android.window.OnBackInvokedCallback callback) {
+                activity.getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(callback);
+            }
+        }
+    }
+}

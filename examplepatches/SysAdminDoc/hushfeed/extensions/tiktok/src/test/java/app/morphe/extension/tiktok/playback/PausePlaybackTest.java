@@ -199,6 +199,59 @@ public class PausePlaybackTest {
      * Coming back to the app holds the feed until one tap. The tap is taken and does nothing but
      * hand the feed back: the sound, and the video if the cover paused it.
      */
+    /**
+     * Back from one of TikTok's own screens, the feed resumes before that screen stops. Taking
+     * that stop for leaving the app froze the hold's countdown and gated the feed behind a tap.
+     */
+    @Test public void aScreenOfTikToksOwnClosingIsNotLeavingTheApp() {
+        try (var feedOwner = Robolectric.buildActivity(HostActivity.class).create();
+             var other = Robolectric.buildActivity(Activity.class)) {
+            PausePlayback.install(feedOwner.get());
+            feedOwner.start().resume().visible();
+
+            feedOwner.pause();
+            other.create().start().resume();
+            feedOwner.stop();
+            assertFalse("opening a screen over the feed counted as leaving", PausePlayback.wasAwayForTests());
+
+            other.pause();
+            feedOwner.restart().resume();
+            other.stop().destroy();
+            assertFalse("closing it after the feed came back counted as leaving", PausePlayback.wasAwayForTests());
+
+            feedOwner.pause().stop();
+            assertTrue("leaving the app was not noticed", PausePlayback.wasAwayForTests());
+        }
+    }
+
+    /**
+     * The feed going behind another of TikTok's screens, a hashtag opened from the comments,
+     * still lets go of what it held for the sheet, without counting as leaving the app.
+     */
+    @Test public void theFeedGoingBehindAnotherScreenLetsGoOfTheCommentsHold() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var feedOwner = Robolectric.buildActivity(HostActivity.class).create();
+             var other = Robolectric.buildActivity(Activity.class)) {
+            PausePlayback.install(feedOwner.get());
+            feedOwner.start().resume().visible();
+            Activity feed = feedOwner.get();
+            Utils.setActivity(feed);
+            Dialog sheet = openSheet(feed);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(PausePlayback.quietenedForTests());
+
+            feedOwner.pause();
+            other.create().start().resume();
+            feedOwner.stop();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse("the comments' hold followed the reader to another screen",
+                    PausePlayback.quietenedForTests());
+            assertFalse("another screen counted as leaving the app", PausePlayback.wasAwayForTests());
+            sheet.dismiss();
+        }
+    }
+
     @Test public void comingBackHoldsTheFeedUntilATap() {
         Settings.NO_RESUME_ON_FOREGROUND.save(true);
         try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {

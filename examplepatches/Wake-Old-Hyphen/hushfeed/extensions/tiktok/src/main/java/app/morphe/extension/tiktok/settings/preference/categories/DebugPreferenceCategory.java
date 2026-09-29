@@ -18,6 +18,7 @@ import app.morphe.extension.tiktok.Utils;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.FeatureGateRecorderPreference;
 import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
+import app.morphe.extension.tiktok.settings.preference.ScreenLayoutPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
@@ -75,6 +76,9 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
             logFilter.setTitle(L10n.t(context, "Included diagnostics"));
             addPreference(logFilter);
 
+            // Before the export, since what it records goes into the next one.
+            addPreference(new ScreenLayoutPreference(context));
+
             var exportLogs = new TintedExportDiagnosticReportPreference(context);
             exportLogs.setTitle(L10n.t(context, "Export diagnostic report"));
             exportLogs.setSummary(L10n.t(context, "Copy a quick report or save the full report as a file."));
@@ -84,7 +88,7 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
             clearLogs.setTitle(L10n.t(context, "Clear diagnostic data"));
             clearLogs.setClearAndUndoSummaries(
                     L10n.t(context,
-                            "Clear the recent events, saved crash reports and the hook status above."),
+                            "Clear the recent events, saved crash reports, a recorded screen layout and the hook status above."),
                     L10n.t(context, "Diagnostic data cleared. Tap again to put it back."));
             addPreference(clearLogs);
         }

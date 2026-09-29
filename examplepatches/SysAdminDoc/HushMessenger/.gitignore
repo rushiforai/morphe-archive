@@ -13,6 +13,7 @@
 *.jks
 __pycache__/
 *.pyc
+*.class
 fixtures/
 local.properties
 gradle.local.properties

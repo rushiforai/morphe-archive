@@ -55,7 +55,7 @@ def main() -> None:
         escaped = part.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
         lines.append(f'            "{escaped}"' + (";" if index == len(parts) - 1 else " +"))
     lines.append("}")
-    OUTPUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    OUTPUT.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print(f"embedded {len(parts)} published changelog lines")
 
 

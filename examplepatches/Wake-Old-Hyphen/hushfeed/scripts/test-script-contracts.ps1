@@ -462,6 +462,47 @@ foreach ($name in $consumerScripts) {
 
 . (Join-Path $PSScriptRoot 'release-receipt.ps1')
 
+# Under Windows PowerShell 5.1, which runs the hook when pwsh isn't on git's PATH, a native
+# command's stderr line throws under Stop even when it is redirected, so a failing aapt2 or CLI
+# surfaced as its own first stderr line and the script's report was lost. Run the manifest reader
+# there with a stand-in aapt2 that complains on stderr and fails.
+$windowsPowerShell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+if (Test-Path -LiteralPath $windowsPowerShell -PathType Leaf) {
+    $nativeRoot = Join-Path ([IO.Path]::GetTempPath()) ('hushfeed-ps51-' + [Guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $nativeRoot | Out-Null
+    try {
+        $standInAapt2 = Join-Path $nativeRoot 'aapt2.cmd'
+        [IO.File]::WriteAllText($standInAapt2, "@echo W: not an APK 1>&2`r`n@exit /b 1`r`n")
+        $standInApk = Join-Path $nativeRoot 'input.apk'
+        [IO.File]::WriteAllText($standInApk, 'x')
+        $receiptScript = Join-Path $PSScriptRoot 'release-receipt.ps1'
+        $command = "`$ErrorActionPreference = 'Stop'; . '$receiptScript'; " +
+            "try { Get-ApkManifestFacts -Apk '$standInApk' -Aapt2 '$standInAapt2' | Out-Null; 'no error' } " +
+            "catch { `$_.Exception.Message }"
+        $message = (& $windowsPowerShell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command $command 2>&1 |
+            Out-String).Trim()
+        $global:LASTEXITCODE = 0
+        Assert-True ($message -like 'aapt2 could not read the manifest of*not an APK*') `
+            "Under Windows PowerShell 5.1 a failing aapt2 surfaced as: $message"
+
+        # And a harmless stderr line from a call that succeeds: adb starting its server says so on
+        # stderr, which ended a -Replace run before it had checked anything.
+        $standInAdb = Join-Path $nativeRoot 'adb.cmd'
+        [IO.File]::WriteAllText($standInAdb, "@echo * daemon not running; starting now at tcp:5037 1>&2`r`n@exit /b 0`r`n")
+        $installScript = Join-Path $PSScriptRoot 'device-install.ps1'
+        $command = "`$ErrorActionPreference = 'Stop'; . '$installScript'; " +
+            "try { 'removed=' + (Remove-AndroidPackageIfInstalled -Adb '$standInAdb' -Serial 'serial' -PackageName 'com.example' 6> `$null) } " +
+            "catch { 'threw: ' + `$_.Exception.Message }"
+        $answer = (& $windowsPowerShell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command $command 2>&1 |
+            Out-String).Trim()
+        $global:LASTEXITCODE = 0
+        Assert-True ($answer -eq 'removed=False') `
+            "Under Windows PowerShell 5.1 adb's startup line stopped the install helper: $answer"
+    } finally {
+        Remove-Item -LiteralPath $nativeRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 # A failed fixture run quotes the CLI: an early error wherever it fell, and the last lines.
 $cliRun = @('INFO: Loading patches...', 'SEVERE: early fingerprint failure') +
     @(1..30 | ForEach-Object { "INFO: Applied: patch $_" }) +
@@ -590,7 +631,11 @@ try {
     $commitSeconds = 1700000000L
     function New-TestBundle {
         param([string]$Path, [string]$Version = '9.9.9', [long]$Timestamp = 1700000000000L,
-            [string]$Patcher = '1.12.0')
+            [string]$Patcher = '1.12.0',
+            [string]$SourceCommit = '0123456789abcdef0123456789abcdef01234567',
+            [string]$SourceClean = 'true',
+            [string]$SourceStart = ('A' * 64), [string]$SourceEnd = ('A' * 64),
+            [switch]$OmitSourceProvenance)
         if (Test-Path -LiteralPath $Path) { Remove-Item -LiteralPath $Path -Force }
         $archive = [System.IO.Compression.ZipFile]::Open(
             $Path, [System.IO.Compression.ZipArchiveMode]::Create)
@@ -599,7 +644,20 @@ try {
             $writer = New-Object System.IO.StreamWriter($entry.Open())
             try {
                 $writer.Write("Manifest-Version: 1.0`nVersion: $Version`n" +
-                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n`n")
+                    "Timestamp: $Timestamp`nPatcher-Version: $Patcher`n")
+                if (-not $OmitSourceProvenance) {
+                    foreach ($sourceLine in @("Hushfeed-Source-Commit: $SourceCommit",
+                            "Hushfeed-Source-Clean: $SourceClean",
+                            "Hushfeed-Source-Start: $SourceStart", "Hushfeed-Source-End: $SourceEnd")) {
+                        # Real manifests fold long attributes. Exercise the reader's unfolding too.
+                        while ($sourceLine.Length -gt 70) {
+                            $writer.Write($sourceLine.Substring(0, 70) + "`n")
+                            $sourceLine = ' ' + $sourceLine.Substring(70)
+                        }
+                        $writer.Write($sourceLine + "`n")
+                    }
+                }
+                $writer.Write("`n")
             } finally { $writer.Dispose() }
         } finally { $archive.Dispose() }
     }
@@ -622,6 +680,8 @@ try {
         bundle    = [ordered]@{ file = 'patches-9.9.9.mpp'; sizeBytes = $bundleSize
             sha256 = $bundleHash; timestamp = 1700000000000L }
         toolchain = [ordered]@{ patcherVersion = '1.12.0'; managerFloor = '1.29.0' }
+        source = [ordered]@{ commit = '0123456789abcdef0123456789abcdef01234567'; clean = $true
+            startFingerprint = ('A' * 64); endFingerprint = ('A' * 64) }
         extension = [ordered]@{ dexPayloads = @([ordered]@{
             name = 'extensions/tiktok.rve'; sizeBytes = 10; sha256 = ('A' * 64) }) }
         targets   = @([ordered]@{
@@ -653,10 +713,85 @@ try {
     $valid = Test-TestReceipt -Receipt (New-TestReceipt)
     Assert-True $valid.Valid "A complete receipt was refused: $($valid.Reason)"
 
+    # A matching timestamp and receipt hash describe bytes, not the source used to build them.
+    # These bundles keep both correct while changing only the producer's source evidence.
+    $sourceCases = [ordered]@{
+        'another source commit with the same timestamp' = @{ SourceCommit = ('f' * 40) }
+        'a dirty build with a reproducible timestamp'    = @{ SourceClean = 'false' }
+        'a source state that could not be read'          = @{ SourceClean = 'unknown' }
+        'inputs changed during the build'               = @{ SourceEnd = ('B' * 64) }
+        'an unreadable starting source fingerprint'      = @{ SourceStart = '' }
+        'a missing build-time provenance record'         = @{ OmitSourceProvenance = $true }
+    }
+    $sourceCaseIndex = 0
+    foreach ($description in $sourceCases.Keys) {
+        $sourceBundle = Join-Path $allowlistRoot "source-provenance-$sourceCaseIndex.mpp"
+        $sourceCaseIndex++
+        $sourceArguments = $sourceCases[$description]
+        New-TestBundle -Path $sourceBundle @sourceArguments
+        $sourceReceipt = New-TestReceipt -Mutate {
+            param($r)
+            $r.bundle.sizeBytes = (Get-Item -LiteralPath $sourceBundle).Length
+            $r.bundle.sha256 = Get-Sha256Hex -Path $sourceBundle
+        }
+        $sourceResult = Test-ReleaseReceipt -Receipt $sourceReceipt -ExpectedVersion '9.9.9' `
+            -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
+            -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
+            -ExpectedPackageVersion '46.7.3' -BundlePath $sourceBundle `
+            -ExpectedCommit '0123456789abcdef0123456789abcdef01234567'
+        Assert-True (-not $sourceResult.Valid) "Receipt validation accepted $description."
+        Assert-True ([bool]$sourceResult.Reason) "Source provenance was refused without a reason: $description"
+    }
+
+    # An old release label and schema cannot turn a newly built dirty artifact into historical
+    # evidence. Historical verification must be tied to the actual published bytes instead.
+    $legacyNamedBundle = Join-Path $allowlistRoot 'new-build-named-0.61.0.mpp'
+    New-TestBundle -Path $legacyNamedBundle -Version '0.61.0' -SourceClean 'false'
+    $legacyNamedReceipt = New-TestReceipt -Mutate {
+        param($r)
+        $r.schemaVersion = 1
+        $r.release.version = '0.61.0'
+        $r.release.tag = 'v0.61.0'
+        $r.bundle.sizeBytes = (Get-Item -LiteralPath $legacyNamedBundle).Length
+        $r.bundle.sha256 = Get-Sha256Hex -Path $legacyNamedBundle
+    }
+    $legacyNamedResult = Test-ReleaseReceipt -Receipt $legacyNamedReceipt -ExpectedVersion '0.61.0' `
+        -ExpectedPatchNames @('Alpha', 'Beta') -ExpectedPatcherVersion '1.12.0' `
+        -ExpectedManagerFloor '1.29.0' -ExpectedPackageName 'com.example.host' `
+        -ExpectedPackageVersion '46.7.3' -BundlePath $legacyNamedBundle
+    Assert-True (-not $legacyNamedResult.Valid) `
+        'An old version label and receipt schema bypassed current-build source eligibility.'
+
+    # The exact published document remains readable. Its frozen file digest and bundle/commit
+    # identity are the boundary; changing the parsed object while supplying that file is refused.
+    $historicalPath = Join-Path $PSScriptRoot 'fixtures/legacy-receipt-0.61.0.json'
+    $historicalReceipt = Get-Content -LiteralPath $historicalPath -Raw | ConvertFrom-Json
+    $historicalArguments = @{
+        ExpectedVersion = '0.61.0'
+        ExpectedPatchNames = @($historicalReceipt.targets[0].patches | ForEach-Object { [string]$_.name })
+        ExpectedPatcherVersion = '1.13.0'
+        ExpectedManagerFloor = '1.30.0'
+        ExpectedPackageName = 'com.zhiliaoapp.musically'
+        ExpectedPackageVersions = @('47.0.3', '47.1.3')
+        ExpectedCommit = '5abaa467107e28e6800637718a1270d3635210d8'
+        ReceiptPath = $historicalPath
+    }
+    $historicalCheck = Test-ReleaseReceipt -Receipt $historicalReceipt @historicalArguments
+    Assert-True $historicalCheck.Valid "The exact published receipt was refused: $($historicalCheck.Reason)"
+    $historicalReceipt.bundle.sha256 = 'F' * 64
+    $alteredHistorical = Test-ReleaseReceipt -Receipt $historicalReceipt @historicalArguments
+    Assert-True (-not $alteredHistorical.Valid) 'A changed receipt borrowed another file historical identity.'
+
     # Every fact the receipt exists to pin, put in front of the check one at a time. A gate that
     # has never been shown to fail is a gate nobody has tested.
     $mutations = [ordered]@{
         'a receipt from a different schema'     = { param($r) $r.schemaVersion = 99 }
+        'a missing source provenance record'   = { param($r) $r.source = $null }
+        'a source clean flag written as text'  = { param($r) $r.source.clean = 'true' }
+        'a receipt naming another source'      = { param($r) $r.source.commit = ('e' * 40) }
+        'receipt inputs changed during build'  = { param($r) $r.source.endFingerprint = ('E' * 64) }
+        'receipt fingerprints differ from bundle' = { param($r)
+            $r.source.startFingerprint = ('E' * 64); $r.source.endFingerprint = ('E' * 64) }
         'a receipt for a different version'     = { param($r) $r.release.version = '9.9.8' }
         'a tag that does not match the version' = { param($r) $r.release.tag = 'v9.9.8' }
         'a short commit'                        = { param($r) $r.release.commit = '0123456' }
@@ -1525,6 +1660,38 @@ try {
         $env:GITHUB_TOKEN = $savedNewBranchToken
     }
 
+    # A first push lists the branch's whole tree, and every tree holds patches-bundle.json. That
+    # used to route the push as an index push: the strict release check, and no patching at all.
+    # This case sees the release check's mode; the patching half reads the same flag.
+    $firstPushRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-first-push-" + [guid]::NewGuid().ToString('N'))
+    try {
+        New-Item -ItemType Directory -Path (Join-Path $firstPushRoot 'scripts') -Force | Out-Null
+        # Tracked, because the hook runs its checks from an export of the pushed commit.
+        Copy-Item -LiteralPath (Join-Path $hookRoot 'scripts/validate-release-facts.ps1') -Destination (Join-Path $firstPushRoot 'scripts')
+        Copy-Item -LiteralPath (Join-Path $hookRoot 'scripts/test-script-contracts.ps1') -Destination (Join-Path $firstPushRoot 'scripts')
+        Set-Content -LiteralPath (Join-Path $firstPushRoot 'patches-bundle.json') -Encoding UTF8 -Value '{}'
+        & git -C $firstPushRoot init --quiet
+        $firstPushGitDir = (& git -C $firstPushRoot rev-parse --absolute-git-dir).Trim()
+        Assert-True ([IO.Path]::GetFullPath($firstPushGitDir).TrimEnd('\', '/') -ieq
+            [IO.Path]::GetFullPath((Join-Path $firstPushRoot '.git')).TrimEnd('\', '/')) `
+            'The first-push fixture resolved outside its temporary repository; refusing to write.'
+        & git -C $firstPushRoot config user.name 'Hook Contract'
+        & git -C $firstPushRoot config user.email 'hook@example.invalid'
+        & git -C $firstPushRoot add -A
+        & git -C $firstPushRoot commit --quiet -m 'first'
+        $firstPushHead = (& git -C $firstPushRoot rev-parse HEAD).Trim()
+        # The hook reads each pushed local ref again once its checks end, so it has to exist.
+        $firstPushBranch = (& git -C $firstPushRoot symbolic-ref HEAD).Trim()
+        Remove-Item -LiteralPath $factsMarker -Force -ErrorAction SilentlyContinue
+        $global:LASTEXITCODE = 0
+        & $prePushScript -Root $firstPushRoot -PushedRefs "$firstPushBranch $firstPushHead refs/heads/first $('0' * 40)" 6> $null
+        Assert-True ($LASTEXITCODE -eq 0) 'A first push of an unchanged index failed its release check.'
+        Assert-True ((Get-Content -LiteralPath $factsMarker -Raw) -like 'lag=True*') `
+            'A first push was taken for an index push because its tree holds the index.'
+    } finally {
+        Remove-Item -LiteralPath $firstPushRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
     # The build branch, which runs the Gradle gates that hold the Bouncy Castle graphs to the
     # reviewed release. Starting a real build from a contract test would be absurd, so the case
     # reads the first thing that branch does instead: with no GitHub credentials and no gh on
@@ -1650,6 +1817,60 @@ try {
             Reset-Apply
             & $prePushScript -Root $hookRoot -ChangedPaths @('gradle/libs.versions.toml') 6> $null
             Assert-True ((Get-ApplyCalls).Count -eq 2) 'A patcher pin change applied nothing to the fixtures.'
+
+            # A first push lists the branch's whole tree, which holds patches-bundle.json as well as
+            # the patch sources. The release check's half of that is covered above; this is the
+            # patching half. A fresh repository with both, pushed as a new branch, must still build
+            # the bundle and apply it to each declared build, since the index it holds is unchanged.
+            Reset-Apply
+            $firstPatchRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-first-patch-" + [guid]::NewGuid().ToString('N'))
+            $firstPatchWrapper = Join-Path $hookRoot 'first-patch-wrapper.ps1'
+            try {
+                New-Item -ItemType Directory -Path (Join-Path $firstPatchRoot 'scripts'),
+                    (Join-Path $firstPatchRoot (Split-Path -Parent $patchSource)) -Force | Out-Null
+                # Tracked, because the hook runs its checks from the pushed commit's tree.
+                foreach ($script in @('validate-release-facts.ps1', 'test-script-contracts.ps1', 'verify-all-patches.ps1')) {
+                    Copy-Item -LiteralPath (Join-Path $hookRoot "scripts/$script") -Destination (Join-Path $firstPatchRoot 'scripts')
+                }
+                Copy-Item -LiteralPath $stubCatalog -Destination (Join-Path $firstPatchRoot 'patches-list.json')
+                Set-Content -LiteralPath (Join-Path $firstPatchRoot 'patches-bundle.json') -Encoding UTF8 -Value '{}'
+                Set-Content -LiteralPath (Join-Path $firstPatchRoot $patchSource) -Encoding UTF8 -Value '// patch'
+                # As in the repository: the build's output is not part of the tree the hook checks.
+                Set-Content -LiteralPath (Join-Path $firstPatchRoot '.gitignore') -Encoding UTF8 -Value 'build/'
+                # The bundle goes where the hook will look for it: under the tree it was handed.
+                Set-Content -LiteralPath $firstPatchWrapper -Encoding UTF8 -Value @(
+                    'param([string]$ProjectDir, [string[]]$Tasks)',
+                    "Set-Content -LiteralPath '$wrapperMarker' -Value (`"dir=`$ProjectDir tasks=`" + (`$Tasks -join ','))",
+                    'if ($Tasks -contains '':patches:buildAndroid'') {',
+                    '    $release = Join-Path $ProjectDir ''patches/build/release''',
+                    '    New-Item -ItemType Directory -Path $release -Force | Out-Null',
+                    '    Set-Content -LiteralPath (Join-Path $release ''patches-9.9.9.mpp'') -Value ''bundle'' -Encoding ASCII',
+                    '}',
+                    'exit 0')
+                $env:HUSHFEED_BUILD_WRAPPER = $firstPatchWrapper
+                & git -C $firstPatchRoot init --quiet
+                $firstPatchGitDir = (& git -C $firstPatchRoot rev-parse --absolute-git-dir).Trim()
+                Assert-True ([IO.Path]::GetFullPath($firstPatchGitDir).TrimEnd('\', '/') -ieq
+                    [IO.Path]::GetFullPath((Join-Path $firstPatchRoot '.git')).TrimEnd('\', '/')) `
+                    'The first-push patching fixture resolved outside its temporary repository; refusing to write.'
+                & git -C $firstPatchRoot config user.name 'Hook Contract'
+                & git -C $firstPatchRoot config user.email 'hook@example.invalid'
+                & git -C $firstPatchRoot add -A
+                & git -C $firstPatchRoot commit --quiet -m 'first'
+                $firstPatchHead = (& git -C $firstPatchRoot rev-parse HEAD).Trim()
+                $firstPatchBranch = (& git -C $firstPatchRoot symbolic-ref HEAD).Trim()
+                $global:LASTEXITCODE = 0
+                & $prePushScript -Root $firstPatchRoot -PushedRefs "$firstPatchBranch $firstPatchHead refs/heads/first $('0' * 40)" 6> $null
+                Assert-True ($LASTEXITCODE -eq 0) "A first push with patch sources failed with every stub passing (exit $LASTEXITCODE)."
+                Assert-True ((Get-Content -LiteralPath $wrapperMarker -Raw).Trim() -like '*,:patches:buildAndroid') `
+                    'A first push with patch sources did not build the bundle.'
+                $firstCalls = @(Get-ApplyCalls | ForEach-Object { ($_ -split ' ')[0] })
+                Assert-True (($firstCalls -join ',') -eq 'apk=com.zhiliaoapp.musically_1.0.3-100_apkmirror.com.apk,apk=tiktok-1.1.3.apk') `
+                    ("A first push with patch sources did not apply the bundle to each declared build once: " + ((Get-ApplyCalls) -join '; '))
+            } finally {
+                $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
+                Remove-Item -LiteralPath $firstPatchRoot, $firstPatchWrapper -Recurse -Force -ErrorAction SilentlyContinue
+            }
 
             # The control: extension sources build and test, and apply nothing.
             Reset-Apply

@@ -25,12 +25,19 @@ import org.junit.Test
  * Download any reel run whole on each declared build's own sidebar and the classes it reaches: the
  * block goes in three instructions before the assembly call, borrowing v0 to v2 and a fourth local
  * for the story, each proved free there by the liveness of the whole builder, and each register it
- * reads unchanged up to the call.
+ * reads unchanged up to the call. The build's one FbShortsSideBarComponent render, which the button
+ * can't go in, gets a counter as its first instruction and nothing else (#18).
  */
 class DownloadReelFixtureTest {
     private val sidebarName = "UDDSideBarComponent"
     private val function1 = "Lkotlin/jvm/functions/Function1;"
     private val session = "Lcom/facebook/auth/usersession/FbUserSession;"
+    private val otherSidebarName = "FbShortsSideBarComponent"
+
+    /** A render of the same Litho method as [builder]: its name, its one scoped parameter and its return type. */
+    private fun rendersLike(method: Method, builder: Method) = method.name == builder.name &&
+        method.parameterTypes.map(CharSequence::toString) == builder.parameterTypes.map(CharSequence::toString) &&
+        method.returnType == builder.returnType && holdsString(method, otherSidebarName)
 
     /** The story's local, v3 and up, on each declared build. */
     private val storyLocal = mapOf(
@@ -71,6 +78,13 @@ class DownloadReelFixtureTest {
                 val classes = mutableMapOf<String, ClassDef>()
                 FixtureDex.classes(bundle, types).forEach { (type, classDef) -> classes[type] = classDef }
                 FixtureDex.classesHolding(bundle, "fds_control_download_video").forEach { classes.putIfAbsent(it.type, it) }
+                // The other sidebar, whose render the patch counts in Hook status (#18).
+                val others = FixtureDex.classesHolding(bundle, otherSidebarName).filter { classDef ->
+                    classDef.type != component.type && classDef.methods.any { rendersLike(it, builder) }
+                }
+                assertEquals("${bundle.name}: the other sidebar components", 1, others.size)
+                val other = others.single()
+                classes.putIfAbsent(other.type, other)
                 classes[component.type] = component
                 classes[SETTINGS_STATUS] = ExtensionDex.classDef(SETTINGS_STATUS)
                 val context = PatchContexts.of(classes.values)
@@ -99,6 +113,18 @@ class DownloadReelFixtureTest {
                     "${bundle.name}: the helper call's registers",
                     listOf(0, 1, 2, storyLocal.getValue(version)),
                     listOf(helper.registerC, helper.registerD, helper.registerE, helper.registerF),
+                )
+                val otherRender = context.mutableClassDefBy(other.type).methods.single { rendersLike(it, builder) }
+                val otherOriginal = other.methods.single { rendersLike(it, builder) }
+                assertEquals(
+                    "${bundle.name}: the other sidebar counts itself first thing",
+                    "Lapp/morphe/extension/facebook/download/ReelDownload;->otherSidebarBuilt()V",
+                    (otherRender.implementation!!.instructions.first() as ReferenceInstruction).reference.toString(),
+                )
+                assertEquals(
+                    "${bundle.name}: the counter is the only thing added to the other sidebar",
+                    otherOriginal.implementation!!.instructions.count() + 1,
+                    otherRender.implementation!!.instructions.count(),
                 )
                 checked += version
             }

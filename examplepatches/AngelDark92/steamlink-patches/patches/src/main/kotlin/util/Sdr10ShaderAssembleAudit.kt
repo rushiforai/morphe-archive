@@ -24,6 +24,8 @@ object Sdr10ShaderAssembleAudit {
 
     private val bases = listOf(
         Base("2.0.20", "5001712", 2_221_072, "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495"),
+        Base("2.0.20", "5001812", 2220872, "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a"),
+        Base("2.0.21", "5001968", 2234048, "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192"),
         Base("2.0.22", "5002244", 2_251_920, "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12"),
         Base("2.0.23", "5002363", 2_292_008, "628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0"),
     )

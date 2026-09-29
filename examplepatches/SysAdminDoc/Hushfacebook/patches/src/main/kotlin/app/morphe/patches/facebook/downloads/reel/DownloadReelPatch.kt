@@ -13,6 +13,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.liveAcrossInjection
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.requireFreeAt
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -66,6 +67,12 @@ private const val PATCH = "Download any reel"
 
 /** The name the sidebar component reports for itself, inside the method that builds it. */
 private const val SIDEBAR = "UDDSideBarComponent"
+
+/**
+ * The other component Facebook draws a reel's buttons with. It builds them from a list the viewer's
+ * config hands it, through no factory this button could go in, so its reels get no Download button.
+ */
+private const val OTHER_SIDEBAR = "FbShortsSideBarComponent"
 
 /** The row Facebook shows on your own video. Its icon is the one this button borrows. */
 private const val DOWNLOAD_ROW = "fds_control_download_video"
@@ -157,10 +164,15 @@ val downloadReelPatch = bytecodePatch(
 
         // ---- the sidebar ------------------------------------------------------------------------
         val sidebars = mutableListOf<Pair<String, String>>()
+        val otherRenders = mutableListOf<Pair<String, Method>>()
 
         classDefForEach { classDef ->
             classDef.methods.forEach { method ->
                 val list = method.instructions()
+
+                if (method.parameterTypes.size == 1 && list.any { it.stringReference() == OTHER_SIDEBAR }) {
+                    otherRenders += classDef.type to method
+                }
 
                 // The name alone is in a dozen places: state helpers, lambdas, update calls. The
                 // one wanted is the method that both names the sidebar and builds a button, which
@@ -189,6 +201,32 @@ val downloadReelPatch = bytecodePatch(
         val scopedType = sidebar.parameterTypes
             .singleOrPatchException("$PATCH: the one parameter of the sidebar builder $sidebarClass->$sidebarName")
             .toString()
+
+        // ---- the other sidebar --------------------------------------------------------------------
+        //
+        // The Reels viewer draws its buttons with this sidebar or with FbShortsSideBarComponent, as
+        // a server-side MobileConfig flag decides, and several other viewers draw the FbShorts one
+        // too. That one gets no Download button (#18), and nothing said so. Its render, the same
+        // Litho method with the same scoped context as the builder above, now counts itself in Hook
+        // status first thing, so a report says which of the two a phone draws. The call takes no
+        // register and changes nothing on the screen. A build without exactly one such render keeps
+        // the button and only loses the count, so it's a warning, not a refusal.
+        val others = otherRenders.filter { (type, method) ->
+            type != sidebarClass && method.name == sidebarName && method.returnType == sidebar.returnType &&
+                method.parameterTypes.single().toString() == scopedType
+        }
+        if (others.size == 1) {
+            val (otherClass, otherRender) = others.single()
+            mutableClassDefBy(otherClass).methods.single {
+                it.name == otherRender.name && it.returnType == otherRender.returnType &&
+                    it.parameterTypes.map(CharSequence::toString) == listOf(scopedType)
+            }.addInstructions(0, "invoke-static { }, $HANDLER->otherSidebarBuilt()V")
+        } else {
+            patchLog.warning(
+                "$PATCH: found ${others.size} $OTHER_SIDEBAR renders rather than one, so the diagnostic report " +
+                    "can't count the reels drawn without the button.",
+            )
+        }
 
         // ---- the button factory -----------------------------------------------------------------
         //

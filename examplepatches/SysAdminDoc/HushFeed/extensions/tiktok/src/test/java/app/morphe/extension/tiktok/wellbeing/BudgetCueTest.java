@@ -276,6 +276,29 @@ public class BudgetCueTest {
         }
     }
 
+    /**
+     * Leaving the feed for Profile or Inbox stops the player, and with it the callback that
+     * drives the label, so the next layout pass is what takes it down (S22, 2026-09-28: "1 min
+     * left" stayed over Profile's edit button).
+     */
+    @Test public void itLeavesTheFeedWithoutThePlayerSayingSo() {
+        Settings.SESSION_BUDGET_CUE.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(2);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            View home = standOnTheFeed(activity);
+            sync();
+            assertNotNull("the cue never appeared", BudgetCue.cueForTests());
+
+            // Profile: the Home tab loses its selection, and the player says nothing more.
+            home.setSelected(false);
+            activity.findViewById(android.R.id.content).getViewTreeObserver().dispatchOnGlobalLayout();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertNull("the label stayed over Profile", BudgetCue.cueForTests());
+        }
+    }
+
     /** A new activity gets its own label rather than a handle to a screen that is gone. */
     @Test public void itFollowsTheActivityTheHostRecreated() {
         Settings.SESSION_BUDGET_CUE.save(true);

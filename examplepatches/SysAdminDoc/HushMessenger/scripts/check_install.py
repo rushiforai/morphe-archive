@@ -17,6 +17,7 @@ from zipfile import ZIP_DEFLATED, ZIP_STORED, BadZipFile, ZipFile
 STOCK_SHA256 = {
     346013387: "128ec75e836f24328d2b28777091c03b20abba0adc536e7ee911ee5fe52e70bc",
     346013440: "e7d3c64227a7d9a26adda4e89321a87a49c85ee9e9f28f2fa7ed7fa79ae15cf6",
+    346013442: "55636f34a49173f5607011a6dfdf635597f435047a8c105cb7fe420665a38c24",
 }
 
 
@@ -428,10 +429,11 @@ def check(args: argparse.Namespace) -> int:
     if (
         candidate.package != "com.facebook.orca"
         or candidate.version_name != "580.0.0.49.91"
-        or candidate.version_code not in {346013387, 346013440}
+        or candidate.version_code not in STOCK_SHA256
     ):
         raise ValueError(
-            "Use Messenger 580.0.0.49.91, version code 346013387 or 346013440"
+            "Use Messenger 580.0.0.49.91, version code "
+            + ", ".join(str(c) for c in sorted(STOCK_SHA256))
         )
     if not candidate.permissions:
         raise ValueError("Messenger permission declarations are missing")

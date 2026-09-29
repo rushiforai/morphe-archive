@@ -17,10 +17,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
+import app.morphe.extension.shared.diagnostics.DiagnosticRedactor;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
@@ -144,7 +142,9 @@ public class Logger {
             logBuilt(logLevel, category, explicitSource, message, messageString, ex, includeStackTrace, showToast);
         } catch (Throwable failure) {
             try {
-                Log.e(MORPHE_LOG_TAG_PREFIX + "Logger", "Could not log a message: " + messageString, failure);
+                Log.e(MORPHE_LOG_TAG_PREFIX + "Logger", DiagnosticRedactor.redact(
+                        "Could not log a message: " + DiagnosticRedactor.redact(messageString)
+                                + "\n" + DiagnosticRedactor.redactThrowable(failure)));
             } catch (Throwable ignored) {
                 // Nothing is left to report through.
             }
@@ -161,23 +161,20 @@ public class Logger {
             boolean includeStackTrace,
             boolean showToast
     ) {
-        String className = explicitSource == null ? getOuterClassSimpleName(message) : explicitSource;
+        String className = DiagnosticRedactor.redact(
+                explicitSource == null ? getOuterClassSimpleName(message) : explicitSource);
         if (category == null) category = legacyCategory(className, logLevel);
 
-        String logText = messageString;
+        String logText = DiagnosticRedactor.redact(messageString);
 
-        // Append exception message if present.
+        // Android's Throwable overload prints raw messages, causes and suppressed exceptions.
+        // Render a bounded sanitized copy, while leaving the original host exception untouched.
         if (ex != null) {
-            var exceptionMessage = ex.getMessage();
-            if (exceptionMessage != null) {
-                logText += "\nException: " + exceptionMessage;
-            }
+            logText += "\n" + DiagnosticRedactor.redactThrowable(ex);
         }
 
         if (includeStackTrace) {
-            var sw = new StringWriter();
-            new Throwable().printStackTrace(new PrintWriter(sw));
-            String stackTrace = sw.toString();
+            String stackTrace = DiagnosticRedactor.redactThrowable(new Throwable());
             // Remove the stacktrace elements of this class.
             final int loggerIndex = stackTrace.lastIndexOf(LOGGER_CLASS_NAME);
             final int loggerBegins = stackTrace.indexOf('\n', loggerIndex);
@@ -185,6 +182,7 @@ public class Logger {
             // keep past it, and substring(-1) would throw.
             logText += loggerBegins >= 0 ? stackTrace.substring(loggerBegins) : "\n" + stackTrace;
         }
+        logText = DiagnosticRedactor.redact(logText);
 
         // Do not include "morphe:" prefix in clipboard logs.
         String managerToastString = className + ": " + logText;
@@ -193,16 +191,13 @@ public class Logger {
         String logTag = MORPHE_LOG_TAG_PREFIX + className;
         switch (logLevel) {
             case DEBUG:
-                if (ex == null) Log.d(logTag, logText);
-                else Log.d(logTag, logText, ex);
+                Log.d(logTag, logText);
                 break;
             case INFO:
-                if (ex == null) Log.i(logTag, logText);
-                else Log.i(logTag, logText, ex);
+                Log.i(logTag, logText);
                 break;
             case ERROR:
-                if (ex == null) Log.e(logTag, logText);
-                else Log.e(logTag, logText, ex);
+                Log.e(logTag, logText);
                 break;
         }
 

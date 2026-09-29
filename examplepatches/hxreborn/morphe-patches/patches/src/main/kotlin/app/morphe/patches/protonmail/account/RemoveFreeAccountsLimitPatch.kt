@@ -16,7 +16,7 @@ import app.morphe.patches.shared.misc.proton.appliedPatchMarkerPatch
 import app.morphe.patches.protonmail.misc.settings.patchesSettingsPatch
 import app.morphe.patches.protonmail.shared.ARM32
 import app.morphe.patches.protonmail.shared.ARM64
-import app.morphe.patches.protonmail.shared.RUST_CORE
+import app.morphe.patches.protonmail.shared.MAIL_UNIFFI_LIBRARY
 import app.morphe.patches.protonmail.shared.X86_64
 import app.morphe.patches.protonmail.shared.replaceTrailingMasked
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -66,16 +66,16 @@ val removeFreeAccountsLimitPatch = resourcePatch(
         var patchedArchitectures = 0
 
         for ((architecture, check) in LIMIT_CHECKS) {
-            val nativeCore = get("lib/$architecture/$RUST_CORE")
-            if (!nativeCore.exists()) continue
+            val library = get("lib/$architecture/$MAIL_UNIFFI_LIBRARY")
+            if (!library.exists()) continue
 
-            if (nativeCore.replaceTrailingMasked(check.pattern, check.mask, check.bypass)) {
+            if (library.replaceTrailingMasked(check.pattern, check.mask, check.bypass)) {
                 patchedArchitectures++
             }
         }
 
         if (patchedArchitectures == 0) {
-            throw PatchException("Could not find the free accounts limit check in any $RUST_CORE")
+            throw PatchException("Could not find the free accounts limit check in any $MAIL_UNIFFI_LIBRARY")
         }
     }
 }

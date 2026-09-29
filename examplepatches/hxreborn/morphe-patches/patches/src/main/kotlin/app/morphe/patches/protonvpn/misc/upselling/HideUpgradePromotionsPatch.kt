@@ -112,11 +112,19 @@ val hideUpgradePromotionsPatch = bytecodePatch(
             method.addInstructions(
                 freeUserResult.index + 1,
                 """
-                    invoke-static { v$register }, $PROMOTIONS_CLASS->showsUpgradeCarousel(Z)Z
+                    invoke-static { v$register }, $PROMOTIONS_CLASS->showsUpsell(Z)Z
                     move-result v$register
                 """,
             )
         }
+
+        AccountSettingsViewStateFingerprint.matchSingle().method.addInstructions(
+            0,
+            """
+                invoke-static { p6 }, $PROMOTIONS_CLASS->showsUpsell(Z)Z
+                move-result p6
+            """,
+        )
 
         LaunchOnboardingFingerprint.matchSingle().method.apply {
             addInstructionsWithLabels(

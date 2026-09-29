@@ -50,6 +50,7 @@ public final class ShareActionChecklistPreference extends DialogPreference {
     private EditText search;
     private TextView resultCount;
     private String originalHidden = "";
+    private boolean selectionSaved;
 
     public ShareActionChecklistPreference(Context context) {
         this(context, ShareSurface.VIDEO);
@@ -217,16 +218,65 @@ public final class ShareActionChecklistPreference extends DialogPreference {
 
     @Override
     protected void onDialogClosed(boolean positiveResult) {
-        if (positiveResult) {
-            ShareModelFilter.hiddenSetting(surface).save(buildHidden());
-        }
+        if (positiveResult && !selectionSaved) saveSelection();
         super.onDialogClosed(positiveResult);
     }
 
     @Override
     protected void showDialog(Bundle state) {
+        selectionSaved = false;
         super.showDialog(state);
         SettingsUi.styleFramedDialog(getDialog());
+        AlertDialog dialog = (AlertDialog) getDialog();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+            if (!view.isEnabled()) return;
+            String hidden = buildHidden();
+            setChoicesEnabled(dialog, false);
+            boolean accepted = Utils.runOnBackgroundThread(() -> {
+                boolean saved = ShareModelFilter.hiddenSetting(surface).save(hidden);
+                Utils.runOnMainThread(() -> {
+                    if (saved) notifyChanged();
+                    if (getDialog() != dialog || !dialog.isShowing()) {
+                        if (!saved) reportSaveFailure();
+                        return;
+                    }
+                    setChoicesEnabled(dialog, true);
+                    if (!saved) {
+                        reportSaveFailure();
+                        return;
+                    }
+                    selectionSaved = true;
+                    onClick(dialog, DialogInterface.BUTTON_POSITIVE);
+                    dialog.dismiss();
+                });
+            });
+            if (!accepted) {
+                setChoicesEnabled(dialog, true);
+                reportSaveFailure();
+            }
+        });
+    }
+
+    private void setChoicesEnabled(AlertDialog dialog, boolean enabled) {
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(enabled);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(enabled);
+        search.setEnabled(enabled);
+        for (int index = 0; index < rows.getChildCount(); index++) {
+            rows.getChildAt(index).setEnabled(enabled);
+        }
+    }
+
+    private void reportSaveFailure() {
+        Utils.showToastShort(L10n.t(getContext(), "Couldn't save these choices. Try again."));
+    }
+
+    private boolean saveSelection() {
+        if (ShareModelFilter.hiddenSetting(surface).save(buildHidden())) {
+            notifyChanged();
+            return true;
+        }
+        reportSaveFailure();
+        return false;
     }
 
     private Set<String> selectedKeys(String stored) {

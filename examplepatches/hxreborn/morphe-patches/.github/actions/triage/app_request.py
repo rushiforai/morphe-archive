@@ -76,29 +76,29 @@ def decide(number, body, requests, patches_list, registry=None, title="", now=No
     if package and package.lower() in supported:
         verdict, reason = "close", "completed"
         lines.append(
-            f"`{package}` is already supported here as **{supported[package.lower()]}**. Update the "
-            "bundle in Morphe Manager and patch it. If the current patches are missing something "
-            "you need, open a feature request."
+            f"`{package}` is already supported as **{supported[package.lower()]}**. Update the "
+            "bundle in Morphe Manager and patch the app. For anything the patches don't cover, "
+            "please open a feature request."
         )
     elif open_same:
         canonical = open_same[0]
         verdict, reason, duplicate_of = "close", "duplicate", canonical["number"]
         lines.append(
-            f"Thanks! {link(canonical)} already requests `{package}`, so I'm closing this one as a "
-            f"duplicate. Upvote {link(canonical)} and add anything new there."
+            f"Closing as a duplicate of {link(canonical)}, which already requests `{package}`. "
+            f"Please upvote {link(canonical)} or add any new details there."
         )
     elif same_package:
         prior = same_package[-1]
         verdict, labels = "flag", ["duplicate"]
         lines.append(
-            f"{link(prior)} asked for `{package}` before and was closed. Leaving this open for "
-            "review. If something changed since then, please mention what."
+            f"An earlier request for `{package}`, {link(prior)}, was closed. This request is kept "
+            "open for review. Please mention anything that's changed."
         )
     elif not package:
         verdict, labels = "flag", ["needs info"]
         lines.append(
-            "**I couldn't find a package name.** Could you add it to the Package name field, for example "
-            "`com.duolingo`? It's the `id=` part of the Play Store link."
+            "Please add the app's package name to the Package name field, for example "
+            "`com.duolingo`. It's the value after `id=` in the Play Store link."
         )
 
     this = next((r for r in requests if r["number"] == number), {})
@@ -114,10 +114,10 @@ def decide(number, body, requests, patches_list, registry=None, title="", now=No
             verdict = "flag"
             if "duplicate" not in labels:
                 labels.append("duplicate")
-            refs = ", ".join(f"**{r['name']}** (supported)" if not r["number"] else link(r) for r in lookalikes)
+            refs = ", ".join(f"**{r['name']}** (already supported)" if not r["number"] else link(r) for r in lookalikes)
             lines.append(
-                f"This looks like the same app as {refs}, but the package name differs or is "
-                "missing. Leaving it open for review."
+                f"This may be the same app as {refs}, but the package name differs or is "
+                "missing. Please confirm the package name; this request is kept open for review."
             )
 
     bundles = []
@@ -134,15 +134,15 @@ def decide(number, body, requests, patches_list, registry=None, title="", now=No
                 for b in bundles[:MAX_LISTED]
             ]
             if len(bundles) > MAX_LISTED:
-                rows.append(f"- and {len(bundles) - MAX_LISTED} more")
+                rows.append(f"- {len(bundles) - MAX_LISTED} more bundles")
             lines.append(
-                f"`{package}` already has patches elsewhere:\n\n" + "\n".join(rows) + "\n\n"
-                "You can add that bundle as a source in Morphe Manager. If those patches don't cover "
-                "what you need, let me know what's missing."
+                f"These bundles already offer patches for `{package}`:\n\n" + "\n".join(rows) + "\n\n"
+                "Add a listed bundle as a source in Morphe Manager to try its patches. If they don't "
+                "cover your request, please describe what's missing."
             )
 
     if verdict != "pass":
-        lines.append("_I'm a bot, so I can get this wrong. If I did, comment below and a maintainer will take a look._")
+        lines.append("_Posted automatically on behalf of the maintainer. If this seems wrong, please comment below for review._")
     return {
         "package": package,
         "verdict": verdict,

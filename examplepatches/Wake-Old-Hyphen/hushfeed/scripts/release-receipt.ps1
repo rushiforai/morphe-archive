@@ -30,7 +30,57 @@ function Get-ReleaseReceiptSchemaVersion {
         several scripts, and a script-scoped variable in a dot-sourced file belongs to whichever
         one sourced it.
     #>
-    return 1
+    return 2
+}
+
+function Test-BuildSourceFacts {
+    <# A timestamp is reproducible, but only the producer's source facts establish eligibility. #>
+    param($Source, [Parameter(Mandatory = $true)][string]$ExpectedCommit)
+
+    function Fail { param([string]$Reason) return [pscustomobject]@{ Valid = $false; Reason = $Reason } }
+    if ($null -eq $Source) { return Fail 'The build has no source provenance record.' }
+    if ([string]$Source.commit -notmatch '^[0-9a-f]{40}$' -or $Source.commit -ne $ExpectedCommit) {
+        return Fail "The build source commit is $($Source.commit), not $ExpectedCommit."
+    }
+    if ($Source.clean -isnot [bool] -or -not $Source.clean) {
+        return Fail 'The build source was dirty or could not be read; it is not known to be clean.'
+    }
+    if ([string]$Source.startFingerprint -notmatch '^[0-9A-F]{64}$' -or
+            [string]$Source.endFingerprint -notmatch '^[0-9A-F]{64}$') {
+        return Fail 'The build has no readable starting and ending source fingerprints.'
+    }
+    if ($Source.startFingerprint -ne $Source.endFingerprint) {
+        return Fail 'The source inputs changed during the build.'
+    }
+    return [pscustomobject]@{ Valid = $true; Reason = $null }
+}
+
+function Test-FrozenLegacyReceipt {
+    <#
+        Only the exact already-published schema 1 documents may use the historical reader.
+        Neither an old version label nor a supplied switch can exempt a new artifact.
+    #>
+    param($Receipt, [string]$ReceiptPath)
+
+    if (-not $ReceiptPath -or -not (Test-Path -LiteralPath $ReceiptPath -PathType Leaf)) {
+        return $false
+    }
+    $identityPath = Join-Path $PSScriptRoot 'legacy-release-receipts.tsv'
+    $receiptHash = Get-Sha256Hex -Path $ReceiptPath
+    $identity = @(Get-Content -LiteralPath $identityPath | Where-Object {
+        $_ -and -not $_.StartsWith('#') -and ($_ -split "`t")[0] -eq $receiptHash
+    })
+    if ($identity.Count -ne 1) { return $false }
+    $fields = $identity[0] -split "`t"
+    if ($fields.Count -ne 4 -or $Receipt.bundle.sha256 -ne $fields[1] -or
+            $Receipt.release.commit -ne $fields[2] -or $Receipt.release.tag -ne $fields[3]) {
+        return $false
+    }
+    # The caller's parsed object must describe those exact bytes too, not a different document
+    # accompanied by the path of a valid historical one.
+    $frozen = Get-Content -LiteralPath $ReceiptPath -Raw | ConvertFrom-Json
+    return ($frozen | ConvertTo-Json -Depth 20 -Compress) -ceq
+        ($Receipt | ConvertTo-Json -Depth 20 -Compress)
 }
 
 function Get-CliOutputTail {
@@ -75,11 +125,11 @@ function Get-Sha256Hex {
 function Get-BundleManifestFacts {
     <#
     .SYNOPSIS
-        Version, timestamp and patcher stamp out of a bundle's META-INF/MANIFEST.MF.
+        Version, timestamp, patcher and source facts out of META-INF/MANIFEST.MF.
     .DESCRIPTION
         The Gradle plugin pins the timestamp to the release commit's time in milliseconds, which
-        is what makes a published hash reproducible from a tag. Read back here so a receipt
-        cannot describe a bundle that was built from something other than the commit it names.
+        is one input to reproducing a published hash. The separate source fields identify the
+        commit and whether its inputs were clean and unchanged at the build boundaries.
     #>
     param([Parameter(Mandatory = $true)][string]$BundlePath)
 
@@ -102,10 +152,23 @@ function Get-BundleManifestFacts {
     if (-not $version.Success) { throw "The bundle manifest has no Version: $BundlePath" }
     if (-not $patcher.Success) { throw "The bundle manifest has no Patcher-Version: $BundlePath" }
 
+    $sourceFields = @{}
+    foreach ($name in @('Commit', 'Clean', 'Start', 'End')) {
+        $matches = [regex]::Matches($text, "(?m)^Hushfeed-Source-${name}:([^`r`n]*)")
+        if ($matches.Count -gt 1) { throw "The bundle repeats source field ${name}: $BundlePath" }
+        $sourceFields[$name] = if ($matches.Count -eq 1) { $matches[0].Groups[1].Value.Trim() } else { '' }
+    }
+
     return [pscustomobject]@{
         version        = $version.Groups[1].Value
         timestamp      = [long]$timestamp.Groups[1].Value
         patcherVersion = $patcher.Groups[1].Value
+        source         = [pscustomobject]@{
+            commit = $sourceFields.Commit
+            clean = $sourceFields.Clean -ceq 'true'
+            startFingerprint = $sourceFields.Start
+            endFingerprint = $sourceFields.End
+        }
     }
 }
 
@@ -196,7 +259,14 @@ function Get-ApkManifestFacts {
 
     if (-not (Test-Path -LiteralPath $Apk -PathType Leaf)) { throw "APK not found: $Apk" }
 
-    $dump = @(& $Aapt2 dump xmltree --file AndroidManifest.xml $Apk 2>&1)
+    # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+    $preference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $dump = @(& $Aapt2 dump xmltree --file AndroidManifest.xml $Apk 2>&1)
+    } finally {
+        $ErrorActionPreference = $preference
+    }
     if ($LASTEXITCODE -ne 0) {
         throw "aapt2 could not read the manifest of ${Apk}: $($dump -join ' ')"
     }
@@ -696,6 +766,7 @@ function Test-ReleaseReceipt {
         [Parameter(Mandatory = $true)][string]$ExpectedPackageName,
         [Parameter(Mandatory = $true)][string[]]$ExpectedPackageVersions,
         [string]$BundlePath,
+        [string]$ReceiptPath,
         [string[]]$ApprovedManifestDelta = @(),
         # When the commit the receipt names was made, read out of git by the caller. Without it
         # the receipt's commit and its timestamp are only checked against each other, which any
@@ -709,7 +780,11 @@ function Test-ReleaseReceipt {
     function Fail { param([string]$Reason) return [pscustomobject]@{ Valid = $false; Reason = $Reason } }
 
     if ($null -eq $Receipt) { return Fail 'There is no receipt to check.' }
-    if ([int]$Receipt.schemaVersion -ne (Get-ReleaseReceiptSchemaVersion)) {
+    $legacy = [int]$Receipt.schemaVersion -eq 1
+    if ($legacy -and -not (Test-FrozenLegacyReceipt -Receipt $Receipt -ReceiptPath $ReceiptPath)) {
+        return Fail 'Schema 1 is read-only for exact published receipts; a new receipt requires build-time source provenance.'
+    }
+    if (-not $legacy -and [int]$Receipt.schemaVersion -ne (Get-ReleaseReceiptSchemaVersion)) {
         return Fail ("The receipt is schema version $($Receipt.schemaVersion); this checkout " +
             "reads version $(Get-ReleaseReceiptSchemaVersion).")
     }
@@ -749,6 +824,10 @@ function Test-ReleaseReceipt {
         return Fail ("The receipt names Manager floor $($Receipt.toolchain.managerFloor); " +
             "the catalog pins $ExpectedManagerFloor.")
     }
+    if (-not $legacy) {
+        $sourceCheck = Test-BuildSourceFacts -Source $Receipt.source -ExpectedCommit $Receipt.release.commit
+        if (-not $sourceCheck.Valid) { return Fail $sourceCheck.Reason }
+    }
 
     if ($BundlePath) {
         if (-not (Test-Path -LiteralPath $BundlePath -PathType Leaf)) {
@@ -777,15 +856,21 @@ function Test-ReleaseReceipt {
             return Fail ("The receipt says the bundle is stamped $($Receipt.bundle.timestamp); " +
                 "$BundlePath is stamped $($manifest.timestamp).")
         }
-        # The one fact that makes a published hash reproducible from a tag. The plugin pins this
-        # to the release commit's time, so anything else means the bundle was built from a
-        # different commit, or from a tree with uncommitted changes in it, and nobody can rebuild
-        # it from the source the receipt names. v0.28.0 shipped exactly that way.
+        # The release timestamp policy remains a separate reproducibility check. Equality alone
+        # cannot identify a source commit, and SOURCE_DATE_EPOCH can set it on a dirty build.
         $expectedStamp = [long]$Receipt.release.commitTimestamp * 1000
         if ($manifest.timestamp -ne $expectedStamp) {
             return Fail ("The bundle is stamped $($manifest.timestamp) but the commit it is " +
-                "attributed to was made at $expectedStamp. It was built from a different " +
-                "commit, or from a tree that had uncommitted changes.")
+                "attributed to was made at $expectedStamp. A different commit or configured " +
+                "SOURCE_DATE_EPOCH can cause this reproducibility mismatch.")
+        }
+        if (-not $legacy) {
+            $sourceCheck = Test-BuildSourceFacts -Source $manifest.source -ExpectedCommit $Receipt.release.commit
+            if (-not $sourceCheck.Valid) { return Fail $sourceCheck.Reason }
+            if ($manifest.source.startFingerprint -ne $Receipt.source.startFingerprint -or
+                    $manifest.source.endFingerprint -ne $Receipt.source.endFingerprint) {
+                return Fail 'The receipt source fingerprints do not match the built bundle.'
+            }
         }
     }
 

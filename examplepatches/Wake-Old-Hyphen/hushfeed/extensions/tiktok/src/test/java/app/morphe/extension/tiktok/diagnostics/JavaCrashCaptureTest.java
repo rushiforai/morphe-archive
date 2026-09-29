@@ -2,6 +2,7 @@ package app.morphe.extension.tiktok.diagnostics;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -90,6 +91,31 @@ public class JavaCrashCaptureTest {
         assertFalse("the message must not carry the address", report.contains("tiktokv.com"));
         assertFalse("nor the session", report.contains("abc123"));
         assertTrue(report.contains("[url omitted]"));
+    }
+
+    @Test public void crashPersistenceRedactsThreadMetadataAndDelegatesTheOriginalFailure() throws Exception {
+        var context = org.robolectric.RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        Throwable original = new IOException("{\"sessionid\":\"CRASH_SENTINEL\"}");
+        java.util.concurrent.atomic.AtomicReference<Throwable> delegated =
+                new java.util.concurrent.atomic.AtomicReference<>();
+        Thread.UncaughtExceptionHandler delegate = (thread, failure) -> delegated.set(failure);
+        Class<?> handlerClass = Class.forName(JavaCrashCapture.class.getName() + "$MorpheCrashHandler");
+        java.lang.reflect.Constructor<?> constructor = handlerClass.getDeclaredConstructor(
+                android.content.Context.class, Thread.UncaughtExceptionHandler.class);
+        constructor.setAccessible(true);
+        Thread.UncaughtExceptionHandler handler = (Thread.UncaughtExceptionHandler)
+                constructor.newInstance(context, delegate);
+
+        handler.uncaughtException(new Thread("sessionid=CRASH_THREAD_SENTINEL"), original);
+
+        assertSame("TikTok's crash handler must receive the original throwable", original, delegated.get());
+        String raw = new String(java.nio.file.Files.readAllBytes(new java.io.File(
+                context.getFilesDir(), "morphe_java_crash_report_v1.txt").toPath()),
+                java.nio.charset.StandardCharsets.UTF_8);
+        assertFalse(raw.contains("CRASH_SENTINEL"));
+        assertFalse(raw.contains("CRASH_THREAD_SENTINEL"));
+        assertTrue(raw.contains("JavaCrashCaptureTest"));
     }
 
     @Test public void aWriteCutShortLeavesTheLastWholeReportReadable() throws Exception {

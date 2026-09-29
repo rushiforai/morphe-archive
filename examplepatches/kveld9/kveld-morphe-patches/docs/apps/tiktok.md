@@ -46,16 +46,22 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | **Usability** | **Hide Feed Search Bar** | `bytecodePatch` | Removes the search suggestion pill and trending bar ('Search · <keyword>') from the bottom of feed videos. |
 | **Usability** | **Hide Popular Lives In Search** | `bytecodePatch` | Removes the Popular LIVEs recommendation card and live stream broadcasts from the search discovery page. |
 | **Usability** | **Hide Suggested Searches** | `bytecodePatch` | Removes the suggested search keywords section ('You may like' / 'Search suggestions') from the search discovery page. |
+| **Usability** | **Disable Search Video Autoplay** | `bytecodePatch` | Disables automatic video playback in search results. Videos only play when tapped to view in detail. |
+| **Usability** | **Hide Nearby Feed Tab** | `bytecodePatch` | Removes the Nearby (local city or region) feed tab from the top navigation feed strip. |
 | **Usability** | **Auto-Pause First Video** | `bytecodePatch` | Automatically pauses the initial video on startup (frame 0) with center play icon; resumes upon screen tap or feed scroll. |
+| **Usability** | **Comment Sort Controls** | `bytecodePatch` | Unlocks native comment sort controls (Newest, Most Relevant) across video posts. |
+| **Usability** | **Hide Seen Videos** | `bytecodePatch` | Filters previously watched videos from incoming For You feed batches based on playback progress. |
+| **Usability** | **Resume Video After Scroll** | `bytecodePatch` | Resumes video playback from previous playback position when returning to a video in the feed. |
+| **Usability** | **Stop Video Looping** | `bytecodePatch` | Prevents videos from looping continuously on playback completion. |
 | **Privacy** | **Fix Google Login** | `bytecodePatch` | Restores Google account sign-in via Web OAuth fallback when GMS rejects modified APK signature. |
 | **Privacy** | **Bypass Mandatory Login** | `bytecodePatch` | Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions. |
 | **Privacy** | **Bypass Screen Capture Detection** | `bytecodePatch` | Clears `FLAG_SECURE` on protected windows to allow screenshots and screen recording across restricted views, and neutralizes screenshot detection listeners and feedback prompts. |
 | **Privacy** | **Clean Share URL** | `bytecodePatch` | Strips tracking query parameters, user tokens, and campaign IDs from shared links. |
-| **Privacy** | **Device Privacy Guard** | `bytecodePatch` | Intercepts runtime permission prompts (contacts, location), suppresses in-app permission nag dialogs and background sync tasks, zeroes Advertising ID, blocks clipboard inspection, isolates package queries, and silences HAR motion sensors. |
+| **Privacy** | **Device Privacy Guard** | `bytecodePatch` | Intercepts runtime permission prompts (contacts, location, nearby devices, AdServices), suppresses in-app permission nag dialogs, settings redirect prompts, and background sync tasks, zeroes Advertising ID, blocks clipboard inspection, isolates package queries, and silences HAR motion sensors. |
 | **Privacy** | **In-App Browser Privacy Guard** | `bytecodePatch` | Redirects external links to default system browser, neutralizes WebView JS tracking injection and AJAX hookers. |
 | **Privacy** | **Client-Side AI & Behavioral Profiling Governor** | `bytecodePatch` | Neutralizes Pitaya on-device ML, Tako AI chatbot entries, and AI search clutter. |
 | **Privacy** | **[SIM Region Selector](#1-sim-region-selector)** | `bytecodePatch` | Spoofs SIM and network country ISO codes to bypass regional restrictions. |
-| **Privacy** | **Feed Ad Blocker** | `bytecodePatch` | Filters sponsored cards, brand promotions, and commercial audio. |
+| **Privacy** | **Feed Ad Blocker** | `bytecodePatch` | Filters sponsored cards, brand promotions, commercial audio, and search video scroll advertisements across For You, Following, and Search feeds. |
 | **Privacy** | **Hide TikTok Shop & Mall** | `bytecodePatch` | Removes product anchors, showcase badges, and bottom/top Shop navigation tabs (configurable via `hideShopTab` and `hideVideoAnchors`). |
 | **Privacy** | **Hide AI-Generated Content** | `bytecodePatch` | Filters and skips videos tagged with native AI-generated metadata, C2PA content credentials, or creator AI disclosure tags across the For You, Following, and Friends feeds. |
 | **Privacy** | **Feed Live Stream Blocker** | `bytecodePatch` | Removes live broadcast cards and live recommendations from FYP and Following. |
@@ -258,12 +264,14 @@ The **`Custom Share Sheet`** patch cleans and customizes TikTok's native sharing
 > **Bytecode-Only Privacy Architecture (`ResourceMode.RAW`)**:
 > Unlike apps with standard resource structures, TikTok's entire patch suite strictly avoids resource decoding (`resourcePatch`). Re-encoding TikTok's obfuscated resource tree via `arsclib` drops launcher icon drawables (`res/a/aq2.xml`, `res/a/aq3.xml`). Privacy is enforced at the Dalvik bytecode execution layer via runtime permission interception, in-app nag suppression, sensor silencing, and telemetry neutralization while keeping APK resources intact.
 
-- **Runtime Permission Interception & Denial Caching**:
+- **Runtime Permission Interception & Denial Handling**:
   - Intercepts ByteDance Helios static dispatcher (`LX/02z2;->LLJ`) for `Activity.requestPermissions`.
-  - Intercepts PowerPermissions headless engine (`FakeFragment;->jT`) to immediately dispatch permanent denials (`PackageManager.PERMISSION_DENIED`) for invasive permissions (`READ_CONTACTS`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`, `ACCESS_LOCAL_NETWORK`).
-  - Records permanent user denials into Keva stores (`FriendsSharePreferences -> read_contact_denied = true`, `permission_store -> <perm> = true`) so the app treats permissions as permanently denied and suppresses repeated prompts.
-  - Hooks permission cache check (`LX/04DS;->LIZ`) to report blocked permissions as permanently denied.
-- **In-App Permission Dialog & Location Popup Suppression**:
+  - Intercepts PowerPermissions headless engine (`FakeFragment;->cY` / `jT`) to immediately dispatch denials (`PackageManager.PERMISSION_DENIED`) for invasive permissions (`READ_CONTACTS`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `ACCESS_BACKGROUND_LOCATION`, `ACCESS_LOCAL_NETWORK`, `BLUETOOTH_SCAN`, `BLUETOOTH_ADVERTISE`, `BLUETOOTH_CONNECT`, `ACTIVITY_RECOGNITION`, `AD_ID`, `ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION`).
+  - Resets permanent denial flags in Keva stores (`FriendsSharePreferences -> read_contact_denied = false`, `permission_store -> <perm> = false`) to prevent persistent denial profiling.
+  - Hooks permission cache check (`LX/04CN;->LIZ`) returning `false` for blocked permissions to suppress permanently-denied flags.
+- **In-App Permission Dialog, Settings Redirect & Location Popup Suppression**:
+  - Neutralizes permanently denied system settings redirect dialogs (`LX/06WV;->LJI(Activity, String, boolean)Z` -> returns `false` for blocked permissions), eliminating persistent in-app prompts nudging users to open device Application Details Settings.
+  - Suppresses relation onboarding and permission dialog triggers (`LX/16rQ.LIZJ` -> `false` for contacts, `LX/16rP.LIZJ` -> `false` for Facebook, and `LX/16rO.LIZIZ` -> `false` for permission popups).
   - Suppresses relation/contacts synchronization auth dialogs (`RelationAuthDialogControl.LJIIIIZZ` -> `false`, `RelationAuthDialogControl.LJI` -> `false`).
   - Suppresses location popups and scenes (`LX/0BK7` popup checks and `LocationServiceImpl.LJIIZILJ`, `LJIJ`).
 - **Background Sync Lego Task Neutralization**:
@@ -378,5 +386,33 @@ The **`Custom Share Sheet`** patch cleans and customizes TikTok's native sharing
   - Native AI banners and anchors (`ANCHOR_AIGC`, Lynx AI disclosure templates).
   - Video description and tag regex matching for creator-disclosed AI markers (`#aigenerated`, `#ai`, `#generadoporIA`, etc.).
 
+### 19. Disable Search Video Autoplay (`disableSearchVideoAutoplayPatch`)
+- Disables automatic video and media playback in TikTok search results, preserving bandwidth and preventing unwanted audio or distraction while browsing search cards.
+- **Search List Autoplay Calculation Loop Suppression**: Injects `return-void` at index 0 of `SearchListAutoplayHelper.LIZIZ(Z LX/0JHH;)V` (fingerprinted by string `"checkLogic() is not called on main thread"`), halting the recurring scroll and idle candidate evaluation cycle.
+- **Card AutoPlay Ability Inactivation**: Injects `const/4 v0, 0` / `return v0` into `SearchCardVideoPlayerAssem$autoPlayAbility$2$1.l2()Z`, `SearchVideoForLynx$ability$1.l2()Z`, and `SearchCardPhotoPlayerAssem$autoPlayAbility$2$1.l2()Z`, asserting `false` for card autoplay eligibility.
+- **Playback Execution Guard**: Injects `return-void` into `r()V` on all search card `AutoPlayAbility` implementations, preventing any direct invocation from triggering video playback or hiding cover thumbnails. Detail view playback when opening a video remains fully functional via `PlayerController`.
 
+### 20. Comment Sort Controls (`commentSortControlsPatch`)
+- Unlocks TikTok's internal native comment sorting controls sheet across all videos.
+- **Sort Style Override**: Hooks the `comment_sort_opt_style` configuration getter, returning `2` (`FULL_SORT_SHEET_STYLE`) to activate the complete bottom sheet menu options (Most Relevant, Newest, Creator Only, Media Only).
+- **Post Eligibility Override**: Hooks the Aweme-level comment sort eligibility evaluator to return `true`, making the sorting header available across all feed and profile comments.
 
+### 21. Resume Video After Scroll (`resumeVideoAfterScrollPatch`)
+- Persists and restores playback timestamp when scrolling away and returning to feed videos.
+- **Configuration Gate Activation**: Hooks `FeedPlayProgressContinueConfig` gate (`invoke()`), forcing `enable = true`.
+- **Feed Type Restriction Bypass**: Intercepts the event type check matching `landscape_change_keep_tag`, replacing the `MOVE_RESULT` register with `1` to allow timestamp restoration across standard vertical portrait feeds.
+
+### 22. Stop Video Looping (`stopVideoLoopingPatch`)
+- Prevents videos from repeating in an infinite loop upon playback completion.
+- **Native Player Looping Suppression**: Injects `const/4 p1, 0x0` at instruction offset 0 of `Lcom/ss/ttvideoengine/TTVideoEngine;->setLooping(Z)V`, ensuring `isLooping` remains disabled for the underlying media session.
+
+### 23. Hide Seen Videos (`hideSeenVideosPatch`)
+- Automatically filters previously watched videos from incoming For You feed batches, preventing repeat content during the session while preserving active viewing history.
+- **Playback Tracking**: Hooks `PlayerController.onPlayProgressChange(String, long, long)` (recording videos viewed for >= 5s or >= 70% duration) and `PlayerController.onPlayCompleted(String)`.
+- **Network Ingestion Filtering**: Hooks `FeedApiService.fetchFeedList()` return points, pruning seen video entries directly from deserialized `FeedItemList` payloads before they are delivered to the UI layer, preventing adapter desynchronization and frame drops.
+
+### 24. Hide Nearby Feed Tab (`hideNearbyTabPatch`)
+- Removes the Nearby (local city or region) feed tab from the top navigation feed strip.
+- **Top Tab Provider Interception**: Resolves `NearbyTabProvider` from `NearbyServiceImpl.LJIIZILJ()`, hooking `LJ()` -> returns `null` to eliminate `TopTabProtocol` registration in `TopTabOperator`.
+- **A/B Experiment Gate Neutralization**: Hooks the experiment evaluator method in `NearbyTabProtocol.enable()` (`LIZIZ()Z`) -> returns `false`.
+- **Protocol & Service Gates**: Hooks `NearbyTabProtocol.enable()Z` -> returns `false`, and neutralizes `NearbyServiceImpl.LJIIIIZZ()Z` and `LJIIL()Z`.

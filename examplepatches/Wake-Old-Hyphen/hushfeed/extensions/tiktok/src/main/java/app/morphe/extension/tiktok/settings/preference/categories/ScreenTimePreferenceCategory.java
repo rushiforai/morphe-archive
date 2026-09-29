@@ -185,11 +185,28 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
             Object to = setting instanceof IntegerSetting
                     ? Integer.valueOf(String.valueOf(value).trim()) : value;
             if (!BudgetChanges.waits(setting, to)) {
-                BudgetChanges.forget(setting);
+                if (preference instanceof NumberInputPreference) {
+                    NumberInputPreference number = (NumberInputPreference) preference;
+                    String typed = number.getEditText().getText().toString();
+                    if (!BudgetChanges.saveNow(setting, to)) {
+                        showSaveFailure(preference);
+                        return false;
+                    }
+                    number.acceptSavedValue(typed);
+                    return false;
+                }
+                if (!BudgetChanges.forget(setting)) {
+                    showSaveFailure(preference);
+                    return false;
+                }
                 showWhatWaits(preference);
                 return true;
             }
             long at = BudgetChanges.keep(setting, to, SessionBudget.now());
+            if (at == 0) {
+                showSaveFailure(preference);
+                return false;
+            }
             showWhatWaits(preference);
             // Refusing the save is what keeps the value as it is, and a refused Save keeps its
             // dialog open for another try. Nothing here needs another try.
@@ -229,6 +246,13 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
         if (waitRow != null) showWhatWaits(waitRow);
 
         addPreference(new StartTodayOverPreference(context));
+    }
+
+    private void showSaveFailure(Preference preference) {
+        String message = L10n.t(getContext(), "Couldn't save the change. Try again.");
+        android.widget.EditText field = openField(preference);
+        if (field != null) SettingsUi.reportFieldError(field, message);
+        else SettingsActionBanner.showNotice(getContext(), message);
     }
 
     // Not IntFunction: java.util.function arrived at API 24, and a type D8 cannot backport fails

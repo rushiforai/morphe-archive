@@ -10,6 +10,29 @@ package app.morphe.extension.tiktok.settings.preference;
 public final class ReleaseNotesData {
     private ReleaseNotesData() {}
     public static final String TEXT =
+            "## 0.64.0 (2026-09-28)\n" +
+            "\n" +
+            "* **TikTok:** Hiding buttons in the right column now works on videos opened from a creator's profile, a hashtag or a sound too (#47). Those play in a screen of their own, which the hides never reached, so only the feed lost its Like, Save or Share button.\n" +
+            "* **TikTok:** Hide TikTok Shop also hides a LIVE that is selling while it streams (#46). Only Hide LIVE videos took those away before, and that hides every LIVE.\n" +
+            "* **TikTok:** Tapping Pause Hushfeed in the settings search no longer closes TikTok. It opens the main settings page with that row picked out.\n" +
+            "* **TikTok:** The settings search finds rows that stay greyed out until another switch is on, such as Auto-advance session limit. Their page says which switch that is, where the search used to say nothing matched.\n" +
+            "* **TikTok:** Default playback speed, Subtitle language, the delay before controls hide and the edge press step grey out while the switch that uses them is off, and say which switch that is. A greyed choice puts that note on its own line under its value.\n" +
+            "* **TikTok:** Undo last restore or reset keeps whatever it replaces, so pressing it a second time brings back the changes you made after the restore. A restore that also wrote Feature Gate Lab rules retires the Lab's own Undo, which would have taken those rules back.\n" +
+            "* **TikTok:** A restore that kept one of your download folders is no longer undone at the next start when TikTok closed before it finished tidying up.\n" +
+            "* **TikTok:** The daily budget's countdown keeps running after you come back from messages, a creator's video or Hushfeed's settings, and Wait for a tap after a return only stops the feed when you actually left TikTok. A hold that ended while TikTok was in the background takes its panel down when you come back.\n" +
+            "* **TikTok:** With the feed muted, opening the comments or coming back to TikTok no longer pauses the music another app is playing.\n" +
+            "* **TikTok:** Clear all on the Inbox's suggested accounts works on TikTok 47.1.3. It found nothing to press there.\n" +
+            "* **TikTok:** A story saved with its sound is no longer reported as failed when only the sound ran out of space or time, so a retry doesn't make a second copy.\n" +
+            "* **TikTok:** The already-saved choice opens on the screen you're looking at, a video opened from a profile or search included. It used to open behind it, where nobody could see it, and hold the save until you went back to the feed.\n" +
+            "* **TikTok:** With Remove watermark off, Automatic saves keep TikTok's watermark even when Hushfeed makes the save for its details, progress row or saved-video check.\n" +
+            "* **TikTok:** With only Show download progress on, a video Hushfeed can't fetch as one file goes to TikTok's own save instead of being refused. A save that fails no longer announces \"Stopping after this file\".\n" +
+            "* **TikTok:** Only these caption languages reads three-letter codes such as eng or spa as their two-letter forms. Before, eng matched nothing and hid every English video it was meant to keep.\n" +
+            "* **TikTok:** A clip shorter than a second can now count as seen. It never played to the one-second mark, so it kept coming back.\n" +
+            "* **TikTok:** The like and follow confirmations let a tap through when TikTok hasn't said which video is playing, as on some photo posts. The button did nothing at all there.\n" +
+            "* **TikTok:** The Feature Gate Lab says why a change was refused, for example that none of the chosen gates had an override to reset, and shows its rule limit, instead of asking you to try again. A reviewed preset waits until the whole gate list has loaded rather than refusing as not matching.\n" +
+            "* **TikTok:** In the Feature Gate Lab the list ends above the selection bar at any text size, and the bar drops its hint line at large text. Switch Access, Voice Access and TalkBack's actions menu can open and select gates.\n" +
+            "* **TikTok:** Diagnostic reports leave out network addresses, your phone's own IPv6 address among them, TikTok's US and EU server names, and the video ids in saved file names. With SIM spoofing on, debug logging no longer records your real carrier and country.\n" +
+            "\n" +
             "## 0.63.0 (2026-09-27)\n" +
             "\n" +
             "Includes the changes developed in 0.62.0, which wasn't published as a separate bundle.\n" +

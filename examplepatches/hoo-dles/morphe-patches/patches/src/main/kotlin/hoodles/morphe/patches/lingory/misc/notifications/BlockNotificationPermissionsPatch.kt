@@ -7,7 +7,7 @@ package hoodles.morphe.patches.lingory.misc.notifications
 
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patches.all.misc.hex.hexPatch
-import hoodles.morphe.patches.lingory.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.util.requireArm64
 
 @Suppress("unused")
@@ -15,7 +15,7 @@ val blockNotificationPermissionsPatch = rawResourcePatch(
     name = "Block Permissions Request",
     description = "Blocks the request of notification permissions on load of app. Requirements: arm64-v8a, strict apk version"
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.LINGORY)
 
     availability(requireArm64())
 

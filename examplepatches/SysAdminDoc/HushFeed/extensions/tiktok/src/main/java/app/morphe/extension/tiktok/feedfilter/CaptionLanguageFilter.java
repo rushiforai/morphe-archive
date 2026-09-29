@@ -35,6 +35,33 @@ public final class CaptionLanguageFilter implements IFilter {
     private static final String SEPARATOR = "\\s*[,\\n]\\s*";
     /** A BCP 47 primary language subtag: two or three letters. */
     private static final Pattern PRIMARY = Pattern.compile("[a-z]{2,3}");
+    /**
+     * Three-letter codes of the languages that have two-letter ones, mapped to those. TikTok
+     * tags captions with the two letters, so "eng, spa" matched nothing and hid every English
+     * and Spanish video the list was meant to keep.
+     */
+    private static final java.util.Map<String, String> TWO_LETTER = twoLetterCodes();
+
+    private static java.util.Map<String, String> twoLetterCodes() {
+        java.util.Map<String, String> codes = new java.util.HashMap<>();
+        for (String two : Locale.getISOLanguages()) {
+            try {
+                String three = new Locale(two).getISO3Language();
+                if (three.length() == 3) codes.put(three, two);
+            } catch (java.util.MissingResourceException ignored) {
+                // No three-letter form for this one; its two letters are the only spelling.
+            }
+        }
+        // ISO 639-2 spells twenty of them a second way, the bibliographic codes, which the
+        // platform's tables don't give: "ger" and "fre" are as likely to be typed as "deu".
+        String[][] bibliographic = {{"alb", "sq"}, {"arm", "hy"}, {"baq", "eu"}, {"bur", "my"},
+                {"chi", "zh"}, {"cze", "cs"}, {"dut", "nl"}, {"fre", "fr"}, {"geo", "ka"},
+                {"ger", "de"}, {"gre", "el"}, {"ice", "is"}, {"mac", "mk"}, {"mao", "mi"},
+                {"may", "ms"}, {"per", "fa"}, {"rum", "ro"}, {"slo", "sk"}, {"tib", "bo"},
+                {"wel", "cy"}};
+        for (String[] pair : bibliographic) codes.put(pair[0], pair[1]);
+        return codes;
+    }
 
     private static String parsedFrom;
     private static Set<String> parsed = Collections.emptySet();
@@ -78,7 +105,9 @@ public final class CaptionLanguageFilter implements IFilter {
         String value = tag.trim().toLowerCase(Locale.ROOT).replace('_', '-');
         int dash = value.indexOf('-');
         String first = dash < 0 ? value : value.substring(0, dash);
-        return PRIMARY.matcher(first).matches() ? first : null;
+        if (!PRIMARY.matcher(first).matches()) return null;
+        String two = TWO_LETTER.get(first);
+        return two != null ? two : first;
     }
 
     @Override

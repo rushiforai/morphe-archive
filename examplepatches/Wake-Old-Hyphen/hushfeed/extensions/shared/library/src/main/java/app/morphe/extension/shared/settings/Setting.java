@@ -529,10 +529,24 @@ public abstract class Setting<T> {
             bounded.put(setting, value);
             previous.put(setting, setting.savedValue());
         }
-        if (!writeBatch(bounded)) {
-            boolean restored = writeBatch(previous);
-            throw new java.io.IOException(restored ? "Could not save settings" : "Could not save settings or roll back; use Undo");
+        java.io.IOException failure;
+        try {
+            if (writeBatch(bounded)) return;
+            failure = new java.io.IOException("Could not save settings");
+        } catch (RuntimeException refused) {
+            failure = new java.io.IOException("Could not save settings", refused);
         }
+        // Restore all live values before touching storage again: even creating an editor or
+        // adding its first key can throw, leaving a later value from the attempted batch live.
+        for (var entry : previous.entrySet()) ((Setting) entry.getKey()).value = entry.getValue();
+        try {
+            if (!writeBatch(previous)) {
+                failure.addSuppressed(new java.io.IOException("Could not roll back settings; use Undo"));
+            }
+        } catch (RuntimeException rollbackFailure) {
+            failure.addSuppressed(rollbackFailure);
+        }
+        throw failure;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

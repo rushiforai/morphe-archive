@@ -116,7 +116,7 @@ public final class ExternalBrowserPatch {
                 value = "https://" + value;
                 continue;
             }
-            if ("aweme".equalsIgnoreCase(uri.getScheme())) {
+            if (asciiEqualsIgnoreCase("aweme", uri.getScheme())) {
                 try {
                     value = uri.getQueryParameter("url");
                 } catch (RuntimeException ignored) {
@@ -126,25 +126,49 @@ public final class ExternalBrowserPatch {
             }
             String scheme = uri.getScheme();
             String host = uri.getHost();
-            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+            if (!(asciiEqualsIgnoreCase("http", scheme) || asciiEqualsIgnoreCase("https", scheme))
                     || host == null || host.trim().isEmpty()) {
                 return null;
             }
 
-            String target;
-            try {
-                target = uri.getQueryParameter("target");
-            } catch (RuntimeException ignored) {
-                return null;
-            }
-            if (target != null) {
-                value = target;
-                continue;
+            if (isLinkSafetyRedirect(uri)) {
+                String target;
+                try {
+                    target = uri.getQueryParameter("target");
+                } catch (RuntimeException ignored) {
+                    return null;
+                }
+                if (target != null) {
+                    value = target;
+                    continue;
+                }
             }
 
             return uri;
         }
         return null;
+    }
+
+    private static boolean isLinkSafetyRedirect(Uri uri) {
+        if (!asciiEqualsIgnoreCase("https", uri.getScheme()) || uri.getUserInfo() != null
+                || (uri.getPort() != -1 && uri.getPort() != 443)) return false;
+        String path = uri.getPath();
+        if (path == null || !path.startsWith("/link/")) return false;
+        String host = uri.getHost();
+        return asciiEqualsIgnoreCase("www.tiktok.com", host)
+                || asciiEqualsIgnoreCase("www.tiktoklinksafety.us", host)
+                || asciiEqualsIgnoreCase("www.tiktoklinksafety.eu", host)
+                || asciiEqualsIgnoreCase("www.tiktoklinksafety.com", host);
+    }
+
+    private static boolean asciiEqualsIgnoreCase(String expected, String actual) {
+        if (actual == null || actual.length() != expected.length()) return false;
+        for (int i = 0; i < actual.length(); i++) {
+            char value = actual.charAt(i);
+            if (value >= 'A' && value <= 'Z') value += 'a' - 'A';
+            if (value != expected.charAt(i)) return false;
+        }
+        return true;
     }
 
     private static String stringField(Object target, String name) {

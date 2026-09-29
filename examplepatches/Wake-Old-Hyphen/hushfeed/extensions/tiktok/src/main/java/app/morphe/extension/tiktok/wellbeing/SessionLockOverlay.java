@@ -142,6 +142,14 @@ public final class SessionLockOverlay {
     public static void onForeground() {
         foreground = true;
         ensureRunning();
+        // A hold that ended while nothing ticked, the app away past the reset hour, left its
+        // panel up with nothing to take it down: the tick needs a running hold to start, and the
+        // player's progress never syncs an ended one.
+        if (!SessionBudget.isLocked()) {
+            Utils.runOnMainThread(() -> {
+                if (!SessionBudget.isLocked() && overlayReference.get() != null) sync();
+            });
+        }
     }
 
     /**

@@ -30,7 +30,7 @@ final class SettingsUi {
         accent = light ? 0xff1467c8 : 0xff74aeff;
         line = light ? 0xffd5deea : 0xff293241;
         outline = light ? 0xff71839b : 0xff65768c;
-        selected = light ? 0xffdceaff : 0xff74aeff;
+        selected = accent;
         warning = light ? 0xff785100 : 0xffffcc67;
         warningSurface = light ? 0xffffefc5 : 0xff352800;
         track = light ? 0xffc1c8d3 : 0xff313943;
@@ -38,7 +38,7 @@ final class SettingsUi {
         ripple = light ? 0x221467c8 : 0x3374aeff;
         infoSurface = light ? 0xffeaf2fb : 0xff0c1928;
         infoBorder = light ? 0xffbdd1ea : 0xff274361;
-        selectedText = light ? accent : background;
+        selectedText = light ? 0xffffffff : background;
         largeText = context.getResources().getConfiguration().fontScale > 1.3f ||
             context.getResources().getConfiguration().screenWidthDp < 360 ||
             new SettingsText(context).isPseudo();
@@ -85,10 +85,13 @@ final class SettingsUi {
         return drawable;
     }
 
-    Drawable interactive(int fill, int border, int radius) {
+    Drawable interactive(int fill, int border, int radius) { return interactive(fill, border, radius, accent); }
+
+    /** An accent-filled control needs a different focus color, or its ring disappears. */
+    Drawable interactive(int fill, int border, int radius, int focus) {
         StateListDrawable states = new StateListDrawable();
-        GradientDrawable focused = shape(fill, accent, radius);
-        focused.setStroke(dp(2), accent);
+        GradientDrawable focused = shape(fill, focus, radius);
+        focused.setStroke(dp(2), focus);
         states.addState(new int[] {android.R.attr.state_focused}, focused);
         states.addState(new int[] {}, shape(fill, border, radius));
         return new RippleDrawable(ColorStateList.valueOf(ripple), states, shape(0xffffffff, 0, radius));

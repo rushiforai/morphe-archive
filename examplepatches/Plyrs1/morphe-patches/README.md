@@ -13,7 +13,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0-dev.1](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.4.0-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;27 patches total
+> **[v1.4.0-dev.2](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.4.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
 <details open>
 <summary>📦 E-Ujian Browser&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
 <br>
@@ -60,6 +60,23 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Bypass Review Dialog](#bypass-review-dialog) | Bypasses the in-app review confirmation dialog when pressing Back on the Home screen, allowing immediate exit. |  |
 | [Hide Premium Button](#hide-premium-button) | Hides the Premium upgrade button from both the top action bar on the Home screen and the Settings menu. |  |
 | [Remove Ads](#remove-ads) | Removes all banner and interstitial ads by unlocking ad-free premium status and disabling AdMob loaders. |  |
+
+</details>
+
+<details open>
+<summary>📦 Habitica&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.10.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable Google Services](#disable-google-services) | Disables Firebase Crashlytics, Performance Monitoring, Sessions, Installations, Remote Config network fetch, DataTransport telemetry pipeline, FCM push notifications, AdMob stub, and bypasses the privacy preferences dialog. Retains local Remote Config defaults for feature flags and preserves all Habitica API traffic. |  |
+| [Instant Armoire Reward](#instant-armoire-reward) | Shows the Armoire ad button and instantly grants the reward without loading an ad. The existing per-session single-use guard is preserved. |  |
+| [Self-Hosted Server Support](#self-hosted-server-support) | Always shows the custom server settings button on the login screen, enabling connection to self-hosted Habitica backends without a secret gesture. |  |
 
 </details>
 

@@ -201,6 +201,9 @@ final class SubtitleDownloads {
                         return SubtitleFormat.toSrt(new String(output.toByteArray(), StandardCharsets.UTF_8), format);
                 }
                 } catch (IOException | RuntimeException error) {
+                    if (error instanceof MediaBudget.StopException) {
+                        throw (MediaBudget.StopException) error;
+                    }
                     boolean retryable = MediaBudget.isRetryableTransport(error);
                     if (retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                         MediaBudget.waitBeforeRetry(null, attempt, deadline);

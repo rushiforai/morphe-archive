@@ -35,6 +35,7 @@ import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.AbsListView;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -154,6 +155,23 @@ public final class SettingsUi {
     public static final @ColorInt int OVERLAY_SCRIM_SOLID = Color.argb(238, 0, 0, 0);
 
     private SettingsUi() {
+    }
+
+    /** The phone's reading/action timeout may lengthen feedback, but never shorten its default. */
+    public static long feedbackTimeout(Context context, int defaultMillis, boolean hasAction) {
+        if (Build.VERSION.SDK_INT < 29 || context == null) return defaultMillis;
+        try {
+            AccessibilityManager manager = (AccessibilityManager)
+                    context.getSystemService(Context.ACCESSIBILITY_SERVICE);
+            if (manager == null) return defaultMillis;
+            int flags = AccessibilityManager.FLAG_CONTENT_TEXT;
+            if (hasAction) flags |= AccessibilityManager.FLAG_CONTENT_CONTROLS;
+            return Math.max(defaultMillis, manager.getRecommendedTimeoutMillis(defaultMillis, flags));
+        } catch (RuntimeException failure) {
+            app.morphe.extension.shared.Logger.printException(
+                    () -> "Could not read the accessibility feedback timeout", failure);
+            return defaultMillis;
+        }
     }
 
     /** Sync before painting any surface, since TikTok's theme can differ from the system's. */
@@ -1335,22 +1353,24 @@ public final class SettingsUi {
         control.setEnabled(!busy);
         if (android.os.Build.VERSION.SDK_INT >= 30) {
             control.setStateDescription(busy ? busyLabel : null);
-        } else {
-            if (busy) {
-                if (control.getTag(android.R.id.text1) == null) {
-                    control.setTag(android.R.id.text1, control.getContentDescription());
-                }
-                control.setContentDescription(busyLabel);
-            } else {
-                CharSequence saved = control.getTag(android.R.id.text1) instanceof CharSequence
-                        ? (CharSequence) control.getTag(android.R.id.text1) : null;
-                if (saved != null) {
-                    control.setContentDescription(saved);
-                    control.setTag(android.R.id.text1, null);
-                }
+        } else if (busy) {
+            if (!DESCRIPTION_BEFORE_BUSY.containsKey(control)) {
+                DESCRIPTION_BEFORE_BUSY.put(control, control.getContentDescription());
             }
+            control.setContentDescription(busyLabel);
+        } else if (DESCRIPTION_BEFORE_BUSY.containsKey(control)) {
+            control.setContentDescription(DESCRIPTION_BEFORE_BUSY.remove(control));
         }
     }
+
+    /**
+     * What each busy control said before it went busy, on Android 10 and older, where there's no
+     * state description to carry the busy word. A view tag can't hold it: a view only takes tag
+     * keys from the app's own resource ids, and the framework id this once used threw on every
+     * busy press there. A control with no description of its own is put back to none. Weak, so
+     * a control that goes away while busy takes its entry with it; main thread only.
+     */
+    private static final java.util.Map<View, CharSequence> DESCRIPTION_BEFORE_BUSY = new java.util.WeakHashMap<>();
 
     /** What a dialog's Save has to satisfy before the dialog is allowed to close. */
     public interface DialogCheck {

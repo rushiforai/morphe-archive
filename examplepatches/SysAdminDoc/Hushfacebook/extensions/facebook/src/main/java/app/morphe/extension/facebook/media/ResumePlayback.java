@@ -602,6 +602,22 @@ public final class ResumePlayback {
 
     // ------------------------------------------------------------------ the saved points
 
+    /**
+     * Called once Facebook's main process has started: drops the saved points past their age on a
+     * worker, whether or not the switch is on. A point keeps a video's ID, and with the switch off
+     * nothing reads the points, so they used to stay for good.
+     */
+    public static void onFacebookStart() {
+        Utils.runOnBackgroundThread(() -> {
+            try {
+                ResumePoints store = points();
+                if (store != null) store.dropExpired(System.currentTimeMillis());
+            } catch (Throwable failure) {
+                Logger.printException(() -> "Resume long videos: could not age the saved points", failure);
+            }
+        });
+    }
+
     /** The saved points, read the first time they're needed. Null outside the main process. */
     @Nullable
     private static ResumePoints points() {

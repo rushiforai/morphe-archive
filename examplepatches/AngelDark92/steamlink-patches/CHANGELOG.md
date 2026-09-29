@@ -1,3 +1,15 @@
+## [1.21.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.20.0...v1.21.0) (2026-09-28)
+
+### ✨ New Features
+
+* modified cavecrew included and patches for testing 2.0.20-5001812 and 2.0.21-5001968 ([fa3679b](https://github.com/AngelDark92/steamlink-patches/commit/fa3679b9d91523c271d487db18bc1c537b40829a))
+
+## [1.21.0-dev.1](https://github.com/AngelDark92/steamlink-patches/compare/v1.20.0...v1.21.0-dev.1) (2026-09-28)
+
+### ✨ New Features
+
+* modified cavecrew included and patches for testing 2.0.20-5001812 and 2.0.21-5001968 ([fa3679b](https://github.com/AngelDark92/steamlink-patches/commit/fa3679b9d91523c271d487db18bc1c537b40829a))
+
 ## [1.20.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.19.1...v1.20.0) (2026-09-25)
 
 ### ✨ New Features

@@ -9,8 +9,8 @@ internal const val BASE_PLAYER_ACTIVITY = "Lcom/avs/f1/ui/player/BasePlayerActiv
 internal const val PLAYER_SWITCHER = "Lcom/avs/f1/interactors/playback/PlayerSwitcher;"
 internal const val PLAYBACK_USE_CASE = "Lcom/avs/f1/interactors/playback/PlaybackUseCase;"
 
-internal const val F1_TV_VERSION = "3.0.48.1-SP157.6.0-release-R52-mobile"
-internal const val F1_TV_VERSION_CODE = 30481000
+internal const val F1_TV_VERSION = "3.0.49.4-SP166.4.1-release-R54.2-mobile"
+internal const val F1_TV_VERSION_CODE = 30494002
 
 internal val COMPATIBILITY_F1_TV = Compatibility(
     name = "F1 TV",

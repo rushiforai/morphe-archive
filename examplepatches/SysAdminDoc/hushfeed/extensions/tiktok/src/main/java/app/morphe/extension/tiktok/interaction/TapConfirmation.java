@@ -54,16 +54,20 @@ public final class TapConfirmation {
         Object video = CurrentVideoAuthor.getAweme();
         Object user = Reflect.property(video, "getAuthor", "author");
         Object status = Reflect.property(user, "getFollowStatus", "followStatus");
-        // The same native control can turn into a message button after following.
-        boolean enabled = Settings.CONFIRM_FOLLOW.get()
+        String id = Reflect.string(video, "getAid", "aid");
+        // The same native control can turn into a message button after following. With no
+        // video in hand there is nothing for a second tap to match, and the follow went dead.
+        boolean enabled = Settings.CONFIRM_FOLLOW.get() && id != null
                 && (!(status instanceof Number) || ((Number) status).intValue() == 0);
-        return allow(view, "follow", Reflect.string(video, "getAid", "aid"), enabled);
+        return allow(view, "follow", id, enabled);
     }
 
     public static boolean like(View view) {
         Object video = CurrentVideoAuthor.getAweme();
-        boolean enabled = Settings.CONFIRM_LIKE.get() && !Boolean.TRUE.equals(Reflect.invoke(video, "isLike"));
-        return allow(view, "like", Reflect.string(video, "getAid", "aid"), enabled);
+        String id = Reflect.string(video, "getAid", "aid");
+        boolean enabled = Settings.CONFIRM_LIKE.get() && id != null
+                && !Boolean.TRUE.equals(Reflect.invoke(video, "isLike"));
+        return allow(view, "like", id, enabled);
     }
 
     /**

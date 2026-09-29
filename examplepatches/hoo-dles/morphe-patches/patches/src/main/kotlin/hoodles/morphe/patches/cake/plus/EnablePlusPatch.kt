@@ -5,9 +5,8 @@
 
 package hoodles.morphe.patches.cake.plus
 
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.rawResourcePatch
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.shared.misc.hermes.hermesPatch
 import hoodles.morphe.util.HermesConstants.RETURN_TRUE
 
@@ -16,12 +15,7 @@ val enablePlusPatch = rawResourcePatch(
     name = "Enable Plus",
     description = "Enable Plus membership (not all features are available). Requirements: strict apk version"
 ) {
-    compatibleWith(Compatibility(
-        name = "Cake",
-        packageName = "me.mycake",
-        appIconColor = 0xFF4884,
-        targets = listOf(AppTarget("6.4.0"))
-    ))
+    compatibleWith(Compat.CAKE)
 
     dependsOn(hermesPatch {
         //  GetEnvironment        r0, 0

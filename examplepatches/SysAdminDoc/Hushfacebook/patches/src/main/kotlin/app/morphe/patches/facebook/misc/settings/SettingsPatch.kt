@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.facebook.coexist.clonedPackagePatch
 import app.morphe.patches.facebook.misc.extension.FACEBOOK_APPLICATION
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
@@ -81,6 +82,9 @@ val settingsPatch = bytecodePatch(
 ) {
     category("Settings")
     dependsOn(facebookExtensionPatch)
+    // Every patch depends on this one, so a copy renamed with Clone app works whatever is picked,
+    // and the patches Morphe runs before Clone app bring it in early enough. See ClonedPackage.kt.
+    dependsOn(clonedPackagePatch)
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {

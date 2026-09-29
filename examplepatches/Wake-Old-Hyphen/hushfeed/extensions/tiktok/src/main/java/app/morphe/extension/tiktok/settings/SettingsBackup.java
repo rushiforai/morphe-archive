@@ -8,6 +8,7 @@ package app.morphe.extension.tiktok.settings;
 
 import android.content.Context;
 import android.util.AtomicFile;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
@@ -206,25 +207,41 @@ public final class SettingsBackup {
             // back rather than the value it replaced, whose record would be gone by then.
             BudgetChanges.applyDue(SessionBudget.now());
             String previousText = create(false);
-            Snapshot previous = parseForJournal(previousText);
+            String previousJournal = withPendingBudget(previousText,
+                    Settings.SESSION_BUDGET_PENDING.savedValue());
+            Snapshot previous = parseForJournal(previousJournal);
             Map<String, ?> previousPreferences = new LinkedHashMap<>(
                     Setting.preferences.preferences.getAll());
-            if (saveUndo) writeUndo(context, previousText);
-            operation.recordSettings(previousText, text);
+            if (saveUndo) {
+                writeUndo(context, previousText);
+                CalmFeedPreset.holdForUndo(context);
+            }
+            BudgetChanges.Split budget = BudgetChanges.forRestore(next.values, SessionBudget.now());
+            Map<Setting<?>, Object> updates = budget.withWaiting();
+            operation.recordSettings(previousJournal, withPendingBudget(text,
+                    (String) updates.get(Settings.SESSION_BUDGET_PENDING)));
             // Whether the apply below got as far as the Lab. It writes the ordinary settings
             // first, so a failure in those never reaches the Lab at all, and reading
             // labIncluded instead put the Lab back on every same-version failure: the common
             // one, and the only case this guard exists for.
             boolean[] touchedLab = new boolean[1];
-            BudgetChanges.Split budget;
             try {
-                budget = applyForJournal(next, touchedLab);
+                applySnapshot(next, updates, touchedLab, false);
                 // Held to the budget, the restore wrote less than its file carries. What it did
                 // write goes on record, or a journal the delete below fails to clear would read as
                 // an interrupted restore, and the next start would put the old settings back.
-                if (budget.heldBack()) operation.recordWritten(create(false));
+                // The same for a download folder kept because the file's could not hold its kind.
+                if (budget.heldBack() || !next.keptFolders.isEmpty()) {
+                    operation.recordWritten(withPendingBudget(create(false),
+                            Settings.SESSION_BUDGET_PENDING.savedValue()));
+                }
                 operation.complete();
                 closed = true;
+                if (next.labIncluded) FeatureGateLabStore.discardLabUndo();
+                // The Calm feed card offered "Restore setup" from before a reset or an import,
+                // which would have put back values it had just replaced. Its copy went aside
+                // with the undo copy above, so the Undo below brings both back.
+                if (saveUndo) CalmFeedPreset.clearAfterRestore(context);
             } catch (Exception error) {
                 try { Setting.saveAll(previous.values, true); } catch (Exception rollback) { error.addSuppressed(rollback); }
                 // Only put the Lab back when the apply above reached it. Writing the same
@@ -247,9 +264,6 @@ public final class SettingsBackup {
                         rollbackComplete ? Failure.ROLLED_BACK : Failure.RECOVERY_REQUIRED,
                         rollbackComplete, recoveryAvailable);
             }
-            // Only once the journal is gone. A restore the next start puts back from its journal
-            // must not leave the changes it held back waiting to land the next day.
-            budget.keepWaiting();
         } finally {
             if (!closed) operation.abort();
         }
@@ -257,7 +271,20 @@ public final class SettingsBackup {
 
     /** Restores the undo copy and returns its text, so the caller can report what it held. */
     public static String undo(Context context) throws Exception {
-        return restoreFrom(context, readableUndoFile(context).openRead(), false, false);
+        // As a restore does: a budget change already due belongs to what the undo replaces.
+        BudgetChanges.applyDue(SessionBudget.now());
+        String replaced = create(false);
+        String text = restoreFrom(context, readableUndoFile(context).openRead(), false, false);
+        CalmFeedPreset.swapWithUndo(context);
+        // What the undo replaced becomes the copy, once it has worked, so a second Undo brings
+        // back whatever changed since the restore instead of losing it for good. Written after,
+        // not before: a failed undo must leave the copy it was asked for in place.
+        try {
+            writeUndo(context, replaced);
+        } catch (IOException error) {
+            Logger.printException(() -> "Could not keep the settings the undo replaced", error);
+        }
+        return text;
     }
 
     /**
@@ -352,7 +379,7 @@ public final class SettingsBackup {
      * Lab whenever the file carries rules, including when only an ordinary setting had moved.
      */
     static void applyForJournal(Snapshot snapshot) throws IOException {
-        applyForJournal(snapshot, new boolean[1], true);
+        applySnapshot(snapshot, snapshot.values, new boolean[1], true);
     }
 
     /**
@@ -361,22 +388,13 @@ public final class SettingsBackup {
      *                   before the write rather than after, because a write that throws part
      *                   way through is exactly the one that needs undoing.
      */
-    static BudgetChanges.Split applyForJournal(Snapshot snapshot, boolean[] touchedLab) throws IOException {
-        return applyForJournal(snapshot, touchedLab, false);
-    }
-
-    /**
-     * @return what the budget held back, for the caller to record once the change has committed,
-     *         or null when putting back, which writes everything.
-     */
-    static BudgetChanges.Split applyForJournal(Snapshot snapshot, boolean[] touchedLab, boolean puttingBack)
+    private static void applySnapshot(Snapshot snapshot, Map<Setting<?>, Object> updates,
+            boolean[] touchedLab, boolean puttingBack)
             throws IOException {
         // A restore, a reset or an undo is held to the daily budget like the page is: a locked
         // day keeps its budget, and with loosening set to wait, what loosens it waits. Putting
         // back what an interrupted change found is none of those, so it writes everything.
-        BudgetChanges.Split budget = puttingBack
-                ? null : BudgetChanges.forRestore(snapshot.values, SessionBudget.now());
-        Setting.saveAll(budget == null ? snapshot.values : budget.apply, snapshot.deviceState || puttingBack);
+        Setting.saveAll(updates, snapshot.deviceState || puttingBack);
         // A backup from another TikTok build carries no rules that mean anything here, so the
         // Lab is left as it was rather than emptied.
         if (snapshot.labIncluded) {
@@ -384,7 +402,12 @@ public final class SettingsBackup {
             FeatureGateLabStore.replaceSettings(
                     snapshot.rules, snapshot.master, snapshot.acknowledged, puttingBack);
         }
-        return budget;
+    }
+
+    /** Only internal journal snapshots carry this device's delayed changes. Exports and Undo
+     * keep the public format, and imports never accept a supplied delayed record. */
+    private static String withPendingBudget(String text, String pending) throws JSONException {
+        return new JSONObject(text).put("local_budget_pending", pending).toString();
     }
 
     /** How many included settings that file did not carry, which were left as the device had them. */
@@ -592,6 +615,11 @@ public final class SettingsBackup {
             // silence as "put it back to its default" quietly undid whatever the device held.
             updates.put(setting, setting.savedValue());
             absent++;
+        }
+        if (!holdRuleLists && root.has("local_budget_pending")) {
+            Object pending = root.get("local_budget_pending");
+            if (!(pending instanceof String)) throw new IOException("Invalid delayed budget journal");
+            updates.put(Settings.SESSION_BUDGET_PENDING, pending);
         }
         absent -= migrateDownloadPath(values, updates);
         List<DownloadDestination.Kind> keptFolders = holdRuleLists

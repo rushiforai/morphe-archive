@@ -1,0 +1,116 @@
+<!-- Shared with YouTube and YT Music -->
+<resources>
+    <!-- layout.branding.baseCustomBrandingPatch -->
+    <string-array name="morphe_custom_branding_icon_entries">
+        <item>@string/morphe_custom_branding_icon_entry_1</item>
+        <item>@string/morphe_custom_branding_icon_entry_2</item>
+        <item>@string/morphe_custom_branding_icon_entry_3</item>
+        <item>@string/morphe_custom_branding_icon_entry_4</item>
+        <item>@string/morphe_custom_branding_icon_entry_5</item>
+        <item>@string/morphe_custom_branding_icon_entry_6</item>
+    </string-array>
+    <string-array name="morphe_custom_branding_icon_entry_values">
+        <item>ORIGINAL</item>
+        <item>BLACK</item>
+        <item>DARK</item>
+        <item>LIGHT</item>
+        <item>PLAY</item>
+        <item>PLAY_BLACK</item>
+    </string-array>
+    <string-array name="morphe_custom_branding_icon_custom_entries">
+        <item>@string/morphe_custom_branding_icon_entry_1</item>
+        <item>@string/morphe_custom_branding_icon_entry_2</item>
+        <item>@string/morphe_custom_branding_icon_entry_3</item>
+        <item>@string/morphe_custom_branding_icon_entry_4</item>
+        <item>@string/morphe_custom_branding_icon_entry_5</item>
+        <item>@string/morphe_custom_branding_icon_entry_6</item>
+        <item>@string/morphe_custom_branding_icon_entry_7</item>
+    </string-array>
+    <string-array name="morphe_custom_branding_icon_custom_entry_values">
+        <item>ORIGINAL</item>
+        <item>BLACK</item>
+        <item>DARK</item>
+        <item>LIGHT</item>
+        <item>PLAY</item>
+        <item>PLAY_BLACK</item>
+        <item>CUSTOM</item>
+    </string-array>
+    <string-array name="morphe_custom_branding_notification_icon_entries">
+        <item>@string/morphe_custom_branding_notification_icon_entry_1</item>
+        <item>@string/morphe_custom_branding_icon_entry_1</item>
+        <item>@string/morphe_custom_branding_notification_icon_entry_2</item>
+        <item>@string/morphe_custom_branding_notification_icon_entry_3</item>
+    </string-array>
+    <string-array name="morphe_custom_branding_notification_icon_entry_values">
+        <item>FOLLOW</item>
+        <item>ORIGINAL</item>
+        <item>BLACK</item>
+        <item>PLAY</item>
+    </string-array>
+    <string-array name="morphe_custom_branding_notification_icon_custom_entries">
+        <item>@string/morphe_custom_branding_notification_icon_entry_1</item>
+        <item>@string/morphe_custom_branding_icon_entry_1</item>
+        <item>@string/morphe_custom_branding_notification_icon_entry_2</item>
+        <item>@string/morphe_custom_branding_notification_icon_entry_3</item>
+        <item>@string/morphe_custom_branding_icon_entry_7</item>
+    </string-array>
+    <string-array name="morphe_custom_branding_notification_icon_custom_entry_values">
+        <item>FOLLOW</item>
+        <item>ORIGINAL</item>
+        <item>BLACK</item>
+        <item>PLAY</item>
+        <item>CUSTOM</item>
+    </string-array>
+
+    <!-- misc.framerate.baseAppRefreshRatePatch -->
+    <string-array name="morphe_app_refresh_rate_type_entries">
+        <item>@string/morphe_app_refresh_rate_type_entry_1</item>
+        <item>@string/morphe_app_refresh_rate_type_entry_2</item>
+        <item>@string/morphe_app_refresh_rate_type_entry_3</item>
+        <item>@string/morphe_app_refresh_rate_type_entry_4</item>
+    </string-array>
+    <string-array name="morphe_app_refresh_rate_type_entry_values">
+        <item>ALWAYS</item>
+        <item>PORTRAIT</item>
+        <item>FULLSCREEN</item>
+        <item>PORTRAIT_FULLSCREEN</item>
+    </string-array>
+    
+    <!-- layout.theme.baseThemePatch -->
+    <string-array name="morphe_theme_color_dark_entries">
+        <item>@string/morphe_theme_color_entry_1</item>
+        <item>@string/morphe_theme_color_dark_entry_2</item>
+        <item>@string/morphe_theme_color_dark_entry_3</item>
+        <item>@string/morphe_theme_color_entry_4</item>
+        <item>@string/morphe_theme_color_entry_5</item>
+        <item>@string/morphe_theme_color_entry_6</item>
+        <item>@string/morphe_theme_color_entry_7</item>
+        <item>@string/morphe_theme_color_dark_entry_8</item>
+        <item>@string/morphe_theme_color_dark_entry_9</item>
+        <item>@string/morphe_theme_color_dark_entry_10</item>
+        <item>@string/morphe_theme_color_dark_entry_11</item>
+        <item>@string/morphe_theme_color_dark_entry_12</item>
+        <item>@string/morphe_theme_color_dark_entry_13</item>
+        <item>@string/morphe_theme_color_dark_entry_14</item>
+        <item>@string/morphe_theme_color_dark_entry_15</item>
+        <item>@string/morphe_theme_color_custom_entry</item>
+    </string-array>
+    <string-array name="morphe_theme_color_dark_entry_values">
+        <item>APP_DEFAULT</item>
+        <item>PURE_BLACK</item>
+        <item>MATERIAL_YOU_PURE_BLACK</item>
+        <item>MATERIAL_YOU_NEUTRAL</item>
+        <item>MATERIAL_YOU_PRIMARY</item>
+        <item>MATERIAL_YOU_SECONDARY</item>
+        <item>MATERIAL_YOU_TERTIARY</item>
+        <item>CATPPUCCIN_MOCHA</item>
+        <item>CLASSIC_YOUTUBE</item>
+        <item>DARK_PINK</item>
+        <item>DARK_BLUE</item>
+        <item>DARK_GREEN</item>
+        <item>DARK_YELLOW</item>
+        <item>DARK_ORANGE</item>
+        <item>DARK_RED</item>
+        <item>CUSTOM</item>
+    </string-array>
+</resources>

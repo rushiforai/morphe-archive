@@ -37,7 +37,8 @@ import org.robolectric.shadows.ShadowToast;
 @LooperMode(LooperMode.Mode.PAUSED)
 public class InboxClearControlTest {
     private static final String[] RESOURCE_NAMES = {"47.0.3:omr", "47.0.3:l7b", "47.0.3:q3m", "47.0.3:u1n", "47.0.3:fwz",
-            "47.0.3:wqq", "user_name", "47.0.3:uy5", "47.0.3:brb", "47.0.3:w1f", "47.0.3:fg5", "47.0.3:kp1", "47.0.3:l7d"};
+            "47.0.3:wqq", "user_name", "47.0.3:uy5", "47.0.3:brb", "47.0.3:w1f", "47.0.3:fg5", "47.0.3:kp1", "47.0.3:l7d",
+            "47.1.3:fyd"};
     private ActivityController<Activity> owner;
     private Activity activity;
     private LinearLayout rows;
@@ -124,6 +125,26 @@ public class InboxClearControlTest {
         assertTrue("Clear all has no ripple: " + (background == null ? "null"
                         : background.getClass().getSimpleName()),
                 background instanceof android.graphics.drawable.RippleDrawable);
+    }
+
+    /** On 47.1.3 the remove button has that build's name; the run used to look for 47.0.3's alone. */
+    @Test public void aRunFindsTheRemoveButtonUnderTheRunningBuildsName() {
+        InboxFilter.resolveForTests(RuntimeEnvironment.getApplication().getPackageName(), "47.0.3:fwz", 0);
+        LinearLayout row = new LinearLayout(activity);
+        View button = new View(activity);
+        button.setId(id("47.1.3:fyd"));
+        button.setContentDescription(description("A"));
+        button.setOnClickListener(view -> {
+            dismissed.add("A");
+            rows.removeView(row);
+        });
+        row.addView(button, new LinearLayout.LayoutParams(48, 48));
+        rows.addView(row, new LinearLayout.LayoutParams(-1, 48));
+
+        clearControl().performClick();
+        advance(300);
+
+        assertEquals(List.of("A"), dismissed);
     }
 
     @Test public void aRunHoldsTheControlUntilItReportsAndThenHandsItBack() {

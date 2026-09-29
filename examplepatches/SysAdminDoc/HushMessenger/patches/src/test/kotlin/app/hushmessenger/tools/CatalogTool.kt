@@ -77,11 +77,11 @@ object CatalogTool {
                 it.getAttribute("android:name").removePrefix("hush.feature.")
             }
         val keys = declarations.map { it.first }
-        require(keys.size == 20 && keys.distinct().size == keys.size) { "Expected 20 distinct patch control keys" }
+        require(keys.size == 24 && keys.distinct().size == keys.size) { "Expected 24 distinct patch control keys" }
         require(uiKeys.size == keys.size && uiKeys.toSet() == keys.toSet()) { "Extension control keys differ from patches" }
         require(manifestKeys.size == keys.size && manifestKeys.toSet() == keys.toSet()) { "Manifest capabilities differ from patches" }
-        require(declarations.map { it.second }.toSet().size == 20 &&
-            names == declarations.map { it.second }.toSet() + "Install beside Meta apps") { "Built patch names differ from control declarations" }
+        require(declarations.map { it.second }.toSet().size == 24 &&
+            names == declarations.map { it.second }.toSet() + "Install beside Meta apps" + "Open settings from menu" + "Restore screens on re-signed builds") { "Built patch names differ from control declarations" }
     }
 
     @JvmStatic fun main(args: Array<String>) {
@@ -99,7 +99,7 @@ object CatalogTool {
         require(version == properties.getProperty("version")) { "Bundle version differs from source" }
         val patches = loadPatchesFromJar(setOf(bundle))
         val patchNames = patches.map { requireNotNull(it.name) }.toSet()
-        require(patches.size == 21 && patchNames.size == 21) { "Expected 21 distinct visible patches" }
+        require(patches.size == 27 && patchNames.size == 27) { "Expected 27 distinct visible patches but found ${patches.size} (names: ${patchNames.joinToString()})" }
         validateDefinitions(
             root.resolve("patches/src/main/kotlin/app/hushmessenger/patches/controls/MessengerControlsPatch.kt").readText(),
             root.resolve("extensions/messenger/src/main/java/app/hushmessenger/extension/SettingsActivity.java").readText(),
@@ -116,6 +116,6 @@ object CatalogTool {
         else require(published.isFile && Json.parseToJsonElement(published.readText()) == document) {
             "Public catalog differs from the built MPP; run :patches:generatePatchCatalog"
         }
-        println("Catalog ${args[0]} passed: 21 patches, 20 control keys, built bundle $version")
+        println("Catalog ${args[0]} passed: ${patches.size} patches, 24 control keys, built bundle $version")
     }
 }

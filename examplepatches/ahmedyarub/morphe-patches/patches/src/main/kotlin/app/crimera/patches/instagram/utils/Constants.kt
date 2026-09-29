@@ -25,7 +25,7 @@ object Constants {
                         version = "448.0.0.52.84",
                         versionCodes =
                             mapOf(
-                                ARM64_V8A to 385412020,
+                                ARM64_V8A to 385412061,
                             ),
                         isExperimental = true,
                     ),

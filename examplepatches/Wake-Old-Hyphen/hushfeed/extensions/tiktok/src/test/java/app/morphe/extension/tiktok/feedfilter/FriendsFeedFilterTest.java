@@ -96,6 +96,27 @@ public class FriendsFeedFilterTest {
         assertSame(ordinary, response.friendFeedData.get(0));
     }
 
+    /** A room as a selling LIVE sends it. */
+    public static final class SellingRoom {
+        public boolean hasCommerceGoods = true;
+    }
+
+    /** A Friends card for a LIVE that is selling goes with Hide TikTok Shop (#46), others stay. */
+    @Test public void aSellingLiveCardGoesWithTheShopSwitchAlone() {
+        Settings.REMOVE_ADS.save(false);
+        Settings.HIDE_LIVE.save(false);
+        Settings.HIDE_SHOP.save(true);
+        Entry selling = Entry.live();
+        selling.roomStruct = new SellingRoom();
+        Entry ordinary = Entry.live();
+
+        Response response = new Response(selling, ordinary);
+        FeedItemsFilter.filterFriendsFeed(response);
+
+        assertEquals(1, response.friendFeedData.size());
+        assertSame(ordinary, response.friendFeedData.get(0));
+    }
+
     @Test public void aLiveCardStaysWhenThatSwitchIsOff() {
         Settings.REMOVE_ADS.save(true);
         Settings.HIDE_LIVE.save(false);

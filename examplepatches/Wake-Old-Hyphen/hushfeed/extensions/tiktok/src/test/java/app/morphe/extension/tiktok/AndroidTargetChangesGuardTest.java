@@ -340,6 +340,40 @@ public class AndroidTargetChangesGuardTest {
         return name;
     }
 
+    /**
+     * Android's java.util.regex is ICU, which throws on flags the JVM these tests run on accepts.
+     * A Pattern built with UNICODE_CHARACTER_CLASS in a static field crashed the settings screen
+     * on a phone while every Robolectric test passed. ICU's \d and \w are Unicode already; spell
+     * a script-wide class as \p{Nd} or \p{L} instead of asking for the flag.
+     */
+    @Test
+    public void noPatternAsksForAFlagAndroidRefuses() throws IOException {
+        List<String> offenders = new ArrayList<>();
+        for (Path source : payloadSources()) {
+            String text = read(source);
+            for (String flag : new String[]{"UNICODE_CHARACTER_CLASS", "CANON_EQ"}) {
+                if (text.contains("Pattern." + flag)) offenders.add(relativeName(source) + " uses Pattern." + flag);
+            }
+        }
+        assertTrue("Android's regex refuses these flags:\n" + String.join("\n", offenders), offenders.isEmpty());
+    }
+
+    /**
+     * java.util.function arrived at API 24 and the payload runs on API 23 without core library
+     * desugaring. D8 backports static methods such as List.copyOf but never a type, and lint's
+     * NewApi check let a Consumer local through into the shipped dex, where every video save on
+     * Android 6 would have thrown NoClassDefFoundError. Declare a small interface instead.
+     */
+    @Test
+    public void noPayloadTypeComesFromJavaUtilFunction() throws IOException {
+        java.util.regex.Pattern use = java.util.regex.Pattern.compile("java\\.util\\.function\\.[A-Z*]");
+        List<String> offenders = new ArrayList<>();
+        for (Path source : payloadSources()) {
+            if (use.matcher(read(source)).find()) offenders.add(relativeName(source));
+        }
+        assertTrue("java.util.function is API 24, the payload's floor is 23:\n" + String.join("\n", offenders),
+                offenders.isEmpty());
+    }
     /** Both trees whose Java ends up in the payload TikTok runs. */
     private static List<Path> payloadSources() throws IOException {
         List<Path> roots = new ArrayList<>();

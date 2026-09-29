@@ -366,6 +366,18 @@ public final class SettingsBackupPreference extends Preference
                 case ROLLED_BACK:
                     return "That settings change didn't go through. Nothing was altered.";
                 case RECOVERY_REQUIRED:
+                    // Each action names itself: a Reset or an Undo that stopped halfway used to
+                    // report a restore nobody had asked for.
+                    if (action == RESET) {
+                        return restore.isRecoveryAvailable()
+                                ? "Reset didn't finish. Some settings may still be changed. Use Undo to put them back."
+                                : "Reset didn't finish. Some settings may still be changed.";
+                    }
+                    if (action == UNDO) {
+                        return restore.isRecoveryAvailable()
+                                ? "Undo didn't finish. Some settings may still be changed. Try Undo again."
+                                : "Undo didn't finish. Some settings may still be changed.";
+                    }
                     return restore.isRecoveryAvailable()
                             ? "Restore failed. Some settings may still be changed. Use Undo to put them back."
                             : "Restore failed. Some settings may still be changed.";
@@ -376,6 +388,8 @@ public final class SettingsBackupPreference extends Preference
         if (action == UNDO && hasCause(error, java.io.FileNotFoundException.class)) {
             return "Nothing to undo yet.";
         }
+        if (action == RESET) return "Couldn't reset the settings. Try again.";
+        if (action == UNDO) return "Couldn't undo the last change. Try again.";
         return "Couldn't restore the settings. Try again.";
     }
 

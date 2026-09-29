@@ -8,13 +8,12 @@ package hoodles.morphe.patches.windy.premium
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
 import app.morphe.patches.all.misc.extension.sharedExtensionPatch
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import hoodles.morphe.compatibility.Compat
 
 internal val extensionPatch = sharedExtensionPatch(
     "windy",
@@ -25,12 +24,7 @@ val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
     description = "Enables some app features locked behind the subscription paywall. Not all premium functionality is available."
 ) {
-    compatibleWith(Compatibility(
-        name = "Windy",
-        packageName = "com.windyty.android",
-        appIconColor = 0x9D0300,
-        targets = listOf(AppTarget("51.0.1"))
-    ))
+    compatibleWith(Compat.WINDY)
 
     dependsOn(extensionPatch)
 

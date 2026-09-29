@@ -93,10 +93,12 @@ try {
 if ($stock.package -ne $target.PackageName) {
     throw "$(Split-Path -Leaf $Apk) is $($stock.package), not the catalog's target $($target.PackageName)."
 }
-if ($target.PackageVersions -notcontains [string]$stock.versionName) {
+# Its version code as well: another arm64 build of a declared version has its own dex, and nothing
+# proved the patches on it.
+if (-not (Test-DeclaredBuild -Target $target -VersionName ([string]$stock.versionName) -VersionCode ([string]$stock.versionCode))) {
     throw ("$(Split-Path -Leaf $Apk) is $($stock.package) $($stock.versionName), which the bundle does not " +
-        "declare ($($target.PackageVersions -join ', ')). Build for a phone from a declared build; " +
-        'scripts/verify-all-patches.ps1 -Force shows what still applies on another one.')
+        "declare, at version code $($stock.versionCode). It declares $(Format-DeclaredBuilds -Target $target). " +
+        'Build for a phone from a declared build; scripts/verify-all-patches.ps1 -Force shows what still applies on another one.')
 }
 $passwordVariable = 'HUSHFACEBOOK_SIDELOAD_KEYSTORE_PASSWORD'
 $keystorePassword = [Environment]::GetEnvironmentVariable(
@@ -150,11 +152,21 @@ $argumentFileLines = @($arguments | ForEach-Object {
     $argumentFileLines,
     (New-Object System.Text.UTF8Encoding($false)))
 try {
-    & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
-        $line = [string]$_
-        if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|WARNING|Exception|Saved to') { Write-Host "[device] $line" }
+    # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+    # PowerShell 5.1 turns into a terminating error under Stop. The exit code decides.
+    $preference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $global:LASTEXITCODE = -1
+        & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
+            $line = [string]$_
+            if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|WARNING|Exception|Saved to') { Write-Host "[device] $line" }
+        }
+        $cliExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $preference
     }
-    if ($LASTEXITCODE -ne 0) { throw "The desktop CLI exited with $LASTEXITCODE" }
+    if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
 } finally {
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
     # The CLI unpacks the whole APK here and a run against Facebook leaves gigabytes behind.

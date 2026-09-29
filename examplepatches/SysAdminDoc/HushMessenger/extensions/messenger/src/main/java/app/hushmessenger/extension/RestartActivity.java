@@ -14,13 +14,19 @@ import android.widget.Toast;
 
 /** Reopen the real launcher in a fresh process after pending settings writes finish. */
 public class RestartActivity extends Activity {
-    @Override public void onCreate(Bundle state) {
-        super.onCreate(state);
+    @Override @SuppressWarnings("deprecation") public void onCreate(Bundle state) {
         Settings.initialize(this);
+        boolean light = Settings.preferences.getBoolean("light", false);
+        setTheme(light ? android.R.style.Theme_Material_Light_NoActionBar : android.R.style.Theme_Material_NoActionBar);
+        super.onCreate(state);
+        SettingsUi ui = new SettingsUi(this, light);
+        getWindow().setStatusBarColor(ui.background);
+        getWindow().setNavigationBarColor(ui.background);
+        getWindow().getDecorView().setSystemUiVisibility(light ? android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR : 0);
         TextView status = new TextView(this);
         status.setText(new SettingsText(this).get("restarting"));
-        status.setTextColor(0xffeeeeee);
-        status.setBackgroundColor(0xff000000);
+        status.setTextColor(ui.text);
+        status.setBackgroundColor(ui.background);
         status.setGravity(Gravity.CENTER);
         setContentView(status);
         Intent launch = launcherIntent(this);

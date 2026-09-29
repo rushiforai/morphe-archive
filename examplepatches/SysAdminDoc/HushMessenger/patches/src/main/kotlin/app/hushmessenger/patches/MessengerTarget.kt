@@ -13,7 +13,7 @@ import app.morphe.patcher.patch.Compatibility
 internal object MessengerTarget {
     const val PACKAGE = "com.facebook.orca"
     const val VERSION = "580.0.0.49.91"
-    val VERSION_CODES = listOf(346013387, 346013440)
+    val VERSION_CODES = listOf(346013387, 346013440, 346013442)
     const val MIN_SDK = 28
 
     private const val FACEBOOK_SIGNER =
@@ -32,7 +32,7 @@ internal object MessengerTarget {
                 version = VERSION,
                 versionCodes = null,
                 minSdk = MIN_SDK,
-                description = "Arm64 builds 346013387 and 346013440; checked again during patching",
+                description = "Arm64 builds 346013387, 346013440 and 346013442; checked again during patching",
             ),
         ),
     )

@@ -92,6 +92,56 @@ public class HookStatusTest {
         assertEquals(Arrays.asList("Feed: invoked 3, 0 found, 0 missing"), HookStatus.report());
     }
 
+    /**
+     * What a hook decided, counted under a fixed name, goes on its family's line in the order it
+     * was first counted. A family whose only runs are decisions still gets a line, which is what a
+     * reel sidebar built without its button needs: the tap counter never runs there.
+     */
+    @Test
+    public void countedDecisionsAreNamedOnTheFamilyLine() {
+        HookStatus.counted("Download any reel", "UDD sidebar with Download");
+        HookStatus.counted("Download any reel", "FbShorts sidebar");
+        HookStatus.counted("Download any reel", "UDD sidebar with Download");
+
+        assertEquals(Arrays.asList("Download any reel: invoked 0, 0 found, 0 missing. "
+                        + "Counted: UDD sidebar with Download 2, FbShorts sidebar 1"),
+                HookStatus.report());
+        assertEquals("a count is no finding", false, HookStatus.anyMissing());
+        assertEquals(Arrays.asList("Download any reel: invoked 0, 0 found, 0 missing. "
+                        + "Counted: UDD sidebar with Download 2, FbShorts sidebar 1 (paused)"),
+                HookStatus.report(" (paused)"));
+    }
+
+    /** A family keeps sixteen names at most, so a caller that passes varying text can't grow the report. */
+    @Test
+    public void aFamilyCountsSixteenNamesAtMost() {
+        for (int i = 0; i < 40; i++) HookStatus.counted("Reels", "kind " + i);
+        String line = HookStatus.report().get(0);
+        assertTrue(line, line.contains("kind 15 1"));
+        assertTrue(line, !line.contains("kind 16"));
+    }
+
+    @Test
+    public void countsTakenBeforeAClearComeBackAddedToTheOnesSince() {
+        HookStatus.counted("Reels", "shown");
+        HookStatus.counted("Reels", "shown");
+        HookStatus.Snapshot before = HookStatus.snapshotAndClear();
+        HookStatus.counted("Reels", "off");
+        HookStatus.counted("Reels", "shown");
+
+        HookStatus.restore(before);
+        assertEquals(Arrays.asList("Reels: invoked 0, 0 found, 0 missing. Counted: shown 3, off 1"),
+                HookStatus.report());
+    }
+
+    /** Hooks call it before their own guard, so nothing it is handed may throw into the host. */
+    @Test
+    public void countingADecisionNeverThrows() {
+        HookStatus.counted(null, "shown");
+        HookStatus.counted("Reels", null);
+        assertEquals(Arrays.asList(), HookStatus.report());
+    }
+
     /** Hooks call it before their own guard, so nothing it is handed may throw into the host. */
     @Test
     public void countingARunNeverThrows() {

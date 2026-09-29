@@ -105,6 +105,24 @@ public class SharedPermissionsTest {
                 SharedPermissions.name(SharedPermissions.APP_COMMUNICATION));
     }
 
+    /**
+     * A copy renamed with Morphe's Clone app, its Update permissions option on: the clone declares
+     * each renamed permission under its own package and an underscore, and Facebook's code has to
+     * name those, the ones its manifest's components now require (#16).
+     */
+    @Test
+    public void aCloneWithItsOwnDeclarationsGetsThoseNames() {
+        String clone = RuntimeEnvironment.getApplication().getPackageName() + "_";
+        Shadows.shadowOf(RuntimeEnvironment.getApplication()).grantPermissions(clone + RENAMED_APP_COMMUNICATION);
+        try {
+            assertEquals(clone + RENAMED_APP_COMMUNICATION, SharedPermissions.name(SharedPermissions.APP_COMMUNICATION));
+            assertEquals(clone + RENAMED_RECEIVER_ACCESS, SharedPermissions.name(SharedPermissions.RECEIVER_ACCESS));
+            assertEquals(clone + RENAMED_FORMAT, SharedPermissions.name(SharedPermissions.APP_COMMUNICATION_FORMAT));
+        } finally {
+            Shadows.shadowOf(RuntimeEnvironment.getApplication()).denyPermissions(clone + RENAMED_APP_COMMUNICATION);
+        }
+    }
+
     /** The install doesn't change while the process runs, so it's asked once. */
     @Test
     public void theInstallIsAskedOncePerProcess() {

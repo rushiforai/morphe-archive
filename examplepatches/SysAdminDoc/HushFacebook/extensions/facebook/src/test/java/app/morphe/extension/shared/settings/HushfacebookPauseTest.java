@@ -215,7 +215,8 @@ public class HushfacebookPauseTest {
         assertEquals(HushfacebookPause.Reason.MARKER_FILE, HushfacebookPause.reason());
         assertTrue(Setting.isPaused());
 
-        assertTrue("turning back on could not remove the marker", HushfacebookPause.turnBackOn(context));
+        assertEquals("turning back on could not remove the marker", HushfacebookPause.Reason.NONE,
+                HushfacebookPause.turnBackOn(context));
         assertFalse(marker.exists());
         start(null);
         assertEquals(HushfacebookPause.Reason.NONE, HushfacebookPause.reason());
@@ -228,12 +229,64 @@ public class HushfacebookPauseTest {
 
         BaseSettings.SAFE_MODE.save(true);
         HushfacebookPause.write(streak, "2");
-        assertTrue(HushfacebookPause.turnBackOn(context));
+        assertEquals(HushfacebookPause.Reason.NONE, HushfacebookPause.turnBackOn(context));
         assertFalse(BaseSettings.PAUSED.savedValue());
         assertFalse(BaseSettings.SAFE_MODE.savedValue());
         assertEquals("0", HushfacebookPause.read(streak));
         start(null);
         assertFalse(Setting.isPaused());
+    }
+
+    /**
+     * Safe mode and the Pause switch go off together or not at all, so a failed write can't leave
+     * the next start paused by one of them after the other went. Whatever happened, the switches,
+     * the store and the next start agree.
+     */
+    @Test public void resumeTurnsBothSwitchesOffTogetherOrNeither() {
+        FailingStore.Fault[][] scripts = {
+                {FailingStore.Fault.NONE, FailingStore.Fault.COMMIT_THROWS},
+                {FailingStore.Fault.COMMIT_THROWS, FailingStore.Fault.COMMIT_THROWS},
+                {FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.LOST}};
+        for (FailingStore.Fault[] script : scripts) {
+            BaseSettings.SAFE_MODE.save(true);
+            BaseSettings.PAUSED.save(true);
+            HushfacebookPause.Reason still;
+            try (FailingStore ignored = FailingStore.install(script)) {
+                still = HushfacebookPause.turnBackOn(context);
+            }
+            String name = java.util.Arrays.toString(script);
+            assertEquals(name + " answered " + still, BaseSettings.PAUSED.savedValue(), still != HushfacebookPause.Reason.NONE);
+            assertEquals(name + " turned one switch off", BaseSettings.SAFE_MODE.savedValue(),
+                    BaseSettings.PAUSED.savedValue());
+            assertEquals(name, BaseSettings.SAFE_MODE.savedValue(), stored(BaseSettings.SAFE_MODE));
+            assertEquals(name, BaseSettings.PAUSED.savedValue(), stored(BaseSettings.PAUSED));
+            assertEquals(name, BaseSettings.PAUSED.savedValue(), HushfacebookPause.pausesNextStart(context));
+        }
+    }
+
+    /**
+     * A marker that can't be removed leaves the switches on: the pause they hold still applies
+     * once the file is gone, and nothing says it won't.
+     */
+    @Test public void aMarkerThatCanNotBeRemovedLeavesThePauseSwitchOn() throws Exception {
+        File marker = HushfacebookPause.markerFile(context);
+        File held = new File(marker, "held");
+        // A folder with something in it can't be deleted.
+        assertTrue(marker.mkdirs() && held.createNewFile());
+        try {
+            BaseSettings.PAUSED.save(true);
+            assertEquals(HushfacebookPause.Reason.MARKER_FILE, HushfacebookPause.turnBackOn(context));
+            assertTrue("the Pause switch went while the file stayed", BaseSettings.PAUSED.savedValue());
+            assertTrue(marker.exists());
+            assertTrue(HushfacebookPause.pausesNextStart(context));
+        } finally {
+            held.delete();
+            marker.delete();
+        }
+    }
+
+    private static boolean stored(BooleanSetting setting) {
+        return Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue);
     }
 
     @Test public void theStreakFileSurvivesNonsense() {

@@ -28,6 +28,9 @@ private val renameSharedPermissionsPatch = resourcePatch {
  * state broadcast and Profilo's trace control, six places on 577 and 580). Left alone they'd name a
  * permission this build no longer holds, and those broadcasts would stop reaching Facebook itself.
  *
+ * It also lets a Messenger re-signed with this build's own key reach Facebook's sign-in store, so a
+ * patched Messenger can sign in through a patched Facebook. See FamilyTrust.kt.
+ *
  * No switch: a manifest can't change at run time, so the patch stays in while paused.
  */
 @Suppress("unused")
@@ -35,7 +38,8 @@ val installBesideMetaAppsPatch = bytecodePatch(
     name = "Install beside Meta's apps",
     description = "Lets the official Messenger, Facebook Lite, Business Suite and Workplace install beside the " +
         "patched Facebook. Facebook shares two permissions with them, and Android lets only one signing key own " +
-        "a permission, so this patch renames Facebook's. A Root Mount install doesn't need it.",
+        "a permission, so this patch renames Facebook's. It also lets a Messenger patched with the same key sign " +
+        "in through the patched Facebook. A Root Mount install doesn't need it.",
     default = true,
 ) {
     category("Fixes")
@@ -46,6 +50,7 @@ val installBesideMetaAppsPatch = bytecodePatch(
 
     execute {
         routeSharedLiterals()
+        trustSameKeyFamilyCallers()
         enableStatus("installBesideMetaApps")
     }
 }

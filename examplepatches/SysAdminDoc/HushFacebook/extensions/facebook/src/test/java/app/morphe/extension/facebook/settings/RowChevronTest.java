@@ -63,10 +63,11 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class RowChevronTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    /** Every row on the screen whose tap opens a dialog, a file picker or the browser. */
+    /** Every row on the screen whose tap opens a dialog, a file picker, the browser, Android's settings or another page. */
     private static final Set<String> OPENS_SOMETHING = new LinkedHashSet<>(Arrays.asList(
-            "Jump to a section", "Tab to open on", "Words to hide", "Words that keep a post", "Comment order", "Font file", "Download quality", "Save folder",
-            "Video file name",
+            "Jump to a section", "Reels in the feed", "Reels that play by themselves", "Everything except Marketplace",
+            "Tab to open on", "Words to hide", "Words that keep a post", "Comment order", "Font file", "Download quality", "Save folder",
+            "Video file name", "Supported links",
             "Export settings", "Import settings",
             "Export diagnostic report", "Source code and issues", "Licenses"));
 

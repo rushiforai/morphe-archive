@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Finds the best media address that an object holds, and ranks addresses against each other.
@@ -287,6 +288,22 @@ final class RenditionPicker {
      * depth and the check on the name of the class are what keep it to the media.
      */
     static List<String> harvest(Object host, int maxDepth) {
+        return walk(host, maxDepth, RenditionPicker::isHttpUrl);
+    }
+
+    /**
+     * The first DASH manifest [host] holds as text within [maxDepth] steps, or {@code null}.
+     *
+     * <p>A story's media carries its {@code playlist}, the manifest its player is built from, and
+     * {@link #harvest} passes it by because it isn't an address.
+     */
+    static String manifestIn(Object host, int maxDepth) {
+        List<String> found = walk(host, maxDepth, text -> text.contains("<MPD") && !isHttpUrl(text));
+        return found.isEmpty() ? null : found.get(0);
+    }
+
+    /** Every text [host] can reach within [maxDepth] steps that [keep] takes. */
+    private static List<String> walk(Object host, int maxDepth, Predicate<String> keep) {
         List<String> found = new ArrayList<>();
         if (host == null) return found;
 
@@ -325,7 +342,7 @@ final class RenditionPicker {
                     }
 
                     if (value == null) continue;
-                    collect(value, depth, maxDepth, found, seen, queue);
+                    collect(value, depth, maxDepth, keep, found, seen, queue);
                 }
             }
         }
@@ -349,13 +366,14 @@ final class RenditionPicker {
         Object value,
         int depth,
         int maxDepth,
+        Predicate<String> keep,
         List<String> found,
         IdentityHashMap<Object, Boolean> seen,
         Deque<Object[]> queue
     ) {
         if (isText(value)) {
             String text = String.valueOf(value);
-            if (isHttpUrl(text)) found.add(text);
+            if (keep.test(text)) found.add(text);
             return;
         }
 
@@ -365,7 +383,7 @@ final class RenditionPicker {
             for (Object element : (Iterable<?>) value) {
                 if (element != null && isText(element)) {
                     String text = String.valueOf(element);
-                    if (isHttpUrl(text)) found.add(text);
+                    if (keep.test(text)) found.add(text);
                 }
             }
             return;
@@ -377,7 +395,7 @@ final class RenditionPicker {
                 Object element = Array.get(value, i);
                 if (element != null && isText(element)) {
                     String text = String.valueOf(element);
-                    if (isHttpUrl(text)) found.add(text);
+                    if (keep.test(text)) found.add(text);
                 }
             }
             return;

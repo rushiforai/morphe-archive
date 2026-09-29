@@ -55,6 +55,13 @@ public final class SettingsDialog extends DialogFragment {
     private TextView pageTitle;
     private LinearLayout searchBox;
     private EditText search;
+    private TextView results;
+    private int found;
+    private final Runnable showFound = () -> {
+        String count = L10n.quantity(results.getContext(), found, "%1$d setting found", "%1$d settings found", found);
+        results.setVisibility(View.VISIBLE);
+        if (!count.contentEquals(results.getText())) results.setText(count);
+    };
     private boolean settingSearch;
 
     /** The page's colours, or null for the black page. Read when the dialog is created. */
@@ -227,6 +234,19 @@ public final class SettingsDialog extends DialogFragment {
                 ViewGroup.LayoutParams.WRAP_CONTENT);
         layout.setMargins(dp(16), 0, dp(16), dp(12));
         root.addView(searchBox, layout);
+        // Typed letters alone tell a screen reader nothing about the list below, so the count is
+        // spoken from a polite live region, once the typing has settled.
+        results = new TextView(getContext());
+        results.setTextColor(palette.summary);
+        results.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        results.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        results.setVisibility(View.GONE);
+        LinearLayout.LayoutParams place = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        place.setMarginStart(dp(20));
+        place.setMarginEnd(dp(20));
+        place.bottomMargin = dp(8);
+        root.addView(results, place);
         // A newly opened screen must not steal focus and raise the keyboard.
         root.setFocusableInTouchMode(true);
         root.requestFocus();
@@ -243,6 +263,18 @@ public final class SettingsDialog extends DialogFragment {
             search.clearFocus();
             hideKeyboard();
         }
+    }
+
+    /** How many settings the search shows, or -1 when there is no search. */
+    void showResults(int count) {
+        results.removeCallbacks(showFound);
+        if (count < 0) {
+            results.setVisibility(View.GONE);
+            results.setText("");
+            return;
+        }
+        found = count;
+        results.postDelayed(showFound, 600);
     }
 
     private void hideKeyboard() {

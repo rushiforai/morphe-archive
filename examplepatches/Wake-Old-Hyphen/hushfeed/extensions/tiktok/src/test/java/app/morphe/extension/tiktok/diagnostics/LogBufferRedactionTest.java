@@ -78,6 +78,43 @@ public class LogBufferRedactionTest {
         assertFalse(report.contains("tiktokv.com"));
     }
 
+    @Test public void theRawBufferNeverRetainsMessageSourceOrThreadCredentials() {
+        Thread thread = Thread.currentThread();
+        String originalName = thread.getName();
+        try {
+            thread.setName("sessionid=THREAD_SENTINEL");
+            LogBufferManager.appendEvent(DiagnosticCategory.DOWNLOADS,
+                    "sessionid=SOURCE_SENTINEL", "INFO",
+                    "phase=fetch {\"sessionid\":\"BUFFER_SENTINEL\"}");
+        } finally {
+            thread.setName(originalName);
+        }
+
+        String raw = LogBufferManager.snapshotForCrash(12_000);
+        assertTrue(raw.contains("phase=fetch"));
+        assertFalse(raw.contains("THREAD_SENTINEL"));
+        assertFalse(raw.contains("SOURCE_SENTINEL"));
+        assertFalse(raw.contains("BUFFER_SENTINEL"));
+    }
+
+    @Test public void bothCrashFilesAreSanitizedBeforeTheyReachDisk() throws Exception {
+        String report = "schema: 1\ncomplete: true\nphase=decode\n"
+                + "{\"sessionid\":\"DISK_SENTINEL\"}\n"
+                + "Authorization: Bearer HEADER_SENTINEL\n";
+        LogBufferManager.persistCrashReport(context, report);
+        LogBufferManager.persistNpthCrashReport(context, report);
+
+        for (String name : new String[]{"morphe_java_crash_report_v1.txt",
+                "morphe_npth_crash_report_v1.txt"}) {
+            String raw = new String(java.nio.file.Files.readAllBytes(
+                    new java.io.File(context.getFilesDir(), name).toPath()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            assertTrue(raw.contains("phase=decode"));
+            assertFalse(name + " retained a structured credential", raw.contains("DISK_SENTINEL"));
+            assertFalse(name + " retained a header credential", raw.contains("HEADER_SENTINEL"));
+        }
+    }
+
     /**
      * Each of these resolves to a post somebody can open, so a report shared on the tracker
      * would otherwise carry part of what the reporter had been watching.

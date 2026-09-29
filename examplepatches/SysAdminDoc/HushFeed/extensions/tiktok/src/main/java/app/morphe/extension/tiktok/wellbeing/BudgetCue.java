@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
@@ -164,11 +165,33 @@ public final class BudgetCue {
         }
     }
 
+    /**
+     * The progress callback that puts the label up stops with the player, and leaving the feed
+     * for Profile or Inbox stops the player, so it can't be what takes the label down. A tab
+     * change or a screen over the feed lays the window out, and each pass asks again.
+     */
+    private static final GlobalLayoutHook LAYOUT = new GlobalLayoutHook();
+
+    private static void recheck() {
+        if (cueReference.get() == null) {
+            LAYOUT.detach();
+            return;
+        }
+        Activity activity = Utils.getActivity();
+        if (activity == null || SessionBudget.isLocked()
+                || !FeedVisibility.onRecommendationFeed(activity)) {
+            detach();
+        }
+    }
+
     private static TextView attach(Activity activity) {
         TextView existing = cueReference.get();
         ViewGroup root = activity.findViewById(android.R.id.content);
         if (root == null) return null;
-        if (existing != null && existing.getParent() == root) return existing;
+        if (existing != null && existing.getParent() == root) {
+            LAYOUT.install(root, BudgetCue::recheck);
+            return existing;
+        }
         // The activity moved. Take the old label off the screen it is on rather than dropping
         // the only handle to it and building a second one.
         detach();
@@ -202,6 +225,7 @@ public final class BudgetCue {
         root.addView(cue, params);
         cueReference = new WeakReference<>(cue);
         shownText = null;
+        LAYOUT.install(root, BudgetCue::recheck);
         return cue;
     }
 
@@ -222,6 +246,7 @@ public final class BudgetCue {
     }
 
     private static void detach() {
+        LAYOUT.detach();
         TextView cue = cueReference.get();
         cueReference = new WeakReference<>(null);
         shownText = null;

@@ -35,6 +35,30 @@ private data class HmdLayout(
 )
 
 private val HMD_LAYOUTS = listOf(
+    // Independently disassembled GetPose routines; 5001968 schedules the paired
+    // store after the +36 store. Addresses are not inferred from another build.
+    HmdLayout(
+        "2.0.20", 5001812, 2_220_872, 0x101648L,
+        listOf(
+            VelocityPatch(0x101674L, 28, paired = true),
+            VelocityPatch(0x101690L, 36),
+            VelocityPatch(0x101770L, 40),
+            VelocityPatch(0x101774L, 44),
+            VelocityPatch(0x101780L, 48),
+        ),
+        "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a",
+    ),
+    HmdLayout(
+        "2.0.21", 5001968, 2_234_048, 0xFD5F0L,
+        listOf(
+            VelocityPatch(0xFD6ACL, 28, paired = true),
+            VelocityPatch(0xFD658L, 36),
+            VelocityPatch(0xFD6E0L, 40),
+            VelocityPatch(0xFD6E4L, 44),
+            VelocityPatch(0xFD6E8L, 48),
+        ),
+        "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192",
+    ),
     HmdLayout(
         versionName = "2.0.20",
         versionCode = 5001712,
@@ -304,7 +328,7 @@ internal fun patchVisualDelay(
             it.versionName == versionName && it.versionCode.toString() == versionCode
         }
     } else {
-        HMD_LAYOUTS.singleOrNull { it.fileSize == mutable.size && it.versionCode != 5002363 }
+        HMD_LAYOUTS.singleOrNull { it.fileSize == mutable.size && it.versionCode in setOf(5001712, 5002244) }
     } ?: return mutable
     if (mutable.size != layout.fileSize) {
         val sha256 = MessageDigest.getInstance("SHA-256").digest(mutable).toHex()
@@ -314,12 +338,14 @@ internal fun patchVisualDelay(
                 "stockSha256=${layout.stockSha256 ?: "see native compatibility audit"}",
         )
     }
-    if (layout.versionCode == 5002363 && offsetMs !in 0L..4000L) {
+    verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
+    val guardedTransitions = layout.versionCode in setOf(5001812, 5001968, 5002363)
+    if (guardedTransitions && offsetMs !in 0L..4000L) {
         throw PatchException("Visual Delay offset must be within 0..4000 ms")
     }
 
     val cave = findTrampolineCave(mutable, 20)
-    if (layout.versionCode == 5002363) validateCanonicalTrampolineMapping(mutable, cave, 20)
+    if (guardedTransitions) validateCanonicalTrampolineMapping(mutable, cave, 20)
     val caveOff = cave.fileOffset
     val caveVa = cave.vaddr
     val trampoline = ORIG_HOOK + buildTrampolineBody(offsetMs) +
@@ -337,10 +363,10 @@ internal fun patchVisualDelay(
         velocityWords.indices.all { isPatchedVelocity(velocityWords[it], layout.velocityPatches[it]) }
     if (alreadyPatched) return mutable
 
-    // Only the independently audited 5002363 layout supports changing an already
+    // Only the independently audited transition layouts support changing an already
     // selected offset. Recognize the complete canonical trampoline plus its ELF
     // mapping, hook and 6 zero stores before replacing only the timestamp body.
-    if (layout.versionCode == 5002363 && cave.alreadyMapped &&
+    if (guardedTransitions && cave.alreadyMapped &&
         hookActual.contentEquals(patchedHook) &&
         velocityWords.indices.all { isPatchedVelocity(velocityWords[it], layout.velocityPatches[it]) } &&
         caveActual.copyOfRange(0, 4).contentEquals(ORIG_HOOK) &&

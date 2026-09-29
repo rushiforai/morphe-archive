@@ -81,6 +81,13 @@ val hideUpgradePromotionsPatch = bytecodePatch(
 
         UpgradeInfoConstructorFingerprint.matchSingle().preserveAndResolveUpgradeAvailable()
         PlanLimitReachedFingerprint.matchSingle().readOriginalUpgradeAvailable()
+        AttachmentsStateConstructorFingerprint.matchSingle().method.addInstructions(
+            0,
+            """
+                invoke-static { p5 }, $UPSELLING_VISIBILITY_CLASS->resolveUpgradeAvailable(Z)Z
+                move-result p5
+            """,
+        )
 
         OnboardingRouteFingerprint.matchSingle().run {
             val onboardingRoute = instructionMatches.last().getInstruction<ReferenceInstruction>().reference

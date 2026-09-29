@@ -266,15 +266,40 @@ public class GenAiReelTreeTest {
                 HookStatus.missing(FamilyNames.AI_DETECTED_REELS));
     }
 
-    /** An item holding its model in a field of its own is read the typed way, as before. */
+    /**
+     * Facebook's Reels menu decides its "AI info" row by the attribution first, then by the model's
+     * own detected info. An item holding its model in a field of its own is read the same way now:
+     * with no attribution, a model whose detected info says detected comes off. The rule used to
+     * stop at the attribution, so such a reel stayed while Facebook offered AI info for it. A model
+     * with no such info, or with the flag false, still stays under the attribution's reason.
+     */
     @Test
-    public void anItemHoldingTheModelItselfIsStillReadThroughTheAttribution() {
+    public void anItemHoldingTheModelItselfFallsBackToItsDetectedInfo() {
         Settings.HIDE_AI_DETECTED_REELS.save(true);
-        PandoReel model = reel(info(true));
-        keeps("an attribution-less model, even with the info set", new RawItemHoldingModel(model));
-        assertEquals("the tree reader read a typed item", 0, model.treeReads);
-        assertEquals(GenAiReelFilter.ITEMS_ROUTE + ": 1 lists, 1 items, 0 removed. Kinds: no AI attribution 1",
-                line(GenAiReelFilter.ITEMS_ROUTE));
+        assertEquals("a model Facebook detected, without an attribution", 0,
+                filter(new RawItemHoldingModel(reel(info(true)))).size());
+        keeps("a model whose detected info says no", new RawItemHoldingModel(reel(info(false))));
+        keeps("a model with no detected info", new RawItemHoldingModel(reel(null)));
+        String items = line(GenAiReelFilter.ITEMS_ROUTE);
+        assertTrue(items, items.contains("1 removed") && items.contains("no AI attribution 2")
+                && items.contains("tree flag true 1"));
+    }
+
+    /**
+     * The other half of Facebook's decision on a Reels tab item: the attribution of the model its
+     * holder keeps. The tree reader alone never asked for it, so a reel whose attribution says
+     * detected but whose model holds no detected info stayed.
+     */
+    @Test
+    public void aTabItemWhoseModelsAttributionSaysDetectedComesOff() {
+        Settings.HIDE_AI_DETECTED_REELS.save(true);
+        PandoReel model = reel(null);
+        TreeJNI attribution = new TreeJNI(GenAiReelFilter.ATTRIBUTION_TYPE).holding(GenAiReelFilter.DETECTED_FLAG, true);
+        GenAiReelFilter.Finder finder = candidate -> candidate == model ? attribution : null;
+        assertEquals(0, GenAiReelFilter.withoutAiReels(Arrays.asList(item(model, null)), MODEL, finder, NO_STORY_INFO).size());
+        String items = line(GenAiReelFilter.ITEMS_ROUTE);
+        assertTrue(items, items.contains("1 removed") && items.contains(GenAiReelFilter.FLAGGED + " 1"));
+        keeps("a tab item whose model has no attribution and no detected info", item(reel(null), null));
     }
 
     /** An item with a field of the model's own type, like 580's LX/5qk. */

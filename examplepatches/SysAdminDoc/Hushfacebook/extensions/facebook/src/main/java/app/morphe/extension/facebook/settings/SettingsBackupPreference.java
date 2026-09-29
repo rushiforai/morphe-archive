@@ -15,13 +15,17 @@ import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.OperationCanceledException;
 import android.preference.Preference;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
@@ -56,6 +60,11 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
  * <p>An import reads the file first and shows how many switches it changes. Nothing is written
  * until the person says so, and then everything is written in one commit. The preview is kept in
  * the page's saved state, so a rotation or a trip away from Facebook brings it back.
+ *
+ * <p>The app holding a file opens, reads and writes it on a worker. The screen waits for it
+ * {@link #timeoutMs} at most, then gives the rows back, cancels the open and closes the file.
+ * Whatever that app does afterwards shows nothing and changes nothing. An export is read back, so
+ * a file that won't import isn't called saved.
  */
 @SuppressWarnings("deprecation") // Framework preferences are what the shared settings page builds on.
 public class SettingsBackupPreference extends Preference {
@@ -71,8 +80,44 @@ public class SettingsBackupPreference extends Preference {
      */
     static final String[] OPENABLE_TYPES = {MIME_TYPE, "text/plain", "application/octet-stream"};
 
-    /** A read, a write or an import is running. */
-    private static final AtomicBoolean BUSY = new AtomicBoolean();
+    /** How long the app holding a file gets to open, read or write it before the rows come back. A test sets its own. */
+    static volatile long timeoutMs = 30_000L;
+
+    /**
+     * The run that holds the rows, or null. Only it may show a result or offer a preview, so a run
+     * the screen stopped waiting for can't announce anything or lead to an import when it ends.
+     */
+    private static final AtomicReference<Run> OWNER = new AtomicReference<>();
+
+    /**
+     * A run the screen stopped waiting for. Until its file's app answers it holds a worker, so no
+     * other run starts: stuck apps can't take the shared pool, and a second write can't reach a
+     * file the first may still be writing.
+     */
+    @Nullable
+    private static volatile Run stalled;
+
+    /** One read, write or import, with what the screen needs to stop waiting for it. */
+    private static final class Run {
+        /** Reaches the file's app while it opens the file, for an app that honours it. */
+        final CancellationSignal cancel = new CancellationSignal();
+        /** The file the worker has open, closed when the screen stops waiting. */
+        @Nullable
+        volatile Closeable open;
+        /** The worker has returned. */
+        volatile boolean ended;
+
+        /** Keeps [file] where the screen can close it, or closes it now when the screen has stopped waiting. */
+        AssetFileDescriptor hold(@Nullable AssetFileDescriptor file) throws IOException {
+            if (file == null) throw new FileNotFoundException("No file");
+            open = file;
+            if (cancel.isCanceled()) {
+                file.close();
+                throw new OperationCanceledException();
+            }
+            return file;
+        }
+    }
 
     /** The rows on the page right now, so a run can take them all out of reach. */
     private static final List<WeakReference<SettingsBackupPreference>> ROWS = new CopyOnWriteArrayList<>();
@@ -106,7 +151,7 @@ public class SettingsBackupPreference extends Preference {
         setOnPreferenceClickListener(preference -> {
             // Rows are out of reach while a run is going, so this is only the race between a tap
             // and that.
-            if (!BUSY.get()) pickFile(page, action);
+            if (OWNER.get() == null && !stillStalled()) pickFile(page, action);
             return true;
         });
         latestPage = new WeakReference<>(page);
@@ -155,68 +200,90 @@ public class SettingsBackupPreference extends Preference {
 
     private static void export(HushfacebookPreferenceFragment page, Uri uri) {
         Context context = appContext(page);
-        if (!start(EXPORT, L10n.t("Saving the settings file"))) return;
+        Run run = start(EXPORT, L10n.t("Saving the settings file"));
+        if (run == null) return;
         boolean accepted = Utils.runOnBackgroundThread(() -> {
+            String said = null;
             try {
-                write(context, uri, SettingsBackup.create().getBytes(StandardCharsets.UTF_8));
-                Utils.showToastLong(L10n.t("Settings exported."));
+                said = write(context.getContentResolver(), uri, SettingsBackup.create().getBytes(StandardCharsets.UTF_8), run);
             } catch (Exception error) {
                 Logger.printInfo(() -> "Settings export failed: " + error.getClass().getSimpleName());
-                Utils.showToastLong(L10n.t("Couldn't save the settings file. Try again."));
+                said = L10n.t("Couldn't save the settings file. Try again.");
             } finally {
-                Utils.runOnMainThread(SettingsBackupPreference::finish);
+                String result = said;
+                ended(run, result == null ? null : () -> Utils.showToastLong(result));
             }
         });
-        if (!accepted) notStarted();
+        if (!accepted) notStarted(run);
+        else watch(run, L10n.t("The app holding the settings file is taking too long, so Hushfacebook stopped waiting. "
+                + "That app may still finish saving it, so check the file before you rely on it."));
     }
 
     /**
-     * Writes over whatever is there. "wt" truncates a file being replaced; a provider that turns
-     * the mode down gets "w". Where that leaves old bytes past the new end, an import refuses the
-     * file as damaged rather than reading half of it.
+     * Writes over whatever is there, reads the file back and says how that went. "wt" truncates a
+     * file being replaced; an app that turns the mode down gets "w", which can leave old bytes past
+     * the new end. The read back catches that and anything else that keeps the file from importing.
+     * An app that won't hand the file back leaves it unchecked, and the answer says so.
      */
-    private static void write(Context context, Uri uri, byte[] bytes) throws IOException {
-        ContentResolver resolver = context.getContentResolver();
-        OutputStream output;
+    private static String write(ContentResolver resolver, Uri uri, byte[] bytes, Run run) throws IOException {
+        AssetFileDescriptor file;
         try {
-            output = resolver.openOutputStream(uri, "wt");
+            file = resolver.openAssetFileDescriptor(uri, "wt", run.cancel);
         } catch (IllegalArgumentException | UnsupportedOperationException | FileNotFoundException unsupported) {
-            output = resolver.openOutputStream(uri, "w");
+            file = resolver.openAssetFileDescriptor(uri, "w", run.cancel);
         }
-        if (output == null) throw new IOException("No stream to write to");
-        try (OutputStream stream = output) {
+        try (AssetFileDescriptor held = run.hold(file); OutputStream stream = held.createOutputStream()) {
             stream.write(bytes);
         }
+        String back;
+        try {
+            back = read(resolver, uri, run);
+        } catch (SettingsBackup.Rejected refused) {
+            if (refused.reason == SettingsBackup.Reason.UNREADABLE) {
+                return L10n.t("Settings exported. The app holding the file wouldn't let Hushfacebook read it back, "
+                        + "so it wasn't checked.");
+            }
+            back = null;
+        }
+        if (new String(bytes, StandardCharsets.UTF_8).equals(back)) return L10n.t("Settings exported.");
+        Logger.printInfo(() -> "Settings export read back differently");
+        return L10n.t("The settings file was saved, but it doesn't read back as what was written. "
+                + "Save it again as a new file.");
     }
 
     private static void readForPreview(HushfacebookPreferenceFragment page, Uri uri) {
         Context context = appContext(page);
-        if (!start(IMPORT, L10n.t("Reading the settings file"))) return;
+        Run run = start(IMPORT, L10n.t("Reading the settings file"));
+        if (run == null) return;
         boolean accepted = Utils.runOnBackgroundThread(() -> {
-            SettingsBackup.Snapshot snapshot = null;
+            Runnable result = null;
             try {
-                snapshot = SettingsBackup.parse(SettingsBackup.read(open(context, uri)));
+                SettingsBackup.Snapshot snapshot = SettingsBackup.parse(read(context.getContentResolver(), uri, run));
+                result = () -> offer(snapshot);
             } catch (SettingsBackup.Rejected refused) {
                 Logger.printInfo(() -> "Settings file refused: " + refused.reason);
-                Utils.showToastLong(refusal(refused.reason));
+                String said = refusal(refused.reason);
+                result = () -> Utils.showToastLong(said);
             } finally {
-                SettingsBackup.Snapshot read = snapshot;
-                Utils.runOnMainThread(() -> {
-                    finish();
-                    if (read != null) offer(read);
-                });
+                ended(run, result);
             }
         });
-        if (!accepted) notStarted();
+        if (!accepted) notStarted(run);
+        else watch(run, L10n.t("The app holding that file is taking too long, so Hushfacebook stopped waiting. "
+                + "Nothing was changed."));
     }
 
-    @Nullable
-    private static InputStream open(Context context, Uri uri) throws SettingsBackup.Rejected {
+    /** The file's text, opened through its app with [run]'s cancel signal and held where the screen can close it. */
+    private static String read(ContentResolver resolver, Uri uri, Run run) throws SettingsBackup.Rejected {
+        InputStream stream;
         try {
-            return context.getContentResolver().openInputStream(uri);
+            stream = run.hold(resolver.openAssetFileDescriptor(uri, "r", run.cancel)).createInputStream();
         } catch (IOException | RuntimeException error) {
+            closeQuietly(run.open);
+            // The class only: an app's message can carry the document's name or address.
             throw new SettingsBackup.Rejected(SettingsBackup.Reason.UNREADABLE, error.getClass().getSimpleName());
         }
+        return SettingsBackup.read(stream);
     }
 
     /** One sentence per refusal, so a cut-off download and a newer version's file don't read the same. */
@@ -410,35 +477,44 @@ public class SettingsBackupPreference extends Preference {
     private static void apply(HushfacebookPreferenceFragment page, @Nullable Bundle chosen) {
         SettingsBackup.Snapshot snapshot = SettingsBackup.Snapshot.fromBundle(chosen);
         if (snapshot == null) return;
-        if (!start(IMPORT, L10n.t("Importing settings"))) return;
+        Run run = start(IMPORT, L10n.t("Importing settings"));
+        if (run == null) return;
         // The page shows what the store now holds rather than reading its own switches back into it.
         AbstractPreferenceFragment.settingImportInProgress = true;
-        // Counted before the write, which makes every change match the store.
-        String done = importedMessage(snapshot.switchChanges(), snapshot.folderChange(), snapshot.qualityChange(),
-                snapshot.fileNameChange(), snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(),
-                snapshot.keptChange());
-        boolean accepted = Utils.runOnBackgroundThread(() -> {
-            try {
-                SettingsBackup.apply(snapshot);
-                Utils.showToastLong(done);
-            } catch (SettingsBackup.ApplyFailed failure) {
-                Logger.printInfo(() -> "Settings import failed: " + failure.getMessage()
-                        + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
-                Utils.showToastLong(failure.rolledBack
-                        ? L10n.t("Couldn't import the settings. Nothing was changed.")
-                        : L10n.t("Couldn't import every setting. Check the switches on this screen."));
-            } finally {
-                Utils.runOnMainThread(() -> {
-                    AbstractPreferenceFragment.settingImportInProgress = false;
-                    finish();
-                    HushfacebookPreferenceFragment current = latestPage.get();
-                    if (current != null && current.isAdded()) current.refreshSwitches();
-                });
+        boolean accepted = false;
+        try {
+            // Counted before the write, which makes every change match the store.
+            String done = importedMessage(snapshot.switchChanges(), snapshot.folderChange(), snapshot.qualityChange(),
+                    snapshot.fileNameChange(), snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(),
+                    snapshot.keptChange());
+            accepted = Utils.runOnBackgroundThread(() -> {
+                try {
+                    SettingsBackup.apply(snapshot);
+                    Utils.showToastLong(done);
+                } catch (SettingsBackup.ApplyFailed failure) {
+                    Logger.printInfo(() -> "Settings import failed: " + failure.getMessage()
+                            + (failure.rolledBack ? ", rolled back" : ", not rolled back"));
+                    Utils.showToastLong(failure.rolledBack
+                            ? L10n.t("Couldn't import the settings. Nothing was changed.")
+                            : L10n.t("Couldn't import the settings, and couldn't put back the ones you had. "
+                                    + "Check the switches on this screen."));
+                } finally {
+                    Utils.runOnMainThread(() -> {
+                        AbstractPreferenceFragment.settingImportInProgress = false;
+                        finish(run);
+                        HushfacebookPreferenceFragment current = latestPage.get();
+                        if (current != null && current.isAdded()) current.refreshSwitches();
+                    });
+                }
+            });
+        } catch (RuntimeException error) {
+            Logger.printInfo(() -> "Settings import didn't start: " + error.getClass().getSimpleName());
+        } finally {
+            // This path has no wait that runs out, so nothing else would give the rows back.
+            if (!accepted) {
+                AbstractPreferenceFragment.settingImportInProgress = false;
+                notStarted(run);
             }
-        });
-        if (!accepted) {
-            AbstractPreferenceFragment.settingImportInProgress = false;
-            notStarted();
         }
     }
 
@@ -485,28 +561,84 @@ public class SettingsBackupPreference extends Preference {
     }
 
     /** Claims the rows for one run, or says why not. */
-    private static boolean start(int action, String line) {
-        if (!BUSY.compareAndSet(false, true)) {
+    @Nullable
+    private static Run start(int action, String line) {
+        if (stillStalled()) return null;
+        Run run = new Run();
+        if (!OWNER.compareAndSet(null, run)) {
             Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
-            return false;
+            return null;
         }
         runningAction = action;
         runningLine = line;
         setRowsBusy(action, line);
+        return run;
+    }
+
+    /** Gives the rows back, if [run] still holds them. */
+    private static boolean finish(Run run) {
+        if (!OWNER.compareAndSet(run, null)) return false;
+        runningAction = 0;
+        runningLine = null;
+        setRowsBusy(0, null);
         return true;
     }
 
-    private static void finish() {
-        runningAction = 0;
-        runningLine = null;
-        BUSY.set(false);
-        setRowsBusy(0, null);
+    /** The worker queue was full, so nothing ran: the rows come back and the person hears why. */
+    private static void notStarted(Run run) {
+        run.ended = true;
+        finish(run);
+        Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
     }
 
-    /** The worker queue was full, so nothing ran: the rows come back and the person hears why. */
-    private static void notStarted() {
-        finish();
-        Utils.showToastLong(L10n.t("Couldn't start that. Try again in a moment."));
+    /**
+     * A file run's worker has returned. The rows come back and [result] runs, unless the screen
+     * already stopped waiting for it: then it says nothing and offers nothing.
+     */
+    private static void ended(Run run, @Nullable Runnable result) {
+        run.ended = true;
+        Utils.runOnMainThread(() -> {
+            if (!finish(run)) {
+                Logger.printInfo(() -> "Settings file: the app answered after the screen stopped waiting");
+                return;
+            }
+            if (result != null) result.run();
+        });
+    }
+
+    /**
+     * After {@link #timeoutMs} the rows come back if [run] still holds them, the open is cancelled
+     * through the file's app and the file is closed. An app can ignore both, so [message] says only
+     * that the screen stopped waiting, never that the app stopped.
+     */
+    private static void watch(Run run, String message) {
+        Utils.runOnMainThreadDelayed(() -> {
+            if (!finish(run)) return;
+            if (!run.ended) stalled = run;
+            run.cancel.cancel();
+            Closeable open = run.open;
+            // Closing can wait on the app too, so not on the main thread.
+            if (open != null) new Thread(() -> closeQuietly(open), "hushfacebook-settings-file").start();
+            Logger.printInfo(() -> "Settings file: stopped waiting on the app holding it");
+            Utils.showToastLong(message);
+        }, timeoutMs);
+    }
+
+    /** Says so, and answers true, while a run the screen stopped waiting for still holds a worker. */
+    private static boolean stillStalled() {
+        Run held = stalled;
+        if (held == null || held.ended) return false;
+        Utils.showToastLong(L10n.t("The app holding the last settings file still hasn't answered. Try again later."));
+        return true;
+    }
+
+    private static void closeQuietly(@Nullable Closeable open) {
+        if (open == null) return;
+        try {
+            open.close();
+        } catch (IOException | RuntimeException ignored) {
+            // Nothing more to do with a file that won't close.
+        }
     }
 
     /**

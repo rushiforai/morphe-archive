@@ -9,14 +9,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import hoodles.morphe.patches.primevideo.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val playbackSpeedPatch = bytecodePatch(
     name = "Enable speed control",
     description = "Enables experimental speed control to the video player.",
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.PRIME_VIDEO)
 
     execute {
         IsPlaybackSpeedFeatureEnabledFingerprint.method.returnEarly(true)

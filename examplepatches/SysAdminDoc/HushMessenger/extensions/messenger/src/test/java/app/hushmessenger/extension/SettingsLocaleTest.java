@@ -124,6 +124,9 @@ public class SettingsLocaleTest {
                     ViewGroup row = (ViewGroup) control.getParent();
                     assertEquals(View.LAYOUT_DIRECTION_RTL, row.getLayoutDirection());
                     assertEquals(12, row.getChildAt(0).getLeft() - control.getRight());
+                    // Full-width text aligns to the mirrored start instead of guessing LTR from English letters.
+                    assertEquals(View.TEXT_DIRECTION_RTL, ((TextView) root.findViewWithTag("search_status")).getTextDirection());
+                    assertEquals(View.TEXT_DIRECTION_RTL, ((TextView) root.findViewWithTag("wordmark")).getTextDirection());
                 }
                 String spoken = root.findViewWithTag("people").getContentDescription().toString();
                 String visibleTitle = spoken.substring(0, spoken.indexOf(". "));
@@ -136,9 +139,9 @@ public class SettingsLocaleTest {
                 root.findViewWithTag("category_chats").performClick();
                 assertEquals(0, visibleControls(root));
                 root.findViewWithTag("clear_filters").performClick();
-                assertEquals(20, visibleControls(root));
+                assertEquals(24, visibleControls(root));
                 assertTrue(root.findViewWithTag("category_all").isSelected());
-                assertNotEquals("20 of 20 installed controls", ((TextView) root.findViewWithTag("search_status")).getText().toString());
+                assertNotEquals("24 of 24 installed controls", ((TextView) root.findViewWithTag("search_status")).getText().toString());
             }
         }
     }

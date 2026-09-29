@@ -1,0 +1,12 @@
+[versions]
+kotlin = "2.4.10"
+agp = "9.1.0"
+guava = "33.5.0-jre"
+
+[libraries]
+kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+android-application = { module = "com.android.application:com.android.application.gradle.plugin", version.ref = "agp" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}

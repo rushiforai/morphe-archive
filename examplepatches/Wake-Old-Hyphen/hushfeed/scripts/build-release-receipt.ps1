@@ -78,9 +78,11 @@ if (-not $patcherMatch.Success -or -not $floorMatch.Success) {
     throw 'gradle/libs.versions.toml does not pin both morphe-patcher and manager-floor.'
 }
 
-$commit = (& git -C $Root rev-parse HEAD).Trim()
+$commit = (Invoke-RepoGit -Root $Root -Arguments @('rev-parse', 'HEAD') | Select-Object -First 1)
+$commit = "$commit".Trim()
 if ($commit -notmatch '^[0-9a-f]{40}$') { throw "git did not answer with a commit: $commit" }
-$commitTimestamp = [long](& git -C $Root log -1 --format=%ct).Trim()
+$commitTimestamp = [long]((Invoke-RepoGit -Root $Root -Arguments @('log', '-1', '--format=%ct') |
+    Select-Object -First 1))
 
 # The bundle is read once, here, before any fixture is patched. Measuring it at the end instead
 # would describe whatever the release path holds when the run finishes, which is not necessarily
@@ -89,18 +91,22 @@ $bundleManifest = Get-BundleManifestFacts -BundlePath $Bundle
 $bundleSize = (Get-Item -LiteralPath $Bundle).Length
 $bundleHash = Get-Sha256Hex -Path $Bundle
 
-# Refused before an hour of patching rather than by the validator afterwards. The build stamps
-# a bundle with its commit's time, and a tree with uncommitted changes with zero, so any other
-# stamp is a bundle this commit didn't build.
+# New receipt creation always uses the current provenance contract, including for an old version
+# label. Historical schema 1 reading is confined to validation of frozen published documents.
+$sourceCheck = Test-BuildSourceFacts -Source $bundleManifest.source -ExpectedCommit $commit
+if (-not $sourceCheck.Valid) { throw "The bundle is not eligible for a new receipt: $($sourceCheck.Reason)" }
+
+# Checked before any fixture is patched. This is the release's reproducibility policy, not a
+# substitute for the independent commit/clean/input checks above.
 if ([long]$bundleManifest.timestamp -ne $commitTimestamp * 1000) {
     throw ("$Bundle is stamped $($bundleManifest.timestamp), not with this commit's time " +
-        "($($commitTimestamp * 1000)): it was built from another commit or from a tree with " +
-        "uncommitted changes. Build it again from a clean tree at $commit.")
+        "($($commitTimestamp * 1000)). Build it again with the release timestamp at $commit.")
 }
 
 # Refused here rather than reported, because a receipt that records the mismatch would be a
 # document saying its own subject cannot be rebuilt from the source it names.
-$dirty = @(& git -C $Root status --porcelain)
+$dirty = @(Invoke-RepoGit -Root $Root -Arguments @('status', '--porcelain', '--untracked-files=all'))
+if ($LASTEXITCODE -ne 0) { throw 'Could not read the working tree for receipt creation.' }
 if ($dirty.Count -gt 0) {
     # -join, not Join-String: the pre-push hook prefers pwsh and falls back to Windows
     # PowerShell 5.1, which has no Join-String, so a dirty tree would have stopped the run with
@@ -227,8 +233,15 @@ foreach ($apk in $Fixture) {
         $arguments = $arguments + $enable + @($apk)
         # Kept, not dropped: the 0.60.0 run stopped on 46.2.3 with no result report and no word
         # on why, and the same step applied all 94 patches the next morning.
-        $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
-        $cliExitCode = $LASTEXITCODE
+        # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+        $preference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
+            $cliExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
 
         if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
             throw ("The desktop CLI wrote no result report for $label (exit $cliExitCode). " +
@@ -298,6 +311,7 @@ $receipt = [ordered]@{
         patcherVersion = $patcherMatch.Groups[1].Value
         managerFloor   = $floorMatch.Groups[1].Value
     }
+    source        = $bundleManifest.source
     extension     = [ordered]@{ dexPayloads = $extensionPayloads }
     targets       = $targets.ToArray()
 }

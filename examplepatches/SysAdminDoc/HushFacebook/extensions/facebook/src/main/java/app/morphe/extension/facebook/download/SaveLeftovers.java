@@ -14,23 +14,43 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import app.morphe.extension.shared.Utils;
+
 /**
  * What a save that never finished leaves behind, and its removal.
  *
  * <p>A save removes its own files when it fails or is cancelled. When Android ends Facebook's
  * process in the middle of one, nothing runs: the work files stay in the cache, a save that was
  * already copying into the gallery leaves a row marked pending, which the platform only clears
- * after about a week, and its notification stays up. So the first save of each process removes all
- * three before it makes anything of its own. Only the main process saves, so nothing there can
+ * after about a week, and its notification stays up. So each start of Facebook removes all three,
+ * on a worker, and the first save of a process waits for that or, if it comes first, does it
+ * itself before it makes anything of its own. Only the main process saves, so nothing there can
  * belong to a save still running, and a notification of one this process is running is kept.
  *
  * <p>The pending rows are known by a list kept here, not found by a query. Facebook's own save
  * writes into the same folders with the same kind of names, and a query can't tell its rows from
  * these.
  */
-final class SaveLeftovers {
+public final class SaveLeftovers {
 
     private SaveLeftovers() {}
+
+    /**
+     * Facebook started. In its main process, the sweep goes to a worker, so the start doesn't wait
+     * on the gallery, and it's once per process however often this is called. The start used to
+     * leave it to the next save, and without one a stopped save's pending row and notification
+     * stayed. Never throws.
+     */
+    public static void sweepAfterStart(Context context) {
+        try {
+            if (context == null || !Utils.isMainProcess()) return;
+            Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+            // A full queue leaves the sweep to the first save, as before.
+            Utils.runOnBackgroundThread(() -> sweepOnce(application));
+        } catch (Throwable t) {
+            MediaDownload.failure(() -> "could not start removing what a stopped save left", t);
+        }
+    }
 
     /** Facebook's own preferences folder holds this file; the key is the only one in it. */
     private static final String LEDGER = "hushfacebook_saves";
@@ -39,17 +59,26 @@ final class SaveLeftovers {
     private static final Object LOCK = new Object();
     private static boolean swept;
 
-    /** Once per process, before the first save makes a file or a row. Every save calls it first. */
+    /**
+     * Once per process, before the first save makes a file or a row. Every save calls it first, so
+     * a save started while the sweep after Facebook's start runs waits for it on the lock.
+     */
     static void sweepOnce(Context application) {
         synchronized (LOCK) {
             if (swept) return;
             swept = true;
-            int files = removeWorkFiles(application);
-            int rows = removePendingRows(application);
-            int notices = SaveControl.removeStale(application);
-            if (files > 0 || rows > 0 || notices > 0) {
-                MediaDownload.info(() -> "removed what a stopped save left: " + files + " work file(s), "
-                    + rows + " pending gallery row(s), " + notices + " notification(s)");
+            // A save waits on this and goes on after it, so nothing here may throw into that save.
+            // What a failure leaves stays on the list for the next process to try again.
+            try {
+                int files = removeWorkFiles(application);
+                int rows = removePendingRows(application);
+                int notices = SaveControl.removeStale(application);
+                if (files > 0 || rows > 0 || notices > 0) {
+                    MediaDownload.info(() -> "removed what a stopped save left: " + files + " work file(s), "
+                        + rows + " pending gallery row(s), " + notices + " notification(s)");
+                }
+            } catch (Throwable t) {
+                MediaDownload.failure(() -> "could not remove what a stopped save left", t);
             }
         }
     }
@@ -61,9 +90,12 @@ final class SaveLeftovers {
         }
     }
 
-    /** A row was just inserted pending. */
-    static void pending(Context application, Uri row) {
-        record(application, row, true);
+    /**
+     * A row was just inserted pending. Answers whether the list holds it on disk now; a row it
+     * doesn't hold would be nobody's to remove, so the caller removes it before a byte goes in.
+     */
+    static boolean pending(Context application, Uri row) {
+        return record(application, row, true);
     }
 
     /** The row was published or removed. */
@@ -71,8 +103,8 @@ final class SaveLeftovers {
         record(application, row, false);
     }
 
-    private static void record(Context application, Uri row, boolean add) {
-        if (row == null) return;
+    private static boolean record(Context application, Uri row, boolean add) {
+        if (row == null) return false;
         synchronized (LOCK) {
             try {
                 SharedPreferences ledger = application.getSharedPreferences(LEDGER, Context.MODE_PRIVATE);
@@ -80,10 +112,12 @@ final class SaveLeftovers {
                 boolean changed = add ? rows.add(row.toString()) : rows.remove(row.toString());
                 // commit(), not apply(): a process ended right after an apply() can lose the
                 // entry, and the entry exists for exactly that case. This runs on the save's thread.
-                if (changed) ledger.edit().putStringSet(PENDING, rows).commit();
+                if (!changed || ledger.edit().putStringSet(PENDING, rows).commit()) return true;
+                MediaDownload.failure(() -> "could not write the list of pending gallery rows", null);
             } catch (Throwable t) {
                 MediaDownload.failure(() -> "could not update the list of pending gallery rows", t);
             }
+            return false;
         }
     }
 
@@ -94,7 +128,7 @@ final class SaveLeftovers {
 
         int removed = 0;
         for (File file : files) {
-            if (file.delete()) removed++;
+            if (!DashSave.inUse(file) && file.delete()) removed++;
         }
         return removed;
     }

@@ -344,6 +344,11 @@ private val haiagaruBytecodePatch = bytecodePatch {
         // post can be rejected as "device information only".  Let the posting
         // endpoint perform the authoritative body validation instead.
         patchPostPreflightValidation(packageMetadata.versionName)
+        if (packageMetadata.versionName == "0.8.10.191 dev") {
+            patchLegacyExternalEmojiPostBody()
+        } else {
+            patchExternalEmojiPostCopy(packageMetadata.versionName)
+        }
 
         mutableClassDefBy(profile.providerClass).methods.single { method ->
             method.name == "onCreate"
@@ -520,6 +525,8 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
         when (packageMetadata.versionName) {
             "0.8.10.191 dev" -> {
+                patchLegacyBeResponseBody(
+                    "Lo/processAdDisplayErrorPostbackForUserError;", "c")
                 patchProgrammableNg191()
                 patchPreIoHissiMenu(
                     "Lo/setExtraParameter;", "d",
@@ -534,6 +541,9 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchLegacyCellularSocketRefresh()
             }
             "0.8.10.226 dev" -> {
+                patchAboutLogoThemeColor226()
+                patchPreIoS2mSettingActivityIntegrityTrap()
+                patchLegacyBeResponseBody("Lo/BouncyCastleSocketAdapterCompanion;", "d")
                 patchProgrammableNg226()
                 patchPreIoHissiMenu()
                 patchBbsMenuUrl("a", "Lo/isInlineAdaptiveAdView\$read;")
@@ -557,6 +567,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 )
             }
             "0.8.10.243 dev" -> {
+                patchLegacyBeResponseBody("Lo/zzabv;", "j")
                 patchProgrammableNgModern("Lo/zzdic;", "a", "c")
                 patchPreIoHissiMenu("Lo/zzacz;", "c", "Lo/zzabv;", "Lo/zzacz\$write;")
                 patchSetTextCalls()
@@ -567,6 +578,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchModernTalkIntegrityPrimitives()
             }
             "0.8.10.241" -> {
+                patchLegacyBeResponseBody("Lo/setDislikeWidth;", "g")
                 patchPreIoHissiMenu("Lo/lhA1;", "d", "Lo/setDislikeWidth;", "Lo/lhA1\$write;")
                 patchSetTextCalls()
                 patchBbsMenuUrl("c", "Lo/TaskRunnerCompanion\$ComponentActivity;")
@@ -593,8 +605,137 @@ private val haiagaruBytecodePatch = bytecodePatch {
             "0.8.10.243 dev" -> EdgeSubjectUrlFingerprint.method.rewriteEdgeSubjectUrl()
         }
         patchEdgeReporterHistory(packageMetadata.versionName)
+        patchHissiExternalIntentBoundaries()
         patchHttpsTransport()
     }
+}
+
+/**
+ * The 226 About screen renders its large ChMate wordmark with an explicit
+ * zero color. Its copyright label already asks the active Compose theme for
+ * foreground text color; use the same source for the wordmark so 夜 stays legible.
+ */
+private fun BytecodePatchContext.patchAboutLogoThemeColor226() {
+    val about = mutableClassDefBy("Lo/getAdShowTime;")
+    val method = about.methods.single { candidate ->
+        candidate.name == "d"
+            && candidate.returnType == "Lo/Ff11;"
+            && candidate.implementation?.instructions?.any { instruction ->
+                (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f100048
+            } == true
+    }
+    val calls = method.implementation!!.instructions.mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        if (reference?.definingClass == "Lo/DtbSharedPreferences;"
+            && reference.name == "d"
+            && reference.returnType == "V"
+        ) index else null
+    }
+    check(calls.size == 1) { "ChMate 226 About wordmark text call changed" }
+    method.addInstructionsWithLabels(calls.single(), """
+        invoke-static/range { p1 .. p1 }, Lo/setUrl;->c(Lo/getValue;)Lo/getLocation;
+        move-result-object v2
+        invoke-virtual { v2 }, Lo/getLocation;->P()J
+        move-result-wide v2
+    """.trimIndent())
+}
+
+/**
+ * 226's paid-option sync screen contains a certificate-dependent arithmetic
+ * decoy in S2MSettingActivity's generated dispatch method.  After Morphe
+ * re-signing, its divisor becomes zero immediately before the first sync
+ * listener is created, so the user is returned to Home instead of reaching
+ * the key-registration screen.  Match the stable divide/allocation boundary
+ * rather than generated callback class names.
+ */
+private fun BytecodePatchContext.patchPreIoS2mSettingActivityIntegrityTrap() {
+    val activity = mutableClassDefBy(
+        "Ljp/syoboi/chmate2/ui/s2msetting/S2MSettingActivity;",
+    )
+    val method = activity.methods.single { candidate ->
+        candidate.name == "e"
+            && candidate.returnType == "Ljava/lang/Object;"
+            && candidate.parameters.map(CharSequence::toString) ==
+            listOf("[Ljava/lang/Object;")
+    }
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("ChMate 226 S2MSettingActivity dispatch method has no implementation")
+    // The integrity block ends with the calculated divisor immediately before
+    // the first callback object is allocated.  Matching that stable instruction
+    // boundary is more reliable than matching Yhp19/setTextClassifier, whose
+    // generated names and constructor references are rewritten between APK
+    // builds.  Keep a small window for dex writers that insert a move or nop.
+    val divideIndex = instructions.indices.lastOrNull { index ->
+        val opcode = instructions[index].opcode.name
+        if (!opcode.startsWith("div-int")) {
+            return@lastOrNull false
+        }
+        instructions.subList(index + 1, minOf(index + 4, instructions.size))
+            .any { it.opcode.name == "new-instance" }
+    } ?: error("ChMate 226 S2MSettingActivity sync divide trap was not found")
+
+    val resultRegister = (instructions[divideIndex] as? ThreeRegisterInstruction)?.registerA
+        ?: error("ChMate 226 S2MSettingActivity divide registers were not found")
+    method.replaceInstruction(divideIndex, "const/4 v$resultRegister, 0x0")
+}
+
+/** Rewrites only the temporary PostData copy passed to the posting engine. */
+private fun BytecodePatchContext.patchExternalEmojiPostCopy(version: String) {
+    val postType = if (version == "0.8.10.226 dev")
+        "Lo/setBorderWidth;" else "Ljp/syoboi/a2chMate/postdata/PostData;"
+    val copyName = if (version == "0.8.10.226 dev") "a" else "e"
+    val editor = mutableClassDefBy("Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment;")
+    var patched = 0
+    editor.methods.forEach { method ->
+        val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+        val matches = instructions.indices.filter { index ->
+            val reference = (instructions[index] as? ReferenceInstruction)?.reference
+                as? MethodReference ?: return@filter false
+            reference.definingClass == postType && reference.name == copyName
+                && reference.returnType == postType
+                && reference.parameterTypes.firstOrNull() == postType
+                && instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+        }
+        matches.asReversed().forEach { index ->
+            val register = (instructions[index + 1] as OneRegisterInstruction).registerA
+            method.addInstructionsWithLabels(index + 2, """
+                invoke-static/range { v$register .. v$register }, $EXTENSION->prepareExternalEmojiPost(Ljava/lang/Object;)Ljava/lang/Object;
+                move-result-object v$register
+                check-cast v$register, $postType
+            """.trimIndent())
+            patched++
+        }
+    }
+    check(patched == 1) { "Expected one external post-copy boundary for $version, found $patched" }
+}
+
+/** 191 passes the URL and body as the first and fifth n7a constructor values. */
+private fun BytecodePatchContext.patchLegacyExternalEmojiPostBody() {
+    val editor = mutableClassDefBy("Lo/p9ExternalSyntheticLambda6;")
+    var patched = 0
+    editor.methods.forEach { method ->
+        val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+        val matches = instructions.indices.filter { index ->
+            val reference = (instructions[index] as? ReferenceInstruction)?.reference
+                as? MethodReference ?: return@filter false
+            reference.definingClass == "Lo/n7a;" && reference.name == "<init>"
+                && reference.parameterTypes == List(9) { "Ljava/lang/String;" }
+        }
+        matches.asReversed().forEach { index ->
+            val invocation = instructions[index] as? RegisterRangeInstruction
+                ?: error("191 external post constructor did not use a register range")
+            val bodyRegister = invocation.startRegister + 5
+            // The source registers can exceed v15, so pass the existing adjacent
+            // constructor arguments with invoke-static/range instead of the
+            // four-bit non-range form.
+            method.addInstructionsWithLabels(index, """
+                invoke-static/range { v${invocation.startRegister + 1} .. v${invocation.startRegister + 9} }, $EXTENSION->prepareExternalEmojiBodyFromPostFields(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+                move-result-object v$bodyRegister
+            """.trimIndent())
+            patched++
+        }
+    }
+    check(patched == 1) { "Expected one 191 external post constructor, found $patched" }
 }
 
 /**
@@ -841,6 +982,56 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoHissiMenu(
             move-result-object p0
         """,
     )
+}
+
+/**
+ * The response long-press route may skip the menu-template expander. Intercept
+ * the external activity launch itself and make only Hissi checker intents
+ * explicit to this patched app. This also avoids an Android resolver chooser
+ * when several ChMate test builds are installed.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchHissiExternalIntentBoundaries() {
+    var patched = 0
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
+        val mutableClass = mutableClassDefBy(classDef)
+        classDef.methods.forEach methodLoop@ { method ->
+            val instructions = method.implementation?.instructions?.toList()
+                ?: return@methodLoop
+            instructions.mapIndexedNotNull { index, instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference
+                    as? MethodReference ?: return@mapIndexedNotNull null
+                if (reference.name != "startActivity"
+                    || reference.returnType != "V"
+                    || reference.parameterTypes.map(CharSequence::toString) !=
+                        listOf("Landroid/content/Intent;")
+                    || reference.definingClass !in setOf(
+                        "Landroid/content/Context;", "Landroid/app/Activity;",
+                        "Landroidx/fragment/app/Fragment;",
+                    )
+                ) return@mapIndexedNotNull null
+                val register = when (instruction) {
+                    is FiveRegisterInstruction -> instruction.registerD
+                    is RegisterRangeInstruction -> {
+                        if (instruction.registerCount != 2) return@mapIndexedNotNull null
+                        instruction.startRegister + 1
+                    }
+                    else -> return@mapIndexedNotNull null
+                }
+                index to register
+            }.asReversed().forEach { (index, register) ->
+                mutableClass.findMutableMethodOf(method).addInstructionsWithLabels(
+                    index,
+                    "invoke-static/range {v$register .. v$register}, " +
+                        "Lapp/morphe/extension/chmate/HissiMenuCompatibility;->prepareExternalIntent(" +
+                        "Landroid/content/Intent;)V",
+                )
+                patched++
+            }
+        }
+    }
+    check(patched > 0) { "ChMate external activity launch boundary was not found" }
+    println("Hissi external intent boundaries: $patched")
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchModernTalkDatLoading() {
@@ -1661,6 +1852,13 @@ val haiagaruPatch = resourcePatch(
         description = "パッチ実行PC上のTTF/OTFファイルの絶対パス。空欄なら内蔵Noto Color Emojiを使用します。",
     )
 
+    val dedicatedCheckerViewer = stringOption(
+        key = "dedicatedCheckerViewer",
+        default = "true",
+        title = "必死チェッカー専用ビュワー",
+        description = "true=ChMate内の専用ビュワーを有効化、false=ChMate本来の外部ブラウザ動作。",
+    )
+
     execute {
         val bundledEmojiFont = get("assets").resolve("haiagaru/NotoColorEmoji.ttf")
         bundledEmojiFont.parentFile.mkdirs()
@@ -1669,6 +1867,14 @@ val haiagaruPatch = resourcePatch(
             throw PatchException("emojiModeは missing / all / off のいずれかを指定してください: $requestedEmojiMode")
         }
         val requestedFontPath = emojiFontPath.value.orEmpty().trim()
+        val dedicatedViewerEnabled = when (dedicatedCheckerViewer.value.orEmpty().trim().lowercase(Locale.ROOT)) {
+            "true", "1", "yes", "on" -> true
+            "false", "0", "no", "off" -> false
+            else -> throw PatchException(
+                "dedicatedCheckerViewerは true / false のいずれかを指定してください: "
+                    + dedicatedCheckerViewer.value
+            )
+        }
         if (requestedFontPath.isBlank()) {
             checkNotNull(EmojiFontResourceMarker::class.java.getResourceAsStream(
                 "/chmate/emoji/NotoColorEmoji.ttf",
@@ -1809,6 +2015,9 @@ val haiagaruPatch = resourcePatch(
             }
             application.appendChild(openUrlActivity)
 
+            // Keep the archive page in the same lightweight WebView activity as
+            // the checker.  It is declared even when the optional Hissi viewer
+            // is disabled, because Edge archives are an independent feature.
             val hissiActivity = document.createElement("activity").apply {
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:name", HISSI_MENU_ACTIVITY)
                 setAttributeNS(ANDROID_XML_NAMESPACE, "android:exported", "true")
@@ -1820,12 +2029,39 @@ val haiagaruPatch = resourcePatch(
             }
             document.addOpenUrlFilter(
                 hissiActivity,
-                listOf("haiagaru-hissi", "haiagaru-hissis"),
-                "hissi.org",
-                path = "/read.php/",
+                listOf("haiagaru-eddi", "http", "https"),
+                "eddiarchive3rd.boy.jp",
+                path = "/",
                 pathAttribute = "android:pathPrefix",
             )
-            application.appendChild(hissiActivity)
+            if (dedicatedViewerEnabled) {
+                document.addOpenUrlFilter(
+                    hissiActivity,
+                    listOf("haiagaru-hissi", "haiagaru-hissis"),
+                    "hissi.org",
+                    path = "/read.php/",
+                    pathAttribute = "android:pathPrefix",
+                )
+                // The long-press action in older ChMate builds bypasses the
+                // configurable menu template and emits a normal http(s)
+                // Hissi URL. Route that form to the same dedicated viewer so
+                // both entry points behave identically.
+                document.addOpenUrlFilter(
+                    hissiActivity,
+                    listOf("http", "https"),
+                    "hissi.org",
+                    path = "/read.php/",
+                    pathAttribute = "android:pathPrefix",
+                )
+                application.appendChild(hissiActivity)
+                application.setAttributeNS(
+                    ANDROID_XML_NAMESPACE,
+                    "android:usesCleartextTraffic",
+                    "true",
+                )
+            } else {
+                application.appendChild(hissiActivity)
+            }
         }
     }
 }
@@ -3199,6 +3435,44 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchSetTextCalls() {
 }
 
 /**
+ * Older DAT rows contain sssp://img.5ch.net/premium/... while current rows
+ * contain the same BE token on img.5ch.io. Normalize the stored response body
+ * as it is constructed, before both the inline renderer and the copy-paste/NG
+ * and attachment projections read it. The exact token keeps ordinary URLs intact.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyBeResponseBody(
+    responseModelClass: String,
+    bodyField: String,
+) {
+    val responseClass = mutableClassDefBy(responseModelClass)
+    var assignments = 0
+    responseClass.methods.filter { it.name == "<init>" }.forEach { constructor ->
+        val sites = constructor.implementation?.instructions
+            ?.mapIndexedNotNull { index, instruction ->
+                val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                    ?: return@mapIndexedNotNull null
+                if (instruction.opcode != Opcode.IPUT_OBJECT
+                    || field.definingClass != responseModelClass
+                    || field.name != bodyField
+                    || field.type != "Ljava/lang/String;"
+                ) return@mapIndexedNotNull null
+                index to (instruction as TwoRegisterInstruction).registerA
+            }.orEmpty()
+        sites.asReversed().forEach { (index, register) ->
+            constructor.addInstructionsWithLabels(
+                index,
+                """
+                    invoke-static/range { v$register .. v$register }, $EXTENSION->normalizeLegacyBeBody(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v$register
+                """,
+            )
+            assignments++
+        }
+    }
+    check(assignments > 0) { "BE response body assignment missing: $responseModelClass" }
+}
+
+/**
  * Filters BE icon tokens from the response model's attachment projections while
  * retaining the target generation's native inline icon renderer. The class is
  * selected by the same field and method shapes used by the 191 response model.
@@ -3283,7 +3557,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoBeRendering(
     parserMethod.addInstructionsWithLabels(
         0,
         """
-            invoke-static/range { p2 .. p2 }, $EXTENSION->prepareLegacyBeParsing(Ljava/lang/String;)Ljava/lang/String;
+            invoke-static/range { p1 .. p2 }, $EXTENSION->prepareLegacyBeParsing(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
             move-result-object p2
         """,
     )
@@ -3645,7 +3919,7 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacy5chIoCompat
     legacyTextParserMethod.addInstructionsWithLabels(
         0,
         """
-            invoke-static/range { p2 .. p2 }, $EXTENSION->prepareLegacyBeParsing(Ljava/lang/String;)Ljava/lang/String;
+            invoke-static/range { p1 .. p2 }, $EXTENSION->prepareLegacyBeParsing(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
             move-result-object p2
         """
     )

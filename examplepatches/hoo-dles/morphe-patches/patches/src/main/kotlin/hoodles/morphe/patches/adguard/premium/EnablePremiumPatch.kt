@@ -6,24 +6,18 @@
 package hoodles.morphe.patches.adguard.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import hoodles.morphe.compatibility.Compat
 
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        name = "AdGuard",
-        packageName = "com.adguard.android",
-        appIconColor = 0x67b279,
-        targets = listOf(AppTarget("4.14.1", versionCode = 42219001))
-    ))
+    compatibleWith(Compat.ADGUARD)
 
     execute {
         val licenseTypeClass = PaidLicenseFingerprint.method.parameters[1].type

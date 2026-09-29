@@ -397,4 +397,81 @@ object Constants {
         appIconColor = 0x7CB342,
         targets = listOf(AppTarget(version = "5.4.5", versionCode = 5405))
     )
+
+    // Verified 2026-09-19 against com.textra 4.85 (versionCode 48561) from APKMirror.
+    // Textra app code is R8-obfuscated. Purchase state is a single integer preference
+    // (key "lc": -1 unknown, 0 free, 1 licensed) owned by a dedicated obfuscated class.
+    // That class is the only one in the whole app declaring all four methods
+    // g()Ljava/lang/Integer;, i(Ljava/lang/Integer;)V, k()Z and l()Z, so the patch finds
+    // it structurally (no obfuscated names) and forces l() -> true (licensed) and
+    // k() -> false (state 1). Every gate reads those: ad placement, settings visibility
+    // and upgrade prompts.
+    val COMPATIBILITY_TEXTRA = Compatibility(
+        name = "Textra",
+        packageName = "com.textra",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x5C6BC0,
+        targets = listOf(AppTarget(version = "4.85", versionCode = 48561))
+    )
+
+    // Verified 2026-09-19 against com.jetappfactory.jetaudio 13.1.2 (versionCode 261320)
+    // from APKMirror. Purchase state lives in one obfuscated class (default-package "uy",
+    // compiled from JInAppInfo.java) holding per-plugin static booleans. The class is
+    // located by its unique inline literal (IAB: QueryInventory info: ...) instead of its rotating
+    // name. Leaf boolean getters (no args or a Context) are forced true; the compound
+    // getters and the inverted upsell check OR those leaves and flip by themselves.
+    val COMPATIBILITY_JETAUDIO = Compatibility(
+        name = "jetAudio",
+        packageName = "com.jetappfactory.jetaudio",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFF6D00,
+        targets = listOf(AppTarget(version = "13.1.2", versionCode = 261320))
+    )
+
+// Verified 2026-09-19 against com.Relmtech.Remote 3.25.1 (versionCode 325001) from
+// APKMirror. The app code is R8-obfuscated (`bh0` here); "Full" is a
+// `License.Status` SharedPreferences int (0 = Free, 1 = Locked, 2 = Full) and the
+// canonical Full check is the single `Z(Context)` method that reads it through the
+// same-class `I(Context)` getter - called from ~20 feature sites. The patch locates
+// that class by the unique "License.Status" literal and forces the check true.
+// (RevenueCat only feeds the paywall UI for actual buyers - non-buyers get an empty
+// entitlements map, so an `isActive()` force can never unlock anything here.)
+    val COMPATIBILITY_UNIFIEDREMOTE = Compatibility(
+        name = "Unified Remote",
+        packageName = "com.Relmtech.Remote",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x2962FF,
+        targets = listOf(AppTarget(version = "3.25.1", versionCode = 325001))
+    )
+
+    // Verified 2026-09-27 against com.futbin 27.02 (versionCode 7002, user-supplied
+    // APKPure APK). The app code is obfuscated, but all ads run through Google Mobile
+    // Ads (the app's own `x.cv3` ad manager only calls the GMA surface, and the Nimbus
+    // mediation SDK renders AdMob through it), so the "Disable ads" patch hooks that
+    // stable library surface (initialize, every load/loadAd and the app-open
+    // preloader). Futbin+ premium is account-linked (Play purchase is linked to the
+    // Futbin account server-side), so premium is out of reach - ads only.
+    val COMPATIBILITY_FUTBIN = Compatibility(
+        name = "Futbin",
+        packageName = "com.futbin",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x26A69A,
+        targets = listOf(AppTarget(version = "27.02", versionCode = 7002))
+    )
+
+    // Verified 2026-09-27 against com.pocketcolorwheel.PCW 3.26 (versionCode 57,
+    // user-supplied APKPure APK). The free app has no premium gate: no billing client,
+    // no license checks and no references to the separate Pro package - it monetizes
+    // purely through Google Mobile Ads initialized from `ApplicationClass.onCreate`.
+    // The "Disable ads" patch hooks that stable library surface (initialize, every
+    // load/loadAd and the app-open preloader). The Pro app
+    // (com.pocketcolorwheelpro.pro) is a standalone paid listing that mirrors do not
+    // serve, so there is nothing to verify against it.
+    val COMPATIBILITY_PCW = Compatibility(
+        name = "Pocket Color Wheel",
+        packageName = "com.pocketcolorwheel.PCW",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x9C27B0,
+        targets = listOf(AppTarget(version = "3.26", versionCode = 57))
+    )
 }

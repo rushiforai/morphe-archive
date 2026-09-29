@@ -24,6 +24,7 @@ public class SetupSummaryTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        CrashGuard.resetForTests();
         RuntimeEnvironment.getApplication().getSystemService(ClipboardManager.class).clearPrimaryClip();
     }
 
@@ -60,10 +61,11 @@ public class SetupSummaryTest {
             assertTrue(text.contains("\nHost package: " + activity.getPackageName() + "\n"));
             assertTrue(text.contains("\nHost version: 580.0.0.49.91\n"));
             assertTrue(text.contains("\nHost version code: " + ((7L << 32) | 346013387L) + "\n"));
-            assertTrue(text.contains("\nAndroid API: " + Build.VERSION.SDK_INT + "\nPaused: false\n"));
-            assertTrue(text.contains("people: installed=true, selected=true, active=true\n"));
-            assertTrue(text.contains("stories: installed=false, selected=true, active=false\n"));
-            assertEquals(27, text.split("\n").length);
+            assertTrue(text.contains("\nAndroid API: " + Build.VERSION.SDK_INT + "\nPaused: false\nSafe mode: false\n"));
+            assertTrue(text.contains("people: installed=true, selected=true, active=true,"));
+            assertTrue(text.contains("stories: installed=false, selected=true, active=false,"));
+            assertTrue(text.matches("(?s).*\nFacebook caller checks: trusted=\\d+, signer_differs=\\d+, meta_signed_build=\\d+, not_family=\\d+, error=\\d+\n"));
+            assertEquals(33, text.split("\n").length);
             assertFalse(text.contains("private-"));
             assertFalse(text.contains("account-secret"));
             assertFalse(text.contains("account_id"));
@@ -84,9 +86,23 @@ public class SetupSummaryTest {
             root.findViewWithTag("tab_app").performClick();
             root.findViewWithTag("copy_setup").performClick();
             String text = screen.get().getSystemService(ClipboardManager.class).getPrimaryClip().getItemAt(0).getText().toString();
-            assertTrue(text.contains("stories: installed=false, selected=true, active=false\n"));
+            assertTrue(text.contains("stories: installed=false, selected=true, active=false,"));
             assertFalse(text.contains("installed=true"));
             assertFalse(text.contains("active=true"));
+        }
+    }
+
+    @Test public void quickAccessNamesTheMenuTabOnlyWhenTheRowWasPatchedIn() throws Exception {
+        for (boolean menuRow : new boolean[] {false, true}) {
+            if (menuRow) installedFeatures("people", "menu_row"); else installedFeatures("people");
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                root.findViewWithTag("tab_app").performClick();
+                String text = ((android.widget.TextView) root.findViewWithTag("access_help")).getText().toString();
+                assertEquals(menuRow, text.contains("Menu tab"));
+                assertTrue(text.contains("app drawer"));
+                assertTrue(text.contains("Patch controls"));
+            }
         }
     }
 
@@ -99,15 +115,15 @@ public class SetupSummaryTest {
             root.findViewWithTag("tab_app").performClick();
             root.findViewWithTag("copy_setup").performClick();
             String paused = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
-            assertTrue(paused.contains("\nPaused: true\n"));
-            assertTrue(paused.contains("bubbles: installed=true, selected=true, active=false\n"));
-            assertTrue(paused.contains("people: installed=true, selected=true, active=false\n"));
+            assertTrue(paused.contains("\nPaused: true\nSafe mode: false\n"));
+            assertTrue(paused.contains("bubbles: installed=true, selected=true, active=false,"));
+            assertTrue(paused.contains("people: installed=true, selected=true, active=false,"));
             assertFalse(paused.contains("active=true"));
             Settings.preferences.edit().putBoolean("paused", false).commit();
             root.findViewWithTag("copy_setup").performClick();
             String resumed = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
-            assertTrue(resumed.contains("people: installed=true, selected=true, active=true\n"));
-            assertTrue(resumed.contains("bubbles: installed=true, selected=true, active=" + (Build.VERSION.SDK_INT >= 30) + "\n"));
+            assertTrue(resumed.contains("people: installed=true, selected=true, active=true,"));
+            assertTrue(resumed.contains("bubbles: installed=true, selected=true, active=" + (Build.VERSION.SDK_INT >= 30) + ","));
         }
     }
 }

@@ -138,6 +138,8 @@ object BlueNoiseMorpheAudit {
                 }
                 val formatOffsets = when (layout.code) {
                     "5001712" -> intArrayOf(0x10a9c4, 0x10aa34)
+                "5001812" -> intArrayOf(0x10ab24, 0x10ab94)
+                "5001968" -> intArrayOf(0x106a94, 0x106b04)
                     "5002244" -> intArrayOf(0x10826c, 0x1082dc, 0x10834c)
                     "5002363" -> intArrayOf(0x10c840, 0x10c8b0, 0x10c920)
                     else -> error("No independently verified sRGB8 sites")

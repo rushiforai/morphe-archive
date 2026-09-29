@@ -8,7 +8,7 @@ uyu のリリース 1 つが対応する Twitch のバージョンは 1 つだ�
    APKMirror から新しいバージョンの APKM（分割 APK）をダウンロードし、`apk/` に置く。エミュレーター（x86_64）でテストするので、アーキテクチャに x86_64 を含むバリアント（例：「arm64-v8a + x86 + x86_64」）を選ぶ。`apk/` の中身は Git の管理外。古いファイルは別の場所へ移しておく（`check-patches.ps1` は `apk/` の中で最も新しいファイルを使う）。
 
 2. **対象バージョンを書き換える**
-   `patches/src/main/kotlin/io/github/trivisa_itihasa/uyu/patches/twitch/shared/Constants.kt` の `TWITCH_VERSION` を新しいバージョンにする。
+   `patches/src/main/kotlin/io/github/bakwudo/uyu/patches/twitch/shared/Constants.kt` の `TWITCH_VERSION` を新しいバージョンにする。
 
 3. **どのパッチが壊れたかを調べる**
    ```
@@ -23,7 +23,7 @@ uyu のリリース 1 つが対応する Twitch のバージョンは 1 つだ�
    パッチを当てた APK を `adb install` して、下のチェックリストを確認する。
 
 6. **コミットしてリリースする**
-   `dev` ブランチに `bump: Support Twitch <バージョン>` の形でコミットして push する。semantic-release が `dev` のプレリリースを作る。問題がなければ `dev` を `main` にマージ（squash しない）して安定版にする。
+   `dev` ブランチに `bump: Support Twitch <バージョン>` の形でコミットして push する。semantic-release が `dev` のプレリリースを作る。問題がなければ `dev` を `main` にマージ（squash しない）して安定版にする。`main` に直接コミットがあると `dev` → `main` の PR がコンフリクトするので、そのときは先に `main` を `dev` にマージして解消する。README の「Patches list」の部分はリリースのたびに `.github/scripts/generate_patches_readme.py` が作り直すので、書き換えるときはスクリプトを直す。
 
 ## フィンガープリントの書き方
 
@@ -41,10 +41,10 @@ Twitch は R8 で難読化されており、クラス名やメソッド名（`zn
 - [ ] 公式の Twitch とは別に「uyu」という名前のアプリとして入り、起動する（Install as a separate app）
 - [ ] ユーザー名とパスワードでログインできる（Fix login）
 - [ ] プッシュ通知を受け取れる（Fix notifications）
-- [ ] Twitch の設定メニューに「uyu」があり、設定画面とそのセクション（General、Appearance、Danmaku）が開ける
+- [ ] Twitch の設定メニューに「uyu」があり、設定画面とそのセクション（General、Appearance、Danmaku、Ads）が開ける
 - [ ] 視聴中のチャンネルでボーナスが自動で受け取られる（Auto claim channel points）
 - [ ] 横画面フルスクリーン、縦画面、ミニプレイヤー、ピクチャーインピクチャーでコメントが流れ、プレイヤーのボタンでオン/オフできる。縦画面、ミニプレイヤー、ピクチャーインピクチャーは、設定をオフにすると流れない（Danmaku comments）
 - [ ] 縦画面の視聴画面で、チャットの上のサブスク・ビッツのボタンの段、入力欄のビッツのボタン、ギフトのランキングが出ない。宣伝のバナーやハイライトが出ない（Hide promotions）
-- [ ] ライブ・VOD の広告と表示広告が出ない、または黒画面になる（Block ads）
+- [ ] ライブ・VOD の広告と表示広告が出ない、または黒画面になり音が消える。ホームのフィードに広告が出ない。Proxy URL を入れるとプロキシから再生され、つながらないと「Proxy failed」が出て Twitch から再生される（Block ads）。`adb logcat -s uyu` に `Requesting the stream as the embed player` と `Video ads the app plays itself are off for this player` が出る
 
 「表示の整理」は View をリソース名で探す。新しいバージョンでリソース名が変わると、パッチは当たるが隠れなくなる。そのときは logcat（`adb logcat -s uyu`）に `View <名前> not found` と出る。

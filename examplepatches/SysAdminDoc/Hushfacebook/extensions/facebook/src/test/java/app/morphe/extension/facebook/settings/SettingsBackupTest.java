@@ -76,6 +76,7 @@ import app.morphe.extension.shared.WorkerPoolForTests;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.FailingStore;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 import app.morphe.extension.shared.settings.Setting;
@@ -127,6 +128,8 @@ public class SettingsBackupTest {
 
     private static final String EXPORT_ROW = "action_export_settings";
     private static final String IMPORT_ROW = "action_import_settings";
+    /** The app behind every file the tests pick. */
+    private static final String AUTHORITY = "settings-test";
 
     @Before
     public void startClean() {
@@ -134,10 +137,16 @@ public class SettingsBackupTest {
         PatchFamily.inBuildForTests = java.util.EnumSet.allOf(PatchFamily.class);
         ShadowToast.reset();
         ShadowAlertDialog.reset();
+        SettingsFileProvider.install(AUTHORITY);
     }
 
     @After
     public void restore() throws Exception {
+        // A test that stopped while the app still held its file would leave that run holding a
+        // worker and the rows for the tests after it. Letting the open go ends the run, and the
+        // rows come back the way they do in the app.
+        CountDownLatch held = SettingsFileProvider.stall;
+        if (held != null) held.countDown();
         Utils.awaitBackgroundTasksForTests();
         ShadowLooper.idleMainLooper();
         for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.resetToDefault();
@@ -412,6 +421,83 @@ public class SettingsBackupTest {
                 });
         assertFalse("a store left changed was reported as put back", failure.rolledBack);
         assertEquals(2, counts.commits.get());
+    }
+
+    /**
+     * An editor that won't open, a value it refuses, a commit that answers false or throws, before
+     * or after landing: each leaves both switches on the value the store still holds, which is what
+     * a restart loads, and only then does the failure say nothing changed.
+     */
+    @Test
+    public void everyFailedWriteLeavesTheLiveSwitchesOnWhatTheStoreKeeps() throws Exception {
+        String file = fileWith(Settings.HIDE_SPONSORED_POSTS, false, Settings.DOWNLOAD_REELS, false);
+        Map<String, ?> before = store();
+        for (FailingStore.Fault fault : new FailingStore.Fault[]{FailingStore.Fault.EDIT_THROWS,
+                FailingStore.Fault.STAGE_THROWS, FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.COMMIT_THROWS,
+                FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING}) {
+            SettingsBackup.ApplyFailed failure = failedApply(file, fault);
+            assertTrue(fault + " said the switches may have changed", failure.rolledBack);
+            assertEquals(fault + " left the store changed", before, store());
+            assertTrue(fault + " left a live switch changed", Settings.HIDE_SPONSORED_POSTS.savedValue());
+            assertTrue(fault + " left a live switch changed", Settings.DOWNLOAD_REELS.savedValue());
+        }
+    }
+
+    /**
+     * A rollback that doesn't land either says so, and the switches then hold what the store kept,
+     * so the screen and the next start agree.
+     */
+    @Test
+    public void aRollbackThatFailsSaysSoAndTheSwitchesHoldWhatTheStoreKept() throws Exception {
+        String file = fileWith(Settings.HIDE_SPONSORED_POSTS, false, Settings.DOWNLOAD_REELS, false);
+        FailingStore.Fault[][] scripts = {
+                {FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.LOST},
+                {FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, FailingStore.Fault.COMMIT_THROWS},
+                {FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.EDIT_THROWS},
+                {FailingStore.Fault.COMMIT_THROWS_AFTER_LANDING, FailingStore.Fault.STAGE_THROWS}};
+        for (FailingStore.Fault[] script : scripts) {
+            String name = Arrays.toString(script);
+            SettingsBackup.ApplyFailed failure = failedApply(file, script);
+            assertFalse(name + " said the switches are back", failure.rolledBack);
+            assertEquals(name, false, store().get(Settings.HIDE_SPONSORED_POSTS.key));
+            assertFalse(name + " runs a switch the store doesn't hold", Settings.HIDE_SPONSORED_POSTS.savedValue());
+            assertFalse(name + " runs a switch the store doesn't hold", Settings.DOWNLOAD_REELS.savedValue());
+            Settings.HIDE_SPONSORED_POSTS.resetToDefault();
+            Settings.DOWNLOAD_REELS.resetToDefault();
+        }
+    }
+
+    /** What a failed import says is what the screen shows and the store holds. */
+    @Test
+    public void aFailedImportSaysWhatTheStoreKeptAndTheScreenShowsIt() throws Exception {
+        String file = fileWith(Settings.HIDE_SPONSORED_POSTS, false);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.HIDE_SPONSORED_POSTS.key);
+
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_THROWS)) {
+                shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                settle();
+            }
+            assertEquals("Couldn't import the settings. Nothing was changed.", ShadowToast.getTextOfLatestToast());
+            assertTrue("the process runs a switch the file never managed to set", Settings.HIDE_SPONSORED_POSTS.savedValue());
+            assertTrue(row.isChecked());
+            assertFalse(store().containsKey(Settings.HIDE_SPONSORED_POSTS.key));
+
+            ShadowToast.reset();
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            try (FailingStore ignored = FailingStore.install(FailingStore.Fault.COMMIT_FALSE, FailingStore.Fault.LOST)) {
+                shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                settle();
+            }
+            assertEquals("Couldn't import the settings, and couldn't put back the ones you had. "
+                    + "Check the switches on this screen.", ShadowToast.getTextOfLatestToast());
+            assertEquals(false, store().get(Settings.HIDE_SPONSORED_POSTS.key));
+            assertFalse(Settings.HIDE_SPONSORED_POSTS.savedValue());
+            assertFalse("the screen shows a switch the store doesn't hold", row.isChecked());
+        }
     }
 
     // ---- Refusals ------------------------------------------------------------------------------
@@ -1118,14 +1204,12 @@ public class SettingsBackupTest {
             String name = started.intent.getStringExtra(Intent.EXTRA_TITLE);
             assertTrue("the picker would suggest " + name, name.matches("hushfacebook-settings-\\d{8}-\\d{6}\\.json"));
 
-            Uri uri = Uri.parse("content://settings-test/export.json");
-            ByteArrayOutputStream written = new ByteArrayOutputStream();
-            shadowOf(RuntimeEnvironment.getApplication().getContentResolver()).registerOutputStream(uri, written);
+            Uri uri = SettingsFileProvider.put(AUTHORITY, "export.json", new byte[0]);
             shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
             settle();
 
             assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
-            assertEquals(SettingsBackup.create(), new String(written.toByteArray(), StandardCharsets.UTF_8));
+            assertEquals(SettingsBackup.create(), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
             assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
         }
     }
@@ -1140,15 +1224,13 @@ public class SettingsBackupTest {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
             HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
-            Uri uri = Uri.parse("content://settings-test/round-trip.json");
-            ByteArrayOutputStream written = new ByteArrayOutputStream();
-            shadowOf(RuntimeEnvironment.getApplication().getContentResolver()).registerOutputStream(uri, written);
+            Uri uri = SettingsFileProvider.put(AUTHORITY, "round-trip.json", new byte[0]);
             shadowOf(activity).receiveResult(tap(activity, page, EXPORT_ROW).intent, Activity.RESULT_OK,
                     new Intent().setData(uri));
             settle();
 
             for (BooleanSetting setting : SettingsBackup.ALLOWLIST) setting.save(!setting.savedValue());
-            deliver(activity, tap(activity, page, IMPORT_ROW), new String(written.toByteArray(), StandardCharsets.UTF_8));
+            deliver(activity, tap(activity, page, IMPORT_ROW), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
             AlertDialog preview = shownPreview();
             assertEquals(SettingsBackup.ALLOWLIST.size() + " switches will change.",
                     String.valueOf(shadowOf(preview).getMessage()));
@@ -1411,13 +1493,11 @@ public class SettingsBackupTest {
             controller.recreate();
             ShadowLooper.idleMainLooper();
 
-            Uri uri = Uri.parse("content://settings-test/rebuilt-export.json");
-            ByteArrayOutputStream written = new ByteArrayOutputStream();
-            shadowOf(RuntimeEnvironment.getApplication().getContentResolver()).registerOutputStream(uri, written);
+            Uri uri = SettingsFileProvider.put(AUTHORITY, "rebuilt-export.json", new byte[0]);
             shadowOf(controller.get()).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
             settle();
             assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
-            assertEquals(SettingsBackup.create(), new String(written.toByteArray(), StandardCharsets.UTF_8));
+            assertEquals(SettingsBackup.create(), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
         }
     }
 
@@ -1508,27 +1588,11 @@ public class SettingsBackupTest {
             String importSummary = String.valueOf(importRow.getSummary());
 
             CountDownLatch release = new CountDownLatch(1);
-            CountDownLatch reading = new CountDownLatch(1);
-            byte[] bytes = SettingsBackup.create().getBytes(StandardCharsets.UTF_8);
-            InputStream slow = new InputStream() {
-                private final InputStream inner = new ByteArrayInputStream(bytes);
-
-                @Override public int read() throws java.io.IOException {
-                    reading.countDown();
-                    try {
-                        release.await(5, TimeUnit.SECONDS);
-                    } catch (InterruptedException interrupted) {
-                        Thread.currentThread().interrupt();
-                    }
-                    return inner.read();
-                }
-            };
-            Uri uri = Uri.parse("content://settings-test/slow.json");
-            shadowOf(RuntimeEnvironment.getApplication().getContentResolver()).registerInputStream(uri, slow);
+            SettingsFileProvider.stall = release;
+            Uri uri = SettingsFileProvider.put(AUTHORITY, "slow.json", SettingsBackup.create().getBytes(StandardCharsets.UTF_8));
             ShadowActivity.IntentForResult started = tap(activity, page, IMPORT_ROW);
             shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
             try {
-                assertTrue("the read never started", reading.await(5, TimeUnit.SECONDS));
                 assertFalse(export.isEnabled());
                 assertFalse(importRow.isEnabled());
                 assertEquals("Reading the settings file", String.valueOf(importRow.getSummary()));
@@ -1562,16 +1626,14 @@ public class SettingsBackupTest {
             Activity activity = controller.get();
             HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             byte[] bytes = fileWith(Settings.HIDE_SPONSORED_POSTS, false).getBytes(StandardCharsets.UTF_8);
-            ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-            Uri uri = Uri.parse("content://settings-test/queued.json");
-            shadowOf(RuntimeEnvironment.getApplication().getContentResolver()).registerInputStream(uri, input);
+            Uri uri = SettingsFileProvider.put(AUTHORITY, "queued.json", bytes);
             ShadowActivity.IntentForResult started = tap(activity, page, IMPORT_ROW);
 
             try (WorkerPoolForTests full = WorkerPoolForTests.fill()) {
                 shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
                 ShadowLooper.idleMainLooper();
                 assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
-                assertEquals("the file was read anyway", bytes.length, input.available());
+                assertEquals("the file was read anyway", 0, SettingsFileProvider.opened.get());
                 assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
                 assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
             }
@@ -1581,6 +1643,262 @@ public class SettingsBackupTest {
             shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             assertFalse(Settings.HIDE_SPONSORED_POSTS.savedValue());
+        }
+    }
+
+    /**
+     * An import that fails after it has claimed the rows, before a worker has it, gives them back
+     * and changes nothing. That path has no wait to run out, so nothing else would: the rows would
+     * stay out of reach until Facebook restarts. Here the folder the toast names can't be read once
+     * Import is pressed, so the toast's text can't be built.
+     */
+    @Test
+    public void anImportThatFailsBeforeItsWorkerStartsGivesTheRowsBack() throws Exception {
+        JSONObject file = new JSONObject(fileWith(Settings.HIDE_SPONSORED_POSTS, false));
+        file.getJSONObject("settings").put(SettingsBackup.FOLDER.key, "Clips");
+        Field value = Setting.class.getDeclaredField("value");
+        value.setAccessible(true);
+        Object folder = value.get(Settings.SAVE_FOLDER);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
+            AlertDialog preview = shownPreview();
+            RuntimeException escaped = null;
+            // Not a folder name, so no sentence can be worded around it.
+            value.set(Settings.SAVE_FOLDER, 7);
+            try {
+                preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                settle();
+            } catch (RuntimeException failure) {
+                escaped = failure;
+            } finally {
+                value.set(Settings.SAVE_FOLDER, folder);
+            }
+            assertTrue("the rows stayed out of reach", page.findPreference(IMPORT_ROW).isEnabled());
+            assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
+            assertFalse(AbstractPreferenceFragment.settingImportInProgress);
+            assertNull("the failure reached Facebook", escaped);
+            assertEquals("Couldn't start that. Try again in a moment.", ShadowToast.getTextOfLatestToast());
+            assertTrue("a switch changed", Settings.HIDE_SPONSORED_POSTS.savedValue());
+
+            // And the next import goes through.
+            deliver(activity, tap(activity, page, IMPORT_ROW), fileWith(Settings.HIDE_SPONSORED_POSTS, false));
+            shownPreview().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(Settings.HIDE_SPONSORED_POSTS.savedValue());
+        }
+    }
+
+    // ---- The app holding the file ------------------------------------------------------------
+
+    private static final String EXPORT_TIMEOUT = "The app holding the settings file is taking too long, so Hushfacebook "
+            + "stopped waiting. That app may still finish saving it, so check the file before you rely on it.";
+    private static final String IMPORT_TIMEOUT =
+            "The app holding that file is taking too long, so Hushfacebook stopped waiting. Nothing was changed.";
+    private static final String STALLED = "The app holding the last settings file still hasn't answered. Try again later.";
+    private static final String MISMATCH =
+            "The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.";
+    private static final String UNCHECKED = "Settings exported. The app holding the file wouldn't let Hushfacebook "
+            + "read it back, so it wasn't checked.";
+
+    /**
+     * An app that turns "wt" down gets "w", which here keeps the old file's longer tail. The file is
+     * read back and the export says it doesn't read as what was written, rather than claiming
+     * success. An app that truncates gets the plain answer.
+     */
+    @Test
+    public void anExportThatKeepsOldBytesIsReadBackAndSaysSo() throws Exception {
+        SettingsFileProvider.refusesTruncate = true;
+        String now = SettingsBackup.create();
+        Uri uri = SettingsFileProvider.put(AUTHORITY, "old.json",
+                (now + repeat(' ', 64) + "{\"old\":true}").getBytes(StandardCharsets.UTF_8));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            export(activity, page, uri);
+            assertEquals(MISMATCH, ShadowToast.getTextOfLatestToast());
+            String kept = new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8);
+            assertTrue("the app truncated after all", kept.startsWith(now) && kept.endsWith("{\"old\":true}"));
+            assertEquals(SettingsBackup.Reason.DAMAGED, reasonFor(kept));
+            assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
+
+            SettingsFileProvider.refusesTruncate = false;
+            export(activity, page, uri);
+            assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+            assertEquals(now, new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
+        }
+    }
+
+    /** An app that won't open the file for reading leaves the export unchecked, and the export says so. */
+    @Test
+    public void anExportTheAppWontReadBackSaysItWasNotChecked() throws Exception {
+        SettingsFileProvider.readFailure = new SecurityException("no read grant");
+        Uri uri = SettingsFileProvider.put(AUTHORITY, "write-only.json", new byte[0]);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            export(activity, page, uri);
+            assertEquals(UNCHECKED, ShadowToast.getTextOfLatestToast());
+            assertEquals(SettingsBackup.create(), new String(SettingsFileProvider.get(uri), StandardCharsets.UTF_8));
+            assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
+        }
+    }
+
+    /** A runtime failure partway through a read is refused like an IOException, with a message and the rows back. */
+    @Test
+    public void aRuntimeFailureWhileReadingIsUnreadable() throws Exception {
+        InputStream failing = new InputStream() {
+            private int given;
+
+            @Override public int read() {
+                if (given++ < 3) return '{';
+                throw new IllegalStateException("the app went away");
+            }
+        };
+        assertEquals(SettingsBackup.Reason.UNREADABLE, readReason(failing));
+
+        SettingsFileProvider.readFailure = new IllegalStateException("the app went away");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            ShadowAlertDialog.reset();
+            deliver(activity, tap(activity, page, IMPORT_ROW), SettingsBackup.create());
+            assertEquals(SettingsBackupPreference.refusal(SettingsBackup.Reason.UNREADABLE), ShadowToast.getTextOfLatestToast());
+            assertNull(ShadowAlertDialog.getLatestAlertDialog());
+            assertTrue(page.findPreference(IMPORT_ROW).isEnabled());
+            assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
+        }
+    }
+
+    /**
+     * An app that never answers: after the wait the rows come back, the cancel reaches the app and
+     * the message says only that Hushfacebook stopped waiting. While the app still holds a worker
+     * nothing new starts, and its late answer shows no preview and says nothing.
+     */
+    @Test
+    public void aStalledAppGivesTheRowsBackAndItsLateAnswerChangesNothing() throws Exception {
+        CountDownLatch release = new CountDownLatch(1);
+        SettingsFileProvider.stall = release;
+        SettingsFileProvider.ignoresCancel = true;
+        Uri uri = SettingsFileProvider.put(AUTHORITY, "stalled.json",
+                fileWith(Settings.HIDE_SPONSORED_POSTS, false).getBytes(StandardCharsets.UTF_8));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            ShadowAlertDialog.reset();
+            Preference importRow = page.findPreference(IMPORT_ROW);
+            try {
+                shadowOf(activity).receiveResult(tap(activity, page, IMPORT_ROW).intent, Activity.RESULT_OK,
+                        new Intent().setData(uri));
+                ShadowLooper.idleMainLooper();
+                assertFalse(importRow.isEnabled());
+                awaitHeldOpen();
+                waitOut();
+                assertEquals(IMPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+                assertTrue(importRow.isEnabled());
+                assertTrue(page.findPreference(EXPORT_ROW).isEnabled());
+                assertEquals("the cancel never reached the app", 1, SettingsFileProvider.cancels.get());
+
+                ShadowToast.reset();
+                click(page.findPreference(EXPORT_ROW));
+                assertNull("a picker opened while a stuck app held a worker",
+                        shadowOf(activity).getNextStartedActivityForResult());
+                assertEquals(STALLED, ShadowToast.getTextOfLatestToast());
+            } finally {
+                release.countDown();
+            }
+            settle();
+            assertNull("the late answer showed a preview", ShadowAlertDialog.getLatestAlertDialog());
+            assertNull(page.pendingImport);
+            assertEquals("the late answer said something", STALLED, ShadowToast.getTextOfLatestToast());
+            assertTrue(Settings.HIDE_SPONSORED_POSTS.savedValue());
+
+            // Once the app has answered, a new read starts.
+            deliver(activity, tap(activity, page, IMPORT_ROW), fileWith(Settings.HIDE_SPONSORED_POSTS, false));
+            shownPreview().cancel();
+            settle();
+        }
+    }
+
+    /**
+     * An export whose app honours the cancel ends when the screen stops waiting, so the next one
+     * starts at once. One whose app ignores it keeps a second export off the file until it has
+     * answered, and its late answer is neither written to nor called a success.
+     */
+    @Test
+    public void aStalledExportIsCancelledOrKeepsASecondWriteOffItsFile() throws Exception {
+        Uri uri = SettingsFileProvider.put(AUTHORITY, "busy.json", new byte[0]);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            SettingsFileProvider.stall = new CountDownLatch(1);
+            shadowOf(activity).receiveResult(tap(activity, page, EXPORT_ROW).intent, Activity.RESULT_OK,
+                    new Intent().setData(uri));
+            ShadowLooper.idleMainLooper();
+            awaitHeldOpen();
+            waitOut();
+            assertEquals(EXPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+            assertEquals(1, SettingsFileProvider.cancels.get());
+            settle();
+            assertEquals("the cancelled export said more", EXPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+            assertEquals(0, SettingsFileProvider.get(uri).length);
+
+            CountDownLatch release = new CountDownLatch(1);
+            SettingsFileProvider.stall = release;
+            SettingsFileProvider.ignoresCancel = true;
+            try {
+                shadowOf(activity).receiveResult(tap(activity, page, EXPORT_ROW).intent, Activity.RESULT_OK,
+                        new Intent().setData(uri));
+                ShadowLooper.idleMainLooper();
+                awaitHeldOpen();
+                waitOut();
+                assertEquals(EXPORT_TIMEOUT, ShadowToast.getTextOfLatestToast());
+                ShadowToast.reset();
+                click(page.findPreference(EXPORT_ROW));
+                assertNull("a second write could reach the file", shadowOf(activity).getNextStartedActivityForResult());
+                assertEquals(STALLED, ShadowToast.getTextOfLatestToast());
+            } finally {
+                release.countDown();
+            }
+            settle();
+            // Handed over after the cancel, the file is closed unwritten, and nothing is said.
+            assertEquals(0, SettingsFileProvider.get(uri).length);
+            assertEquals("the late answer was called a success", STALLED, ShadowToast.getTextOfLatestToast());
+
+            SettingsFileProvider.stall = null;
+            export(activity, page, uri);
+            assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    /**
+     * A test that stops while the app still holds its file, as a failed assertion does, leaves the
+     * next test nothing busy. The cleanup lets the open go, so the run ends and gives the rows back
+     * the way it does in the app. A held open used to outlast the cleanup's wait for background
+     * work, which skipped the rest of the cleanup and kept the rows claimed for every later test.
+     */
+    @Test
+    public void aTestThatStopsWhileTheAppHoldsItsFileLeavesTheNextOneFree() throws Exception {
+        SettingsFileProvider.stall = new CountDownLatch(1);
+        Uri held = SettingsFileProvider.put(AUTHORITY, "held.json", SettingsBackup.create().getBytes(StandardCharsets.UTF_8));
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            shadowOf(activity).receiveResult(tap(activity, page, IMPORT_ROW).intent, Activity.RESULT_OK,
+                    new Intent().setData(held));
+            assertFalse(page.findPreference(EXPORT_ROW).isEnabled());
+            awaitHeldOpen();
+        }
+        // What runs after a failed test and before the next one.
+        restore();
+        startClean();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            assertTrue("the next test started with the rows busy", page.findPreference(EXPORT_ROW).isEnabled());
+            export(activity, page, SettingsFileProvider.put(AUTHORITY, "next.json", new byte[0]));
+            assertEquals("Settings exported.", ShadowToast.getTextOfLatestToast());
         }
     }
 
@@ -1599,12 +1917,29 @@ public class SettingsBackupTest {
         row.getOnPreferenceClickListener().onPreferenceClick(row);
     }
 
+    /** Exports through the picker to [uri], and waits for what that sets off. */
+    private static void export(Activity activity, HushfacebookPreferenceFragment page, Uri uri) throws Exception {
+        shadowOf(activity).receiveResult(tap(activity, page, EXPORT_ROW).intent, Activity.RESULT_OK, new Intent().setData(uri));
+        settle();
+    }
+
+    /** Lets the screen's wait for the file's app run out. */
+    private static void waitOut() {
+        ShadowLooper.idleMainLooper(SettingsBackupPreference.timeoutMs, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Waits until the app holds the open with its cancel listener in place, as it has long before
+     * 30 seconds run out on a phone. waitOut moves only the main thread's clock, so without this the
+     * worker may not have reached the app when the cancel goes out, and the app never counts it.
+     */
+    private static void awaitHeldOpen() throws InterruptedException {
+        assertTrue("the app never got the open", SettingsFileProvider.holding.tryAcquire(5, TimeUnit.SECONDS));
+    }
+
     /** Answers a picker with a file holding [text], and waits for what that sets off. */
     private static void deliver(Activity activity, ShadowActivity.IntentForResult started, String text) throws Exception {
-        Uri uri = Uri.parse("content://settings-test/" + System.nanoTime() + ".json");
-        byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
-        shadowOf(RuntimeEnvironment.getApplication().getContentResolver())
-                .registerInputStreamSupplier(uri, () -> new ByteArrayInputStream(bytes));
+        Uri uri = SettingsFileProvider.put(AUTHORITY, System.nanoTime() + ".json", text.getBytes(StandardCharsets.UTF_8));
         shadowOf(activity).receiveResult(started.intent, Activity.RESULT_OK, new Intent().setData(uri));
         settle();
     }
@@ -1659,6 +1994,17 @@ public class SettingsBackupTest {
 
     private static Map<String, ?> store() {
         return new HashMap<>(Setting.preferences.preferences.getAll());
+    }
+
+    /** Applies [file] through a store with [faults], and hands back the failure it has to end in. */
+    private static SettingsBackup.ApplyFailed failedApply(String file, FailingStore.Fault... faults) throws Exception {
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        try (FailingStore ignored = FailingStore.install(faults)) {
+            SettingsBackup.apply(snapshot);
+        } catch (SettingsBackup.ApplyFailed failed) {
+            return failed;
+        }
+        throw new AssertionError("a failed write was reported as written: " + Arrays.toString(faults));
     }
 
     private static Set<String> keys(List<? extends Setting<?>> settings) {

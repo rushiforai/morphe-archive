@@ -108,6 +108,25 @@ public class SettingsActionBannerTest {
                 SettingsActionBanner.BANNER_TAG));
     }
 
+    /** A long result stays long enough to read. A restore result was gone after ten seconds. */
+    @Test public void aLongMessageStaysLongerAndAShortOneDoesNot() {
+        assertEquals(SettingsActionBanner.VISIBLE_MS, SettingsActionBanner.visibleMs("Saved videos put back"));
+        String longResult = "Restored 48 settings. ".repeat(12).trim();
+        long longTime = SettingsActionBanner.visibleMs(longResult);
+        assertTrue("a " + longResult.length() + " character result got " + longTime + " ms",
+                longTime > SettingsActionBanner.VISIBLE_MS);
+        assertEquals(SettingsActionBanner.LONGEST_VISIBLE_MS,
+                SettingsActionBanner.visibleMs("x".repeat(5_000)));
+
+        var looper = Shadows.shadowOf(android.os.Looper.getMainLooper());
+        SettingsActionBanner.showNotice(activity, longResult);
+        looper.idleFor(Duration.ofMillis(SettingsActionBanner.VISIBLE_MS + 1_000));
+        assertNotNull("the long result left at the short time",
+                content.findViewWithTag(SettingsActionBanner.BANNER_TAG));
+        looper.idleFor(Duration.ofMillis(SettingsActionBanner.LONGEST_VISIBLE_MS));
+        assertNull(content.findViewWithTag(SettingsActionBanner.BANNER_TAG));
+    }
+
     @Test public void replacingFeedbackLeavesExactlyOneBanner() {
         SettingsActionBanner.showNotice(activity, "first");
         SettingsActionBanner.showUndo(activity, "second", () -> { });

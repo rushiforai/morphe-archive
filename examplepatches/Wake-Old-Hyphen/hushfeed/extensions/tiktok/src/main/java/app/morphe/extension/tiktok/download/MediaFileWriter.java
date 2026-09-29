@@ -17,6 +17,7 @@ import app.morphe.extension.shared.Logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -76,6 +77,9 @@ final class MediaFileWriter {
                 collection = DownloadDestination.collectionUri(path, video);
             }
             Uri uri = MediaCache.insertPending(context, resolver, collection, values);
+            // On disk before the copy, so the next start can look the row up should the process
+            // die anywhere between here and the save hearing that it landed.
+            SaveRecords.Slot slot = SaveRecords.located(uri);
             try {
                 try (InputStream input = new FileInputStream(source); OutputStream output = resolver.openOutputStream(uri, "w")) {
                     if (output == null) throw new IOException("Could not open gallery entry");
@@ -109,6 +113,7 @@ final class MediaFileWriter {
                     // completed row remains safe if this final cleanup write is interrupted.
                     Logger.printException(() -> "Could not clear media publication journal", journalError);
                 }
+                SaveRecords.published(slot);
                 return new Saved(savedName, uri);
             } catch (IOException | RuntimeException exception) {
                 boolean deleted = false;
@@ -124,19 +129,30 @@ final class MediaFileWriter {
                         exception.addSuppressed(journalError);
                     }
                 }
+                // The save reports this failure itself; the record only drops the file.
+                SaveRecords.abandoned(slot);
                 throw exception;
             }
         } else {
             File directory = new File(Environment.getExternalStorageDirectory(), path);
             if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("Could not create download folder");
             File target = claim(directory, name);
-            try (InputStream input = new FileInputStream(source); OutputStream output = new FileOutputStream(target)) {
-                copy(input, output, MediaBudget.MAX_TRANSFER_BYTES, null, directory);
-            } catch (IOException exception) {
-                if (!target.delete()) exception.addSuppressed(new IOException("Could not remove incomplete download"));
-                throw exception;
+            // With the size a complete copy has, so the next start can tell it from a cut-off one.
+            SaveRecords.Slot slot = SaveRecords.located(target, source.length());
+            boolean landed = false;
+            try {
+                try (InputStream input = new FileInputStream(source); OutputStream output = new FileOutputStream(target)) {
+                    copy(input, output, MediaBudget.MAX_TRANSFER_BYTES, null, directory);
+                } catch (IOException exception) {
+                    if (!target.delete()) exception.addSuppressed(new IOException("Could not remove incomplete download"));
+                    throw exception;
+                }
+                MediaScannerConnection.scanFile(context, new String[]{target.getAbsolutePath()}, new String[]{mime}, null);
+                landed = true;
+            } finally {
+                if (landed) SaveRecords.published(slot);
+                else SaveRecords.abandoned(slot);
             }
-            MediaScannerConnection.scanFile(context, new String[]{target.getAbsolutePath()}, new String[]{mime}, null);
             return new Saved(target.getName(), null, target);
         }
     }
@@ -161,6 +177,41 @@ final class MediaFileWriter {
 
     static long copy(InputStream input, OutputStream output) throws IOException {
         return copy(input, output, Long.MAX_VALUE, null);
+    }
+
+    /** Gives encoders the same bounded disk grants used by file copies. */
+    static OutputStream withDiskBudget(OutputStream output, File directory) {
+        return new FilterOutputStream(output) {
+            private long allowance;
+
+            private void reserve() throws IOException {
+                MediaBudget.check(null);
+                if (allowance == 0) {
+                    MediaBudget.checkStreamingDiskSpace(directory, null);
+                    allowance = MediaBudget.STREAM_SPACE_CHECK_BYTES;
+                }
+            }
+
+            @Override public void write(int value) throws IOException {
+                reserve();
+                out.write(value);
+                allowance--;
+            }
+
+            @Override public void write(byte[] bytes, int offset, int length) throws IOException {
+                if (offset < 0 || length < 0 || offset > bytes.length - length) {
+                    throw new IndexOutOfBoundsException();
+                }
+                while (length > 0) {
+                    reserve();
+                    int count = (int) Math.min(length, allowance);
+                    out.write(bytes, offset, count);
+                    allowance -= count;
+                    offset += count;
+                    length -= count;
+                }
+            }
+        };
     }
 
     /**

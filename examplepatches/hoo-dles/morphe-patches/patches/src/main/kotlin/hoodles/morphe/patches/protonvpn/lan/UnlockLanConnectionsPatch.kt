@@ -10,14 +10,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import hoodles.morphe.patches.protonvpn.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val unlockLanConnectionsPatch = bytecodePatch(
     name = "Unlock LAN connections",
     description = "Enables the LAN connections feature usually locked behind the Proton Plus paywall."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.PROTON_VPN)
 
     execute {
         LanConnectionsSettingViewStateCtor.apply {

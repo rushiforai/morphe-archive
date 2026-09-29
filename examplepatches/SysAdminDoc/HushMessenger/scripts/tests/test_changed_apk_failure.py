@@ -16,7 +16,7 @@ from zipfile import ZipFile
 
 from scripts import verify_changed_apk_failure as checker
 
-REASON = "expected 6 permission loads, found 4; use version code 346013387 or 346013440"
+REASON = "expected 6 permission loads, found 4; use version code 346013387 or 346013440 or 346013442"
 WRAPPED_REASON = (
     'app.morphe.patcher.patch.PatchException: The patch "Install beside Meta apps" '
     'depends on "ResourcePatch@1179093020", which raised an exception:\r\n'
@@ -24,7 +24,7 @@ WRAPPED_REASON = (
     'depends on "BytecodePatch@1727420902", which raised an exception:\r\n'
     "app.morphe.patcher.patch.PatchException: Install beside Meta apps: "
     "expected 6 permission loads, found 4. Use an unmodified arm64 Messenger "
-    "580.0.0.49.91 APK (version code 346013387 or 346013440).\r\r\n"
+    "580.0.0.49.91 APK (version code 346013387 or 346013440 or 346013442).\r\r\n"
     "\tat app.hushmessenger.patches.coexist.InstallBesideMetaAppsPatchKt.validateDexSites(InstallBesideMetaAppsPatch.kt:203)\r\n"
 )
 
@@ -123,12 +123,12 @@ class ChangedApkChecks(unittest.TestCase):
                         )
                     if case == "wrapped-build-prefix":
                         outcome["failedPatches"][0]["reason"] = WRAPPED_REASON.replace(
-                            "346013440)", "3460134400)"
+                            "346013442)", "3460134420)"
                         )
                     if case == "split-reason":
                         outcome["failedPatches"][0]["reason"] = (
                             "expected 6 permission loads, found 4\n"
-                            "unrelated error on version code 346013387 or 346013440"
+                            "unrelated error on version code 346013387 or 346013440 or 346013442"
                         )
                     if case == "report-array":
                         outcome = []
@@ -154,6 +154,12 @@ class ChangedApkChecks(unittest.TestCase):
                 ):
                     if case in {"valid", "wrapped-reason"}:
                         self.assertEqual(checker.check(args), 0)
+                    elif case == "missing-report":
+                        # Desktop that never started must say so, not point at a deleted temp file.
+                        with self.assertRaisesRegex(
+                            RuntimeError, "without writing a patch report"
+                        ):
+                            checker.check(args)
                     else:
                         with self.assertRaises(
                             (

@@ -105,7 +105,7 @@ public final class DownloadFilenameFormatter {
             synchronized (PENDING_NAMES) {
                 PENDING_NAMES.put(original.getName(), new PendingName(target.getName(), folder, System.currentTimeMillis()));
             }
-            debug("prepared type=" + (photo ? "photo" : "video") + " file=" + target.getName());
+            debug("prepared type=" + (photo ? "photo" : "video") + (folder.isEmpty() ? "" : " in a creator folder"));
         } catch (Throwable ex) {
             if (BaseSettings.DEBUG.get()) {
                 Logger.printException(() -> "[Morphe Downloads] filename formatting failed", ex);

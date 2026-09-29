@@ -48,8 +48,10 @@ public class SaveTextL10nTest {
     public void everyResultAndTheProgressLineComeFromTheCatalog() {
         List<String> said = new ArrayList<>();
         for (Downloader.Status status : Downloader.Status.values()) {
-            said.add(MediaDownload.message(context, status, null));
-            said.add(MediaDownload.message(context, status, "Movies/Facebook"));
+            for (boolean lower : new boolean[] { false, true }) {
+                said.add(MediaDownload.message(context, status, null, lower));
+                said.add(MediaDownload.message(context, status, "Movies/Facebook", lower));
+            }
         }
         said.add(SaveControl.progressText(5_000_000, 50_000_000));
         said.add(SaveControl.progressText(5_000_000, -1));
@@ -57,7 +59,8 @@ public class SaveTextL10nTest {
             assertTrue("not from the catalog: " + text, text.startsWith("[") && text.endsWith("]"));
         }
         // The folder is a value, and a value is never drawn accented.
-        assertTrue(MediaDownload.message(context, Downloader.Status.OK, "Movies/Facebook").contains("Movies/Facebook"));
+        assertTrue(MediaDownload.message(context, Downloader.Status.OK, "Movies/Facebook", false).contains("Movies/Facebook"));
+        assertTrue(MediaDownload.message(context, Downloader.Status.OK, "Movies/Facebook", true).contains("Movies/Facebook"));
     }
 
     @Test

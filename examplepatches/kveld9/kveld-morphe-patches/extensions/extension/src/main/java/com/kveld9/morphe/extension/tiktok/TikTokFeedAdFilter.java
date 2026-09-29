@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -45,6 +46,18 @@ public final class TikTokFeedAdFilter {
     private static Field authorLiveField;
     private static Method setAnchorsMethod;
     private static Method setAnchorInfoMethod;
+    private static Method getLiveAwesomeSplashInfoMethod;
+    private static Field liveAwesomeSplashInfoField;
+    private static Method getAdAwemeSourceMethod;
+    private static Field adAwemeSourceField;
+    private static Field isAdField;
+    private static Field isSoftAdField;
+    private static Field awemeRawAdField;
+    private static Field linkAdDataField;
+    private static Method getAdLinkTypeMethod;
+    private static Field adLinkTypeField;
+    private static Method getCommercialVideoInfoMethod;
+    private static Field commercialVideoInfoField;
 
     private static Method isFriendsTabFakeAwemeMethod;
     private static Method getRecommendCardTypeMethod;
@@ -119,7 +132,8 @@ public final class TikTokFeedAdFilter {
         "is_from_webapp", "sender_device", "_r", "checksum", "sec_user_id",
         "ug_source", "share_app_id", "share_item_id", "share_link_id",
         "source", "timestamp", "user_id", "u_code", "tt_from",
-        "utm_source", "utm_campaign", "utm_medium"
+        "utm_source", "utm_campaign", "utm_medium",
+        "share_iid", "sharer_id", "ugbiz_name"
     ));
 
     private TikTokFeedAdFilter() {}
@@ -183,6 +197,18 @@ public final class TikTokFeedAdFilter {
                     }
                 }
             } catch (Throwable ignored) {}
+            try { getLiveAwesomeSplashInfoMethod = awemeClass.getMethod("getLiveAwesomeSplashInfo"); getLiveAwesomeSplashInfoMethod.setAccessible(true); } catch (Throwable ignored) {}
+            try { liveAwesomeSplashInfoField = awemeClass.getDeclaredField("mLiveAwesomeSplashInfo"); liveAwesomeSplashInfoField.setAccessible(true); } catch (Throwable ignored) {}
+            try { getAdAwemeSourceMethod = awemeClass.getMethod("getAdAwemeSource"); getAdAwemeSourceMethod.setAccessible(true); } catch (Throwable ignored) {}
+            try { adAwemeSourceField = awemeClass.getDeclaredField("adAwemeSource"); adAwemeSourceField.setAccessible(true); } catch (Throwable ignored) {}
+            try { isAdField = awemeClass.getDeclaredField("_isAd"); isAdField.setAccessible(true); } catch (Throwable ignored) {}
+            try { isSoftAdField = awemeClass.getDeclaredField("_isSoftAd"); isSoftAdField.setAccessible(true); } catch (Throwable ignored) {}
+            try { awemeRawAdField = awemeClass.getDeclaredField("awemeRawAd"); awemeRawAdField.setAccessible(true); } catch (Throwable ignored) {}
+            try { linkAdDataField = awemeClass.getDeclaredField("linkAdData"); linkAdDataField.setAccessible(true); } catch (Throwable ignored) {}
+            try { getAdLinkTypeMethod = awemeClass.getMethod("getAdLinkType"); getAdLinkTypeMethod.setAccessible(true); } catch (Throwable ignored) {}
+            try { adLinkTypeField = awemeClass.getDeclaredField("adLinkType"); adLinkTypeField.setAccessible(true); } catch (Throwable ignored) {}
+            try { getCommercialVideoInfoMethod = awemeClass.getMethod("getCommercialVideoInfo"); getCommercialVideoInfoMethod.setAccessible(true); } catch (Throwable ignored) {}
+            try { commercialVideoInfoField = awemeClass.getDeclaredField("commercialVideoInfo"); commercialVideoInfoField.setAccessible(true); } catch (Throwable ignored) {}
             try { isFriendsTabFakeAwemeMethod = awemeClass.getMethod("isFriendsTabFakeAweme"); isFriendsTabFakeAwemeMethod.setAccessible(true); } catch (Throwable ignored) {}
             try { getRecommendCardTypeMethod = awemeClass.getMethod("getRecommendCardType"); getRecommendCardTypeMethod.setAccessible(true); } catch (Throwable ignored) {}
             try { getCardInsertInfoMethod = awemeClass.getMethod("getCardInsertInfo"); getCardInsertInfoMethod.setAccessible(true); } catch (Throwable ignored) {}
@@ -365,29 +391,133 @@ public final class TikTokFeedAdFilter {
             ensureInitialized(aweme.getClass().getClassLoader());
         }
         if (awemeClass != null && !awemeClass.isInstance(aweme)) {
-            return false;
+            return isSearchAdItem(aweme);
         }
         try {
-            if (isAdMethod != null && Boolean.TRUE.equals(isAdMethod.invoke(aweme))) {
-                return true;
+            if (isAdMethod != null) {
+                try {
+                    if (Boolean.TRUE.equals(isAdMethod.invoke(aweme))) return true;
+                } catch (Throwable ignored) {}
             }
-            if (isSoftAdMethod != null && Boolean.TRUE.equals(isSoftAdMethod.invoke(aweme))) {
-                return true;
+            if (isAdField != null) {
+                try {
+                    Object val = isAdField.get(aweme);
+                    if (Boolean.TRUE.equals(val) || (val instanceof Number && ((Number) val).intValue() > 0)) {
+                        return true;
+                    }
+                } catch (Throwable ignored) {}
             }
-            if (getAwemeRawAdMethod != null && getAwemeRawAdMethod.invoke(aweme) != null) {
-                return true;
+            if (isSoftAdMethod != null) {
+                try {
+                    if (Boolean.TRUE.equals(isSoftAdMethod.invoke(aweme))) return true;
+                } catch (Throwable ignored) {}
             }
-            if (getLinkAdDataMethod != null && getLinkAdDataMethod.invoke(aweme) != null) {
-                return true;
+            if (isSoftAdField != null) {
+                try {
+                    Object val = isSoftAdField.get(aweme);
+                    if (Boolean.TRUE.equals(val) || (val instanceof Number && ((Number) val).intValue() > 0)) {
+                        return true;
+                    }
+                } catch (Throwable ignored) {}
             }
-            if (isWithPromotionalMusicMethod != null && Boolean.TRUE.equals(isWithPromotionalMusicMethod.invoke(aweme))) {
-                return true;
+            if (getAwemeRawAdMethod != null) {
+                try {
+                    if (getAwemeRawAdMethod.invoke(aweme) != null) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (awemeRawAdField != null) {
+                try {
+                    if (awemeRawAdField.get(aweme) != null) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (getLinkAdDataMethod != null) {
+                try {
+                    if (getLinkAdDataMethod.invoke(aweme) != null) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (linkAdDataField != null) {
+                try {
+                    if (linkAdDataField.get(aweme) != null) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (isWithPromotionalMusicMethod != null) {
+                try {
+                    if (Boolean.TRUE.equals(isWithPromotionalMusicMethod.invoke(aweme))) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (getLiveAwesomeSplashInfoMethod != null) {
+                try {
+                    if (getLiveAwesomeSplashInfoMethod.invoke(aweme) != null) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (liveAwesomeSplashInfoField != null) {
+                try {
+                    if (liveAwesomeSplashInfoField.get(aweme) != null) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (getAdAwemeSourceMethod != null) {
+                try {
+                    Object src = getAdAwemeSourceMethod.invoke(aweme);
+                    if (src instanceof Number && ((Number) src).intValue() > 0) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (adAwemeSourceField != null) {
+                try {
+                    Object src = adAwemeSourceField.get(aweme);
+                    if (src instanceof Number && ((Number) src).intValue() > 0) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (getAdLinkTypeMethod != null) {
+                try {
+                    Object linkType = getAdLinkTypeMethod.invoke(aweme);
+                    if (linkType instanceof Number && ((Number) linkType).intValue() > 0) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (adLinkTypeField != null) {
+                try {
+                    Object linkType = adLinkTypeField.get(aweme);
+                    if (linkType instanceof Number && ((Number) linkType).intValue() > 0) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (getCommercialVideoInfoMethod != null) {
+                try {
+                    if (getCommercialVideoInfoMethod.invoke(aweme) != null) return true;
+                } catch (Throwable ignored) {}
+            }
+            if (commercialVideoInfoField != null) {
+                try {
+                    if (commercialVideoInfoField.get(aweme) != null) return true;
+                } catch (Throwable ignored) {}
             }
             if (getShareUrlMethod != null) {
-                Object url = getShareUrlMethod.invoke(aweme);
-                if (url instanceof String && ((String) url).contains(SHOP_PROMO_MARKER)) {
-                    return true;
-                }
+                try {
+                    Object url = getShareUrlMethod.invoke(aweme);
+                    if (url instanceof String && ((String) url).contains(SHOP_PROMO_MARKER)) return true;
+                } catch (Throwable ignored) {}
+            }
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    private static boolean isSearchAdItem(Object item) {
+        if (item == null) return false;
+        try {
+            Class<?> clazz = item.getClass();
+            String name = clazz.getName();
+            if (name.contains("SearchMixFeed") || name.contains("SearchItemStruct")) {
+                try {
+                    Method m = clazz.getMethod("getPreciseAd");
+                    if (m.invoke(item) != null) return true;
+                } catch (Throwable ignored) {}
+                try {
+                    Method m = clazz.getMethod("getBrandZoneCard");
+                    if (m.invoke(item) != null) return true;
+                } catch (Throwable ignored) {}
+                try {
+                    Method m = clazz.getMethod("getAweme");
+                    Object inner = m.invoke(item);
+                    if (inner != null && isAd(inner)) return true;
+                } catch (Throwable ignored) {}
             }
         } catch (Throwable ignored) {}
         return false;
@@ -1361,7 +1491,7 @@ public final class TikTokFeedAdFilter {
                     try {
                         Object seg = moderationCreatorSegmentField.get(modAigc);
                         if (seg instanceof String && !((String) seg).isEmpty()) {
-                            String s = ((String) seg).toLowerCase();
+                            String s = ((String) seg).toLowerCase(Locale.ROOT);
                             if (s.contains("aigc") || s.contains("short_drama_aigc") || s.equals("ai")) {
                                 Log.i(TAG, "[Hide AI-Generated Content] Match [ModerationAigcInfo.segment=" + seg + "] on aid=" + aid);
                                 return true;
@@ -1467,7 +1597,7 @@ public final class TikTokFeedAdFilter {
                 List<?> bannerList = (List<?>) banners;
                 for (Object b : bannerList) {
                     if (b != null) {
-                        String bStr = b.toString().toLowerCase();
+                        String bStr = b.toString().toLowerCase(Locale.ROOT);
                         if (bStr.contains("aigc") || bStr.contains("ai_generated")) {
                             Log.i(TAG, "[Hide AI-Generated Content] Match [Banner=" + bStr + "] on aid=" + aid);
                             return true;
@@ -1488,7 +1618,7 @@ public final class TikTokFeedAdFilter {
                 List<?> anchorList = (List<?>) anchors;
                 for (Object a : anchorList) {
                     if (a != null) {
-                        String aStr = a.toString().toLowerCase();
+                        String aStr = a.toString().toLowerCase(Locale.ROOT);
                         if (aStr.contains("aigc") || aStr.contains("anchor_aigc")) {
                             Log.i(TAG, "[Hide AI-Generated Content] Match [Anchor=" + aStr + "] on aid=" + aid);
                             return true;

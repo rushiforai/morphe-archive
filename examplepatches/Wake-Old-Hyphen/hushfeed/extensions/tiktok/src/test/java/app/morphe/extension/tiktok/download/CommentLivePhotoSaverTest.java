@@ -169,8 +169,12 @@ public class CommentLivePhotoSaverTest {
             assertTrue(report(), report().contains("comment live photo: 1 found, 0 missing"));
             assertEquals("the clip was not queued", 1, MediaJobScheduler.queuedJobs());
             assertTrue(CommentLivePhotoSaver.activeForTests(cid, 0));
+            // Taken, and said so at once, with the wait it faces behind the held workers.
+            assertEquals(L10n.t("Saving the live photo's clip") + "\n" + L10n.t("Starts after one other save"),
+                    ShadowToast.getTextOfLatestToast());
             CommentLivePhotoSaver.saveClip(comment, 0);
-            assertEquals(L10n.t("Still saving the last one"), ShadowToast.getTextOfLatestToast());
+            // The second tap is told the first one is still in line, not that it is saving.
+            assertEquals(L10n.t("The last one is still waiting to start"), ShadowToast.getTextOfLatestToast());
             assertEquals("the second tap fetched again", 1, MediaJobScheduler.queuedJobs());
         } finally {
             hold.countDown();

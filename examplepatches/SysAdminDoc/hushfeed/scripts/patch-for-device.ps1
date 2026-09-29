@@ -117,13 +117,19 @@ $argumentFileLines = @($arguments | ForEach-Object {
     $argumentFile,
     $argumentFileLines,
     (New-Object System.Text.UTF8Encoding($false)))
+# Windows PowerShell 5.1 turns a native command's stderr into a terminating error under Stop,
+# even redirected, which lost the CLI's own failure lines. Relax for the call only.
+$preference = $ErrorActionPreference
 try {
+    $ErrorActionPreference = 'Continue'
     & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
         $line = [string]$_
         if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|Exception|Saved to') { Write-Host "[device] $line" }
     }
+    $ErrorActionPreference = $preference
     if ($LASTEXITCODE -ne 0) { throw "The desktop CLI exited with $LASTEXITCODE" }
 } finally {
+    $ErrorActionPreference = $preference
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue
     # The CLI unpacks the whole APK here and a run against TikTok leaves gigabytes behind.
     if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Recurse -Force -ErrorAction SilentlyContinue }
@@ -150,6 +156,13 @@ if ($Replace) {
 Write-Host "[device] installing on $Serial"
 # adb prints Failure [...] and exits non-zero on a refused install; without this the script
 # went on to print the version of whatever was already on the phone, as if it were this build.
-& $adb -s $Serial install -r -g $out | Out-Host
-if ($LASTEXITCODE -ne 0) { throw "adb install failed on $Serial. The output above says why." }
+$preference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try {
+    & $adb -s $Serial install -r -g $out 2>&1 | Out-Host
+    $installStatus = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $preference
+}
+if ($installStatus -ne 0) { throw "adb install failed on $Serial. The output above says why." }
 & $adb -s $Serial shell dumpsys package $target.PackageName | Select-String 'versionName' | Out-Host

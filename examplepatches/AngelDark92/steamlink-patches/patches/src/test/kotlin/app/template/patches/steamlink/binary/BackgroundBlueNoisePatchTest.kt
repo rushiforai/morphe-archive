@@ -27,7 +27,9 @@ class BackgroundBlueNoisePatchTest {
             assertTrue(patch.dependencies.isEmpty())
             listOf(galaxyXrLegacyFoundationPatch, galaxyXrRecommended5001712Patch, galaxyXrRecommended5002363Patch)
                 .forEach { assertFalse(patch in it.dependencies) }
-            assertEquals(setOf("2.0.20" to 5001712, "2.0.22" to 5002244, "2.0.23" to 5002363),
+            assertEquals(setOf("2.0.20" to 5001712,
+                "2.0.20" to 5001812,
+                "2.0.21" to 5001968, "2.0.22" to 5002244, "2.0.23" to 5002363),
                 patch.compatibility.orEmpty().flatMap { compatibility ->
                     assertEquals(EXPERIMENTAL_COMPATIBILITY_NAME, compatibility.name)
                     compatibility.targets.map { target ->

@@ -369,6 +369,43 @@ public class SessionLockOverlayTest {
         }
     }
 
+    /**
+     * A hold that ends while the app is away takes its panel down on return. The tick needs a
+     * running hold to start and the player never syncs an ended one, so the panel used to stay,
+     * still naming the time the feed opens again.
+     */
+    @Test public void aHoldThatEndedWhileAwayIsGoneOnReturn() throws Exception {
+        java.util.concurrent.atomic.AtomicLong now =
+                new java.util.concurrent.atomic.AtomicLong(System.currentTimeMillis());
+        SessionBudget.setClockForTests(now::get);
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);
+        SessionBudget.noteVideo("a");
+        assertTrue(SessionBudget.claimNotice());
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            int bare = root.getChildCount();
+            SessionLockOverlay.sync();
+            assertEquals("no panel went up", bare + 1, root.getChildCount());
+
+            SessionLockOverlay.onBackground();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+                    .idleFor(java.time.Duration.ofSeconds(3));
+            now.addAndGet(6 * 60_000L);
+            assertFalse(SessionBudget.isLocked());
+
+            SessionLockOverlay.onForeground();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals("the ended hold's panel stayed on the feed", bare, root.getChildCount());
+        } finally {
+            SessionBudget.setClockForTests(null);
+            SessionLockOverlay.onForeground();
+        }
+    }
+
     private static boolean ticking() {
         return org.robolectric.util.ReflectionHelpers.getStaticField(SessionLockOverlay.class, "ticking");
     }

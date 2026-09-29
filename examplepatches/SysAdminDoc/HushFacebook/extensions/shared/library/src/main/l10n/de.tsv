@@ -9,6 +9,7 @@
 %1$s so far	Bisher %1$s
 %1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Das wurde beim Patchen festgelegt, deshalb kann die Pause es nicht ausschalten. Um es auszuschließen, patche erneut und lass diesen Patch weg.
 %1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Diese wurden beim Patchen festgelegt, deshalb kann die Pause sie nicht ausschalten. Um eines davon auszuschließen, patche erneut und lass den Patch weg, der in Klammern dahinter steht.
+A change here applies after Facebook restarts.	Eine Änderung hier gilt erst nach einem Neustart von Facebook.
 A diagnostic report is already being saved.	Ein Diagnosebericht wird bereits gespeichert.
 Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.	Fügt Reels einen Download-Button mit deiner Downloadqualität hinzu. Ausgeschaltet oder pausiert erscheinen Facebooks eigene Buttons.
 A file named %1$s in %2$s paused Hushfacebook.	Eine Datei namens %1$s in %2$s hat Hushfacebook pausiert.
@@ -24,12 +25,15 @@ Audience Network off	Audience Network aus
 Back	Zurück
 Background ad prefetch blocked	Vorabladen von Werbung im Hintergrund blockiert
 Cancel	Abbrechen
+Cancel saving this photo	Speichern dieses Fotos abbrechen
+Cancel saving this video	Speichern dieses Videos abbrechen
 Changing these	So änderst du sie
 Choose a settings file. Before anything is imported, you'll see how many switches it changes and any new download settings.	Wähle eine Einstellungsdatei. Vor dem Import siehst du, wie viele Schalter sie ändert und welche Download-Einstellungen neu sind.
 Clear diagnostic data	Diagnosedaten löschen
-Copy a quick report or save the full one to Download/Morphe. Names, IDs, links and cookies are omitted.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter Download/Morphe. Namen, IDs, Links und Cookies werden ausgelassen.
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Kopiere einen Kurzbericht oder speichere den vollständigen Bericht unter Download/Morphe. Links, IDs, Cookies und Anmeldetokens werden ausgelassen. Prüfe ihn vor dem Teilen auf andere private Angaben.
 Copy quick report	Kurzbericht kopieren
-Couldn't import every setting. Check the switches on this screen.	Nicht alle Einstellungen ließen sich importieren. Prüfe die Schalter auf diesem Bildschirm.
+Copying to the gallery	Wird in die Galerie kopiert
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Die Einstellungen ließen sich nicht importieren, und deine vorherigen ließen sich nicht wiederherstellen. Prüfe die Schalter auf diesem Bildschirm.
 Couldn't import the settings. Nothing was changed.	Die Einstellungen ließen sich nicht importieren. Es wurde nichts geändert.
 Couldn't open that file. Nothing was changed.	Diese Datei ließ sich nicht öffnen. Es wurde nichts geändert.
 Couldn't open the file picker. Try again.	Die Dateiauswahl ließ sich nicht öffnen. Versuche es noch einmal.
@@ -38,6 +42,7 @@ Couldn't save the settings file. Try again.	Die Einstellungsdatei ließ sich nic
 Couldn't save this video. Play it for a moment, then try again.	Dieses Video ließ sich nicht speichern. Spiel es kurz ab und versuche es dann noch einmal.
 Couldn't start that. Try again in a moment.	Das ließ sich nicht starten. Versuche es gleich noch einmal.
 Couldn't start the report export. Try again shortly.	Der Export des Berichts ließ sich nicht starten. Versuche es gleich noch einmal.
+Couldn't turn Hushfacebook back on. Try again.	Hushfacebook ließ sich nicht wieder einschalten. Versuche es noch einmal.
 Dark mode draws black instead of dark grey. Turn on dark mode in Facebook to see it.	Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Facebook den Dunkelmodus ein, um das zu sehen.
 Debug logging	Debug-Protokollierung
 Diagnostic data cleared. Tap again to put it back.	Diagnosedaten gelöscht. Tippe erneut, um sie wiederherzustellen.
@@ -48,6 +53,7 @@ Download button on reels	Download-Button bei Reels
 Download failed	Download fehlgeschlagen
 Download feed and Watch videos	Videos aus Feed und Watch herunterladen
 Download to phone	Aufs Handy herunterladen
+Downloading	Wird heruntergeladen
 Downloads	Downloads
 Empties the log and the filter counts a report would include.	Leert das Protokoll und die Filterzähler, die ein Bericht enthalten würde.
 Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Jeder Schalter außer der Debug-Protokollierung verhält sich, als wäre er aus, und was beim Patchen festgelegt wurde, bleibt aktiv. Deine Einstellungen bleiben, wie sie sind.
@@ -57,6 +63,15 @@ Facebook crashed or froze within a minute of starting three times in a row, so H
 Facebook doesn't download ads or its ad model in the background.	Facebook lädt im Hintergrund weder Werbung noch sein Werbemodell herunter.
 Facebook doesn't serve ads to other apps on this phone.	Facebook liefert keine Werbung an andere Apps auf diesem Handy aus.
 Facebook dark mode and this screen use your wallpaper colours. Android 11 uses blue instead. Turn on Facebook dark mode to see it.	Facebooks Dunkelmodus und diese Seite nutzen die Farben deines Hintergrundbilds. Android 11 nutzt stattdessen Blau. Aktiviere Facebooks Dunkelmodus, um es zu sehen.
+Joining the picture and sound	Bild und Ton werden zusammengefügt
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Ab dem nächsten Start verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.
+Settings exported. The app holding the file wouldn't let Hushfacebook read it back, so it wasn't checked.	Einstellungen exportiert. Die App, in der die Datei liegt, ließ Hushfacebook sie nicht zurücklesen, daher wurde sie nicht geprüft.
+The app holding that file is taking too long, so Hushfacebook stopped waiting. Nothing was changed.	Die App, in der die Datei liegt, braucht zu lange, deshalb wartet Hushfacebook nicht mehr. Es wurde nichts geändert.
+The app holding the last settings file still hasn't answered. Try again later.	Die App mit der letzten Einstellungsdatei hat noch immer nicht geantwortet. Versuche es später noch einmal.
+The app holding the settings file is taking too long, so Hushfacebook stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Die App, in der die Einstellungsdatei liegt, braucht zu lange, deshalb wartet Hushfacebook nicht mehr. Sie kann das Speichern noch abschließen, also prüfe die Datei, bevor du dich darauf verlässt.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	Die Datei %1$s ließ sich nicht entfernen. Lösche sie aus %2$s und tippe dann noch einmal auf Fortsetzen.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	Die Einstellungsdatei wurde gespeichert, liest sich aber nicht so zurück, wie sie geschrieben wurde. Speichere sie noch einmal als neue Datei.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Bis zum Fortsetzen verhält sich jeder Schalter außer der Debug-Protokollierung, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.
 Use your phone's emoji. Reactions and stickers stay the same. Restart Facebook after changing it.	Nutzt die Emoji deines Telefons. Reaktionen und Sticker bleiben gleich. Starte Facebook nach der Änderung neu.
 Use your phone's font or a file chosen below. Restart Facebook after changing it.	Nutzt die Schrift deines Telefons oder eine unten gewählte Datei. Starte Facebook nach der Änderung neu.
 Font file	Schriftdatei
@@ -74,7 +89,6 @@ Couldn't save a copy of that font. Check that the phone has room, then try again
 Couldn't open that file. Your font didn't change.	Diese Datei ließ sich nicht öffnen. Deine Schriftart wurde nicht geändert.
 Back to your phone's font. Restart Facebook to see it.	Zurück zur Schriftart deines Handys. Starte Facebook neu, um sie zu sehen.
 Couldn't go back to your phone's font. Try again.	Die Rückkehr zur Schriftart deines Handys hat nicht geklappt. Versuche es noch einmal.
-Pause runtime features from the next start. Your choices stay saved. Debug logging and patches applied during installation keep working.	Pausiert Laufzeitfunktionen ab dem nächsten Start. Deine Auswahl bleibt gespeichert. Debug-Protokollierung und beim Patchen angewendete Änderungen bleiben aktiv.
 Full report saved to %1$s	Vollständiger Bericht gespeichert unter %1$s
 GPL-3.0, with the notices of the projects this is built on	GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut
 Hide "People you may know"	„Personen, die du kennen könntest“ ausblenden
@@ -103,7 +117,6 @@ Link expired. Reopen the item and try again	Link abgelaufen. Öffne den Inhalt n
 Links	Links
 Material You theme	Material-You-Design
 News feed	Newsfeed
-There's nothing to report yet. Turn on Debug logging, repeat what went wrong, then export again.	Noch nichts zu berichten. Schalte die Debug-Protokollierung ein, wiederhole, was schiefgelaufen ist, und exportiere dann erneut.
 No screenshot watching for ads, and no reports of which apps you install.	Keine Screenshot-Erkennung bei Werbung und keine Meldungen darüber, welche Apps du installierst.
 Not saved: that isn't a Facebook photo or video	Nicht gespeichert: Das ist kein Foto oder Video von Facebook
 Not saved: the file is over 512 MB	Nicht gespeichert: Die Datei ist über 512 MB groß
@@ -119,6 +132,18 @@ Profiles and some Settings pages open again on this re-signed build.	Profile und
 Re-signed build fix	Fix für neu signierte Builds
 Reading the settings file	Einstellungsdatei wird gelesen
 Reels and Watch	Reels und Watch
+# context: the How to block Reels map at the top of Reels and Watch; the last row's %1$s is a patch name as Morphe Manager shows it, kept in English
+How to block Reels	So blockierst du Reels
+Reels show up in four places, and each one has its own control.	Reels tauchen an vier Stellen auf, und für jede gibt es eine eigene Einstellung.
+Reels in the feed	Reels im Feed
+In News feed, Hide Reels in the feed blocks the rows of reels between posts.	Unter Newsfeed blockiert „Reels im Feed ausblenden“ die Reihen mit Reels zwischen den Beiträgen.
+Reels that play by themselves	Reels, die von selbst starten
+In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.	Unter Wiedergabe blockiert „Zum Abspielen tippen“ die automatische Wiedergabe, sodass Reels und andere Videos auf dein Antippen warten.
+The Reels tab	Der Reels-Tab
+Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, Facebook hasn't given your account that option, and Hushfacebook has no switch for the tab.	Den blockierst du mit Facebooks eigener Einstellung. Öffne Einstellungen, Tab-Leiste, Leiste anpassen und wähle Ausblenden neben Reels, das bei manchen Konten Video heißt. Steht keins von beiden dort, hat Facebook deinem Konto diese Option nicht gegeben, und Hushfacebook hat keinen Schalter für den Tab.
+Everything except Marketplace	Alles außer Marketplace
+In Opening Facebook, Marketplace only blocks the feed, the Reels tab and the other social tabs after a restart.	Unter „Beim Öffnen von Facebook“ blockiert „Nur Marketplace“ nach einem Neustart den Feed, den Reels-Tab und die anderen sozialen Tabs.
+Not in this build. To block this, choose the %1$s patch in Morphe Manager and patch again.	Nicht in diesem Build. Um das zu blockieren, wähle in Morphe Manager den Patch %1$s und patche erneut.
 Remove tracking from shared links	Tracking aus geteilten Links entfernen
 Retry	Erneut versuchen
 Save any story	Jede Story speichern
@@ -127,6 +152,8 @@ Save folder	Speicherordner
 Save full report	Vollständigen Bericht speichern
 Saved to %1$s	Gespeichert unter %1$s
 Saved to the gallery	In der Galerie gespeichert
+Saved to %1$s in lower quality than on Facebook	Gespeichert unter %1$s, in geringerer Qualität als auf Facebook
+Saved to the gallery in lower quality than on Facebook	In der Galerie gespeichert, in geringerer Qualität als auf Facebook
 Saved. Restart Facebook to apply this change.	Gespeichert. Starte Facebook neu, um diese Änderung zu übernehmen.
 Save your switches and download settings to a file. Pause and Debug logging aren't included, and neither is the release check.	Speichert deine Schalter und die Download-Einstellungen in einer Datei. Pause und Debug-Protokollierung sind nicht enthalten, die Suche nach neuen Versionen auch nicht.
 # The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
@@ -198,7 +225,11 @@ You paused Hushfacebook.	Du hast Hushfacebook pausiert.
 Your switches already match that file, so nothing will change.	Deine Schalter entsprechen bereits dieser Datei, es ändert sich also nichts.
 Keep feed position on return	Feedposition beim Zurückkehren beibehalten
 Returning to Facebook within ten minutes keeps your place. Pull to refresh still works.	Wenn du innerhalb von zehn Minuten zu Facebook zurückkehrst, bleibst du an derselben Stelle. Zum Aktualisieren kannst du weiter nach unten ziehen.
+No time limit	Kein Zeitlimit
+With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.	Wenn der Schalter oben an ist, bleibt deine Stelle erhalten, egal wie lange du weg bist. Zum Aktualisieren ziehen und ein Neustart laden weiterhin neue Beiträge.
 A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.	Eine abgeschlossene Story bleibt sichtbar, bis du tippst oder wischst. Schalte dies aus, um Facebooks Zeitsteuerung zu nutzen.
+View stories anonymously	Stories anonym ansehen
+Facebook isn't told which stories you watch, so you stay off their viewer lists. Replying or reacting still shows you, and stories you've watched keep their unwatched ring.	Facebook erfährt nicht, welche Stories du ansiehst, deshalb stehst du nicht in ihren Zuschauerlisten. Wenn du antwortest oder reagierst, sieht man dich trotzdem, und Stories, die du schon angesehen hast, behalten ihren Ring für neue Stories.
 Stop Story auto-advance	Automatisches Weiterspringen bei Stories stoppen
 Copy a short report to the clipboard.	Kurzen Bericht in die Zwischenablage kopieren.
 Save the full report in Download/Morphe.	Vollständigen Bericht unter Download/Morphe speichern.
@@ -263,14 +294,18 @@ Jump to a section	Zu einem Abschnitt springen
 Go straight to one group of settings. Back returns to where you were.	Direkt zu einer Gruppe von Einstellungen. Zurück bringt dich dorthin, wo du warst.
 # context: switch title under Downloads; on, every video save keeps to formats other apps accept
 Save videos other apps can open	Videos speichern, die andere Apps öffnen können
-# context: summary of that switch; H.264, AAC, AV1 and WhatsApp are names and stay as they are
-Prefer H.264 video with AAC sound for apps such as WhatsApp. Quality may be lower than AV1. Without a compatible version, save as usual.	Bevorzugt H.264 mit AAC-Ton für Apps wie WhatsApp. Die Qualität kann unter AV1 liegen. Ohne passende Version wird wie gewohnt gespeichert.
+# context: summary of that switch; WhatsApp is a name and stays as it is, and saves are the videos the user saved to the phone
+For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.	Für WhatsApp oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualität senken.
 # context: section title for the Chats settings, named like Facebook's own Chats screen
 Chats	Chats
 # context: switch title under Chats; the card is Facebook's own "Get the Messenger app" card
 Hide the Get Messenger card	Karte „Messenger holen“ ausblenden
 # context: summary of that switch; Messenger is the app's name and stays as it is
 The card at the top of Chats that asks you to get the Messenger app goes while Messenger is installed. Without Messenger it stays, so you can still install it from there.	Die Karte oben in den Chats, die dich bittet, die Messenger-App zu holen, verschwindet, solange Messenger installiert ist. Ohne Messenger bleibt sie, damit du Messenger weiterhin darüber installieren kannst.
+# context: switch title under Chats; on, Facebook's Messenger icon opens the Messenger app
+Open the Messenger app	Messenger-App öffnen
+# context: summary of that switch; Messenger is the app's name, Chats is Facebook's own chat screen as named above
+A tap on the Messenger icon at the top of Facebook opens the Messenger app instead of Chats. Without Messenger installed, Chats opens as before.	Ein Tippen auf das Messenger-Symbol oben in Facebook öffnet die Messenger-App statt der Chats. Ist Messenger nicht installiert, öffnen sich wie bisher die Chats.
 # context: settings section heading for the Tap to play switch
 Playback	Wiedergabe
 # context: switch title; on, videos and music wait for a tap before they play
@@ -383,15 +418,15 @@ Words to hide	Wörter zum Ausblenden
 # context: title of the row and dialog holding the list of words and phrases that keep a post even when it has a word to hide
 Words that keep a post	Wörter, bei denen ein Beitrag bleibt
 # context: message of the Words to hide dialog; %1$d is how many phrases a list holds (50), %2$d and %3$d the shortest and longest phrase in characters (2 and 60)
-One word or phrase per line, up to %1$d, each %2$d to %3$d characters long. Capital letters don't matter, and a phrase matches anywhere in a post's text, inside longer words too.	Ein Wort oder eine Wortfolge pro Zeile, bis zu %1$d, jeweils %2$d bis %3$d Zeichen lang. Groß- und Kleinschreibung spielt keine Rolle, und eine Wortfolge passt überall im Text eines Beitrags, auch mitten in längeren Wörtern.
+One word or phrase per line, up to %1$d, each %2$d to %3$d characters long, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. Capital letters don't matter, and a phrase matches anywhere in a post's text, inside longer words too.	Ein Wort oder eine Wortfolge pro Zeile, bis zu %1$d, jeweils %2$d bis %3$d Zeichen lang, oder nur eins bei einem Emoji, einem chinesischen Schriftzeichen, einem Kana oder einer Hangul-Silbe. Groß- und Kleinschreibung spielt keine Rolle, und eine Wortfolge passt überall im Text eines Beitrags, auch mitten in längeren Wörtern.
 # context: message of the Words that keep a post dialog; %1$d is how many phrases a list holds (50), %2$d and %3$d the shortest and longest phrase in characters (2 and 60)
-A post with any of these stays, even when it also has a word to hide. One per line, up to %1$d, each %2$d to %3$d characters long.	Ein Beitrag mit einem dieser Wörter bleibt, auch wenn er ein Wort zum Ausblenden enthält. Eins pro Zeile, bis zu %1$d, jeweils %2$d bis %3$d Zeichen lang.
+A post with any of these stays, even when it also has a word to hide. One per line, up to %1$d, each %2$d to %3$d characters long, or just one for an emoji, a Chinese character, a kana or a Hangul syllable.	Ein Beitrag mit einem dieser Wörter bleibt, auch wenn er ein Wort zum Ausblenden enthält. Eins pro Zeile, bis zu %1$d, jeweils %2$d bis %3$d Zeichen lang, oder nur eins bei einem Emoji, einem chinesischen Schriftzeichen, einem Kana oder einer Hangul-Silbe.
 # context: hint in the empty text box of both word list dialogs
 One word or phrase per line	Ein Wort oder eine Wortfolge pro Zeile
 # context: toast after saving a word list, one line left out; %2$d and %3$d are the shortest and longest phrase in characters, %4$d how many a list holds
-%1$d line was left out. A phrase needs %2$d to %3$d characters, one given twice counts once, and a list holds %4$d.	%1$d Zeile wurde weggelassen. Eine Wortfolge braucht %2$d bis %3$d Zeichen, eine doppelte zählt einmal, und eine Liste fasst %4$d.
+%1$d line was left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once, and a list holds %4$d.	%1$d Zeile wurde weggelassen. Eine Wortfolge braucht %2$d bis %3$d Zeichen, bei einem Emoji, einem chinesischen Schriftzeichen, einem Kana oder einer Hangul-Silbe nur eins. Eine doppelte zählt einmal, und eine Liste fasst %4$d.
 # context: toast after saving a word list, several lines left out; %2$d and %3$d are the shortest and longest phrase in characters, %4$d how many a list holds
-%1$d lines were left out. A phrase needs %2$d to %3$d characters, one given twice counts once, and a list holds %4$d.	%1$d Zeilen wurden weggelassen. Eine Wortfolge braucht %2$d bis %3$d Zeichen, eine doppelte zählt einmal, und eine Liste fasst %4$d.
+%1$d lines were left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts once, and a list holds %4$d.	%1$d Zeilen wurden weggelassen. Eine Wortfolge braucht %2$d bis %3$d Zeichen, bei einem Emoji, einem chinesischen Schriftzeichen, einem Kana oder einer Hangul-Silbe nur eins. Eine doppelte zählt einmal, und eine Liste fasst %4$d.
 # context: summary of the Words to hide row while it's empty
 No words yet, so no post is hidden.	Noch keine Wörter, also wird kein Beitrag ausgeblendet.
 # context: summary of the Words that keep a post row while it's empty
@@ -453,7 +488,7 @@ Active. Marketplace, Notifications and Profile/Menu stay. Find Hushfacebook sett
 # context: Settings overview, category navigation and search.
 Marketplace mode and your start tab	Marketplace-Modus und Starttab
 Ads, suggestions and word filters	Werbung, Vorschläge und Wortfilter
-Suggestions, saving and auto-advance	Vorschläge, Speichern und automatischer Wechsel
+Suggestions, saving, auto-advance and viewing anonymously	Vorschläge, Speichern, automatischer Wechsel und anonymes Ansehen
 Cleaner reels and video controls	Reels und Videosteuerung
 Tap to play and resume	Antippen zum Abspielen und Fortsetzen
 Quality, format and file names	Qualität, Format und Dateinamen
@@ -461,14 +496,35 @@ Browse settings	Einstellungen durchsuchen
 More settings	Weitere Einstellungen
 Additional Facebook preferences	Weitere Facebook-Einstellungen
 No matching settings	Keine passenden Einstellungen
+%1$d setting found	%1$d Einstellung gefunden
+%1$d settings found	%1$d Einstellungen gefunden
 Try a different word or clear the search.	Versuch ein anderes Wort oder lösche die Suche.
 Search settings	Einstellungen suchen
 Clear search	Suche löschen
 Your controls are active.	Deine Einstellungen sind aktiv.
-Your choices are saved. Resume after restarting Facebook.	Deine Auswahl bleibt gespeichert. Nach einem Neustart von Facebook geht es weiter.
+Your choices are saved. Tap Resume, then restart Facebook.	Deine Auswahl bleibt gespeichert. Tippe auf Fortsetzen und starte Facebook dann neu.
 Pause	Pausieren
 Resume	Fortsetzen
 Undo	Rückgängig
 
 # context: Settings overview, category navigation and search.
 Example without post details	Beispiel ohne Beitragsdetails
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Facebook's web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Unterstützte Links
+Android verified this app for Facebook's web addresses, so their links open here.	Android hat diese App für die Webadressen von Facebook bestätigt, deshalb öffnen sich ihre Links hier.
+Facebook's web addresses are selected for this app in Android's settings, so their links open here.	Die Webadressen von Facebook sind in den Android-Einstellungen für diese App ausgewählt, deshalb öffnen sich ihre Links hier.
+Only some of Facebook's web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Nur einige Webadressen von Facebook sind für diese App ausgewählt, und Links zu den übrigen öffnen sich woanders. Tippe, um sie in den Android-Einstellungen auszuwählen.
+None of Facebook's web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Keine Webadresse von Facebook ist für diese App ausgewählt, deshalb öffnen sich ihre Links woanders. Tippe, um sie in den Android-Einstellungen auszuwählen.
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	„Unterstützte Links öffnen“ ist für diese App in den Android-Einstellungen aus. Tippe, um es einzuschalten.
+Android didn't say which links open here. Tap to check in Android's settings.	Android hat nicht gemeldet, welche Links sich hier öffnen. Tippe, um in den Android-Einstellungen nachzusehen.
+Android 11 doesn't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 meldet nicht, welche Links sich hier öffnen. Tippe, um die Einstellungen dieser App zu öffnen, dann auf „Standardmäßig öffnen“.
+Selecting links by hand	Links von Hand auswählen
+Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	Android prüft die Links von Facebook mit dem Signaturschlüssel von Meta, den ein neu signierter Build nicht hat. Wenn du die Adressen auswählst, kommen ihre Links wieder hierher. Die Bestätigung durch Meta kommt dadurch nicht zurück, und deine anderen Link-Einstellungen bleiben, wie sie sind.
+Android's settings for this app didn't open. Open App info from Facebook's icon, then Open by default.	Die Android-Einstellungen für diese App ließen sich nicht öffnen. Öffne die App-Info über das Facebook-Symbol, dann „Standardmäßig öffnen“.
+# context: message when a save starts and its notification can't show (Facebook's notifications or the saves channel are off); Downloads is the settings section that lists running saves, each with its own Cancel
+Saving... Cancel: Downloads in Hushfacebook.	Wird gespeichert … Abbrechen: Downloads in Hushfacebook.
+# context: switch title under Reels and Watch; on, a double tap on a reel or a video doesn't like it
+Turn off double tap to like	Doppeltippen zum Liken ausschalten
+# context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
+A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Doppeltippen auf ein Reel oder Video markiert es nicht mehr mit „Gefällt mir“ und zeigt kein Herz. Einmal tippen und der „Gefällt mir“-Button funktionieren wie bisher.

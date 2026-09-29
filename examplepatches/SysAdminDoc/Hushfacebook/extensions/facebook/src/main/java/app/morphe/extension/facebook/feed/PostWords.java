@@ -24,7 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * syntax: a phrase means its own characters and nothing else.
  *
  * <p>Both lists are bounded, whatever wrote the store: at most {@link #MAX_PHRASES} phrases, each
- * {@link #MIN_LENGTH} to {@link #MAX_LENGTH} characters, a phrase given twice counted once. A line
+ * {@link #MIN_LENGTH} to {@link #MAX_LENGTH} characters, or one that's a word on its own (an
+ * ideograph, a kana or Hangul syllable, an emoji), a phrase given twice counted once. A line
  * outside the bounds is left out rather than cut, and the settings row says how many were.
  *
  * <p>The lists never leave the phone through Hushfacebook: no log line, diagnostic report or
@@ -70,9 +71,9 @@ public final class PostWords {
         while (start <= stored.length() && kept.size() < MAX_PHRASES) {
             int end = lineEnd(stored, start);
             String phrase = strip(stored.substring(start, end));
-            if (fits(phrase)) {
+            if (phrase.codePointCount(0, phrase.length()) <= MAX_LENGTH) {
                 String folded = fold(phrase);
-                if (folded.codePointCount(0, folded.length()) >= MIN_LENGTH && seen.add(folded)) kept.add(phrase);
+                if (longEnough(phrase, folded) && seen.add(folded)) kept.add(phrase);
             }
             start = end + 1;
         }
@@ -185,9 +186,28 @@ public final class PostWords {
         return newline < 0 ? text.length() : newline;
     }
 
-    private static boolean fits(String phrase) {
-        int length = phrase.codePointCount(0, phrase.length());
-        return length >= MIN_LENGTH && length <= MAX_LENGTH;
+    /**
+     * Whether a phrase is at least {@link #MIN_LENGTH} characters both as typed and folded, or folds
+     * to one character that {@link #standsAlone}. Folding decides, so an emoji's variation selector
+     * doesn't count, "Ⓐ" is the letter it folds to, and "ß", which folds to "ss", is still one
+     * letter typed.
+     */
+    private static boolean longEnough(String phrase, String folded) {
+        int length = folded.codePointCount(0, folded.length());
+        if (length == 1) return standsAlone(folded.codePointAt(0));
+        return length >= MIN_LENGTH && phrase.codePointCount(0, phrase.length()) >= MIN_LENGTH;
+    }
+
+    /**
+     * Whether one character is a word on its own: an ideograph, a kana or Hangul syllable, or a
+     * symbol such as an emoji. A letter or digit of a script that spaces its words is inside nearly
+     * every post, which is what the floor is for.
+     */
+    private static boolean standsAlone(int point) {
+        if (Character.isIdeographic(point) || Character.getType(point) == Character.OTHER_SYMBOL) return true;
+        Character.UnicodeScript script = Character.UnicodeScript.of(point);
+        return script == Character.UnicodeScript.HIRAGANA || script == Character.UnicodeScript.KATAKANA
+                || Character.UnicodeBlock.of(point) == Character.UnicodeBlock.HANGUL_SYLLABLES;
     }
 
     /** The text without the spaces, tabs and returns around it, Unicode's spaces included. */

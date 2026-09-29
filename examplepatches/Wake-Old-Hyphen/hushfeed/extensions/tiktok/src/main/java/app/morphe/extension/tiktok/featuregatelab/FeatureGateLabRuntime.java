@@ -7,6 +7,8 @@ package app.morphe.extension.tiktok.featuregatelab;
 import android.net.Uri;
 import android.util.Log;
 
+import app.morphe.extension.shared.diagnostics.DiagnosticRedactor;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -696,7 +698,8 @@ public final class FeatureGateLabRuntime {
                         // Let the next read ask again. Left set, one failed load would have put
                         // the process back to where it was before this existed, silently.
                         catalogRequested.set(false);
-                        Log.w(TAG, "catalog load for the AB fallback failed: " + message);
+                        Log.w(TAG, DiagnosticRedactor.redact(
+                                "catalog load for the AB fallback failed: " + message));
                     }
                 });
             }
@@ -727,8 +730,8 @@ public final class FeatureGateLabRuntime {
     private static FeatureGateLabStore.Rule refuse(FeatureGateLabStore.Rule rule,
             FeatureGateFailure reason) {
         structuredFailures.put(rule.id, reason);
-        Log.i(TAG, "refused manager=" + rule.manager + " key=" + rule.key
-                + " type=" + rule.type + " reason=" + reason.text());
+        Log.i(TAG, DiagnosticRedactor.redact("refused manager=" + rule.manager + " key=" + rule.key
+                + " type=" + rule.type + " reason=" + reason.text()));
         return null;
     }
 
@@ -840,9 +843,9 @@ public final class FeatureGateLabRuntime {
         // The Lab's master switch lives in its own store, outside the settings Pause Hushfeed
         // answers for, so a paused process turns it off here.
         boolean masterEnabled = FeatureGateLabStore.masterEnabled() && !Setting.isPaused();
-        Log.i(TAG, "snapshot master=" + masterEnabled
+        Log.i(TAG, DiagnosticRedactor.redact("snapshot master=" + masterEnabled
                 + " active_rules=" + active.size()
-                + " identities=" + summarizeRules(active));
+                + " identities=" + summarizeRules(active)));
         // Between reading the rules above and returning, a save on another thread may have
         // already moved the generation on. The publisher checks that; this seam exists so a
         // test can create that overlap deterministically.
@@ -891,12 +894,12 @@ public final class FeatureGateLabRuntime {
         }
         String caller = findCaller();
         firstCallers.put(rule.id, caller);
-        Log.i(TAG, "manager=" + rule.manager
+        Log.i(TAG, DiagnosticRedactor.redact("manager=" + rule.manager
                 + " key=" + rule.key
                 + " type=" + rule.type
                 + " original=" + safeLog(originalText)
                 + " forced=" + safeLog(String.valueOf(forced))
-                + " caller=" + caller);
+                + " caller=" + caller));
     }
 
     private static String findCaller() {

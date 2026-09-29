@@ -68,7 +68,6 @@ public final class LogBufferManager {
      * then the text below is read from {@link L10n}. The saved-file sentence carries the path as
      * %1$s.
      */
-    public static CharSequence nothingToExportMessage;
     public static CharSequence copiedMessage;
     public static CharSequence exportFailedMessage;
     public static CharSequence noContextMessage;
@@ -78,16 +77,6 @@ public final class LogBufferManager {
 
     private static String say(CharSequence set, String fallback) {
         return set == null ? fallback : set.toString();
-    }
-
-    /**
-     * What an export with nothing in it says, with the way to get something in it: a report is
-     * empty until a hook logs, and most of what hooks log waits for Debug logging. It's a long
-     * toast, since it carries steps.
-     */
-    private static String nothingToReport() {
-        return L10n.t("There's nothing to report yet. Turn on Debug logging, repeat what went wrong, "
-                + "then export again.");
     }
 
     private static final int BUFFER_MAX_CHARS = 250_000;
@@ -197,10 +186,6 @@ public final class LogBufferManager {
     /** Puts a built report on the clipboard, on the main thread. */
     private static void copyToClipboard(String exportText) {
         try {
-            if (exportText.isEmpty()) {
-                Utils.showToastLong(say(nothingToExportMessage, nothingToReport()));
-                return;
-            }
             Utils.setClipboard(exportText);
             Utils.showToastShort(say(copiedMessage, L10n.t("Diagnostic report copied to the clipboard.")));
         } catch (Exception ex) {
@@ -230,13 +215,8 @@ public final class LogBufferManager {
         try {
             Utils.submitOnBackgroundThread(() -> {
                 try {
-                    String exportText = buildExportText();
-                    if (exportText.isEmpty()) {
-                        Utils.showToastLong(say(nothingToExportMessage, nothingToReport()));
-                    } else {
-                        String saved = writeToFile(app, exportText);
-                        Utils.showToastLong(String.format(say(savedToMessage, L10n.t("Full report saved to %1$s")), L10n.isolate(saved)));
-                    }
+                    String saved = writeToFile(app, buildExportText());
+                    Utils.showToastLong(String.format(say(savedToMessage, L10n.t("Full report saved to %1$s")), L10n.isolate(saved)));
                 } catch (Exception ex) {
                     Utils.showToastLong(say(exportFailedMessage, L10n.t("The diagnostic report couldn't be saved. Try again.")));
                     Logger.printException(() -> "Failed to save diagnostics", ex);
@@ -339,7 +319,7 @@ public final class LogBufferManager {
 
     public static String buildExportText() {
         Export export = buildExport();
-        return export == null ? "" : export.head + eventsSection(export.events, null);
+        return export.head + eventsSection(export.events, null);
     }
 
     /**
@@ -352,7 +332,6 @@ public final class LogBufferManager {
      */
     static String clipboardText(int maxChars) {
         Export export = buildExport();
-        if (export == null) return "";
         String whole = export.head + eventsSection(export.events, null);
         if (whole.length() <= maxChars) return whole;
 
@@ -413,7 +392,11 @@ public final class LogBufferManager {
         }
     }
 
-    /** The report in its two parts, or null when nothing in it is worth sending. */
+    /**
+     * The report in its two parts. Every report asked for has the build's facts, even with nothing
+     * logged and no hook missing anything: those facts are what a bug report needs first (#16,
+     * #18), and a report used to be withheld until Debug logging had caught something.
+     */
     private static Export buildExport() {
         Set<String> selected = LogExportFilterPreference.parse(BaseSettings.DEBUG_LOG_FILTERS.get());
         boolean includeAll = selected.isEmpty() || selected.contains("all");
@@ -445,16 +428,6 @@ public final class LogBufferManager {
             }
         }
 
-        // A family exists from the first layout pass, so an all-bound table must not make a
-        // report non-empty: "No matching Morphe diagnostics found" would never be said again.
-        // A table with a miss in it is different. Those events are the oldest in the buffer and
-        // are the first evicted, so on a badly broken build the table is exactly what would be
-        // dropped, and it is the thing the report exists to carry.
-        boolean worthReporting = paused || !crash.isEmpty() || !npthCrash.isEmpty() || !events.isEmpty()
-                || (hooks.length() > 0
-                        && app.morphe.extension.shared.diagnostics.HookStatus.anyMissing());
-        if (!worthReporting) return null;
-
         StringBuilder report = new StringBuilder();
         report.append("MORPHE DIAGNOSTIC REPORT\n")
                 .append("schema: 1\n")
@@ -462,6 +435,7 @@ public final class LogBufferManager {
                 .append("app: ").append(Utils.getContext().getPackageName())
                 .append(' ').append(Utils.getAppVersionName())
                 .append(" (").append(Utils.getAppVersionCode()).append(")\n")
+                .append("android: ").append(androidLine()).append('\n')
                 .append("abi: ").append(abiLine()).append('\n')
                 .append("morphe: ").append(Utils.getPatchesReleaseVersion()).append('\n');
         if (paused) {
@@ -469,7 +443,11 @@ public final class LogBufferManager {
                     .append(HushfacebookPause.reason().name().toLowerCase(java.util.Locale.ROOT))
                     .append("), every hook a setting controls takes Facebook's own path, and what was set "
                             + "when patching stays in\n");
+        } else {
+            report.append("hushfacebook: running\n");
         }
+        // Most hooks log nothing without Debug logging, so a report with no events says why.
+        report.append("debug_logging: ").append(BaseSettings.DEBUG.get() ? "on" : "off").append('\n');
 
         if (!crash.isEmpty()) {
             report.append("\n[LATEST JAVA CRASH]\n").append(crash);
@@ -482,7 +460,7 @@ public final class LogBufferManager {
         }
         // The same choice as Hook status: what the bundle has been told to do is a fact about
         // the patches, and it is what a report from a phone with an override that changed
-        // nothing has been missing. Not part of worthReporting, for the reason above.
+        // nothing has been missing.
         if (includeAll || selected.contains(
                 app.morphe.extension.shared.diagnostics.DiagnosticCategory.PATCH_ERRORS.value)) {
             for (ReportSection section : REPORT_SECTIONS) {
@@ -499,21 +477,26 @@ public final class LogBufferManager {
                 }
             }
         }
-        // Outside worthReporting for the same reason as the last exit below: a counter that has
-        // only ever counted is not a finding, and a report made non-empty by one would mean
-        // nobody is ever told there is nothing to send.
         String feedFilter = feedFilterLines(includeAll, selected);
         if (!feedFilter.isEmpty()) {
             report.append("\n[FEED FILTER]\n").append(feedFilter).append('\n');
         }
-        // Deliberately not part of worthReporting above. Every process has a last exit, most of
-        // them ordinary, so counting it would mean no report was ever empty and "No matching
-        // Morphe diagnostics found" would never be said again.
         String lastExit = lastExitLine(includeAll, selected);
         if (!lastExit.isEmpty()) {
             report.append("\n[LAST EXIT]\n").append(lastExit).append('\n');
         }
         return new Export(report.toString(), events);
+    }
+
+    /**
+     * The Android API level and version, and which Android user runs the app. A copy in Dual
+     * Apps, a second space or a work profile runs as a user other than 0, and a clone is one of the
+     * first things a report has to rule in or out (#16); a renamed clone shows on the app line.
+     * The user is worked out from the uid, which Android numbers in blocks of 100000 per user.
+     */
+    static String androidLine() {
+        return "API " + Build.VERSION.SDK_INT + " (" + Build.VERSION.RELEASE + "), user "
+                + android.os.Process.myUid() / 100_000;
     }
 
     /**

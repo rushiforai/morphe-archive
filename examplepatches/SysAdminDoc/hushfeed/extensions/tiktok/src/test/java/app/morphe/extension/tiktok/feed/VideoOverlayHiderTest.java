@@ -850,6 +850,49 @@ public class VideoOverlayHiderTest {
         }
     }
 
+    /**
+     * A video opened from a creator's grid plays in TikTok's detail pager, a second activity with
+     * the same cell and the same right column ids (#47). The hides follow it there as it comes to
+     * the front; the status bar is left as TikTok set it, since that switch is the main feed's.
+     */
+    @Test
+    public void theHidesFollowAVideoOpenedFromAProfile() {
+        int likeId = 0x7f0a0200;
+        int cellId = 0x7f0a0201;
+        VideoOverlayHider.resolveForTests("47.0.3:g6r", likeId);
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        Settings.HIDE_RAIL_LIKE.save(true);
+        Settings.HIDE_STATUS_BAR.save(true);
+        try (var main = Robolectric.buildActivity(Activity.class).setup();
+             var detailController = Robolectric.buildActivity(
+                     com.ss.android.ugc.aweme.detail.ui.DetailActivity.class).create().start()) {
+            VideoOverlayHider.install(main.get());
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            Activity detail = detailController.get();
+            FrameLayout cell = new FrameLayout(detail);
+            cell.setId(cellId);
+            View like = new View(detail);
+            like.setId(likeId);
+            cell.addView(like);
+            detail.setContentView(cell);
+            detailController.resume();
+
+            detail.findViewById(android.R.id.content).getViewTreeObserver().dispatchOnGlobalLayout();
+
+            assertEquals(View.GONE, like.getVisibility());
+            assertEquals(0, detail.getWindow().getDecorView().getSystemUiVisibility()
+                    & View.SYSTEM_UI_FLAG_FULLSCREEN);
+
+            Settings.HIDE_RAIL_LIKE.save(false);
+            detail.findViewById(android.R.id.content).getViewTreeObserver().dispatchOnGlobalLayout();
+            assertEquals(View.VISIBLE, like.getVisibility());
+        } finally {
+            Settings.HIDE_RAIL_LIKE.save(false);
+            Settings.HIDE_STATUS_BAR.save(false);
+        }
+    }
+
     @Test
     public void theStatusBarComesBackOnlyIfThisClassHidIt() {
         try (var controller = Robolectric.buildActivity(Activity.class).setup()) {

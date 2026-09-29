@@ -23,13 +23,18 @@
     stub left unfilled, calling another class, or calling a class that isn't the only one
     answering its type name, Clean up Reels' hook deleted from Facebook's Follow check or put
     after a branch there, Use the phone's emoji's hooks deleted from Facebook's emoji typeface
-    provider and from its maker of emoji picture addresses, or put after a branch there, and the
-    GenAI reel stub left unfilled, filled with a call that stays in the extension, or calling
+    provider and from its maker of emoji picture addresses, or put after a branch there, Open
+    Messenger from the top bar's hooks deleted from the Messenger icon's tap and from its button
+    handler, or put after a branch there, Turn off double tap to like's hooks deleted from the reel
+    like helper's like and from the feed attachment's onDoubleTap, or put after a branch there, and
+    the GenAI reel stub left unfilled, filled with a call that stays in the extension, or calling
     Facebook's finder only after it has returned. Each start-call hook is also put first in a method
     holding part of what its rule picks by (the tray controller, onPause, another method naming both
     surfaces, a method holding the emoji provider's log tag alone, an instance method holding the
-    emoji pictures' base address), and one rule is given two methods to choose from; all six fail
-    naming the method the rule picks. The Follow hook is also put first in that other method as
+    emoji pictures' base address, a method of the tap's shape holding one entry point, a method of
+    another shape holding "long_press", a static method holding the like's trace, a static method
+    holding "translationY"), and one rule is given two methods to choose from; all ten fail naming
+    the method the rule picks. The Follow hook is also put first in that other method as
     well as in the check. A register out of range fails as its own finding:
     named by a helper added to a host class, as the upper half of a long read from the last
     register, as a long an extension method writes there, and in the feed guard. Each of the five
@@ -48,7 +53,11 @@
     registers the wrong way round, and a second flush answers the rule, a build each, each failing
     the sole-call rule for its own reason; a clean build whose flush makes no such call fails the
     good build's stand-in for want of one to stand in for, and the contract file may hold no other
-    sole-call rule.
+    sole-call rule. The feed guard's call in the runnable that swaps an edge into the feed is left
+    out, sent to another method of the runnable holding the first size of its log line with run()
+    left alone, sent there as well as in run(), sent twice, and a second run() answers the rule, a
+    build each, each failing the once-call rule for its own reason; the contract file may hold no
+    other once-call rule.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
@@ -611,6 +620,22 @@ try {
             'https://www.facebook.com/images/mobileemoji: first in Lfixture/EmojiPictures;->makeUrl('))) `
         "The good build's emoji picture hook was not first in Facebook's maker of emoji picture addresses.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        ('MessengerIcon;->open(Landroid/content/Context;Z)Z in static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;*)V ' +
+            'holding entry_point_navbar_global_icon_ entry_point_navbar_global_icon_reels_tab: first in Lfixture/MessengerBar;->tap('))) `
+        "The good build's Messenger icon hook was not first in the icon's tap.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        ('MessengerIcon;->open(Landroid/content/Context;Z)Z in static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;' +
+            'Ljava/lang/String;ZZ)V holding long_press: first in Lfixture/MessengerBar;->button('))) `
+        "The good build's Messenger icon hook was not first in the Messenger button handler.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        ('DoubleTapLike;->holdBackLike(Ljava/lang/String;)Z in instance (Lcom/facebook/auth/usersession/FbUserSession;*)V ' +
+            'holding FbShortsMutationUtil.mutateViewerLikeReaction: first in Lfixture/ReelLikeHelper;->like('))) `
+        "The good build's double tap like hook was not first in the reel like helper's like.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        ('DoubleTapLike;->holdBackTap()Z in instance (Landroid/view/MotionEvent;)Z holding translationY: ' +
+            'first in Lfixture/AttachmentTap;->onDoubleTap('))) `
+        "The good build's double tap hook was not first in the feed attachment's onDoubleTap.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         'GenAiReelFilter;->transparencyAttribution(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; outside ' +
         'Lapp/morphe/extension/: calls Lfixture/Attributions;->A02(Lfixture/ReelModel;Ljava/lang/String;)Lfixture/Model; ' +
         'before its first return')) `
@@ -676,6 +701,19 @@ try {
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         "contract $watchRule`: in place of it on v2, v1 in $watchFlush")) `
         "The good build's watch-history hook was not reported in place of the executor call.`n$($good.Output -join "`n")"
+    # The feed guard asks the extension once in the runnable that swaps an edge into the feed. The
+    # contract file's one once-call rule is that guard, so a rule this suite builds no bad fixtures
+    # for can't pass on a count nobody checks.
+    $swapHook = 'Lapp/morphe/extension/facebook/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z'
+    $swapRun = 'Lfixture/EdgeSwap;->run()V'
+    $swapHeld = '"sizeBefore" and "sizeAfter" with the shape instance ()V'
+    $swapRule = "once-call $swapHook in instance ()V holding sizeBefore sizeAfter"
+    $onceCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*once-call\s' } |
+        ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
+    Assert-True ($onceCallRules.Count -eq 1 -and $onceCallRules[0] -ceq $swapRule) `
+        "The contract file's once-call rules are not the swap guard this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
+        "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
 
     $bad = [ordered]@{
         'bad-branch' = 'branch'
@@ -767,6 +805,14 @@ try {
         'bad-emoji-hook-late' = 'contract'
         'bad-emoji-pictures-hook-missing' = 'contract'
         'bad-emoji-pictures-hook-late' = 'contract'
+        'bad-messenger-tap-hook-missing' = 'contract'
+        'bad-messenger-tap-hook-late' = 'contract'
+        'bad-messenger-button-hook-missing' = 'contract'
+        'bad-messenger-button-hook-late' = 'contract'
+        'bad-double-tap-like-hook-missing' = 'contract'
+        'bad-double-tap-like-hook-late' = 'contract'
+        'bad-double-tap-tap-hook-missing' = 'contract'
+        'bad-double-tap-tap-hook-late' = 'contract'
         'bad-logo-hook-missing' = 'contract'
         'bad-logo-hook-other-call' = 'contract'
         'bad-logo-hook-other-view' = 'contract'
@@ -781,6 +827,11 @@ try {
         'bad-watch-execute-left' = 'contract'
         'bad-watch-hook-other-registers' = 'contract'
         'bad-watch-two-flushes' = 'contract'
+        'bad-swap-hook-missing' = 'contract'
+        'bad-swap-hook-decoy' = 'contract'
+        'bad-swap-hook-also-elsewhere' = 'contract'
+        'bad-swap-hook-twice' = 'contract'
+        'bad-swap-two-runs' = 'contract'
         'bad-finder-stub-not-filled' = 'contract'
         'bad-finder-stub-extension-call' = 'contract'
         'bad-finder-stub-call-after-return' = 'contract'
@@ -790,6 +841,10 @@ try {
         'bad-follow-hook-wrong-method' = 'contract'
         'bad-emoji-hook-wrong-method' = 'contract'
         'bad-emoji-pictures-hook-wrong-method' = 'contract'
+        'bad-messenger-tap-hook-wrong-method' = 'contract'
+        'bad-messenger-button-hook-wrong-method' = 'contract'
+        'bad-double-tap-like-hook-wrong-method' = 'contract'
+        'bad-double-tap-tap-hook-wrong-method' = 'contract'
         'bad-follow-hook-also-elsewhere' = 'contract'
         'bad-register-added-helper' = 'register'
         'bad-register-wide-source' = 'register'
@@ -879,6 +934,25 @@ try {
         Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
             "$($case.Key) did not fail with its own watch-history finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
     }
+    # Each swap build fails on the once-call rule alone, for its own reason: no guard, one in another
+    # method of the runnable holding the first size, one there as well as in run(), two, or a
+    # second run().
+    $swapDescribe = 'Lfixture/EdgeSwap;->describe()V'
+    $swapFails = [ordered]@{
+        'bad-swap-hook-missing' = "[diff] FAIL: contract: $swapHook is not called in $swapRun, the one method holding $swapHeld"
+        'bad-swap-hook-decoy' = "[diff] FAIL: contract: $swapHook is not called in $swapRun, the one method holding " +
+            "$swapHeld; the host methods that call it: $swapDescribe"
+        'bad-swap-hook-also-elsewhere' = "[diff] FAIL: contract: $swapHook is called in $swapDescribe as well as in " +
+            "$swapRun, the one method holding $swapHeld"
+        'bad-swap-hook-twice' = "[diff] FAIL: contract: $swapHook has 2 call sites in $swapRun, and must have exactly one"
+        'bad-swap-two-runs' = "[diff] FAIL: contract: 2 methods hold $swapHeld, and exactly one must, so the rule " +
+            "can't say which one calls ${swapHook}: $swapRun, Lfixture/EdgeSwap;->runAgain()V"
+    }
+    foreach ($case in $swapFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail with its own swap finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
     # And against a clean build whose flush makes no executor call, the good build's stand-in has
     # nothing it took the place of.
     $noHandOverClean = New-DexApk -Name 'clean-no-hand-over' -Entries ([ordered]@{ 'classes.dex' = (Get-Dex 'clean-no-hand-over') })
@@ -924,6 +998,25 @@ try {
             'is not called in Lfixture/EmojiPictures;->makeUrl(Ljava/lang/String;Lfixture/EmojiSize;Ljava/lang/String;I)Ljava/lang/String;, ' +
             'the one method holding "https://www.facebook.com/images/mobileemoji" with the shape static (Ljava/lang/String;*)Ljava/lang/String;; ' +
             'the host methods that call it: Lfixture/EmojiPictures;->pictureAddress()Ljava/lang/String;'))
+        'bad-messenger-tap-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/chats/MessengerIcon;->open(Landroid/content/Context;Z)Z ' +
+            'is not called in Lfixture/MessengerBar;->tap(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Z)V, ' +
+            'the one method holding "entry_point_navbar_global_icon_" and "entry_point_navbar_global_icon_reels_tab" with the shape ' +
+            'static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;*)V; the host methods that call it: ' +
+            '*Lfixture/MessengerBar;->tapEntry(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Z)V*'))
+        'bad-messenger-button-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/chats/MessengerIcon;->open(Landroid/content/Context;Z)Z ' +
+            'is not called in Lfixture/MessengerBar;->button(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;ZZ)V, ' +
+            'the one method holding "long_press" with the shape static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;' +
+            'Ljava/lang/String;ZZ)V; the host methods that call it: ' +
+            '*Lfixture/MessengerBar;->buttonLog(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;Z)V*'))
+        'bad-double-tap-like-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackLike(Ljava/lang/String;)Z ' +
+            'is not called in Lfixture/ReelLikeHelper;->like(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/Object;Ljava/lang/String;)V, ' +
+            'the one method holding "FbShortsMutationUtil.mutateViewerLikeReaction" with the shape instance ' +
+            '(Lcom/facebook/auth/usersession/FbUserSession;*)V; the host methods that call it: ' +
+            '*Lfixture/ReelLikeHelper;->likeStatic(Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/Object;Ljava/lang/String;)V*'))
+        'bad-double-tap-tap-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackTap()Z ' +
+            'is not called in Lfixture/AttachmentTap;->onDoubleTap(Landroid/view/MotionEvent;)Z, the one method holding "translationY" ' +
+            'with the shape instance (Landroid/view/MotionEvent;)Z; the host methods that call it: ' +
+            '*Lfixture/AttachmentTap;->animateHeart(Landroid/view/MotionEvent;)Z*'))
         'bad-follow-hook-also-elsewhere' = @(('*contract: Lapp/morphe/extension/facebook/reels/ReelDeclutter;->hideFollowButton()Z ' +
             'is called in Lfixture/FollowCheck;->offersFollowHere(Lcom/facebook/auth/usersession/FbUserSession;)Z as well as in ' +
             'Lfixture/FollowCheck;->offersFollow(Lcom/facebook/auth/usersession/FbUserSession;)Z, the one method holding ' +
@@ -1013,7 +1106,14 @@ try {
             "sole-call $watchSend replacing $watchExecute holding",
             "sole-call $watchSend replacing $watchExecute holding video_ids video_ids",
             "sole-call $watchSend replacing $watchExecute in instance holding video_ids",
-            "sole-call $watchSend replacing $watchExecute in instance ()V")) {
+            "sole-call $watchSend replacing $watchExecute in instance ()V",
+            "once-call hideSwappedEdge holding sizeBefore sizeAfter",
+            "once-call $swapHook holding",
+            "once-call $swapHook holding sizeBefore sizeBefore",
+            "once-call $swapHook after $watchExecute holding sizeBefore",
+            "once-call $swapHook in instance ()V",
+            "once-call $swapHook in sometimes ()V holding sizeBefore",
+            "once-call $swapHook in instance holding sizeBefore")) {
         [System.IO.File]::WriteAllText($badContract, "# a comment line first`n$line`n")
         $unreadableFirstCall = Invoke-DexDiff -Clean $cleanApk -Patched (Join-Path $caseRoot 'good.apk') `
             -Allowlist $emptyAllowlist -Name 'bad-first-call-contract' -Contracts $badContract

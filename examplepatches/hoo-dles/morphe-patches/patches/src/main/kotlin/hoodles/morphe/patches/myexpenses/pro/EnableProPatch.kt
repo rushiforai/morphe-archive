@@ -6,22 +6,16 @@
 package hoodles.morphe.patches.myexpenses.pro
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val enableProPatch = bytecodePatch(
     name = "Enable Pro",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        name = "MyExpenses",
-        packageName = "org.totschnig.myexpenses",
-        appIconColor = 0x428BCA,
-        targets = listOf(AppTarget("4.1.1.2"))
-    ))
+    compatibleWith(Compat.MY_EXPENSES)
 
     execute {
         // Make setter value (first param) always LicenseStatus.PROFESSIONAL.

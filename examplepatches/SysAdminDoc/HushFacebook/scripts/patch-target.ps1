@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    Read the app target and the exact versions shared by every patch in a generated catalog.
+    Read the app target and the exact versions shared by every patch in a generated catalog, with
+    the version codes the catalog pins them to.
 
 .DESCRIPTION
     Device patching, fixture verification, heap measurements and release validation all need
@@ -16,6 +17,8 @@ function Get-PatchTarget {
     if ($patches.Count -eq 0) { throw 'patches-list.json contains no patches.' }
 
     $targets = @{}
+    # The version codes the first patch to name each package pins its builds to, by version name.
+    $targetCodes = @{}
     # The first patch to name each package, and the builds it declared. Every other patch has to
     # declare the same ones: a build only some patches support is one the bundle can't fully patch,
     # and a union of them would hand the release scripts that build as a declared target.
@@ -42,9 +45,27 @@ function Get-PatchTarget {
             if ($versions.Count -eq 0) {
                 throw "$patchName has no exact compatible version for $($property.Name)."
             }
-            $declared = @($versions | Sort-Object -Unique) -join ', '
+            # The version codes its compatibility block pins each of those builds to. APKMirror
+            # lists several arm64 builds of one Facebook version, each with its own dex, so the name
+            # alone doesn't say which of them the patches were proved on. A patch that pins none is
+            # read by the name, as before.
+            $codes = @{}
+            $compatibility = $patch.PSObject.Properties['compatibility']
+            foreach ($entry in @(if ($null -ne $compatibility) { $compatibility.Value })) {
+                if ($null -eq $entry -or [string]$entry.packageName -ne $property.Name) { continue }
+                foreach ($appTarget in @($entry.targets)) {
+                    if ($null -eq $appTarget -or $null -eq $appTarget.versionCodes) { continue }
+                    $version = [string]$appTarget.version
+                    $pinned = @($appTarget.versionCodes.PSObject.Properties | ForEach-Object { [string]$_.Value })
+                    $codes[$version] = @(@($codes[$version]) + $pinned | Where-Object { $_ } | Sort-Object -Unique)
+                }
+            }
+            $declared = @(foreach ($version in @($versions | Sort-Object -Unique)) {
+                if ($codes.ContainsKey($version)) { "$version ($($codes[$version] -join ', '))" } else { $version }
+            }) -join ', '
             if (-not $targets.ContainsKey($property.Name)) {
                 $targets[$property.Name] = $versions
+                $targetCodes[$property.Name] = $codes
                 $declaredBy[$property.Name] = @($patchName, $declared)
             } elseif ($declaredBy[$property.Name][1] -ne $declared) {
                 throw ("Every patch has to declare the same $($property.Name) builds: " +
@@ -81,9 +102,48 @@ function Get-PatchTarget {
         { $parts = @($_ -split '\.'); if ($part -lt $parts.Count) { [decimal]$parts[$part] } else { [decimal]-1 } }.GetNewClosure()
     })
     $versions = @($declared | Sort-Object -Descending -Property $keys)
+    # Every declared version has an entry, empty when the catalog pins it to no code.
+    $versionCodes = @{}
+    foreach ($version in $versions) {
+        $versionCodes[$version] = [string[]]@($targetCodes[$packageName][$version] | Where-Object { $_ })
+    }
     return [pscustomobject]@{
         PackageName = $packageName
         PackageVersion = $versions[0]
         PackageVersions = [string[]]$versions
+        PackageVersionCodes = $versionCodes
     }
+}
+
+function Test-DeclaredBuild {
+    <#
+    .SYNOPSIS
+        Whether an APK is one of the builds a catalog declares.
+    .DESCRIPTION
+        Its version name has to be declared, and so does its version code wherever the catalog pins
+        codes to that name. Another arm64 build of Facebook 580 shares the declared name and was
+        never proved, so only a declared build is patched without -f, and only a run of one proves
+        a release. Takes Get-PatchTarget's answer, or anything carrying its PackageVersions and
+        PackageVersionCodes.
+    #>
+    param(
+        [Parameter(Mandatory = $true)]$Target,
+        [string]$VersionName,
+        [string]$VersionCode
+    )
+
+    if (@($Target.PackageVersions) -cnotcontains $VersionName) { return $false }
+    $pinned = @($Target.PackageVersionCodes[$VersionName] | Where-Object { $_ })
+    return ($pinned.Count -eq 0 -or $pinned -ccontains $VersionCode)
+}
+
+function Format-DeclaredBuilds {
+    # The declared builds the way a refusal names them: 580.0.0.51.74 (475019344), 577.0.0.50.72 (474426275).
+    param([Parameter(Mandatory = $true)]$Target)
+
+    $named = foreach ($version in @($Target.PackageVersions)) {
+        $pinned = @($Target.PackageVersionCodes[$version] | Where-Object { $_ })
+        if ($pinned.Count -gt 0) { "$version ($($pinned -join ' or '))" } else { $version }
+    }
+    return (@($named) -join ', ')
 }

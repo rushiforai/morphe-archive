@@ -18,19 +18,6 @@ object VisualRubricatorElementFingerprint : Fingerprint(
     filters = listOf(string(VISUAL_RUBRICATOR_ITEM_MARKER)),
 )
 
-object VisualRubricatorRowLineFingerprint : Fingerprint(
-    name = "toString",
-    returnType = "Ljava/lang/String;",
-    parameters = emptyList(),
-    filters = listOf(
-        string(ROW_LINE_MARKER),
-        fieldAccess(
-            definingClass = "this",
-            type = "Ljava/lang/Integer;",
-        ),
-    ),
-)
-
 /**
  * Matches the Favorites presenter method that consumes the assembled tab list and
  * populates the (legacy) tab strip — `user_favorites/O.b(List)` on 227.0.
@@ -99,6 +86,26 @@ object ExpandablePanelCollapsedLinesFingerprint : Fingerprint(
     definingClass = "Lcom/avito/android/util/ExpandablePanelLayout;",
     returnType = "V",
     parameters = listOf("Ljava/lang/Integer;"),
+)
+
+/**
+ * Matches the Profile Pro converter that turns the loaded `List<ProfileTabWidget>`
+ * into profile screen items (`converters/t.a` on 233.5). Its sibling in the same
+ * package with this signature only delegates here; this one dispatches every
+ * widget type and builds the recommendations item with a literal id.
+ */
+object ProfileWidgetsConverterFingerprint : Fingerprint(
+    definingClass = "Lcom/avito/android/profile/pro/impl/converters/",
+    returnType = "Ljava/util/List;",
+    parameters = listOf(
+        "Ljava/util/ArrayList;",
+        "Lcom/avito/android/activeOrders/",
+        "Lcom/avito/android/safedeal_items_public/",
+        "Lcom/avito/android/profile/pro/impl/interactor/",
+    ),
+    filters = listOf(
+        string("recommendations"),
+    ),
 )
 
 /**

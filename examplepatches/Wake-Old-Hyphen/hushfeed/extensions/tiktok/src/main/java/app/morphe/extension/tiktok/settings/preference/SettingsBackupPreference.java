@@ -8,11 +8,13 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import app.morphe.extension.tiktok.settings.L10n;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.preference.Preference;
 import android.preference.PreferenceScreen;
+import android.provider.DocumentsContract;
 import android.view.View;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -28,6 +30,15 @@ public final class SettingsBackupPreference extends Preference
         implements app.morphe.extension.shared.settings.preference.ImmediateAction {
     private static final int EXPORT = 7311, IMPORT = 7312, RESET = 7313, UNDO = 7314;
     private static final AtomicBoolean BUSY = new AtomicBoolean();
+    // Cleanup must still run when the shared worker pool refused the export itself.
+    private static final java.util.concurrent.ExecutorService EXPORT_CLEANUP =
+            java.util.concurrent.Executors.newSingleThreadExecutor(task -> {
+                Thread thread = new Thread(task, "Hushfeed-BackupCleanup");
+                thread.setDaemon(true);
+                return thread;
+            });
+    private static int busyAction;
+    private static String runningLine;
     /** The four rows on the page right now, so a run can take them all out of reach. */
     private static final java.util.List<java.lang.ref.WeakReference<SettingsBackupPreference>> ROWS =
             new java.util.concurrent.CopyOnWriteArrayList<>();
@@ -96,6 +107,8 @@ public final class SettingsBackupPreference extends Preference
      * the line as its state, which is the treatment Inbox Clear all already had.
      */
     static void setRowsBusy(int action, String running) {
+        busyAction = action;
+        runningLine = running;
         for (java.lang.ref.WeakReference<SettingsBackupPreference> held : ROWS) {
             SettingsBackupPreference row = held.get();
             if (row == null) {
@@ -105,8 +118,8 @@ public final class SettingsBackupPreference extends Preference
             if (running == null) {
                 row.busyLine = null;
                 row.setEnabled(true);
-                row.refreshUndoAvailability();
                 row.setSummary(row.restingSummary);
+                row.refreshUndoAvailability();
                 continue;
             }
             row.busyLine = row.rowAction == action ? running : null;
@@ -147,7 +160,10 @@ public final class SettingsBackupPreference extends Preference
 
     private static void run(TikTokPreferenceFragment fragment, int action, Uri uri) {
         Activity activity = fragment.getActivity();
-        if (activity == null || !BUSY.compareAndSet(false, true)) return;
+        if (activity == null || !BUSY.compareAndSet(false, true)) {
+            if (action == EXPORT) discardUnstartedExport(activity, uri);
+            return;
+        }
         Context context = activity.getApplicationContext();
         WeakReference<TikTokPreferenceFragment> owner = new WeakReference<>(fragment);
         // The settings window the result is shown in, as a banner that stays until it is read.
@@ -242,12 +258,15 @@ public final class SettingsBackupPreference extends Preference
                 else SettingsActionBanner.showRestart(target(window, context), message);
             } catch (SettingsBackup.RuleListTooLarge tooLarge) {
                 // Named, since a backup with it in would be refused by every restore.
-                SettingsActionBanner.showNotice(target(window, context), L10n.f(
+                String message = L10n.f(
                         "%1$s is too long for a settings backup. Shorten it, then save the backup again.",
-                        L10n.t(tooLarge.listTitle)));
+                        L10n.t(tooLarge.listTitle));
+                SettingsActionBanner.showNotice(target(window, context),
+                        exportFailure(context, action, uri, message));
             } catch (Exception error) {
                 Logger.printException(() -> "Settings backup operation failed", error);
-                SettingsActionBanner.showNotice(target(window, context), L10n.t(failureMessage(action, error)));
+                SettingsActionBanner.showNotice(target(window, context), exportFailure(
+                        context, action, uri, L10n.t(failureMessage(action, error))));
             } finally {
                 Utils.runOnMainThread(() -> {
                     if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = false;
@@ -259,6 +278,7 @@ public final class SettingsBackupPreference extends Preference
             }
         });
         if (!accepted) {
+            if (action == EXPORT) discardUnstartedExport(activity, uri);
             if (action != EXPORT) AbstractPreferenceFragment.settingImportInProgress = false;
             BUSY.set(false);
             setRowsBusy(0, null);
@@ -267,6 +287,36 @@ public final class SettingsBackupPreference extends Preference
             TikTokPreferenceFragment current = owner.get();
             if (current != null && current.isAdded()) current.refreshBackupSettings();
         }
+    }
+
+    private static String exportFailure(Context context, int action, Uri uri, String failure) {
+        if (action != EXPORT || deleteCreatedDocument(context.getContentResolver(), uri)) return failure;
+        return failure + " " + L10n.t(context,
+                "The partial file couldn't be removed. Delete it from the folder you chose.");
+    }
+
+    private static boolean deleteCreatedDocument(ContentResolver resolver, Uri uri) {
+        if (resolver == null || uri == null) return false;
+        try {
+            return DocumentsContract.deleteDocument(resolver, uri);
+        } catch (Exception error) {
+            Logger.printException(() -> "Settings backup export cleanup failed", error);
+            return false;
+        }
+    }
+
+    /** Only ACTION_CREATE_DOCUMENT results belong here; imports are existing user files. */
+    private static void discardUnstartedExport(Context window, Uri uri) {
+        Context context = window == null ? Utils.getContext() : window.getApplicationContext();
+        WeakReference<Context> feedback = new WeakReference<>(window);
+        EXPORT_CLEANUP.execute(() -> {
+            ContentResolver resolver = context == null ? null : context.getContentResolver();
+            if (!deleteCreatedDocument(resolver, uri)) {
+                Context current = feedback.get();
+                SettingsActionBanner.showNotice(current == null ? context : current, L10n.t(context,
+                        "The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose."));
+            }
+        });
     }
 
     /** The settings window while it is open; the banner falls back to a toast off it. */
@@ -316,6 +366,18 @@ public final class SettingsBackupPreference extends Preference
                 case ROLLED_BACK:
                     return "That settings change didn't go through. Nothing was altered.";
                 case RECOVERY_REQUIRED:
+                    // Each action names itself: a Reset or an Undo that stopped halfway used to
+                    // report a restore nobody had asked for.
+                    if (action == RESET) {
+                        return restore.isRecoveryAvailable()
+                                ? "Reset didn't finish. Some settings may still be changed. Use Undo to put them back."
+                                : "Reset didn't finish. Some settings may still be changed.";
+                    }
+                    if (action == UNDO) {
+                        return restore.isRecoveryAvailable()
+                                ? "Undo didn't finish. Some settings may still be changed. Try Undo again."
+                                : "Undo didn't finish. Some settings may still be changed.";
+                    }
                     return restore.isRecoveryAvailable()
                             ? "Restore failed. Some settings may still be changed. Use Undo to put them back."
                             : "Restore failed. Some settings may still be changed.";
@@ -326,6 +388,8 @@ public final class SettingsBackupPreference extends Preference
         if (action == UNDO && hasCause(error, java.io.FileNotFoundException.class)) {
             return "Nothing to undo yet.";
         }
+        if (action == RESET) return "Couldn't reset the settings. Try again.";
+        if (action == UNDO) return "Couldn't undo the last change. Try again.";
         return "Couldn't restore the settings. Try again.";
     }
 
@@ -348,7 +412,13 @@ public final class SettingsBackupPreference extends Preference
      */
     private void refreshUndoAvailability() {
         // Nothing overrides a run in progress: the row is disabled and saying what it is doing.
-        if (busyLine != null || rowAction != UNDO) return;
+        if (BUSY.get()) {
+            busyLine = rowAction == busyAction ? runningLine : null;
+            setEnabled(false);
+            if (busyLine != null) setSummaryDirect(busyLine);
+            return;
+        }
+        if (rowAction != UNDO) return;
         boolean available = SettingsBackup.hasUndo(getContext());
         if (isEnabled() != available) setEnabled(available);
         // The one greyed row on the page, and its summary went on offering a recovery. A

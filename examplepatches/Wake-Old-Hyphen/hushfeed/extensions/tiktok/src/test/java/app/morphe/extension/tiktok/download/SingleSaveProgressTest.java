@@ -151,6 +151,75 @@ public class SingleSaveProgressTest {
         } finally { secondRun.run(index -> { }); }
     }
 
+    /**
+     * Saves at once at twice the text size: one running, two waiting in sight and two more out
+     * of it. The three rows and the line that counts the other two stack without touching and
+     * all stay on screen, with the rows out of sight taking no room.
+     */
+    @Test @Config(qualifiers = "w360dp-h640dp-night-mdpi", fontScale = 2f)
+    public void simultaneousJobsAndTheLineForTheRestFitAtLargeText() throws Exception {
+        for (int wait = 0; wait < 500 && MediaJobScheduler.runningJobs() + MediaJobScheduler.queuedJobs() != 0; wait++) {
+            Thread.sleep(10);
+        }
+        java.util.concurrent.CountDownLatch hold = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch started = new java.util.concurrent.CountDownLatch(MediaJobScheduler.MAX_RUNNING_JOBS);
+        List<MediaJobScheduler.Job> waiting = new ArrayList<>();
+        try {
+            for (int index = 0; index < MediaJobScheduler.MAX_RUNNING_JOBS; index++) {
+                assertTrue(MediaJobScheduler.submit("large text hold", () -> {
+                    started.countDown();
+                    try {
+                        hold.await(10, TimeUnit.SECONDS);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                    }
+                }));
+            }
+            assertTrue(started.await(5, TimeUnit.SECONDS));
+            progress = SaveProgress.begin(1, true);
+            settle();
+            waiting.add(SaveProgress.queued(1, true).submit("large video", null, () -> { }, null));
+            waiting.add(SaveProgress.queued(4, false).submit("large photos", null, () -> { }, null));
+            waiting.add(SaveProgress.queued(1, true).submit("out of sight", null, () -> { }, null));
+            waiting.add(SaveProgress.queued(5, false).submit("out of sight", null, () -> { }, null));
+            settle();
+            for (int pass = 0; pass < 3; pass++) {
+                root.measure(View.MeasureSpec.makeMeasureSpec(360, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY));
+                root.layout(0, 0, 360, 640);
+                idle();
+            }
+            List<View> shown = new ArrayList<>();
+            int hidden = 0;
+            View line = null;
+            for (int index = 0; index < root.getChildCount(); index++) {
+                View child = root.getChildAt(index);
+                if ("hushfeed_save_waiting".equals(child.getTag())) line = child;
+                if (!"hushfeed_save_progress".equals(child.getTag())) continue;
+                if (child.getVisibility() == View.VISIBLE) shown.add(child);
+                else hidden++;
+            }
+            assertEquals("rows in sight", SaveProgress.MAX_ROWS, shown.size());
+            assertEquals("rows out of sight", 2, hidden);
+            assertNotNull("nothing counts the rows out of sight", line);
+            assertEquals("2 more saves waiting", ((TextView) line).getText().toString());
+            shown.sort((a, b) -> Integer.compare(b.getTop(), a.getTop()));
+            for (int index = 1; index < shown.size(); index++) {
+                assertTrue("row " + index + " overlaps the row below it",
+                        shown.get(index).getBottom() <= shown.get(index - 1).getTop());
+            }
+            View highest = shown.get(shown.size() - 1);
+            assertTrue("the waiting line overlaps the highest row", line.getBottom() <= highest.getTop());
+            assertTrue("the waiting line went off the top of the screen", line.getTop() >= 0);
+            assertTrue("a row went off the top of the screen", highest.getTop() >= 0);
+            UiCapture.save(root, "pages/downloads/save-queue-large.png", 360, 640);
+        } finally {
+            for (MediaJobScheduler.Job job : waiting) if (job != null) job.cancel();
+            hold.countDown();
+            idle();
+        }
+    }
+
     @Test public void realCopyReportsWrittenBytesAndResetsAfterABadMirror() throws Exception {
         byte[] body = new byte[131072];
         System.arraycopy(new byte[]{0, 0, 0, 16, 'f', 't', 'y', 'p', 'i', 's', 'o', 'm', 0, 0, 0, 0}, 0, body, 0, 16);

@@ -61,6 +61,9 @@ public class ContentShapeFilterTest {
         private String shareUrl;
         private int type;
         private AwemeStatistics statistics;
+        private long liveId;
+        /** Read by its field name, the way the Shop filter reads a selling LIVE. */
+        public boolean isLiveHasProduct;
 
         Item(String aid) {
             this.aid = aid;
@@ -72,6 +75,7 @@ public class ContentShapeFilterTest {
         Item photoText() { photoText = new PhotoModeTextInfo(); return this; }
         Item shareUrl(String url) { shareUrl = url; return this; }
         Item type(int awemeType) { type = awemeType; return this; }
+        Item live(long id, boolean selling) { liveId = id; isLiveHasProduct = selling; return this; }
         Item count(int index, long value) {
             long[] counts = {30, 30, 30, 30, 30};
             counts[index] = value;
@@ -93,6 +97,10 @@ public class ContentShapeFilterTest {
         @Override public String getShareUrl() { return shareUrl; }
         @Override public int getAwemeType() { return type; }
         @Override public AwemeStatistics getStatistics() { return statistics; }
+        // The Shop filter asks whether an item is a LIVE before it reads what the room sells.
+        @Override public long getLiveId() { return liveId; }
+        @Override public boolean isLiveReplay() { return false; }
+        @Override public String getLiveType() { return null; }
     }
 
     private static FeedItemList page(Item... items) {
@@ -199,6 +207,19 @@ public class ContentShapeFilterTest {
         Settings.HIDE_SHOP.save(false);
         assertEquals(Arrays.asList("shop"),
                 survivors(page(new Item("shop").shareUrl("x/placeholder_product_id"))));
+    }
+
+    /** A LIVE selling while it streams is Shop content (#46), and Hide LIVE videos stays off. */
+    @Test
+    public void aShoppingLiveGoesWithTheShopSwitch() {
+        Settings.HIDE_LIVE.save(false);
+        Settings.HIDE_SHOP.save(true);
+        assertEquals(Arrays.asList("live", "video"),
+                survivors(page(
+                        new Item("selling").shareUrl(null).live(7, true),
+                        new Item("live").shareUrl(null).live(8, false),
+                        new Item("video").shareUrl(null))));
+        Settings.HIDE_SHOP.save(false);
     }
 
     @Test

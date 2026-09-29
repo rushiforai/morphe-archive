@@ -1,3 +1,14 @@
+## [0.5.0](https://github.com/Santodan/santodan-patches/compare/v0.4.1...v0.5.0) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **nuviotv:** preserve and refresh merged progress ([3e7595b](https://github.com/Santodan/santodan-patches/commit/3e7595bc1a830c88136ec0e068dfeae9a203172a))
+
+### ✨ New Features
+
+* **nuviotv:** add merged tracking progress [skip ci] ([be772fe](https://github.com/Santodan/santodan-patches/commit/be772fe379f73156595e1f4def5546e83525b417))
+* **nuviotv:** configure side-by-side installation ([1cfc77e](https://github.com/Santodan/santodan-patches/commit/1cfc77e21814eed47a5035053d096950227622cf))
+
 ## [0.4.1](https://github.com/Santodan/santodan-patches/compare/v0.4.0...v0.4.1) (2026-09-25)
 
 ### 🐛 Bug Fixes
@@ -12,14 +23,14 @@
 
 ## Unreleased
 
-### Bug Fixes
-
-* **nuviotv:** update remaining episode count and side-by-side installation for 1.1.0-beta.2
-
 ### New Features
 
-* **nuviotv:** add remaining episode counts to Continue Watching
-* **nuviotv:** support side-by-side installation with the official app
+* **nuviotv:** add selectable merged tracking progress for Continue Watching
+* **nuviotv:** make the side-by-side package and app names configurable for multiple test installations
+
+### Bug Fixes
+
+* **nuviotv:** preserve merged Continue Watching during startup and refresh providers before publishing updates
 
 ## [0.3.2](https://github.com/Santodan/santodan-patches/compare/v0.3.1...v0.3.2) (2026-09-24)
 

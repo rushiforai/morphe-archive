@@ -24,6 +24,35 @@ public class DiagnosticRedactorTest {
     private static final String FSI = "⁨";
     private static final String PDI = "⁩";
 
+    /** Android's connect failure names the phone's own address, routable on an IPv6 network. */
+    @Test public void aConnectFailureLosesBothAddressesAndKeepsItsShape() {
+        String line = DiagnosticRedactor.redact("failed to connect to cdn.example/203.0.113.9 (port 443)"
+                + " from /2607:fb90:8a2c:1d4e:5c1f:9b2a:77e3:41d0 (port 38754) after 15000ms;"
+                + " retry via /fe80::1%wlan0 (port 443)");
+
+        assertEquals("failed to connect to cdn.example/[address omitted] (port 443)"
+                + " from /[address omitted] (port 38754) after 15000ms;"
+                + " retry via /[address omitted] (port 443)", line);
+    }
+
+    @Test public void clockTimesAndVersionsAreNotTakenForAddresses() {
+        String line = "10:23:11.269 Hushfeed 0.63.0 for TikTok 47.1.3, Logger::printInfo";
+
+        assertEquals(line, DiagnosticRedactor.redact(line));
+    }
+
+    /** A saved file's name glues the video's id to the date with an underscore. */
+    @Test public void anIdGluedToAnUnderscoreIsStillAnId() {
+        assertEquals("file=dana_2026-09-01_[id omitted].mp4",
+                DiagnosticRedactor.redact("file=dana_2026-09-01_7412345678901234567.mp4"));
+    }
+
+    @Test public void theUsAndEuServiceHostsAreOmittedToo() {
+        assertEquals("Unable to resolve host \"[host omitted]\" and [host omitted]",
+                DiagnosticRedactor.redact("Unable to resolve host \"v16m.tiktokcdn-us.com\""
+                        + " and api16-normal-useast5.tiktokv.us"));
+    }
+
     @Test public void theToastLineLosesTheNameAndKeepsTheAction() {
         String line = DiagnosticRedactor.redact("Showing toast: Blocked " + FSI + "Dana Q" + PDI);
 

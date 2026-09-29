@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="fix: remove apkFileType declarations so web-search accepts any file type"
+MSG="feat(stickwar): bypass pairip signature and license entry checks"
 
 cd "$DIR"
 

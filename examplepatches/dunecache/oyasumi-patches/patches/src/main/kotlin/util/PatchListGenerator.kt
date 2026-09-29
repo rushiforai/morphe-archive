@@ -129,9 +129,9 @@ private class JsonPatch(
 /** JSON representation of a compatible app entry, including name and per-version metadata. */
 @Suppress("unused")
 private class JsonCompatibility(
-    /** Android package name, e.g. com.google.android.youtube. */
+    /** Android package name, e.g. com.example.target. */
     val packageName: String,
-    /** Human-readable app name declared in Compatibility, e.g. "YouTube". */
+    /** Human-readable app name declared in Compatibility. */
     val name: String?,
     /** User-facing description of the app. */
     val description: String?,

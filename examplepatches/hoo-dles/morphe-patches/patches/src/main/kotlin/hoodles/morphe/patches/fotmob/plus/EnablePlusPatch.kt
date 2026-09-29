@@ -10,8 +10,6 @@ import app.morphe.patcher.checkCast
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.newInstance
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
 import app.morphe.patches.all.misc.extension.sharedExtensionPatch
@@ -20,6 +18,7 @@ import app.morphe.util.returnBoxedBooleanEarly
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import hoodles.morphe.compatibility.Compat
 
 val sharedExtensionPatch = sharedExtensionPatch(
     "fotmob",
@@ -31,12 +30,7 @@ val enablePlusPatch = bytecodePatch(
     name = "Enable FotMob+",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        name = "FotMob",
-        packageName = "com.mobilefootie.wc2010",
-        appIconColor = 0x00985F,
-        targets = listOf(AppTarget("236.17398.20260827"))
-    ))
+    compatibleWith(Compat.FOTMOB)
 
     dependsOn(sharedExtensionPatch)
 

@@ -19,6 +19,8 @@ object BackgroundBlueNoiseDecodedAudit {
     private data class Background(val suffix: Int, val drawReturn: Long)
     private val backgrounds = mapOf(
         "5001712" to Background(0x9d23d, 0xf1d28L),
+        "5001812" to Background(0x9d182, 0xf1c28L),
+        "5001968" to Background(0x96e5b, 0xed558L),
         "5002244" to Background(0x976e6, 0xeeb44L),
         "5002363" to Background(0x99013, 0xf1c84L),
     )
@@ -151,6 +153,8 @@ object BackgroundBlueNoiseDecodedAudit {
             }
             val formatOffsets = when (layout.code) {
                 "5001712" -> intArrayOf(0x10a9c4, 0x10aa34)
+                "5001812" -> intArrayOf(0x10ab24, 0x10ab94)
+                "5001968" -> intArrayOf(0x106a94, 0x106b04)
                 "5002244" -> intArrayOf(0x10826c, 0x1082dc, 0x10834c)
                 "5002363" -> intArrayOf(0x10c840, 0x10c8b0, 0x10c920)
                 else -> error("Missing independently verified format sites")

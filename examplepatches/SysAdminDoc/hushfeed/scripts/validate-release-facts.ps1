@@ -277,7 +277,14 @@ if ($SkipUrlCheck -and -not $DescriptionText) {
             throw ('The gh CLI is needed to read the repository description of ' + $slug +
                 '. Install it, or pass -SkipUrlCheck to run the rest with no network.')
         }
-        $description = (& gh api "repos/$slug" --jq '.description' 2>$null)
+        # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+        $preference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            $description = (& gh api "repos/$slug" --jq '.description' 2>$null)
+        } finally {
+            $ErrorActionPreference = $preference
+        }
         if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($description)) {
             throw ("Could not read the description of $slug through gh. Run gh auth login, or pass " +
                 '-SkipUrlCheck to run the rest with no network.')
@@ -549,8 +556,15 @@ if ($VerifyPublishedAsset) {
         $releaseTagRef = "refs/tags/v$publishedVersion"
         $peeledTagRef = "$releaseTagRef^{}"
         $remoteUrl = "https://github.com/$slug.git"
-        $remoteTags = @(& git ls-remote $remoteUrl $releaseTagRef $peeledTagRef 2>$null)
-        $remoteStatus = $LASTEXITCODE
+        # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+        $preference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            $remoteTags = @(& git ls-remote $remoteUrl $releaseTagRef $peeledTagRef 2>$null)
+            $remoteStatus = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
         if ($remoteStatus -ne 0) {
             throw "Could not read v$publishedVersion from $remoteUrl."
         }
@@ -642,8 +656,15 @@ if ($VerifyPublishedAsset) {
             try {
                 # --out keeps the list clear of the CLI's own log lines, which share stdout.
                 $global:LASTEXITCODE = 0
-                $cliOutput = & $javaCommand '-jar' $countJar 'list-patches' "--patches=$temporaryArtifact" `
-                    '-d=false' '-i=false' "--out=$listing" 2>&1
+                # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+                $preference = $ErrorActionPreference
+                $ErrorActionPreference = 'Continue'
+                try {
+                    $cliOutput = & $javaCommand '-jar' $countJar 'list-patches' "--patches=$temporaryArtifact" `
+                        '-d=false' '-i=false' "--out=$listing" 2>&1
+                } finally {
+                    $ErrorActionPreference = $preference
+                }
                 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $listing -PathType Leaf)) {
                     throw ("Could not list the patches in the published bundle: " +
                         ($cliOutput -join ' '))

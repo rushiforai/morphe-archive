@@ -14,6 +14,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 private const val PERMISSION_TYPE = "Lcom/ather/btconnectivity/ui/permission/v0;"
 private const val PERMISSION_TYPE_ARRAY = "[$PERMISSION_TYPE"
 
+// Ather 13.5.0 ships the same constructor under the z0 name and fills a u0 array.
+private const val PERMISSION_TYPE_1350 = "Lcom/ather/btconnectivity/ui/permission/u0;"
+private const val PERMISSION_TYPE_ARRAY_1350 = "[$PERMISSION_TYPE_1350"
+
 /**
  * Matches the constructor that builds the pairing wizard's permission list.
  *
@@ -36,6 +40,20 @@ internal object PairingWizardPermissionFingerprint : Fingerprint(
         method.implementation?.instructions?.any { instruction ->
             instruction.opcode == Opcode.FILLED_NEW_ARRAY &&
                 (instruction as? ReferenceInstruction)?.reference?.toString() == PERMISSION_TYPE_ARRAY
+        } == true
+    },
+)
+
+/**
+ * Matches the same constructor in the 13.5.0 build (`z0` filling a `u0[]`).
+ */
+internal object PairingWizardPermissionFingerprint1350 : Fingerprint(
+    definingClass = "Lcom/ather/btconnectivity/ui/permission/z0;",
+    name = "<init>",
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.opcode == Opcode.FILLED_NEW_ARRAY &&
+                (instruction as? ReferenceInstruction)?.reference?.toString() == PERMISSION_TYPE_ARRAY_1350
         } == true
     },
 )
@@ -65,20 +83,30 @@ val pairingWizardPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        PairingWizardPermissionFingerprint.method.apply {
+        val match = PairingWizardPermissionFingerprint.matchOrNull()
+            ?: PairingWizardPermissionFingerprint1350.matchOrNull()
+            ?: throw IllegalStateException("Pairing wizard permission list was not found.")
+
+        val array = if (match.originalClassDef.type == "Lcom/ather/btconnectivity/ui/permission/a1;") {
+            PERMISSION_TYPE_ARRAY
+        } else {
+            PERMISSION_TYPE_ARRAY_1350
+        }
+
+        match.method.apply {
             val body = implementation ?: throw IllegalStateException(
                 "Pairing wizard permission list has no body to patch.",
             )
 
             val index = body.instructions.indexOfFirst { instruction ->
                 instruction.opcode == Opcode.FILLED_NEW_ARRAY &&
-                    (instruction as? ReferenceInstruction)?.reference?.toString() == PERMISSION_TYPE_ARRAY
+                    (instruction as? ReferenceInstruction)?.reference?.toString() == array
             }
             if (index < 0) {
                 throw IllegalStateException("Pairing wizard permission array was not found.")
             }
 
-            replaceInstruction(index, "filled-new-array {v1}, $PERMISSION_TYPE_ARRAY")
+            replaceInstruction(index, "filled-new-array {v1}, $array")
         }
     }
 }

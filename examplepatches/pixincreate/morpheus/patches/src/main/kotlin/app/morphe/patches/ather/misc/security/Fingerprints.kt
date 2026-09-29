@@ -34,6 +34,24 @@ internal object SecurityCheckFingerprint : Fingerprint(
 )
 
 /**
+ * Matches [com.ather.common.utils.coreUtils.SecurityCheck.performSecurityCheck].
+ *
+ * ```
+ * public final CheckResult performSecurityCheck(boolean developerOptionsEnabled)
+ * ```
+ *
+ * The 13.5.0 build ships this class under its real name. The 13.5.1 build obfuscates
+ * it (see [SecurityCheckFingerprint]), so the patch tries that one first.
+ */
+internal object PerformSecurityCheckFingerprint : Fingerprint(
+    definingClass = "Lcom/ather/common/utils/coreUtils/SecurityCheck;",
+    name = "performSecurityCheck",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Lcom/ather/common/utils/coreUtils/SecurityCheck\$CheckResult;",
+    parameters = listOf("Z"),
+)
+
+/**
  * Matches the native signature guard that closes the app when the APK is not signed
  * by Ather.
  *

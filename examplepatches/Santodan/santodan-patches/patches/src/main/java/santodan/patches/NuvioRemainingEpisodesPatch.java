@@ -58,7 +58,6 @@ public final class NuvioRemainingEpisodesPatch {
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
                     String state = "Lza/k3;";
                     hookNextUpModel(context.mutableClassDefBy("Lza/s8;"));
-                    hookHomeState(context.mutableClassDefBy(state));
                     hookEpisodeSets(context.mutableClassDefBy("Lza/z4;"), state);
                     hookSettings(context.mutableClassDefBy("Lfb/t6;"), 0x7f1106a7);
                     hookCard(context.mutableClassDefBy("Lpa/q0;"), "Lfb/jk;");
@@ -66,22 +65,6 @@ public final class NuvioRemainingEpisodesPatch {
                 });
                 return Unit.INSTANCE;
             });
-    }
-
-    static void hookHomeState(MutableClass owner) {
-        MutableMethod target = unique(owner, "<init>", 22);
-        int instance = parameterStart(target);
-        if (instance < 0 || instance > 65535)
-            throw unsupported("Home state constructor instance register changed");
-        List<Instruction> ins = instructions(target);
-        int returns = 0;
-        for (int i = 0; i < ins.size(); i++) if (ins.get(i).getOpcode() == Opcode.RETURN_VOID) {
-            target.getImplementation().addInstruction(i,
-                new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, instance, 1,
-                    method(EXTENSION, "registerState", Collections.singletonList("Ljava/lang/Object;"), "V")));
-            returns++;
-        }
-        if (returns != 1) throw unsupported("Home state constructor layout changed");
     }
 
     static void hookNextUpModel(MutableClass owner) {

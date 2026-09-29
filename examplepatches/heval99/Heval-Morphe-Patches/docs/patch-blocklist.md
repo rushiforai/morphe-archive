@@ -12,6 +12,7 @@ Keep entries short; link the blocker, not the story.
 | Musicolet | `in.krosbits.musicolet` | PairIP protection. |
 | Fishbrain | `com.fishbrain.app` | PairIP plus RevenueCat server-side entitlements. |
 | KWGT / KLWP | `org.kustom.widget` / `org.kustom.wallpaper` | PairIP protection. |
+| AZ Screen Recorder | `com.hecorat.screenrecorder.free` | Full PairIP on 6.9.9 (`com.pairip.SignatureCheck`, `VMRunner`, `VmDecryptor`, `licensecheck`, PairIP `Application`), so a re-signed build is killed at runtime. |
 | FC Pro 2 | `com.undergroundcreative.footballchairmanpro2` | Commercial app shield, verified 2026-09-19 on v1.2.2. All game logic sits in encrypted web assets: `www/js/min-122.js` and the language bundle are high-entropy blobs decrypted on the fly by a native `loader` library that the shield extracts from UUID-named files under `assets/j1O1pP4cpnaLPxs2xoSf/` (no `lib/` entries in the APK). String constants are natively encrypted (`m04sL2.r1L574`), and the loader kills the process if it cannot load (`Process.killProcess` in `yzROc7.kgeTd0.bYtcD4.ujE4X5`). A re-signed build fails the native integrity checks before any dex patch runs, and the live-update mechanism can replace local code. Unpacking the shield is a research project, not a Morphe patch. |
 
 ## Server-side entitlement — a client patch cannot unlock

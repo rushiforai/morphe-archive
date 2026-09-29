@@ -98,4 +98,19 @@ public class SettingPersistenceTest {
             pool.shutdownNow();
         }
     }
+
+    @Test public void aThrownBatchCommitRestoresLiveValuesAsWellAsStorage() throws Exception {
+        StringSetting first = new StringSetting("batch_throw_first_" + System.nanoTime(), "before", false, false);
+        StringSetting second = new StringSetting("batch_throw_second_" + System.nanoTime(), "before", false, false);
+        assertTrue(first.save("stored-first"));
+        assertTrue(second.save("stored-second"));
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(keys -> true, true)) {
+            org.junit.Assert.assertThrows(Exception.class,
+                    () -> Setting.saveAll(java.util.Map.of(first, "after-first", second, "after-second")));
+            assertEquals("a thrown commit left the first live value changed", "stored-first", first.savedValue());
+            assertEquals("a thrown commit left the second live value changed", "stored-second", second.savedValue());
+            assertEquals("stored-first", Setting.preferences.preferences.getString(first.key, null));
+            assertEquals("stored-second", Setting.preferences.preferences.getString(second.key, null));
+        }
+    }
 }

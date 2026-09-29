@@ -1,13 +1,13 @@
-group = "io.github.trivisa_itihasa.uyu"
+group = "io.github.bakwudo.uyu"
 
 patches {
     about {
         name = "uyu"
         description = "Patches for Twitch: channel points auto claim, Niconico-style scrolling comments and ad blocking."
-        source = "git@github.com:trivisa-itihasa/uyu.git"
-        author = "trivisa-itihasa"
-        contact = "https://github.com/trivisa-itihasa/uyu/issues"
-        website = "https://github.com/trivisa-itihasa/uyu"
+        source = "git@github.com:bakwudo/uyu.git"
+        author = "bakwudo"
+        contact = "https://github.com/bakwudo/uyu/issues"
+        website = "https://github.com/bakwudo/uyu"
         license = "GPLv3"
     }
 }

@@ -168,6 +168,25 @@ public class BudgetRestoreTest {
      * it reads anything, so the undo copy carries it, and a restore that fails puts it back rather
      * than the value it replaced, whose record would already be gone.
      */
+    /**
+     * An Undo keeps what it replaces so a second one can bring it back. A change that had fallen
+     * due belongs to that, as it does to what a restore finds; taken before it applied, the copy
+     * held the old limit and a second Undo lost the change.
+     */
+    @Test public void aChangeAlreadyDueIsPartOfWhatAnUndoReplaces() throws Exception {
+        Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(true);
+        Settings.SESSION_BUDGET_MINUTES.save(30);
+        SettingsBackup.restore(Utils.getContext(), SettingsBackup.create(false), true);
+        BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get());
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 5, 0));
+
+        SettingsBackup.undo(Utils.getContext());
+
+        JSONObject replaced = new JSONObject(SettingsBackup.undo(Utils.getContext())).getJSONObject("settings");
+        assertEquals("the undo's copy missed a change that had fallen due",
+                60, replaced.getInt(Settings.SESSION_BUDGET_MINUTES.key));
+    }
+
     @Test public void aChangeAlreadyDueIsPartOfWhatARestoreFinds() throws Exception {
         Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.save(true);
         Settings.SESSION_BUDGET_MINUTES.save(30);

@@ -1,3 +1,9 @@
+## [1.4.0-dev.2](https://github.com/Plyrs1/morphe-patches/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-09-28)
+
+### ✨ New Features
+
+* **com_habitrpg_android_habitica:** add self-hosted server, google services stripping, and instant armoire patches ([6ceee47](https://github.com/Plyrs1/morphe-patches/commit/6ceee47bf1bce352a1b81daf50334c0f07501c97))
+
 ## [1.4.0-dev.1](https://github.com/Plyrs1/morphe-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-09-25)
 
 ### 🐛 Bug Fixes

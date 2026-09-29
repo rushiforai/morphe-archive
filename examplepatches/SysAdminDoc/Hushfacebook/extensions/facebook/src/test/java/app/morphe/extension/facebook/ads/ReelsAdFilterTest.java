@@ -118,6 +118,40 @@ public class ReelsAdFilterTest {
         assertTrue(report, report.contains(ReelsAdFilter.SECTIONS_ROUTE + ": 1 lists, 1 items, 1 removed"));
     }
 
+    /** A page whose iteration fails, the way a list changed on another thread would. */
+    private static List<Object> failingPage() {
+        return new AbstractList<Object>() {
+            @Override
+            public Object get(int index) {
+                throw new java.util.ConcurrentModificationException("changed under the filter");
+            }
+
+            @Override
+            public int size() {
+                return 2;
+            }
+        };
+    }
+
+    /**
+     * A page the filter can't walk goes to Facebook as it came, and the report says which level
+     * threw. Before, the exception went on into Facebook's Reels page insert.
+     */
+    @Test
+    public void aPageTheFilterCantWalkPassesThroughAndReachesTheReport() {
+        HookStatus.clear();
+        try {
+            List<Object> page = failingPage();
+            assertSame(page, ReelsAdFilter.withoutAds(page, AD));
+            assertSame(page, ReelsAdFilter.withoutAdSections(page, AD));
+            String missing = HookStatus.missing("Hide sponsored reels").toString();
+            assertTrue(missing, missing.contains("a working 'page filter' hook (it threw java.util.ConcurrentModificationException)"));
+            assertTrue(missing, missing.contains("a working 'section page' hook (it threw java.util.ConcurrentModificationException)"));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
     /** A section wrapper with no list in it at all, so the filter can't see its items. */
     public static final class Opaque {
         Object item = new VideoAd();

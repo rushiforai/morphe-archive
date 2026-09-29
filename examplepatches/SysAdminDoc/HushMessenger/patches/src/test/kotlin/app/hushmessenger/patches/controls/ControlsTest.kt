@@ -5,7 +5,10 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -83,6 +86,41 @@ class ControlsTest {
         assertEquals("HushMessenger settings", (activities.item(1) as org.w3c.dom.Element).getAttribute("android:label"))
         assertEquals("android.intent.category.LAUNCHER", (document.getElementsByTagName("category").item(0) as org.w3c.dom.Element).getAttribute("android:name"))
         assertFailsWith<PatchException> { document.addSettingsEntry() }
+    }
+
+    @Test fun notificationsSuggestionsJoinTheStockPreferenceAndSkipTheServerOverride() {
+        val reader = peopleJewelMethod()
+        val original = reader.implementation!!.instructions.toList()
+        reader.injectPeopleSection()
+        val code = reader.implementation!!.instructions.toList()
+        fun assertSwitch(index: Int, method: String) {
+            assertEquals("$SETTINGS->$method(Z)Z", (code[index] as ReferenceInstruction).reference.toString())
+            assertEquals(listOf(1, 0), (code[index] as FiveRegisterInstruction).let { listOf(it.registerCount, it.registerC) })
+            assertEquals(Opcode.MOVE_RESULT, code[index + 1].opcode)
+            assertEquals(0, (code[index + 1] as OneRegisterInstruction).registerA)
+        }
+        assertEquals(original.take(12), code.take(12))
+        assertSwitch(12, "hidePeopleSection")
+        assertEquals(original.subList(12, 20), code.subList(14, 22))
+        assertSwitch(22, "keepPeopleSection")
+        assertEquals(original.drop(20), code.drop(24))
+        // Both stock branches still skip to the original "not hidden" return.
+        assertEquals(code.lastIndex, code.branchTarget(14))
+        assertEquals(code.lastIndex, code.branchTarget(24))
+    }
+
+    @Test fun changedNotificationsSuggestionsReaderFailsBeforeEditing() {
+        for (changed in listOf(
+            peopleJewelMethod(resultRegister = "v3"),
+            peopleJewelMethod(key = "LX/JTx;->A00:LX/1BL;"),
+            peopleJewelMethod(flags = AccessFlags.PUBLIC.value),
+            peopleJewelMethod(serverFlag = "0x1L"),
+            peopleJewelMethod(serverTarget = ":hidden"),
+        )) {
+            val before = changed.implementation!!.instructions.toList()
+            assertFailsWith<PatchException> { changed.injectPeopleSection() }
+            assertEquals(before, changed.implementation!!.instructions.toList())
+        }
     }
 
     @Test fun browserInjectionRejectsStaticMethodsBeforeUsingTheWrongUriParameter() {

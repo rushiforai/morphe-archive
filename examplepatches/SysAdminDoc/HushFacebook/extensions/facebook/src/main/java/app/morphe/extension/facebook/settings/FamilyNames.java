@@ -34,12 +34,14 @@ public final class FamilyNames {
     public static final String SPONSORED_STORIES = "Hide sponsored stories";
     public static final String SUGGESTED_STORIES = "Hide suggested stories";
     public static final String STORY_AUTO_ADVANCE = "Stop Story auto-advance";
+    public static final String STORY_SEEN = "View stories anonymously";
     public static final String SPONSORED_REELS = "Hide sponsored reels";
     public static final String SPONSORED_SEARCH = "Hide sponsored search results";
     public static final String SPONSORED_PROFILE_POSTS = "Hide sponsored profile posts";
     public static final String SPONSORED_MARKETPLACE = "Hide sponsored Marketplace listings";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
+    public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
     public static final String DEFAULT_COMMENT_ORDER = "Default comment order";
     public static final String TAG_SUGGESTIONS = "Tag suggestions only after @";
     public static final String TAP_TO_PLAY = "Tap to play";
@@ -55,6 +57,7 @@ public final class FamilyNames {
     public static final String START_TAB = "Open on a chosen tab";
     public static final String MARKETPLACE_ONLY = "Marketplace only";
     public static final String MESSENGER_CARD = "Hide the Get Messenger card";
+    public static final String MESSENGER_ICON = "Open Messenger from the top bar";
     public static final String MENU_PROMOTIONS = "Hide Menu promotions";
     public static final String META_AI_SEARCH = "Hide Meta AI in search";
     public static final String PROMO_NOTIFICATIONS = "Block promotional notifications";

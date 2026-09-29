@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
+import android.widget.TextView;
 import java.lang.reflect.Proxy;
 import java.util.List;
 import org.junit.Test;
@@ -51,6 +52,25 @@ public class RestartActivityTest {
         assertTrue(launch.hasCategory(Intent.CATEGORY_LAUNCHER));
         assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK,
             launch.getFlags() & (Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+    }
+
+    @Test public void restartScreenFollowsTheSavedTheme() {
+        Settings.initialize(RuntimeEnvironment.getApplication());
+        for (boolean light : new boolean[] {false, true}) {
+            Settings.preferences.edit().putBoolean("light", light).commit();
+            try (var screen = Robolectric.buildActivity(RestartActivity.class).setup()) {
+                TextView status = (TextView) ((android.view.ViewGroup) screen.get().findViewById(android.R.id.content)).getChildAt(0);
+                SettingsUi ui = new SettingsUi(screen.get(), light);
+                assertEquals(ui.background, ((android.graphics.drawable.ColorDrawable) status.getBackground()).getColor());
+                assertEquals(ui.text, status.getCurrentTextColor());
+                // From API 35 enforced edge-to-edge ignores bar colors; the full-window status view shows behind them.
+                if (android.os.Build.VERSION.SDK_INT < 35) {
+                    assertEquals(ui.background, screen.get().getWindow().getStatusBarColor());
+                    assertEquals(ui.background, screen.get().getWindow().getNavigationBarColor());
+                }
+            }
+        }
+        Settings.preferences.edit().clear().commit();
     }
 
     @Test public void previewCannotRestartTheSeparateStockMessenger() {

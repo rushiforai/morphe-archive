@@ -103,8 +103,50 @@ public class ProfileAvatarPermissionTest {
                 .denyPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         assertTrue(avatar.performLongClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals(0, ShadowToast.shownToastCount());
+        assertAcknowledgedOnly();
         assertEquals("the scoped-storage save was not submitted", 1, MediaJobScheduler.queuedJobs());
+    }
+
+    /**
+     * Every accepted save is said at once, with the wait it faces; a waiting save is only taken
+     * out of line, never cut off; a second press names the waiting one; and once the waiting
+     * save is cancelled its hold on the avatar is let go exactly once, so the same press works.
+     */
+    @Test @Config(sdk = 29)
+    public void aWaitingPictureCanBeCancelledAndAskedForAgain() throws Exception {
+        assertTrue(avatar.performLongClick());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertAcknowledgedOnly();
+        java.util.concurrent.atomic.AtomicBoolean running =
+                org.robolectric.util.ReflectionHelpers.getStaticField(ProfileAvatarSaver.class, "RUNNING");
+        assertTrue(running.get());
+
+        ShadowToast.reset();
+        assertTrue(avatar.performLongClick());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("The last one is still waiting to start", ShadowToast.getTextOfLatestToast());
+        assertEquals("a second press queued a second picture", 1, MediaJobScheduler.queuedJobs());
+
+        MediaJobScheduler.Job waiting = MediaJobScheduler.job("profile picture");
+        assertNotNull(waiting);
+        assertTrue(waiting.cancel());
+        assertFalse("cancelling kept the avatar held", running.get());
+        assertEquals(0, MediaJobScheduler.queuedJobs());
+        assertFalse(waiting.cancel());
+        assertFalse(running.get());
+
+        ShadowToast.reset();
+        assertTrue(avatar.performLongClick());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertAcknowledgedOnly();
+        assertEquals("the same picture could not be asked for again", 1, MediaJobScheduler.queuedJobs());
+        assertTrue(running.get());
+    }
+
+    /** Behind the three held workers, the one toast is the acknowledgement with its wait. */
+    private static void assertAcknowledgedOnly() {
+        assertEquals(1, ShadowToast.shownToastCount());
+        assertEquals("Saving the profile picture\nStarts after one other save", ShadowToast.getTextOfLatestToast());
     }
 
     private void assertDeniedThenGranted() {
@@ -124,7 +166,8 @@ public class ProfileAvatarPermissionTest {
                 .grantPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         assertTrue(avatar.performLongClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals("granting permission still reported an error", 0, ShadowToast.shownToastCount());
+        // No error now; the one word is the save being taken.
+        assertAcknowledgedOnly();
         assertEquals("the same avatar did not reach scheduling after permission was granted",
                 1, MediaJobScheduler.queuedJobs());
     }

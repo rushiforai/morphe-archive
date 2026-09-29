@@ -40,12 +40,24 @@ val bypassSecurityCheckPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        SecurityCheckFingerprint.method.addInstructions(
-            0,
-            """
-                sget-object v0, Lcom/ather/common/utils/coreUtils/u;->a:Lcom/ather/common/utils/coreUtils/u;
-                return-object v0
-            """,
-        )
+        val modern = SecurityCheckFingerprint.matchOrNull()
+        if (modern != null) {
+            modern.method.addInstructions(
+                0,
+                """
+                    sget-object v0, Lcom/ather/common/utils/coreUtils/u;->a:Lcom/ather/common/utils/coreUtils/u;
+                    return-object v0
+                """,
+            )
+        } else {
+            // Ather 13.5.0 keeps the class and the enum under their real names.
+            PerformSecurityCheckFingerprint.method.addInstructions(
+                0,
+                """
+                    sget-object v0, Lcom/ather/common/utils/coreUtils/SecurityCheck${'$'}CheckResult${'$'}Secure;->INSTANCE:Lcom/ather/common/utils/coreUtils/SecurityCheck${'$'}CheckResult${'$'}Secure;
+                    return-object v0
+                """,
+            )
+        }
     }
 }

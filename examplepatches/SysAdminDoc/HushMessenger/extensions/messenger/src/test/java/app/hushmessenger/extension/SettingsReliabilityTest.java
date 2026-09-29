@@ -15,6 +15,7 @@ import android.widget.OverScroller;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import java.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +25,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ReflectionHelpers;
 import static org.junit.Assert.*;
 
@@ -41,6 +43,8 @@ public class SettingsReliabilityTest {
             View root = screen.get().getWindow().getDecorView();
             assertTrue(((Switch) root.findViewWithTag("bubbles")).isChecked());
             assertFalse(root.findViewWithTag("bubbles").isEnabled());
+            // The custom track has no disabled drawable, so the switch itself must look unavailable.
+            assertEquals(0.4f, root.findViewWithTag("bubbles").getAlpha(), 0.001f);
             assertTrue(Settings.preferences.getBoolean("bubbles", false));
             assertFalse(Settings.enableBubbles());
             assertEquals("0 controls enabled", ((TextView) root.findViewWithTag("enabled_count")).getText().toString());
@@ -52,14 +56,21 @@ public class SettingsReliabilityTest {
             View root = screen.get().getWindow().getDecorView();
             Switch bubbles = root.findViewWithTag("bubbles");
             assertTrue(bubbles.isEnabled());
+            assertEquals(1f, bubbles.getAlpha(), 0f);
             assertFalse(Settings.enableBubbles());
             bubbles.performClick();
+            Toast first = ShadowToast.getLatestToast();
+            assertEquals("Allow chat bubbles on", ShadowToast.getTextOfLatestToast());
             assertTrue(Settings.enableBubbles());
             assertEquals("1 control enabled", ((TextView) root.findViewWithTag("enabled_count")).getText().toString());
             root.findViewWithTag("paused").performClick();
+            // A newer toast replaces the old one instead of queueing behind it.
+            assertTrue(Shadows.shadowOf(first).isCancelled());
+            assertEquals("Changes paused", ShadowToast.getTextOfLatestToast());
             assertTrue(bubbles.isChecked());
             assertFalse(Settings.enableBubbles());
             root.findViewWithTag("paused").performClick();
+            assertEquals("Changes resumed", ShadowToast.getTextOfLatestToast());
             assertTrue(Settings.enableBubbles());
         }
     }
@@ -148,6 +159,34 @@ public class SettingsReliabilityTest {
                 assertTrue("App viewport", scroll(root.findViewWithTag("app_page")).getHeight() >= 48);
                 assertReachable(screen.get(), root.findViewWithTag("source_licenses"), width, 360);
                 assertReachable(screen.get(), root.findViewWithTag("light"), width, 360);
+            }
+        }
+    }
+
+    @Test @Config(sdk = {28, 36}) public void quickAccessTextWithTheMenuRowStaysWholeAtLargeText() throws Exception {
+        var app = RuntimeEnvironment.getApplication();
+        var info = app.getPackageManager().getPackageInfo(app.getPackageName(), android.content.pm.PackageManager.GET_META_DATA);
+        info.applicationInfo.metaData.putBoolean("hush.feature.menu_row", true);
+        Shadows.shadowOf(app.getPackageManager()).installPackage(info);
+        RuntimeEnvironment.setFontScale(2f);
+        // A short window only has to keep every line; a phone-sized one shows the whole card text.
+        for (int[] size : new int[][] {{320, 360}, {411, 891}}) for (boolean light : new boolean[] {false, true}) {
+            RuntimeEnvironment.setQualifiers("w" + size[0] + "dp-h" + size[1] + "dp-mdpi");
+            Settings.preferences.edit().putBoolean("light", light).commit();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = layout(screen.get(), size[0], size[1]);
+                root.findViewWithTag("tab_app").performClick();
+                layout(screen.get(), size[0], size[1]);
+                TextView help = root.findViewWithTag("access_help");
+                assertTrue(help.getText().toString().contains("Menu tab"));
+                assertEquals(0, help.getLayout().getEllipsisCount(help.getLineCount() - 1));
+                assertEquals(help.getLayout().getHeight(), help.getHeight() - help.getPaddingTop() - help.getPaddingBottom());
+                if (size[1] > 360) {
+                    Rect visible = new Rect();
+                    assertTrue(help.getGlobalVisibleRect(visible));
+                    assertEquals(help.getHeight(), visible.height());
+                }
+                assertReachable(screen.get(), root.findViewWithTag("restart_messenger"), size[0], size[1]);
             }
         }
     }

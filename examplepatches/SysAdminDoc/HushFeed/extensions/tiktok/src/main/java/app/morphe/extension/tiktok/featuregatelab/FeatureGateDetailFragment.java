@@ -779,7 +779,8 @@ public final class FeatureGateDetailFragment extends Fragment {
                     if (hook != null) hook.after(generation);
                 } catch (Exception error) {
                     Logger.printException(() -> "Feature Gate detail change failed", error);
-                    failure = translatedFailurePrefix;
+                    failure = error instanceof FeatureGateLabStore.RuleLimitRefused
+                            ? error.getMessage() : translatedFailurePrefix;
                 } finally {
                     detailChangeFinished();
                 }

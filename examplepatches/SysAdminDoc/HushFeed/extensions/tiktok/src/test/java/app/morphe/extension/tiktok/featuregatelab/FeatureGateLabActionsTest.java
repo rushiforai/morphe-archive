@@ -792,6 +792,59 @@ public class FeatureGateLabActionsTest {
     }
 
     /**
+     * A row's own accessibility delegate kept the list from offering its items' click, so a
+     * switch or voice user couldn't open a gate, and Select did nothing. The list also ended a
+     * fixed 80 dp above a bar taller than that, so the last gate stayed under it.
+     */
+    @Test public void aRowAnswersItsAccessibilityActionsAndTheListEndsAboveTheBar() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var fragment = attach(controller.get());
+            settle();
+            android.widget.ListView list = listOf(fragment);
+            list.measure(android.view.View.MeasureSpec.makeMeasureSpec(1080, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(1920, android.view.View.MeasureSpec.EXACTLY));
+            list.layout(0, 0, 1080, 1920);
+            android.view.View row = list.getChildAt(0);
+            assertNotNull("the list laid out no rows", row);
+            var info = row.createAccessibilityNodeInfo();
+            assertTrue("a row offers no click: " + info.getActionList(), info.getActionList().contains(
+                    android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
+            assertNotNull("a row lost its place in the list", info.getCollectionItemInfo());
+
+            assertTrue(row.performAccessibilityAction(
+                    android.view.accessibility.AccessibilityNodeInfo.ACTION_LONG_CLICK, null));
+            android.view.View bar = selectionBar(fragment);
+            assertEquals("Select did not start a selection", android.view.View.VISIBLE, bar.getVisibility());
+
+            android.view.View root = fragment.getView();
+            root.measure(android.view.View.MeasureSpec.makeMeasureSpec(1080, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(1920, android.view.View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, 1080, 1920);
+            assertTrue("the list ends under the bar", list.getPaddingBottom() >= bar.getHeight());
+        }
+    }
+
+    /**
+     * A selection with nothing to reset says so. The refusal's own sentence used to be swapped
+     * for "Try again", which fails the same way every time it is tried.
+     */
+    @Test public void aRefusedSelectionSaysWhyInsteadOfTryAgain() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var fragment = attach(controller.get());
+            settle();
+            android.widget.ListView list = listOf(fragment);
+            assertTrue(list.getOnItemLongClickListener()
+                    .onItemLongClick(list, null, 0, list.getItemIdAtPosition(0)));
+
+            ShadowToast.reset();
+            selectionAction(fragment, "Reset").performClick();
+            settle();
+            assertEquals("None of these gates had an override to reset.",
+                    ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    /**
      * The selection actions fit the bar they sit in, and Cancel does not read like Enable.
      *
      * <p>Four bold labels with 24dp of side padding in a horizontal row that cannot wrap: at 2x

@@ -4,9 +4,24 @@ import app.morphe.patcher.patch.PatchException
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
-internal const val SHORTCUTS_PATH = "res/los.xml"
 internal const val SHORTCUT_LABEL_PATH = "res/values/strings.xml"
 internal val shortcutLabels = mapOf("hushmessenger_patch_controls" to "Patch controls", "hushmessenger_restart" to "Restart Messenger")
+
+internal fun resolveShortcutsPath(apkEntries: List<String>, readDocument: (String) -> Document): String {
+    val candidates = apkEntries.filter { it.startsWith("res/") && it.endsWith(".xml") && !it.startsWith("res/values") }
+    val matches = candidates.filter { path ->
+        runCatching { readDocument(path).documentElement.tagName == "shortcuts" }.getOrDefault(false)
+    }
+    return when {
+        matches.size == 1 -> matches.single()
+        matches.isEmpty() -> throw PatchException(
+            "Messenger controls: no shortcuts XML found in this APK. Start with an unmodified supported APK.",
+        )
+        else -> throw PatchException(
+            "Messenger controls: found ${matches.size} shortcuts files (${matches.joinToString()}). Expected exactly one.",
+        )
+    }
+}
 
 internal fun Document.validateShortcutLabels() {
     if (documentElement.tagName != "resources" || documentElement.children("string").any {

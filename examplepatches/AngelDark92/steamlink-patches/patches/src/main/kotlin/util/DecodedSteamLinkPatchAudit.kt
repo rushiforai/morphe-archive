@@ -45,6 +45,9 @@ import app.template.patches.steamlink.binary.oledCalibrationPatch
 import app.template.patches.steamlink.binary.patchNativeMicrophonePreset
 import app.template.patches.steamlink.binary.patchVisualDelay
 import app.template.patches.steamlink.galaxyXrLegacyFoundationPatch
+import app.template.patches.shared.Constants.isTwoProjectionSteamLinkBuild
+import app.template.patches.steamlink.galaxyXrRecommended5001812Patch
+import app.template.patches.steamlink.galaxyXrRecommended5001968Patch
 import app.template.patches.steamlink.galaxyXrRecommended5001712Patch
 import app.template.patches.steamlink.galaxyXrRecommended5002363Patch
 import app.template.patches.steamlink.identity.changePackageNamePatch
@@ -71,6 +74,8 @@ private val highResolutionFixtures = listOf(
     HighResolutionFixture("2.0.20", "5001712", 0x142c0c, true),
     HighResolutionFixture("2.0.22", "5002244", 0x1422c4, true),
     HighResolutionFixture("2.0.23", "5002363", 0x149874, false),
+    HighResolutionFixture("2.0.20", "5001812", 0x142c84, true),
+    HighResolutionFixture("2.0.21", "5001968", 0x13ec7c, true),
 )
 
 private data class RecommendedBundleFixture(
@@ -79,6 +84,16 @@ private data class RecommendedBundleFixture(
 )
 
 private val visualDelayFixtures = highResolutionFixtures
+
+private val legacyPublicFixtures = highResolutionFixtures.filter { it.versionCode in setOf("5001712", "5001812", "5001968") }
+
+// Independent expected offsets from symbol/disassembly receipts, not production tables.
+private data class LegacyNativeSites(val face: Int, val eye: Int, val cadence: Int, val mic: Int, val hook: Int, val gates: List<Int>)
+private val legacySites = mapOf(
+    "5001712" to LegacyNativeSites(0x99924, 0xa1a7f, 0xf6468, 0xf4584, 0x1014e8, listOf(0xffe20, 0xffe28, 0x10db10, 0x116564, 0x11656c, 0x116620)),
+    "5001812" to LegacyNativeSites(0x99862, 0xa1985, 0xf6324, 0xf4484, 0x101648, listOf(0xffc5c, 0xffc64, 0x10dc70, 0x1166c4, 0x1166cc, 0x116780)),
+    "5001968" to LegacyNativeSites(0x9334f, 0x9b7ab, 0xf2180, 0xefdb4, 0xfd5f0, listOf(0xfbc04, 0xfbc0c, 0x109bf0, 0x112644, 0x11264c, 0x112700)),
+)
 
 private val recommendedBundleFixtures = listOf(
     RecommendedBundleFixture(
@@ -93,6 +108,8 @@ private val recommendedBundleFixtures = listOf(
         highResolutionFixtures.single { it.versionCode == "5002363" },
         galaxyXrRecommended5002363Patch,
     ),
+    RecommendedBundleFixture(highResolutionFixtures.single { it.versionCode == "5001812" }, galaxyXrRecommended5001812Patch),
+    RecommendedBundleFixture(highResolutionFixtures.single { it.versionCode == "5001968" }, galaxyXrRecommended5001968Patch),
 )
 
 private val publicPatchesFor5002363: List<Patch<*>> = listOf(
@@ -146,7 +163,7 @@ object DecodedSteamLinkPatchAudit {
 }
 
 private fun runIsolatedAudits(fixtureDirectory: String, outputDirectory: String) {
-    publicPatchesFor5001712.indices.forEach { index ->
+    (0 until publicPatchesFor5001712.size * legacyPublicFixtures.size).forEach { index ->
         runAuditChild(fixtureDirectory, outputDirectory, "public", index)
     }
     publicPatchesFor5002363.indices.forEach { index ->
@@ -199,19 +216,20 @@ private suspend fun runSingleAudit(args: Array<String>) {
         }
 
         "public" -> {
-            val patch = publicPatchesFor5001712[index]
+            val patch = publicPatchesFor5001712[index % publicPatchesFor5001712.size]
+            val base = legacyPublicFixtures[index / publicPatchesFor5001712.size]
             val patchName = requireNotNull(patch.name)
-            val fixture = fixtureFile(fixtureDirectory, highResolutionFixtures.first())
+            val fixture = fixtureFile(fixtureDirectory, base)
             require(fixture.isFile) { "Missing decoded APK fixture: $fixture" }
-            val patchDirectory = File(outputDirectory, "5001712-public-${patchName.safeName()}")
-            val output = File(patchDirectory, "steamlink-5001712-${patchName.safeName()}-unsigned.apk")
+            val patchDirectory = File(outputDirectory, "${base.versionCode}-public-${patchName.safeName()}")
+            val output = File(patchDirectory, "steamlink-${base.versionCode}-${patchName.safeName()}-unsigned.apk")
             configurePublicAuditOptions(patch)
             executePatch(fixture, patch, File(patchDirectory, "temporary"), output)
-            verifyPublicPatchOutput(output, patch)
+            verifyPublicPatchOutput(output, patch, base)
             if (patch == xrGalaxyXrHighResolutionPatch) {
-                verifyStandaloneHighResolutionBoundary(fixture, output, highResolutionFixtures.first())
+                verifyStandaloneHighResolutionBoundary(fixture, output, base)
             }
-            println("PASS 2.0.20/5001712 public patch output: $patchName: $output")
+            println("PASS ${base.versionName}/${base.versionCode} public patch output: $patchName: $output")
         }
 
         "high-resolution" -> {
@@ -294,7 +312,8 @@ private fun configurePublicAuditOptions(patch: Patch<*>) {
     }
 }
 
-private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
+private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>, fixture: HighResolutionFixture) {
+    val sites = legacySites.getValue(fixture.versionCode)
     check(outputApk.isFile && outputApk.length() > 0) { "Public patch did not emit an APK: ${patch.name}" }
     ZipFile(outputApk).use { apk ->
         val scene by lazy { apk.requireEntryBytes("lib/arm64-v8a/libvrlink_scene.so") }
@@ -303,8 +322,8 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
 
         when (patch) {
             androidXrNativePermissionNamesPatch -> {
-                scene.requireBytesAt(0x99924, "android.permission.HAND_TRACKING".paddedAscii(36))
-                scene.requireBytesAt(0xA1A7F, "android.permission.EYE_TRACKING_FINE".paddedAscii(36))
+                scene.requireBytesAt(sites.face, "android.permission.HAND_TRACKING".paddedAscii(36))
+                scene.requireBytesAt(sites.eye, "android.permission.EYE_TRACKING_FINE".paddedAscii(36))
             }
 
             appearOnTopPatch -> {
@@ -319,7 +338,7 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
 
             controllerVelocityPatch -> {
                 apk.requireElf("lib/arm64-v8a/libgxr_controller_velocity.so")
-                scene.requireBytesAt(0xF6468, "62008052".hexBytes())
+                scene.requireBytesAt(sites.cadence, "62008052".hexBytes())
                 apk.requireEntryBytes(
                     "assets/openxr/1/api_layers/implicit.d/" +
                         "XR_APILAYER_local_GalaxyXR_controller_velocity.json",
@@ -329,20 +348,21 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
             deviceIdentityPatch -> {
                 val hmdConfig = apk.requireEntryBytes("assets/config/hmd_config.json")
                 hmdConfig.requireEncodedString("\"sModelNumber\": \"Oculus Quest Pro\"")
-                hmdConfig.require5001712RequestedExtensionsObject()
+                if (fixture.versionCode == "5001712") hmdConfig.require5001712RequestedExtensionsObject()
+                else check(com.google.gson.JsonParser.parseString(hmdConfig.decodeToString()).asJsonObject["requestedExtensions"].isJsonArray)
             }
 
             forceHmdInitializationGatesPatch -> {
-                scene.requireBytesAt(0xFFE20, nop)
-                scene.requireBytesAt(0xFFE28, nop)
+                scene.requireBytesAt(sites.gates[0], nop)
+                scene.requireBytesAt(sites.gates[1], nop)
             }
 
-            forceLobbyPermissionStateGatePatch -> scene.requireBytesAt(0x10DB10, nop)
+            forceLobbyPermissionStateGatePatch -> scene.requireBytesAt(sites.gates[2], nop)
 
             forceStreamXrGatesPatch -> {
-                scene.requireBytesAt(0x116564, nop)
-                scene.requireBytesAt(0x11656C, nop)
-                scene.requireBytesAt(0x116620, nop)
+                scene.requireBytesAt(sites.gates[3], nop)
+                scene.requireBytesAt(sites.gates[4], nop)
+                scene.requireBytesAt(sites.gates[5], nop)
             }
 
             gxrFacebridgePatch -> {
@@ -350,9 +370,9 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
                 manifest.requireEncodedString("android.permission.FACE_TRACKING")
             }
 
-            xrGalaxyXrHighResolutionPatch -> verifyHighResolutionZip(apk, highResolutionFixtures.first())
+            xrGalaxyXrHighResolutionPatch -> verifyHighResolutionZip(apk, fixture)
 
-            microphoneInputPresetPatch -> scene.requireBytesAt(0xF4584, "c1008052".hexBytes())
+            microphoneInputPresetPatch -> scene.requireBytesAt(sites.mic, "c1008052".hexBytes())
 
             oledCalibrationPatch -> scene.requireEncodedString("const float DITHER_ENABLE=0.;")
 
@@ -362,14 +382,10 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
             }
 
             hmdOnlyPatch -> {
-                check(!scene.copyOfRange(0x1014E8, 0x1014EC).contentEquals("e20740f9".hexBytes())) {
+                check(!scene.copyOfRange(sites.hook, sites.hook + 4).contentEquals("e20740f9".hexBytes())) {
                     "Visual Delay Fix left the 5001712 HMD hook unchanged"
                 }
-                scene.requireBytesAt(
-                    0x20F2D0,
-                    "700000f011f640f910a2079120021fd6700000f011fa40f910c2079120021fd6".hexBytes(),
-                )
-                scene.requireBytesAt(0x21DB98, "e20740f9".hexBytes())
+                // Full cave/mapping/exact-diff validation lives in the native audit.
                 scene.requireBytesAt(64 + 8 * 56, "0100000005000000".hexBytes())
             }
 
@@ -381,7 +397,8 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>) {
             xrDeviceConfigBaselinePatch -> {
                 val hmdConfig = apk.requireEntryBytes("assets/config/hmd_config.json")
                 hmdConfig.requireEncodedString("\"sModelNumber\": \"Galaxy XR\"")
-                hmdConfig.require5001712RequestedExtensionsObject()
+                if (fixture.versionCode == "5001712") hmdConfig.require5001712RequestedExtensionsObject()
+                else check(com.google.gson.JsonParser.parseString(hmdConfig.decodeToString()).asJsonObject["requestedExtensions"].isJsonArray)
                 apk.requireEntryBytes("assets/config/default_config.json")
                     .requireEncodedString("\"ignore_microphone_muted\": false")
             }
@@ -616,13 +633,16 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
                 "${fixture.versionCode}: expected Quest Pro spoof on all 3 runtime-selected HMD entries"
             }
             if (fixture.versionCode == "5001712") hmdConfig.require5001712RequestedExtensionsObject()
+                else check(com.google.gson.JsonParser.parseString(hmdConfig.decodeToString()).asJsonObject["requestedExtensions"].isJsonArray)
             scene.requireEncodedString("android.permission.EYE_TRACKING_FINE")
             val gateOffsets = when (fixture.versionCode) {
                 "5001712" -> listOf(0xFFE20, 0xFFE28, 0x10DB10, 0x116564, 0x11656C, 0x116620)
+                "5001812", "5001968" -> legacySites.getValue(fixture.versionCode).gates
                 "5002244" -> listOf(0xFD040, 0xFD048, 0x10B658, 0x1140AC, 0x1140B4, 0x114168)
                 else -> error("Missing legacy gate audit for ${fixture.versionCode}")
             }
             gateOffsets.forEach { scene.requireBytesAt(it, "1f2003d5".hexBytes()) }
+            verifyLegacyPointerRouting(apk, fixture)
         } else {
             // Automatic legacy identity must not change the native recommendation.
             val original = ZipFile(inputApk).use { it.requireEntryBytes("assets/config/hmd_config.json") }
@@ -633,6 +653,24 @@ private fun verifyRecommendedBundleOutput(inputApk: File, outputApk: File, fixtu
         }
     }
     verifyHighResolutionOutput(outputApk, fixture, recommended = true)
+}
+
+private fun verifyLegacyPointerRouting(apk: ZipFile, fixture: HighResolutionFixture) {
+    if (!isTwoProjectionSteamLinkBuild(fixture.versionName, fixture.versionCode)) return
+    val routes = listOf(
+        Triple("Lorg/libsdl/app/SDLSurface;", "onTouch", "routeXrPointerAsMouse5001712"),
+        Triple("Lorg/libsdl/app/SDLGenericMotionListener_API14;", "onGenericMotion", "routeXrPointerAsMouseGeneric5001712"),
+    )
+    val bridge = apk.requireDexClass("Lorg/libsdl/app/GxrSdlBridge;")
+    for ((type, methodName, route) in routes) {
+        val method = apk.requireDexClass(type).methods.single { it.name == methodName }
+        val calls = method.implementation!!.instructions.filterIsInstance<ReferenceInstruction>()
+            .mapNotNull { it.reference as? MethodReference }
+        check(calls.any { it.definingClass == bridge.type && it.name == route }) {
+            "${fixture.versionCode}: missing mouse-only route in $type->$methodName"
+        }
+        check(bridge.methods.any { it.name == route && it.parameterTypes.map { p -> p.toString() } == listOf("Landroid/view/MotionEvent;") && it.returnType == "V" })
+    }
 }
 
 private fun verifyHighResolutionZip(
@@ -656,7 +694,7 @@ private fun verifyHighResolutionZip(
         "${fixture.versionName}/${fixture.versionCode}: installed helper does not match " +
             expectedResourceName
     }
-    val expectedBuildId = if (fixture.versionName == "2.0.20" && fixture.versionCode == "5001712") {
+    val expectedBuildId = if (isTwoProjectionSteamLinkBuild(fixture.versionName, fixture.versionCode)) {
         ANDROID_SURFACE_TRIGGER_5001712_BUILD_ID
     } else {
         ANDROID_SURFACE_TRIGGER_BUILD_ID

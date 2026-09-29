@@ -17,7 +17,8 @@ public final class DiagnosticRedactor {
     private static final int MAX_CHARS = 64_000;
     private static final String TRUNCATED = "\n[diagnostic text truncated]";
     private static final String HOST_SUFFIXES =
-            "(?:tiktokv?\\.com|tiktokcdn\\.com|byteoversea\\.com|bytedance\\.com|musical\\.ly|ibyteimg\\.com)";
+            "(?:tiktokv?\\.com|tiktokv\\.(?:us|eu)|tiktokcdn(?:-us|-eu)?\\.com|byteoversea\\.com"
+                    + "|bytedance\\.com|musical\\.ly|ibyteimg\\.com)";
     private static final String[] CREDENTIAL_NAMES = {"token", "session", "sid", "secret",
             "password", "passwd", "signature", "cookie", "auth", "credential", "device_id",
             "deviceid", "install_id", "installid", "iid", "openudid", "odin", "ttwid", "uid",
@@ -35,7 +36,16 @@ public final class DiagnosticRedactor {
      * A bare id, for the places that print a list of them with no name in front. TikTok's ids run
      * to nineteen digits; nothing else these reports carry is a number that long.
      */
-    private static final String BARE_CONTENT_ID = "\\b\\d{17,21}\\b";
+    private static final String BARE_CONTENT_ID = "(?<!\\d)\\d{17,21}(?!\\d)";
+    /**
+     * A network address, the way Java prints one: "failed to connect to host/1.2.3.4 (port 443)
+     * from /2607:fb90:... (port 38754)". The second is the phone's own, and on an IPv6 network it
+     * is routable and names the subscriber. IPv6 needs "::" or four colons, so a clock time such
+     * as 10:23:11 is not taken for one.
+     */
+    private static final String IPV4 = "(?<![\\w.])(?:\\d{1,3}\\.){3}\\d{1,3}(?![\\w.])";
+    private static final String IPV6 = "(?<![\\w:.])(?=[0-9A-Fa-f:]*::|(?:[0-9A-Fa-f]{0,4}:){4})"
+            + "[0-9A-Fa-f]{0,4}(?::[0-9A-Fa-f]{0,4}){2,7}(?:%[\\w.]+)?(?![\\w:])";
     /**
      * A creator's name, as the bundle writes it into a toast or a banner: between Unicode's
      * first-strong isolate U+2068 and its pop U+2069. Every toast is written to the buffer as it
@@ -60,6 +70,7 @@ public final class DiagnosticRedactor {
     private static final Pattern HOSTS = Pattern.compile(
             "(?i)(?<![a-z0-9.-])[a-z0-9.-]+\\." + HOST_SUFFIXES + "\\b(?:[:/][^\\s\"'<>]*)?");
     private static final Pattern IDS = Pattern.compile(BARE_CONTENT_ID);
+    private static final Pattern ADDRESSES = Pattern.compile(IPV4 + "|" + IPV6);
     private static final Pattern ASSIGNMENTS = Pattern.compile(
             "(?<![A-Za-z0-9_-])([A-Za-z0-9_-]+)(\\\\*[\"'])?\\s*[=:]\\s*");
 
@@ -76,6 +87,7 @@ public final class DiagnosticRedactor {
             text = redactFields(text);
             text = URLS.matcher(text).replaceAll("[url omitted]");
             text = HOSTS.matcher(text).replaceAll("[host omitted]");
+            text = ADDRESSES.matcher(text).replaceAll("[address omitted]");
             text = IDS.matcher(text).replaceAll("[id omitted]");
             return truncated || text.length() > MAX_CHARS
                     ? prefix(text, MAX_CHARS - TRUNCATED.length()) + TRUNCATED : text;

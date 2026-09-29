@@ -69,7 +69,12 @@ public class ClearLogBufferPreferenceTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertTrue(LogBufferManager.canUndoClear());
         assertEquals("Cleared summary", first.getSummary());
-        assertEquals("", LogBufferManager.buildExportText());
+        // A report still has the build's facts, and none of what was cleared.
+        String cleared = LogBufferManager.buildExportText();
+        assertFalse(cleared, cleared.contains("old buffered event"));
+        assertFalse(cleared, cleared.contains("[LATEST JAVA CRASH]"));
+        assertFalse(cleared, cleared.contains("[LATEST NATIVE CRASH SIGNAL]"));
+        assertFalse(cleared, cleared.contains("[HOOK STATUS]"));
         assertFalse(HookStatus.anyMissing());
         assertEquals("", LogBufferManager.readCrashReport(context));
         assertEquals("", LogBufferManager.readNpthCrashReport(context));

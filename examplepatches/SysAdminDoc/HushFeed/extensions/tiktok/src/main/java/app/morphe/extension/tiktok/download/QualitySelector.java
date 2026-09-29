@@ -147,6 +147,11 @@ public final class QualitySelector {
         return (name == null || name.isEmpty() ? "unnamed" : name) + (height > 0 ? " " + height + "p" : "");
     }
 
+    /** A gear's size as the shorter side, from its name or its address, or 0. */
+    public static int heightOf(Object gear) {
+        return height(gear);
+    }
+
     private static int height(Object gear) {
         String name = Reflect.string(gear, "getGearName", "gearName");
         if (name != null) {

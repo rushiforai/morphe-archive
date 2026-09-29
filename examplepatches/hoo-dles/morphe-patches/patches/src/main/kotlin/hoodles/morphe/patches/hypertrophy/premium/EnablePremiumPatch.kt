@@ -6,8 +6,6 @@
 package hoodles.morphe.patches.hypertrophy.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
@@ -20,6 +18,7 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.all.pairip.license.disableLicenseCheckPatch
 
 val extensionPatch = sharedExtensionPatch(
@@ -31,12 +30,7 @@ val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        packageName = "com.rp.hypertrophy",
-        name = "RP Hypertrophy",
-        appIconColor = 0xec0915,
-        targets = listOf(AppTarget("1.1.0"))
-    ))
+    compatibleWith(Compat.HYPERTROPHY)
 
     dependsOn(extensionPatch, disableLicenseCheckPatch)
 

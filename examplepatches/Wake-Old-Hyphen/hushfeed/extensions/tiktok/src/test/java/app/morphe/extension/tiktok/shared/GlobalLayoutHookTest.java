@@ -43,6 +43,34 @@ public class GlobalLayoutHookTest {
         assertEquals(2, calls.get());
     }
 
+    /**
+     * A listener added before its root reached a window moves to the window's observer when the
+     * root is attached, and the observer it was added to reports dead. Installing again on that
+     * root added a second listener, so every layout pass ran twice, and detach couldn't reach it.
+     */
+    @Test public void aRootAttachedAfterInstallKeepsOneListenerThatDetachStillReaches() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            FrameLayout root = new FrameLayout(activity);
+            AtomicInteger calls = new AtomicInteger();
+            GlobalLayoutHook hook = new GlobalLayoutHook();
+
+            assertTrue(hook.install(root, calls::incrementAndGet));
+            activity.setContentView(root);
+            controller.visible();
+            assertTrue("the root never reached a window", root.isAttachedToWindow());
+
+            assertFalse(hook.install(root, calls::incrementAndGet));
+            calls.set(0);
+            root.getViewTreeObserver().dispatchOnGlobalLayout();
+            assertEquals("the pass ran more than once", 1, calls.get());
+
+            hook.detach();
+            root.getViewTreeObserver().dispatchOnGlobalLayout();
+            assertEquals("detach left the listener on the window", 1, calls.get());
+        }
+    }
+
     @Test public void invalidInstallDetachesTheExistingListener() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         FrameLayout root = new FrameLayout(activity);

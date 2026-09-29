@@ -11,6 +11,7 @@ import android.os.Bundle;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.feedfilter.LiveFilter;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -72,6 +73,18 @@ public final class FeedMute {
     /** The last video a controller asked to play was a feed video. */
     private static volatile boolean lastPlayFeed;
     private static volatile Class<?> feedActivity;
+    /**
+     * A refresh that found the feed behind another screen, the settings page among them. What the
+     * focus should be is settled when the feed is back: a mute switched on from settings left the
+     * grant the playing video held in place, and another app's music stayed paused.
+     */
+    private static volatile boolean refreshOwed;
+    /**
+     * Sound turned back on with nothing playing. TikTok asks for its session focus once per player
+     * session and believes it still holds it, so nothing asked again and the feed played over
+     * another app; the next feed video to play asks instead.
+     */
+    private static volatile boolean focusOwed;
     private static WeakReference<Application> followed = new WeakReference<>(null);
 
     private FeedMute() {
@@ -87,15 +100,23 @@ public final class FeedMute {
         followed = new WeakReference<>(application);
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override public void onActivityResumed(Activity resumed) {
-                if (resumed.getClass() == feedActivity) feedInFront = true;
+                if (!isFeedHost(resumed)) return;
+                feedInFront = true;
+                if (refreshOwed) {
+                    refreshOwed = false;
+                    refresh();
+                }
             }
 
             @Override public void onActivityPaused(Activity paused) {
-                if (paused.getClass() == feedActivity) feedInFront = false;
+                if (isFeedHost(paused)) feedInFront = false;
             }
 
             @Override public void onActivityCreated(Activity created, Bundle state) { }
-            @Override public void onActivityStarted(Activity started) { }
+            // A pager's first video can start its engine before the pager resumes.
+            @Override public void onActivityStarted(Activity started) {
+                if (isFeedHost(started)) feedInFront = true;
+            }
             @Override public void onActivityStopped(Activity stopped) { }
             @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
             @Override public void onActivityDestroyed(Activity destroyed) { }
@@ -126,22 +147,53 @@ public final class FeedMute {
             boolean muted = isMuted();
             List<Object> engines = keys(muted ? FEED_ENGINES : MUTED);
             for (Object engine : engines) apply(engine);
-            if (!feedInFront || !lastPlayFeed) return;
+            if (!feedInFront) {
+                // A DM's or a story's player may hold the focus now, so it isn't touched here.
+                refreshOwed = true;
+                focusOwed = false;
+                return;
+            }
+            if (!lastPlayFeed) return;
             Context context = Utils.getContext();
             if (muted) {
+                focusOwed = false;
                 for (Object helper : keys(SESSION_HELPERS)) abandonSessionFocus(helper);
                 if (context != null) for (Object helper : keys(PAGE_HELPERS)) abandonPageFocus(helper, context);
                 return;
             }
-            if (!Boolean.TRUE.equals(SessionPlaybackHold.currentPlaying())) return;
-            Object session = lastSessionHelper.get();
-            if (session != null) requestSessionFocus(session);
-            Object page = lastPageHelper.get();
-            if (page != null && context != null) requestPageFocus(page, context);
+            if (!Boolean.TRUE.equals(SessionPlaybackHold.currentPlaying())) {
+                focusOwed = true;
+                return;
+            }
+            requestHeldFocus();
         } catch (Throwable failure) {
             HookStatus.threw(HOOK_FAMILY, "refresh", failure);
             Logger.printException(() -> "Could not apply Mute feed videos", failure);
         }
+    }
+
+    /** Asks again for the focus TikTok last held for the feed. Main thread. */
+    private static void requestHeldFocus() {
+        focusOwed = false;
+        Object session = lastSessionHelper.get();
+        if (session != null) requestSessionFocus(session);
+        Context context = Utils.getContext();
+        Object page = lastPageHelper.get();
+        if (page != null && context != null) requestPageFocus(page, context);
+    }
+
+    /**
+     * Whether Mute feed videos governs this video. A story or a LIVE replay in the feed plays with
+     * its sound whatever the button says, so the button stays off those. A video with no note yet
+     * answers yes, so a missed note costs a moment of a button rather than the button.
+     */
+    public static boolean appliesTo(String awemeId) {
+        if (awemeId == null) return true;
+        Boolean feed;
+        synchronized (PLAYS) {
+            feed = PLAYS.get(awemeId);
+        }
+        return feed == null || feed;
     }
 
     /** PlayerController's play, before it starts anything. Main thread. */
@@ -162,12 +214,20 @@ public final class FeedMute {
         }
     }
 
-    /** A video on the feed's own activity, not a story and not LIVE. */
+    /**
+     * The feed's own activity, or the detail pager a video from a profile, a hashtag or a sound
+     * plays in. The mute button is drawn there too, so what it says has to hold there.
+     */
+    static boolean isFeedHost(Object host) {
+        Class<?> feed = feedActivity;
+        return host != null && feed != null
+                && (host.getClass() == feed || FeedVisibility.isDetailPager(host));
+    }
+
+    /** A video on the feed or a detail pager, not a story and not LIVE. */
     static boolean isFeedPlay(Object controller, Object aweme) {
         if (!(aweme instanceof Aweme)) return false;
-        Object host = Reflect.readField(controller, "activity");
-        Class<?> feed = feedActivity;
-        if (host == null || feed == null || host.getClass() != feed) return false;
+        if (!isFeedHost(Reflect.readField(controller, "activity"))) return false;
         Aweme item = (Aweme) aweme;
         if (item.getIsTikTokStory()) return false;
         int type = item.getAwemeType();
@@ -201,6 +261,10 @@ public final class FeedMute {
                 }
             }
             apply(engine);
+            if (isFeed && focusOwed && !isMuted()) {
+                focusOwed = false;
+                Utils.runOnMainThread(FeedMute::requestHeldFocus);
+            }
             HookStatus.bound(HOOK_FAMILY, "engine play");
         } catch (Throwable failure) {
             HookStatus.threw(HOOK_FAMILY, "engine play", failure);
@@ -331,6 +395,8 @@ public final class FeedMute {
         lastPageHelper = new WeakReference<>(null);
         feedInFront = false;
         lastPlayFeed = false;
+        refreshOwed = false;
+        focusOwed = false;
         feedActivity = null;
         nativeForTests = null;
     }

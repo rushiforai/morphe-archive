@@ -3,6 +3,8 @@ package software.santodan.extension.nuvioremaining;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -12,10 +14,14 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -24,20 +30,20 @@ public final class NuvioRemainingEpisodes {
     private static final String TAG = "SantodanRemaining";
     private static final String PREFS = "santodan_nuvio_remaining_episodes";
     private static final String ENABLED = "enabled";
+    private static final String COUNT_PREFIX = "count_v2_";
+    private static final long FALLBACK_GRACE_MS = 500L;
     private static final Map<String, String> TITLES = new ConcurrentHashMap<>();
-    private static final Map<String, int[]> NEXT_EPISODES = new ConcurrentHashMap<>();
     private static final Map<String, Integer> REMAINING = new ConcurrentHashMap<>();
     private static final Set<String> FETCHING = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
     private static final ThreadLocal<Integer> PREPARED_BADGE = new ThreadLocal<>();
+    private static final AtomicBoolean REVISION_PENDING = new AtomicBoolean();
+    private static volatile Map<?, ?> latestAiredById;
+    private static volatile Map<?, ?> latestWatchedById;
     private static volatile Object enabledState;
     private static volatile Object revisionState;
-    private static volatile Object homeState;
 
     private NuvioRemainingEpisodes() {}
-
-    public static void registerState(Object state) {
-        homeState = state;
-    }
 
     public static void register(Object nextUpInfo) {
         try {
@@ -45,11 +51,18 @@ public final class NuvioRemainingEpisodes {
             String title = (String) field(nextUpInfo, "c").get(nextUpInfo);
             int season = ((Integer) field(nextUpInfo, "h").get(nextUpInfo)).intValue();
             int episode = ((Integer) field(nextUpInfo, "i").get(nextUpInfo)).intValue();
+            Integer seedSeason = (Integer) field(nextUpInfo, "x").get(nextUpInfo);
+            Integer seedEpisode = (Integer) field(nextUpInfo, "y").get(nextUpInfo);
             if (id != null && title != null) {
                 TITLES.put(id, title);
-                NEXT_EPISODES.put(id, new int[]{season, episode});
-                refreshRemaining(id);
-                if (!REMAINING.containsKey(id)) fetchRemaining(id, season, episode);
+                if (!REMAINING.containsKey(id)) {
+                    int cached = preferences().getInt(COUNT_PREFIX + id, -1);
+                    if (cached >= 0) REMAINING.put(id, Integer.valueOf(cached));
+                }
+                if (LOGGED.add("register:" + id)) Log.d(TAG, "registered id=" + id + " title=" + title
+                    + " next=" + season + ':' + episode + " seed=" + seedSeason + ':' + seedEpisode);
+                recalculate(id, latestAiredById, latestWatchedById);
+                fetchRemaining(id, season, episode, seedSeason, seedEpisode);
             }
         } catch (Throwable error) {
             Log.e(TAG, "NextUpInfo registration failed", error);
@@ -60,24 +73,14 @@ public final class NuvioRemainingEpisodes {
     public static void update(Map<?, ?> airedById, Map<?, ?> watchedById) {
         try {
             if (airedById == null || watchedById == null) return;
+            latestAiredById = airedById;
+            latestWatchedById = watchedById;
             // Tracking integrations can update these maps on another coroutine. Snapshot
             // both collections before counting so switching between Local/Trakt/Simkl
             // cannot leak a ConcurrentModificationException into Nuvio's refresh flow.
-            Object[] entries = watchedById.entrySet().toArray();
-            for (Object value : entries) {
-                if (!(value instanceof Map.Entry)) continue;
-                Map.Entry<?, ?> entry = (Map.Entry<?, ?>) value;
-                String id = String.valueOf(entry.getKey());
-                Object airedValue = airedById.get("series:" + id);
-                if (!(airedValue instanceof Set)) airedValue = airedById.get("tv:" + id);
-                if (!(airedValue instanceof Set) || !(entry.getValue() instanceof Set)) continue;
-                Object[] aired = ((Set<?>) airedValue).toArray();
-                Set<?> watched = (Set<?>) entry.getValue();
-                int count = 0;
-                for (Object episode : aired) if (!watched.contains(episode)) count++;
-                REMAINING.put(id, count);
-            }
-            bumpRevision();
+            Set<String> ids = new HashSet<>(TITLES.keySet());
+            for (Object key : watchedById.keySet().toArray()) ids.add(normalizeId(String.valueOf(key)));
+            for (String id : ids) recalculate(id, airedById, watchedById);
         } catch (Throwable error) {
             Log.e(TAG, "episode counting failed", error);
             // Counting is optional and must never interrupt a provider refresh.
@@ -124,11 +127,12 @@ public final class NuvioRemainingEpisodes {
         Integer count = null;
         for (Map.Entry<String, String> entry : TITLES.entrySet()) {
             if (title.equals(entry.getValue())) {
-                refreshRemaining(entry.getKey());
+                recalculate(entry.getKey(), latestAiredById, latestWatchedById);
                 Integer candidate = REMAINING.get(entry.getKey());
                 if (candidate != null && (count == null || candidate > count)) count = candidate;
             }
         }
+        if (LOGGED.add("card:" + title)) Log.d(TAG, "card title=" + title + " matched=" + matchedCounts(title));
         if (count == null || count <= 0) return;
         PREPARED_BADGE.set(count);
     }
@@ -136,11 +140,14 @@ public final class NuvioRemainingEpisodes {
     public static void renderPreparedBadge(Object composer) {
         Integer count = PREPARED_BADGE.get();
         PREPARED_BADGE.remove();
-        if (count == null || composer == null) return;
+        if (composer == null) return;
         try {
             ClassLoader loader = composer.getClass().getClassLoader();
             Object revision = revisionState(loader);
             findMethod(revision.getClass(), "getValue", 0).invoke(revision);
+            // Subscribe every card to count changes, including cards whose count
+            // is not available during their first composition.
+            if (count == null) return;
             Class<?> text = Class.forName("x5.i2", false, loader);
             Method method = findStatic(text, "b", 19);
             Object[] style = badgeStyle(loader, composer);
@@ -184,13 +191,36 @@ public final class NuvioRemainingEpisodes {
         return new Object[]{modifier, Long.valueOf(content), textStyle};
     }
 
-    private static void fetchRemaining(String id, int nextSeason, int nextEpisode) {
+    private static void recalculate(String id, Map<?, ?> airedById, Map<?, ?> watchedById) {
+        if (airedById == null || watchedById == null) return;
+        try {
+            Set<?> airedValue = episodeSet(airedById, id);
+            if (airedValue == null) return;
+            Set<?> watchedValue = episodeSet(watchedById, id);
+            int count = 0;
+            for (Object item : airedValue.toArray()) {
+                if (watchedValue == null || !watchedValue.contains(item)) count++;
+            }
+            Integer previous = REMAINING.put(id, count);
+            preferences().edit().putInt(COUNT_PREFIX + id, count).apply();
+            if (previous == null || previous.intValue() != count) {
+                Log.d(TAG, "native count id=" + id + " aired=" + airedValue.size()
+                    + " watched=" + (watchedValue == null ? 0 : watchedValue.size()) + " remaining=" + count);
+                bumpRevision();
+            }
+        } catch (Throwable error) {
+            Log.e(TAG, "remaining calculation failed id=" + id, error);
+        }
+    }
+
+    private static void fetchRemaining(String id, int nextSeason, int nextEpisode,
+                                       Integer seedSeason, Integer seedEpisode) {
         if (!id.startsWith("tt") || !FETCHING.add(id)) return;
         Thread worker = new Thread(() -> {
             HttpURLConnection connection = null;
             try {
                 connection = (HttpURLConnection) new URL(
-                    "https://v3-cinemeta.strem.io/meta/series/" + id + ".json").openConnection();
+                    "https://catalog.nuvio.tv/meta/series/" + id + ".json").openConnection();
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(8000);
                 connection.setRequestProperty("Accept", "application/json");
@@ -201,11 +231,12 @@ public final class NuvioRemainingEpisodes {
                     int read;
                     while ((read = input.read(buffer)) >= 0) output.write(buffer, 0, read);
                 }
-                byte[] bytes = output.toByteArray();
-                JSONArray videos = new JSONObject(new String(bytes, java.nio.charset.StandardCharsets.UTF_8))
-                    .optJSONObject("meta").optJSONArray("videos");
+                JSONObject meta = new JSONObject(new String(output.toByteArray(),
+                    java.nio.charset.StandardCharsets.UTF_8)).optJSONObject("meta");
+                JSONArray videos = meta == null ? null : meta.optJSONArray("videos");
                 if (videos == null) return;
-                Set<String> episodes = Collections.newSetFromMap(new ConcurrentHashMap<>());
+                ArrayList<int[]> episodes = new ArrayList<>();
+                Set<String> episodeKeys = new HashSet<>();
                 Instant now = Instant.now();
                 for (int i = 0; i < videos.length(); i++) {
                     JSONObject video = videos.optJSONObject(i);
@@ -218,12 +249,31 @@ public final class NuvioRemainingEpisodes {
                         try { if (Instant.parse(released).isAfter(now)) continue; }
                         catch (Throwable ignored) { }
                     }
-                    if (season > nextSeason || season == nextSeason && episode >= nextEpisode)
-                        episodes.add(season + ":" + episode);
+                    String key = season + ":" + episode;
+                    if (episodeKeys.add(key)) episodes.add(new int[]{season, episode});
                 }
-                int count = episodes.size();
-                REMAINING.put(id, count);
-                bumpRevision();
+                episodes.sort(Comparator.<int[]>comparingInt(value -> value[0])
+                    .thenComparingInt(value -> value[1]));
+                Integer remaining = remainingFromSeed(episodes, nextSeason, nextEpisode, seedSeason, seedEpisode);
+                if (remaining == null) {
+                    Log.w(TAG, "fallback rejected id=" + id + " because Nuvio catalog has neither next="
+                        + nextSeason + ':' + nextEpisode + " nor seed=" + seedSeason + ':' + seedEpisode);
+                    return;
+                }
+                // Provider synchronization commonly finishes several seconds
+                // after cards are first constructed. Do not flash a metadata
+                // estimate that will immediately be replaced by native data.
+                Thread.sleep(FALLBACK_GRACE_MS);
+                if (!nativeAvailable(id)) {
+                    Integer previous = REMAINING.put(id, remaining);
+                    preferences().edit().putInt(COUNT_PREFIX + id, remaining.intValue()).apply();
+                    if (previous == null || previous.intValue() != remaining.intValue()) {
+                        Log.d(TAG, "fallback count id=" + id + " remaining=" + remaining
+                            + " next=" + nextSeason + ':' + nextEpisode
+                            + " seed=" + seedSeason + ':' + seedEpisode);
+                        bumpRevision();
+                    }
+                }
             } catch (Throwable error) {
                 Log.e(TAG, "fallback metadata fetch failed id=" + id, error);
             } finally {
@@ -235,32 +285,60 @@ public final class NuvioRemainingEpisodes {
         worker.start();
     }
 
-    private static void refreshRemaining(String id) {
-        Object state = homeState;
-        int[] next = NEXT_EPISODES.get(id);
-        if (state == null || next == null) return;
-        try {
-            Object value = field(state, "M0").get(state);
-            if (!(value instanceof Map)) return;
-            Map<?, ?> airedById = (Map<?, ?>) value;
-            Object airedValue = airedById.get("series:" + id);
-            if (!(airedValue instanceof Set)) airedValue = airedById.get("tv:" + id);
-            if (!(airedValue instanceof Set)) return;
-            int count = 0;
-            for (Object item : ((Set<?>) airedValue).toArray()) {
-                if (item == null) continue;
-                Object first = findMethod(item.getClass(), "getFirst", 0).invoke(item);
-                Object second = findMethod(item.getClass(), "getSecond", 0).invoke(item);
-                if (!(first instanceof Number) || !(second instanceof Number)) continue;
-                int season = ((Number) first).intValue();
-                int episode = ((Number) second).intValue();
-                if (season > next[0] || season == next[0] && episode >= next[1]) count++;
+    private static boolean nativeAvailable(String id) {
+        Map<?, ?> aired = latestAiredById;
+        Map<?, ?> watched = latestWatchedById;
+        if (aired == null || watched == null) return false;
+        return episodeSet(aired, id) != null;
+    }
+
+    private static Integer remainingFromSeed(ArrayList<int[]> episodes, int nextSeason, int nextEpisode,
+                                             Integer seedSeason, Integer seedEpisode) {
+        if (seedSeason != null && seedEpisode != null && seedEpisode.intValue() > 0) {
+            int watchedIndex = episodeIndex(episodes, seedSeason.intValue(), seedEpisode.intValue());
+            if (watchedIndex < 0 && seedSeason.intValue() == 1) {
+                Set<Integer> seasons = new HashSet<>();
+                for (int[] value : episodes) seasons.add(value[0]);
+                int globalIndex = seedEpisode.intValue() - 1;
+                if (seasons.size() > 1 && globalIndex >= 0 && globalIndex < episodes.size())
+                    watchedIndex = globalIndex;
             }
-            REMAINING.put(id, count);
-            bumpRevision();
-        } catch (Throwable error) {
-            Log.e(TAG, "direct remaining calculation failed id=" + id, error);
+            if (watchedIndex >= 0) return Math.max(0, episodes.size() - watchedIndex - 1);
         }
+        int nextIndex = episodeIndex(episodes, nextSeason, nextEpisode);
+        if (nextIndex >= 0) return episodes.size() - nextIndex;
+        return null;
+    }
+
+    private static int episodeIndex(ArrayList<int[]> episodes, int season, int episode) {
+        for (int i = 0; i < episodes.size(); i++) {
+            int[] value = episodes.get(i);
+            if (value[0] == season && value[1] == episode) return i;
+        }
+        return -1;
+    }
+
+    private static Set<?> episodeSet(Map<?, ?> values, String id) {
+        Object value = values.get(id);
+        if (!(value instanceof Set)) value = values.get("series:" + id);
+        if (!(value instanceof Set)) value = values.get("tv:" + id);
+        return value instanceof Set ? (Set<?>) value : null;
+    }
+
+    private static String matchedCounts(String title) {
+        StringBuilder result = new StringBuilder("[");
+        for (Map.Entry<String, String> entry : TITLES.entrySet()) {
+            if (!title.equals(entry.getValue())) continue;
+            if (result.length() > 1) result.append(", ");
+            result.append(entry.getKey()).append('=').append(REMAINING.get(entry.getKey()));
+        }
+        return result.append(']').toString();
+    }
+
+    private static String normalizeId(String id) {
+        if (id.startsWith("series:")) return id.substring("series:".length());
+        if (id.startsWith("tv:")) return id.substring("tv:".length());
+        return id;
     }
 
     private static boolean enabled() {
@@ -297,16 +375,20 @@ public final class NuvioRemainingEpisodes {
     }
 
     private static void bumpRevision() {
-        Object state = revisionState;
-        if (state == null) return;
-        try {
-            Method getter = findMethod(state.getClass(), "getValue", 0);
-            Method setter = findMethod(state.getClass(), "setValue", 1);
-            int value = ((Number) getter.invoke(state)).intValue();
-            setter.invoke(state, Integer.valueOf(value + 1));
-        } catch (Throwable error) {
-            Log.e(TAG, "revision state update failed", error);
-        }
+        if (revisionState == null || !REVISION_PENDING.compareAndSet(false, true)) return;
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            REVISION_PENDING.set(false);
+            Object state = revisionState;
+            if (state == null) return;
+            try {
+                Method getter = findMethod(state.getClass(), "getValue", 0);
+                Method setter = findMethod(state.getClass(), "setValue", 1);
+                int value = ((Number) getter.invoke(state)).intValue();
+                setter.invoke(state, Integer.valueOf(value + 1));
+            } catch (Throwable error) {
+                Log.e(TAG, "revision state update failed", error);
+            }
+        }, 100L);
     }
 
     private static boolean stateValue(Object state) throws Exception {

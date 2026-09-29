@@ -5,10 +5,9 @@
 
 package hoodles.morphe.patches.ibispaint.prime
 
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.util.byteArrayOf
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.util.requireArm64
 import net.fornwall.jelf.ElfFile
 import net.fornwall.jelf.ElfSymbol
@@ -19,12 +18,7 @@ val enablePrimePatch = rawResourcePatch(
     name = "Enable Prime membership",
     description = "Enables app features locked behind the subscription paywall. Requirements: arm64-v8a"
 ) {
-    compatibleWith(Compatibility(
-        name = "IbisPaint X",
-        packageName = "jp.ne.ibis.ibispaintx.app",
-        appIconColor = 0x0B649B,
-        targets = listOf(AppTarget("14.1.0"))
-    ))
+    compatibleWith(Compat.IBIS_PAINT)
 
     availability(requireArm64())
 

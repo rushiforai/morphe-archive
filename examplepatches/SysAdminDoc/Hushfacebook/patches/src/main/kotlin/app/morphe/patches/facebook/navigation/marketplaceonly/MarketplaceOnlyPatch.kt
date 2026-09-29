@@ -32,7 +32,8 @@ val marketplaceOnlyPatch = bytecodePatch(
     name = "Marketplace only",
     description = "Leaves only Marketplace, Notifications and your profile or Menu in the tab bar, and opens " +
         "Facebook on Marketplace. Home with the news feed, Video, Friends, Feeds, Groups, Gaming and Events " +
-        "go. Notifications and links still open where they lead.",
+        "go. Notifications and links still open where they lead. Its switch starts off, so turn it on " +
+        "under Opening Facebook in Hushfacebook's settings.",
     default = true,
 ) {
     category("Interface")

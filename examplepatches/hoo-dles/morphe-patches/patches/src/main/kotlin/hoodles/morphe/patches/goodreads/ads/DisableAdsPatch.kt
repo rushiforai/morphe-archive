@@ -8,13 +8,12 @@ package hoodles.morphe.patches.goodreads.ads
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
 import app.morphe.patches.all.misc.extension.sharedExtensionPatch
 import app.morphe.util.returnEarly
+import hoodles.morphe.compatibility.Compat
 
 internal val extensionPatch = sharedExtensionPatch(
     "goodreads",
@@ -26,12 +25,7 @@ val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
     description = "Disables all ads contained within the UI."
 ) {
-    compatibleWith(Compatibility(
-        name = "Goodreads",
-        packageName = "com.goodreads",
-        appIconColor = 0xeae2d6,
-        targets = listOf(AppTarget("2.75.0 Build 3"))
-    ))
+    compatibleWith(Compat.GOODREADS)
 
     dependsOn(extensionPatch)
 

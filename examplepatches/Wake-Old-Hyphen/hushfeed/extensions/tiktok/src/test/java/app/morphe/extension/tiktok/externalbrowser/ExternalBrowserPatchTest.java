@@ -42,7 +42,7 @@ public class ExternalBrowserPatchTest {
                         "aweme://webview?url=https%3A%2F%2Fexample.com%2Fpath").toString());
         assertEquals("https://example.com/path",
                 ExternalBrowserPatch.resolveTarget(
-                        "https://redirect.example/?target=https%3A%2F%2Fexample.com%2Fpath").toString());
+                        "https://www.tiktok.com/link//?aid=1233&lang=en&scene=bio_url&jumper_version=1&target=https%3A%2F%2Fexample.com%2Fpath").toString());
     }
 
     @Test public void resolverRefusesNonWebSchemesMissingHostsAndWrapperLoops() {
@@ -51,6 +51,60 @@ public class ExternalBrowserPatchTest {
         assertNull(ExternalBrowserPatch.resolveTarget("https:///path"));
         assertNull(ExternalBrowserPatch.resolveTarget(
                 "aweme://webview?url=aweme%3A%2F%2Fwebview%3Furl%3Daweme%253A%252F%252Fwebview"));
+    }
+
+    @Test public void ordinaryWebsitesKeepTheirTargetParameters() {
+        for (String source : new String[]{
+                "https://example.com/page?target=dashboard&mode=preview",
+                "https://example.com/page?target=https%3A%2F%2Fother.example%2Faccount",
+                "https://example.com/page?target=&mode=preview",
+                "https://example.com/page?target=one&target=two"
+        }) {
+            assertEquals("A site's own query parameter changed its destination", source,
+                    String.valueOf(ExternalBrowserPatch.resolveTarget(source)));
+        }
+    }
+
+    @Test public void onlyTheLinkSafetyRouteUnwrapsTargetsOnTikTokHosts() {
+        for (String source : new String[]{
+                "https://www.tiktok.com/@creator?target=dashboard",
+                "https://www.tiktoklinksafety.com/help?target=dashboard",
+                "https://www.tiktok.com.attacker.example/link//?target=https%3A%2F%2Fexample.com",
+                "https://www.tiktoklinksafety.us.attacker.example/link//?target=dashboard"
+        }) {
+            assertEquals(source, String.valueOf(ExternalBrowserPatch.resolveTarget(source)));
+        }
+    }
+
+    @Test public void unicodeCaseEquivalentsAreNotWebSchemes() {
+        assertNull(ExternalBrowserPatch.resolveTarget("http\u017f://example.com/path"));
+        assertEquals("HTTPS://example.com/path", String.valueOf(
+                ExternalBrowserPatch.resolveTarget("HTTPS://example.com/path")));
+    }
+
+    @Test public void unicodeLookalikeHostsKeepTheirOwnTargets() {
+        for (String host : new String[]{"www.t\u0131ktok.com", "www.t%C4%B1ktok.com"}) {
+            String source = "https://" + host + "/link//?target=dashboard";
+            assertEquals("A different hostname was treated as a native TikTok wrapper", source,
+                    String.valueOf(ExternalBrowserPatch.resolveTarget(source)));
+        }
+        assertEquals("https://example.com/path", String.valueOf(ExternalBrowserPatch.resolveTarget(
+                "HTTPS://WWW.TIKTOK.COM/link//?target=https%3A%2F%2Fexample.com%2Fpath")));
+    }
+
+    @Test public void supportedNativeLinkSafetyWrappersStillOpenTheirDestination() {
+        // Both supported APKs configure these bases. The SDK appends an encoded target and,
+        // for its alternate page, /middle-page after the configured /link// base.
+        for (String host : new String[]{"www.tiktok.com", "www.tiktoklinksafety.us",
+                "www.tiktoklinksafety.eu", "www.tiktoklinksafety.com"}) {
+            for (String path : new String[]{"/link//", "/link///middle-page"}) {
+                String source = "https://" + host + path
+                        + "?aid=1233&lang=en&scene=bio_url&jumper_version=1"
+                        + "&target=https%3A%2F%2Fexample.com%2Fpath%3Ftarget%3Ddashboard";
+                assertEquals("https://example.com/path?target=dashboard",
+                        String.valueOf(ExternalBrowserPatch.resolveTarget(source)));
+            }
+        }
     }
 
     @Test public void publicHooksRejectDisallowedScreensBeforeOpeningAService() {

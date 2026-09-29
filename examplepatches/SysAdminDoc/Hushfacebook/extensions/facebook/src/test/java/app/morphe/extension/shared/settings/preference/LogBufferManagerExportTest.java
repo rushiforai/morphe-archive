@@ -89,11 +89,7 @@ public class LogBufferManagerExportTest {
         org.robolectric.Shadows.shadowOf(manager).addApplicationExitInfo(exit);
         org.robolectric.Shadows.shadowOf(manager).addApplicationExitInfo(helper);
 
-        // The line rides along with a report that was already worth making. On its own it must
-        // not make one, because every process has a last exit and most of them are ordinary.
-        assertEquals("a last exit alone made a report", "", LogBufferManager.buildExportText());
-
-        app.morphe.extension.shared.diagnostics.HookStatus.missingViewId("comments", "jlk");
+        // Every report asked for carries the line, a healthy one with nothing else found included.
         String report = LogBufferManager.buildExportText();
         assertTrue("the report does not say why the process went away: " + report,
                 report.contains("[LAST EXIT]"));
@@ -171,6 +167,83 @@ public class LogBufferManagerExportTest {
         assertNotNull("the export said nothing", toast);
         String saved = Environment.DIRECTORY_DOWNLOADS + "/Morphe/" + downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME);
         assertEquals("Full report saved to " + app.morphe.extension.shared.L10n.isolate(saved), toast);
+    }
+
+    /**
+     * Both exports end to end, with the redactor's credential corpus in every place a report takes
+     * text from: buffered events, the saved crash and a section the bundle registers. No synthetic
+     * secret reaches the clipboard or the saved file, and the build lines, timestamps and stack
+     * frames a maintainer reads the report for arrive intact.
+     */
+    @Test public void neitherExportCarriesASyntheticCredential() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        app.morphe.extension.shared.settings.BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        app.morphe.extension.shared.diagnostics.HookStatus.clear();
+        LogBufferManager.clearLogBuffer();
+        String[][] corpus = app.morphe.extension.shared.diagnostics.DiagnosticRedactorTest.CREDENTIAL_CORPUS;
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        StringBuilder crash = new StringBuilder("complete: true\njava.io.IOException: 401\n");
+        for (String[] row : corpus) {
+            LogBufferManager.appendEvent(app.morphe.extension.shared.diagnostics.DiagnosticCategory.DOWNLOADS,
+                    "Probe", "INFO", row[0]);
+            lines.add(row[0]);
+            crash.append(row[0]).append('\n');
+        }
+        String frame = "\tat app.morphe.extension.facebook.download.Downloader.connect(Downloader.java:120)";
+        crash.append(frame).append('\n');
+        LogBufferManager.persistCrashReport(context, crash.toString());
+        LogBufferManager.registerReportSection(new LogBufferManager.ReportSection() {
+            @Override public String title() {
+                return "PROBE";
+            }
+
+            @Override public java.util.List<String> lines() {
+                return lines;
+            }
+        });
+        try {
+            android.content.ClipboardManager clipboard = context.getSystemService(android.content.ClipboardManager.class);
+            LogBufferManager.exportToClipboard();
+            app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            String copied = String.valueOf(clipboard.getPrimaryClip().getItemAt(0).getText());
+
+            Downloads downloads = Robolectric.setupContentProvider(Downloads.class, MediaStore.AUTHORITY);
+            ByteArrayOutputStream body = new ByteArrayOutputStream();
+            Shadows.shadowOf(context.getContentResolver()).registerOutputStream(downloads.uriFor(1), body);
+            LogBufferManager.exportToFile();
+            app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+            org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            String saved = body.toString(StandardCharsets.UTF_8.name());
+
+            String[][] exports = {{"clipboard", copied}, {"file", saved}};
+            for (String[] export : exports) {
+                String where = export[0];
+                String text = export[1];
+                assertTrue(where + " holds no report: " + text, text.startsWith("MORPHE DIAGNOSTIC REPORT\n"));
+                for (String[] row : corpus) {
+                    for (int i = 1; i < row.length; i++) {
+                        assertTrue(row[i] + " reached the " + where + ":\n" + text, text.indexOf(row[i]) < 0);
+                    }
+                }
+                assertTrue(where + " lost the app line: " + text,
+                        text.contains("\napp: " + context.getPackageName() + " "));
+                assertTrue(where + " lost the abi line: " + text, text.contains("\nabi: app "));
+                assertTrue(where + " lost the report time: " + text,
+                        java.util.regex.Pattern.compile("\ngenerated_utc: \\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z\n")
+                                .matcher(text).find());
+                assertTrue(where + " lost the event times: " + text,
+                        java.util.regex.Pattern.compile("\ndownloads \\| \\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z \\| ")
+                                .matcher(text).find());
+                assertTrue(where + " lost the stack frame: " + text, text.contains(frame + "\n"));
+                assertTrue(where + " lost the crash heading: " + text, text.contains("[LATEST JAVA CRASH]"));
+                assertTrue(where + " lost the section: " + text, text.contains("[PROBE]"));
+            }
+        } finally {
+            LogBufferManager.clearReportSectionsForTests();
+            LogBufferManager.clearLogBuffer();
+        }
     }
 
     /** MediaStore's Downloads table, as much of it as an export touches. */

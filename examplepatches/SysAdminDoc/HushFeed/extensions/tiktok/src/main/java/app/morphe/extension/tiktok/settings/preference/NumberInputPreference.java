@@ -67,7 +67,7 @@ public class NumberInputPreference extends EditTextPreference {
         setTitle(title);
         setKey(setting.key);
         setValue(String.valueOf(clamp(setting.savedValue())));
-        getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
+        getEditText().setInputType(inputType());
         // The range as the placeholder: "Enter a number" said nothing the empty field did not.
         getEditText().setHint(L10n.f(context, "%1$s to %2$s", displayValue(minValue), displayValue(maxValue)));
     }
@@ -235,7 +235,7 @@ public class NumberInputPreference extends EditTextPreference {
         if (parent != null) {
             parent.removeView(editText);
         }
-        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        editText.setInputType(inputType());
         editText.setSingleLine(true);
         editText.setSelectAllOnFocus(true);
         SettingsUi.styleEditText(editText);
@@ -308,15 +308,29 @@ public class NumberInputPreference extends EditTextPreference {
     }
 
     private String typedProblem(String typed) {
+        // The old message described a flow that no longer exists: Save used to close the
+        // dialog and throw away what was typed. It stays open now and shows this under the
+        // field, so "the previous value was kept" is about something that didn't happen.
+        return parseTyped(typed) == null ? unreadableMessage() : null;
+    }
+
+    /** The number in what was typed, or null when there is none. A row may read other forms. */
+    protected Integer parseTyped(String typed) {
         try {
-            Integer.parseInt(typed.trim());
-            return null;
+            return Integer.parseInt(typed.trim());
         } catch (Exception unreadable) {
-            // The old message described a flow that no longer exists: Save used to close the
-            // dialog and throw away what was typed. It stays open now and shows this under the
-            // field, so "the previous value was kept" is about something that didn't happen.
-            return L10n.t(getContext(), "Enter a number.");
+            return null;
         }
+    }
+
+    /** What the field says under it when nothing in it can be read. */
+    protected String unreadableMessage() {
+        return L10n.t(getContext(), "Enter a number.");
+    }
+
+    /** The keyboard the field asks for. Called from the constructor, so it reads no fields. */
+    protected int inputType() {
+        return InputType.TYPE_CLASS_NUMBER;
     }
 
     /**
@@ -328,26 +342,18 @@ public class NumberInputPreference extends EditTextPreference {
      * to a question nobody asked.
      */
     private void sayIfPulledIntoRange(String typed, int stored) {
-        int asked;
-        try {
-            asked = Integer.parseInt(typed.trim());
-        } catch (Exception unreadable) {
-            return;
-        }
-        if (asked == stored) return;
+        Integer asked = parseTyped(typed);
+        if (asked == null || asked == stored) return;
         app.morphe.extension.shared.Utils.showToastShort(L10n.f(getContext(),
                 "Kept to %1$s, the nearest value this row allows", displayValue(stored)));
     }
 
     private int parseAndClamp(String value) {
-        try {
-            return clamp(Integer.parseInt(value.trim()));
-        } catch (Exception ignored) {
-            // An empty or unreadable box is not a request for the smallest value. For
-            // several of these settings the smallest value means off, so falling to it
-            // would quietly turn a feature off because somebody cleared the field.
-            return clamp(setting.savedValue());
-        }
+        Integer typed = value == null ? null : parseTyped(value);
+        // An empty or unreadable box is not a request for the smallest value. For several of
+        // these settings the smallest value means off, so falling to it would quietly turn a
+        // feature off because somebody cleared the field.
+        return clamp(typed != null ? typed : setting.savedValue());
     }
 
     protected int clamp(int value) {

@@ -28,8 +28,8 @@ public class ExpandedControlsTest {
     }
 
     @Test public void everyControlIsIndependentAndPauseKeepsItsChoice() {
-        assertEquals(20, SettingsActivity.CONTROLS.length);
-        assertEquals(20, Settings.installed.size());
+        assertEquals(24, SettingsActivity.CONTROLS.length);
+        assertEquals(24, Settings.installed.size());
         for (String[] spec : SettingsActivity.CONTROLS) {
             String key = spec[0];
             assertTrue(Settings.installed.contains(key));
@@ -103,6 +103,20 @@ public class ExpandedControlsTest {
             for (String[] spec : SettingsActivity.CONTROLS) assertNull(root.findViewWithTag(spec[0]));
             assertTrue(((TextView) root.findViewWithTag("search_status")).getText().toString().startsWith("No optional controls installed."));
             assertNotNull(root.findViewWithTag("open_messenger"));
+            // Nothing to search, and no "try another search" panel contradicting the status line.
+            assertEquals(View.GONE, root.findViewWithTag("find_control").getVisibility());
+            assertEquals(View.GONE, ((View) root.findViewWithTag("category_all").getParent()).getVisibility());
+            assertEquals(View.GONE, root.findViewWithTag("empty_state").getVisibility());
+        }
+    }
+
+    @Test public void searchFieldReadsTypedTextAndCapsPastedLength() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            EditText search = screen.get().getWindow().getDecorView().findViewWithTag("find_control");
+            assertNull(search.getContentDescription());
+            assertEquals("Find a control", search.getHint().toString());
+            search.setText("x".repeat(5000));
+            assertEquals(100, search.length());
         }
     }
 
@@ -112,15 +126,15 @@ public class ExpandedControlsTest {
             EditText search = root.findViewWithTag("find_control");
             TextView status = root.findViewWithTag("search_status");
             search.setText("  PEOPLE YOU  ");
-            assertEquals("1 of 20 installed controls", status.getText().toString());
+            assertEquals("1 of 24 installed controls", status.getText().toString());
             assertEquals(View.VISIBLE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
             assertEquals(View.GONE, ((View) root.findViewWithTag("stories").getParent()).getVisibility());
             search.setText("Stickers");
-            assertEquals("2 of 20 installed controls", status.getText().toString());
+            assertEquals("2 of 24 installed controls", status.getText().toString());
             search.setText("missing control xyz");
             assertEquals("No matching controls. Try another search.", status.getText().toString());
             search.setText("");
-            assertEquals("20 of 20 installed controls", status.getText().toString());
+            assertEquals("24 of 24 installed controls", status.getText().toString());
         }
     }
 }

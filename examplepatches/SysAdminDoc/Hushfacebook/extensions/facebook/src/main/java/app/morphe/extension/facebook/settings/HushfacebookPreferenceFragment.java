@@ -47,12 +47,16 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
+import app.morphe.extension.facebook.download.SaveControl;
 import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.navigation.StartTab;
@@ -91,6 +95,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     static final String STAYS_WHILE_PAUSED = "Stays in while paused";
     /** The Check now row's key. It stores nothing: no setting has this name. */
     static final String CHECK_NOW = "action_check_for_release";
+    /** The Supported links row's key. It stores nothing either. */
+    static final String SUPPORTED_LINKS = "action_supported_links";
 
     /** Thrown by the next initialize() and then cleared: how a test reaches the recovery page. */
     static volatile RuntimeException failNextInitialization;
@@ -117,6 +123,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     @Nullable
     AlertDialog importPreview;
 
+    /** The page's other dialogs that may still be on screen: the sections, Licenses and a word list's note. */
+    private final List<Dialog> shownDialogs = new ArrayList<>();
+
     /**
      * Where the list was before the last section jump, as its first visible position and that row's
      * top, which Back goes back to once; null when there's been no jump since.
@@ -126,6 +135,16 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
 
     @Nullable
     SettingsNavigation navigation;
+
+    /** The Downloads section, where the running saves are listed, or null when no download patch is in. */
+    @Nullable
+    private PreferenceCategory downloads;
+
+    /** The rows of the saves running now, by save number. */
+    private final Map<Integer, SaveRow> saveRows = new HashMap<>();
+
+    /** Keeps the rows in step with the saves while the page is showing. Saves tell it from their own thread. */
+    private final SaveControl.Watcher saves = () -> Utils.runOnMainThread(this::showSaves);
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -163,6 +182,15 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         super.onResume();
         SettingsBackupPreference.onPageResumed(this);
         showMarketplaceSettings();
+        showSupportedLinks();
+        SaveControl.watch(saves);
+        showSaves();
+    }
+
+    @Override
+    public void onPause() {
+        SaveControl.unwatch(saves);
+        super.onPause();
     }
 
     @Override
@@ -177,6 +205,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         // The preview is drawn over this page's window. It stays unanswered, and the page that
         // replaces this one shows it again.
         SettingsBackupPreference.closePreview(this);
+        // The page's other dialogs are drawn over its window too, and would outlive it.
+        for (Dialog dialog : new ArrayList<>(shownDialogs)) dialog.dismiss();
+        shownDialogs.clear();
         ReleaseCheck.unwatch(this);
         if (navigation != null) navigation.close();
         navigation = null;
@@ -325,6 +356,9 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
                         L10n.t("Keep feed position on return"),
                         L10n.t("Returning to Facebook within ten minutes keeps your place. Pull to refresh still works.")));
+                feed.addPreference(toggle(context, Settings.RETURN_REFRESH_NO_LIMIT,
+                        L10n.t("No time limit"),
+                        L10n.t("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.")));
             }
             if (build.contains(PatchFamily.AI_DETECTED_POSTS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_AI_DETECTED_POSTS, L10n.t("Hide AI-detected posts"),
@@ -350,7 +384,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         }
 
         if (build.contains(PatchFamily.SPONSORED_STORIES) || build.contains(PatchFamily.SUGGESTED_STORIES)
-                || build.contains(PatchFamily.STORY_AUTO_ADVANCE) || build.contains(PatchFamily.STORY_DOWNLOAD)) {
+                || build.contains(PatchFamily.STORY_AUTO_ADVANCE) || build.contains(PatchFamily.STORY_SEEN)
+                || build.contains(PatchFamily.STORY_DOWNLOAD)) {
             PreferenceCategory stories = category(screen, L10n.t("Stories"));
             if (build.contains(PatchFamily.SPONSORED_STORIES)) {
                 stories.addPreference(toggle(context, Settings.HIDE_SPONSORED_STORIES, L10n.t("Hide sponsored stories"),
@@ -368,52 +403,80 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Stop Story auto-advance"),
                         L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.")));
             }
+            if (build.contains(PatchFamily.STORY_SEEN)) {
+                stories.addPreference(toggle(context, Settings.VIEW_STORIES_ANONYMOUSLY,
+                        L10n.t("View stories anonymously"),
+                        L10n.t("Facebook isn't told which stories you watch, so you stay off their viewer lists. "
+                                + "Replying or reacting still shows you, and stories you've watched keep their "
+                                + "unwatched ring.")));
+            }
             if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
                 stories.addPreference(toggle(context, Settings.DOWNLOAD_STORIES, L10n.t("Save any story"),
                         L10n.t("Add Save to every story menu, using your download quality. Off or paused, Facebook only saves your own stories.")));
             }
         }
 
-        if (build.contains(PatchFamily.SPONSORED_REELS) || build.contains(PatchFamily.AI_DETECTED_POSTS)
-                || build.contains(PatchFamily.REEL_DECLUTTER) || build.contains(PatchFamily.REEL_WATCH_HISTORY)
-                || build.contains(PatchFamily.REEL_DOWNLOAD)) {
-            PreferenceCategory reels = category(screen, L10n.t("Reels and Watch"));
-            // Both reel filters work on each batch of reels as it arrives, so a change leaves the
-            // reels already loaded as they are, and the rows say so.
-            if (build.contains(PatchFamily.SPONSORED_REELS)) {
-                reels.addPreference(toggle(context, Settings.HIDE_SPONSORED_REELS, L10n.t("Hide sponsored reels"),
-                        L10n.t("Ads inside Reels, starting with the next batch Facebook loads. Banners, mid-rolls "
-                                + "and app-inserted ads stay blocked even while paused.")));
-            }
-            if (build.contains(PatchFamily.AI_DETECTED_POSTS)) {
-                reels.addPreference(toggle(context, Settings.HIDE_AI_DETECTED_REELS,
-                        L10n.t("Hide AI-detected reels and videos"),
-                        L10n.t("Reels and Watch videos that Facebook's own detection marks as made with AI, starting "
-                                + "with the next batch Facebook loads. One that only its creator labelled as AI stays. "
-                                + "It's off by default because it hasn't been tested on a real account yet.")));
-            }
-            if (build.contains(PatchFamily.REEL_DECLUTTER)) {
-                reels.addPreference(toggle(context, Settings.HIDE_REEL_CHIPS,
-                        L10n.t("Hide prompts and promos under reels"),
-                        L10n.t("Remix, Use template, Add yours and Edits buttons, plus Stars, games, partner apps "
-                                + "and outside links. The song and other labels stay.")));
-                reels.addPreference(toggle(context, Settings.HIDE_REEL_FOLLOW_BUTTON,
-                        L10n.t("Hide the Follow button on reels"),
-                        L10n.t("The Follow button next to the reel's author. You can still follow them from their profile.")));
-                reels.addPreference(toggle(context, Settings.HIDE_REEL_SOCIAL_FOOTER,
-                        L10n.t("Hide comment and reaction previews"),
-                        L10n.t("The comment Facebook previews under a reel and the bubbles of friends who reacted. "
-                                + "Open the comments to see them all.")));
-            }
-            if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
-                reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,
-                        L10n.t("Don't send reel watch history"),
-                        L10n.t("Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.")));
-            }
-            if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
-                reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS, L10n.t("Download button on reels"),
-                        L10n.t("Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.")));
-            }
+        // In every build: "How do I block Reels?" has four answers in four places (discussion #17),
+        // and the tab's answer is Facebook's own setting, so the map is here whatever was patched.
+        PreferenceCategory reels = category(screen, L10n.t("Reels and Watch"));
+        reels.addPreference(info(context, L10n.t("How to block Reels"),
+                L10n.t("Reels show up in four places, and each one has its own control.")));
+        reels.addPreference(reelsLink(context, build, PatchFamily.FEED_REELS, Settings.HIDE_FEED_REELS,
+                L10n.t("Reels in the feed"),
+                L10n.t("In News feed, Hide Reels in the feed blocks the rows of reels between posts.")));
+        reels.addPreference(reelsLink(context, build, PatchFamily.TAP_TO_PLAY, Settings.TAP_TO_PLAY,
+                L10n.t("Reels that play by themselves"),
+                L10n.t("In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.")));
+        // No patch hides the tab. Facebook's own Hide does, on the accounts that have it.
+        reels.addPreference(info(context, L10n.t("The Reels tab"),
+                L10n.t("Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide "
+                        + "next to Reels, which some accounts call Video. If neither is listed, Facebook hasn't given "
+                        + "your account that option, and Hushfacebook has no switch for the tab.")));
+        reels.addPreference(reelsLink(context, build, PatchFamily.MARKETPLACE_ONLY, Settings.MARKETPLACE_ONLY,
+                L10n.t("Everything except Marketplace"),
+                L10n.t("In Opening Facebook, Marketplace only blocks the feed, the Reels tab and the other social "
+                        + "tabs after a restart.")));
+        // Both reel filters work on each batch of reels as it arrives, so a change leaves the
+        // reels already loaded as they are, and the rows say so.
+        if (build.contains(PatchFamily.SPONSORED_REELS)) {
+            reels.addPreference(toggle(context, Settings.HIDE_SPONSORED_REELS, L10n.t("Hide sponsored reels"),
+                    L10n.t("Ads inside Reels, starting with the next batch Facebook loads. Banners, mid-rolls "
+                            + "and app-inserted ads stay blocked even while paused.")));
+        }
+        if (build.contains(PatchFamily.AI_DETECTED_POSTS)) {
+            reels.addPreference(toggle(context, Settings.HIDE_AI_DETECTED_REELS,
+                    L10n.t("Hide AI-detected reels and videos"),
+                    L10n.t("Reels and Watch videos that Facebook's own detection marks as made with AI, starting "
+                            + "with the next batch Facebook loads. One that only its creator labelled as AI stays. "
+                            + "It's off by default because it hasn't been tested on a real account yet.")));
+        }
+        if (build.contains(PatchFamily.REEL_DECLUTTER)) {
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_CHIPS,
+                    L10n.t("Hide prompts and promos under reels"),
+                    L10n.t("Remix, Use template, Add yours and Edits buttons, plus Stars, games, partner apps "
+                            + "and outside links. The song and other labels stay.")));
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_FOLLOW_BUTTON,
+                    L10n.t("Hide the Follow button on reels"),
+                    L10n.t("The Follow button next to the reel's author. You can still follow them from their profile.")));
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_SOCIAL_FOOTER,
+                    L10n.t("Hide comment and reaction previews"),
+                    L10n.t("The comment Facebook previews under a reel and the bubbles of friends who reacted. "
+                            + "Open the comments to see them all.")));
+        }
+        if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
+            reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,
+                    L10n.t("Don't send reel watch history"),
+                    L10n.t("Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.")));
+        }
+        if (build.contains(PatchFamily.DOUBLE_TAP_LIKE)) {
+            reels.addPreference(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE,
+                    L10n.t("Turn off double tap to like"),
+                    L10n.t("A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like "
+                            + "button work as before.")));
+        }
+        if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
+            reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS, L10n.t("Download button on reels"),
+                    L10n.t("Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.")));
         }
 
         if (build.contains(PatchFamily.DEFAULT_COMMENT_ORDER)) {
@@ -445,6 +508,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.REEL_DOWNLOAD)
                 || build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
             PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
+            this.downloads = downloads;
             if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS, L10n.t("Download feed and Watch videos"),
                         L10n.t("Add Download to phone to feed and Watch video menus. Uses the quality below. Off or paused, Facebook's menu returns.")));
@@ -452,17 +516,24 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             // Every save reads it, a story's and a reel's as much as a feed video's, so it's here
             // whichever download patch is in, above the quality it keeps within.
             downloads.addPreference(toggle(context, Settings.DOWNLOAD_COMPATIBLE, L10n.t("Save videos other apps can open"),
-                    L10n.t("Prefer H.264 video with AAC sound for apps such as WhatsApp. Quality may be lower than AV1. Without a compatible version, save as usual.")));
+                    L10n.t("For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.")));
             downloads.addPreference(qualityRow(context));
             downloads.addPreference(folderRow(context));
             downloads.addPreference(fileNameRow(context));
         }
 
-        if (build.contains(PatchFamily.MESSENGER_CARD)) {
+        if (build.contains(PatchFamily.MESSENGER_CARD) || build.contains(PatchFamily.MESSENGER_ICON)) {
             PreferenceCategory chats = category(screen, L10n.t("Chats"));
-            chats.addPreference(toggle(context, Settings.HIDE_GET_MESSENGER_CARD, L10n.t("Hide the Get Messenger card"),
-                    L10n.t("The card at the top of Chats that asks you to get the Messenger app goes while Messenger "
-                            + "is installed. Without Messenger it stays, so you can still install it from there.")));
+            if (build.contains(PatchFamily.MESSENGER_CARD)) {
+                chats.addPreference(toggle(context, Settings.HIDE_GET_MESSENGER_CARD, L10n.t("Hide the Get Messenger card"),
+                        L10n.t("The card at the top of Chats that asks you to get the Messenger app goes while Messenger "
+                                + "is installed. Without Messenger it stays, so you can still install it from there.")));
+            }
+            if (build.contains(PatchFamily.MESSENGER_ICON)) {
+                chats.addPreference(toggle(context, Settings.OPEN_MESSENGER_APP, L10n.t("Open the Messenger app"),
+                        L10n.t("A tap on the Messenger icon at the top of Facebook opens the Messenger app instead "
+                                + "of Chats. Without Messenger installed, Chats opens as before.")));
+            }
         }
 
         if (build.contains(PatchFamily.MENU_PROMOTIONS)) {
@@ -528,19 +599,24 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                             + "split these kinds out.")));
         }
 
-        if (build.contains(PatchFamily.EXTERNAL_BROWSER) || build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
-            PreferenceCategory links = category(screen, L10n.t("Links"));
-            if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
-                links.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY, L10n.t("Open links in your browser"),
-                        L10n.t("Open web links in your browser. Facebook's own pages stay in the app.")));
-            }
-            if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
-                links.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
-                        L10n.t("Remove tracking from shared links"),
-                        L10n.t("Takes tracking tags such as mibextid off the links you share or copy. A "
-                                + "facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.")));
-            }
+        // In every build: Android checks Facebook's links against Meta's signing key, which no
+        // re-signed build has, whatever its patches.
+        PreferenceCategory links = category(screen, L10n.t("Links"));
+        if (build.contains(PatchFamily.EXTERNAL_BROWSER)) {
+            links.addPreference(toggle(context, Settings.OPEN_LINKS_EXTERNALLY, L10n.t("Open links in your browser"),
+                    L10n.t("Open web links in your browser. Facebook's own pages stay in the app.")));
         }
+        if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
+            links.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
+                    L10n.t("Remove tracking from shared links"),
+                    L10n.t("Takes tracking tags such as mibextid off the links you share or copy. A "
+                            + "facebook.com/share/ link is made for one share, so Facebook can still trace it back to you.")));
+        }
+        links.addPreference(supportedLinksRow(context));
+        links.addPreference(info(context, L10n.t("Selecting links by hand"),
+                L10n.t("Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. "
+                        + "Selecting the addresses sends their links here again. It doesn't restore Meta's verification, "
+                        + "and your other link settings stay as they are.")));
 
         // In every build: the release check is the settings entry's own, not a patch's. Its switch
         // is one Pause turns off, so it sits above the Pause row with the rest.
@@ -619,7 +695,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         // Named for its rows: the screen's own title already says Hushfacebook.
         PreferenceCategory hushfacebook = category(screen, L10n.t("Pause, backup and diagnostics"));
         hushfacebook.addPreference(mark(toggle(context, BaseSettings.PAUSED, L10n.t("Pause Hushfacebook"),
-                L10n.t("Pause runtime features from the next start. Your choices stay saved. Debug logging and patches applied during installation keep working.")), SettingsIcons.PATCHED));
+                L10n.t("From the next start, every switch but Debug logging acts as if it were off. "
+                        + "Changes made when you patched stay in, and your choices stay saved.")), SettingsIcons.PATCHED));
         String stays = PatchFamily.staysWhilePausedSummary(build);
         // Morphe Manager can export the patch choices and the signing key, not these switches.
         hushfacebook.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.EXPORT,
@@ -639,8 +716,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         // resources that Facebook's APK doesn't have, and untitled they showed as blank rows.
         ExportDiagnosticReportPreference export = new ExportRow(context);
         export.setTitle(L10n.t("Export diagnostic report"));
-        export.setSummary(L10n.t("Copy a quick report or save the full one to Download/Morphe. Names, IDs, links "
-                + "and cookies are omitted."));
+        export.setSummary(L10n.t("Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies "
+                + "and sign-in tokens are left out. Check it for other private text before you share it."));
         hushfacebook.addPreference(mark(export, SettingsIcons.LICENSE));
         ClearLogBufferPreference clear = new ClearRow(context);
         clear.setTitle(L10n.t("Clear diagnostic data"));
@@ -685,6 +762,35 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /**
+     * Lists each save running now at the top of Downloads, and takes a finished one away. The
+     * notification was the only way to follow or stop a save, and with Facebook's notifications or
+     * the saves channel off there wasn't one. A row that stays is changed in place.
+     */
+    void showSaves() {
+        PreferenceCategory group = downloads;
+        if (group == null) return;
+        List<SaveControl.Running> running = SaveControl.running();
+        Set<Integer> now = new HashSet<>();
+        for (SaveControl.Running save : running) now.add(save.id);
+        for (java.util.Iterator<Map.Entry<Integer, SaveRow>> rows = saveRows.entrySet().iterator(); rows.hasNext(); ) {
+            Map.Entry<Integer, SaveRow> row = rows.next();
+            if (now.contains(row.getKey())) continue;
+            group.removePreference(row.getValue());
+            rows.remove();
+        }
+        for (SaveControl.Running save : running) {
+            SaveRow row = saveRows.get(save.id);
+            if (row != null) {
+                row.show(save);
+                continue;
+            }
+            row = new SaveRow(group.getContext(), save);
+            saveRows.put(save.id, row);
+            group.addPreference(row);
+        }
+    }
+
+    /**
      * Straight to one section. The page is long enough that reaching Downloads took several screens
      * of swiping on a phone (2026-09-26), so two taps reach any section from the top, and Back goes
      * back once to where the list was.
@@ -702,16 +808,52 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
+    /**
+     * One line of the Reels map. A tap goes to [setting]'s own row, and changes nothing. Without
+     * [family] in the build there's no row to go to, so the line names the patch to add instead
+     * and can't be tapped.
+     */
+    private Preference reelsLink(Context context, Set<PatchFamily> build, PatchFamily family, BooleanSetting setting,
+                                 String title, String summary) {
+        if (!build.contains(family)) {
+            return info(context, title, L10n.f("Not in this build. To block this, choose the %1$s patch in "
+                    + "Morphe Manager and patch again.", L10n.isolate(family.patchName)));
+        }
+        Row row = new Row(context);
+        row.setKey("action_show_" + setting.key);
+        row.setPersistent(false);
+        row.setTitle(title);
+        row.setSummary(summary);
+        row.setOnPreferenceClickListener(ignored -> {
+            Preference target = findPreference(setting.key);
+            return target != null && jumpTo(target);
+        });
+        return row;
+    }
+
     /** The page's section titles in the order they're on the page; a tap on one goes there. */
     void showSections(Context context) {
         List<Preference> sections = sections();
         CharSequence[] titles = new CharSequence[sections.size()];
         for (int i = 0; i < titles.length; i++) titles[i] = sections.get(i).getTitle();
-        ScreenColors.dialog(new AlertDialog.Builder(context)
+        show(new AlertDialog.Builder(context)
                 .setTitle(L10n.t("Jump to a section"))
                 .setItems(titles, (dialog, which) -> jumpTo(sections.get(which)))
-                .setNegativeButton(L10n.t("Cancel"), null)
-                .show());
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /**
+     * Shows [builder]'s dialog in the screen's colours, and closes it with the page's view. Nothing
+     * shows once the view is gone or the activity is finishing: a word list's Save can land as the
+     * activity goes, and its note would come up over a window that's gone.
+     */
+    private void show(AlertDialog.Builder builder) {
+        Activity activity = getActivity();
+        if (getView() == null || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        AlertDialog dialog = builder.show();
+        ScreenColors.dialog(dialog);
+        shownDialogs.add(dialog);
+        dialog.setOnDismissListener(shownDialogs::remove);
     }
 
     /** The section headings on the page, in order. */
@@ -794,16 +936,28 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     void resumeFromOverview() {
         Context context = getContext();
         if (context == null || statusCard == null) return;
-        boolean markerGone = HushfacebookPause.turnBackOn(context);
+        HushfacebookPause.Reason still = HushfacebookPause.turnBackOn(context);
+        // The switch shows what was kept. Setting it to off here would write off through the
+        // preference itself when the store had just refused to.
         Preference pause = findPreference(BaseSettings.PAUSED.key);
-        if (pause instanceof SwitchPreference) ((SwitchPreference) pause).setChecked(false);
-        if (markerGone) {
-            showStatus(statusCard, context);
-        } else {
-            statusCard.setSummary(L10n.f("The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.",
-                    L10n.isolate(HushfacebookPause.MARKER_FILE_NAME),
-                    L10n.isolate(markerFolder(context.getPackageName()))));
+        if (pause instanceof SwitchPreference) ((SwitchPreference) pause).setChecked(BaseSettings.PAUSED.savedValue());
+        if (still == HushfacebookPause.Reason.MARKER_FILE) {
+            String file = L10n.isolate(HushfacebookPause.MARKER_FILE_NAME);
+            String folder = L10n.isolate(markerFolder(context.getPackageName()));
+            // The switches stay as they were until the file goes, so say when they still pause.
+            String left = BaseSettings.PAUSED.savedValue() || BaseSettings.SAFE_MODE.savedValue()
+                    ? L10n.f("The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.", file, folder)
+                    : L10n.f("The file %1$s couldn't be removed. Delete it from %2$s to turn Hushfacebook back on.",
+                    file, folder);
+            statusCard.setSummary(left);
+            // Resume can be tapped on a category page too, where the card isn't in view.
+            Utils.showToastLong(left);
+            return;
         }
+        if (still != HushfacebookPause.Reason.NONE) {
+            Utils.showToastLong(L10n.t("Couldn't turn Hushfacebook back on. Try again."));
+        }
+        showStatus(statusCard, context);
     }
 
     /**
@@ -849,6 +1003,44 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         });
         checkNowRow = row;
         return row;
+    }
+
+    /**
+     * What Android says about sending Facebook's web addresses here, and the way to its page for
+     * them (Morphe Manager #1028). The page opens over Facebook, so the row reads the state again
+     * on the way back.
+     */
+    private Preference supportedLinksRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(SUPPORTED_LINKS);
+        row.setTitle(L10n.t("Supported links"));
+        row.setPersistent(false);
+        row.setSummary(SupportedLinks.summary(SupportedLinks.read(context)));
+        row.setOnPreferenceClickListener(p -> {
+            openLinkSettings(context);
+            return true;
+        });
+        return row;
+    }
+
+    private void showSupportedLinks() {
+        if (getPreferenceScreen() == null) return;
+        Preference row = findPreference(SUPPORTED_LINKS);
+        if (row != null) row.setSummary(SupportedLinks.summary(SupportedLinks.read(row.getContext())));
+    }
+
+    private void openLinkSettings(Context context) {
+        for (Intent page : SupportedLinks.settingsIntents(context)) {
+            try {
+                startActivity(page);
+                return;
+            } catch (ActivityNotFoundException | SecurityException missing) {
+                // A phone without Open by default still has the app's own page, which leads there.
+            }
+        }
+        Logger.printInfo(() -> "No settings page opened for supported links");
+        Utils.showToastLong(L10n.t("Android's settings for this app didn't open. Open App info from Facebook's icon, "
+                + "then Open by default."));
     }
 
     @Override
@@ -1263,20 +1455,22 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * One of the word filter's two lists: the words that hide a post ([hides]), or the ones that keep
      * it. What's typed is cleaned before it's kept, one phrase per line within the bounds
      * {@link PostWords} holds every list to, so the row, the setting and the filter all read the
-     * same phrases. A toast says how many lines were left out, never which.
+     * same phrases. A dialog says how many lines were left out, never which.
      */
-    static WordsRow wordsRow(Context context, StringSetting setting, boolean hides) {
+    WordsRow wordsRow(Context context, StringSetting setting, boolean hides) {
         WordsRow row = new WordsRow(context, hides);
         row.setKey(setting.key);
         String title = hides ? L10n.t("Words to hide") : L10n.t("Words that keep a post");
         row.setTitle(title);
         row.setDialogTitle(title);
         row.setDialogMessage(hides
-                ? L10n.f("One word or phrase per line, up to %1$d, each %2$d to %3$d characters long. Capital "
-                        + "letters don't matter, and a phrase matches anywhere in a post's text, inside longer "
-                        + "words too.", PostWords.MAX_PHRASES, PostWords.MIN_LENGTH, PostWords.MAX_LENGTH)
+                ? L10n.f("One word or phrase per line, up to %1$d, each %2$d to %3$d characters long, or just "
+                        + "one for an emoji, a Chinese character, a kana or a Hangul syllable. Capital letters "
+                        + "don't matter, and a phrase matches anywhere in a post's text, inside longer words too.",
+                        PostWords.MAX_PHRASES, PostWords.MIN_LENGTH, PostWords.MAX_LENGTH)
                 : L10n.f("A post with any of these stays, even when it also has a word to hide. One per line, up "
-                        + "to %1$d, each %2$d to %3$d characters long.", PostWords.MAX_PHRASES, PostWords.MIN_LENGTH,
+                        + "to %1$d, each %2$d to %3$d characters long, or just one for an emoji, a Chinese "
+                        + "character, a kana or a Hangul syllable.", PostWords.MAX_PHRASES, PostWords.MIN_LENGTH,
                         PostWords.MAX_LENGTH));
         row.setPositiveButtonText(L10n.t("Save"));
         // Android's own Cancel follows the activity's language, as the folder row's did.
@@ -1296,12 +1490,20 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             int leftOut = PostWords.leftOut(raw);
             ((WordsRow) preference).setText(clean);
             if (leftOut > 0) {
-                Utils.showToastLong(L10n.quantity(leftOut,
-                        "%1$d line was left out. A phrase needs %2$d to %3$d characters, one given twice counts "
+                // A dialog, not a toast: Android 12 and later cut a toast to two lines, and the
+                // reasons run past that, most of all at a large text size.
+                String why = L10n.quantity(leftOut,
+                        "%1$d line was left out. A phrase needs %2$d to %3$d characters, or just one for an emoji, "
+                                + "a Chinese character, a kana or a Hangul syllable. One given twice counts once, "
+                                + "and a list holds %4$d.",
+                        "%1$d lines were left out. A phrase needs %2$d to %3$d characters, or just one for an "
+                                + "emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
                                 + "once, and a list holds %4$d.",
-                        "%1$d lines were left out. A phrase needs %2$d to %3$d characters, one given twice counts "
-                                + "once, and a list holds %4$d.",
-                        leftOut, PostWords.MIN_LENGTH, PostWords.MAX_LENGTH, PostWords.MAX_PHRASES));
+                        leftOut, PostWords.MIN_LENGTH, PostWords.MAX_LENGTH, PostWords.MAX_PHRASES);
+                show(new AlertDialog.Builder(preference.getContext())
+                        .setTitle(title)
+                        .setMessage(why)
+                        .setPositiveButton(L10n.t("OK"), null));
             }
             return false;
         });
@@ -1391,6 +1593,79 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             showAllText(view);
             ScreenColors.row(view, this);
             view.setAccessibilityDelegate(isSelectable() ? new RowSemantics(this, Button.class) : null);
+        }
+    }
+
+    /**
+     * A running save: what it is, what it's doing, how far it has got, and a Cancel button. Its text
+     * changes in place: a row rebuilt under a finger loses the tap on its button.
+     */
+    static final class SaveRow extends Preference {
+        /** Before every setting of the section, oldest save first. */
+        private static final int FIRST = Integer.MIN_VALUE / 2;
+
+        final int id;
+        private final boolean video;
+        private String status;
+        @Nullable
+        private View bound;
+
+        SaveRow(Context context, SaveControl.Running save) {
+            super(context);
+            id = save.id;
+            video = save.video;
+            status = SaveControl.status(save);
+            setKey("running_save_" + save.id);
+            setPersistent(false);
+            setSelectable(false);
+            setOrder(FIRST + save.id);
+            setTitle(video ? L10n.t("Saving a video") : L10n.t("Saving a photo"));
+        }
+
+        @Override
+        public CharSequence getSummary() {
+            return status;
+        }
+
+        void show(SaveControl.Running save) {
+            String next = SaveControl.status(save);
+            if (next.equals(status)) return;
+            status = next;
+            TextView summary = bound == null ? null : bound.findViewById(android.R.id.summary);
+            if (summary != null) summary.setText(next);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            bound = view;
+            showAllText(view);
+            ScreenColors.row(view, this);
+            android.view.ViewGroup frame = view.findViewById(android.R.id.widget_frame);
+            if (frame == null) return;
+            frame.removeAllViews();
+            Button cancel = new Button(getContext());
+            cancel.setText(L10n.t("Cancel"));
+            // Two saves can be listed at once, so the button says whose it is.
+            cancel.setContentDescription(video ? L10n.t("Cancel saving this video") : L10n.t("Cancel saving this photo"));
+            cancel.setAllCaps(false);
+            cancel.setTextSize(14);
+            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            cancel.setTextColor(colors.heading);
+            cancel.setBackgroundColor(Color.TRANSPARENT);
+            int touch = Math.round(48 * view.getResources().getDisplayMetrics().density);
+            cancel.setMinWidth(touch);
+            cancel.setMinimumWidth(touch);
+            cancel.setMinHeight(touch);
+            cancel.setMinimumHeight(touch);
+            cancel.setPadding(touch / 4, 0, touch / 4, 0);
+            cancel.setOnClickListener(ignored -> {
+                cancel.setEnabled(false);
+                SaveControl.cancel(id);
+            });
+            frame.addView(cancel, new android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+            frame.setVisibility(View.VISIBLE);
         }
     }
 
@@ -1848,7 +2123,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * The notice itself stays in English, as the licence texts it carries are: a translation of
      * the GPL is not the licence.
      */
-    private static void showNotice(Context context) {
+    private void showNotice(Context context) {
         TextView text = new TextView(context);
         // NOTICE is hard-wrapped for a source file. Reflow prose on a narrow screen while keeping
         // blank lines, headings, lists and the generated notice itself intact.
@@ -1867,11 +2142,10 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         text.setTextColor(colors.summary);
         text.setLinkTextColor(colors.heading);
         Linkify.addLinks(text, Linkify.WEB_URLS);
-        ScreenColors.dialog(new AlertDialog.Builder(context)
+        show(new AlertDialog.Builder(context)
                 .setTitle(L10n.t("Licenses"))
                 .setView(scroll)
-                .setPositiveButton(L10n.t("OK"), null)
-                .show());
+                .setPositiveButton(L10n.t("OK"), null));
     }
 
     @Override

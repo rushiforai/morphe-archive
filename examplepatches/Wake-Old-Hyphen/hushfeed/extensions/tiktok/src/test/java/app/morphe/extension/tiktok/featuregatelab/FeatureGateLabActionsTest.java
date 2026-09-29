@@ -446,6 +446,81 @@ public class FeatureGateLabActionsTest {
         }
     }
 
+    @Test public void aFailedLabSafExportUsesTheDocumentsProviderDeletionContract() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            provider.failOpen = true;
+            action(fragment, 2);
+            var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK,
+                    new Intent().setData(provider.uri));
+            FeatureGateLabFragment.awaitFileIoForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("ContentResolver.delete never reaches DocumentsProvider.deleteDocument",
+                    1, provider.deleteCalls);
+            assertFalse("the failed export was left in the chosen folder", provider.exists);
+        }
+    }
+
+    @Test public void aLabSafExportWhoseStreamFailsToCloseIsRemoved() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(provider.uri,
+                    new ByteArrayOutputStream() {
+                        @Override public void close() throws java.io.IOException {
+                            throw new java.io.IOException("injected provider close failure");
+                        }
+                    });
+            action(fragment, 2);
+            var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK,
+                    new Intent().setData(provider.uri));
+            FeatureGateLabFragment.awaitFileIoForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(1, provider.deleteCalls);
+            assertFalse(provider.exists);
+        }
+    }
+
+    @Test public void failedLabCleanupDoesNotSendTheReaderToAnAssumedDownloadsFolder() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            provider.failOpen = true;
+            provider.refuseDeletion = true;
+            action(fragment, 2);
+            var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            ShadowToast.reset();
+            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK,
+                    new Intent().setData(provider.uri));
+            FeatureGateLabFragment.awaitFileIoForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            String notice = ShadowToast.getTextOfLatestToast();
+            assertNotNull(notice);
+            assertTrue(notice.contains("partial file") && notice.contains("couldn't be removed"));
+            assertFalse("SAF permits cloud and arbitrary local destinations", notice.contains("Downloads"));
+            assertEquals(1, provider.deleteCalls);
+            assertTrue(provider.exists);
+        }
+    }
+
+    @Test public void aDetachedLabExportResultCanStillRemoveItsCreatedDocument() throws Exception {
+        var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(Utils.getContext());
+        var fragment = new FeatureGateLabFragment();
+        var write = FeatureGateLabFragment.class.getDeclaredMethod("writeLoadedValuesFile", android.net.Uri.class);
+        write.setAccessible(true);
+        write.invoke(fragment, provider.uri);
+        FeatureGateLabFragment.awaitFileIoForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("losing the view must not abandon its new document", 1, provider.deleteCalls);
+        assertFalse(provider.exists);
+    }
+
     @Test public void importBeforeTheSnapshotIsReadySaysWhy() throws Exception {
         try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
             var activity = owner.get();
@@ -713,6 +788,59 @@ public class FeatureGateLabActionsTest {
             // And one Undo takes both back, which is the whole reason for one operation.
             FeatureGateLabUndo.undo();
             assertTrue(FeatureGateLabStore.rules().isEmpty());
+        }
+    }
+
+    /**
+     * A row's own accessibility delegate kept the list from offering its items' click, so a
+     * switch or voice user couldn't open a gate, and Select did nothing. The list also ended a
+     * fixed 80 dp above a bar taller than that, so the last gate stayed under it.
+     */
+    @Test public void aRowAnswersItsAccessibilityActionsAndTheListEndsAboveTheBar() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var fragment = attach(controller.get());
+            settle();
+            android.widget.ListView list = listOf(fragment);
+            list.measure(android.view.View.MeasureSpec.makeMeasureSpec(1080, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(1920, android.view.View.MeasureSpec.EXACTLY));
+            list.layout(0, 0, 1080, 1920);
+            android.view.View row = list.getChildAt(0);
+            assertNotNull("the list laid out no rows", row);
+            var info = row.createAccessibilityNodeInfo();
+            assertTrue("a row offers no click: " + info.getActionList(), info.getActionList().contains(
+                    android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK));
+            assertNotNull("a row lost its place in the list", info.getCollectionItemInfo());
+
+            assertTrue(row.performAccessibilityAction(
+                    android.view.accessibility.AccessibilityNodeInfo.ACTION_LONG_CLICK, null));
+            android.view.View bar = selectionBar(fragment);
+            assertEquals("Select did not start a selection", android.view.View.VISIBLE, bar.getVisibility());
+
+            android.view.View root = fragment.getView();
+            root.measure(android.view.View.MeasureSpec.makeMeasureSpec(1080, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(1920, android.view.View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, 1080, 1920);
+            assertTrue("the list ends under the bar", list.getPaddingBottom() >= bar.getHeight());
+        }
+    }
+
+    /**
+     * A selection with nothing to reset says so. The refusal's own sentence used to be swapped
+     * for "Try again", which fails the same way every time it is tried.
+     */
+    @Test public void aRefusedSelectionSaysWhyInsteadOfTryAgain() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var fragment = attach(controller.get());
+            settle();
+            android.widget.ListView list = listOf(fragment);
+            assertTrue(list.getOnItemLongClickListener()
+                    .onItemLongClick(list, null, 0, list.getItemIdAtPosition(0)));
+
+            ShadowToast.reset();
+            selectionAction(fragment, "Reset").performClick();
+            settle();
+            assertEquals("None of these gates had an override to reset.",
+                    ShadowToast.getTextOfLatestToast());
         }
     }
 

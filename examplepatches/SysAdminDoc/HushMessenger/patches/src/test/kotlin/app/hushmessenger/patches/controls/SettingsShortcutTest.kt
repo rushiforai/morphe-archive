@@ -47,7 +47,9 @@ class SettingsShortcutTest {
         assertEquals("@string/hushmessenger_restart", restart.getAttribute("android:shortcutShortLabel"))
         assertEquals("app.hushmessenger.extension.RestartActivity", shortcuts.nodes("intent")[1].getAttribute("android:targetClass"))
         val restartActivity = manifest.nodes("activity").single { it.getAttribute("android:name").endsWith(".RestartActivity") }
-        assertEquals("true", restartActivity.getAttribute("android:exported"))
+        // Shortcuts launch as Messenger itself; another app must not be able to kill and relaunch it.
+        assertEquals("false", restartActivity.getAttribute("android:exported"))
+        assertTrue(restartActivity.getAttribute("android:permission").isEmpty())
         assertEquals("true", restartActivity.getAttribute("android:noHistory"))
         assertEquals(0, restartActivity.getElementsByTagName("intent-filter").length)
         assertEquals("stock_action", shortcuts.nodes("shortcut")[2].getAttribute("android:shortcutId"))
@@ -103,5 +105,35 @@ class SettingsShortcutTest {
         assertFailsWith<PatchException> { strings.addShortcutLabels() }
         assertEquals(snapshot, strings.snapshot())
         assertFailsWith<PatchException> { xml("<wrong/>").addShortcutLabels() }
+    }
+
+    @Test fun resolveFindsTheShortcutsXmlUnderAnyShrunkName() {
+        val docs = mapOf(
+            "res/eve.xml" to shortcuts(),
+            "res/values/strings.xml" to xml("<resources/>"),
+            "res/abc.xml" to xml("<resources/>"),
+        )
+        assertEquals("res/eve.xml", resolveShortcutsPath(docs.keys.toList()) { docs.getValue(it) })
+        assertEquals("res/los.xml", resolveShortcutsPath(listOf("res/los.xml")) { shortcuts() })
+    }
+
+    @Test fun resolveRejectsZeroOrMultipleShortcutsFiles() {
+        assertFailsWith<PatchException> {
+            resolveShortcutsPath(listOf("res/values/strings.xml")) { xml("<resources/>") }
+        }
+        assertFailsWith<PatchException> {
+            resolveShortcutsPath(emptyList()) { error("unreachable") }
+        }
+        assertFailsWith<PatchException> {
+            resolveShortcutsPath(listOf("res/a.xml", "res/b.xml")) { shortcuts() }
+        }
+    }
+
+    @Test fun resolveSkipsUnreadableEntriesAndValuesDirectory() {
+        val docs = mapOf("res/ok.xml" to shortcuts())
+        val entries = listOf("res/values/strings.xml", "res/broken.xml", "res/ok.xml")
+        assertEquals("res/ok.xml", resolveShortcutsPath(entries) { path ->
+            docs[path] ?: throw RuntimeException("parse failure")
+        })
     }
 }

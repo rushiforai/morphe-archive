@@ -5,24 +5,16 @@
 
 package hoodles.morphe.patches.alltrails.pro
 
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Peak membership",
     description = "Enables some app features locked behind the subscription paywall. Not all premium functionality is available."
 ) {
-    compatibleWith(
-        Compatibility(
-            name = "AllTrails",
-            packageName = "com.alltrails.alltrails",
-            appIconColor = 0x64F67A,
-            targets = listOf(AppTarget("26.3.20"))
-        )
-    )
+    compatibleWith(Compat.ALL_TRAILS)
 
     execute {
         IsProFingerprint.method.returnEarly(true)

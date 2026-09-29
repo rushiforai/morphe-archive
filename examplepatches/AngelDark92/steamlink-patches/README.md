@@ -37,6 +37,8 @@ On your PC, open the Steam console with `steam://open/console` in your web brows
 | 2.0.20 / 5001712 | `download_depot 250820 250824 1108221034296079583` |
 | 2.0.22 / 5002244 | `download_depot 250820 250824 634053834998054244` |
 
+No verified Steam depot download command is recorded here for **2.0.20/5001812** or **2.0.21/5001968**. Use an original APK with that exact version/build pair.
+
 After Steam reports that the download is complete, find the APK here (adjust the path if Steam is installed elsewhere):
 
 ```text
@@ -65,11 +67,25 @@ layer. Select either or both. Each accepts declared 8-bit or 10-bit input and us
 bundles. If also selecting OLED color calibration, leave both VD-like toggles off.
 Headset quality remains unverified; see the [layer options and validation](diagnostics/steamlink-background-blue-noise/README.md).
 
+### Supported builds and recommended selection
+
+| Exact Steam Link version / build | Single recommended bundle | Direct patches |
+|---|---|---|
+| 2.0.20 / 5001712 | Galaxy XR recommended set (2.0.20/5001712) | 17 legacy patches |
+| 2.0.20 / 5001812 | Galaxy XR recommended set (2.0.20/5001812) | Same 17 legacy patches |
+| 2.0.21 / 5001968 | Galaxy XR recommended set (2.0.21/5001968) | Same 17 legacy patches |
+| 2.0.22 / 5002244 | Galaxy XR legacy foundation (through 2.0.22/5002244) | Same 17 legacy patches |
+| 2.0.23 / 5002363 | Galaxy XR recommended set (2.0.23/5002363) | 6 native Android XR patches |
+
+These are the 5 exact supported pairs. The 2 new bases each expose the same **22 individual patches** as 2.0.20/5001712: 20 stable and 2 experimental blue-noise patches. Every individual patch is off by default; each exact base has 1 default-enabled bundle. Existing option defaults remain unchanged, including Quest Pro identity for legacy bundles, Voice Recognition microphone, Final balanced OLED, neutral foveal gamma, and 60 ms Visual Delay.
+
+The new bases have independent native addresses and guards, not just compatibility labels. Their [validation record](diagnostics/steamlink-legacy-1812-1968/README.md) covers local static checks and pristine-source Morphe patching. Headset validation remains pending; this does not assert publication of a release.
+
 ### Patches loaded by each bundle
 
 A bundle is a pure selector: selecting it loads exactly the patches listed below and performs no additional mutation of its own. Patch names match Morphe's patch list. A listed patch remains a no-op on a build where its own layout guard does not match.
 
-**Galaxy XR recommended set (2.0.20/5001712)** — 17 patches:
+The 4 legacy bundles for **2.0.20/5001712**, **2.0.20/5001812**, **2.0.21/5001968**, and **2.0.22/5002244** all select these same 17 patches:
 
 1. Android XR native permission names
 2. Device identity
@@ -89,15 +105,6 @@ A bundle is a pure selector: selecting it loads exactly the patches listed below
 16. XR Input Routing Config
 17. XR Manifest Capability Pack
 
-**Galaxy XR legacy foundation (through 2.0.22/5002244)** — 6 patches:
-
-1. GXR tongue bridge (version 5002322 and above)
-2. Galaxy XR high-resolution 3-projection fix
-3. Microphone input preset
-4. OLED color calibration
-5. Unrestricted battery usage
-6. Visual Delay Fix
-
 **Galaxy XR recommended set (2.0.23/5002363)** — 6 patches:
 
 1. GXR tongue bridge (version 5002322 and above)
@@ -113,11 +120,13 @@ For **2.0.23/5002363**, the [manual Galaxy XR USB setup guide](Install/USB-STREA
 
 ## Optional: face and tongue tracking
 
-Install **VRCFaceTracking** and the matching [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT) on your PC. In Steam Link, enable **OSC**, **eye sharing**, and **face sharing**, and set the output port to **9015**. Recommended older-build bundles include **GXR face bridge (version 5002318 and below)**; the 2.0.23/5002363 bundle instead includes the headset-tested **GXR tongue bridge (version 5002322 and above)**. The tongue patch enables exact 2.0.23/5002363 with its independently verified native layout.
+Install **VRCFaceTracking** and the matching [Galaxy XR LinkFT module](https://github.com/compdoge/LinkFT) on your PC. In Steam Link, enable **OSC**, **eye sharing**, and **face sharing**, and set the output port to **9015**. Recommended older-build bundles include **GXR face bridge (version 5002318 and below)**; the 2.0.23/5002363 bundle instead includes **GXR tongue bridge (version 5002322 and above)**. Historical headset evidence for 5002322 does not establish runtime validation of 5002363. The tongue patch enables exact 2.0.23/5002363 with its independently verified native layout.
 
 ## New base validation
 
-The [2.0.23/5002363 audit](diagnostics/steamlink-5002363/README.md) records the original APK, native addresses, patch scope, option checks and remaining headset validation. Its 7 individual adaptations remain available; the decoder input buffering, UDP receive buffering and FEC duplicate reservation guard experiments were tested, did not work, and were removed from source on 2026-09-19. The 14 legacy patches remain excluded because this base already uses Valve's native Android XR paths.
+The [2.0.20/5001812 and 2.0.21/5001968 audit](diagnostics/steamlink-legacy-1812-1968/README.md) records exact native layouts, source APK identities, option transitions, bundle parity, and local Morphe results. The 5001712 reference is an analysis reconstruction; it is not pristine-source APK evidence.
+
+The [2.0.23/5002363 audit](diagnostics/steamlink-5002363/README.md) records the original APK, native addresses, patch scope, option checks and remaining headset validation. Its 7 stable individual adaptations and 2 optional blue-noise patches remain available; the decoder input buffering, UDP receive buffering and FEC duplicate reservation guard experiments were tested, did not work, and were removed from source on 2026-09-19. The 14 legacy patches remain excluded because this base already uses Valve's native Android XR paths.
 
 ## More information
 

@@ -66,6 +66,9 @@ internal object NativeRuntimeGuardFingerprint : Fingerprint(
  * sget-object v0, Lcom/athermobileapp/startupintegrity/a;->Passed:Lcom/athermobileapp/startupintegrity/a;
  * return-object v0
  * ```
+ *
+ * On builds that do not ship the startup integrity classes (Ather 13.5.0) both
+ * fingerprints match nothing and the patch is a no-op.
  */
 @Suppress("unused")
 val startupIntegrityPatch = bytecodePatch(
@@ -76,7 +79,7 @@ val startupIntegrityPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        StartupVerdictFingerprint.method.addInstructions(
+        StartupVerdictFingerprint.matchOrNull()?.method?.addInstructions(
             0,
             """
                 sget-object v0, Lcom/athermobileapp/startupintegrity/a;->Passed:Lcom/athermobileapp/startupintegrity/a;
@@ -84,6 +87,6 @@ val startupIntegrityPatch = bytecodePatch(
             """,
         )
 
-        NativeRuntimeGuardFingerprint.method.addInstructions(0, "const/4 p0, 0x1\nreturn p0")
+        NativeRuntimeGuardFingerprint.matchOrNull()?.method?.addInstructions(0, "const/4 p0, 0x1\nreturn p0")
     }
 }

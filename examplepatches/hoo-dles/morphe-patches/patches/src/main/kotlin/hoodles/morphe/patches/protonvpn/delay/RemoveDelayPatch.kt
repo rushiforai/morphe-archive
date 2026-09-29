@@ -7,14 +7,14 @@ package hoodles.morphe.patches.protonvpn.delay
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
-import hoodles.morphe.patches.protonvpn.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val removeChangeServerDelayPatch = bytecodePatch(
     name = "Remove delay",
     description = "Removes the imposed delay when changing VPN servers."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.PROTON_VPN)
 
     execute {
         GetLongDelayFingerprint.method.returnEarly(0)

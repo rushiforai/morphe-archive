@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.intSliderOption
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_LEGACY
+import app.template.patches.shared.Constants.isLegacyXrFoundationSteamLinkBuild
 import app.template.patches.shared.Constants.isNativeXrSteamLinkBuild
 import java.io.File
 import java.nio.ByteBuffer
@@ -128,13 +129,19 @@ val controllerVelocityPatch = rawResourcePatch(
     )
 
     execute {
+        // Morphe dependencies do not re-check compatibility before execution.
+        if (!isLegacyXrFoundationSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+            return@execute
+        }
         if (isControllerVelocityPatchNoOpBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
             return@execute
         }
 
         val sceneFile = get("lib/arm64-v8a/libvrlink_scene.so")
         val sceneBytes = sceneFile.readBytes()
-        val cadenceBytes = patchControllerPoseCadence(sceneBytes, poseSendCadence!!)
+        val cadenceBytes = patchControllerPoseCadence(
+            sceneBytes, poseSendCadence!!, packageMetadata.versionName, packageMetadata.versionCode,
+        )
         if (!sceneBytes.contentEquals(cadenceBytes)) sceneFile.writeBytes(cadenceBytes)
 
         val libDir = sceneFile.parentFile!!

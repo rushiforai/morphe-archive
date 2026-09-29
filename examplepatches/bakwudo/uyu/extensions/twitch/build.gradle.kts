@@ -3,7 +3,7 @@ extension {
 }
 
 android {
-    namespace = "io.github.trivisa_itihasa.uyu.extension"
+    namespace = "io.github.bakwudo.uyu.extension"
     // Morphe's default is 36. 37 is the platform installed in the dev environment; the extension
     // only uses old APIs, so the value does not matter otherwise.
     compileSdk = 37

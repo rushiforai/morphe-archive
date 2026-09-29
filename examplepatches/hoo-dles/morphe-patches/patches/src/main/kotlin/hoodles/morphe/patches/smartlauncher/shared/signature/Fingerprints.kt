@@ -1,0 +1,19 @@
+/**
+ * Copyright 2026 Hoo-dles
+ * https://github.com/hoo-dles/morphe-patches
+ */
+
+package hoodles.morphe.patches.smartlauncher.shared.signature
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.methodCall
+
+object SignatureCheckFingerprint : Fingerprint(
+    strings = listOf("Not genuine apk. This may not stop humans but may stop machines."),
+    filters = listOf(
+        methodCall(
+            definingClass = "Ljava/lang/System;",
+            name = "exit"
+        )
+    )
+)

@@ -202,6 +202,48 @@ public class BudgetChangesTest {
         assertEquals("", Settings.SESSION_BUDGET_PENDING.get());
     }
 
+    @Test public void aFailedScheduleDoesNotClaimATimeOrChangeItsCache() throws Exception {
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(keys -> true, false)) {
+            assertEquals("an unsaved change was reported as scheduled", 0,
+                    BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get()));
+            assertEquals(0, BudgetChanges.appliesAt());
+            assertNull(BudgetChanges.waiting(Settings.SESSION_BUDGET_MINUTES));
+        }
+        assertTrue(BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get()) > 0);
+    }
+
+    @Test public void aFailedDueCommitKeepsTheWaitingChangesForRetry() throws Exception {
+        Settings.SESSION_BUDGET_MINUTES.save(30);
+        long at = BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get());
+        String pending = Settings.SESSION_BUDGET_PENDING.savedValue();
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(
+                keys -> keys.contains(Settings.SESSION_BUDGET_MINUTES.key), false)) {
+            BudgetChanges.applyDue(at);
+            assertEquals(30, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+            assertEquals("the waiting record was discarded before the value committed", pending,
+                    Settings.SESSION_BUDGET_PENDING.savedValue());
+            assertEquals(at, BudgetChanges.appliesAt());
+        }
+        BudgetChanges.applyDue(at);
+        assertEquals(60, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+        assertEquals("", Settings.SESSION_BUDGET_PENDING.savedValue());
+    }
+
+    @Test public void aNewChangeCannotPostponeADueChangeWhoseWriteStillFails() throws Exception {
+        Settings.SESSION_BUDGET_MINUTES.save(30);
+        long at = BudgetChanges.keep(Settings.SESSION_BUDGET_MINUTES, 60, now.get());
+        String pending = Settings.SESSION_BUDGET_PENDING.savedValue();
+        try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(
+                keys -> keys.contains(Settings.SESSION_BUDGET_MINUTES.key), false)) {
+            assertEquals("a new request hid an overdue failed write", 0,
+                    BudgetChanges.keep(Settings.SESSION_BUDGET_VIDEOS, 50, at + 60_000L));
+            assertEquals(pending, Settings.SESSION_BUDGET_PENDING.savedValue());
+            assertEquals(at, BudgetChanges.appliesAt());
+        }
+        BudgetChanges.applyDue(at + 60_000L);
+        assertEquals(60, (int) Settings.SESSION_BUDGET_MINUTES.savedValue());
+    }
+
     /** What waits is read back from storage, so it can only ever set the budget's own settings. */
     @Test public void aStoredChangeOutsideTheBudgetIsNeverApplied() throws Exception {
         long past = at(2026, Calendar.SEPTEMBER, 7, 4, 0);

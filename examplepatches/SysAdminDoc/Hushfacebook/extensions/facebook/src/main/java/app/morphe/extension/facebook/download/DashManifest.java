@@ -95,10 +95,43 @@ final class DashManifest {
 
     private static final Pattern BASE_URL = Pattern.compile("<BaseURL[^>]*>(.*?)</BaseURL>", Pattern.DOTALL);
 
-    /** Every track with a single file address. Never throws, and never returns {@code null}. */
+    /**
+     * The longest manifest that's kept or read, in characters. The captured one in the tests is
+     * 6.7 KB with nine tracks, and a track with Facebook's full signed address runs to about 1.5 KB.
+     */
+    static final int MAX_CHARS = 128 * 1024;
+
+    /** The most tracks, and track groups, a manifest that's kept or read may list. */
+    static final int MAX_REPRESENTATIONS = 64;
+    static final int MAX_ADAPTATION_SETS = 16;
+
+    /**
+     * Whether [manifest] is small enough to keep and to read. The expressions below scan ahead for
+     * each tag they find, so an unbounded manifest could stall a save or hold megabytes for a
+     * player long gone. Counting the tags is one pass, and stops at the limit.
+     */
+    static boolean withinLimits(String manifest) {
+        return manifest != null && manifest.length() <= MAX_CHARS
+            && atMost(manifest, "<Representation", MAX_REPRESENTATIONS)
+            && atMost(manifest, "<AdaptationSet", MAX_ADAPTATION_SETS);
+    }
+
+    /** Whether [text] holds [tag] no more than [limit] times. */
+    private static boolean atMost(String text, String tag, int limit) {
+        int found = 0;
+        for (int at = text.indexOf(tag); at >= 0; at = text.indexOf(tag, at + tag.length())) {
+            if (++found > limit) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Every track with a single file address, or none for a manifest over the limits. Never throws,
+     * and never returns {@code null}.
+     */
     static List<Track> parse(String manifest) {
         List<Track> tracks = new ArrayList<>();
-        if (manifest == null) return tracks;
+        if (!withinLimits(manifest)) return tracks;
 
         try {
             Matcher sets = ADAPTATION_SET.matcher(manifest);

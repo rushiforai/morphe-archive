@@ -127,8 +127,12 @@ public final class OriginalSoundDownloads {
         if (id == null) return;
 
         Context app = context.getApplicationContext();
-        if (!ACTIVE.add(id)) return;
-        boolean submitted = MediaJobScheduler.submit("original-sound", () -> {
+        String key = "original sound " + id;
+        if (!ACTIVE.add(id)) {
+            Utils.showToastShort(MediaJobScheduler.busyMessage(key));
+            return;
+        }
+        MediaJobScheduler.Job job = MediaJobScheduler.submit("original-sound", key, () -> {
             File fetched = null;
             try {
                 fetched = MediaCache.createTempFile(app, "original-sound-", ".tmp");
@@ -147,9 +151,9 @@ public final class OriginalSoundDownloads {
                 if (fetched != null && !MediaCache.delete(fetched)) {
                     Logger.printInfo(() -> "Could not remove sound temporary file");
                 }
-                ACTIVE.remove(id);
             }
-        });
-        if (!submitted) ACTIVE.remove(id);
+        }, () -> ACTIVE.remove(id));
+        String saying = L10n.t("Saving the sound");
+        MediaJobScheduler.acknowledge(job, saying, saying);
     }
 }

@@ -10,6 +10,9 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.settings.preference.GhostModePreference;
+import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
@@ -70,14 +73,11 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             ));
         }
         if (SettingsStatus.ghostModeEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Ghost mode",
-                    "Stop TikTok reporting that you viewed a story or a profile, or that you're "
-                            + "typing. Online status is unchanged. It can't undo what the server has "
-                            + "already recorded.",
-                    Settings.GHOST_MODE
-            ));
+            addPreference(new GhostModePreference(context));
+            HookStatusPreference diagnostics = new HookStatusPreference(context);
+            diagnostics.setKey("action_ghost_mode_diagnostics");
+            diagnostics.setTitle(L10n.t(context, "Ghost mode diagnostics"));
+            addPreference(diagnostics);
         }
 
         if (hasDeviceAccess()) {

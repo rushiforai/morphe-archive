@@ -149,7 +149,12 @@ public class SharedPrefCategory {
                 } catch (IllegalArgumentException ex) {
                     // Info level to allow removing enum values in the future without showing any user errors.
                     Logger.printInfo(() -> "Using default, and ignoring unknown enum value: "  + enumName);
-                    removeKey(key);
+                    try {
+                        removeKey(key);
+                    } catch (RuntimeException failure) {
+                        // The default still answers; the stale name is removed on a later read.
+                        Logger.printException(() -> "Could not remove unknown enum value: " + key, failure);
+                    }
                 }
             }
         } catch (ClassCastException ex) {

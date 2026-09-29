@@ -751,7 +751,11 @@ public final class FeedItemsFilter {
     /** Why a Friends tab entry is dropped, or null to keep it. */
     private static String friendsFeedReason(Object entry, List<IFilter> activeFilters, boolean hideLive) {
         if (entry == null) return null;
-        if (hideLive && Reflect.readField(entry, "roomStruct") != null) return "LiveFilter";
+        Object room = Reflect.readField(entry, "roomStruct");
+        if (hideLive && room != null) return "LiveFilter";
+        // A Friends card for a LIVE carries its room and no video, so the Shop switch looks at
+        // the room itself for a LIVE that is selling (#46).
+        if (room != null && Settings.HIDE_SHOP.get() && ShopFilter.roomSells(room)) return "ShopFilter";
 
         Object aweme = Reflect.readField(entry, "aweme");
         if (!(aweme instanceof Aweme)) return null;

@@ -130,4 +130,35 @@ public class BlockAndSkipTest {
         }
         bitmap.recycle();
     }
+
+    @Test @Config(sdk = 35)
+    public void theCompactUnblockChipHonorsTheRecommendedControlTimeout() throws Exception {
+        var manager = (android.view.accessibility.AccessibilityManager)
+                owner.get().getSystemService(android.content.Context.ACCESSIBILITY_SERVICE);
+        Shadows.shadowOf(manager).setInteractiveUiTimeout(60_000);
+        Shadows.shadowOf(manager).setNonInteractiveUiTimeout(15_000);
+        int before = root.getChildCount();
+        BlockAuthorOverlay.reportBlockResult(AUTHOR, BlockAuthorService.Result.CONFIRMED);
+        var looper = Shadows.shadowOf(Looper.getMainLooper());
+        looper.idleFor(Duration.ofSeconds(3));
+        assertEquals("the action ignored the accessible timeout", before + 1, root.getChildCount());
+        app.morphe.extension.tiktok.UiCapture.save(root, "audit/accessible-unblock.png");
+        looper.idleFor(Duration.ofSeconds(58));
+        assertEquals(before, root.getChildCount());
+    }
+
+    @Test @Config(sdk = 35)
+    public void anOverlayUndoBannerHonorsTheRecommendedControlTimeout() {
+        var manager = (android.view.accessibility.AccessibilityManager)
+                owner.get().getSystemService(android.content.Context.ACCESSIBILITY_SERVICE);
+        Shadows.shadowOf(manager).setInteractiveUiTimeout(60_000);
+        Shadows.shadowOf(manager).setNonInteractiveUiTimeout(45_000);
+        int before = root.getChildCount();
+        BlockAuthorOverlay.showUndoBanner(root, "Saved", () -> { });
+        var looper = Shadows.shadowOf(Looper.getMainLooper());
+        looper.idleFor(Duration.ofSeconds(46));
+        assertEquals("the undo banner ignored the accessible timeout", before + 1, root.getChildCount());
+        looper.idleFor(Duration.ofSeconds(15));
+        assertEquals(before, root.getChildCount());
+    }
 }

@@ -21,10 +21,11 @@ import java.util.Map;
  * {@link #KEEP_MS}.
  *
  * <p>The points live in a preferences file of their own, so they never reach the settings export or
- * the diagnostic report, and a point is a position and a time, nothing about what the video is.
- * The file is read once, the first time a point is asked for, and every change after that writes
- * only the keys it changes. The oldest point goes first once there are too many, and a point
- * past its age is dropped whenever it's read.
+ * the diagnostic report. A point is the video's ID with a position and a time, nothing about what
+ * the video shows. The file is read once, the first time a point is asked for, and every change
+ * after that writes only the keys it changes. The oldest point goes first once there are too many,
+ * and a point past its age is dropped when it's read and at every start of Facebook, switch on or
+ * off ({@link ResumePlayback#onFacebookStart}).
  */
 final class ResumePoints {
     /** The preferences file, in Facebook's own preferences folder. Only this class writes it. */
@@ -83,6 +84,20 @@ final class ResumePoints {
             edit.remove(gone);
         }
         edit.apply();
+    }
+
+    /** Drops every point past its age now, rather than when it's next read. */
+    synchronized void dropExpired(long now) {
+        load(now);
+        SharedPreferences.Editor edit = null;
+        for (Iterator<Map.Entry<String, Point>> each = points.entrySet().iterator(); each.hasNext(); ) {
+            Map.Entry<String, Point> point = each.next();
+            if (!expired(point.getValue(), now)) continue;
+            each.remove();
+            if (edit == null) edit = store.edit();
+            edit.remove(point.getKey());
+        }
+        if (edit != null) edit.apply();
     }
 
     /** Forgets [videoId]'s point. True when there was one. */

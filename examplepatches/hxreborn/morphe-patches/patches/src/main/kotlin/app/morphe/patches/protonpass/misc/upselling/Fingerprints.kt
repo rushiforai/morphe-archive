@@ -38,3 +38,15 @@ internal object OnboardingRouteFingerprint : Fingerprint(
         fieldAccess(type = ONBOARDING_ROUTE, opcode = Opcode.SGET_OBJECT, location = MatchAfterWithin(3)),
     ),
 )
+
+internal object AttachmentsStateConstructorFingerprint : Fingerprint(
+    definingClass = "Lproton/android/pass/commonuimodels/api/attachments/AttachmentsState;",
+    name = "<init>",
+    parameters = listOf(
+        "Ljava/util/List;",
+        "Ljava/util/List;",
+        "Ljava/util/Set;",
+        "Lproton/android/pass/common/api/Option;",
+        "Z",
+    ),
+)

@@ -163,6 +163,54 @@ public class MediaStopPropagationTest {
         assertEquals("Saved 0 of 2, the rest ran out of time", SaveProgress.message(outcome, "all saved"));
     }
 
+    /** The story is published before its sound; a sound stopped by the clock must not fail it. */
+    @Test public void aStorysSoundStoppedByTheClockIsTheSoundsFailureAlone() throws Exception {
+        SettingsStatus.advancedDownloadsEnabled = true;
+        Settings.DOWNLOAD_AUDIO_TRACK.save(true);
+        String folder = "DCIM/story-sound-" + System.nanoTime();
+        Settings.DOWNLOAD_VIDEO_PATH.save(folder);
+        File source = files.newFile("story.mp4");
+        Files.write(source.toPath(), new byte[]{70, 71, 72});
+        ShadowMediaExtractor.addTrack(DataSource.toDataSource(source.getAbsolutePath()),
+                MediaFormat.createAudioFormat("audio/mp4a-latm", 44100, 2), new byte[]{91, 92, 93});
+        try (RunningDeadline budget = new RunningDeadline()) {
+            budget.expire();
+            StoryDownloads.saveSound(RuntimeEnvironment.getApplication(), "story.m4a", source, folder);
+        }
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("The sound couldn't be saved. Try again.",
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+        assertFalse(new File(new File(Environment.getExternalStorageDirectory(), folder), "story.m4a").exists());
+    }
+
+    /**
+     * With {creator}/ in the name, the story goes to the creator's folder and its sound has to
+     * go there too. It went to the download folder above, so the pair split up.
+     */
+    @Test public void aStorysSoundGoesIntoTheCreatorFolderBesideTheStory() throws Exception {
+        SettingsStatus.advancedDownloadsEnabled = true;
+        Settings.DOWNLOAD_AUDIO_TRACK.save(true);
+        String folder = "DCIM/story-creator-" + System.nanoTime();
+        Settings.DOWNLOAD_VIDEO_PATH.save(folder);
+        File source = files.newFile("creator-story.mp4");
+        Files.write(source.toPath(), new byte[]{70, 71, 72});
+        byte[] audio = {94, 95, 96};
+        ShadowMediaExtractor.addTrack(DataSource.toDataSource(source.getAbsolutePath()),
+                MediaFormat.createAudioFormat("audio/mp4a-latm", 44100, 2), audio);
+        File top = new File(Environment.getExternalStorageDirectory(), folder);
+        try {
+            StoryDownloads.saveSound(RuntimeEnvironment.getApplication(), "story.m4a", source, folder + "/alice");
+            assertArrayEquals(audio, Files.readAllBytes(new File(top, "alice/story.m4a").toPath()));
+            assertFalse("the sound split off from its story", new File(top, "story.m4a").exists());
+        } finally {
+            if (top.isDirectory()) {
+                try (var paths = Files.walk(top.toPath())) {
+                    for (var path : paths.sorted(java.util.Comparator.reverseOrder()).toList()) Files.delete(path);
+                }
+            }
+        }
+    }
+
     @Test public void countedAudioKeepsTheTerminalReasonAndAValidLaterSaveStillLands() throws Exception {
         SettingsStatus.advancedDownloadsEnabled = true;
         Settings.DOWNLOAD_AUDIO_TRACK.save(true);
@@ -178,14 +226,14 @@ public class MediaStopPropagationTest {
             outcome = SaveProgress.begin(2).run(index -> {
                 if (index == 0) return; // The already-published video survives its sidecar's refusal.
                 budget.expire();
-                if (!AudioDownloads.write(RuntimeEnvironment.getApplication(), "refused.m4a", source, false)) {
+                if (!AudioDownloads.write(RuntimeEnvironment.getApplication(), "refused.m4a", source, folder, false)) {
                     throw new IOException("The sound beside the video was not saved");
                 }
             });
         }
         File destination = new File(Environment.getExternalStorageDirectory(), folder);
         try {
-            assertTrue(AudioDownloads.write(RuntimeEnvironment.getApplication(), "recovered.m4a", source, false));
+            assertTrue(AudioDownloads.write(RuntimeEnvironment.getApplication(), "recovered.m4a", source, folder, false));
             assertArrayEquals(audio, Files.readAllBytes(new File(destination, "recovered.m4a").toPath()));
             assertFalse(new File(destination, "refused.m4a").exists());
             assertEquals(SaveProgress.Stop.NO_TIME, outcome.stop);

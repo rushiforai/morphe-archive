@@ -322,7 +322,6 @@ public class LogBufferManagerClipboardTest {
     public void aCutNeverSplitsACharacter() {
         Adjustable adjustable = new Adjustable();
         LogBufferManager.registerReportSection(adjustable);
-        // An event, or the report has nothing worth sending and is empty.
         events(1);
         String bareHead = headOf(LogBufferManager.buildExportText());
         int lineStart = bareHead.indexOf("[ADJUSTABLE]\n") + "[ADJUSTABLE]\n".length();

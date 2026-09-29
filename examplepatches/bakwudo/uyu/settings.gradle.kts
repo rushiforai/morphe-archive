@@ -26,7 +26,7 @@ settings {
     extensions {
         // Keep extension classes out of the namespaces used by other Twitch bundles
         // (e.g. app.morphe.extension.twitch), so bundles can be combined without class clashes.
-        defaultNamespace = "io.github.trivisa_itihasa.uyu.extension"
+        defaultNamespace = "io.github.bakwudo.uyu.extension"
 
         // Must be an absolute path, otherwise extensions in subfolders fail to find it.
         proguardFiles(rootProject.projectDir.resolve("extensions/proguard-rules.pro").toString())

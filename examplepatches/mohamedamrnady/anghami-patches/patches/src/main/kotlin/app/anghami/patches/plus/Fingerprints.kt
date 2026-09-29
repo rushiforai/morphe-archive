@@ -86,31 +86,3 @@ object CanPlayOfflineAndFreeFingerprint : Fingerprint(
         opcode(Opcode.RETURN),
     )
 )
-
-/**
- * Target: Lcom/anghami/ghost/utils/SignatureUtils;->getAppSignature(Ljava/lang/String;[B)Ljava/lang/String;
- *
- * Evidence (base.apk, apktool smali `smali_classes3/com/anghami/ghost/utils/SignatureUtils.smali:437`):
- * - Reads the live signing cert via PackageManager.getPackageInfo(...).signatures[0],
- *   base64(SHA-1(cert)) + salt -> SHA-256 hex over that + body.
- * - Emitted per-request as `X-ANGH-APP-RGSIG` in signRequest(), so a repacked
- *   (Morphe-resigned) APK fails server verification. See StockSignaturePatch.kt.
- */
-object GetAppSignatureFingerprint : Fingerprint(
-    definingClass = "Lcom/anghami/ghost/utils/SignatureUtils;",
-    name = "getAppSignature",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Ljava/lang/String;",
-    parameters = listOf("Ljava/lang/String;", "[B"),
-    filters = listOf(
-        methodCall(
-            definingClass = "Landroid/content/pm/PackageManager;",
-            name = "getPackageInfo",
-        ),
-        string("SHA-256"),
-        methodCall(
-            definingClass = "Lcom/anghami/ghost/utils/SignatureUtils;",
-            name = "convertToHex",
-        ),
-    )
-)

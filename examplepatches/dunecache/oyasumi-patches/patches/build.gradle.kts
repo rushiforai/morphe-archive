@@ -1,10 +1,9 @@
-group = "app.goodnight"
+group = "app.morphe.patches"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "Oyasumi Patches"
-        description = "Patches for Goodnight (com.one.goodnight)"
+        name = "Morphe Patches Template"
+        description = "Reusable Morphe patch definitions"
         source = "git@github.com:dunecache/oyasumi-patches.git"
         author = "Awesome dev"
         contact = "na"

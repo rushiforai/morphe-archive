@@ -89,9 +89,10 @@ public class ScreenColorsTest {
         text.put("title bar and back arrow on the page", new int[]{c.title, c.background});
         text.put("dialog title on the dialog", new int[]{c.title, c.dialog});
         text.put("dialog message on the dialog", new int[]{c.summary, c.dialog});
-        // A dialog's choice cards take the page's tone, a step off the dialog's.
-        text.put("dialog choice's name on its card", new int[]{c.title, c.background});
-        text.put("dialog choice's detail on its card", new int[]{c.summary, c.background});
+        // A dialog's choice cards are outlined cards in the card tone (ChoiceCards), so their text
+        // is read against that. This pair used to name the page's tone, which no card is painted in.
+        text.put("dialog choice's name on its card", new int[]{c.title, c.card});
+        text.put("dialog choice's detail on its card", new int[]{c.summary, c.card});
         text.put("primary action text on its fill", new int[]{c.onAccent, c.accent});
         text.put("secondary action on the dialog", new int[]{c.secondaryActionText(), c.dialog});
         text.put("secondary recovery action on its card", new int[]{c.secondaryActionText(), c.card});
@@ -102,6 +103,8 @@ public class ScreenColorsTest {
         Map<String, int[]> parts = new LinkedHashMap<>();
         parts.put("switch on, against its card", new int[]{c.accent, c.card});
         parts.put("switch off, against its card", new int[]{c.switchOff, c.card});
+        // The thumb shows where the switch is, so it needs 3:1 against the track it sits on.
+        parts.put("switch off's thumb, against its track", new int[]{c.offThumb(), c.switchOff});
         parts.put("chevron of a row a tap opens something from, against its card", new int[]{c.summary, c.card});
         return parts;
     }
@@ -278,6 +281,57 @@ public class ScreenColorsTest {
             assertTrue("no row titles were painted", titles > 10);
             assertTrue("no switch was painted", switches > 3);
             assertFalse(colors.light != light);
+        }
+    }
+
+    /**
+     * The filled primary action keeps the framework button's own insets, 4dp at the sides and 6dp
+     * above and below, like every Material button. The fill used to take the button's whole
+     * bounds, which left it about 3dp from the dialog's bottom edge against 11dp at the side.
+     */
+    @Test
+    public void theFilledDialogActionKeepsItsInsets() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(controller.get())
+                    .setTitle("Import settings").setPositiveButton("Import", null).setNegativeButton("Cancel", null).create();
+            dialog.show();
+            try {
+                ScreenColors.DEFAULT.paint(dialog);
+                for (int which : new int[]{android.app.AlertDialog.BUTTON_POSITIVE, android.app.AlertDialog.BUTTON_NEGATIVE}) {
+                    Button button = dialog.getButton(which);
+                    RippleDrawable background = (RippleDrawable) button.getBackground();
+                    float density = button.getResources().getDisplayMetrics().density;
+                    assertEquals(Math.round(4 * density), background.getLayerInsetStart(0));
+                    assertEquals(Math.round(6 * density), background.getLayerInsetTop(0));
+                    assertEquals(Math.round(4 * density), background.getLayerInsetEnd(0));
+                    assertEquals(Math.round(6 * density), background.getLayerInsetBottom(0));
+                }
+            } finally {
+                dialog.dismiss();
+            }
+        }
+    }
+
+    /**
+     * The recovery page's title and message are centred, and so is the space they're centred in.
+     * Wrapping its own text, the message sat at the start while the title, wide enough to fill the
+     * row, looked centred.
+     */
+    @Test
+    public void theRecoveryMessageIsCentredAcrossTheRow() {
+        android.widget.RelativeLayout row = new android.widget.RelativeLayout(RuntimeEnvironment.getApplication());
+        TextView title = new TextView(row.getContext());
+        title.setId(android.R.id.title);
+        TextView summary = new TextView(row.getContext());
+        summary.setId(android.R.id.summary);
+        row.addView(title, new android.widget.RelativeLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+        row.addView(summary, new android.widget.RelativeLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+        ScreenColors.recoveryMessage(row);
+        for (TextView text : new TextView[]{title, summary}) {
+            assertEquals(android.view.ViewGroup.LayoutParams.MATCH_PARENT, text.getLayoutParams().width);
+            assertEquals(android.view.Gravity.CENTER, text.getGravity() & android.view.Gravity.CENTER);
         }
     }
 

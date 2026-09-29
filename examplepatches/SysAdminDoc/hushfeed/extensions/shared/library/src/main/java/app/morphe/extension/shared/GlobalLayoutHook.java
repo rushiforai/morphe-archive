@@ -23,7 +23,16 @@ public final class GlobalLayoutHook {
             detach();
             return false;
         }
-        if (root.get() == nextRoot && listener != null && observer != null && observer.isAlive()) {
+        if (root.get() == nextRoot && listener != null) {
+            if (observer != null && observer.isAlive()) return false;
+            // The observer it went on has died: merged into the window's own when the root was
+            // attached, which moved the listener there where it still runs, or gone with its
+            // window. Taking it off the root's current observer before adding it leaves exactly
+            // one either way; adding blindly ran every pass twice once the root came back.
+            ViewTreeObserver current = nextRoot.getViewTreeObserver();
+            remove(current, listener);
+            current.addOnGlobalLayoutListener(listener);
+            observer = current;
             return false;
         }
 
@@ -39,17 +48,23 @@ public final class GlobalLayoutHook {
 
     /** Removes the listener from its previous root, if that observer is still alive. */
     public synchronized void detach() {
-        if (observer != null && listener != null) {
-            try {
-                if (observer.isAlive()) {
-                    observer.removeOnGlobalLayoutListener(listener);
-                }
-            } catch (Throwable ignored) {
-                // A destroyed window can invalidate its observer between the two calls.
-            }
+        if (listener != null) {
+            remove(observer, listener);
+            // A listener added before its root was attached now lives on the window's observer.
+            ViewGroup held = root.get();
+            if (held != null) remove(held.getViewTreeObserver(), listener);
         }
         root = new WeakReference<>(null);
         observer = null;
         listener = null;
+    }
+
+    private static void remove(ViewTreeObserver from, ViewTreeObserver.OnGlobalLayoutListener listener) {
+        if (from == null) return;
+        try {
+            if (from.isAlive()) from.removeOnGlobalLayoutListener(listener);
+        } catch (Throwable ignored) {
+            // A destroyed window can invalidate its observer between the two calls.
+        }
     }
 }

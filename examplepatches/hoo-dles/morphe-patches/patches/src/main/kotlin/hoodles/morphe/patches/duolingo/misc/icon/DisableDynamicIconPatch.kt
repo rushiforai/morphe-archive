@@ -8,7 +8,7 @@ package hoodles.morphe.patches.duolingo.misc.icon
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.asSequence
 import app.morphe.util.removeFromParent
-import hoodles.morphe.patches.duolingo.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.duolingo.shared.integrity.disableLoginIntegrityPatch
 import org.w3c.dom.Element
 
@@ -18,7 +18,7 @@ val disableDynamicIconPatch = resourcePatch(
     description = "Prevents Duolingo from changing the app icon. Only the default icon will be available.",
     default = false
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.DUOLINGO)
 
     dependsOn(disableLoginIntegrityPatch)
 

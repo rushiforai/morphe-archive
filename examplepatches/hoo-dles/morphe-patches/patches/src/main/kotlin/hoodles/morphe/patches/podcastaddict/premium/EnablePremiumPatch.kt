@@ -7,14 +7,14 @@ package hoodles.morphe.patches.podcastaddict.premium
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
-import hoodles.morphe.patches.podcastaddict.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.PODCAST_ADDICT)
 
     execute {
         HasPremiumFingerprint.method.returnEarly(true)

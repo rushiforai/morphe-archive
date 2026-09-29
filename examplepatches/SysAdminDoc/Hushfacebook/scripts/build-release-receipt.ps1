@@ -275,12 +275,20 @@ foreach ($apk in $Fixture) {
     }
     $stockFacts[$apk] = $stock
 }
-$fixtureVersions = @($Fixture | ForEach-Object { [string]$stockFacts[$_].versionName })
+# A fixture is the run of a declared build only when it's that build, version code and all: another
+# arm64 build of 580 was taken for the declared one by its name, patched without -f and recorded as
+# proof of a build nobody ran.
+$fixtureVersions = @($Fixture | Where-Object {
+        Test-DeclaredBuild -Target $expectedTarget -VersionName ([string]$stockFacts[$_].versionName) `
+            -VersionCode ([string]$stockFacts[$_].versionCode) } |
+    ForEach-Object { [string]$stockFacts[$_].versionName })
 $unfixed = @($expectedTarget.PackageVersions | Where-Object { $fixtureVersions -notcontains $_ })
 if ($unfixed.Count -gt 0) {
+    $given = @($Fixture | ForEach-Object { "$($stockFacts[$_].versionName) ($($stockFacts[$_].versionCode))" })
     throw ("No fixture is the declared $($expectedTarget.PackageName) $($unfixed -join ', '), and the " +
-        "receipt needs a run of every declared build without -f. The fixtures given are " +
-        "$($fixtureVersions -join ', '). Nothing was patched.")
+        "receipt needs a run of every declared build without -f. The catalog declares " +
+        "$(Format-DeclaredBuilds -Target $expectedTarget), and the fixtures given are $($given -join ', '). " +
+        'Nothing was patched.')
 }
 
 foreach ($apk in $Fixture) {
@@ -297,10 +305,11 @@ foreach ($apk in $Fixture) {
         $temp = Resolve-WithinRoot -Path (Join-Path $runDir 'tmp') -Root $workRoot
         $resultPath = Resolve-WithinRoot -Path (Join-Path $runDir 'result.json') -Root $workRoot
 
-        # A fixture at a version the bundle does not declare is patched under -f, and the
-        # receipt says so rather than letting a forced run read like a declared-compatible one.
-        $forced = -not ([System.Collections.Generic.HashSet[string]]::new(
-            [string[]]$expectedTarget.PackageVersions, [System.StringComparer]::Ordinal)).Contains([string]$stock.versionName)
+        # A fixture of a build the bundle does not declare, by version name or by version code, is
+        # patched under -f, and the receipt says so rather than letting a forced run read like a
+        # declared-compatible one.
+        $forced = -not (Test-DeclaredBuild -Target $expectedTarget -VersionName ([string]$stock.versionName) `
+            -VersionCode ([string]$stock.versionCode))
 
         # The one APK the CLI patches: the fixture's merge when it's a split bundle, made here
         # because the CLI deletes its own, or the fixture itself. No merge, no receipt.
@@ -313,8 +322,18 @@ foreach ($apk in $Fixture) {
             '-o', $out, '-t', $temp, '-r', $resultPath)
         if ($forced) { $arguments += '-f' }
         $arguments = $arguments + $enable + @($patchInput)
-        & $Java '-jar' $DesktopJar @arguments 2>&1 | Out-Null
-        $cliExitCode = $LASTEXITCODE
+        # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+        # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code
+        # are what decide.
+        $preference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $global:LASTEXITCODE = -1
+            & $Java '-jar' $DesktopJar @arguments 2>&1 | Out-Null
+            $cliExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
 
         if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
             throw "The desktop CLI wrote no result report for $label (exit $cliExitCode)."
@@ -401,7 +420,8 @@ $check = Test-ReleaseReceipt -Receipt ($receipt | ConvertTo-Json -Depth 12 | Con
     -ExpectedPatcherVersion $patcherMatch.Groups[1].Value `
     -ExpectedManagerFloor $floorMatch.Groups[1].Value `
     -ExpectedPackageName $expectedTarget.PackageName `
-    -ExpectedPackageVersions $expectedTarget.PackageVersions -BundlePath $Bundle `
+    -ExpectedPackageVersions $expectedTarget.PackageVersions -ExpectedPackageVersionCodes $expectedTarget.PackageVersionCodes `
+    -BundlePath $Bundle `
     -ApprovedManifestDelta $approved -SbomPath $Sbom
 if (-not $check.Valid) { throw "The receipt this run produced does not pass validation: $($check.Reason)" }
 

@@ -13,6 +13,7 @@ patches {
 }
 
 repositories {
+    mavenLocal()
     google()
     mavenCentral()
     maven {
@@ -41,8 +42,6 @@ dependencies {
         // bundled version clashes with newer runtime dependency
         exclude(group = "org.slf4j", module = "slf4j-api")
     }
-
-    implementation(libs.jbsdiff)
 
     compileOnly(project(":patches:stub"))
     compileOnly(libs.android.all)

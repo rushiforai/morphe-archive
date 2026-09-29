@@ -1,3 +1,34 @@
+## [1.37.0](https://github.com/legendsciber/morphe-patches/compare/v1.36.0...v1.37.0) (2026-09-29)
+
+### ✨ New Features
+
+* **stickwar:** bypass pairip signature and license entry checks ([af4aadd](https://github.com/legendsciber/morphe-patches/commit/af4aadd69dfb07f89d02debf77275454590fe288))
+
+## [1.36.0](https://github.com/legendsciber/morphe-patches/compare/v1.35.1...v1.36.0) (2026-09-29)
+
+### ✨ New Features
+
+* **stickwar:** free iap patch for Stick War Legacy 2026.1.983 ([3320ce7](https://github.com/legendsciber/morphe-patches/commit/3320ce7a9b78c8b16d541835d2a71f14b86e3c00))
+* **stickwar:** free iap patch for Stick War Legacy 2026.1.983 ([9cbf7cb](https://github.com/legendsciber/morphe-patches/commit/9cbf7cbd1d554e3206477c772f208c728ae368af))
+
+## [1.35.1](https://github.com/legendsciber/morphe-patches/compare/v1.35.0...v1.35.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **dantheman:** free iap works offline, drop 1.14.02 target ([95a4536](https://github.com/legendsciber/morphe-patches/commit/95a453642dba4e4f27d8aeeece787f2a52749391))
+
+## [1.35.0](https://github.com/legendsciber/morphe-patches/compare/v1.34.2...v1.35.0) (2026-09-28)
+
+### ✨ New Features
+
+* **dantheman:** support 1.14.04 via unique purchase site pattern ([8be10c9](https://github.com/legendsciber/morphe-patches/commit/8be10c9fd0a1f9ba382194e80ec4f02fd4fc6833))
+
+## [1.34.2](https://github.com/legendsciber/morphe-patches/compare/v1.34.1...v1.34.2) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **subwaysurfers:** drop versionCodes from target, version name is enough ([3c2a5be](https://github.com/legendsciber/morphe-patches/commit/3c2a5bebae8779e776931580841de92e8997285e))
+
 ## [1.34.1](https://github.com/legendsciber/morphe-patches/compare/v1.34.0...v1.34.1) (2026-09-27)
 
 ### 🐛 Bug Fixes

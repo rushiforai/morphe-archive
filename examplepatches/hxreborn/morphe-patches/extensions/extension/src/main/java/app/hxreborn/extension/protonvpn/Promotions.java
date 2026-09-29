@@ -55,7 +55,7 @@ public final class Promotions {
         return filtered;
     }
 
-    public static boolean showsUpgradeCarousel(boolean freeUser) {
+    public static boolean showsUpsell(boolean freeUser) {
         return freeUser && !UpsellingVisibility.isHidden();
     }
 

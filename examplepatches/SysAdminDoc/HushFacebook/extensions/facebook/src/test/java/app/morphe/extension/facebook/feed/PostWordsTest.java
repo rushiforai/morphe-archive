@@ -65,9 +65,7 @@ public class PostWordsTest {
     public void aPhraseIsTwoToSixtyCharacters() {
         String sixty = repeat("a", 60);
         assertEquals(Arrays.asList("ab", sixty), PostWords.phrases("a\nab\n" + sixty + "\n" + sixty + "b"));
-        // Two emoji are two characters (four UTF-16 units); one emoji is too short.
-        assertEquals(Collections.singletonList("😀😀"),
-                PostWords.phrases("😀\n😀😀"));
+        // An emoji is one character (two UTF-16 units), so sixty fit and sixty-one don't.
         assertEquals(Collections.singletonList(repeat("😀", 60)),
                 PostWords.phrases(repeat("😀", 60) + "\n" + repeat("😀", 61)));
     }
@@ -105,6 +103,31 @@ public class PostWordsTest {
         // A letter and a zero width joiner, which Unicode's matching folds away.
         assertEquals(Collections.emptyList(), PostWords.phrases("a‍"));
         assertEquals(Collections.emptyList(), PostWords.phrases("​​"));
+    }
+
+    /**
+     * One character is a phrase when it's a word on its own: an ideograph, a kana or Hangul
+     * syllable, or a symbol such as an emoji. A lone letter or digit of a script that spaces its
+     * words is in nearly every post, so it's still left out. The folded text decides, so a heart
+     * with its emoji variation selector is one character and a thumbs up with a skin tone is two.
+     */
+    @Test
+    public void aSingleIdeographSyllableOrSymbolIsAPhrase() {
+        String heart = "❤" + (char) 0xFE0F;
+        assertEquals(Arrays.asList("猫", "ね", "カ", "한", heart, "👍🏽", "😀"),
+                PostWords.phrases("猫\nね\nカ\n한\n" + heart + "\n👍🏽\n😀"));
+        // The heart without its selector folds to the same character, so it's a repeat.
+        assertEquals(Collections.singletonList(heart), PostWords.phrases(heart + "\n❤"));
+        // A letter or digit, a letter that folds to two ("ß" is "ss"), a Hangul letter that isn't a
+        // syllable, and symbols that fold to a letter or digit ("Ⓐ" is "a", "①" is "1").
+        assertEquals(Collections.emptyList(), PostWords.phrases("a\n7\nA\né\nж\nß\nㅋ\nⒶ\n①"));
+        assertEquals(9, PostWords.leftOut("a\n7\nA\né\nж\nß\nㅋ\nⒶ\n①"));
+        assertTrue(PostWords.isClean("猫\n" + heart));
+
+        assertEquals(PostWords.Verdict.HIDE, judge("猫", "", "うちの猫です"));
+        assertEquals(PostWords.Verdict.HIDE, judge(heart, "", "love it ❤"));
+        assertEquals(PostWords.Verdict.KEEP, judge("spoiler", "한", "spoiler 한국"));
+        assertEquals(PostWords.Verdict.NO_MATCH, judge("猫", "", "うちの犬です"));
     }
 
     @Test

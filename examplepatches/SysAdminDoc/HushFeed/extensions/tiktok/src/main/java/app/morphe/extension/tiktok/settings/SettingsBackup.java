@@ -8,6 +8,7 @@ package app.morphe.extension.tiktok.settings;
 
 import android.content.Context;
 import android.util.AtomicFile;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
@@ -211,7 +212,10 @@ public final class SettingsBackup {
             Snapshot previous = parseForJournal(previousJournal);
             Map<String, ?> previousPreferences = new LinkedHashMap<>(
                     Setting.preferences.preferences.getAll());
-            if (saveUndo) writeUndo(context, previousText);
+            if (saveUndo) {
+                writeUndo(context, previousText);
+                CalmFeedPreset.holdForUndo(context);
+            }
             BudgetChanges.Split budget = BudgetChanges.forRestore(next.values, SessionBudget.now());
             Map<Setting<?>, Object> updates = budget.withWaiting();
             operation.recordSettings(previousJournal, withPendingBudget(text,
@@ -226,10 +230,18 @@ public final class SettingsBackup {
                 // Held to the budget, the restore wrote less than its file carries. What it did
                 // write goes on record, or a journal the delete below fails to clear would read as
                 // an interrupted restore, and the next start would put the old settings back.
-                if (budget.heldBack()) operation.recordWritten(withPendingBudget(create(false),
-                        Settings.SESSION_BUDGET_PENDING.savedValue()));
+                // The same for a download folder kept because the file's could not hold its kind.
+                if (budget.heldBack() || !next.keptFolders.isEmpty()) {
+                    operation.recordWritten(withPendingBudget(create(false),
+                            Settings.SESSION_BUDGET_PENDING.savedValue()));
+                }
                 operation.complete();
                 closed = true;
+                if (next.labIncluded) FeatureGateLabStore.discardLabUndo();
+                // The Calm feed card offered "Restore setup" from before a reset or an import,
+                // which would have put back values it had just replaced. Its copy went aside
+                // with the undo copy above, so the Undo below brings both back.
+                if (saveUndo) CalmFeedPreset.clearAfterRestore(context);
             } catch (Exception error) {
                 try { Setting.saveAll(previous.values, true); } catch (Exception rollback) { error.addSuppressed(rollback); }
                 // Only put the Lab back when the apply above reached it. Writing the same
@@ -259,7 +271,20 @@ public final class SettingsBackup {
 
     /** Restores the undo copy and returns its text, so the caller can report what it held. */
     public static String undo(Context context) throws Exception {
-        return restoreFrom(context, readableUndoFile(context).openRead(), false, false);
+        // As a restore does: a budget change already due belongs to what the undo replaces.
+        BudgetChanges.applyDue(SessionBudget.now());
+        String replaced = create(false);
+        String text = restoreFrom(context, readableUndoFile(context).openRead(), false, false);
+        CalmFeedPreset.swapWithUndo(context);
+        // What the undo replaced becomes the copy, once it has worked, so a second Undo brings
+        // back whatever changed since the restore instead of losing it for good. Written after,
+        // not before: a failed undo must leave the copy it was asked for in place.
+        try {
+            writeUndo(context, replaced);
+        } catch (IOException error) {
+            Logger.printException(() -> "Could not keep the settings the undo replaced", error);
+        }
+        return text;
     }
 
     /**

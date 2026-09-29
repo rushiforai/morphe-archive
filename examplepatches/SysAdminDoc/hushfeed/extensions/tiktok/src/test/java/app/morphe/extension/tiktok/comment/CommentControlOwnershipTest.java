@@ -69,7 +69,7 @@ public class CommentControlOwnershipTest {
         cell.itemView.setAlpha(0.82f);
         cell.nativeRow.actionRow.setAlpha(0.65f);
         cell.nativeRow.button.setContentDescription("Dislike");
-        ReflectionHelpers.<Set<String>>getStaticField(CommentTools.class, "BLOCKED_UIDS").add("uid-bound");
+        CommentTools.markBlockedForTests("uid-bound");
         Settings.BLOCK_FROM_COMMENT.save(true);
         bind(cell);
         assertEquals(0.55f, cell.itemView.getAlpha(), 0.001f);

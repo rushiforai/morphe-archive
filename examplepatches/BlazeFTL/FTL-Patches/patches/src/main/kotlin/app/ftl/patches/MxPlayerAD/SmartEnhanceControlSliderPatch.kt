@@ -5,10 +5,13 @@ import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
 import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -30,6 +33,9 @@ internal const val ENHANCE_LEVEL_FIELD = "patch_smartEnhanceLevel"
 internal const val ENHANCE_SEEKBAR_FIELD = "patch_smartEnhanceSeekBar"
 internal const val ENHANCE_LABEL_FIELD = "patch_smartEnhancePercentLabel"
 internal const val ENHANCE_POPUP_FIELD = "patch_smartEnhancePercentPopup"
+internal const val ENHANCE_RESTART_FORCER_METHOD = "patch_restartSmartEnhanceForcer"
+internal const val ENHANCE_FORCER_HANDLER_FIELD = "patch_smartEnhanceForcerHandler"
+internal const val ENHANCE_FORCER_TICKS_FIELD = "patch_smartEnhanceForcerTicks"
 
 /**
  * Locates the field write for the toolbar's "Smart Enhance" MenuItem (originally
@@ -73,6 +79,82 @@ internal object OnStopTrackingTouchFingerprint : Fingerprint(
     parameters = listOf("Landroid/widget/SeekBar;"),
 )
 
+/**
+ * Extracts ActivityScreen's PlaybackController field (originally "Z") and its
+ * auto-hide-timer reset method (originally "c()V") from the one place in stock where
+ * they're used back-to-back inside a real, unobfuscated SDK override:
+ * onGenericMotionEvent(MotionEvent)Z has exactly one read of that field, immediately
+ * followed by the reset call. Nothing is inserted here - only the two references are
+ * read, and neither obfuscated name is ever pinned.
+ */
+internal object PlaybackControllerResetHideFingerprint : Fingerprint(
+    definingClass = "Lcom/mxtech/videoplayer/ActivityScreen;",
+    name = "onGenericMotionEvent",
+    returnType = "Z",
+    parameters = listOf("Landroid/view/MotionEvent;"),
+    filters = listOf(
+        fieldAccess(
+            type = "Lcom/mxtech/videoplayer/widget/PlaybackController;",
+            opcode = Opcode.IGET_OBJECT,
+        ),
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()),
+    ),
+)
+
+/**
+ * Locates ActivityScreen's PlaybackController state-change callback (originally
+ * "O0" - the app's own listener interface, not an Android SDK one, so unlike the
+ * SeekBar callbacks above the name itself isn't safe to pin). Matched purely by
+ * defining class + real parameter/return types - the only obfuscated thing about
+ * this signature is the method's own name, which is never referenced.
+ * Verify uniqueness against a live dex before shipping (rule 6): this exact
+ * (PlaybackController, I, I, Z)V shape is plausible-but-unconfirmed to be
+ * singular within ActivityScreen.
+ */
+internal object PlaybackControllerCallbackFingerprint : Fingerprint(
+    definingClass = "Lcom/mxtech/videoplayer/ActivityScreen;",
+    returnType = "V",
+    parameters = listOf(
+        "Lcom/mxtech/videoplayer/widget/PlaybackController;",
+        "I",
+        "I",
+        "Z",
+    ),
+)
+
+// Stock M9(): the "next video" reset - force-disables Smart Enhance (q=false,
+// E0(-1)). Moved here (from SmartEnhanceAlwaysOnPatch.kt) because Slider itself now
+// also needs M9's identity, independent of whether AlwaysOn is installed: locking
+// and unlocking the screen tears down and rebuilds the SurfaceView (confirmed by
+// reading H9()'s real body - it nulls the SurfaceView/SurfaceHolder), and the one
+// caller of M9 that runs on that path (found below by content, not by name) force-
+// disables the effect regardless of what the user set the slider to. Anchored
+// purely on opcode/literal shape, no obfuscated names read. Verify uniqueness
+// against a live dex before shipping (rule 6).
+internal object SmartEnhanceForceMethodFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        opcode(Opcode.CONST_4),
+        opcode(Opcode.SPUT_BOOLEAN, location = MatchAfterImmediately()),
+        opcode(Opcode.IGET_OBJECT, location = MatchAfterImmediately()),
+        literal(-1, location = MatchAfterImmediately()),
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()), // E0(I)V
+        opcode(Opcode.INVOKE_VIRTUAL, location = MatchAfterImmediately()), // icon refresh
+        opcode(Opcode.RETURN_VOID, location = MatchAfterImmediately()),
+    ),
+)
+
+// Real, stable SDK interface override - SurfaceHolder.Callback.surfaceCreated is
+// never renamed, same reasoning as the SeekBar callbacks above. Fires whenever a
+// surface is (re)built: a fresh video open, and a lock/unlock rebuild alike.
+internal object SurfaceCreatedFingerprint : Fingerprint(
+    definingClass = "Lcom/mxtech/videoplayer/ActivityScreen;",
+    name = "surfaceCreated",
+    returnType = "V",
+    parameters = listOf("Landroid/view/SurfaceHolder;"),
+)
+
 internal val smartEnhanceControlSliderPatch = bytecodePatch(
     name = "Smart Enhance Control Slider",
     description = "Replaces the Smart Enhance on/off toggle with a live 0-100% popup slider " +
@@ -108,6 +190,8 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
         val activityScreenClass = mutableClassDefBy(activityScreenType)
             ?: throw PatchException("Could not resolve ActivityScreen class")
 
+        val forceMethod = SmartEnhanceForceMethodFingerprint.method
+
         val pClass = mutableClassDefBy(pFieldRef.type)
             ?: throw PatchException("Could not resolve class ${pFieldRef.type}")
 
@@ -131,6 +215,16 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
         val m1FieldRef =
             (menuItemInstructions[menuItemMatches[3].index] as ReferenceInstruction).reference as FieldReference
         val m1Field = "${m1FieldRef.definingClass}->${m1FieldRef.name}:${m1FieldRef.type}"
+
+        val resetHideMatches = PlaybackControllerResetHideFingerprint.instructionMatches
+        val resetHideInstructions =
+            PlaybackControllerResetHideFingerprint.method.implementation!!.instructions
+        val zFieldRef =
+            (resetHideInstructions[resetHideMatches[0].index] as ReferenceInstruction).reference as FieldReference
+        val cMethodRef =
+            (resetHideInstructions[resetHideMatches[1].index] as ReferenceInstruction).reference as MethodReference
+        val zField = "${zFieldRef.definingClass}->${zFieldRef.name}:${zFieldRef.type}"
+        val cMethod = "${cMethodRef.definingClass}->${cMethodRef.name}()${cMethodRef.returnType}"
 
         val llleQField = "${llleQFieldRef.definingClass}->${llleQFieldRef.name}:${llleQFieldRef.type}"
         val saMethod = "${saMethodRef.definingClass}->${saMethodRef.name}()${saMethodRef.returnType}"
@@ -177,11 +271,7 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
         pClass.methods.add(setFilterMethod)
 
         // --- 2. New fields on ActivityScreen ---------------------------------------
-        // No PlaybackController auto-hide-timer nudge here (the real build's V8(I)V
-        // resets it via an obfuscated no-arg method with no safe/unique anchor found -
-        // dropped as a cosmetic omission rather than guessed; the popup still shows
-        // and works, the on-screen controls' own auto-hide timer just isn't reset
-        // while dragging).
+        // New state fields (all ours - no anchors needed).
         listOf(
             Triple(ENHANCE_LABEL_FIELD, "Landroid/widget/TextView;", AccessFlags.PRIVATE.value),
             Triple(ENHANCE_POPUP_FIELD, "Landroid/widget/PopupWindow;", AccessFlags.PRIVATE.value),
@@ -239,6 +329,10 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
         applyPercentMethod.addInstructions(
             0,
             """
+                iget-object v0, p0, $pField
+                if-nez v0, :has_player
+                return-void
+                :has_player
                 iget-object v0, p0, $activityScreenType->$ENHANCE_LABEL_FIELD:Landroid/widget/TextView;
                 if-eqz v0, :cond_1
                 invoke-static {p1}, $activityScreenType->patch_smartEnhancePctLabel(I)Ljava/lang/String;
@@ -337,17 +431,17 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
                 float-to-int v10, v10
                 invoke-virtual {v7, v10}, Landroid/widget/SeekBar;->setProgress(I)V
                 iput-object v7, p0, $activityScreenType->$ENHANCE_SEEKBAR_FIELD:Landroid/widget/SeekBar;
-                invoke-virtual {v7, p0}, Landroid/widget/SeekBar;->setOnSeekBarChangeListener(Landroid/widget/SeekBar$OnSeekBarChangeListener;)V
+                invoke-virtual {v7, p0}, Landroid/widget/SeekBar;->setOnSeekBarChangeListener(Landroid/widget/SeekBar${'$'}OnSeekBarChangeListener;)V
                 invoke-static {v10}, $activityScreenType->patch_smartEnhancePctLabel(I)Ljava/lang/String;
                 move-result-object v13
                 invoke-virtual {v6, v13}, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
                 iput-object v6, p0, $activityScreenType->$ENHANCE_LABEL_FIELD:Landroid/widget/TextView;
                 invoke-virtual {v4, v6}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;)V
-                new-instance v13, Landroid/widget/LinearLayout$LayoutParams;
+                new-instance v13, Landroid/widget/LinearLayout${'$'}LayoutParams;
                 const/4 v11, -0x1
                 const/4 v12, -0x2
-                invoke-direct {v13, v11, v12}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
-                invoke-virtual {v4, v7, v13}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
+                invoke-direct {v13, v11, v12}, Landroid/widget/LinearLayout${'$'}LayoutParams;-><init>(II)V
+                invoke-virtual {v4, v7, v13}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup${'$'}LayoutParams;)V
                 const/high16 v0, 0x43960000
                 mul-float/2addr v0, v2
                 float-to-int v0, v0
@@ -393,6 +487,10 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
                 """
                     iget-object v0, p0, $activityScreenType->$ENHANCE_SEEKBAR_FIELD:Landroid/widget/SeekBar;
                     if-ne v0, p1, :cond_no
+                    iget-object v0, p0, $zField
+                    if-eqz v0, :cond_skip
+                    invoke-virtual {v0}, $cMethod
+                    :cond_skip
                     invoke-virtual {p0, p2}, $activityScreenType->$ENHANCE_APPLY_PERCENT_METHOD(I)V
                     const/4 v0, 0x1
                     return v0
@@ -444,7 +542,6 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
                 move-result p1
                 if-eqz p1, :stock
                 return-void
-                :stock
             """.trimIndent(),
             ExternalLabel("stock", progressStart),
         )
@@ -458,7 +555,6 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
                 move-result p1
                 if-eqz p1, :stock
                 return-void
-                :stock
             """.trimIndent(),
             ExternalLabel("stock", startStart),
         )
@@ -472,9 +568,181 @@ internal val smartEnhanceControlSliderPatch = bytecodePatch(
                 move-result p1
                 if-eqz p1, :stock
                 return-void
-                :stock
             """.trimIndent(),
             ExternalLabel("stock", stopStart),
+        )
+
+        // --- 9. Dismiss the popup when the player controls themselves hide --------
+        // Confirmed via the real build's diff: this callback's only change is these
+        // 4 instructions prepended at index 0 (p2 == 0 signals controls hidden) -
+        // everything else in the method is untouched, baksmali just renumbers the
+        // existing :cond_N labels to make room for this one.
+        val callbackMethod = PlaybackControllerCallbackFingerprint.method
+        val callbackStart = callbackMethod.getInstruction(0)
+        callbackMethod.addInstructionsWithLabels(
+            0,
+            """
+                if-nez p2, :cond_0
+                iget-object v0, p0, $activityScreenType->$ENHANCE_POPUP_FIELD:Landroid/widget/PopupWindow;
+                if-eqz v0, :cond_0
+                invoke-virtual {v0}, Landroid/widget/PopupWindow;->dismiss()V
+            """.trimIndent(),
+            ExternalLabel("cond_0", callbackStart),
+        )
+
+        // --- 10. Shared retry-forcer: survives surface teardown/rebuild -----------
+        // Root cause (confirmed by reading the real methods, not assumed): lock/
+        // unlock runs a state-change handler that tears the SurfaceView down (H9())
+        // then resets Smart Enhance via M9() - and even where the state ISN'T force-
+        // reset, the native player/filter pipeline gets rebuilt on that path, so a
+        // single re-apply call can lose a race with it. This retries up to 8 times,
+        // 300ms apart (mirrors the cadence of a hand-built EnhanceForcer.smali class
+        // that already proved this timing works) - but folded into ActivityScreen
+        // itself rather than a new class, since the patcher has no API to add a
+        // brand-new standalone class (same constraint noted in removeRecycleBinPatch).
+        // Reapplies whatever is currently in $ENHANCE_LEVEL_FIELD - so it works
+        // whether that level was set by hand via the Control Slider or by AlwaysOn's
+        // default, with no knowledge of which.
+        val runnableType = "Ljava/lang/Runnable;"
+        if (runnableType !in activityScreenClass.interfaces) activityScreenClass.interfaces.add(runnableType)
+
+        listOf(
+            Triple(ENHANCE_FORCER_HANDLER_FIELD, "Landroid/os/Handler;", AccessFlags.PRIVATE.value),
+            Triple(ENHANCE_FORCER_TICKS_FIELD, "I", AccessFlags.PRIVATE.value),
+        ).forEach { (name, type, flags) ->
+            activityScreenClass.fields.add(
+                ImmutableField(activityScreenType, name, type, flags, null, null, null).toMutable(),
+            )
+        }
+
+        val forcerRunMethod = ImmutableMethod(
+            activityScreenType,
+            "run",
+            emptyList(),
+            "V",
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            null,
+            null,
+            MutableMethodImplementation(5),
+        ).toMutable()
+        forcerRunMethod.addInstructions(
+            0,
+            """
+                sget-boolean v0, $llleQField
+                if-eqz v0, :stop
+                iget-object v1, p0, $pField
+                if-eqz v1, :maybe_reschedule
+                iget v2, p0, $activityScreenType->$ENHANCE_LEVEL_FIELD:F
+                const/4 v3, 0x1
+                invoke-virtual {v1, v3, v2}, $pType->$ENHANCE_SET_FILTER_METHOD(IF)V
+                :maybe_reschedule
+                iget v0, p0, $activityScreenType->$ENHANCE_FORCER_TICKS_FIELD:I
+                add-int/lit8 v1, v0, -0x1
+                iput v1, p0, $activityScreenType->$ENHANCE_FORCER_TICKS_FIELD:I
+                if-lez v0, :stop
+                iget-object v1, p0, $activityScreenType->$ENHANCE_FORCER_HANDLER_FIELD:Landroid/os/Handler;
+                const-wide/16 v2, 0x12c
+                invoke-virtual {v1, p0, v2, v3}, Landroid/os/Handler;->postDelayed(Ljava/lang/Runnable;J)Z
+                :stop
+                return-void
+            """.trimIndent(),
+        )
+        activityScreenClass.methods.add(forcerRunMethod)
+
+        val restartForcerMethod = ImmutableMethod(
+            activityScreenType,
+            ENHANCE_RESTART_FORCER_METHOD,
+            emptyList(),
+            "V",
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            null,
+            null,
+            MutableMethodImplementation(3),
+        ).toMutable()
+        restartForcerMethod.addInstructions(
+            0,
+            """
+                iget-object v0, p0, $activityScreenType->$ENHANCE_FORCER_HANDLER_FIELD:Landroid/os/Handler;
+                if-nez v0, :has_handler
+                new-instance v0, Landroid/os/Handler;
+                invoke-static {}, Landroid/os/Looper;->getMainLooper()Landroid/os/Looper;
+                move-result-object v1
+                invoke-direct {v0, v1}, Landroid/os/Handler;-><init>(Landroid/os/Looper;)V
+                iput-object v0, p0, $activityScreenType->$ENHANCE_FORCER_HANDLER_FIELD:Landroid/os/Handler;
+                :has_handler
+                invoke-virtual {v0, p0}, Landroid/os/Handler;->removeCallbacks(Ljava/lang/Runnable;)V
+                const/16 v1, 0x8
+                iput v1, p0, $activityScreenType->$ENHANCE_FORCER_TICKS_FIELD:I
+                invoke-virtual {p0}, $activityScreenType->run()V
+                return-void
+            """.trimIndent(),
+        )
+        activityScreenClass.methods.add(restartForcerMethod)
+
+        // --- 11. Kick the forcer whenever a surface is (re)built -------------------
+        val surfaceCreatedMethod = SurfaceCreatedFingerprint.method
+        surfaceCreatedMethod.addInstructions(
+            0,
+            "invoke-virtual {p0}, $activityScreenType->$ENHANCE_RESTART_FORCER_METHOD()V",
+        )
+
+        // --- 12. Stop the lock/unlock state-change path from force-disabling ------
+        // Found by content, not name: the one caller of M9() immediately preceded by
+        // two other zero-arg-void invoke-virtual calls on p0, INSIDE a method whose
+        // own real signature is (B)V - a single raw byte parameter, void return.
+        // Confirmed by reading the real method (originally "H6(B)V") - the byte param
+        // is a genuinely distinctive shape in this class, needed because the call-
+        // triple shape alone isn't unique (multiple M9 callers share it). Nothing
+        // after this call in H6 depends on M9's side effects (all void, no results
+        // consumed), so swapping it for an icon refresh + forcer-restart is safe.
+        // "Next video" and other M9 call sites are untouched, so per-video reset still
+        // works normally - this only changes the lock/unlock/state-change path.
+        fun isZeroArgVoidVirtualCall(insn: Instruction): Boolean {
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+            return insn.opcode == Opcode.INVOKE_VIRTUAL &&
+                ref.parameterTypes.isEmpty() &&
+                ref.returnType.toString() == "V"
+        }
+
+        fun isForceMethodCall(insn: Instruction): Boolean {
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+            return insn.opcode == Opcode.INVOKE_VIRTUAL &&
+                ref.name == forceMethod.name &&
+                ref.parameterTypes.map { it.toString() } == forceMethod.parameterTypes.map { it.toString() } &&
+                ref.returnType.toString() == forceMethod.returnType.toString()
+        }
+
+        val stateChangeCandidates = activityScreenClass.methods.mapNotNull { candidate ->
+            if (candidate.parameterTypes.map { it.toString() } != listOf("B") ||
+                candidate.returnType.toString() != "V"
+            ) {
+                return@mapNotNull null
+            }
+            val insns = candidate.implementation?.instructions ?: return@mapNotNull null
+            for (i in 2 until insns.size) {
+                if (isForceMethodCall(insns[i]) &&
+                    isZeroArgVoidVirtualCall(insns[i - 1]) &&
+                    isZeroArgVoidVirtualCall(insns[i - 2])
+                ) {
+                    return@mapNotNull candidate to i
+                }
+            }
+            null
+        }
+        if (stateChangeCandidates.size != 1) {
+            throw PatchException(
+                "Expected exactly one K9/L9/M9-shaped caller of M9(), " +
+                    "found ${stateChangeCandidates.size} - fingerprint needs re-checking against this build",
+            )
+        }
+        val (stateChangeMethod, m9CallIndex) = stateChangeCandidates.single()
+        stateChangeMethod.removeInstructions(m9CallIndex, 1)
+        stateChangeMethod.addInstructions(
+            m9CallIndex,
+            """
+                invoke-virtual {p0}, $saMethod
+                invoke-virtual {p0}, $activityScreenType->$ENHANCE_RESTART_FORCER_METHOD()V
+            """.trimIndent(),
         )
     }
 }

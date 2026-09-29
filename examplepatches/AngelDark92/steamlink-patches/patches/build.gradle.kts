@@ -2,6 +2,13 @@ import java.util.UUID
 
 group = "app.template"
 
+// Verify-Build.ps1 owns this fresh workspace and cleans it after preserving results.
+// Leave the root build directory unchanged: it also holds required APK fixtures/tools.
+val verificationWorkDirectory = providers.gradleProperty("verificationWorkDirectory")
+    .orNull?.let { rootProject.file(it) }
+verificationWorkDirectory?.let { layout.buildDirectory.set(it.resolve("patches")) }
+val auditOutputDirectory = verificationWorkDirectory ?: rootProject.layout.buildDirectory.get().asFile
+
 patches {
     // Disable the Morphe extension project integration.
     // The extension DEX is assembled from smali sources by the assembleExtension task
@@ -164,7 +171,7 @@ tasks.named("sourcesJar") {
 tasks {
     register<JavaExec>("auditOledDecodedCompatibility") {
         group = "verification"
-        description = "Read-only OLED option audit across the 3 exact color-supported bases (5001712, 5002244, 5002363); a missing decoded input reports BLOCKED"
+        description = "Read-only OLED option audit across 5 exact bases (5001712, 5001812, 5001968, 5002244, 5002363); a missing decoded input reports BLOCKED"
         dependsOn(classes)
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("util.OledDecodedCompatibilityAudit")
@@ -173,27 +180,25 @@ tasks {
 
     register<JavaExec>("auditSdr10ShaderAssemble") {
         group = "verification"
-        description = "Assemble the complete opaque/masked video shaders (production common prefix + each base's actual native suffixes) for the 3 exact color-supported bases; a missing decoded input reports BLOCKED; writes .glsl files and a report to a fresh output directory"
+        description = "Assemble the complete opaque/masked video shaders (production common prefix + each base's actual native suffixes) for the 5 exact color-supported bases; a missing decoded input reports BLOCKED; writes .glsl files and a report to a fresh output directory"
         dependsOn(classes)
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("util.Sdr10ShaderAssembleAudit")
         // The audit requires its output directory to be absent or empty, so give it a fresh one.
-        val assembleOutput = rootProject.layout.buildDirectory
-            .dir("sdr10-shader-assemble-${UUID.randomUUID()}")
-            .get().asFile
+        val assembleOutput = auditOutputDirectory.resolve("sdr10-shader-assemble-${UUID.randomUUID()}")
         args(rootProject.projectDir.absolutePath, assembleOutput.absolutePath)
     }
 
     register<JavaExec>("auditDecodedSteamLinkPatches") {
         group = "verification"
-        description = "Audit public 5001712/5002363 patches, high resolution on 3 bases, Visual Delay on 3 bases, and 3 recommendation fixtures"
+        description = "Audit public 5001712/5001812/5001968/5002363 patches, high resolution and Visual Delay on 5 bases, and 5 recommendation fixtures"
 
         dependsOn(classes)
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("util.DecodedSteamLinkPatchAudit")
         val auditArgs = mutableListOf(
             rootProject.layout.buildDirectory.dir("decoded-fixture-apks").get().asFile.absolutePath,
-            rootProject.layout.buildDirectory.dir("decoded-patch-audit").get().asFile.absolutePath,
+            auditOutputDirectory.resolve("decoded-patch-audit").absolutePath,
         )
         project.findProperty("decodedAuditKind")?.toString()?.let { kind ->
             auditArgs += kind
@@ -202,6 +207,15 @@ tasks {
             }.toString()
         }
         args(auditArgs)
+    }
+
+    register<JavaExec>("auditSteamLinkLegacyNative") {
+        group = "verification"
+        description = "Exercise exact 5001812/5001968 native helpers, option transitions, guards and patch ordering on decoded bytes"
+        dependsOn(classes)
+        classpath = sourceSets["main"].runtimeClasspath
+        mainClass.set("util.LegacyAddedNativeAudit")
+        args(rootProject.projectDir.absolutePath)
     }
 
     register<JavaExec>("auditSteamLink2363Native") {

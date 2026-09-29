@@ -512,7 +512,13 @@ public final class InboxFilter {
             }
 
             View list = findRequired(activity, "list", LIST_IDS);
-            int removeId = identifier(activity, SUGGESTED_REMOVE_IDS[0]);
+            // Each build's name for the remove button; only the running build's resolves, and
+            // taking the first one alone left Clear all with nothing to press on 47.1.3.
+            int removeId = 0;
+            for (String name : SUGGESTED_REMOVE_IDS) {
+                removeId = identifier(activity, name);
+                if (removeId != 0) break;
+            }
             View button = (list == null || removeId == 0) ? null : findUndismissed(list, removeId);
 
             if (button == null) {

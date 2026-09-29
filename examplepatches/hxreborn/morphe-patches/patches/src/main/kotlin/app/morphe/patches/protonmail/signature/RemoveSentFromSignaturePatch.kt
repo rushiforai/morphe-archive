@@ -14,7 +14,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.misc.proton.appliedPatchMarkerPatch
 import app.morphe.patches.protonmail.misc.settings.patchesSettingsPatch
-import app.morphe.patches.protonmail.shared.RUST_CORE
+import app.morphe.patches.protonmail.shared.mailUniffiLibraries
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.replaceAsciiInPlace
 
@@ -35,9 +35,7 @@ val removeSentFromSignaturePatch = resourcePatch(
     compatibleWith(AppCompatibilities.PROTON_MAIL)
 
     execute {
-        val nativeCores = get("lib").walk().filter { it.name == RUST_CORE }
-
-        if (nativeCores.count { it.replaceAsciiInPlace(DEFAULT_SIGNATURE, COMMENTED_OUT_SIGNATURE) } == 0) {
+        if (mailUniffiLibraries().count { it.replaceAsciiInPlace(DEFAULT_SIGNATURE, COMMENTED_OUT_SIGNATURE) } == 0) {
             throw PatchException("Could not find the default mobile signature")
         }
     }

@@ -7,10 +7,12 @@
 package app.morphe.extension.tiktok.blockauthor;
 
 import android.app.Activity;
+import android.app.Application;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.HapticFeedbackConstants;
@@ -80,6 +82,7 @@ public final class BlockAuthorOverlay {
     /** Which banner a queued dismiss belongs to. Main thread only. */
     private static int undoGeneration;
     private static WeakReference<ViewGroup> rootReference = new WeakReference<>(null);
+    private static WeakReference<Application> followed = new WeakReference<>(null);
     private static ViewTreeObserver.OnGlobalLayoutListener visibilityListener;
     private static WeakReference<View> undoReference = new WeakReference<>(null);
 
@@ -171,7 +174,10 @@ public final class BlockAuthorOverlay {
         if (feedback != null) feedback.setVisibility(visible && notInterestedEnabled() ? View.VISIBLE : View.GONE);
         View mute = muteReference.get();
         if (mute != null) {
-            mute.setVisibility(visible && muteButtonEnabled() ? View.VISIBLE : View.GONE);
+            // Not over a story or a LIVE replay, which play with their sound whatever it says.
+            VideoAuthor playing = CurrentVideoAuthor.get();
+            boolean governed = FeedMute.appliesTo(playing == null ? null : playing.awemeId);
+            mute.setVisibility(visible && muteButtonEnabled() && governed ? View.VISIBLE : View.GONE);
             showMuteState(mute);
         }
     }
@@ -180,7 +186,7 @@ public final class BlockAuthorOverlay {
      * Re-checks the cached feed selection and the active hold on each layout pass.
      */
     private static void syncVisibility() {
-        Activity activity = Utils.getActivity();
+        Activity activity = controlsActivity();
         if (activity == null) {
             return;
         }
@@ -191,9 +197,49 @@ public final class BlockAuthorOverlay {
                 && CurrentVideoAuthor.get() != null);
     }
 
+    /**
+     * The window the controls and their banners belong on: the feed, or the detail pager in front
+     * of it, where a video opened from a profile, a hashtag or a sound plays. Any other screen in
+     * front leaves them on the feed, where they have always been.
+     */
+    static Activity controlsActivity() {
+        Activity visible = Utils.getVisibleActivity();
+        return FeedVisibility.isFeedWindow(visible) ? visible : Utils.getActivity();
+    }
+
+    /**
+     * A grid video by the creator already playing names no new author, so nothing else would move
+     * the controls into the detail pager, or back when it closes. They follow the window instead.
+     */
+    private static void follow(Application application) {
+        if (application == null || followed.get() == application) return;
+        followed = new WeakReference<>(application);
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override public void onActivityResumed(Activity resumed) {
+                // Whether the controls are wanted, not whether a view is held: the pager's views
+                // can be collected by the time the reader is back, and a weak handle that came
+                // back empty left the feed without controls until the next swipe.
+                if (!FeedVisibility.isFeedWindow(resumed)) return;
+                if (!Settings.BLOCK_AUTHOR_BUTTON.get() && !notInterestedEnabled() && !muteButtonEnabled()) return;
+                VideoAuthor author = CurrentVideoAuthor.get();
+                if (author != null) attach(author, resumed);
+            }
+
+            @Override public void onActivityCreated(Activity created, Bundle state) { }
+            @Override public void onActivityStarted(Activity started) { }
+            @Override public void onActivityPaused(Activity paused) { }
+            @Override public void onActivityStopped(Activity stopped) { }
+            @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
+            @Override public void onActivityDestroyed(Activity destroyed) { }
+        });
+    }
+
     private static void attach(VideoAuthor author) {
+        attach(author, controlsActivity());
+    }
+
+    private static void attach(VideoAuthor author, Activity activity) {
         try {
-            Activity activity = Utils.getActivity();
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                 return;
             }
@@ -209,6 +255,9 @@ public final class BlockAuthorOverlay {
                 clampCurrentPositions(root);
                 return;
             }
+            // The controls are on another window: the feed behind a detail pager that just
+            // opened, or a pager just closed. They move rather than leave a second set behind.
+            if (existing != null) detach();
 
             final View button = createButton(activity);
             final int size = SettingsUi.dp(activity, BUTTON_SIZE_DP);
@@ -247,6 +296,7 @@ public final class BlockAuthorOverlay {
             root.post(() -> applyPositions(root));
 
             installVisibilityListener(root);
+            follow(activity.getApplication());
             syncVisibility();
 
             Logger.printDebug(() -> "Block button attached for " + author.reference());
@@ -719,7 +769,7 @@ public final class BlockAuthorOverlay {
         int minimumLeft = Math.max(0, systemInsets.left);
         int minimumTop = Math.max(0, systemInsets.top);
         int reservedBottom = Math.max(0, systemInsets.bottom);
-        Activity activity = Utils.getActivity();
+        Activity activity = controlsActivity();
         if (activity != null) {
             reservedBottom = Math.max(reservedBottom,
                     SessionLockOverlay.navigationHeight(activity, parent));
@@ -903,7 +953,7 @@ public final class BlockAuthorOverlay {
      * for a mis-tap while scrolling.
      */
     private static void showUndo(VideoAuthor author) {
-        Activity activity = Utils.getActivity();
+        Activity activity = controlsActivity();
         ViewGroup root = activity == null || activity.isFinishing() || activity.isDestroyed()
                 ? null : activity.findViewById(android.R.id.content);
         if (root == null || !activity.hasWindowFocus()) {
@@ -962,7 +1012,7 @@ public final class BlockAuthorOverlay {
      */
     public static void showUndoBanner(String message, Runnable undoAction) {
         Utils.runOnMainThread(() -> {
-            Activity activity = Utils.getActivity();
+            Activity activity = controlsActivity();
             ViewGroup root = activity == null || activity.isFinishing() || activity.isDestroyed()
                     ? null : activity.findViewById(android.R.id.content);
             showUndoBanner(root, message, undoAction);
@@ -976,7 +1026,7 @@ public final class BlockAuthorOverlay {
      * root is a parameter. Falls back to a plain toast when there is nowhere to draw it.
      */
     public static void showUndoBanner(ViewGroup root, String message, Runnable undoAction) {
-        showBanner(root, message, undoAction, null);
+        showBanner(root, message, undoAction, null, null);
     }
 
     /**
@@ -987,7 +1037,20 @@ public final class BlockAuthorOverlay {
      * which a toast does not.
      */
     public static void showNoticeBanner(ViewGroup root, String message) {
-        showBanner(root, message, null, null);
+        showBanner(root, message, null, null, null);
+    }
+
+    /**
+     * The notice banner, telling the caller when it was read out in full.
+     *
+     * <p>{@code ranItsTime} runs on the main thread once the banner has been up for its whole
+     * time and is still on the screen, or at once when there was only a toast to show. Another
+     * banner replacing it, the controls going away, or the reader leaving the screen cuts it
+     * short, and then it never runs: a caller that only forgets what it said once it was seen
+     * can say it again later.
+     */
+    public static void showNoticeBanner(ViewGroup root, String message, Runnable ranItsTime) {
+        showBanner(root, message, null, null, ranItsTime);
     }
 
     /**
@@ -999,29 +1062,29 @@ public final class BlockAuthorOverlay {
      */
     public static void showActionBanner(String message, String actionLabel, Runnable action) {
         Utils.runOnMainThread(() -> {
-            Activity activity = Utils.getActivity();
+            Activity activity = controlsActivity();
             ViewGroup root = activity == null || activity.isFinishing() || activity.isDestroyed()
                     ? null : activity.findViewById(android.R.id.content);
-            showBanner(root, message, action, actionLabel);
+            showBanner(root, message, action, actionLabel, null);
         });
     }
 
     public static void showActionBanner(ViewGroup root, String message, String actionLabel,
             Runnable action) {
-        showBanner(root, message, action, actionLabel);
+        showBanner(root, message, action, actionLabel, null);
     }
 
     private static void showBanner(ViewGroup root, String message, Runnable action,
-            String actionLabel) {
+            String actionLabel, Runnable ranItsTime) {
         Utils.runOnMainThread(() -> {
             try {
                 if (root == null) {
-                    Utils.showToastShort(message);
+                    toastInstead(message, ranItsTime);
                     return;
                 }
-                Activity activity = Utils.getActivity();
+                Activity activity = controlsActivity();
                 if (activity == null) {
-                    Utils.showToastShort(message);
+                    toastInstead(message, ranItsTime);
                     return;
                 }
 
@@ -1059,13 +1122,25 @@ public final class BlockAuthorOverlay {
                 // whether it is still the one that was scheduled.
                 final int token = ++undoGeneration;
                 Utils.runOnMainThreadDelayed(() -> {
-                    if (token == undoGeneration) dismissUndo();
+                    if (token != undoGeneration) return;
+                    // Only a banner still on the screen at the end was read out in full. The
+                    // reader backing out or going Home stops nothing here, so the timeout comes
+                    // anyway, over a screen that is gone or stopped.
+                    boolean seen = banner.isAttachedToWindow() && banner.isShown();
+                    dismissUndo();
+                    if (seen && ranItsTime != null) ranItsTime.run();
                 }, SettingsUi.feedbackTimeout(activity, (int) UNDO_VISIBLE_MS, action != null));
             } catch (Throwable ex) {
                 Logger.printException(() -> "Could not show the undo banner", ex);
-                Utils.showToastShort(message);
+                toastInstead(message, ranItsTime);
             }
         });
+    }
+
+    /** A toast can't be replaced by the next banner, so it has run its time once it's shown. */
+    private static void toastInstead(String message, Runnable ranItsTime) {
+        Utils.showToastShort(message);
+        if (ranItsTime != null) ranItsTime.run();
     }
 
     /** Where the banner sat before it measured anything: a fixed 96dp up from the bottom. */

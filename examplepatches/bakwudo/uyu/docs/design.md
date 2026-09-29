@@ -1,7 +1,7 @@
 # uyu 設計書
 
-- 最終更新: 2026-09-27
-- 状態: 段階 2 まで完了し、v1.0.0 をリリースした。段階 3（広告ブロック）は未着手（進捗は TODO.md）
+- 最終更新: 2026-09-28
+- 状態: 段階 3（広告ブロック）まで完了し、v1.2.0 をリリースした。プロキシでの再生だけ未確認（進捗は TODO.md）
 
 Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の設計をまとめる。本文（1〜11 章）は合意済みの仕様、付録は実装時の手がかりとなる調査メモ（主に Twitch 30.x 時点の情報で、31.3.1 では要再確認）。
 
@@ -21,7 +21,8 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 ## 2. 全体方針
 
 ### 配布・ライセンス
-- 単独で動くパッチバンドルとして、GitHub `trivisa-itihasa/uyu`（公開）で配布する。Morphe Manager に外部ソース（`github.com/trivisa-itihasa/uyu`）として追加できる形にする。
+- 単独で動くパッチバンドルとして、GitHub `bakwudo/uyu`（公開）で配布する。Morphe Manager に外部ソース（`github.com/bakwudo/uyu`）として追加できる形にする。
+  - 2026-09-28 にユーザーの依頼でリポジトリを作り直し、それまでのコミット、PR、リリースを消した。同時に、Kotlin のパッケージと、別アプリとして入れるときのパッケージ名を `io.github.bakwudo.uyu` に変えた（v2.0.0）。パッケージ名を変えると、インストール済みの uyu とは別のアプリになり、ログインと設定が引き継がれない。
 - バンドル名は `uyu`。
 - ライセンスは GPLv3。Morphe テンプレートの NOTICE と、流用したソースの著作権ヘッダーは保持する。プロジェクト名に「Morphe」は使わない。
 - README に書くこと:
@@ -41,8 +42,8 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 
 ### 命名・言語
 - UI は当面英語のみ。
-- Kotlin パッケージは `io.github.trivisa_itihasa.uyu`。
-- 拡張コードの名前空間は `io.github.trivisa_itihasa.uyu.extension`。R8 の repackage 先もここにし、他のバンドル（hooman は `app.morphe.extension.twitch`）とクラス名が衝突しないようにする。
+- Kotlin パッケージは `io.github.bakwudo.uyu`。
+- 拡張コードの名前空間は `io.github.bakwudo.uyu.extension`。R8 の repackage 先もここにし、他のバンドル（hooman は `app.morphe.extension.twitch`）とクラス名が衝突しないようにする。
 - パッチ名は他のバンドルと重ならないようにする。
 
 ### ビルド・リリース
@@ -74,7 +75,7 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 ### 別アプリとしてのインストール（2026-09-27 に決定）
 - 公式の Twitch を置き換えず、YouTube Morphe と同じく、別のパッケージ名と別のアプリ名で入れる。公式の Twitch と同じ端末に共存できる。
   - アプリ名は「uyu」（ランチャーと最近使ったアプリに出る名前）。Twitch の画面の中の「Twitch」という文言とアイコンはそのまま。
-  - パッケージ名は `io.github.trivisa_itihasa.uyu`。
+  - パッケージ名は `io.github.bakwudo.uyu`。
 - 公式の Twitch と同じ名前では共存できないもの（独自のパーミッション、ContentProvider の authority、Login with Amazon のリダイレクト先）も、パッケージ名に合わせて名前を変える。Twitch とライブラリは実行時にパッケージ名からこれらの名前を組み立てるので、同じ規則で変える（付録 A.12）。
 - 通知のため、Firebase Installations に送るパッケージ名は元の `tv.twitch.android.app` にする（Fix notifications）。
 - root のマウント方式では、インストール済みの Twitch を置き換えるので使えない。Morphe Manager では選べなくする。
@@ -193,28 +194,49 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 ## 6. 広告ブロック
 
 - 設定は「Block ads」のオン/オフ 1 つだけ（初期値はオン）。ブロックできる広告はすべてブロックする。
+- 設定を変えると、次に配信を開いたときから効く（流れている広告を黒で隠す処理と、プレイヤーのイベントを止める処理はすぐに効く）。
+- 実装は付録 A.14。
 
 ### 端末内だけでブロックする方式（既定）
 次の処理を組み合わせる。
-- 配信のアクセストークンを要求するとき、プレイヤーの種類を `embed` にする。
-- アプリの広告判定の応答を「広告なし（AdContextUnavailable 相当）」に固定する。
+- 配信のアクセストークンを要求するとき、プレイヤーの種類を `embed` にする。ライブと VOD の両方。
+- アプリが自分で広告を要求しないようにする（2026-09-28、実装時に変更し、ユーザーが採用した）。
+  - 当初は「アプリの広告判定の応答を「広告なし（AdContextUnavailable 相当）」に固定する」予定だった。31.3.1 では、広告判定（GrandDads）の応答が AdContextUnavailable のとき、アプリは「判定できなかったので広告を要求する」として扱う（付録 A.14）。そのため、この方法は使わない。
+  - 代わりに、広告の要求をまとめる処理を、Twitch 自身がクリップなどで使う「広告を出さない」状態にし、広告判定の結果（広告を要求するか）も「要求しない」に固定する。
 - 配信に埋め込まれた広告（`twitch-stitched-ad`）を検知する処理を止める。
-- アプリが別に再生する広告（ライブのクライアント側広告、PbyP の途中広告、VOD の広告、音声のみモードの広告）を止める。
-- 表示広告（バナー、フィード内広告、スポンサー配信など）を隠す。
+- アプリが別に再生する広告（ライブのクライアント側広告、PbyP の途中広告、VOD の広告、音声のみモードの広告）を止める。配信が求める広告（`twitch-maf-ad`、音声のみモードの広告を含む）と PbyP の準備のイベントは、プレイヤーが送る前に止める。
+- 表示広告（バナー、フィード内広告など）を隠す。
+  - ネイティブの画面: 表示広告の応答を「広告なし」にする。ブラウズの上部の広告は Turbo の利用者と同じ扱いにして出さない。
+  - React Native のホームのフィード: JS が自分で広告サーバー（`edge.ads.twitch.tv`）に要求するので、その要求を失敗させる。フィード内の動画広告にはプレイヤーを作らない。
+  - スポンサー配信の表示（`SponsoredStreamPubSubEvent`）は広告枠ではなく配信者による告知なので、対象外（2026-09-28 時点）。
 
 ### ブロックしきれなかった広告
 - 再生前の広告など、配信の映像そのものに組み込まれていて外せない広告が流れている間は、映像を黒で隠して音を消し、「Ad blocked」と残り秒数を表示する。広告が終わると自動で元に戻る。
+  - 始まり: 埋め込み広告の開始のイベント。残り秒数は、最初の広告では広告の区切り全体の長さ、続く広告ではその広告の長さから計算する。
+  - 終わり: 配信が再びライブの映像を流すというイベント（`X-TV-TWITCH-STREAM-SOURCE="live"`）、または予定の長さを 5 秒過ぎたときの早い方。
+  - 黒い画面は動画のすぐ上に置く。プレイヤーの操作ボタンと弾幕コメントはその上に出る。
+  - 音は Twitch 自身の消音の処理で消す。プレイヤーの画面が見つからないとき（音声だけ再生している間など）も、消音と終わりの判定は働く。
 - 別の配信に切り替えて見せる方式（Xtra の video swap）は採用しない。
 
 ### プロキシ（任意）
 - 設定画面に「Proxy URL」を置く。初期値は空欄で、利用者が入力した場合だけ使う。プリセットは用意しない。
-- プロキシでの取得に失敗したら、自動で端末内だけの方式に戻し、「Proxy failed」とトーストで知らせる。
+  - URL に `{channel}` があればチャンネル名に置き換える。なければ、末尾にチャンネル名と `?allow_source=true&allow_audio_only=true&fast_bread=true` を付ける。
+  - ライブ配信のプレイリストだけをプロキシから取得する。VOD は対象外。
+- プロキシでの取得に失敗したら、自動で端末内だけの方式に戻し、「Proxy failed」とトーストで知らせる。次に配信を開いたときは、またプロキシを試す。
 - 説明欄に次の注意を書く:
   - サブスクや Turbo の「広告なし」特典が効かなくなる。
   - 見ているチャンネルなどの情報がプロキシの運営者に伝わる。
 
 ### 31.3.1 での検証
 - 上記の各手法が 31.3.1 で効くかは実装時に確認する。効かないものは報告して相談する。
+- 2026-09-28 に実機で確認したこと（Claude が adb で確認）:
+  - ライブと VOD のアクセストークンを `embed` で要求しても再生できる。ライブ 6 チャンネルを開いて、再生前の広告は一度も出なかった。
+  - ホームのフィードの広告の要求が止まり、フィードの表示に問題がない。
+  - 広告の要求をまとめる処理が、配信と VOD の視聴画面で「広告を出さない」状態になる。
+  - 黒い画面: 埋め込み広告は来なかったので、テスト用に広告の開始を模したビルドで、表示の位置、残り秒数、予定の長さ + 5 秒で消えることを確かめた。
+  - プロキシ: つながらない URL（`https://127.0.0.1:1/live/`）で、「Proxy failed」が出て Twitch から再生されることを確かめた。
+- 2026-09-28 にユーザーが実機で確認したこと: 実際の埋め込み広告で黒い画面になり、音が消えること。視聴画面の表示広告（バナー）が出ないこと。
+- 未確認: 実際のプロキシでの再生。
 
 ## 7. 設定画面
 
@@ -223,7 +245,7 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
   - **General**: Auto claim channel points（スイッチ）
   - **Appearance**: 3 章「表示の整理」の 4 項目（スイッチ）
   - **Danmaku**: プレビュー、オン/オフ、縦画面で流す、ミニプレイヤーで流す、ピクチャーインピクチャーで流す、横画面のチャットを隠す、行数、表示範囲、表示秒数、上限数、フォント（一覧とファイルの取り込み）、太さ、文字色、縁取りの色、縁取りの太さ、不透明度
-  - **Ads**（段階 3 で追加）: Block ads（スイッチ）、Proxy URL（テキスト入力と注意書き）
+  - **Ads**（段階 3 で追加）: Block ads（スイッチ）、Proxy URL（テキスト入力のダイアログ。`TextPreference`）、使い方と注意書き
 - 弾幕のプレビューは Danmaku の画面にだけ置く。横画面では、設定の一覧が見えるように、プレビューの高さを画面の 40% までにする（縦横比は保つ）。
 - セクションは、適用されたパッチの設定があるものだけを一覧に出す。
 - 設定の基盤は自前で作る（段階 1 で決定）。
@@ -241,7 +263,7 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 | 1 | 土台（テンプレート、Settings、Fix login、Fix notifications、フィンガープリント検証スクリプト、`docs/updating.md`）と自動取得 | `dev` のプレリリース |
 | 2 | 弾幕コメント。あわせて、別アプリとしてのインストール、設定画面のセクション分け、表示の整理（2026-09-27 に追加） | `dev` のプレリリース。段階 1 と 2 がそろったら `main` から **v1.0.0** |
 | 2 の追加 | 弾幕を縦画面、ミニプレイヤー、ピクチャーインピクチャーでも流す設定（2026-09-28 に追加） | `dev` を経て **v1.1.0** |
-| 3 | 広告ブロック | `dev` を経て次の機能追加のバージョン（v1.2.0 の予定）。当初は v1.1.0 の予定だった |
+| 3 | 広告ブロック | `dev` を経て **v1.2.0**（2026-09-28）。当初は v1.1.0 の予定だった |
 
 段階 1 で、設定画面の差し込み・フィンガープリントの特定・ビルド・パッチ適用・エミュレーターでのテストという一連の流れを先に確立する。
 
@@ -254,7 +276,7 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
   - `adb root` が使える。
   - ただしエミュレーターでは、Google APIs と Google Play のどちらのイメージでも、パッチなしの Twitch でログインできなかった（11 章）。
 - 実機: 2026-09-27 にユーザーと決め、ログインが必要な確認は Android の実機で行うことにした。USB デバッグで PC につなぎ、adb でインストールと確認をする。
-  - 別アプリとしてのインストール（3 章）を入れた APK は `io.github.trivisa_itihasa.uyu` として入り、公式の Twitch と共存できる。入れたあとは、ログインをやり直す必要がある。
+  - 別アプリとしてのインストール（3 章）を入れた APK は `io.github.bakwudo.uyu` として入り、公式の Twitch と共存できる。入れたあとは、ログインをやり直す必要がある。
   - このパッチを外した APK（Morphe Desktop の `-d "Install as a separate app"`）は `tv.twitch.android.app` として入る。署名が違うため公式の Twitch とは共存できないが、以前のパッチ済みアプリに上書きすればログインが保たれるので、ログインせずに確認したいときに使える。
 - パッチの適用: PC 上の Morphe Desktop で行う。スマホ版 Manager の「Optimize for device architecture」は x86_64 のライブラリを削ることがあるので使わない。
   ```bash
@@ -277,16 +299,18 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 | 4 | `gh auth refresh -h github.com -s read:packages` を実行する | ユーザー | 済 |
 | 5 | Morphe Desktop（`morphe-desktop-1.17.0-all.jar`。GUI と CLI を兼ねる jar が 1 つだけ配布されている）と jadx（`jadx-1.5.6.zip`。CLI の `bin/jadx` と GUI の `bin/jadx-gui` を両方含む）を任意のフォルダに入れ、場所を Claude に伝える（apktool は任意） | ユーザー | 済: `C:\Software\morphe-desktop-1.17.0-all.jar`、`C:\Software\jadx-1.5.6\bin\jadx.bat` |
 | 6 | APKMirror から Twitch 31.3.1 の APKM を `apk/` に置く（Git の管理外）。バリアントは x86_64 を含む「arm64-v8a + x86 + x86_64」を選ぶ | ユーザー | 済: `apk/tv.twitch.android.app_31.3.1-3103016_3arch_1dpi_…_apkmirror.com.apkm` |
-| 7 | GitHub リポジトリの作成と初回 push、Actions の設定変更 | Claude（実行直前にユーザーへ確認） | 済: https://github.com/trivisa-itihasa/uyu （公開）。「Allow GitHub Actions to create and approve pull requests」を有効化。2026-09-27 に `dev` から v1.0.0-dev.1 をプレリリース、`main` から v1.0.0 をリリース |
+| 7 | GitHub リポジトリの作成と初回 push、Actions の設定変更 | Claude（実行直前にユーザーへ確認） | 済: https://github.com/bakwudo/uyu （公開）。「Allow GitHub Actions to create and approve pull requests」を有効化。2026-09-27 に `dev` から v1.0.0-dev.1 をプレリリース、`main` から v1.0.0 をリリース |
 
-既存の環境: JDK 21.0.2（Oracle、`C:\Program Files\Java\jdk-21`、JAVA_HOME 未設定）、git 2.45.2、gh（`trivisa-itihasa` でログイン済み）、Python 3.14、IntelliJ IDEA 2024.3。
+既存の環境: JDK 21.0.2（Oracle、`C:\Program Files\Java\jdk-21`、JAVA_HOME 未設定）、git 2.45.2、gh（uyu の作業は `bakwudo` のアカウントで行う。gh がほかのアカウントになっているときは、作業の前に `gh auth switch -u bakwudo` を実行する。このリポジトリの Git は、コミットの作者を `bakwudo` にし、push の認証を gh から取るようにローカルで設定してある）、Python 3.14、IntelliJ IDEA 2024.3。
 
 ## 11. 未確認事項とリスク
 
 - 31.3.1 は難読化されたクラス名がすべて変わっているため、付録 A の手がかりをもとにすべて探し直す必要がある（段階 1 の分は済。結果は付録 A.3、A.4）。
 - 公式チャットがオフのときもチャットの受信が続くか（弾幕の取得方式に影響する）。受信のフックはチャットの画面ではなく接続の層にある。実機で、公式チャットを「オフ」にしても流れ続けることを確認した（2026-09-27）。
-- 実機（AQUOS SH-52E、Android 14）で、パッチ済みの 31.3.1 でログインでき、設定画面の「uyu」の行と uyu の設定画面が動くことを確認した（2026-09-27）。自動取得は、React Native の視聴画面では働かず、Native theatre パッチでネイティブの視聴画面にしたところ、ボーナスを受け取って残高が増えた。横画面のフルスクリーンで公式チャットを「オフ」にした状態でも、ボーナスが出てから約 0.3 秒で受け取られた。通知は、通知の権限が未許可のため未確認。
-- 広告ブロックの各手法が 31.3.1 で効くか。Twitch は対策を続けており（player type の検証、`hasAdblock` フィールドなど）、効果は不安定になりうる。
+- 実機（AQUOS SH-52E、Android 14）で、パッチ済みの 31.3.1 でログインでき、設定画面の「uyu」の行と uyu の設定画面が動くことを確認した（2026-09-27）。自動取得は、React Native の視聴画面では働かず、Native theatre パッチでネイティブの視聴画面にしたところ、ボーナスを受け取って残高が増えた。横画面のフルスクリーンで公式チャットを「オフ」にした状態でも、ボーナスが出てから約 0.3 秒で受け取られた。通知は、2026-09-28 にユーザーが広告ブロックより前のバージョンで、届くことを確認した。
+- 広告ブロックの各手法が 31.3.1 で効くか。Twitch は対策を続けており（player type の検証、`hasAdblock` フィールドなど）、効果は不安定になりうる。2026-09-28 時点の確認結果と未確認の項目は 6 章「31.3.1 での検証」。
+  - ホームのフィード（React Native）の広告は、広告サーバーへの要求を失敗させて止めている。JS 側がこの失敗をどう扱うかは、フィードの表示に問題がないことしか確かめていない。
+  - 黒い画面の終わりは、配信の「ライブの映像に戻った」というイベントに頼っている。Amazon IVS のプレイヤーは、このイベントを再生位置に合わせて送る（ExoPlayer のプレイヤーは、メタデータを受け取るたびにその時点のプレイリスト全体を調べて送るので、少し早く終わることがある。31.3.1 のライブは IVS のプレイヤーで再生される）。
 - エミュレーターで Twitch の映像が再生できるか（報告例なし、推測の段階）。
 - エミュレーター（`Medium_Phone`、Google APIs x86_64 API 35）では、パッチを当てていない 31.3.1 でもログインできない（2026-09-27 に確認）。「This app version/OS is not currently supported」と表示される。
   - 文言はアプリにも React Native のバンドルにもなく、passport（`/protected_login`）の応答をそのまま表示している。ログイン画面は React Native で、passport への要求は Kasada（ボット対策）で保護されている。
@@ -389,6 +413,9 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 - 30.2.2 では、プレイヤーコア（`tv/twitch/android/shared/player/core/b` の onMetadata）が `"twitch-stitched-ad".equals(...)` で広告を判定している。ここを「黒画面・ミュート・残り秒数表示」のきっかけにも使える見込み。
 
 ### A.7 広告ブロック
+
+31.3.1 での実装は A.14。以下は実装前の調査メモ（主に 30.x の情報）。
+
 - **プロキシへの書き換え（hooman）**
   - 文字列 `usher.ttvnw.net` と `fast_bread` を含むクラスの `invoke(Object, Object)Object`（usher の URL を組み立てる lambda）を置き換える。
   - 置き換え後の URL は `proxyUrl + チャンネル名 + "?allow_source=true&allow_audio_only=true&fast_bread=true&type=any&player=twitchweb"`。
@@ -434,7 +461,7 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 - `Compatibility(name, packageName, apkFileType, appIconColor, targets = listOf(AppTarget(version, versionCodes, isExperimental)))`。hooman は `apkFileType = null`（分割 APK も警告なしで受け付ける）。
 - Morphe Manager:
   - 複数のソースのパッチを 1 回で当てるには、エキスパートモードで互換性の警告を承認する必要がある（シンプルモードではソースを 1 つ選ぶ）。
-  - ディープリンク: `https://morphe.software/add-source?github=trivisa-itihasa/uyu&name=uyu`
+  - ディープリンク: `https://morphe.software/add-source?github=bakwudo/uyu&name=uyu`
 - Morphe Desktop: `-p/--patches` を繰り返し指定できる。既定ではすべての ABI を残す（削るのは `--striplibs` を付けたとき）。`-i/--install` で adb 経由のインストールもできる。
 - ReVanced から移植するときの注意:
   - `app.revanced.patcher` を `app.morphe.patcher` に置き換える。
@@ -494,7 +521,7 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
 
 ### A.12 別アプリとしてのインストール（31.3.1）
 - リソースパッチの `finalize` でマニフェストを書き換える。ほかのパッチがマニフェストの元のパッケージ名を読めるように、最後に行う。
-  - `manifest` の `package` を `io.github.trivisa_itihasa.uyu` にする。
+  - `manifest` の `package` を `io.github.bakwudo.uyu` にする。
   - 名前の一部（`.` で区切られた部分）が `tv.twitch.android.app` のものを、新しいパッケージ名に置き換える。対象は、`permission` / `uses-permission` の名前、`provider` の authority、スキーム `amzn` の `data` の host。
     - パーミッション: `tv.twitch.android.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`。AndroidX の `ContextCompat.registerReceiver` が `<パッケージ名>.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` を組み立てて使う。
     - authority: `firebaseinitprovider`、`provider`（FileProvider）、`androidx-startup`、`fileprovider`（React Native の WebView）、Sentry の 3 つ、`backgrounddetector`（IVS）、`com.amazon.identity.auth.device.MapInfoProvider.<パッケージ名>`（Amazon MAP）。コードはどれも `getPackageName()` から名前を組み立てている（jadx で確認）。
@@ -523,6 +550,35 @@ Android 版 Twitch アプリ向けの Morphe パッチバンドル「uyu」の�
   - ハイライトの追加・削除・展開・折りたたみのイベントは、どれもハイライトのプレゼンター（`CommunityHighlightPresenter`。Kotlin のメソッドのシグネチャの文字列 `CommunityHighlightPresenter$UpdateEvent` で特定できる）の、イベントの親クラスを受け取るメソッドを通る。ハイライトを表示に追加する状態の更新（toString が `AddHighlight(model=`）を作るのはこのメソッドだけ。
   - パッチはこのメソッドの先頭で、拡張コードの `hideCommunityHighlight(event)` を呼び、true なら何もせずに戻る。拡張コードは、追加のイベント（toString が `AddCommunityHighlight(model=`）なら、ハイライト → 種類 → ID の順にフィールドを読み（パッチがスタブ `highlightType` の中身を置き換える）、宣伝の ID で設定がオンなら true を返す。取り除いたときはログ（タグ `uyu`）に `Hid community highlight <ID>` と出す。
   - 種類の親クラスは、`<clinit>` に文字列 `subtember` を持ち、自分の型の静的フィールドを持つクラス（SUBtember の種類）の親クラスとして特定する。
+
+### A.14 広告ブロック（31.3.1）
+- 調べた範囲では、`okhttp3` などネットワークの層は難読化されていて、広告サーバーへの要求をまとめて止める入口はない（React Native の `NetworkingModule` を除く）。そこで、次の場所に個別にフックする。フィンガープリントは `ads/Fingerprints.kt`。
+- アクセストークン: `PlaybackAccessTokenParams`（toString が `PlaybackAccessTokenParams(device=`）のコンストラクタで、唯一の String の引数（playerType。`mobile_player` や `android_pip`）を拡張コードの `overridePlayerType` の戻り値にする。ライブ（`StreamAccessTokenQuery`）と VOD（`VodAccessTokenQuery`）の両方がこのクラスを使う。
+- プレイヤーのイベント: 2 つのプレイヤー（Amazon IVS の `MediaPlayer` を使うものと ExoPlayer を使うもの）は、プレイリストの `#EXT-X-DATERANGE` を読んで、次のイベントを作る。どれも共通の親クラス（プレイヤーのイベントの基底クラス）を持ち、toString で見分けられる。
+  | toString | 元の CLASS など | uyu の扱い |
+  |---|---|---|
+  | `OnSurestreamAdStarted(adMetadata=` | `twitch-stitched-ad` | 止めて、黒い画面を出す |
+  | `OnSurestreamAdQuartile(` | `twitch-ad-quartile` | 止める |
+  | `OnSurestreamAdEnded` | `X-TV-TWITCH-STREAM-SOURCE="live"` | そのまま送り、黒い画面を終える |
+  | `OnMultiformatAdRequested(` | `twitch-maf-ad`（配信が求めるクライアント側の広告。表示広告、動画広告、音声広告） | 止める |
+  | `OnPbypPreflightMessage(` | `pbyp-preflight` | 止める |
+  - 広告のメタデータ（toString が `SureStreamAdMetadata(duration=`）は、toString が読む順に、広告の長さ、広告の区切り全体の長さ（どちらも秒の float）を持つ。
+  - イベントの基底クラスだけを引数に取るインスタンスメソッドは、2 つのプレイヤーそれぞれのイベントの送出（EventDispatcher に渡す）だけ。パッチはすべてのクラスからこの形のメソッドを探し、先頭で追加した静的メソッド `uyuOnPlayerEvent` を呼び、true なら送らずに戻る。追加したメソッドは、プレイヤーが描画する View（`getView()` を持つインターフェースのフィールド）を拡張コードに渡す。拡張コードはその祖先の `player_view_delegate` に黒い画面を置く。
+  - 消音: プレイヤーのプレゼンター（文字列 `getPlayerStateAndEventDisposable()`、A.11）の `setMuted(Z)` は、プレイヤーのインターフェースの消音のメソッドと解除のメソッドを呼ぶ。パッチはこの 2 つの呼び出しを読み、拡張コードの `PlayerEvents.setMuted` の中身にする。IVS のプレイヤーでは `MediaPlayer.setVolume(0)` になる。
+- クライアント側の動画広告:
+  - 再生前、途中、VOD の途中の広告と、配信が求める動画広告は、どれも広告の要求をまとめるプレゼンター（文字列 `ad request already active`）を通る。コンストラクタの唯一の boolean の引数（Dagger の `shouldShowAds`。Twitch はクリップやダッシュボードの VOD で false を渡す）が false だと、状態が最初から「無効」になり、すべての要求を捨てる。パッチはこの引数を拡張コードの `overrideShowAds` の戻り値にする。
+  - その後ろの広告判定（GrandDads の GQL、Turbo やサブスクの判定）の結果は、`Boolean` を受け取って広告を要求するメソッド（`EligibilityCheckCompleted(shouldRequestAd=` のイベントを作る）に届く。パッチは先頭で引数を `overrideShouldRequestAd` の戻り値（`Boolean.FALSE`）にする。
+  - GrandDads の応答（`query GrandDads`）を AdContextUnavailable（31.3.1 では toString を持たないシングルトン）にすると、判定の処理は「No ad context」とログに出して `true`（広告を要求する）を返す。そのため、当初の予定（A.7）の方法は使わない。
+  - PbyP: PbyP のプレゼンター（`processStateChange(Ltv/twitch/android/feature/pbyp/PbypPresenter$State;` の文字列）の、機能が有効かを返す `()Z` のメソッドを false にする。PubSub の `midroll_request` の購読と準備の処理が始まらない。
+  - Amazon の広告 SDK（`AdsManagerImpl` など）は 31.3.1 にはない。広告の再生は Twitch 自身の処理。
+- 表示広告:
+  - 表示広告の応答のパーサー（文字列 `failed to parse display ad response: `）は、「広告なし」のシングルトン（戻り値の型の子クラスで、自分の型の静的フィールドを持つ）を返すようにする。視聴画面の横や下のバナー、配信が求める表示広告、ネイティブの一覧の広告がこれを通る。
+  - ブラウズの上部の広告は、状態クラス（toString が `State(isTurbo=`）の `isTurbo` を true にする。
+  - React Native のホームのフィードは、JS が `edge.ads.twitch.tv`（`/ads/feeds`、`/ads/format`、`/ads`）に要求する。`NetworkingModule.sendRequestInternalReal` の先頭で、このホストへの URL を `https://127.0.0.1:1/` に変え、接続の失敗にする。フィード内の動画広告は `TwitchRNVideoAdProvider.makePlayer` が null を返すようにする。どちらもクラス名とメソッド名は難読化されない。
+- プロキシ:
+  - usher の URL（`api/channel/hls/<チャンネル名>.m3u8` または `api/v2/channel/hls/…`）を作るメソッド（引数が `(String, AccessTokenResponse, …, boolean)`、戻り値が `Uri`）の戻り値を `overrideStreamUri` に通す。チャンネル名は URL の最後の部分から取る（引数のレジスタは戻る時点で上書きされているため）。
+  - ライブのプレイリストは、IVS の `MediaPlayer.preload(Uri, Source.Listener)` で読み込まれる。パッチはアプリの中のこの呼び出しをすべて拡張コードの `preload` に置き換える。拡張コードは、プロキシの URL のときだけ、`Source.Listener` を `java.lang.reflect.Proxy` で包む。`onError` が来たら「Proxy failed」を出し、元の usher の URL と元のリスナーで読み込み直す。
+- ログ（タグ `uyu`）: `Requesting the stream as the embed player instead of …`、`Video ads the app plays itself are off for this player`、`Blocked an ad request of the home feed`、`Ad blocked: <秒> s ad, <秒> s break`、`Ad break ended`、`Proxy failed: …` など。
 
 ## 付録 B. ニコニコの描画パラメータ（niconicomments の互換実装より）
 

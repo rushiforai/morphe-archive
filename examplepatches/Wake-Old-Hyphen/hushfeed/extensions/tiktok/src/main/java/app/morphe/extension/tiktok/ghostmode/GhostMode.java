@@ -8,11 +8,17 @@
 package app.morphe.extension.tiktok.ghostmode;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.shared.settings.Setting;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import java.util.Map;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -63,6 +69,41 @@ public final class GhostMode {
      * state is worth one line; what a reader needs is the change and the fact it happened.
      */
     private static final Map<String, String> reported = new ConcurrentHashMap<>();
+    private static volatile boolean storyReportingFailed;
+    private static volatile boolean blockedCallObserved;
+    private static final List<WeakReference<Runnable>> observers = new ArrayList<>();
+
+    public enum Status { OFF, PAUSED, UNOBSERVED, BLOCKED, PROBLEM }
+
+    /** Local evidence only. A blocked call does not verify TikTok's server-side viewer list. */
+    public static Status status() {
+        if (!Settings.GHOST_MODE.savedValue()) return Status.OFF;
+        if (Setting.isPaused()) return Status.PAUSED;
+        if (storyReportingFailed) return Status.PROBLEM;
+        return blockedCallObserved ? Status.BLOCKED : Status.UNOBSERVED;
+    }
+
+    /** Bound rows keep their own callback alive; the hook never keeps a settings Activity alive. */
+    public static synchronized void observe(Runnable observer) {
+        for (Iterator<WeakReference<Runnable>> it = observers.iterator(); it.hasNext();) {
+            Runnable existing = it.next().get();
+            if (existing == observer) return;
+            if (existing == null) it.remove();
+        }
+        observers.add(new WeakReference<>(observer));
+    }
+
+    private static void stateChanged() {
+        List<Runnable> current = new ArrayList<>();
+        synchronized (GhostMode.class) {
+            for (Iterator<WeakReference<Runnable>> it = observers.iterator(); it.hasNext();) {
+                Runnable observer = it.next().get();
+                if (observer == null) it.remove();
+                else current.add(observer);
+            }
+        }
+        for (Runnable observer : current) Utils.runOnMainThread(observer);
+    }
 
     private GhostMode() {
     }
@@ -109,6 +150,12 @@ public final class GhostMode {
         } catch (Throwable unreadable) {
             // Inside TikTok's own reporter: a renamed getter sends the report rather than crash.
             HookStatus.threw(HOOK_FAMILY, STORY_PLAY_STATS, unreadable);
+            // Clearing a diagnostic report or toggling the switch cannot repair that getter.
+            // Keep the failure visible for this process, including after another hook succeeds.
+            if (!storyReportingFailed) {
+                storyReportingFailed = true;
+                stateChanged();
+            }
             return false;
         }
     }
@@ -116,6 +163,10 @@ public final class GhostMode {
     /** The setting, recorded against the call site that asked for it. */
     private static boolean answer(String callSite) {
         boolean blocked = Settings.GHOST_MODE.get();
+        if (blocked && !blockedCallObserved) {
+            blockedCallObserved = true;
+            stateChanged();
+        }
         String outcome = blocked ? BLOCKED : SENT;
         HookStatus.bound(HOOK_FAMILY, callSite + " " + outcome);
         if (!outcome.equals(reported.put(callSite, outcome))) {

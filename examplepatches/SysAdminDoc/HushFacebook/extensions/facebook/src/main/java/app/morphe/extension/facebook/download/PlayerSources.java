@@ -30,7 +30,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>A story card holds one video address, and it is 360p. The player of the same story holds a
  * DASH manifest with tracks up to 1080p. The save action holds the card and cannot get to the
  * player. But the card holds the video id of the player. So the patch records each source here by
- * its id, and the save finds it.
+ * its id, and the save finds it. When it doesn't, the save reads the manifest the card's media
+ * carries as text, its {@code playlist}, which is what Facebook builds a story's player from.
  *
  * <p>The id is what makes this safe. The app builds the players of the next items early, so "the
  * last source" is often a different video. A search by id finds the video on the screen, or
@@ -70,8 +71,9 @@ public final class PlayerSources {
     static final String VIDEO_FAMILY = FamilyNames.VIDEO_DOWNLOAD + " (player sources)";
 
     /**
-     * How many sources to keep. A manifest is about 20 KB of text, so 48 sources use about 1 MB.
-     * The app prepares far fewer players than this before the user gets to them.
+     * How many sources to keep. A manifest is about 7 to 20 KB of text, so 48 sources use about 1 MB,
+     * and never more than 48 times {@link DashManifest#MAX_CHARS}. The app prepares far fewer
+     * players than this before the user gets to them.
      */
     private static final int MAX_SOURCES = 48;
 
@@ -99,10 +101,11 @@ public final class PlayerSources {
      *
      * <p>This is the story patch's hook, and only a story save or a video save reads what is kept
      * here. So with Save any story off or Hushfacebook paused, this call leaves the player as
-     * Facebook built it. The price: a player built while the switch was off
-     * is never recorded, so a story already open when someone turns Save any story on saves at
-     * the card's own 360p until Facebook builds its player again. Recording regardless would do
-     * this work in every player while the feature is off or paused, which Pause promises not to.
+     * Facebook built it. A player built while the switch was off is never recorded, so a story
+     * already open when someone turns Save any story on reads the manifest its card carries
+     * instead, the one Facebook built that player from ({@link MediaDownload#saveStory}).
+     * Recording regardless would do this work in every player while the feature is off or paused,
+     * which Pause promises not to.
      */
     public static void remember(Object params, String idField, String hdField, String manifestField) {
         record(false, params, idField, hdField, manifestField);
@@ -147,6 +150,8 @@ public final class PlayerSources {
 
             String hd = RenditionPicker.fieldValue(source, hdField);
             String manifest = RenditionPicker.fieldValue(source, manifestField);
+            // A manifest over the limits a save reads isn't kept either.
+            if (manifest != null && !DashManifest.withinLimits(manifest)) manifest = null;
             if (hd == null && manifest == null) return;
 
             synchronized (SOURCES) {

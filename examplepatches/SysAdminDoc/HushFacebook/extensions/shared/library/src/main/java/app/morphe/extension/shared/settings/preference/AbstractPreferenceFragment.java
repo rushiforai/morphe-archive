@@ -207,7 +207,14 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             Utils.runOnMainThreadNowOrLater(() -> onPreferenceChanged(sharedPreferences, key));
 
     private void onPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (destroyed || !isAdded()) return;
+        // Not gated on isAdded(): a dialog's Save and its own close are two posted messages, and
+        // the page can finish between them. The close still lands afterward and persists to the
+        // preferences file, by which point the page is already detached; skipping the sync here
+        // would leave the running Setting holding the value from before that save. Everything
+        // this method touches past this point is the Preference/Setting object graph, not a view,
+        // so it stays safe to run once the page is gone. UI-facing steps below check isAdded() of
+        // their own accord instead.
+        if (destroyed) return;
         if (updatingPreference) {
             Logger.printDebug(() -> "Ignoring preference change as sync is in progress");
             return;
@@ -237,7 +244,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
             boolean showRestartAfterUpdate = false;
             if (!settingImportInProgress && !showingUserDialogMessage) {
-                if (setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting)) {
+                // A confirmation needs a page to draw it on. A page's own dialog closing after
+                // the page is gone skips straight to applying, the same as a confirmed OK.
+                if (setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting) && isAdded()) {
                     // Do not change the setting yet, to allow preserving whatever
                     // list/text value was previously set if it needs to be reverted.
                     showSettingUserDialogConfirmation(pref, setting);
@@ -252,7 +261,7 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             updateUIAvailability();
             // Report success only after every operation that can still enter recovery succeeded.
             if (showRestartAfterUpdate) {
-                if (noteRestartPending(setting, valueBefore)) {
+                if (noteRestartPending(setting, valueBefore) && isAdded()) {
                     showRestartDialog(getContext());
                 }
             }
@@ -777,8 +786,10 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     private void unregisterPreferenceListener() {
         if (!listenerRegistered) return;
         try {
-            getPreferenceManager().getSharedPreferences()
-                    .unregisterOnSharedPreferenceChangeListener(listener);
+            // Not getPreferenceManager().getSharedPreferences(): this call is posted (below) to
+            // run after the page is torn down, and the manager may already be gone by then.
+            // Setting.preferences.preferences is the same file, held independently of the page.
+            Setting.preferences.preferences.unregisterOnSharedPreferenceChangeListener(listener);
         } finally {
             listenerRegistered = false;
         }
@@ -786,8 +797,16 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
     @Override
     public void onDestroy() {
-        destroyed = true;
-        unregisterPreferenceListener();
         super.onDestroy();
+        // A preference dialog's Save button click and the dialog's own close are two separate
+        // posted messages, and the page can finish between them. The close still runs afterward
+        // and persists to the preferences file, so unregistering here, as this used to, silently
+        // dropped that save: it reached the file with nobody left to carry it into the running
+        // Setting. Posting the teardown instead keeps the listener registered long enough for a
+        // close already queued ahead of it to still be heard.
+        Utils.runOnMainThread(() -> {
+            destroyed = true;
+            unregisterPreferenceListener();
+        });
     }
 }

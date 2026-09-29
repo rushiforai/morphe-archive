@@ -68,7 +68,6 @@ public class SettingsL10nTest {
         // Another class may have left a bundle's own sentences set; this one reads the catalog's.
         LogBufferManager.clearedMessage = null;
         LogBufferManager.nothingToClearMessage = null;
-        LogBufferManager.nothingToExportMessage = null;
         LogBufferManager.copiedMessage = null;
     }
 
@@ -418,9 +417,8 @@ public class SettingsL10nTest {
      */
     private static void addSettingsFileText(Activity activity, List<Preference> rows, Set<String> shown)
             throws Exception {
-        android.content.ContentResolver resolver = RuntimeEnvironment.getApplication().getContentResolver();
-        Uri written = Uri.parse("content://settings-l10n/export.json");
-        org.robolectric.Shadows.shadowOf(resolver).registerOutputStream(written, new java.io.ByteArrayOutputStream());
+        SettingsFileProvider.install("settings-l10n");
+        Uri written = SettingsFileProvider.put("settings-l10n", "export.json", new byte[0]);
         answer(activity, pick(activity, find(rows, "action_export_settings")), written);
         addToast(shown);
 
@@ -519,10 +517,8 @@ public class SettingsL10nTest {
     }
 
     private static AlertDialog importPreview(Activity activity, List<Preference> rows, String file) throws Exception {
-        Uri uri = Uri.parse("content://settings-l10n/" + System.nanoTime() + ".json");
-        byte[] bytes = file.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        org.robolectric.Shadows.shadowOf(RuntimeEnvironment.getApplication().getContentResolver())
-                .registerInputStreamSupplier(uri, () -> new java.io.ByteArrayInputStream(bytes));
+        Uri uri = SettingsFileProvider.put("settings-l10n", System.nanoTime() + ".json",
+                file.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         answer(activity, pick(activity, find(rows, "action_import_settings")), uri);
         AlertDialog preview = org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull("the import showed no preview", preview);

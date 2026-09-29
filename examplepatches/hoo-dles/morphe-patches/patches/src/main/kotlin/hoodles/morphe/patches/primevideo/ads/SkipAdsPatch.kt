@@ -8,6 +8,8 @@ package hoodles.morphe.patches.primevideo.ads
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
+import app.morphe.patches.all.misc.extension.sharedExtensionPatch
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.returnEarly
@@ -15,15 +17,19 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import hoodles.morphe.patches.primevideo.misc.extension.sharedExtensionPatch
-import hoodles.morphe.patches.primevideo.shared.Constants
+import hoodles.morphe.compatibility.Compat
+
+val sharedExtensionPatch = sharedExtensionPatch(
+    "primevideo",
+    activityOnCreateExtensionHook("/SplashScreenActivity;")
+)
 
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Automatically skips ads baked into the video stream.",
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.PRIME_VIDEO)
 
     dependsOn(sharedExtensionPatch)
 

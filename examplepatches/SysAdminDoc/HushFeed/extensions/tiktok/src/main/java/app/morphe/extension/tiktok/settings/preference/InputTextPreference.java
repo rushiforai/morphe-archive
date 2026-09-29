@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
+import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -123,6 +124,17 @@ public class InputTextPreference extends EditTextPreference {
      */
     public InputTextPreference withCheck(Check check) {
         this.check = check;
+        return this;
+    }
+
+    /**
+     * Tells the keyboard the field holds names, handles or codes, not prose: no capitals, no
+     * space after a dot and no autocorrect. Left as prose, SwiftKey on the S25 turned
+     * com.deniscerri.ytdl into "Com. Deniscerri. Ytdl", which the field's check then refused.
+     */
+    public InputTextPreference withNameKeyboard() {
+        getEditText().setInputType(InputType.TYPE_CLASS_TEXT
+                | InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         return this;
     }
 

@@ -194,7 +194,13 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             Utils.runOnMainThreadNowOrLater(() -> onPreferenceChanged(sharedPreferences, key));
 
     private void onPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (destroyed || !isAdded()) return;
+        // A DialogPreference's positive-button click and its dialog close are two posted
+        // Handler messages, and the close (which persists the value) can run after this
+        // fragment is detached but before onDestroy's own posted teardown unregisters this
+        // listener. That persisted value must still reach the Setting here, so only the
+        // destroyed flag gates this sync; isAdded() guards just the branches below that draw
+        // UI on top of an activity this fragment may no longer be attached to.
+        if (destroyed) return;
         if (updatingPreference) {
             Logger.printDebug(() -> "Ignoring preference change as sync is in progress");
             return;
@@ -224,7 +230,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
             boolean showRestartAfterUpdate = false;
             if (!settingImportInProgress && !showingUserDialogMessage) {
-                if (setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting)) {
+                // Confirmation is a dialog on this fragment's activity: skip it, rather than
+                // crash reaching for a Context this fragment no longer has, when detached.
+                if (isAdded() && setting.userDialogMessage != null && !prefIsSetToDefault(pref, setting)) {
                     // Do not change the setting yet, to allow preserving whatever
                     // list/text value was previously set if it needs to be reverted.
                     showSettingUserDialogConfirmation(pref, setting);
@@ -239,7 +247,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             updateUIAvailability();
             // Report success only after every operation that can still enter recovery succeeded.
             if (showRestartAfterUpdate) {
-                if (noteRestartPending(setting, valueBefore)) {
+                // The debt itself is recorded either way; only showing it is UI that needs
+                // an attached activity.
+                if (noteRestartPending(setting, valueBefore) && isAdded()) {
                     showRestartDialog(getContext());
                 }
             }
@@ -713,8 +723,11 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
     private void unregisterPreferenceListener() {
         if (!listenerRegistered) return;
         try {
-            getPreferenceManager().getSharedPreferences()
-                    .unregisterOnSharedPreferenceChangeListener(listener);
+            // Setting.preferences.preferences, not getPreferenceManager().getSharedPreferences():
+            // this can run after the fragment is torn down, by which point its own
+            // PreferenceManager is no longer a safe thing to ask. It is the same
+            // SharedPreferences instance the listener was registered on either way.
+            Setting.preferences.preferences.unregisterOnSharedPreferenceChangeListener(listener);
         } finally {
             listenerRegistered = false;
         }
@@ -722,8 +735,14 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
     @Override
     public void onDestroy() {
-        destroyed = true;
-        unregisterPreferenceListener();
+        // Posted, not run here directly: a DialogPreference closing posts the message that
+        // persists its value, and unregistering synchronously could win the race against it,
+        // leaving the store holding a value the running Setting never learns about until the
+        // app restarts. Posting queues this teardown behind whatever is already pending.
+        Utils.runOnMainThread(() -> {
+            destroyed = true;
+            unregisterPreferenceListener();
+        });
         super.onDestroy();
     }
 }

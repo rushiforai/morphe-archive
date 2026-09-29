@@ -16,6 +16,7 @@ private val SCREENS = listOf(
     "Morphe settings" to "MorpheMapSettingsActivity",
     "Morphe history" to "MorpheHistoryActivity",
     "Morphe ride" to "MorpheRideActivity",
+    "Morphe web" to "MorpheWebActivity",
 )
 
 /**

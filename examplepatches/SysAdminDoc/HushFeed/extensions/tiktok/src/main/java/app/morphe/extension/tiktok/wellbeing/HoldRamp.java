@@ -11,7 +11,9 @@ import android.content.ContentResolver;
 import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
+import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
@@ -165,17 +167,58 @@ public final class HoldRamp {
                 return;
             }
             View cover = attach(activity);
-            if (cover != null) cover.setBackgroundColor(Color.argb(alpha, 0, 0, 0));
+            if (cover != null) {
+                cover.setBackgroundColor(Color.argb(alpha, 0, 0, 0));
+                placeAboveTabs(activity, cover);
+            }
         } catch (Throwable error) {
             Logger.printException(() -> "Could not update the budget ramp", error);
         }
+    }
+
+    /**
+     * The progress callback that draws the cover stops with the player, and leaving the feed for
+     * Profile or Inbox stops the player, so a nearly black cover stayed over those tabs. A tab
+     * change or a screen over the feed lays the window out, and each pass asks again.
+     */
+    private static final GlobalLayoutHook LAYOUT = new GlobalLayoutHook();
+
+    private static void recheck() {
+        View cover = coverReference.get();
+        if (cover == null) {
+            LAYOUT.detach();
+            return;
+        }
+        Activity activity = Utils.getActivity();
+        if (activity == null || SessionBudget.isLocked() || !FeedVisibility.isOnFeed(activity)) {
+            detach();
+            return;
+        }
+        placeAboveTabs(activity, cover);
+    }
+
+    /**
+     * The cover stops at TikTok's tab row, so the way to Profile or Inbox stays readable while
+     * the feed fades, the way the hold's own panel leaves it.
+     */
+    private static void placeAboveTabs(Activity activity, View cover) {
+        if (!(cover.getParent() instanceof ViewGroup)
+                || !(cover.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
+        int bottom = SessionLockOverlay.navigationHeight(activity, (ViewGroup) cover.getParent());
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) cover.getLayoutParams();
+        if (params.bottomMargin == bottom) return;
+        params.bottomMargin = bottom;
+        cover.setLayoutParams(params);
     }
 
     private static View attach(Activity activity) {
         View existing = coverReference.get();
         ViewGroup root = activity.findViewById(android.R.id.content);
         if (root == null) return null;
-        if (existing != null && existing.getParent() == root) return existing;
+        if (existing != null && existing.getParent() == root) {
+            LAYOUT.install(root, HoldRamp::recheck);
+            return existing;
+        }
         // The activity moved. Take the old cover off the screen it is on rather than dropping
         // the only handle to it and building a second one.
         detach();
@@ -188,13 +231,15 @@ public final class HoldRamp {
         // And a screen reader is told nothing until the hold itself, which has its own
         // announcement. A cover that says something once a second would be unusable.
         cover.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        root.addView(cover, new ViewGroup.LayoutParams(
+        root.addView(cover, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         coverReference = new WeakReference<>(cover);
+        LAYOUT.install(root, HoldRamp::recheck);
         return cover;
     }
 
     private static void detach() {
+        LAYOUT.detach();
         View cover = coverReference.get();
         coverReference = new WeakReference<>(null);
         if (cover == null) return;

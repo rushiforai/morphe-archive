@@ -38,6 +38,10 @@ private const val HIDE_EDGE =
  * kept model classes, and the two getters are picked by return type and by the `inflateFeedUnit`
  * literal. A rule that needs more of the unit than this, such as the GenAI flag, reads it in the
  * extension from the feed unit this guard already passes, so no rule adds code here.
+ *
+ * <p>An edge Facebook swaps in over another one never reaches this method, so the runnable that
+ * makes the swap asks the extension too, with the same two getters, before it touches the feed
+ * (EdgeSwap.kt). That's a different method, so the funnel still carries one guard.
  */
 internal val feedFilterHookPatch = bytecodePatch {
     dependsOn(facebookExtensionPatch)
@@ -45,6 +49,8 @@ internal val feedFilterHookPatch = bytecodePatch {
     execute {
         val categoryGetter = storyCategoryGetter()
         val feedUnit = feedUnitGetter()
+        // Both targets are found before either changes, so a build missing one is left as it was.
+        val swap = edgeSwapGuard()
 
         val method = addNewEdgeToCollection()
         val edgeIndex = method.parameterTypes.indexOfFirst { it.toString() == FEED_UNIT_EDGE }
@@ -72,5 +78,9 @@ internal val feedFilterHookPatch = bytecodePatch {
             """,
             ExternalLabel("keep", method.getInstruction(0)),
         )
+
+        mutableClassDefBy(swap.method.definingClass).methods.single {
+            it.name == swap.method.name && it.returnType == "V" && it.parameterTypes.isEmpty()
+        }.guardEdgeSwap(swap, categoryGetter, feedUnit)
     }
 }

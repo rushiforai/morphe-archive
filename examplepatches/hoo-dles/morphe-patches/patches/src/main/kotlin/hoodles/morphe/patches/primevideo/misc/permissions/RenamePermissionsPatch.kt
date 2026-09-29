@@ -9,7 +9,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.asSequence
 import app.morphe.util.getNode
-import hoodles.morphe.patches.primevideo.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import org.w3c.dom.Element
 
 @Suppress("unused")
@@ -18,10 +18,11 @@ val renamePermissionsPatch = resourcePatch(
     description = "Rename certain permissions shared across Amazon apps. " +
             "Applying this patch can fix installation errors, but can also break features in certain apps."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.PRIME_VIDEO)
 
     val permissionNames = setOf(
         "com.amazon.identity.permission.CAN_CALL_MAP_INFORMATION_PROVIDER",
+        "com.amazon.identity.permission.CAN_CALL_CROSS_APP_CONTEXT_PROVIDER",
         "com.amazon.identity.auth.device.perm.AUTH_SDK",
         "com.amazon.dcp.sso.permission.account.changed",
         "com.amazon.dcp.sso.permission.AmazonAccountPropertyService.property.changed",

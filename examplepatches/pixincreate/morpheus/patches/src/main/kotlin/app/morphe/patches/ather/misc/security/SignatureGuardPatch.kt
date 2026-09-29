@@ -40,6 +40,7 @@ val signatureGuardPatch = bytecodePatch(
     compatibleWith("com.athermobileapp")
 
     execute {
-        SignatureGuardFingerprint.method.addInstructions(0, "const/4 p0, 0x1\nreturn p0")
+        // Ather 13.5.0 has no such class, so the patch only applies where it exists.
+        SignatureGuardFingerprint.matchOrNull()?.method?.addInstructions(0, "const/4 p0, 0x1\nreturn p0")
     }
 }

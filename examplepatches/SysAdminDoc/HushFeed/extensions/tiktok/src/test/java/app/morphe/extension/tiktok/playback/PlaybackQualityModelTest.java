@@ -194,6 +194,24 @@ public class PlaybackQualityModelTest {
         assertEquals(report, report.indexOf(line), report.lastIndexOf(line));
     }
 
+    @Test public void aChoiceIsWrittenOncePerKindNotOncePerVideo() {
+        BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        // Two videos offering the same sizes under different names and bitrates: one line.
+        PlaybackQuality.filterVideoGears(List.of(
+                new AdvancedDownloadsTest.Gear("normal_1080_0", 400, "https://example.com/a1"),
+                new AdvancedDownloadsTest.Gear("normal_360_0", 100, "https://example.com/a2")));
+        PlaybackQuality.filterVideoGears(List.of(
+                new AdvancedDownloadsTest.Gear("adapt_1080_1", 390, "https://example.com/b1"),
+                new AdvancedDownloadsTest.Gear("lowest_360_1", 90, "https://example.com/b2")));
+        // A different ladder is a different kind of choice.
+        PlaybackQuality.filterVideoGears(List.of(
+                new AdvancedDownloadsTest.Gear("normal_720_0", 300, "https://example.com/c1"),
+                new AdvancedDownloadsTest.Gear("normal_540_0", 200, "https://example.com/c2")));
+        String report = LogBufferManager.buildExportText();
+        int lines = report.split("Playback quality ", -1).length - 1;
+        assertEquals(report, 2, lines);
+    }
+
     @Test public void aGearListWithNothingPlayableIsAMissNamedByItsGetter() {
         List<?> unplayable = List.of(new AdvancedDownloadsTest.Gear("normal_720_0", 200, null));
         assertSame(unplayable, PlaybackQuality.filterDashGears(unplayable));

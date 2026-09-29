@@ -16,6 +16,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.HushfacebookPause;
 import kotlin.jvm.functions.Function1;
 
 /**
@@ -111,21 +112,51 @@ public final class ReelDownload implements Function1<Object, Object> {
         this.story = story;
     }
 
+    /*
+     * What Hook status counts each time Facebook builds a reel's buttons (#18). The Download
+     * button's only counter ran on a tap, so a reel drawn without the button left nothing in the
+     * report. These are fixed phrases: a count names no reel.
+     */
+    static final String SIDEBAR_WITH_BUTTON = "UDD sidebar with Download";
+    static final String SIDEBAR_SWITCH_OFF = "UDD sidebar without Download, switch off";
+    static final String SIDEBAR_PAUSED = "UDD sidebar without Download, paused";
+    static final String SIDEBAR_NOT_READY = "UDD sidebar without Download, settings not ready";
+    static final String OTHER_SIDEBAR = "FbShorts sidebar, which gets no Download";
+
     /**
      * Whether the sidebar Facebook is building for a reel gets the Download button. The patch asks
      * before it builds the button, so off, paused, or before the settings are ready, the reel has
-     * only Facebook's own buttons and none of this patch's code runs in the sidebar. Never throws:
-     * false is Facebook's own path.
+     * only Facebook's own buttons and none of this patch's code runs in the sidebar. Each answer
+     * and its reason are counted in Hook status. Never throws: false is Facebook's own path.
      */
     public static boolean showsButton() {
         try {
-            return Utils.settingsReady() && Settings.DOWNLOAD_REELS.get();
+            if (!Utils.settingsReady()) {
+                HookStatus.counted(FamilyNames.REEL_DOWNLOAD, SIDEBAR_NOT_READY);
+                return false;
+            }
+            boolean shows = Settings.DOWNLOAD_REELS.get();
+            HookStatus.counted(FamilyNames.REEL_DOWNLOAD, shows ? SIDEBAR_WITH_BUTTON
+                    : HushfacebookPause.isPaused() ? SIDEBAR_PAUSED : SIDEBAR_SWITCH_OFF);
+            return shows;
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.REEL_DOWNLOAD, "button switch", t);
             Logger.diagnosticError(DiagnosticCategory.DOWNLOADS, SOURCE,
                 () -> "could not read the reel Download switch", t);
             return false;
         }
+    }
+
+    /**
+     * Facebook drew a reel's buttons with FbShortsSideBarComponent, which has no place for the
+     * Download button. The Reels viewer draws it instead of the UDD sidebar when a server flag
+     * says so, and several other viewers do too, so a report that counts only this has never
+     * had a sidebar the button could go in. The patch calls it first thing in that component's
+     * render. It counts and changes nothing, whatever the switch, Pause or the settings' state.
+     * Never throws.
+     */
+    public static void otherSidebarBuilt() {
+        HookStatus.counted(FamilyNames.REEL_DOWNLOAD, OTHER_SIDEBAR);
     }
 
     /**

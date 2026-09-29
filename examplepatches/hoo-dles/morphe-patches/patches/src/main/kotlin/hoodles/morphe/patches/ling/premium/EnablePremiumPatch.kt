@@ -6,7 +6,7 @@
 package hoodles.morphe.patches.ling.premium
 
 import app.morphe.patcher.patch.rawResourcePatch
-import hoodles.morphe.patches.ling.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.shared.misc.hermes.hermesPatch
 import hoodles.morphe.util.HermesConstants.RETURN_TRUE
 
@@ -15,7 +15,7 @@ val enablePremiumPatch = rawResourcePatch(
     name = "Enable Pro",
     description = "Enables app features locked behind the subscription paywall. Requirements: strict apk version"
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.LING)
 
     dependsOn(hermesPatch {
 //        LoadParam r0, 1

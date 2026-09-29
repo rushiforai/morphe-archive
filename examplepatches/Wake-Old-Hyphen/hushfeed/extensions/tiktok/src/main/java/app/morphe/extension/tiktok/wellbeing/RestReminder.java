@@ -32,16 +32,18 @@ public final class RestReminder {
     /** Called by the patch as TikTok builds the reminder into the feed panel. */
     public static void reminderShown() {
         if (!Settings.LEAVE_ON_REST_REMINDER.get()) return;
+        Activity owner = Utils.getActivity();
+        if (owner == null) return;
         // Posted: this call sits inside the reminder's own view build, and the gate runs in
         // the post too, so a slot rebuilt twice in one frame still leaves only once.
-        Utils.runOnMainThread(RestReminder::leaveNow);
+        Utils.runOnMainThread(() -> leaveNow(owner));
     }
 
-    private static void leaveNow() {
+    private static void leaveNow(Activity activity) {
+        if (!Settings.LEAVE_ON_REST_REMINDER.get() || Utils.getActivity() != activity
+                || activity.isFinishing() || activity.isDestroyed()) return;
         long now = SystemClock.elapsedRealtime();
         if (lastLeftAtElapsed != null && now - lastLeftAtElapsed < LEAVE_AGAIN_AFTER_MS) return;
-        Activity activity = Utils.getActivity();
-        if (activity == null) return;
         // False means the task cannot go back (not the root task, say); leave the guard
         // unset so the next show tries again rather than swallowing the feature for 5 minutes.
         if (activity.moveTaskToBack(true)) lastLeftAtElapsed = now;

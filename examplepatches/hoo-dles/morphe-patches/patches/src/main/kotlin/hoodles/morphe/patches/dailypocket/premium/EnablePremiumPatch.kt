@@ -10,7 +10,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21t
-import hoodles.morphe.patches.dailypocket.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 private val premiumWidgetPatch = bytecodePatch {
     execute {
@@ -29,7 +29,7 @@ val enablePremiumPatch = rawResourcePatch(
     name = "Enable Premium",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.DAILY_POCKET)
 
     dependsOn(premiumWidgetPatch)
 

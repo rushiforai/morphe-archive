@@ -169,7 +169,7 @@ internal fun projectionModeResource(name: String): ByteArray =
 internal fun androidSurfaceTriggerResourceLibraryForBuild(
     versionName: String,
     versionCode: String,
-): String = if (versionName == "2.0.20" && versionCode == "5001712") {
+): String = if (app.template.patches.shared.Constants.isTwoProjectionSteamLinkBuild(versionName, versionCode)) {
     ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY
 } else {
     // Exact 2.0.23/5002363 retains the verified 3-projection contract. This API layer
@@ -305,7 +305,7 @@ private val androidSurfaceTriggerResourcesPatch = androidSurfaceTriggerResources
 @Suppress("unused")
 val xrGalaxyXrHighResolutionPatch = resourcePatch(
     name = "Galaxy XR high-resolution 3-projection fix",
-    description = "Permission-free resolution fix for exact builds 5001712, 5002244, and 5002363. Preserves each build's native projection layout (2 layers on 2.0.20/5001712; 3 layers on supported 2.0.22 and 2.0.23 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction.",
+    description = "Permission-free resolution fix for exact builds 5001712, 5001812, 5001968, 5002244, and 5002363. Preserves each build's native projection layout (2 layers on the supported 2.0.20 and 2.0.21 builds; 3 layers on supported 2.0.22 and 2.0.23 builds) and source formats, including future RGB10_A2, while appending a static 2x2 Android-surface compositor trigger with no image copy or reconstruction.",
     default = false,
 ) {
     compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())

@@ -33,6 +33,14 @@ private val PERMISSION_PROMPT_LAYOUTS = listOf(
         "80b62797c7e26d6b67b0cca00693b076a336bdb48ebc1383a16cccb1616ed495", 0x142c0c,
     ),
     PermissionPromptLayout(
+        "2.0.20", 5001812, 2_220_872,
+        "eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a", 0x142c84,
+    ),
+    PermissionPromptLayout(
+        "2.0.21", 5001968, 2_234_048,
+        "596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192", 0x13ec7c,
+    ),
+    PermissionPromptLayout(
         "2.0.22", 5002244, 2_251_920,
         "4b2fa5e1b5d9d5c938873f692b0e5e18159e1199dee1253dd6eccc8fa43dfa12", 0x1422c4,
     ),
@@ -57,6 +65,7 @@ internal fun patchPermissionPrompt(
         )
     }
 
+    verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
     val offset = layout.requestAndroidPermissionsOffset
     if (offset < 0 || offset + SEARCH.size > bytes.size) {
         throw PatchException(

@@ -16,10 +16,14 @@ import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.shared.L10n;
@@ -37,10 +41,12 @@ import app.morphe.extension.shared.L10n;
  * receiver isn't exported. Below that a receiver registered at run time always is, so every Cancel
  * carries a token this process made up, and a broadcast without it is ignored.
  *
- * <p>With Facebook's notifications off, or this channel switched off, a save runs as it did before:
- * a toast at each end and no way to cancel.
+ * <p>With Facebook's notifications off, or this channel switched off, a save shows a toast at each
+ * end and no notification, and the first toast says where to cancel it. Hushfacebook's settings
+ * list every running save under Downloads, with what it's doing and a Cancel of its own
+ * ({@link #running}, {@link #watch}), so a save can be stopped either way. Nothing of a save outlives it there: no address, no name, no history.
  */
-final class SaveControl {
+public final class SaveControl {
 
     private SaveControl() {}
 
@@ -59,6 +65,78 @@ final class SaveControl {
 
     private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
     private static final Map<Integer, Save> RUNNING = new ConcurrentHashMap<>();
+    private static final Set<Watcher> WATCHERS = new CopyOnWriteArraySet<>();
+
+    /** What a running save is doing. */
+    public enum Phase { DOWNLOADING, JOINING, SAVING }
+
+    /**
+     * Told when a save starts, moves on to its next phase or ends, and at most twice a second while
+     * it downloads. On the save's own thread, or the one that cancelled it.
+     */
+    public interface Watcher {
+        void savesChanged();
+    }
+
+    public static void watch(Watcher watcher) {
+        WATCHERS.add(watcher);
+    }
+
+    public static void unwatch(Watcher watcher) {
+        WATCHERS.remove(watcher);
+    }
+
+    private static void tell() {
+        for (Watcher watcher : WATCHERS) {
+            try {
+                watcher.savesChanged();
+            } catch (Throwable t) {
+                MediaDownload.failure(() -> "could not tell the settings about a save", t);
+            }
+        }
+    }
+
+    /** One running save as the settings list it: its number, kind, phase and bytes so far. */
+    public static final class Running {
+        public final int id;
+        public final boolean video;
+        public final Phase phase;
+        public final long done;
+        public final long total;
+
+        Running(Save save) {
+            id = save.id;
+            video = save.video;
+            phase = save.phase;
+            done = save.done;
+            total = save.total;
+        }
+    }
+
+    /** The saves running now, oldest first. */
+    public static List<Running> running() {
+        List<Running> running = new ArrayList<>();
+        for (Save save : RUNNING.values()) running.add(new Running(save));
+        running.sort((one, other) -> Integer.compare(one.id, other.id));
+        return running;
+    }
+
+    /** What [save] is doing, and how far it has got while it downloads, in the phone's language. */
+    public static String status(Running save) {
+        String phase;
+        switch (save.phase) {
+            case JOINING:
+                phase = L10n.t("Joining the picture and sound");
+                break;
+            case SAVING:
+                phase = L10n.t("Copying to the gallery");
+                break;
+            default:
+                phase = L10n.t("Downloading");
+        }
+        String progress = save.phase == Phase.DOWNLOADING ? progressText(save.done, save.total) : null;
+        return progress == null ? phase : phase + "\n" + progress;
+    }
     /** The application the receiver is registered on: one per process, and one per test. */
     private static Context listeningOn;
 
@@ -69,6 +147,7 @@ final class SaveControl {
         RUNNING.put(save.id, save);
         if (save.manager != null) listen(application);
         save.show(-1, 0, -1);
+        tell();
         return save;
     }
 
@@ -95,8 +174,8 @@ final class SaveControl {
         }
     }
 
-    /** Cancels the save numbered [id]. Answers whether one was running. */
-    static boolean cancel(int id) {
+    /** Cancels the save numbered [id], from its notification or the settings. Answers whether one was running. */
+    public static boolean cancel(int id) {
         Save save = RUNNING.get(id);
         if (save == null) return false;
         save.cancel();
@@ -170,7 +249,7 @@ final class SaveControl {
      * "4.2 MB of 100 MB", "12 MB so far", or {@code null} before any byte. The sentence is in
      * the phone's language and the numbers are written its way.
      */
-    static String progressText(long done, long total) {
+    public static String progressText(long done, long total) {
         if (done <= 0) return null;
         return total > 0
             ? L10n.f("%1$s of %2$s", megabytes(done), megabytes(total))
@@ -194,6 +273,11 @@ final class SaveControl {
         private final PendingIntent cancel;
 
         private volatile boolean cancelled;
+        private volatile Phase phase = Phase.DOWNLOADING;
+        private volatile long done;
+        private volatile long total = -1;
+        /** When the watchers were last told how far this save has got. */
+        private long toldAt;
         /** Closes the connection the save is reading, handed over by Downloader. */
         private volatile Runnable closeReading;
         /** When the notification last changed; set by the first show, which begin() makes. */
@@ -221,6 +305,15 @@ final class SaveControl {
 
         @Override
         public void transferred(long done, long total) {
+            this.done = done;
+            this.total = total;
+            long now = System.nanoTime();
+            // A download after a failed join is the single file, fetched from the start.
+            if (phase != Phase.DOWNLOADING || now - toldAt >= UPDATE_GAP_NANOS) {
+                phase = Phase.DOWNLOADING;
+                toldAt = now;
+                tell();
+            }
             if (manager == null) return;
             int percent = total > 0 ? (int) Math.min(100L, done * 100L / total) : -1;
             if (System.nanoTime() - shownAt < UPDATE_GAP_NANOS) return;
@@ -238,6 +331,18 @@ final class SaveControl {
         @Override
         public boolean cancelled() {
             return cancelled;
+        }
+
+        @Override
+        public void joining() {
+            phase = Phase.JOINING;
+            tell();
+        }
+
+        @Override
+        public void saving() {
+            phase = Phase.SAVING;
+            tell();
         }
 
         /**
@@ -263,7 +368,7 @@ final class SaveControl {
             synchronized (this) {
                 ended = true;
             }
-            RUNNING.remove(id);
+            if (RUNNING.remove(id) != null) tell();
             if (manager == null) return;
             try {
                 manager.cancel(TAG, id);

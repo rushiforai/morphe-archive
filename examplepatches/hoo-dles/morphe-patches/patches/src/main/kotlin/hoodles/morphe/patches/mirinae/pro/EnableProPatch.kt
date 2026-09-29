@@ -6,11 +6,10 @@
 package hoodles.morphe.patches.mirinae.pro
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.all.misc.extension.ExtensionHook
 import app.morphe.patches.all.misc.extension.sharedExtensionPatch
+import hoodles.morphe.compatibility.Compat
 
 internal val extensionPatch = sharedExtensionPatch(
     "mirinae",
@@ -22,12 +21,7 @@ val enableProPatch = bytecodePatch(
     name = "Enable Pro",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        name = "Mirinae",
-        packageName = "com.mirinae.mirinae",
-        appIconColor = 0x87cbc8,
-        targets = listOf(AppTarget("2.2.2"))
-    ))
+    compatibleWith(Compat.MIRINAE)
 
     dependsOn(extensionPatch)
 

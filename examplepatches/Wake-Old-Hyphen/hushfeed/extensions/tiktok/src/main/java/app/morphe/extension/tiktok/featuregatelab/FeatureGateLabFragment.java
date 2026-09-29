@@ -1072,8 +1072,28 @@ public final class FeatureGateLabFragment extends Fragment {
         TextView selectionHint = FeatureGateLabUi.label(context,
                 L10n.t(context, "Hold a gate to choose several"));
         selectionHint.setTextColor(SettingsUi.textSecondary());
+        // Said to someone who has just held a gate, so it is the line to give up at large text,
+        // where the bar grew taller than the list it sits over on a small phone.
+        if (context.getResources().getConfiguration().fontScale >= 1.3f) {
+            selectionHint.setVisibility(View.GONE);
+        }
         selectionBar.addView(selectionHint, FeatureGateLabUi.matchWrap());
+        // The list ends above the bar at whatever height the bar came out, so the last gates can
+        // scroll clear of it. A fixed 80 dp left the bottom row under a bar of about 110 dp.
+        selectionBar.addOnLayoutChangeListener((bar, left, top, right, bottom, oldLeft, oldTop,
+                oldRight, oldBottom) -> {
+            if (bar.getVisibility() == View.VISIBLE && list != null) padListAbove(bar.getHeight());
+        });
         return selectionBar;
+    }
+
+    /** Room under the last gate for a bar this tall, or the plain end margin with none (-1). */
+    private void padListAbove(int barHeight) {
+        int bottomPad = barHeight < 0 ? FeatureGateLabUi.dp(list.getContext(), 24)
+                : Math.max(FeatureGateLabUi.dp(list.getContext(), 80),
+                        barHeight + FeatureGateLabUi.dp(list.getContext(), 8));
+        if (list.getPaddingBottom() == bottomPad) return;
+        list.setPadding(list.getPaddingLeft(), list.getPaddingTop(), list.getPaddingRight(), bottomPad);
     }
 
     private TextView selectionAction(Context context, String label, Runnable action,
@@ -1099,11 +1119,7 @@ public final class FeatureGateLabFragment extends Fragment {
             selectionBar.setVisibility(barVisible ? View.VISIBLE : View.GONE);
         }
         if (list != null) {
-            int bottomPad = barVisible && selectionBar != null
-                    ? FeatureGateLabUi.dp(list.getContext(), 80)
-                    : FeatureGateLabUi.dp(list.getContext(), 24);
-            list.setPadding(list.getPaddingLeft(), list.getPaddingTop(),
-                    list.getPaddingRight(), bottomPad);
+            padListAbove(barVisible && selectionBar != null ? selectionBar.getHeight() : -1);
         }
         if (selectionCount != null) {
             selectionCount.setText(L10n.quantity(getContext(), selection.size(),
@@ -1118,7 +1134,7 @@ public final class FeatureGateLabFragment extends Fragment {
         boolean started = runLabChange(() -> {
             int written = FeatureGateLabUndo.forceBoolean(gates, value);
             if (written == 0) {
-                throw new IllegalStateException(L10n.t(Utils.getContext(),
+                throw new Refused(L10n.t(Utils.getContext(),
                         "None of these gates takes a true or false value."));
             }
             // The message says what happened rather than what was asked for. Reported as a
@@ -1163,7 +1179,7 @@ public final class FeatureGateLabFragment extends Fragment {
         boolean started = runLabChange(() -> {
             int dropped = FeatureGateLabUndo.resetAll(gates);
             if (dropped == 0) {
-                throw new IllegalStateException(L10n.t(Utils.getContext(),
+                throw new Refused(L10n.t(Utils.getContext(),
                         "None of these gates had an override to reset."));
             }
             // Dropped, not selected: choosing five gates of which two had an override resets two.
@@ -1286,8 +1302,8 @@ public final class FeatureGateLabFragment extends Fragment {
                     builds.add(build);
                     ids.add(id);
                     String title = version.getJSONObject(id).getString("title");
-                    labels.add(L10n.t(getContext(), title)
-                            + " (TikTok " + build + ")");
+                    // One sentence to translate, not pieces glued in English word order.
+                    labels.add(L10n.f(getContext(), "%1$s (TikTok %2$s)", L10n.t(getContext(), title), build));
                 }
             }
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
@@ -1304,7 +1320,9 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void showPreset(String build, String id) {
         if (getActivity() == null) return;
-        if (snapshot == null) {
+        // The first snapshot holds only the values TikTok has stored. A preset reviewed against
+        // it found gates TikTok never sent missing and refused as not matching this build.
+        if (snapshot == null || !snapshot.catalogComplete) {
             postToast(L10n.t(getContext(), "Loaded values are still being read. Try again in a moment."));
             return;
         }
@@ -1325,9 +1343,11 @@ public final class FeatureGateLabFragment extends Fragment {
                             .append(rule.manager).append(" / ").append(rule.type).append("\n")
                             .append(L10n.f(getContext(), "Value: %1$s to %2$s", before, rule.value));
                 }
+                // Undo holds the last Lab change only. The next one replaces it, and with overrides
+                // off, turning them on is that next change, so the promise had to say so.
                 preview.append("\n\n").append(L10n.t(getContext(), FeatureGateLabStore.masterEnabled()
-                        ? "Apply enables these overrides. Undo last Lab change restores your previous rules."
-                        : "Apply saves these overrides. Turn on overrides in the Lab to use them. Undo restores your previous rules."));
+                        ? "Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab."
+                        : "Apply saves these overrides. Turn on overrides in the Lab to use them. Turning them on is a Lab change too, so after that Undo turns them off rather than putting your previous rules back."));
             } else {
                 preview.append("\n\n").append(L10n.t(getContext(),
                         "This preset isn't available for your installed TikTok version."));
@@ -1389,10 +1409,11 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void writeLoadedValuesFile(Uri uri) {
         Activity activity = getActivity();
-        ContentResolver resolver = activity == null ? null : activity.getContentResolver();
+        android.content.Context context = activity == null ? Utils.getContext() : activity.getApplicationContext();
+        ContentResolver resolver = context == null ? null : context.getContentResolver();
         FILE_IO_EXECUTOR.execute(() -> {
             try {
-                if (resolver == null) throw new IllegalStateException("Activity detached");
+                if (activity == null || resolver == null) throw new IllegalStateException("Activity detached");
                 ExportPayload payload = buildExportPayload();
                 try (OutputStream output = resolver.openOutputStream(uri, "w")) {
                     if (output == null) throw new IllegalStateException("Document provider returned no output stream");
@@ -1402,9 +1423,11 @@ public final class FeatureGateLabFragment extends Fragment {
                         "Exported 1 loaded value", "Exported %1$d loaded values"));
             } catch (Throwable throwable) {
                 Logger.printException(() -> "Loaded-value file export failed", throwable);
-                postToast(L10n.t(Utils.getContext(), deleteCreatedDocument(resolver, uri)
-                        ? "Loaded-value file export failed"
-                        : "The export failed and the partial file couldn't be removed. Delete it from your Downloads folder."));
+                boolean removed = deleteCreatedDocument(resolver, uri);
+                String message = L10n.t(Utils.getContext(), "Loaded-value file export failed")
+                        + (removed ? "" : " " + L10n.t(Utils.getContext(),
+                        "The partial file couldn't be removed. Delete it from the folder you chose."));
+                postToast(message);
             }
         });
     }
@@ -1429,16 +1452,16 @@ public final class FeatureGateLabFragment extends Fragment {
                 Logger.printException(() -> "Loaded-value file import failed", throwable);
                 // A refusal the review could name says what it was. A file from another build
                 // used to be reported as invalid or too large, the same as a corrupt one.
-                postToast(throwable instanceof ImportRefused
+                postToast(throwable instanceof Refused
                         ? throwable.getMessage()
                         : L10n.t(Utils.getContext(), "That file isn't a loaded-values export, or it's larger than the Lab accepts"));
             }
         });
     }
 
-    /** A loaded-value file the review turned down, with the reason already in the reader's words. */
-    private static final class ImportRefused extends IllegalArgumentException {
-        ImportRefused(String sentence) {
+    /** A change or a loaded-value file turned down, with the reason already in the reader's words. */
+    private static final class Refused extends IllegalArgumentException {
+        Refused(String sentence) {
             super(sentence);
         }
     }
@@ -1448,14 +1471,14 @@ public final class FeatureGateLabFragment extends Fragment {
         if (context == null) context = Utils.getContext();
         FeatureGateCatalog.Snapshot currentSnapshot = snapshot;
         if (currentSnapshot == null) {
-            throw new ImportRefused(L10n.t(context,
+            throw new Refused(L10n.t(context,
                     "Loaded values are still being read. Try again in a moment."));
         }
         if (!"loaded_values".equals(imported.optString("payload_kind"))) {
-            throw new ImportRefused(L10n.t(context, "This file isn't a loaded-values export from the Feature Gate Lab."));
+            throw new Refused(L10n.t(context, "This file isn't a loaded-values export from the Feature Gate Lab."));
         }
         if (!FeatureGateLabStore.targetVersion().equals(imported.optString("tiktok_version"))) {
-            throw new ImportRefused(L10n.t(context, "These loaded values are for a different TikTok version."));
+            throw new Refused(L10n.t(context, "These loaded values are for a different TikTok version."));
         }
 
         Map<String, FeatureGateLabStore.Rule> existingRules = rulesByIdentity();
@@ -1464,9 +1487,9 @@ public final class FeatureGateLabFragment extends Fragment {
         int same = 0;
         int unavailable = 0;
         int malformed = 0;
-        if (sourceRules == null) throw new ImportRefused(L10n.t(context, "This file has no loaded values in it."));
+        if (sourceRules == null) throw new Refused(L10n.t(context, "This file has no loaded values in it."));
         if (sourceRules.length() > MAX_IMPORT_RULES) {
-            throw new ImportRefused(L10n.t(context, "This file has more loaded values than the Lab takes at once."));
+            throw new Refused(L10n.t(context, "This file has more loaded values than the Lab takes at once."));
         }
         {
             for (int i = 0; i < sourceRules.length(); i++) {
@@ -1659,7 +1682,7 @@ public final class FeatureGateLabFragment extends Fragment {
     private static boolean deleteCreatedDocument(ContentResolver resolver, Uri uri) {
         if (resolver == null || uri == null) return false;
         try {
-            return resolver.delete(uri, null, null) > 0;
+            return android.provider.DocumentsContract.deleteDocument(resolver, uri);
         } catch (Throwable cleanupError) {
             Logger.printException(() -> "Loaded-value export cleanup failed", cleanupError);
             return false;
@@ -1764,7 +1787,11 @@ public final class FeatureGateLabFragment extends Fragment {
                 result = change.run();
             } catch (Exception error) {
                 Logger.printException(() -> "Lab change failed", error);
-                result = L10n.t(Utils.getContext(), "Couldn't change the Lab settings. Try again.");
+                // A refusal already carries its reason in the reader's words. Swapped for the
+                // retry line, the reader was told to try again what would fail the same way.
+                result = error instanceof Refused || error instanceof FeatureGateLabStore.RuleLimitRefused
+                        ? error.getMessage()
+                        : L10n.t(Utils.getContext(), "Couldn't change the Lab settings. Try again.");
                 tell = Utils::showToastLong;
             }
             String notice = result;
@@ -1914,6 +1941,53 @@ public final class FeatureGateLabFragment extends Fragment {
         private final List<FeatureGateCatalog.Entry> entries;
         private Map<String, FeatureGateLabStore.Rule> rules = Collections.emptyMap();
 
+        /**
+         * A delegate of the row's own keeps the list from installing the one that offers its
+         * items' click, so the row offers both actions itself and hands each to the list's own
+         * listeners. Set on every bind: the list's recycler clears a delegate from each row it
+         * scraps, so one set only when the row was built was gone after the first scroll. Before
+         * this, Switch Access and Voice Access could not open a gate, and Select did nothing.
+         */
+        private final View.AccessibilityDelegate rowActions = new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(
+                    View host, android.view.accessibility.AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                // What the list's own delegate would have said: the row's place in the list.
+                ListView gates = list;
+                int position = gates == null ? android.widget.AdapterView.INVALID_POSITION
+                        : gates.getPositionForView(host);
+                if (position != android.widget.AdapterView.INVALID_POSITION) {
+                    gates.onInitializeAccessibilityNodeInfoForItem(host, position, info);
+                }
+                info.setClickable(true);
+                info.setLongClickable(true);
+                info.addAction(android.view.accessibility.AccessibilityNodeInfo
+                        .AccessibilityAction.ACTION_CLICK);
+                info.addAction(new android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction(
+                        android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_LONG_CLICK.getId(),
+                        L10n.t(host.getContext(), "Select")));
+            }
+
+            @Override
+            public boolean performAccessibilityAction(View host, int action, Bundle arguments) {
+                boolean click = action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK;
+                boolean hold = action == android.view.accessibility.AccessibilityNodeInfo.ACTION_LONG_CLICK;
+                ListView gates = list;
+                if ((click || hold) && gates != null) {
+                    int position = gates.getPositionForView(host);
+                    if (position != android.widget.AdapterView.INVALID_POSITION) {
+                        long id = gates.getItemIdAtPosition(position);
+                        if (click) return gates.performItemClick(host, position, id);
+                        android.widget.AdapterView.OnItemLongClickListener listener =
+                                gates.getOnItemLongClickListener();
+                        return listener != null && listener.onItemLongClick(gates, host, position, id);
+                    }
+                }
+                return super.performAccessibilityAction(host, action, arguments);
+            }
+        };
+
         GateAdapter(Context context, List<FeatureGateCatalog.Entry> entries) {
             this.context = context;
             this.entries = entries;
@@ -2006,30 +2080,19 @@ public final class FeatureGateLabFragment extends Fragment {
                 if (stacked) stateParams.setMargins(0, FeatureGateLabUi.dp(context, 8), 0, 0);
                 row.addView(stateColumn, stateParams);
 
-                row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
-                    @Override
-                    public void onInitializeAccessibilityNodeInfo(
-                            View host, android.view.accessibility.AccessibilityNodeInfo info) {
-                        super.onInitializeAccessibilityNodeInfo(host, info);
-                        info.addAction(
-                                new android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction(
-                                        android.view.accessibility.AccessibilityNodeInfo
-                                                .AccessibilityAction.ACTION_LONG_CLICK.getId(),
-                                        L10n.t(context, "Select")));
-                    }
-                });
                 holder = new RowHolder(title, key, type, value, state, chosenMark);
                 row.setTag(holder);
                 convertView = row;
             } else {
                 holder = (RowHolder) convertView.getTag();
             }
+            convertView.setAccessibilityDelegate(rowActions);
 
             FeatureGateCatalog.Entry entry = entries.get(position);
             FeatureGateLabStore.Rule rule = rules.get(ruleIdentity(entry));
             holder.title.setText(entry.title);
             holder.key.setText(entry.key);
-            holder.type.setText(entry.shortSourceName() + " " + entry.type);
+            holder.type.setText(L10n.t(holder.type.getContext(), entry.shortSourceName()) + " " + entry.type);
             String shownValue;
             if (rule != null && rule.enabled && FeatureGateLabStore.masterEnabled()) {
                 shownValue = L10n.f(getContext(), "Returns %1$s", rule.value);

@@ -35,18 +35,44 @@ import java.util.List;
  *
  * <p>The real trailerButton (android.widget.Button) always exists in the
  * layout; when there's no trailer, Letterboxd just sets its visibility to
- * GONE rather than removing it. The Stremio button is built with an
- * explicit solid-purple rounded-pill background (rather than cloning the
- * trailer button's own background drawable, which produced an unreliable,
- * washed-out color), while its icon, text size, typeface, and padding are
- * still copied live from the real trailer button for a consistent look.</p>
+ * GONE rather than removing it. The button is built with an explicit
+ * solid rounded-pill background — purple for Stremio, blue for Nuvio
+ * (rather than cloning the trailer button's own background drawable,
+ * which produced an unreliable, washed-out color) — while its icon, text
+ * size, typeface, and padding are still copied live from the real trailer
+ * button for a consistent look.</p>
+ *
+ * <p>The button targets Nuvio (package com.nuvio.app) when it's installed
+ * — preferred over Stremio (com.stremio.one), used only when Nuvio isn't
+ * present — label and tap behavior both adjust automatically, see
+ * resolveTarget(). Nuvio also registers Stremio's bare "stremio://" scheme
+ * for its own reasons but doesn't route it anywhere specific, so it needs
+ * its own "nuvio://meta?..." deep link rather than reusing Stremio's.</p>
  */
 public final class StremioExtension {
 
     private static final String TAG     = "StremioExt";
     private static final int    PURPLE  = 0xFF7B5EA7;
+    private static final int    BLUE    = 0xFF3965D4;
     private static final String BTN_TAG = "stremio_btn_v2";
     private static final String WRAPPER_TAG = "stremio_wrapper_v1";
+
+    /** Official Stremio Android app package name (Play Store: "Stremio"). */
+    private static final String PKG_STREMIO = "com.stremio.one";
+
+    /**
+     * Nuvio Android package name. Nuvio registers an intent-filter for the
+     * bare "stremio" scheme with no host restriction (see its manifest), so
+     * it can end up catching stremio:// links even though its own deep-link
+     * parser (AppUrlBridge.kt) only recognizes stremio:// URLs shaped like an
+     * addon-install link (host containing a dot/digit) and otherwise ignores
+     * them — meaning a stremio://detail/movie/... link just opens Nuvio's
+     * home screen instead of the film. Its OWN scheme is "nuvio://", e.g.
+     * nuvio://meta?type=movie&id=tt1234567 (see buildMetaDeepLinkUrl in that
+     * same file), which we target explicitly instead — preferred over
+     * Stremio whenever Nuvio is installed.
+     */
+    private static final String PKG_NUVIO = "com.nuvio.app";
 
     /**
      * Most recently cached IMDb ID, set by {@link #cacheImdbId(Object)}
@@ -324,10 +350,12 @@ public final class StremioExtension {
         clone.setIncludeFontPadding(source.getIncludeFontPadding());
         clone.setElevation(source.getElevation());
 
-        // ── Purple pill background ───────────────────────────────────────────
-        // Tint the Material background purple (preserves the Material shape &
-        // inset model so height stays identical to the trailer button).
-        boolean isMaterial = applyMaterialPurple(clone);
+        // ── Button color (purple for Stremio, blue for Nuvio) ────────────────
+        // Tint the Material background (preserves the Material shape & inset
+        // model so height stays identical to the trailer button).
+        Target target = resolveTarget(ctx);
+        int buttonColor = (target == Target.NUVIO) ? BLUE : PURPLE;
+        boolean isMaterial = applyButtonColor(clone, buttonColor);
         if (!isMaterial) {
             float r = android.util.TypedValue.applyDimension(
                 android.util.TypedValue.COMPLEX_UNIT_DIP, 24,
@@ -336,7 +364,7 @@ public final class StremioExtension {
                 new android.graphics.drawable.GradientDrawable();
             pill.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
             pill.setCornerRadius(r);
-            pill.setColor(PURPLE);
+            pill.setColor(buttonColor);
             clone.setBackground(pill);
         } else {
             // The trailer button's fully-rounded pill comes from a Material
@@ -367,8 +395,9 @@ public final class StremioExtension {
             clone.setCompoundDrawablePadding(source.getCompoundDrawablePadding());
         }
 
-        clone.setText("Stremio");
-        clone.setContentDescription("Open in Stremio");
+        clone.setText(target == Target.NUVIO ? "Nuvio" : "Stremio");
+        clone.setContentDescription(
+            target == Target.NUVIO ? "Open in Nuvio" : "Open in Stremio");
         return clone;
     }
 
@@ -487,16 +516,17 @@ public final class StremioExtension {
     }
 
     /**
-     * Applies the Stremio purple as a MaterialButton background tint, which
+     * Applies the given color as a MaterialButton background tint, which
      * preserves the Material shape & inset model (so height stays identical).
-     * Returns false if clone isn't a MaterialButton.
+     * Purple for Stremio, blue for Nuvio — see cloneTrailerButton(). Returns
+     * false if clone isn't a MaterialButton.
      */
-    private static boolean applyMaterialPurple(Button clone) {
+    private static boolean applyButtonColor(Button clone, int color) {
         try {
             clone.getClass()
                 .getMethod("setBackgroundTintList",
                     android.content.res.ColorStateList.class)
-                .invoke(clone, android.content.res.ColorStateList.valueOf(PURPLE));
+                .invoke(clone, android.content.res.ColorStateList.valueOf(color));
             return clone.getClass().getName().contains("MaterialButton");
         } catch (Exception e) {
             return false;
@@ -583,30 +613,94 @@ public final class StremioExtension {
 
     // ── Stremio launch ────────────────────────────────────────────────────
 
+    private enum Target { STREMIO, NUVIO, WEB }
+
+    /**
+     * Decides which app the button should target: Nuvio if it's installed
+     * (preferred), else real Stremio if that's installed instead, else
+     * neither (web player). Cheap enough to call fresh at both
+     * button-creation time (for the label) and click time (for the actual
+     * launch) rather than caching — apps rarely get installed/uninstalled
+     * mid-session, but this keeps the two always consistent if it happens.
+     */
+    private static Target resolveTarget(Context ctx) {
+        if (isPackageInstalled(ctx, PKG_NUVIO)) return Target.NUVIO;
+        if (isPackageInstalled(ctx, PKG_STREMIO)) return Target.STREMIO;
+        return Target.WEB;
+    }
+
+    private static boolean isPackageInstalled(Context ctx, String packageName) {
+        try {
+            ctx.getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public static void openInStremio(Context ctx, String imdbId) {
-        if (imdbId != null && !imdbId.isEmpty()) {
-            String id = imdbId.startsWith("tt") ? imdbId : "tt" + imdbId;
-            launch(ctx,
-                Uri.parse("stremio://detail/movie/" + id + "/" + id),
-                Uri.parse("https://web.stremio.com/#/detail/movie/" + id));
-        } else {
-            launch(ctx,
-                Uri.parse("stremio://board"),
-                Uri.parse("https://web.stremio.com"));
+        String id = (imdbId != null && !imdbId.isEmpty())
+            ? (imdbId.startsWith("tt") ? imdbId : "tt" + imdbId)
+            : null;
+
+        switch (resolveTarget(ctx)) {
+            case NUVIO:
+                openInNuvio(ctx, id);
+                return;
+            case STREMIO:
+            case WEB:
+            default:
+                openInStremioOrWeb(ctx, id);
+        }
+    }
+
+    private static void openInStremioOrWeb(Context ctx, String id) {
+        Uri appUri = (id != null)
+            ? Uri.parse("stremio://detail/movie/" + id + "/" + id)
+            : Uri.parse("stremio://board");
+        Uri webUri = (id != null)
+            ? Uri.parse("https://web.stremio.com/#/detail/movie/" + id)
+            : Uri.parse("https://web.stremio.com");
+
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, appUri);
+        appIntent.setPackage(PKG_STREMIO);
+        try {
+            ctx.startActivity(appIntent);
+        } catch (ActivityNotFoundException e) {
+            ctx.startActivity(new Intent(Intent.ACTION_VIEW, webUri));
         }
     }
 
     /**
-     * Tries the stremio:// deep link first and falls back to the web player
-     * if no app handles it. Uses try/catch rather than
-     * PackageManager.resolveActivity, which is subject to Android 11+
-     * package-visibility filtering and only works today because the host
-     * app's own <queries> declaration happens to be broad enough.
+     * Targets Nuvio's own scheme directly (nuvio://meta?type=movie&id=...),
+     * which its AppUrlBridge.kt correctly parses into a title page — unlike
+     * the generic stremio:// link, which Nuvio also catches (its manifest
+     * registers that scheme too, for compatibility) but can't route anywhere
+     * specific, so it just opens to the home screen. With no id, there's no
+     * single title to open, so this just launches the app normally instead
+     * of guessing a home-screen deep link.
      */
-    private static void launch(Context ctx, Uri appUri, Uri webUri) {
+    private static void openInNuvio(Context ctx, String id) {
         try {
-            ctx.startActivity(new Intent(Intent.ACTION_VIEW, appUri));
+            if (id != null) {
+                Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("nuvio://meta?type=movie&id=" + id));
+                intent.setPackage(PKG_NUVIO);
+                ctx.startActivity(intent);
+            } else {
+                Intent launchIntent =
+                    ctx.getPackageManager().getLaunchIntentForPackage(PKG_NUVIO);
+                if (launchIntent != null) {
+                    ctx.startActivity(launchIntent);
+                } else {
+                    throw new ActivityNotFoundException("Nuvio launch intent unavailable");
+                }
+            }
         } catch (ActivityNotFoundException e) {
+            // Fall back to the web player — some working link beats none.
+            Uri webUri = (id != null)
+                ? Uri.parse("https://web.stremio.com/#/detail/movie/" + id)
+                : Uri.parse("https://web.stremio.com");
             ctx.startActivity(new Intent(Intent.ACTION_VIEW, webUri));
         }
     }

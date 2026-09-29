@@ -176,7 +176,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                                                 @NonNull SharedPreferences preferences) {
         if (pref instanceof NumberInputPreference) {
             NumberInputPreference numberPref = (NumberInputPreference) pref;
-            numberPref.setValue(preferences.getString(setting.key, setting.defaultValue.toString()));
+            numberPref.setValueWithoutPersisting(preferences.getString(setting.key, setting.defaultValue.toString()));
         } else if (pref instanceof CreatorListPreference) {
             CreatorListPreference creatorPref = (CreatorListPreference) pref;
             creatorPref.setValue(preferences.getString(setting.key, setting.defaultValue.toString()));
@@ -203,7 +203,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         if (pref instanceof NumberInputPreference) {
             NumberInputPreference numberInputPreference = (NumberInputPreference) pref;
             if (applySettingToPreference) {
-                numberInputPreference.setValue(setting.savedValue().toString());
+                numberInputPreference.setValueWithoutPersisting(setting.savedValue().toString());
             } else {
                 Setting.privateSetValueFromString(setting, numberInputPreference.getValue());
             }
@@ -457,22 +457,30 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         if (setting.isAvailable()) return;
         String parentTitle = null;
+        Setting<?> named = null;
         for (Setting<?> parent : setting.getParentSettings()) {
             Preference row = findPreference(parent.key);
             CharSequence title = row == null ? null : row.getTitle();
             if (title != null && title.length() > 0) {
                 parentTitle = title.toString();
+                named = parent;
                 break;
             }
         }
         if (parentTitle == null) return;
-        String note = L10n.f(context, "Turn on %1$s first.", parentTitle);
+        // The YTDLnis rows wait on a text field holding one app's package, not on a switch, so
+        // "Turn on" sent the reader looking for a toggle that isn't there.
+        String note = named == Settings.EXTERNAL_DOWNLOADER_PACKAGE
+                ? L10n.f(context, "Put %1$s in %2$s first.", Settings.YTDLNIS_PACKAGE_NAME, parentTitle)
+                : L10n.f(context, "Turn on %1$s first.", parentTitle);
         CharSequence summary = pref.getSummary();
         String body = summary == null ? "" : summary.toString();
         // A number row's summary is lines ("0 to 1,000 videos", "Current: Off"), and a space ran
         // the note into the last of them; it gets a line of its own there, and follows the
-        // sentence on a prose row.
-        String reason = body.isEmpty() ? note : (body.contains("\n") ? "\n" : " ") + note;
+        // sentence on a prose row. A choice row's summary is its value, "1.5x" or "Video", which
+        // read as "Video Turn on ... first." run on, so it gets its own line there too.
+        boolean ownLine = body.contains("\n") || pref instanceof android.preference.ListPreference;
+        String reason = body.isEmpty() ? note : (ownLine ? "\n" : " ") + note;
         if (body.endsWith(reason)) return;
         pref.setSummary(body + reason);
         reasonSummaries.put(key, reason);
@@ -891,10 +899,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             if (!preference.hasKey() || !preference.isSelectable()) {
                 continue;
             }
-            Setting<?> setting = Setting.getSettingFromPath(preference.getKey());
-            if (setting != null && !setting.isAvailable()) {
-                continue;
-            }
+            // A row greyed until its parent switch is on is still found: its page shows it with
+            // the switch to turn on first, where leaving it out sent the reader to an empty
+            // result that blamed patches not ticked in Morphe Manager.
             CharSequence title = preference.getTitle();
             if (title == null || title.length() == 0) {
                 continue;
@@ -1332,7 +1339,11 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
         TikTokPreferenceFragment fragment = new TikTokPreferenceFragment();
         Bundle arguments = new Bundle();
-        arguments.putString(ARG_SECTION, section.name());
+        // No section is the master menu, where Pause Hushfeed sits: its search result used to
+        // reach section.name() here and take TikTok down with it.
+        if (section != null) {
+            arguments.putString(ARG_SECTION, section.name());
+        }
         if (targetKey != null) {
             arguments.putString(ARG_TARGET_KEY, targetKey);
         }
@@ -1341,7 +1352,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         manager.beginTransaction()
                 .setTransition(android.app.FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                 .replace(getId(), fragment)
-                .addToBackStack(section.name())
+                .addToBackStack(section == null ? null : section.name())
                 .commit();
     }
 

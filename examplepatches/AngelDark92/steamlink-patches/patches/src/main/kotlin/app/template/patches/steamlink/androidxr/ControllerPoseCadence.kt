@@ -33,6 +33,7 @@ private data class CadenceBlock(
 )
 
 private data class CadenceLayout(
+    val versionName: String,
     val versionCode: Int,
     val fileSize: Int,
     val blocks: List<CadenceBlock>,
@@ -40,6 +41,7 @@ private data class CadenceLayout(
 
 private val CADENCE_LAYOUTS = listOf(
     CadenceLayout(
+        versionName = "2.0.20",
         versionCode = 5001712,
         fileSize = 2_221_072,
         blocks = listOf(
@@ -48,7 +50,32 @@ private val CADENCE_LAYOUTS = listOf(
             CadenceBlock(0x000F6630L, 0x000F6620L, 0x000F6678L, 0x000F6688L, 0x000F66B4L, 0x000F66BCL, 9, 10),
         ),
     ),
+    // Exact stock SHA-256: eebf7eabfb299ab7b9e5bba1612d4a32b27c51f451efc2bd206ba6fc6ac5205a.
+    // Independently traced QSVLClient::OnTopOfFrame at 0xF6270 to PostMultipleEvents.
     CadenceLayout(
+        versionName = "2.0.20",
+        versionCode = 5001812,
+        fileSize = 2_220_872,
+        blocks = listOf(
+            CadenceBlock(0xF6324L, 0xF6314L, 0xF636CL, 0xF6380L, 0xF63A8L, 0xF638CL, 10, 9),
+            CadenceBlock(0xF6424L, 0xF6414L, 0xF646CL, 0xF6480L, 0xF64A8L, 0xF648CL, 10, 9),
+            CadenceBlock(0xF64ECL, 0xF64DCL, 0xF6534L, 0xF6544L, 0xF6570L, 0xF6578L, 9, 10),
+        ),
+    ),
+    // Exact stock SHA-256: 596b5680aa6c217daf5c151de517b1ad61b3999c6fd864ff59a718136ca40192.
+    // Independently traced QSVLClient::OnTopOfFrame at 0xF20C4 to PostMultipleEvents.
+    CadenceLayout(
+        versionName = "2.0.21",
+        versionCode = 5001968,
+        fileSize = 2_234_048,
+        blocks = listOf(
+            CadenceBlock(0xF2180L, 0xF2170L, 0xF21C8L, 0xF21DCL, 0xF2204L, 0xF21E8L, 10, 9),
+            CadenceBlock(0xF2284L, 0xF2274L, 0xF22CCL, 0xF22E0L, 0xF2308L, 0xF22ECL, 10, 9),
+            CadenceBlock(0xF234CL, 0xF233CL, 0xF2394L, 0xF23A4L, 0xF23D0L, 0xF23D8L, 9, 10),
+        ),
+    ),
+    CadenceLayout(
+        versionName = "2.0.22",
         versionCode = 5002244,
         fileSize = 2_251_920,
         blocks = listOf(
@@ -143,15 +170,36 @@ private fun cadenceWords(block: CadenceBlock, mode: PoseCadenceMode): CadenceWor
     )
 }
 
-internal fun patchControllerPoseCadence(bytes: ByteArray, rawMode: String): ByteArray {
+internal fun patchControllerPoseCadence(
+    bytes: ByteArray,
+    rawMode: String,
+    versionName: String? = null,
+    versionCode: String? = null,
+): ByteArray {
     val mode = PoseCadenceMode.from(rawMode)
-    val layout = CADENCE_LAYOUTS.singleOrNull { it.fileSize == bytes.size }
+    val layout = if (versionName != null || versionCode != null) {
+        CADENCE_LAYOUTS.singleOrNull {
+            it.versionName == versionName && it.versionCode.toString() == versionCode
+        }
+    } else {
+        // Preserve the historical audit helper only for its 2 original layouts.
+        CADENCE_LAYOUTS.singleOrNull {
+            it.versionCode in setOf(5001712, 5002244) && it.fileSize == bytes.size
+        }
+    }
     if (layout == null) {
         // Any cadence requires fixed instruction locations. Unknown layouts are experimental:
         // leave this optional native mutation untouched instead of aborting the APK patch.
         return bytes.copyOf()
     }
+    if (bytes.size != layout.fileSize) {
+        throw PatchException(
+            "Controller cadence library size=${bytes.size} for ${layout.versionName}/${layout.versionCode}; " +
+                "expected ${layout.fileSize}",
+        )
+    }
 
+    app.template.patches.steamlink.binary.verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
     val prepared = buildList {
         for (block in layout.blocks) {
             val addresses = mapOf(

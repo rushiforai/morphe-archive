@@ -6,22 +6,16 @@
 package hoodles.morphe.patches.nova.prime
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val enablePrimePatch = bytecodePatch(
     name = "Enable Prime",
     description = "Enable Nova Launcher Prime and app locked behind the subscription paywall."
 ) {
-    compatibleWith(Compatibility(
-        name = "Nova Launcher",
-        packageName = "com.teslacoilsw.launcher",
-        targets = listOf(AppTarget("88600 (8.8.6)")),
-        appIconColor = 0xDA4624
-    ))
+    compatibleWith(Compat.NOVA_LAUNCHER)
 
     execute {
         SetPrimeFromPreferencesFingerprint.apply {

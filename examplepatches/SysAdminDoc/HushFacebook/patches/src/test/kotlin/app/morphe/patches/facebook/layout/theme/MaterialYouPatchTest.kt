@@ -227,7 +227,7 @@ class MaterialYouPatchTest {
             .split(" ").map { it.toInt(16) or -0x1000000 }.toSet()
         assertEquals(SURFACE_FIELDS.keys, surfaces)
         for (field in SURFACE_FIELDS.values) {
-            assertTrue("MaterialYouTheme has no field $field", Regex("""public static int $field;""").containsMatchIn(theme))
+            assertTrue("MaterialYouTheme has no field $field", Regex("""public static volatile int $field;""").containsMatchIn(theme))
             assertTrue("MaterialYouTheme never writes $field", theme.contains("$field = surface(p, 0x${field.removePrefix("DARK_")});"))
         }
 

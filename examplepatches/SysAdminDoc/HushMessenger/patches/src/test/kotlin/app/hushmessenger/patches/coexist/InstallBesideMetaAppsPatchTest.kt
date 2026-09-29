@@ -16,9 +16,10 @@ class InstallBesideMetaAppsPatchTest {
     private val renamedReceiver = "app.hushfacebook.receiver.permission.ACCESS"
 
     @Test
-    fun acceptsBothCheckedVersionCodes() {
+    fun acceptsAllCheckedVersionCodes() {
         validateVersionCode("346013387")
         validateVersionCode("346013440")
+        validateVersionCode("346013442")
     }
 
     @Test
@@ -30,7 +31,7 @@ class InstallBesideMetaAppsPatchTest {
 
     private fun assertActionable(failure: PatchException) {
         assertContains(failure.message.orEmpty(), "Use an unmodified arm64 Messenger 580.0.0.49.91 APK")
-        assertContains(failure.message.orEmpty(), "version code 346013387 or 346013440")
+        assertContains(failure.message.orEmpty(), "version code 346013387 or 346013440 or 346013442")
     }
 
     private fun manifest(): Document {

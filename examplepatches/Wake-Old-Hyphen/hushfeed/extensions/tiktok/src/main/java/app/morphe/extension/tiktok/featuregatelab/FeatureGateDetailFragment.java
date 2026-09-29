@@ -446,7 +446,7 @@ public final class FeatureGateDetailFragment extends Fragment {
             force.setOnCheckedChangeListener((button, enabled) -> {
                 if (suppress || !FeatureGateLabStore.masterEnabled()) return;
                 String value = rule == null ? objectPatchText() : rule.value;
-                if (value != null) persist(value, enabled);
+                if (value != null) persist(value, enabled, rule == null);
             });
         }
 
@@ -454,8 +454,7 @@ public final class FeatureGateDetailFragment extends Fragment {
             saveObject.setOnClickListener(view -> {
                 String value = objectPatchText();
                 if (value == null) return;
-                persist(value, force.isChecked());
-                setFieldsDirty(false);
+                persist(value, force.isChecked(), true);
             });
         }
         if (discardObject != null) {
@@ -542,14 +541,20 @@ public final class FeatureGateDetailFragment extends Fragment {
                     @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
 
                     @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
-                        if (!fillingFields) setFieldsDirty(true);
+                        if (!fillingFields) {
+                            editor.changed();
+                            setFieldsDirty(true);
+                        }
                     }
 
                     @Override public void afterTextChanged(android.text.Editable text) { }
                 });
             } else if (editor.toggle != null) {
                 editor.toggle.setOnCheckedChangeListener((button, checked) -> {
-                    if (!fillingFields) setFieldsDirty(true);
+                    if (!fillingFields) {
+                        editor.changed();
+                        setFieldsDirty(true);
+                    }
                 });
             }
         }
@@ -617,6 +622,10 @@ public final class FeatureGateDetailFragment extends Fragment {
     }
 
     private void persist(String value, boolean enabled) {
+        persist(value, enabled, false);
+    }
+
+    private void persist(String value, boolean enabled, boolean fieldsSubmitted) {
         FeatureGateLabStore.ValidationFailure error =
                 FeatureGateLabStore.validateValue(entry.type, value);
         if (error != null) {
@@ -626,6 +635,7 @@ public final class FeatureGateDetailFragment extends Fragment {
         // Saving takes the journal lock and two write-and-verify cycles, the same as the Lab
         // screen's own changes, which have run off the main thread since they were written.
         Object[] saved = new Object[1];
+        List<FieldSnapshot> submitted = fieldsSubmitted ? snapshotFields() : null;
         runDetailChange(
                 undoBaseline -> {
                     FeatureGateLabUndo.saveRule(
@@ -634,6 +644,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                 },
                 () -> {
                     rule = (FeatureGateLabStore.Rule) saved[0];
+                    updateFieldBaseline(submitted, false);
                     reset.setVisibility(View.VISIBLE);
                     updateStatus();
                 },
@@ -642,6 +653,7 @@ public final class FeatureGateDetailFragment extends Fragment {
     }
 
     private void resetRule() {
+        List<FieldSnapshot> requested = snapshotFields();
         runDetailChange(
                 undoBaseline -> FeatureGateLabUndo.deleteRule(
                         entry.manager, entry.key, entry.type, undoBaseline),
@@ -655,6 +667,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                         values.setSelection(selectedIndex(options, bestInitialValue(entry)));
                     }
                     suppress = false;
+                    updateFieldBaseline(requested, true);
                     reset.setVisibility(View.GONE);
                     updateStatus();
                 },
@@ -685,8 +698,53 @@ public final class FeatureGateDetailFragment extends Fragment {
             lastConcreteSelection = selected;
         }
         suppress = false;
+        updateFieldBaseline(null, false);
         if (reset != null) reset.setVisibility(rule == null ? View.GONE : View.VISIBLE);
         updateStatus();
+    }
+
+    private List<FieldSnapshot> snapshotFields() {
+        List<FieldSnapshot> result = new ArrayList<>();
+        for (ObjectFieldEditor editor : objectEditors) result.add(new FieldSnapshot(editor));
+        return result;
+    }
+
+    /** Changes the Discard target only after storage has finished, without replacing newer edits. */
+    private void updateFieldBaseline(List<FieldSnapshot> submitted, boolean resetFields) {
+        if (objectEditors.isEmpty()) return;
+        JSONObject stored = structuredBaseValue();
+        boolean dirty = false;
+        fillingFields = true;
+        try {
+            for (ObjectFieldEditor editor : objectEditors) {
+                FieldSnapshot snapshot = null;
+                if (submitted != null) {
+                    for (FieldSnapshot candidate : submitted) {
+                        if (candidate.editor == editor) { snapshot = candidate; break; }
+                    }
+                }
+                Object value = stored.opt(editor.name);
+                editor.savedValue = value == null ? JSONObject.NULL : value;
+                editor.savedText = snapshot != null && !resetFields
+                        ? snapshot.text : editorText(value, editor.kind);
+                editor.savedChecked = snapshot != null && !resetFields
+                        ? snapshot.checked : Boolean.TRUE.equals(value);
+                if (snapshot != null && snapshot.revision == editor.revision) {
+                    if (resetFields) editor.restore();
+                    else editor.edited = false;
+                } else if (snapshot != null) {
+                    editor.edited |= editor.toggle != null
+                            ? editor.toggle.isChecked() != editor.savedChecked
+                            : !editor.input.getText().toString().equals(editor.savedText);
+                } else if (snapshot == null && !editor.edited) {
+                    editor.restore();
+                }
+                dirty |= editor.edited;
+            }
+        } finally {
+            fillingFields = false;
+        }
+        setFieldsDirty(dirty);
     }
 
     /** A change that touches storage, so it does not belong on the thread drawing the screen. */
@@ -721,7 +779,8 @@ public final class FeatureGateDetailFragment extends Fragment {
                     if (hook != null) hook.after(generation);
                 } catch (Exception error) {
                     Logger.printException(() -> "Feature Gate detail change failed", error);
-                    failure = translatedFailurePrefix;
+                    failure = error instanceof FeatureGateLabStore.RuleLimitRefused
+                            ? error.getMessage() : translatedFailurePrefix;
                 } finally {
                     detailChangeFinished();
                 }
@@ -998,7 +1057,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         FeatureGateLabUi.dp(root.getContext(), 48)
                 ));
-                objectEditors.add(ObjectFieldEditor.toggle(fieldName, kind, toggle));
+                objectEditors.add(ObjectFieldEditor.toggle(fieldName, kind, toggle, value));
             } else {
                 EditText input = new EditText(root.getContext());
                 input.setEnabled(editable);
@@ -1030,7 +1089,7 @@ public final class FeatureGateDetailFragment extends Fragment {
                 );
                 rawName.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
                 fieldRoot.addView(input, FeatureGateLabUi.matchWrap());
-                objectEditors.add(ObjectFieldEditor.input(fieldName, kind, input));
+                objectEditors.add(ObjectFieldEditor.input(fieldName, kind, input, value));
             }
             root.addView(fieldRoot, fieldParams);
         }
@@ -1377,28 +1436,52 @@ public final class FeatureGateDetailFragment extends Fragment {
         }
     }
 
+    private static final class FieldSnapshot {
+        final ObjectFieldEditor editor;
+        final long revision;
+        final String text;
+        final boolean checked;
+
+        FieldSnapshot(ObjectFieldEditor editor) {
+            this.editor = editor;
+            revision = editor.revision;
+            text = editor.input == null ? null : editor.input.getText().toString();
+            checked = editor.toggle != null && editor.toggle.isChecked();
+        }
+    }
+
     private static final class ObjectFieldEditor {
         final String name;
         final String kind;
         final Switch toggle;
         final EditText input;
-        /** What the field held when the page built it, which is what Discard puts back. */
-        private final String openedWithText;
-        private final boolean openedWithChecked;
+        private String savedText;
+        private boolean savedChecked;
+        private Object savedValue;
+        private boolean edited;
+        private long revision;
 
-        private ObjectFieldEditor(String name, String kind, Switch toggle, EditText input) {
+        private ObjectFieldEditor(String name, String kind, Switch toggle, EditText input, Object value) {
             this.name = name;
             this.kind = kind;
             this.toggle = toggle;
             this.input = input;
-            this.openedWithText = input == null ? null : input.getText().toString();
-            this.openedWithChecked = toggle != null && toggle.isChecked();
+            this.savedText = input == null ? null : input.getText().toString();
+            this.savedChecked = toggle != null && toggle.isChecked();
+            this.savedValue = value == null ? JSONObject.NULL : value;
         }
 
-        /** Back to what the page opened with. */
+        void changed() {
+            edited = true;
+            revision++;
+        }
+
+        /** Back to the latest committed value, including its original null representation. */
         void restore() {
-            if (toggle != null) toggle.setChecked(openedWithChecked);
-            if (input != null) input.setText(openedWithText);
+            if (toggle != null) toggle.setChecked(savedChecked);
+            if (input != null) input.setText(savedText);
+            edited = false;
+            revision++;
         }
 
         void setEditable(boolean editable) {
@@ -1406,15 +1489,16 @@ public final class FeatureGateDetailFragment extends Fragment {
             if (input != null) input.setEnabled(editable);
         }
 
-        static ObjectFieldEditor toggle(String name, String kind, Switch toggle) {
-            return new ObjectFieldEditor(name, kind, toggle, null);
+        static ObjectFieldEditor toggle(String name, String kind, Switch toggle, Object value) {
+            return new ObjectFieldEditor(name, kind, toggle, null, value);
         }
 
-        static ObjectFieldEditor input(String name, String kind, EditText input) {
-            return new ObjectFieldEditor(name, kind, null, input);
+        static ObjectFieldEditor input(String name, String kind, EditText input, Object value) {
+            return new ObjectFieldEditor(name, kind, null, input, value);
         }
 
         Object value() {
+            if (!edited) return savedValue;
             try {
                 if (toggle != null) {
                     return toggle.isChecked();

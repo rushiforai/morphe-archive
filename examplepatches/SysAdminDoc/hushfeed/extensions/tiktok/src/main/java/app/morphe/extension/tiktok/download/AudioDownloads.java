@@ -55,20 +55,27 @@ final class AudioDownloads {
         String id = Reflect.string(aweme, "getAid", "aid");
         if (id == null) return;
         Context app = context.getApplicationContext();
-        String audioName;
+        String audioName, videoPath;
         try {
             audioName = DownloadFilenameFormatter.formatSelectedAudioName(aweme);
+            // TikTok's own save of the video goes to the creator's folder when the name asks
+            // for one, so the sound follows it there.
+            videoPath = DownloadFilenameFormatter.destinationPath(aweme, false);
         } catch (RuntimeException exception) {
             Logger.printException(() -> "Could not work out the sound download name", exception);
             return;
         }
-        if (!ACTIVE.add(id)) return;
-        boolean submitted = MediaJobScheduler.submit("sound", () -> {
+        String key = "sound " + id;
+        if (!ACTIVE.add(id)) {
+            Utils.showToastShort(MediaJobScheduler.busyMessage(key));
+            return;
+        }
+        MediaJobScheduler.Job job = MediaJobScheduler.submit("sound", key, () -> {
             File fetched = null;
             try {
                 fetched = MediaCache.createTempFile(app, "sound-source-", ".mp4");
                 RemoteMedia.fetch(sourceUrls, fetched, RemoteMedia.Kind.VIDEO);
-                write(app, audioName, fetched);
+                write(app, audioName, fetched, videoPath);
             } catch (IOException | RuntimeException exception) {
                 Logger.printException(() -> "Sound download failed", exception);
                 Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
@@ -76,10 +83,10 @@ final class AudioDownloads {
                 if (fetched != null && !MediaCache.delete(fetched)) {
                     Logger.printInfo(() -> "Could not remove sound temporary file");
                 }
-                ACTIVE.remove(id);
             }
-        });
-        if (!submitted) ACTIVE.remove(id);
+        }, () -> ACTIVE.remove(id));
+        String saying = L10n.t("Saving the sound");
+        MediaJobScheduler.acknowledge(job, saying, saying);
     }
 
     /**
@@ -89,19 +96,20 @@ final class AudioDownloads {
      */
     static void write(Context app, Object aweme, File source) {
         if (aweme == null) return;
-        String name;
+        String name, videoPath;
         try {
             name = DownloadFilenameFormatter.formatSelectedAudioName(aweme);
+            videoPath = DownloadFilenameFormatter.destinationPath(aweme, false);
         } catch (RuntimeException exception) {
             Logger.printException(() -> "Could not work out the sound download name", exception);
             return;
         }
-        write(app, name, source);
+        write(app, name, source, videoPath);
     }
 
-    static void write(Context app, String name, File source) {
+    static void write(Context app, String name, File source, String videoPath) {
         try {
-            write(app, name, source, true);
+            write(app, name, source, videoPath, true);
         } catch (MediaBudget.StopException refusal) {
             Logger.printException(() -> "Sound save stopped", refusal);
             Utils.showToastLong(L10n.t("The sound couldn't be saved. Try again."));
@@ -113,15 +121,19 @@ final class AudioDownloads {
      * carries the sound shows one banner, its own, and a second banner a tick later would take
      * the first one down before anyone saw it.
      */
-    /** True when the sound landed; false when the switch is off or the save failed (said by toast). */
-    static boolean write(Context app, String name, File source, boolean announce)
+    /**
+     * True when the sound landed; false when the switch is off or the save failed (said by toast).
+     * {@code videoPath} is the folder the video itself went to, creator folder included, so the
+     * pair stays together.
+     */
+    static boolean write(Context app, String name, File source, String videoPath, boolean announce)
             throws MediaBudget.StopException {
         if (!enabled()) return false;
         File output = null;
         try {
             output = MediaCache.createTempFile(app, "sound-", ".m4a");
             TrackMuxer.audioOnly(source, output);
-            String path = audioPath(DownloadsPatch.getVideoDownloadPath());
+            String path = audioPath(videoPath);
             MediaFileWriter.Saved saved = MediaFileWriter.publishForResult(app, output, name, "audio/mp4", path, true);
             if (announce) SaveNotice.saved(L10n.f("Sound saved to %1$s", path), saved);
             else Utils.showToastShort(L10n.f("Sound saved to %1$s", path));

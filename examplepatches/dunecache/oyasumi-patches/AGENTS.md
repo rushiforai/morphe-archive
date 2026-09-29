@@ -1,84 +1,70 @@
-# AGENTS.md — Morphe patches for com.one.goodnight
+# AGENTS.md — Morphe patch template
 
-Instructions for AI coding agents working in this repo. Read fully before acting.
+Instructions for AI coding agents working in this repository. Read fully before acting.
 
 ## Goal
 
-Build Morphe patches for **com.one.goodnight**, pinned to **version 1.345.0 only**. Patches are added one at a time, each small, tested, and reversible.
+Maintain a reusable Morphe patch project. The repository starts with no app targets or patch implementations; add them only when explicitly requested. Add one small, tested, and reversible patch at a time.
 
 ## Ground rules
 
-1. **Never invent obfuscated names, class paths, method signatures, or opcodes.** Every fingerprint must come from real decompiled/smali output of the 1.345.0 APK in `reference/`. If it isn't in the reference, say so and ask.
-2. **Never assume Morphe/ReVanced APIs from memory.** Check the template's existing patches and the Morphe docs/source for the current DSL (patch builders, fingerprints, `compatibleWith`, extensions). Copy patterns from what already compiles in this repo.
-3. **One patch per change.** Don't refactor unrelated code or touch other patches while adding one.
-4. **Prefer the smallest possible edit** (return-early, flip a boolean, skip a check) over rewriting methods.
-5. **Fingerprints must be as specific as needed and no more**: use strings, access flags, return type, parameters, and opcodes. Don't depend on obfuscated class/method names.
-6. **Say what you're unsure about.** A wrong confident guess costs a full build/test cycle.
+1. Never invent obfuscated names, class paths, method signatures, or opcodes. Every fingerprint must come from real decompiled or smali output for the exact target version in `reference/`.
+2. Never assume Morphe or ReVanced APIs from memory. Check the current template code and the current Morphe documentation or source for the DSL in use.
+3. Keep one patch per change. Do not refactor unrelated patches while adding a feature.
+4. Prefer the smallest safe edit, such as a return-early path, a constant replacement, or skipping a check.
+5. Make fingerprints as specific as necessary. Use stable strings, access flags, return and parameter types, and distinctive instructions rather than obfuscated names when possible.
+6. State uncertainty instead of guessing. A confident but incorrect fingerprint causes a full build and device-test cycle.
+7. Never add an app target, version, or patch unless the task explicitly requests it.
 
-## Target
+## Target declarations
 
-| Field | Value |
-|---|---|
-| Package | `com.one.goodnight` |
-| Version | `1.345.0` (only) |
-| Compatibility declaration | Every patch declares compatibility with exactly this package + version |
+Every patch must declare compatibility with the exact package and versions that have been verified. Record the package name, app version, file type, and relevant version codes in `reference/NOTES.md` before writing the declaration. Do not claim support for untested versions.
 
-Do not add support for other versions until explicitly asked.
+## Environment constraints
 
-## Environment constraints (important)
+Development happens in Termux on Android. Avoid heavy builds. Do not run a full Gradle build unless asked; prefer static reasoning and a targeted check such as `./gradlew :patches:compileKotlin`. Use CI or a device for full bundle application tests. Do not download large toolchains or APKs without approval, and keep file reads targeted.
 
-- Development happens in **Termux on Android**. Avoid heavy builds.
-- Do **not** run full Gradle builds unless asked. Prefer:
-  - static reasoning against smali/decompiled sources,
-  - `./gradlew :patches:compileKotlin` style checks only when needed,
-  - CI (e.g. GitHub Actions) for full builds and patch application tests.
-- Don't download large toolchains or APKs without asking.
-- Keep file reads targeted (grep smali, don't dump whole dirs).
+## Repository layout
 
-## Repo layout
-
-Initialized from the official Morphe patches template. Keep its structure:
-
-```
-patches/          # Patch definitions (Kotlin)
-extensions/       # Java/Kotlin extension code injected into the app (if used)
-reference/        # NOT committed if large: decompiled/smali output of 1.345.0, notes
-AGENTS.md
+```text
+patches/       Kotlin patch definitions and fingerprints
+extensions/    Optional Java/Kotlin code injected into patched apps
+reference/     Small, non-sensitive reverse-engineering notes
+AGENTS.md      These maintenance instructions
 ```
 
-Adjust to match what the template actually contains; don't restructure it.
+Keep the structure of the template. Do not commit APKs, extracted binaries, signing material, secrets, or other large artifacts.
 
 ## Workflow for adding a patch
 
-1. **Define the behavior** in one sentence (what changes for the user).
-2. **Locate the code** in the 1.345.0 reference: grep for user-visible strings, resource IDs, class/field usage. Record findings in `reference/NOTES.md` (class, method, why it matters).
-3. **Write the fingerprint** from a stable anchor (string constants, unique opcode pattern, return/param types).
-4. **Write the patch** with the minimal instruction change. Use extensions only when logic is too big for smali/patch DSL.
-5. **Name and describe** it clearly (user-facing name, one-line description, default enabled or not).
-6. **Verify**: compile check, then apply against the 1.345.0 APK (locally if cheap, otherwise CI).
-7. **Commit** one patch per commit with a clear message.
+1. Define the behavior in one sentence.
+2. Select a clean target build and pin the exact supported package and version.
+3. Locate the code using user-visible strings, resource IDs, class usage, and instruction patterns. Record the class, method, and reason in `reference/NOTES.md`.
+4. Write the narrowest fingerprint that uniquely identifies the target.
+5. Implement the smallest instruction or resource change. Use an extension only when inline logic is not maintainable.
+6. Add a clear user-facing name, description, category, and intentional default state.
+7. Compile the patch project, apply it to the pinned build, and test the changed flow.
+8. Keep one patch per commit when commits are requested.
 
 ## Code style
 
-- Kotlin, following the template's conventions and formatting.
-- Small files; one patch (plus its fingerprints) per file or per feature package.
-- Comment *why* a fingerprint anchors where it does, not what the code says.
-- No dead code, no commented-out experiments.
+- Use Kotlin and follow the formatting of the surrounding template.
+- Keep patch and fingerprint files small and feature-focused.
+- Explain why a fingerprint is stable, not merely what the code says.
+- Do not leave dead code or commented-out experiments.
 
 ## Debugging patch failures
 
-- Fingerprint not found → re-check against reference smali; loosen or tighten by opcodes/strings, don't guess names.
-- Patch applies but app crashes → check register usage (`.locals`), type mismatches, and that inserted instructions are placed before the return/branch you targeted.
-- Report the exact error and the smali around the injection point when asking for help.
+- Fingerprint not found: re-check the reference smali or resource output, then adjust the filters. Never substitute a guessed name.
+- Patch applies but the app crashes: inspect register allocation, type widths, instruction insertion order, and the path leading to the edited return.
+- Resource replacement fails: verify the exact path, encoding, and occurrence count.
+- Report the exact error and the relevant reference output when asking for help.
 
-## What not to do
+## Completion checklist
 
-- Don't touch signing keys, CI secrets, or release config.
-- Don't bump dependencies or the template version unprompted.
-- Don't add telemetry-removal, ad-blocking, or other features beyond what's asked in the current task.
-- Don't claim something works without saying how it was verified.
+Before considering work complete:
 
-## When you finish a task
-
-Summarize: what changed, which files, how it was verified (or not), and any assumptions to double-check on device.
-
+- Confirm no unsupported app target was added.
+- Confirm the patch is narrowly scoped and documented.
+- Run the available compile or validation command.
+- Inspect the final diff and report what was and was not verified.

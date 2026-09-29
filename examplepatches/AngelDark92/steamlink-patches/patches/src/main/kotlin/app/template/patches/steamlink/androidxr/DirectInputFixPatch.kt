@@ -67,7 +67,7 @@ internal fun xrPointerRouteMethodsFor(
     versionName: String,
     versionCode: String,
 ): XrPointerRouteMethods =
-    if (versionName == "2.0.20" && versionCode == "5001712") {
+    if (app.template.patches.shared.Constants.isMouseOnlySteamLinkBuild(versionName, versionCode)) {
         XrPointerRouteMethods(
             touch = "routeXrPointerAsMouse5001712",
             generic = "routeXrPointerAsMouseGeneric5001712",
@@ -90,8 +90,9 @@ internal val xrDirectInputFixPatch = bytecodePatch {
                 packageMetadata.versionCode,
             )) return@execute
 
-        // 5001712 uses exact mouse-only wrappers. Its synthetic PAD_A event runs on Android's
-        // UI thread and can activate Connect before the pointed-at PC is selected.
+        // These exact legacy SDL builds need mouse-only wrappers: 5001812/5001968
+        // also lack the modern synthetic-pad JNI signatures. On 5001712, PAD_A
+        // can activate Connect before the pointed-at PC is selected.
         val pointerRoutes = xrPointerRouteMethodsFor(
             packageMetadata.versionName,
             packageMetadata.versionCode,

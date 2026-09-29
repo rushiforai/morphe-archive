@@ -1,1 +1,1 @@
-.\gradlew.bat buildAndroid
+.\Verify-Build.ps1

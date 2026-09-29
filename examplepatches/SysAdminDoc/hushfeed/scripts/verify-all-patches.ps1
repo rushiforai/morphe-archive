@@ -117,8 +117,15 @@ $arguments = $arguments + $enable + @($Apk)
 $exitCode = 1
 
 try {
-    $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
-    $cliExitCode = $LASTEXITCODE
+    # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+    $preference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
+        $cliExitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $preference
+    }
     $cliOutput | ForEach-Object {
         $line = [string]$_
         if ($line -match 'SEVERE|ERROR|Exception|result saved|Saved to') { Write-Host "[verify] $line" }
@@ -151,9 +158,15 @@ try {
         # when TikTok inflates it (upstream #84, layout 0x7e03004d in the search package).
         $resourceReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-resources-$runId.txt") -Root $workRoot
         $global:LASTEXITCODE = 0
-        $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
-            $Apk $out $resourceReport 2>&1)
-        $resourceExitCode = $LASTEXITCODE
+        $preference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
+                $Apk $out $resourceReport 2>&1)
+            $resourceExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
         $resourceOutput | ForEach-Object { Write-Host "[verify] $_" }
         Write-Host "[verify] resource report: $resourceReport"
         if ($resourceExitCode -eq 0) {

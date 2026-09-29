@@ -1,0 +1,20 @@
+name: Check F1 TV APK
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-apkmirror:
+    name: Check APKMirror listing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Check latest F1 TV version
+        run: python3 scripts/f1tv/f1tv_apk_watch.py check --fail-on-update

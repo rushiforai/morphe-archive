@@ -48,10 +48,16 @@ class ControlFailureTest {
         val discovery = hidePeoplePatch.dependencies.filterIsInstance<BytecodePatch>().single()
         for (broken in listOf(false, true)) withResourceContext(temporary.resolve("run-$broken")) { resources, config ->
             val anchor = pluginGates.getValue("people").anchors.single()
-            val first = fixtureMethod("LX/1pm;->A0C()Z", pluginBody(anchor))
-            val second = fixtureMethod("LX/2Wl;->A04()Z", pluginBody(anchor, if (broken) "if-ne" else "if-eq"))
-            val classes = setOf(fixtureClass(first.definingClass, listOf(first)),
-                fixtureClass(second.definingClass, listOf(second)))
+            val listEnd = pluginGates.getValue("people_list_end").anchors.single()
+            // A supported APK supplies all three suggestion placements the control selects.
+            val classes = listOf(
+                fixtureMethod("LX/1pm;->A0C()Z", pluginBody(anchor)),
+                fixtureMethod("LX/1pm;->A0B()Z", pluginBody(listEnd)),
+                fixtureMethod("LX/2Wl;->A04()Z", pluginBody(anchor, if (broken) "if-ne" else "if-eq")),
+                fixtureMethod("LX/2Wl;->A03()Z", pluginBody(listEnd)),
+                peopleJewelMethod(),
+            ).groupBy { it.definingClass }.map { (type, methods) -> fixtureClass(type, methods) }
+                .plus(peopleJewelKeyHolder()).toSet()
             val context = BytecodePatchContext::class.java.declaredConstructors.single()
                 .newInstance(config, resources.packageMetadata) as BytecodePatchContext
             val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")

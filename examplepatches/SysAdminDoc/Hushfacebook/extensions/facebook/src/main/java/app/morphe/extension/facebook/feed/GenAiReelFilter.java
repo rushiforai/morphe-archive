@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,7 +48,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * the fields' keys, through {@code TreeJNI.getTree(int)} and the same kept readers, on the model
  * and story the holder keeps and on the item's own trees. That is the field Facebook's Reels menu
  * reads on the reel's model to offer its "AI info" row, and the one the feed rule reads on a post.
- * Its kinds start with {@link #TREE}.
+ * Its kinds start with {@link #TREE}. Both readers ask both of Facebook's signals, the way its Reels
+ * menu does: the attribution of whichever reel model the item keeps first, then that model's own
+ * detected info.
  *
  * <p>Only a definite true hides anything. A reel with no such attribution, one whose flag is unset
  * or false, an item holding neither a reel model nor a story nor a tree, and anything this can't
@@ -247,15 +250,28 @@ public final class GenAiReelFilter {
         try {
             if (item == null) return NO_MODEL;
             if (!readers.complete()) return NO_READER;
+            // Facebook's Reels menu decides its "AI info" row by the attribution first, then by the
+            // model's own detected info, so both are read on whichever model the item keeps.
             Object model = readers.model == null ? null : held(item, readers.model);
-            if (model != null) return attributionKind(model, readers, finder);
+            if (model != null) {
+                String kind = attributionKind(model, readers, finder);
+                if (FLAGGED.equals(kind) || !readers.tree.isInstance(model)) return kind;
+                String detected = treeKind(Collections.singletonList(model), readers);
+                return TREE_FLAGGED.equals(detected) ? detected : kind;
+            }
             Object story = readers.story == null ? null : held(item, readers.story);
             if (story != null) {
                 StoryFlag flag = GenAiLabel.FLAG;
                 return STORY + flag.reason(flag.read(story, storyAccessor));
             }
             List<Object> trees = trees(item, readers);
-            if (!trees.isEmpty()) return treeKind(trees, readers);
+            if (!trees.isEmpty()) {
+                for (Object tree : trees) {
+                    if (readers.model != null && readers.model.isInstance(tree)
+                            && FLAGGED.equals(attributionKind(tree, readers, finder))) return FLAGGED;
+                }
+                return treeKind(trees, readers);
+            }
             return readers.model == null ? MODEL_CLASS_MISSING : NO_MODEL;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.AI_DETECTED_REELS, "reel item reader", failure);

@@ -88,6 +88,11 @@ final class RemoteMedia {
                 }
                 } catch (IOException | RuntimeException exception) {
                     boolean cleaned = target == null || MediaCache.delete(target);
+                    if (exception instanceof MediaBudget.StopException) {
+                        if (!cleaned) exception.addSuppressed(
+                                new IOException("Could not remove partial media output"));
+                        throw (MediaBudget.StopException) exception;
+                    }
                     boolean retryable = MediaBudget.isRetryableTransport(exception);
                     if (cleaned && retryable && attempt + 1 < MediaBudget.MAX_ATTEMPTS_PER_MIRROR) {
                         MediaBudget.waitBeforeRetry(null, attempt, deadline);

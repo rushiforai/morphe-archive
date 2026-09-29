@@ -18,11 +18,11 @@ jobs:
           days-before-issue-close: 7
           stale-issue-label: "stale"
           stale-issue-message: >
-            Nobody has posted here in 30 days, so I've marked this stale. It closes in 7 days
-            unless someone comments. _I'm a bot._
+            This issue has been marked stale after 30 days without activity. It will close
+            automatically in 7 days unless there's an update. Please comment if the issue persists.
           close-issue-message: >
-            Closing this after a quiet month. _I'm a bot, so if this still matters, comment below and a
-            maintainer will reopen it._
+            Closed automatically after no further activity. If the issue persists, please comment
+            below to request reopening.
           days-before-pr-stale: -1
           days-before-pr-close: -1
           exempt-all-assignees: true
@@ -36,10 +36,11 @@ jobs:
           days-before-issue-close: 7
           stale-issue-label: "stale"
           stale-issue-message: >
-            This still needs the info asked for above. I'll close it in 7 days if nobody adds it. _I'm a bot._
+            The details requested above are still needed. Please add them within 7 days to keep
+            this issue open.
           close-issue-message: >
-            Closing this because the missing info never arrived. Open a new issue with it filled in. _I'm a bot,
-            so if I got this wrong, comment below and a maintainer will take a look._
+            Closed automatically because the requested details are still missing. Please open a new
+            issue with those details, or comment below if this closure seems wrong.
           close-issue-reason: not_planned
           days-before-pr-stale: -1
           days-before-pr-close: -1

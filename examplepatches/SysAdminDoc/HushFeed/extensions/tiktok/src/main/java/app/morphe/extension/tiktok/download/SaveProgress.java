@@ -35,6 +35,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * is being saved and offers Cancel, which lets the file under way finish and leaves the rest.
  * The row is read out once when it appears, once when Cancel is pressed and the result once at
  * the end, not on every file; the count changes silently in between.
+ *
+ * <p>A save that has to wait for the media queue shows its row as it is accepted, waiting, with a
+ * Cancel that takes it out of line; the row turns into the count when the save starts, and says
+ * so once. More than {@link #MAX_ROWS} rows at once keep the rest out of sight behind a single
+ * line that counts them, so a long queue can't cover the video.
  */
 final class SaveProgress {
     /** The default count row starts here; optional stream progress also covers smaller saves. */
@@ -43,8 +48,14 @@ final class SaveProgress {
     private static final int ABOVE_BANNER_DP = 56;
     /** Space between simultaneous saves, in addition to each measured row height. */
     private static final int ROW_GAP_DP = 8;
+    /** Rows shown at once. The media queue runs three saves, so the rest are waiting anyway. */
+    static final int MAX_ROWS = 3;
     /** The rows up right now, main thread only, so two saves at once do not share pixels. */
     private static final List<View> LIVE_ROWS = new ArrayList<>();
+    /** The line counting the rows past {@link #MAX_ROWS}, above the highest row shown. Main thread only. */
+    private static TextView overflow;
+    /** How many rows it counted last, so it speaks when the count grows and not when it falls. */
+    private static int overflowCount;
     /** For the tests: what the row said aloud, in order. Null keeps it to the phone. */
     static volatile List<String> announcementsForTests;
 
@@ -83,6 +94,13 @@ final class SaveProgress {
 
     private final int total;
     private final boolean showTransfer;
+    /** The queued job this row follows, for Cancel while it waits; null for a row with none. */
+    private volatile MediaJobScheduler.Job job;
+    /** False from {@link #queued} until {@link #run}: the row says the save is waiting. */
+    private volatile boolean started;
+    /** The row came up waiting, so its start is said once when it comes. */
+    private volatile boolean shownWaiting;
+    private volatile TextView stopButton;
     private volatile int current = 1;
     private volatile int percent = -1;
     private volatile ProgressBar transferBar;
@@ -91,9 +109,10 @@ final class SaveProgress {
     private volatile View row;
     private volatile TextView count;
 
-    private SaveProgress(int total, boolean showTransfer) {
+    private SaveProgress(int total, boolean showTransfer, boolean started) {
         this.total = total;
         this.showTransfer = showTransfer;
+        this.started = started;
     }
 
     /** A progress row for {@code total} files, or a silent one below {@link #MIN_FILES}. */
@@ -102,9 +121,54 @@ final class SaveProgress {
     }
 
     static SaveProgress begin(int total, boolean showTransfer) {
-        SaveProgress progress = new SaveProgress(total, showTransfer);
-        if (total >= MIN_FILES || showTransfer) progress.show();
+        SaveProgress progress = new SaveProgress(total, showTransfer, true);
+        if (progress.showsRow()) progress.show();
         return progress;
+    }
+
+    /** A row for a save about to join the media queue. Nothing shows until {@link #submit}. */
+    static SaveProgress queued(int total, boolean showTransfer) {
+        return new SaveProgress(total, showTransfer, false);
+    }
+
+    /** Whether this save puts a row up at all: three files or more, or stream progress asked for. */
+    boolean showsRow() {
+        return total >= MIN_FILES || showTransfer;
+    }
+
+    /**
+     * Queues {@code work} with this row following it: waiting with Cancel while it is in line,
+     * counting once {@link #run} starts, and taken down when the job is over however it ends.
+     * {@code done} runs after that, exactly once. Null when the line is full, and no row shows.
+     */
+    MediaJobScheduler.Job submit(String label, String key, Runnable work, Runnable done) {
+        return submit(label, key, total, work, done);
+    }
+
+    /**
+     * As above, for a save that writes {@code files} files while its row counts {@link #total}:
+     * a story's video counts one on the row, but its sound goes to the gallery beside it.
+     */
+    MediaJobScheduler.Job submit(String label, String key, int files, Runnable work, Runnable done) {
+        MediaJobScheduler.Job queued = MediaJobScheduler.submit(label, key, Math.max(files, total), work, () -> {
+            dismiss();
+            if (done != null) done.run();
+        });
+        if (queued == null) return null;
+        job = queued;
+        if (showsRow()) show();
+        return queued;
+    }
+
+    /**
+     * The word the save gets as it is accepted. A row shows its own wait, so only
+     * {@code starting} is said beside it; without a row the toast carries the wait too.
+     */
+    void acknowledge(String starting, String waiting) {
+        MediaJobScheduler.Job queued = job;
+        if (queued == null) return;
+        if (!showsRow()) MediaJobScheduler.acknowledge(queued, starting, waiting);
+        else if (starting != null) Utils.showToastShort(starting);
     }
 
     /** The current stream, not an estimate of later streams, muxing or publication. */
@@ -117,6 +181,8 @@ final class SaveProgress {
     }
 
     private String progressText() {
+        if (!started) return total == 1 ? L10n.t("Waiting to save video")
+                : L10n.f("Waiting to save %1$s files", String.valueOf(total));
         if (percent < 0) return total == 1 ? L10n.t("Saving video")
                 : L10n.f("Saving %1$s of %2$s", String.valueOf(current), String.valueOf(total));
         String value = java.text.NumberFormat.getPercentInstance().format(percent / 100.0);
@@ -126,12 +192,23 @@ final class SaveProgress {
 
     private void updateTransfer() {
         Utils.runOnMainThread(() -> {
-            if (count == null || cancelled.get() || finished) return;
-            count.setText(progressText());
+            TextView label = count;
+            if (label == null || cancelled.get() || finished) return;
+            String text = progressText();
+            label.setText(text);
             ProgressBar bar = transferBar;
             if (bar != null) {
                 bar.setIndeterminate(percent < 0);
                 if (percent >= 0) bar.setProgress(percent);
+            }
+            if (!started) return;
+            TextView button = stopButton;
+            // Once a single file is under way there is nothing after it for Cancel to leave out.
+            if (button != null && total == 1) button.setVisibility(View.GONE);
+            View shown = row;
+            if (shownWaiting && shown != null && shown.getVisibility() == View.VISIBLE) {
+                shownWaiting = false;
+                announce(label, text);
             }
         });
     }
@@ -142,6 +219,14 @@ final class SaveProgress {
 
     boolean isCancelled() {
         return cancelled.get();
+    }
+
+    /**
+     * Stops after the file under way without a word, for a save that failed: its own message
+     * says so, and "Stopping after this file" read aloud over it named a file that never came.
+     */
+    void stop() {
+        cancelled.set(true);
     }
 
     /** Stops after the file under way. The row says so, aloud once, until that file is done. */
@@ -163,6 +248,7 @@ final class SaveProgress {
      * or the clock is the end of it, since every file after would fail the same way.
      */
     Outcome run(Step step) {
+        started = true;
         int saved = 0;
         int skipped = 0;
         int index = 0;
@@ -227,6 +313,7 @@ final class SaveProgress {
                 banner.setBackground(SettingsUi.overlayBanner(activity));
                 banner.setTag("hushfeed_save_progress");
 
+                shownWaiting = !started;
                 TextView label = new TextView(activity);
                 String text = progressText();
                 label.setText(text);
@@ -267,9 +354,12 @@ final class SaveProgress {
                 stop.setBackground(SettingsUi.overlayAction(activity, SettingsUi.RADIUS_OVERLAY));
                 stop.setFocusable(true);
                 SettingsUi.markAsButton(stop);
-                stop.setOnClickListener(view -> cancel());
-                // Cancel stops after the current file. A single file has no later work to cancel.
-                if (total > 1) banner.addView(stop, new LinearLayout.LayoutParams(-2, -2));
+                stop.setOnClickListener(view -> cancelFromRow());
+                // While the save waits, Cancel takes it out of line. Once it runs, Cancel stops
+                // after the current file, and a single file has no later work to cancel.
+                if (started && total == 1) stop.setVisibility(View.GONE);
+                banner.addView(stop, new LinearLayout.LayoutParams(-2, -2));
+                stopButton = stop;
 
                 // Above where a banner goes, so a finished save or a block's Undo can show
                 // beneath a save still running, and above any row already up.
@@ -298,7 +388,8 @@ final class SaveProgress {
                 placeRows();
                 // Said once here, by hand; the count is not a live region, so the files that
                 // follow change it without a word, and the result is the banner's to announce.
-                announce(banner, text);
+                // A row past the cap is said when it comes into sight instead.
+                if (banner.getVisibility() == View.VISIBLE) announce(banner, text);
             } catch (Throwable failure) {
                 Logger.printException(() -> "Could not show the save progress row", failure);
             }
@@ -314,24 +405,118 @@ final class SaveProgress {
         placeRows();
     }
 
-    /** A translated label or larger text can make a row taller than the default spacing. */
+    /**
+     * Stacks the rows up from above the banner. A translated label or larger text can make a
+     * row taller than the default spacing, so each sits on the measured heights below it. The
+     * first {@link #MAX_ROWS} show; the rest wait out of sight, counted by one line on top, and
+     * come into sight in order as the rows below them go.
+     */
     private static void placeRows() {
+        int shown = 0;
+        int hidden = 0;
+        View highest = null;
+        int aboveHighest = 0;
         for (View view : LIVE_ROWS) {
-            if (!(view.getParent() instanceof ViewGroup)) continue;
+            // A row left on a screen that has closed (rehome gives up on a finishing activity)
+            // can't be seen, so it takes no place: counted, it kept a new save's row out of sight
+            // behind rows nobody could see until their saves ended.
+            if (!(view.getParent() instanceof ViewGroup) || !view.isAttachedToWindow()) continue;
+            if (shown == MAX_ROWS) {
+                view.setVisibility(View.GONE);
+                hidden++;
+                continue;
+            }
+            shown++;
+            if (view.getVisibility() != View.VISIBLE) {
+                view.setVisibility(View.VISIBLE);
+                CharSequence text = labelOf(view);
+                if (text != null) announce(view, text.toString());
+            }
             ViewGroup root = (ViewGroup) view.getParent();
             Activity activity = (Activity) view.getContext();
+            int gap = SettingsUi.dp(activity, ROW_GAP_DP);
             int bottom = BlockAuthorOverlay.bannerParams(activity, root).bottomMargin
                     + SettingsUi.dp(activity, ABOVE_BANNER_DP);
             for (View previous : LIVE_ROWS) {
                 if (previous == view) break;
-                if (previous.getParent() == root) bottom += previous.getHeight() + SettingsUi.dp(activity, ROW_GAP_DP);
+                if (previous.getParent() == root && previous.getVisibility() == View.VISIBLE) {
+                    bottom += previous.getHeight() + gap;
+                }
             }
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-            if (params.bottomMargin != bottom) {
-                params.bottomMargin = bottom;
-                view.setLayoutParams(params);
-            }
+            setBottomMargin(view, bottom);
+            highest = view;
+            aboveHighest = bottom + view.getHeight() + gap;
         }
+        placeOverflow(highest, aboveHighest, hidden);
+    }
+
+    /** The one line that stands for every row out of sight, or none when all of them show. */
+    private static void placeOverflow(View highest, int bottom, int hidden) {
+        TextView line = overflow;
+        if (hidden == 0 || highest == null) {
+            if (line != null && line.getParent() instanceof ViewGroup) ((ViewGroup) line.getParent()).removeView(line);
+            overflow = null;
+            overflowCount = 0;
+            return;
+        }
+        ViewGroup root = (ViewGroup) highest.getParent();
+        Activity activity = (Activity) highest.getContext();
+        if (line == null || line.getContext() != activity) {
+            if (line != null && line.getParent() instanceof ViewGroup) ((ViewGroup) line.getParent()).removeView(line);
+            line = new TextView(activity);
+            line.setTag("hushfeed_save_waiting");
+            line.setTextColor(SettingsUi.OVERLAY_TEXT);
+            line.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
+            line.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 8),
+                    SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 8));
+            line.setBackground(SettingsUi.overlayBanner(activity));
+            overflow = line;
+        }
+        if (line.getParent() != root) {
+            if (line.getParent() instanceof ViewGroup) ((ViewGroup) line.getParent()).removeView(line);
+            root.addView(line, BlockAuthorOverlay.bannerParams(activity, root));
+        }
+        String text = L10n.quantity(activity, hidden, "One more save waiting", "%1$s more saves waiting");
+        line.setText(text);
+        setBottomMargin(line, bottom);
+        if (hidden > overflowCount) announce(line, text);
+        overflowCount = hidden;
+    }
+
+    /**
+     * Lifts a row to {@code bottom}. The top window can have any ViewGroup at its root, and one
+     * that isn't a FrameLayout swaps the banner's params for its own kind as the row goes in, so
+     * a cast back to FrameLayout's threw on the next pass here, which a row's end runs outside
+     * any catch. A row whose params carry no margin stays where that layout puts it.
+     */
+    private static void setBottomMargin(View view, int bottom) {
+        if (!(view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+        if (params.bottomMargin == bottom) return;
+        params.bottomMargin = bottom;
+        view.setLayoutParams(params);
+    }
+
+    /** What a row says: its label, which sits first in it or first in its body. */
+    private static CharSequence labelOf(View row) {
+        View first = row instanceof ViewGroup ? ((ViewGroup) row).getChildAt(0) : null;
+        if (first instanceof ViewGroup) first = ((ViewGroup) first).getChildAt(0);
+        return first instanceof TextView ? ((TextView) first).getText() : null;
+    }
+
+    /**
+     * Cancel on the row. A save still in line is taken out of it and never starts; one that has
+     * started stops after the file under way. A single file that has started has nothing after
+     * it, and stopping it before its first file would read as a failed save.
+     */
+    private void cancelFromRow() {
+        MediaJobScheduler.Job waitingOn = job;
+        if (waitingOn != null && waitingOn.cancel()) {
+            // The job's end has taken the row down and let go of the save.
+            Utils.showToastShort(L10n.t("Save cancelled. Nothing was saved."));
+            return;
+        }
+        if (total > 1) cancel();
     }
 
     private void showCount(int current) {
@@ -340,13 +525,15 @@ final class SaveProgress {
         updateTransfer();
     }
 
-    private void dismiss() {
+    /** Takes the row down for good, or keeps it from ever coming up. Harmless twice. */
+    void dismiss() {
         finished = true;
         Utils.runOnMainThread(() -> {
             View view = row;
             row = null;
             count = null;
             transferBar = null;
+            stopButton = null;
             if (view == null) return;
             LIVE_ROWS.remove(view);
             if (view.getParent() instanceof ViewGroup) ((ViewGroup) view.getParent()).removeView(view);

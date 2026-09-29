@@ -168,7 +168,7 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Hidden commenters",
                     "Comma separated usernames or display names whose comments are hidden.",
                     Settings.COMMENT_BLOCKED_USERS
-            ));
+            ).withNameKeyboard());
             addPreference(new TogglePreference(
                     context,
                     "Hide picture comments",

@@ -9,7 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
 import app.morphe.patches.all.misc.extension.sharedExtensionPatch
-import hoodles.morphe.patches.soundcloud.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 private val extensionPatch = sharedExtensionPatch(
     "soundcloud",
@@ -20,7 +20,7 @@ val enablePremiumPatch = bytecodePatch(
     name = "Enable SoundCloud Go",
     description = "Enables app features locked behind the subscription paywall."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.SOUNDCLOUD)
 
     dependsOn(extensionPatch)
 

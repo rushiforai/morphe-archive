@@ -184,6 +184,115 @@ public class SaveQualityTest {
         assertTrue(report, report.contains("saving video mp4 (360p) from 2 candidate(s)"));
     }
 
+    /**
+     * A story card the way the save reads it. Its kept {@code getMedia()} answers the story's media,
+     * which holds the video's id, the card's own 360p file and, as Facebook's {@code playlist}, the
+     * DASH manifest the story's player is built from (StoryViewerVideoPlayerUtil on 577 and 580).
+     */
+    public static final class StoryCard {
+        final String id;
+        private final StoryMedia media;
+
+        StoryCard(String id, StoryMedia media) {
+            this.id = id;
+            this.media = media;
+        }
+
+        public StoryMedia getMedia() {
+            return media;
+        }
+    }
+
+    public static final class StoryMedia {
+        final String id;
+        final String playableUrl;
+        final String playlist;
+
+        StoryMedia(String id, String playableUrl, String playlist) {
+            this.id = id;
+            this.playableUrl = playableUrl;
+            this.playlist = playlist;
+        }
+    }
+
+    /** The report after one story save at [quality]. */
+    private String storySaveAt(DownloadQuality quality, Object card) throws InterruptedException {
+        Settings.DOWNLOAD_QUALITY.save(quality);
+        LogBufferManager.clearLogBuffer();
+        assertTrue(MediaDownload.saveStory(context, card));
+        waitForSaves();
+        return LogBufferManager.buildExportText();
+    }
+
+    /**
+     * No player was recorded for the story: it was built while Save any story was off, or the tap
+     * came before the recorder ran. The card carries the manifest its player plays from, so the
+     * save still takes the player's best track and not the card's 360p file.
+     */
+    @Test
+    public void aStoryWithNoPlayerRecordedSavesFromTheManifestItsCardCarries() throws Exception {
+        String id = "5550000" + (System.nanoTime() % 100_000_000L + 100_000_000L);
+        try {
+            Settings.DOWNLOAD_STORIES.save(false);
+            PlayerSources.remember(new PlayerSourcesForTests.Params(id,
+                    new PlayerSourcesForTests.HdSource(null, MANIFEST)), "videoId", "hd", "manifest");
+            Settings.DOWNLOAD_STORIES.save(true);
+            StoryCard card = new StoryCard(id, new StoryMedia(id, SD, MANIFEST));
+
+            String report = storySaveAt(DownloadQuality.BEST, card);
+            assertTrue(report, report.contains("saving the story video " + DASH_1080
+                    + " + audio/mp4 mp4a.40.5 0x0 64kbps, instead of mp4 (360p)\n"));
+            assertTrue(report, report.contains("no player of the story was recorded, so the save reads the manifest "
+                    + "its card carries, the one its player plays from"));
+
+            report = storySaveAt(DownloadQuality.P480, card);
+            assertTrue(report, report.contains("saving the story video " + DASH_480));
+
+            // A photo story carries no manifest, and saves as it always did.
+            report = storySaveAt(DownloadQuality.BEST, new StoryCard(id, new StoryMedia(id,
+                    "https://scontent-iad3-1.xx.fbcdn.net/v/t51/photo_1080x1920.jpg?oh=1&oe=2", null)));
+            assertTrue(report, report.contains("saving image jpg"));
+            assertFalse(report, report.contains("manifest"));
+        } finally {
+            Settings.DOWNLOAD_STORIES.resetToDefault();
+        }
+    }
+
+    /** VP9 pictures only: MP4 can't hold them, and the player shows them at 1080p. */
+    private static final String VP9_ONLY = "<MPD><Period><AdaptationSet mimeType=\"video/mp4\">"
+            + "<Representation codecs=\"vp09.00.40.08\" width=\"1080\" height=\"1920\" bandwidth=\"2000000\" "
+            + "FBQualityLabel=\"1080p\"><BaseURL>https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m69/vp9.mp4?oh=1&amp;oe=2"
+            + "</BaseURL></Representation></AdaptationSet><AdaptationSet mimeType=\"audio/mp4\">"
+            + "<Representation codecs=\"mp4a.40.2\" bandwidth=\"64000\">"
+            + "<BaseURL>https://video-iad3-1.xx.fbcdn.net/o1/v/t2/f2/m69/sound.mp4?oh=1&amp;oe=2</BaseURL>"
+            + "</Representation></AdaptationSet></Period></MPD>";
+
+    /**
+     * A save that ends below the best picture the manifest offers within the quality setting says
+     * so in the report, beside what it saved. Held to a lower setting, the same file isn't below it.
+     */
+    @Test
+    public void aStorySavedBelowWhatItsPlayerOffersSaysSo() throws Exception {
+        String id = "6660000" + (System.nanoTime() % 100_000_000L + 100_000_000L);
+        try {
+            Settings.DOWNLOAD_STORIES.save(true);
+            PlayerSources.remember(new PlayerSourcesForTests.Params(id,
+                    new PlayerSourcesForTests.HdSource(null, VP9_ONLY)), "videoId", "hd", "manifest");
+            StoryCard card = new StoryCard(id, new StoryMedia(id, SD, null));
+
+            String report = storySaveAt(DownloadQuality.BEST, card);
+            assertTrue(report, report.contains("saving video mp4 (360p) from 1 candidate(s): mp4 (360p), below the "
+                    + "manifest's video/mp4 vp09.00.40.08 1080x1920 2000kbps 1080p, the best it offers within the "
+                    + "Download quality\n"));
+
+            report = storySaveAt(DownloadQuality.P360, card);
+            assertTrue(report, report.contains("saving video mp4 (360p) from 1 candidate(s)"));
+            assertFalse(report, report.contains("below the manifest's"));
+        } finally {
+            Settings.DOWNLOAD_STORIES.resetToDefault();
+        }
+    }
+
     /** Before the settings can be read, a save asks for the best, as every save did before. */
     @Test
     public void beforeTheSettingsAreReadyASaveAsksForTheBest() {

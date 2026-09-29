@@ -96,7 +96,7 @@ public class CapturedMetaMediaTest {
 
                 File into = temp.newFile();
                 Downloader.Result result = Downloader.fetch(server.origin() + "/" + i, shape.kind, into, policy,
-                        Downloader.MAX_BYTES);
+                        Downloader.MAX_BYTES, Downloader.SILENT);
 
                 assertEquals(shape.name + ": " + result, Downloader.Status.OK, result.status);
                 assertEquals(shape.name, shape.saves, result.mime);

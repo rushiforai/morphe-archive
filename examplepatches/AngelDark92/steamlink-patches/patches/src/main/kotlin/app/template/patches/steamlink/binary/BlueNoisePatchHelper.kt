@@ -16,6 +16,9 @@ private data class BlueNoiseTarget(val suffix: Int, val size: Int, val drawRetur
 private fun blueNoiseTarget(layout: BlueNoiseLayout, layer: BlueNoiseLayer): BlueNoiseTarget =
     if (layer == BlueNoiseLayer.FOVEA) BlueNoiseTarget(layout.suffix, 296, layout.drawReturn, BLUE_NOISE_STOCK_MASKED_HASH)
     else when (layout.code) {
+        "5001812" -> BlueNoiseTarget(0x9d182, 29, 0xf1c28L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
+        "5001968" -> BlueNoiseTarget(0x96e5b, 29, 0xed558L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
+
         "5001712" -> BlueNoiseTarget(0x9d23d, 29, 0xf1d28L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
         "5002244" -> BlueNoiseTarget(0x976e6, 29, 0xeeb44L, BLUE_NOISE_STOCK_BACKGROUND_HASH)
         "5002363" -> BlueNoiseTarget(0x99013, 29, 0xf1c84L, BLUE_NOISE_STOCK_BACKGROUND_HASH)

@@ -5,11 +5,10 @@
 
 package hoodles.morphe.patches.hellochinese.premium
 
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.all.misc.hex.hexPatch
 import app.morphe.util.returnEarly
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.util.requireArm64
 
 private val nativePatch = hexPatch( block = {
@@ -27,12 +26,7 @@ val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
     description = "Enables app features locked behind the subscription paywall. Requirements: arm64-v8a"
 ) {
-    compatibleWith(Compatibility(
-        name = "HelloChinese",
-        packageName = "com.hellochinese",
-        appIconColor = 0xFFFFFF,
-        targets = listOf(AppTarget("7.11.0"))
-    ))
+    compatibleWith(Compat.HELLO_CHINESE)
 
     availability(requireArm64())
 

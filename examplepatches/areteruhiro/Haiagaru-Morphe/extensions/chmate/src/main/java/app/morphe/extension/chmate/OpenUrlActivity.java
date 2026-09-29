@@ -45,6 +45,16 @@ public final class OpenUrlActivity extends Activity {
                 && "read.cgi".equals(path.get(1))) {
             return true;
         }
+        if (path.size() >= 3 && "bbs".equals(path.get(0))
+                && "read.cgi".equals(path.get(1))) {
+            int threadIndex = "jbbs.shitaraba.net".equalsIgnoreCase(uri.getHost()) ? 4 : 3;
+            return path.size() > threadIndex && isThreadId(path.get(threadIndex));
+        }
+        if ("itest.5ch.io".equalsIgnoreCase(uri.getHost()) && path.size() >= 5
+                && "test".equals(path.get(1)) && "read.cgi".equals(path.get(2))
+                && isThreadId(path.get(4))) {
+            return true;
+        }
         if (path.size() >= 3 && "boards".equals(path.get(0))
                 && isThreadId(path.get(2))) {
             return true;

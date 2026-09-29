@@ -117,6 +117,15 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/DarkMode.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Facebook's own answer to whether its dark mode is on, kept from each answer its dark mode controller gives. Both themes ask it, since the Video tab stays dark in light mode with the same colours dark mode uses."
+    },
+    {
+      "paths": [
         "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTranslations.java"
       ],
       "origin": "original",
@@ -197,6 +206,17 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StorySeen.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/seen/StorySeenAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/seen/ViewStoriesAnonymouslyPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the switch on the report of viewed stories that Facebook's story viewer sends as DirectSeenMutation, which puts the viewer on a story's viewer list. The patch finds the mutation's query class in Facebook 577 and 580 by its name and root field, the one method that creates it and fills story_ids_list, and the one other method of that class that calls it, and asks the extension first thing in that sender, which returns without sending while the switch is on. Loukious/FacebookAppAdsRemover and gnadgnaoh/NexAlloy-XES offer the same feature; neither is licensed for reuse, so nothing was taken from them."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/reels/**"
       ],
@@ -274,7 +294,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the Get Messenger card in Facebook's own Chats. Facebook 577 and 580 build the rows above the chat list from plugins that each answer whether they show, and the card's plugin is found by the one builder that tags its banner mib-native-dismissible-top-banner. Facebook already leaves the card out when Messenger is installed, but only for a Messenger isSameSignature matches with its own key, which a re-signed build never does. The patch asks the extension first in that plugin's show question, and the extension answers no while the switch is on and com.facebook.orca is installed and enabled, whatever key signed it."
+      "changes": "Written for Hushfacebook: the Get Messenger card in Facebook's own Chats. Facebook 577 and 580 build the rows above the chat list from plugins that each answer whether they show, and the card's plugin is found by the one builder that tags its banner mib-native-dismissible-top-banner. Facebook already leaves the card out when Messenger is installed, but only for a Messenger isSameSignature matches with its own key, which a re-signed build never does. The patch asks the extension first in that plugin's show question, and the extension answers no while the switch is on and com.facebook.orca is installed and enabled, whatever key signed it. Open Messenger from the top bar is written here too: the top bar's Messenger icon taps through one static method, the only one in 577 and 580 loading both entry_point_navbar_global_icon_ and entry_point_navbar_global_icon_reels_tab, which can hand the tap to a shared static Messenger button handler, the one static method of its shape loading long_press. The patch asks the extension first in both, and the extension starts Messenger's launcher entry for a plain tap while the switch is on and Messenger is installed."
     },
     {
       "paths": [
@@ -402,6 +422,17 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: resume long videos. FacebookAppAdsRemover describes the behavior and has no licence, so nothing was taken from its code. The patch finds FbGrootPlayer in Facebook 577 and 580 by its play trace, then its kept-name maybeTrackVideoStart and maybeTrackVideoStop, its release, bind and static seek by the trace strings they keep, its public seek as the one that hands on to that seek, its position reader as the one int method of the interface that declares isPlaying, and its length reader as the other int method its own remaining-time sum asks. VideoPlayerParams' field names come from the debug dump that reports each under its real name. The extension saves where a video longer than two minutes stopped, up to 200 of them for 30 days in a preferences file of its own, forgets one stopped near its end, and seeks back once on the video's next first start unless a seek came first or Facebook placed the start itself."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/DoubleTapLike.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/doubletap/DoubleTapAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/doubletap/TurnOffDoubleTapLikePatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the switch on liking a reel or a video with a double tap. The patch finds, in Facebook 577 and 580, the reel like helper by its kept trace FbShortsMutationUtil.mutateViewerLikeReaction, its double-tap like as its one instance method taking two objects and a boolean, GestureReactionComponent by the name its constructor gives it, that component's gesture view through onCreateMountContent, the view's heart by the shortFormVideoUnit key it logs, and the feed attachment's own double tap as the one onDoubleTap animating translationY. It hands the extension the gesture view's double-tap handler after every read of it, the double-tap like's key for the reel, the helper like's source and the attachment's double tap. While the switch is on the extension answers that there's no handler and no key, holds back a like whose source is DOUBLE_TAP and leaves the attachment's double tap unhandled, and otherwise hands back what Facebook handed over."
     }
   ]
 }

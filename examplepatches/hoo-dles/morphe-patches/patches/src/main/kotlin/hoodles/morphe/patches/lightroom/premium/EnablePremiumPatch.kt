@@ -7,7 +7,7 @@ package hoodles.morphe.patches.lightroom.premium
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
-import hoodles.morphe.patches.lightroom.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.lightroom.shared.stripPairipPatch
 import hoodles.morphe.util.requireArm64
 
@@ -15,7 +15,7 @@ val enablePremiumPatch = bytecodePatch(
     name = "Unlock premium features",
     description = "Enables app features locked behind the subscription paywall. Requirements: arm64-v8a, strict apk version"
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.LIGHTROOM)
 
     availability(requireArm64())
 

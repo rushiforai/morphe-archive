@@ -25,6 +25,7 @@ import android.view.Surface;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -85,14 +86,22 @@ final class AnimatedWebpMp4Converter {
     // is behind a Q guard, rather than reporting a call it cannot follow.
     @RequiresApi(26)
     static void convert(byte[] webpData, FileDescriptor output) throws Exception {
-        convert(webpData, new MediaMuxer(output, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4));
+        convert(webpData, output, null);
+    }
+
+    @RequiresApi(26)
+    static void convert(byte[] webpData, FileDescriptor output, File directory) throws Exception {
+        MediaBudget.checkStreamingDiskSpace(directory, null);
+        convert(webpData, new MediaMuxer(output, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4), directory);
     }
 
     static void convert(byte[] webpData, String outputPath) throws Exception {
-        convert(webpData, new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4));
+        File directory = new File(outputPath).getAbsoluteFile().getParentFile();
+        MediaBudget.checkStreamingDiskSpace(directory, null);
+        convert(webpData, new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4), directory);
     }
 
-    private static void convert(byte[] webpData, MediaMuxer muxer) throws Exception {
+    private static void convert(byte[] webpData, MediaMuxer muxer, File directory) throws Exception {
         Object image = null;
         MediaCodec encoder = null;
         CodecSurface codecSurface = null;
@@ -189,7 +198,7 @@ final class AnimatedWebpMp4Converter {
                         );
 
                         codecSurface.draw(composed, presentationTimeNs);
-                        drainEncoder(encoder, muxer, false, state);
+                        drainEncoder(encoder, muxer, false, state, directory);
 
                         int durationMs = durations != null && frameIndex < durations.length
                                 ? durations[frameIndex]
@@ -206,7 +215,7 @@ final class AnimatedWebpMp4Converter {
                 }
 
                 encoder.signalEndOfInputStream();
-                drainEncoder(encoder, muxer, true, state);
+                drainEncoder(encoder, muxer, true, state, directory);
                 muxerStarted = state.muxerStarted;
             } finally {
                 composed.recycle();
@@ -246,6 +255,16 @@ final class AnimatedWebpMp4Converter {
             boolean endOfStream,
             EncoderState state
     ) throws IOException {
+        drainEncoder(encoder, muxer, endOfStream, state, null);
+    }
+
+    private static void drainEncoder(
+            MediaCodec encoder,
+            MediaMuxer muxer,
+            boolean endOfStream,
+            EncoderState state,
+            File directory
+    ) throws IOException {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (true) {
             // An encoder that stops emitting after signalEndOfInputStream leaves this loop
@@ -268,6 +287,7 @@ final class AnimatedWebpMp4Converter {
                     if (!state.muxerStarted) throw new IllegalStateException("Muxer has not started");
                     outputBuffer.position(info.offset);
                     outputBuffer.limit(info.offset + info.size);
+                    MediaBudget.checkDiskSpace(directory, info.size);
                     muxer.writeSampleData(state.trackIndex, outputBuffer, info);
                 }
                 encoder.releaseOutputBuffer(outputIndex, false);

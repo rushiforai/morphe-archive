@@ -1480,6 +1480,214 @@ public class FeatureGatePagesTest {
         return detail;
     }
 
+    @Test public void failedStructuredSaveKeepsTheDraftAndAWorkingRetry() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            SettingsUi.syncDarkMode(activity);
+            String theme = SettingsUi.isDarkMode() ? "dark" : "light";
+            FeatureGateDetailFragment detail = structuredDetail(activity, true);
+            EditText count = structuredInput(detail, "count");
+            View save = detail.getView().findViewWithTag("feature_gate_save_fields");
+            View discard = detail.getView().findViewWithTag("feature_gate_discard_fields");
+            count.setText("17");
+            FeatureGateDetailFragment.setDetailChangeTestHookForTests(
+                    new FeatureGateDetailFragment.DetailChangeTestHook() {
+                        @Override public void before(long generation) throws Exception {
+                            throw new java.io.IOException("injected structured save failure");
+                        }
+                        @Override public void after(long generation) { }
+                    });
+            try {
+                save.performClick();
+                FeatureGateDetailFragment.awaitChangesForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+            } finally {
+                FeatureGateDetailFragment.setDetailChangeTestHookForTests(null);
+            }
+            assertEquals("Couldn't save this override. Try again.", ShadowToast.getTextOfLatestToast());
+            UiCapture.save(detail.getView(), "audit/lab-structured-save-failure-" + theme + ".png");
+            assertNull(FeatureGateLabStore.rule(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "object_gate", "OBJECT"));
+            assertEquals("17", count.getText().toString());
+            assertTrue("a failed save disabled retry of the unchanged draft", save.isEnabled());
+            assertEquals("a failed save hid Discard", View.VISIBLE, discard.getVisibility());
+            captureStructuredControls(detail, "audit/lab-structured-failed-controls-" + theme + ".png");
+            ShadowToast.reset();
+            var leave = FeatureGateDetailFragment.class.getDeclaredMethod("leaveDetail");
+            leave.setAccessible(true);
+            leave.invoke(detail);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("Field edits weren't saved", ShadowToast.getTextOfLatestToast());
+            save.performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(17, new org.json.JSONObject(FeatureGateLabStore.rule(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "object_gate", "OBJECT").value).getInt("count"));
+            assertFalse(save.isEnabled());
+            captureStructuredControls(detail, "audit/lab-structured-retry-controls-" + theme + ".png");
+        }
+    }
+
+    @Test @Config(qualifiers = "w480dp-h960dp-notnight-mdpi")
+    public void aLightStructuredPageKeepsItsFailedDraftAndRetry() throws Exception {
+        failedStructuredSaveKeepsTheDraftAndAWorkingRetry();
+    }
+
+    private static void captureStructuredControls(FeatureGateDetailFragment detail, String name)
+            throws Exception {
+        View screen = detail.getView();
+        screen.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY));
+        screen.layout(0, 0, 480, 960);
+        android.widget.ScrollView scroll = find(screen, android.widget.ScrollView.class);
+        assertNotNull(scroll);
+        View save = screen.findViewWithTag("feature_gate_save_fields");
+        scroll.scrollTo(0, Math.max(0, topOf(save, scroll) + scroll.getScrollY() - 140));
+        UiCapture.save(screen, name);
+        android.graphics.Rect visible = new android.graphics.Rect();
+        assertTrue("the control capture did not reach Save", save.getLocalVisibleRect(visible));
+    }
+
+    @Test public void structuredDiscardRestoresTheLatestCommittedValues() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateDetailFragment detail = structuredDetail(activity, true);
+            EditText count = structuredInput(detail, "count");
+            View save = detail.getView().findViewWithTag("feature_gate_save_fields");
+            count.setText("17");
+            save.performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(17, new org.json.JSONObject(FeatureGateLabStore.rule(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "object_gate", "OBJECT").value).getInt("count"));
+            count.setText("29");
+            detail.getView().findViewWithTag("feature_gate_discard_fields").performClick();
+            assertEquals("Discard resurrected the page-open value after a later save", "17",
+                    count.getText().toString());
+            assertFalse(save.isEnabled());
+        }
+    }
+
+    @Test public void aSaveCompletingAfterANewerStructuredEditKeepsThatEditPending() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateDetailFragment detail = structuredDetail(activity, true);
+            EditText count = structuredInput(detail, "count");
+            View save = detail.getView().findViewWithTag("feature_gate_save_fields");
+            var entered = new java.util.concurrent.CountDownLatch(1);
+            var release = new java.util.concurrent.CountDownLatch(1);
+            FeatureGateDetailFragment.setDetailChangeTestHookForTests(
+                    new FeatureGateDetailFragment.DetailChangeTestHook() {
+                        @Override public void before(long generation) throws Exception {
+                            entered.countDown();
+                            if (!release.await(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                                throw new AssertionError("test did not release structured save");
+                            }
+                        }
+                        @Override public void after(long generation) { }
+                    });
+            try {
+                count.setText("17");
+                save.performClick();
+                assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+                count.setText("29");
+            } finally {
+                release.countDown();
+                FeatureGateDetailFragment.awaitChangesForTests();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                FeatureGateDetailFragment.setDetailChangeTestHookForTests(null);
+            }
+            assertEquals("29", count.getText().toString());
+            assertTrue("completion marked a newer edit as saved", save.isEnabled());
+            detail.getView().findViewWithTag("feature_gate_discard_fields").performClick();
+            assertEquals("Discard ignored the value that finished saving", "17", count.getText().toString());
+        }
+    }
+
+    @Test public void resettingAStructuredOverrideRebuildsItsSavedFieldBaseline() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateDetailFragment detail = structuredDetail(activity, true);
+            EditText count = structuredInput(detail, "count");
+            String initial = count.getText().toString();
+            count.setText("17");
+            detail.getView().findViewWithTag("feature_gate_save_fields").performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            detail.getView().findViewWithTag("feature_gate_reset").performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertNull(FeatureGateLabStore.rule(
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "object_gate", "OBJECT"));
+            assertEquals("the editor still presents the removed override as saved", initial,
+                    structuredInput(detail, "count").getText().toString());
+            assertFalse(detail.getView().findViewWithTag("feature_gate_save_fields").isEnabled());
+        }
+    }
+
+    @Test public void untouchedNullFieldsSurviveSavingADifferentStructuredField() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabSession.begin();
+            FeatureGateLabStore.setMasterEnabled(true);
+            NullableConfig original = new NullableConfig();
+            String recorded = SettingsManagerObservationRecorder.serializeValue(original).toString();
+            var entry = new FeatureGateCatalog.Entry("nullable_gate", "Nullable gate",
+                    FeatureGateLabStore.MANAGER_SETTINGS_MANAGER, "OBJECT", true, true,
+                    List.of(), List.of(), List.of(), "", "", true, recorded, "OBJECT",
+                    NullableConfig.class.getName());
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 1, 0, true));
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    entry.manager, entry.key, entry.type);
+            attach(activity, detail);
+            structuredInput(detail, "count").setText("17");
+            detail.getView().findViewWithTag("feature_gate_save_fields").performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            var saved = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
+            assertNotNull("an untouched null field blocked saving another field", saved);
+            var applied = StructuredConfigController.apply(NullableConfig.class, null, original, saved.value);
+            assertTrue("the editor produced an unusable patch", applied.applied);
+            NullableConfig result = (NullableConfig) applied.value;
+            assertEquals(17, result.count);
+            assertNull("saving count changed a null child", result.child);
+            assertNull("saving count changed a null name", result.name);
+            assertNull("saving count changed a null list", result.values);
+            assertNull("saving count changed a null boxed Boolean", result.enabled);
+        }
+    }
+
+    public static final class NullableConfig {
+        public int count = 3;
+        public StructuredConfigControllerTest.Child child;
+        public String name;
+        public List<Integer> values;
+        public Boolean enabled;
+    }
+
+    private static EditText structuredInput(FeatureGateDetailFragment detail, String name) throws Exception {
+        var held = FeatureGateDetailFragment.class.getDeclaredField("objectEditors");
+        held.setAccessible(true);
+        for (Object editor : (List<?>) held.get(detail)) {
+            var key = editor.getClass().getDeclaredField("name");
+            key.setAccessible(true);
+            if (!name.equals(key.get(editor))) continue;
+            var input = editor.getClass().getDeclaredField("input");
+            input.setAccessible(true);
+            return (EditText) input.get(editor);
+        }
+        throw new AssertionError("No structured field: " + name);
+    }
+
     /** A view's top edge in the page's own coordinates. */
     private static int topOf(View view, View root) {
         int top = 0;

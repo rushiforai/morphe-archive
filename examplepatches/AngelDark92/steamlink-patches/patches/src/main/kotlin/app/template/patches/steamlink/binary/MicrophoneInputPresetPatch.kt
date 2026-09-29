@@ -31,10 +31,18 @@ private data class NativeMicrophoneLayout(
 )
 
 private val NATIVE_MICROPHONE_LAYOUTS = mapOf(
+    // Independently traced QSVLClientAudioNdk::Init on each exact legacy base.
+    "5001812" to NativeMicrophoneLayout(2_220_872, 0xF4484),
+    "5001968" to NativeMicrophoneLayout(2_234_048, 0xEFDB4),
     // SHA-256: 628821feab199d7712be8a51273eb9a21ec440a7c91aa6a768cc7307a4fe22f0.
     // Symbol-derived QSVLClientAudioNdk::Init -> AAudioStreamBuilder_setInputPreset.
     "5002363" to NativeMicrophoneLayout(2_292_008, 0xF44C0),
 )
+
+private fun hasExactMicrophoneLayout(version: String, code: String): Boolean =
+    isNativeXrSteamLinkBuild(version, code) ||
+        (version == "2.0.20" && code == "5001812") ||
+        (version == "2.0.21" && code == "5001968")
 
 private fun movW1Immediate(value: Int): ByteArray {
     require(value in 0..0xffff)
@@ -57,7 +65,7 @@ internal fun patchNativeMicrophonePreset(
     versionName: String,
     versionCode: String,
 ): ByteArray {
-    if (!isNativeXrSteamLinkBuild(versionName, versionCode)) return bytes.copyOf()
+    if (!hasExactMicrophoneLayout(versionName, versionCode)) return bytes.copyOf()
     val selected = SUPPORTED_PRESETS[preset]
         ?: throw PatchException("Unknown microphone input preset: $preset")
     val layout = NATIVE_MICROPHONE_LAYOUTS[versionCode]
@@ -65,6 +73,7 @@ internal fun patchNativeMicrophonePreset(
     if (bytes.size != layout.librarySize) {
         throw PatchException("Unsupported native microphone library size=${bytes.size}; expected ${layout.librarySize}")
     }
+    verifyAddedLegacyNativeCode(bytes, versionName, versionCode)
     if (!bytes.matchesAt(layout.instructionOffset - INPUT_PRESET_PREFIX.size, INPUT_PRESET_PREFIX) ||
         SUPPORTED_PRESETS.values.none { bytes.matchesAt(layout.instructionOffset, movW1Immediate(it)) }
     ) {
@@ -102,14 +111,15 @@ val microphoneInputPresetPatch = rawResourcePatch(
         val bytes = file.readBytes()
         val matches = mutableListOf<Int>()
 
-        if (isNativeXrSteamLinkBuild(packageMetadata.versionName, packageMetadata.versionCode)) {
+        if (hasExactMicrophoneLayout(packageMetadata.versionName, packageMetadata.versionCode)) {
             file.writeBytes(patchNativeMicrophonePreset(bytes, requireNotNull(preset),
                 packageMetadata.versionName, packageMetadata.versionCode))
             return@execute
         }
 
         // A forced dependency must not run the legacy scanner on a mismatched modern base.
-        if (packageMetadata.versionCode == "5002363" || bytes.size == 2_292_008) return@execute
+        if (packageMetadata.versionCode in NATIVE_MICROPHONE_LAYOUTS ||
+            NATIVE_MICROPHONE_LAYOUTS.values.any { it.librarySize == bytes.size }) return@execute
 
         for (offset in 0..bytes.size - INPUT_PRESET_PREFIX.size - 4) {
             if (!bytes.matchesAt(offset, INPUT_PRESET_PREFIX)) continue

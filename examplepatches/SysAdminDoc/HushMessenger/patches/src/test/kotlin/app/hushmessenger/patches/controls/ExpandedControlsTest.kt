@@ -8,7 +8,10 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import java.io.ByteArrayInputStream
@@ -25,8 +28,8 @@ class ExpandedControlsTest {
         val patches = Class.forName("app.hushmessenger.patches.controls.MessengerControlsPatchKt").methods
             .filter { it.name.startsWith("get") && it.returnType == BytecodePatch::class.java }
             .map { it.invoke(null) as BytecodePatch }.filter { it.name != null }
-        assertEquals(20, patches.size)
-        assertEquals(20, patches.map { it.name }.toSet().size)
+        assertEquals(25, patches.size)
+        assertEquals(25, patches.map { it.name }.toSet().size)
         val shared = patches.map { it.dependencies.filterIsInstance<BytecodePatch>().single() }.toSet()
         assertEquals(1, shared.size)
         assertNull(shared.single().name)
@@ -124,6 +127,108 @@ class ExpandedControlsTest {
         }
         assertFailsWith<PatchException> {
             method("LX/2Wl;", "D2i", 24, IMMUTABLE_LIST, body.replace("return-object v5", "return-object v6")).injectAdFilter()
+        }
+    }
+
+    // Mirrors the drawer case of Messenger 580's merged click listener: the row lands in a high register.
+    private val folderClick = """
+        move-object/from16 v3, p0
+        iget-object v1, v3, LX/Jwp;->A00:Ljava/lang/Object;
+        check-cast v1, LX/HRn;
+        iget-object v0, v3, LX/Jwp;->A01:Ljava/lang/Object;
+        move-object/from16 v16, v0
+        check-cast v16, LX/HRf;
+        iget-object v5, v3, LX/Jwp;->A02:Ljava/lang/Object;
+        const/4 v7, 0x1
+        const-string v1, "$DRAWER_FOLDER_SELECTED"
+        move-object/from16 v2, v16
+        iget-object v2, v2, LX/HRf;->A03:Ljava/lang/Object;
+        return-void
+    """.trimIndent()
+
+    private fun folderClickMethod(body: String = folderClick) =
+        fixtureMethod("LX/Jwp;->onClick(Landroid/view/View;)V", body, registers = 20)
+
+    @Test fun drawerFolderClickReturnsForTheHushRowAndRecastsEveryOtherRow() {
+        val method = folderClickMethod()
+        val original = method.implementation!!.instructions.toList()
+        method.injectMenuFolderClick("LX/HRf;")
+        val code = method.implementation!!.instructions.toList()
+        assertEquals(original.take(6), code.take(6))
+        val call = code[6] as RegisterRangeInstruction
+        assertEquals(16, call.startRegister)
+        assertEquals(1, call.registerCount)
+        assertEquals("$SETTINGS->drawerFolderClicked(Ljava/lang/Object;)Ljava/lang/Object;", (call as ReferenceInstruction).reference.toString())
+        assertEquals(Opcode.MOVE_RESULT_OBJECT, code[7].opcode)
+        assertEquals(16, (code[7] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_NEZ, code[8].opcode)
+        assertEquals(Opcode.RETURN_VOID, code[9].opcode)
+        // Any other row jumps to a fresh cast so Messenger's own field reads still verify.
+        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+        assertEquals(addresses[10], addresses[8] + (code[8] as OffsetInstruction).codeOffset)
+        assertEquals(Opcode.CHECK_CAST, code[10].opcode)
+        assertEquals("LX/HRf;", ((code[10] as ReferenceInstruction).reference as TypeReference).type)
+        assertEquals(16, (code[10] as OneRegisterInstruction).registerA)
+        assertEquals(original.drop(6), code.drop(11))
+    }
+
+    @Test fun drawerFolderClickRejectsAMissingMarkerOrAnUnclearRowCast() {
+        for (body in listOf(
+            folderClick.replace(DRAWER_FOLDER_SELECTED, "HomeDrawerFragmentBase.somethingElse"),
+            folderClick.replace("check-cast v16, LX/HRf;", "check-cast v16, LX/HRg;"),
+            folderClick.replace("check-cast v1, LX/HRn;", "check-cast v1, LX/HRf;"),
+            folderClick.replace("const/4 v7, 0x1", "const/4 v7, 0x1\n" + "nop\n".repeat(12)),
+            folderClick.replace("return-void", "const-string v1, \"$DRAWER_FOLDER_SELECTED\"\nreturn-void"),
+        )) {
+            assertFailsWith<PatchException> { folderClickMethod(body).injectMenuFolderClick("LX/HRf;") }
+        }
+    }
+
+    @Test fun folderRowTypeComesFromTheSettingsBuilderAlone() {
+        val id = "LX/HFb;->Ax1(LX/0MG;)Ljava/util/ArrayList;"
+        assertEquals("LX/HRf;", fixtureMethod(id, "new-instance v1, LX/HRf;\nconst/4 v0, 0x0\nreturn-object v0").menuFolderItemType())
+        assertFailsWith<PatchException> {
+            fixtureMethod(id, "new-instance v1, LX/HRf;\nnew-instance v2, LX/HRg;\nconst/4 v0, 0x0\nreturn-object v0").menuFolderItemType()
+        }
+        assertFailsWith<PatchException> { fixtureMethod(id, "const/4 v0, 0x0\nreturn-object v0").menuFolderItemType() }
+    }
+
+    @Test fun keyboardTabFilterReplacesTheOnlyExitAndKeepsItsBranches() {
+        val body = "if-eqz v2, :done\nconst/4 v1, 0x0\n:done\nreturn-object v0"
+        val method = method("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;",
+            "A0P", 8, IMMUTABLE_LIST, body)
+        method.injectKeyboardTabs()
+        val code = method.implementation!!.instructions.toList()
+        val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+        // The early branch now lands on the filter call that replaced the original return.
+        val branchTarget = code[addresses.indexOf((code[0] as OffsetInstruction).codeOffset)]
+        assertEquals("$SETTINGS->filterKeyboardTabs(Ljava/util/List;)Ljava/util/List;", (branchTarget as ReferenceInstruction).reference.toString())
+        assertEquals(1, (code[3] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ, code[4].opcode)
+        assertEquals(0, (code[6] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.RETURN_OBJECT, code.last().opcode)
+        assertEquals(0, (code.last() as OneRegisterInstruction).registerA)
+        assertEquals(addresses[code.size - 1], addresses[4] + (code[4] as OffsetInstruction).codeOffset)
+        assertFailsWith<PatchException> {
+            method("LX/Fixture;", "A0P", 8, IMMUTABLE_LIST, "if-eqz v2, :other\nreturn-object v0\n:other\nreturn-object v1").injectKeyboardTabs()
+        }
+        assertFailsWith<PatchException> { method("LX/Fixture;", "A0P", 1, IMMUTABLE_LIST, "return-object p0").injectKeyboardTabs() }
+    }
+
+    @Test fun encryptedTypingFlagIsFilteredBeforeTheMailboxCallReadsIt() {
+        val id = "LX/8eb;->A0I(Ljava/lang/String;Z)LX/325;"
+        val method = fixtureMethod(id, "const-string v0, \"$TYPING_MAILBOX_CALL\"\nconst/4 v0, 0x0\nreturn-object v0", registers = 13)
+        val original = method.implementation!!.instructions.toList()
+        method.injectOutgoingTyping()
+        val code = method.implementation!!.instructions.toList()
+        assertEquals("$SETTINGS->outgoingTyping(Z)Z", (code[0] as ReferenceInstruction).reference.toString())
+        assertEquals(12, (code[0] as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction).registerC)
+        assertEquals(Opcode.MOVE_RESULT, code[1].opcode)
+        assertEquals(12, (code[1] as OneRegisterInstruction).registerA)
+        assertEquals(original, code.drop(2))
+        assertFailsWith<PatchException> { fixtureMethod(id, "const/4 v0, 0x0\nreturn-object v0", registers = 20).injectOutgoingTyping() }
+        assertFailsWith<PatchException> {
+            fixtureMethod("LX/8eb;->A0I(Ljava/lang/String;)LX/325;", "const/4 v0, 0x0\nreturn-object v0").injectOutgoingTyping()
         }
     }
 

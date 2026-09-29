@@ -8,9 +8,9 @@ package hoodles.morphe.patches.superchinese.unlock
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch
 import app.morphe.util.returnEarly
-import hoodles.morphe.patches.all.signature.spoofSignaturePatch
-import hoodles.morphe.patches.superchinese.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.util.returnBoxedIntegerEarly
 
 enum class SmaliType {
@@ -22,7 +22,7 @@ val unlockLessonsPatch = bytecodePatch(
     name = "Unlock all lessons",
     description = "Only unlocks lessons on the client UI! This is useful for pre-downloading content during free trial periods."
 ) {
-    compatibleWith(Constants.Compatibility)
+    compatibleWith(Compat.SUPERCHINESE)
 
     dependsOn(spoofSignaturePatch)
 

@@ -133,4 +133,56 @@ public class RestReminderTest {
         assertTrue("a refused move must be tried again on the next show",
                 activity.movedBack.size() == 2);
     }
+
+    @Test public void aQueuedReminderRespectsTheSwitchBeingTurnedOff() {
+        Settings.LEAVE_ON_REST_REMINDER.save(true);
+        HostActivity activity = host();
+        RestReminder.reminderShown();
+        Settings.LEAVE_ON_REST_REMINDER.save(false);
+        idle();
+        assertEquals("the queued reminder ignored the new setting", List.of(), activity.movedBack);
+
+        Settings.LEAVE_ON_REST_REMINDER.save(true);
+        RestReminder.reminderShown();
+        idle();
+        assertEquals("a cancelled leave consumed the cooldown", List.of(true), activity.movedBack);
+    }
+
+    @Test public void aQueuedReminderCannotLeaveAReplacementActivity() {
+        Settings.LEAVE_ON_REST_REMINDER.save(true);
+        HostActivity first = host();
+        HostActivity replacement = host();
+        Utils.setActivity(first);
+        RestReminder.reminderShown();
+        Utils.setActivity(replacement);
+        idle();
+        assertEquals(List.of(), first.movedBack);
+        assertEquals("an old reminder acted on the replacement activity", List.of(), replacement.movedBack);
+
+        RestReminder.reminderShown();
+        idle();
+        assertEquals(List.of(true), replacement.movedBack);
+    }
+
+    @Test public void aQueuedReminderCannotLeaveAFinishingActivity() {
+        Settings.LEAVE_ON_REST_REMINDER.save(true);
+        HostActivity activity = host();
+        RestReminder.reminderShown();
+        activity.finish();
+        idle();
+        assertEquals("the old activity was already finishing", List.of(), activity.movedBack);
+    }
+
+    @Test public void aQueuedReminderRespectsThePausedProcess() {
+        Settings.LEAVE_ON_REST_REMINDER.save(true);
+        HostActivity activity = host();
+        RestReminder.reminderShown();
+        app.morphe.extension.shared.settings.PausedProcess.set(true);
+        try {
+            idle();
+            assertEquals("a queued reminder acted while paused", List.of(), activity.movedBack);
+        } finally {
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+        }
+    }
 }

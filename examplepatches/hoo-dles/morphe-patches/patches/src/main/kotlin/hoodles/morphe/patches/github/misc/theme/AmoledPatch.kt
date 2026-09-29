@@ -7,13 +7,12 @@ package hoodles.morphe.patches.github.misc.theme
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findElementByAttributeValue
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import hoodles.morphe.compatibility.Compat
 
 val bytecodeOverrides = bytecodePatch {
     execute {
@@ -48,12 +47,7 @@ val amoledPatch = resourcePatch(
 ) {
     dependsOn(bytecodeOverrides)
 
-    compatibleWith(Compatibility(
-        name = "GitHub",
-        packageName = "com.github.android",
-        appIconColor = 0x000000,
-        targets = listOf(AppTarget("1.271.1"))
-    ))
+    compatibleWith(Compat.GITHUB)
 
     execute {
         val trueBlack = "#000000"

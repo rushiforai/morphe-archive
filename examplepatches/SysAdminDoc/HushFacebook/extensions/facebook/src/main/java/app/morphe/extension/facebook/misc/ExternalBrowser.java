@@ -124,6 +124,8 @@ public final class ExternalBrowser {
 
         try {
             Intent view = new Intent(Intent.ACTION_VIEW, target);
+            // Only an app that declares it opens web links takes it, as for any link from an app.
+            view.addCategory(Intent.CATEGORY_BROWSABLE);
             // The in-app browser closes, thus the link needs a task of its own to live in.
             view.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             activity.startActivity(view);
@@ -249,9 +251,10 @@ public final class ExternalBrowser {
     }
 
     /** Whether {@code uri} is an {@code http} or an {@code https} URL. */
+    /** Whether the scheme is http or https, in any case: a scheme is case-insensitive (RFC 3986). */
     private static boolean isWebUrl(Uri uri) {
         String scheme = uri.getScheme();
-        return "http".equals(scheme) || "https".equals(scheme);
+        return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
     }
 
     /** Whether {@code host} is a domain of Facebook, or a subdomain of one. */

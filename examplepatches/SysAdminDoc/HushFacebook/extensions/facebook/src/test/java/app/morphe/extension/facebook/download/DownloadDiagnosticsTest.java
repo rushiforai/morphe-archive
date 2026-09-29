@@ -4,12 +4,16 @@
  */
 package app.morphe.extension.facebook.download;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
+import android.provider.MediaStore;
 
 import com.facebook.video.engine.api.VideoDataSource;
 
@@ -18,15 +22,21 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowMediaExtractor;
+import org.robolectric.shadows.util.DataSource;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.HookStatus;
@@ -68,6 +78,7 @@ public class DownloadDiagnosticsTest {
     @After
     public void tearDown() throws IOException {
         server.close();
+        MediaDownload.policyForTests = null;
         LogBufferManager.clearLogBuffer();
     }
 
@@ -86,42 +97,26 @@ public class DownloadDiagnosticsTest {
         assertFalse("the save never finished", worker.isAlive());
     }
 
-    /** A gallery that refuses every new entry, the way a full or locked MediaStore does. */
-    private static final class RefusingGallery implements Downloader.Sink {
-        @Override
-        public OutputStream open(String mime) throws IOException {
-            throw new IOException("the gallery refused a new entry");
-        }
-
-        @Override
-        public void commit() {
-        }
-
-        @Override
-        public void abandon() {
-        }
-    }
-
     @Test
     public void progressiveDashAndGalleryFailuresReachTheReport() throws Exception {
         // Where Android put Facebook's native code: the ABI it was installed for.
         context.getApplicationInfo().nativeLibraryDir = "/data/app/~~x/com.facebook.katana-y/lib/arm64";
-        File folder = DashSave.workFolder(context);
+        MediaDownload.policyForTests = policy;
+        MediaSaveTest.Gallery gallery = Robolectric.setupContentProvider(MediaSaveTest.Gallery.class, MediaStore.AUTHORITY);
 
         // A progressive save whose address the server no longer has.
-        run((writer, progress) -> Downloader.save(origin + "/gone.mp4", Downloader.Kind.VIDEO, folder, writer, policy,
-                Downloader.MAX_BYTES));
+        run(MediaDownload.fileJob(context, origin + "/gone.mp4", Downloader.Kind.VIDEO));
 
         // A DASH save whose track downloads but can't be joined into a file.
         server.serve("/track.mp4", 200, "video/mp4", mp4(4096), 4096);
         DashManifest.Track track = new DashManifest.Track("video/mp4", "avc1.64001f", 1280, 720, 900_000,
                 origin + "/track.mp4");
-        run((writer, progress) -> DashSave.save(context, track, null, writer, policy));
+        run(MediaDownload.dashJob(context, track, null, null));
 
         // A good file the gallery won't take.
         server.serve("/whole.mp4", 200, "video/mp4", mp4(4096), 4096);
-        run((writer, progress) -> Downloader.save(origin + "/whole.mp4", Downloader.Kind.VIDEO, folder, new RefusingGallery(),
-                policy, Downloader.MAX_BYTES));
+        gallery.refuseInsert = true;
+        run(MediaDownload.fileJob(context, origin + "/whole.mp4", Downloader.Kind.VIDEO));
 
         String report = LogBufferManager.buildExportText();
         assertTrue(report, report.contains("MediaDownload | ERROR | save finished: HTTP_ERROR (the server answered 404)"));
@@ -236,6 +231,102 @@ public class DownloadDiagnosticsTest {
         assertTrue(hooks, hooks.contains("field " + NoSource.class.getName() + "#com.facebook.video.engine.api.VideoDataSource"));
         assertTrue(hooks, HookStatus.missing("Download any reel").contains("a single field " + TwoSources.class.getName()
                 + "#com.facebook.video.engine.api.VideoDataSource (found 2)"));
+    }
+
+    /**
+     * A policy that lets the local server through and, as a save's address is checked, describes
+     * its work file to Robolectric's extractor with [formats]. The work file exists by then, under
+     * a random name the save chose, which goes into [names] so the report can be searched for it.
+     */
+    private MediaUrlPolicy describing(List<String> names, MediaFormat... formats) {
+        int port = server.port();
+        return new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                for (File file : DashSave.workFolder(context).listFiles()) {
+                    if (!file.getName().endsWith(".part") || names.contains(file.getName())) continue;
+                    names.add(file.getName());
+                    for (MediaFormat format : formats) {
+                        ShadowMediaExtractor.addTrack(DataSource.toDataSource(file.getPath()), format, new byte[1]);
+                    }
+                }
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+    }
+
+    /**
+     * #11 and #14 couldn't be settled from a candidate's address, its quality label or its MP4 type.
+     * A saved video's line now says what the file itself holds, codec facts only. What the file
+     * doesn't say stays unknown, and the line names no file, folder or address.
+     */
+    @Test
+    public void aSavedVideoSaysWhatTheFileHolds() throws Exception {
+        MediaSaveTest.Gallery gallery = Robolectric.setupContentProvider(MediaSaveTest.Gallery.class, MediaStore.AUTHORITY);
+        for (long row = 1; row <= 2; row++) {
+            Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(row),
+                    new ByteArrayOutputStream());
+        }
+        server.serve("/known.mp4", 200, "video/mp4", mp4(4096), 4096);
+        server.serve("/bare.mp4", 200, "video/mp4", mp4(4096), 4096);
+        List<String> names = new ArrayList<>();
+        try {
+            MediaFormat picture = MediaFormat.createVideoFormat("video/avc", 1280, 720);
+            picture.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
+            picture.setLong(MediaFormat.KEY_DURATION, 64_814_812L);
+            MediaFormat sound = MediaFormat.createAudioFormat("audio/mp4a-latm", 48_000, 2);
+            sound.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectHE);
+            sound.setLong(MediaFormat.KEY_DURATION, 64_800_000L);
+            MediaDownload.policyForTests = describing(names, picture, sound);
+            run(MediaDownload.fileJob(context, origin + "/known.mp4", Downloader.Kind.VIDEO));
+
+            MediaFormat bare = new MediaFormat();
+            bare.setString(MediaFormat.KEY_MIME, "video/av01");
+            MediaDownload.policyForTests = describing(names, bare);
+            run(MediaDownload.fileJob(context, origin + "/bare.mp4", Downloader.Kind.VIDEO));
+        } finally {
+            MediaDownload.policyForTests = null;
+            ShadowMediaExtractor.reset();
+        }
+
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("the saved file holds video/avc profile High (8) 1280x720 64.81 s, "
+                + "audio/mp4a-latm AAC object type 5 (HE-AAC) 48000 Hz 2 ch 64.80 s\n"));
+        assertTrue(report, report.contains("the saved file holds video/av01 profile unknown size unknown duration unknown\n"));
+        assertEquals(report, 2, names.size());
+        for (String name : names) assertFalse(report, report.contains(name));
+        assertFalse(report, report.contains(context.getCacheDir().getPath()));
+        assertFalse(report, report.contains("127.0.0.1"));
+        assertFalse(report, report.contains("http"));
+    }
+
+    /**
+     * A saved file whose sound declares AAC object type 42 is named xHE-AAC, as the S22's 1080p
+     * AV1 reel was on 2026-09-28: the codec some players can't play (#14).
+     */
+    @Test
+    public void aSavedFileWithXheAacSoundSaysSo() throws Exception {
+        MediaSaveTest.Gallery gallery = Robolectric.setupContentProvider(MediaSaveTest.Gallery.class, MediaStore.AUTHORITY);
+        Shadows.shadowOf(context.getContentResolver()).registerOutputStream(gallery.videoUri(1),
+                new ByteArrayOutputStream());
+        server.serve("/xhe.mp4", 200, "video/mp4", mp4(4096), 4096);
+        try {
+            MediaFormat picture = MediaFormat.createVideoFormat("video/av01", 1080, 1920);
+            picture.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AV1ProfileMain8);
+            MediaFormat sound = MediaFormat.createAudioFormat("audio/mp4a-latm", 44_100, 2);
+            sound.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectXHE);
+            sound.setLong(MediaFormat.KEY_DURATION, 19_390_000L);
+            MediaDownload.policyForTests = describing(new ArrayList<>(), picture, sound);
+            run(MediaDownload.fileJob(context, origin + "/xhe.mp4", Downloader.Kind.VIDEO));
+        } finally {
+            MediaDownload.policyForTests = null;
+            ShadowMediaExtractor.reset();
+        }
+
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("the saved file holds video/av01 profile Main 8-bit (1) 1080x1920 "
+                + "duration unknown, audio/mp4a-latm AAC object type 42 (xHE-AAC) 44100 Hz 2 ch 19.39 s\n"));
     }
 
     /** Counts and findings recorded before a clear come back with Undo, beside the ones since. */

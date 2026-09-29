@@ -2,6 +2,9 @@
 .SYNOPSIS
     Builds the Pixiv Morphe .mpp patch bundle locally and offline.
 #>
+param(
+    [string]$Version = ""
+)
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = $PSScriptRoot
@@ -72,8 +75,10 @@ Write-Host "[2/5] Compiling extension Kotlin sources..." -ForegroundColor Yellow
 $ExtSrcFiles = Get-ChildItem -Path "$RepoRoot\extensions\pixiv\src\main\kotlin" -Filter "*.kt" -Recurse -File
 if ($ExtSrcFiles.Count -gt 0) {
     & $Kotlinc ($ExtSrcFiles | ForEach-Object { $_.FullName }) -cp $AndroidJar -d $ExtClasses.FullName
+    if ($LASTEXITCODE -ne 0) { throw "kotlinc failed to compile extension sources." }
     $ExtClassFiles = (Get-ChildItem -Path $ExtClasses.FullName -Filter "*.class" -Recurse -File | ForEach-Object { $_.FullName })
     & $D8Bat --lib $AndroidJar --output $ExtDex.FullName $ExtClassFiles $KotlinStdlib
+    if ($LASTEXITCODE -ne 0) { throw "d8 failed to dex extension classes." }
     Copy-Item "$($ExtDex.FullName)\classes.dex" "$($StagingExt.FullName)\pixiv.mpe" -Force
 }
 
@@ -83,8 +88,10 @@ $PatchSrcFiles = Get-ChildItem -Path "$RepoRoot\patches\src\main\kotlin" -Filter
 if ($PatchSrcFiles.Count -eq 0) { throw "No patch sources found in patches\src\main\kotlin" }
 
 & $Kotlinc -jvm-target 11 ($PatchSrcFiles | ForEach-Object { $_.FullName }) -cp $MorpheCli -d $PatchClasses.FullName
+if ($LASTEXITCODE -ne 0) { throw "kotlinc failed to compile patch sources." }
 $PatchClassFiles = (Get-ChildItem -Path $PatchClasses.FullName -Filter "*.class" -Recurse -File | ForEach-Object { $_.FullName })
 & $D8Bat --lib $AndroidJar --output $PatchDex.FullName $PatchClassFiles
+if ($LASTEXITCODE -ne 0) { throw "d8 failed to dex patch classes." }
 
 Copy-Item "$($PatchDex.FullName)\classes.dex" "$BuildDir\staging\classes.dex" -Force
 Copy-Item "$($PatchClasses.FullName)\*" "$BuildDir\staging\" -Recurse -Force
@@ -92,11 +99,13 @@ Copy-Item "$($PatchClasses.FullName)\*" "$BuildDir\staging\" -Recurse -Force
 # 6. Manifest & Bundle
 Write-Host "[4/5] Packaging .mpp bundle..." -ForegroundColor Yellow
 $PatchesGradle = Join-Path $RepoRoot "patches\build.gradle.kts"
-$PatchesVersion = "1.0.2"
-if (Test-Path $PatchesGradle) {
-    $verMatch = Select-String -Path $PatchesGradle -Pattern 'version\s*=\s*"([^"]+)"'
-    if ($verMatch -and $verMatch.Matches[0].Groups[1].Value) {
-        $PatchesVersion = $verMatch.Matches[0].Groups[1].Value
+$PatchesVersion = "1.3.0"
+if ($Version) {
+    $PatchesVersion = $Version
+} elseif (Test-Path $PatchesGradle) {
+    $gradleContent = Get-Content $PatchesGradle -Raw
+    if ($gradleContent -match '"(\d+\.\d+\.\d+)"') {
+        $PatchesVersion = $Matches[1]
     }
 }
 
@@ -118,7 +127,6 @@ if (Test-Path $OutputMpp) { Remove-Item $OutputMpp -Force }
 
 & jar cvfm $OutputMpp "$StagingMeta\MANIFEST.MF" -C "$BuildDir\staging" .
 Copy-Item $OutputMpp "$RepoRoot\pixiv-patches.mpp" -Force
-Copy-Item $OutputMpp "$RepoRoot\patches\build\libs\pixiv-patches-1.0.0.mpp" -Force
 Copy-Item $OutputMpp "$RepoRoot\patches-$PatchesVersion.mpp" -Force
 
 # 7. Verification

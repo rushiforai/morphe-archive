@@ -76,6 +76,9 @@ public final class PausePlayback {
     private static android.view.ViewTreeObserver.OnGlobalLayoutListener feedWatcher;
     private static WeakReference<ViewGroup> watchedRootReference = new WeakReference<>(null);
     private static boolean installed;
+    /** TikTok's screens that are started, weakly: the app is away once the last one stops. */
+    private static final java.util.Set<Activity> STARTED =
+            java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
 
     /**
      * True once the app has been away. A resume that follows no pause is a dialog closing over
@@ -253,6 +256,8 @@ public final class PausePlayback {
             Application application = activity.getApplication();
             if (application == null) return;
             installed = true;
+            // Called from onCreate, ahead of this activity's own start, which adds it again.
+            STARTED.add(activity);
             // The activity that shows the feed. These callbacks come for every activity in the
             // process, and a screen of TikTok's own that covered the feed (messages, a web page,
             // Hushfeed's settings) pauses on the way back with the feed's player already stopped.
@@ -278,14 +283,23 @@ public final class PausePlayback {
                         @Override public void onActivityPaused(Activity paused) {
                         }
 
+                        // Gone only when the last of TikTok's screens stops. Coming back from
+                        // messages or Hushfeed's settings resumes the feed first and stops the
+                        // other screen after, and taking that stop for leaving froze the hold's
+                        // countdown and gated the feed behind a tap nobody had left for.
                         @Override public void onActivityStopped(Activity stopped) {
-                            onBackground();
+                            if (STARTED.remove(stopped) && STARTED.isEmpty()) onBackground();
+                            // The feed going behind another of TikTok's screens still lets go of
+                            // what it held for the comments: kept, it paused whatever played on
+                            // the screen in front, a video opened from a hashtag in the sheet.
+                            else if (stopped.getClass() == feed) letGo();
                         }
 
                         @Override public void onActivityCreated(Activity created, Bundle state) {
                         }
 
                         @Override public void onActivityStarted(Activity started) {
+                            STARTED.add(started);
                         }
 
                         @Override public void onActivitySaveInstanceState(
@@ -469,6 +483,9 @@ public final class PausePlayback {
     private static void quieten() {
         SessionPlaybackHold.pauseForSwitch();
         if (quietened) return;
+        // A muted feed holds no focus to take away, so the request would only pause the music
+        // another app is playing under it, which is what Mute feed videos lets through.
+        if (FeedMute.isHoldingFocus()) return;
         AudioManager audio = audioManager();
         if (audio == null) return;
         try {
@@ -521,6 +538,10 @@ public final class PausePlayback {
         return quietened;
     }
 
+    static void quietenForTests() {
+        quieten();
+    }
+
     static View catcherForTests() {
         return catcherReference.get();
     }
@@ -531,6 +552,7 @@ public final class PausePlayback {
         SessionPlaybackHold.releaseForSwitch(false);
         quietened = false;
         installed = false;
+        STARTED.clear();
         wasAway = false;
         sheetReference = new WeakReference<>(null);
         MAIN.removeCallbacks(PANEL_CHECK);
@@ -544,5 +566,9 @@ public final class PausePlayback {
 
     static void setWasAwayForTests(boolean away) {
         wasAway = away;
+    }
+
+    static boolean wasAwayForTests() {
+        return wasAway;
     }
 }

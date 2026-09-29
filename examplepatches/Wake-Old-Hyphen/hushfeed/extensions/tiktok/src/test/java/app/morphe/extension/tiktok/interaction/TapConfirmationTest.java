@@ -259,6 +259,28 @@ public class TapConfirmationTest {
         }
     }
 
+    /**
+     * With no playing video to name, a second tap had nothing to match and the like or follow
+     * could never go through. It goes through at once, as a repost does.
+     */
+    @Test public void aLikeOrFollowWithNoVideoToNameGoesThrough() throws Exception {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            Utils.setContext(controller.get());
+            Settings.CONFIRM_LIKE.save(true);
+            Settings.CONFIRM_FOLLOW.save(true);
+            var reset = app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor.class
+                    .getDeclaredMethod("resetForTests");
+            reset.setAccessible(true);
+            reset.invoke(null);
+            android.view.View button = new android.view.View(controller.get());
+            assertTrue("a like with no video to name was held", TapConfirmation.like(button));
+            assertTrue("a follow with no video to name was held", TapConfirmation.follow(button));
+        } finally {
+            Settings.CONFIRM_LIKE.resetToDefault();
+            Settings.CONFIRM_FOLLOW.resetToDefault();
+        }
+    }
+
     @Test public void theRingContrastsOnAnyFillAndArmPerformsAHaptic() throws Exception {
         try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
             Utils.setContext(controller.get());

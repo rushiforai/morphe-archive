@@ -1,3 +1,11 @@
+## [1.34.0](https://github.com/hxreborn/morphe-patches/compare/v1.33.0...v1.34.0) (2026-09-28)
+
+### New Features
+
+* **BlurWall:** unlock premium, add AMOLED theme and disable tracking ([2962191](https://github.com/hxreborn/morphe-patches/commit/2962191b1f8a3e012a7e54bd2924e3a428cb4d62)), closes [#78](https://github.com/hxreborn/morphe-patches/issues/78)
+* **Proton Pass - Hide upgrade promotions:** hide attachments card on free plans ([f070b39](https://github.com/hxreborn/morphe-patches/commit/f070b39b0601ad5ba8e190f3b620b73a179b21be)), closes [#88](https://github.com/hxreborn/morphe-patches/issues/88)
+* **Proton VPN - Hide upgrade promotions:** hide account settings upgrade card ([7da5ec1](https://github.com/hxreborn/morphe-patches/commit/7da5ec199145d3eb0d3b2d62ea22d579a277feff)), closes [#99](https://github.com/hxreborn/morphe-patches/issues/99)
+
 ## [1.33.0](https://github.com/hxreborn/morphe-patches/compare/v1.32.0...v1.33.0) (2026-09-27)
 
 ### Bug Fixes

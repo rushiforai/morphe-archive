@@ -20,7 +20,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.morphe.extension.shared.Logger;
@@ -105,18 +107,28 @@ public final class HushfacebookPause {
     }
 
     /**
-     * Turns safe mode, the Pause switch and the marker file off, and starts the crash count
-     * again. The change applies from the next start.
+     * Turns the marker file, safe mode and the Pause switch off, and starts the crash count again.
+     * The change applies from the next start. The two switches go in one commit and only once the
+     * marker is gone, so a step that fails leaves the pause the person had rather than part of it.
+     * The crash count is reset last: one that can't be only lets safe mode count on from where it was.
      *
-     * @return false when the marker file is still there and could not be removed.
+     * @return why the next start still runs paused, read back from what was kept; NONE when it won't.
      */
-    public static boolean turnBackOn(Context context) {
-        BaseSettings.SAFE_MODE.save(false);
-        BaseSettings.PAUSED.save(false);
-        File dir = filesDir != null ? filesDir : context.getFilesDir();
-        write(new File(dir, CRASH_STREAK_NAME), "0");
+    public static Reason turnBackOn(Context context) {
         File marker = markerFile(context);
-        return marker == null || !marker.exists() || marker.delete();
+        if (marker == null || !marker.exists() || marker.delete()) {
+            Map<Setting<?>, Object> on = new HashMap<>();
+            on.put(BaseSettings.SAFE_MODE, false);
+            on.put(BaseSettings.PAUSED, false);
+            try {
+                Setting.saveAll(on);
+                File dir = filesDir != null ? filesDir : context.getFilesDir();
+                write(new File(dir, CRASH_STREAK_NAME), "0");
+            } catch (IOException | RuntimeException failure) {
+                Logger.printException(() -> "Hushfacebook pause: could not turn back on", failure);
+            }
+        }
+        return decide(context);
     }
 
     /** The marker that pauses Hushfacebook from outside the app, or null when there is no storage. */

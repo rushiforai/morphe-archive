@@ -36,7 +36,7 @@ import java.util.Locale;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
-import app.morphe.extension.shared.ui.CustomDialog;
+import hoodles.morphe.extension.shared.ui.CustomDialog;
 import hoodles.morphe.extension.shared.requests.Requester;
 import hoodles.morphe.extension.shared.requests.Route;
 

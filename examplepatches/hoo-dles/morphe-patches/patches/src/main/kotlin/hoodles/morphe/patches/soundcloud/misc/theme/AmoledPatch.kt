@@ -9,7 +9,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.util.addInstructionsToEnd
 import app.morphe.util.findElementByAttributeValue
-import hoodles.morphe.patches.soundcloud.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import org.w3c.dom.Element
 
 private val bottomBarPatch = bytecodePatch {
@@ -27,7 +27,7 @@ val amoledPatch = resourcePatch(
     description = "Changes the default dark theme to use true blacks for AMOLED screens.",
     default = false
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.SOUNDCLOUD)
 
     dependsOn(bottomBarPatch)
 

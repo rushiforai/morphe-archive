@@ -22,13 +22,11 @@ import app.morphe.extension.shared.settings.StringSetting;
 /**
  * The switches behind the hooks that ask before they act.
  *
- * <p>All but five of them are on by default. Picking a patch in Morphe Manager is the choice to use
- * it, and the switch is the way to turn it off again without patching a second time. The two GenAI
- * switches start off until each rule has been checked on a signed-in feed, the release check
- * starts off because it's the only request Hushfacebook makes for itself, saves other apps can
- * open start off because they can come out below the sharpest version, and the word filter starts
- * off because it has nothing to hide by until someone lists words. While Hushfacebook is
- * paused, or in safe mode after three crashed starts, each switch answers off and the hook behind
+ * <p>A switch's default is the second argument of its {@link BooleanSetting}. Picking a patch in
+ * Morphe Manager is the choice to use it, and the switch is the way to turn it off again without
+ * patching a second time. While Hushfacebook is paused, safe mode included
+ * ({@link app.morphe.extension.shared.settings.HushfacebookPause}), a switch answers off unless
+ * {@link app.morphe.extension.shared.settings.Setting#keepWhenPaused} marks it, and the hook behind
  * it takes Facebook's own path.
  */
 @SuppressWarnings("unused")
@@ -92,6 +90,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BLOCK_RETURN_REFRESH =
             new BooleanSetting("hushfacebook_block_return_refresh", TRUE);
 
+    /** With the switch above, keep the feed however long Facebook stayed in the background (#23). */
+    public static final BooleanSetting RETURN_REFRESH_NO_LIMIT =
+            new BooleanSetting("hushfacebook_return_refresh_no_limit", FALSE);
+
     /**
      * Feed posts Facebook's own detection marked as made with AI. Off until one AI-labeled and one
      * ordinary post have been recorded on a signed-in feed and the rule told them apart.
@@ -154,6 +156,14 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BLOCK_STORY_AUTO_ADVANCE =
             new BooleanSetting("hushfacebook_block_story_auto_advance", TRUE);
 
+    /**
+     * The batches of viewed story cards the story viewer sends as DirectSeenMutation, which put you
+     * on each story's viewer list. Held back, replies and reactions still show you, and stories you
+     * viewed keep their unwatched ring.
+     */
+    public static final BooleanSetting VIEW_STORIES_ANONYMOUSLY =
+            new BooleanSetting("hushfacebook_view_stories_anonymously", TRUE);
+
     /** The two page filters that take server-inlined ads out of Reels and Watch. */
     public static final BooleanSetting HIDE_SPONSORED_REELS =
             new BooleanSetting("hushfacebook_hide_sponsored_reels", TRUE);
@@ -205,6 +215,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_dont_send_reel_watch_history", TRUE);
 
     /**
+     * A double tap on a reel or a video left without Facebook's like: no heart, no like sent. A
+     * single tap and the Like button do what they always did. On once the patch is picked, since
+     * picking it is the choice.
+     */
+    public static final BooleanSetting TURN_OFF_DOUBLE_TAP_LIKE =
+            new BooleanSetting("hushfacebook_turn_off_double_tap_like", TRUE);
+
+    /**
      * Comment sheets ask for the order in {@link #COMMENT_ORDER} where Facebook's servers would
      * choose one, and an order picked in a post's comments stays for that post until Facebook
      * restarts ({@link app.morphe.extension.facebook.comments.DefaultCommentOrder}). A request that
@@ -237,7 +255,8 @@ public class Settings extends BaseSettings {
      * A video longer than two minutes that was left partway picks up where it was left, once, the
      * next time a player starts it ({@link app.morphe.extension.facebook.media.ResumePlayback}).
      * Starts off. Off or paused, nothing is saved or looked up and videos start as Facebook starts
-     * them; the points already saved stay until they're 30 days old.
+     * them; the points already saved stay until they're 30 days old, and Facebook's start drops
+     * them after that either way.
      */
     public static final BooleanSetting RESUME_LONG_VIDEOS =
             new BooleanSetting("hushfacebook_resume_long_videos", FALSE);
@@ -282,6 +301,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_GET_MESSENGER_CARD =
             new BooleanSetting("hushfacebook_hide_get_messenger_card", TRUE);
+
+    /**
+     * A tap on the Messenger icon at the top of Facebook opens the Messenger app, while it's
+     * installed, instead of Facebook's own Chats. Starts off. Without Messenger, Chats opens as it
+     * always did.
+     */
+    public static final BooleanSetting OPEN_MESSENGER_APP =
+            new BooleanSetting("hushfacebook_open_messenger_app", FALSE);
 
     /**
      * The Upgrades section of Facebook's Menu, the group Facebook types UPSELL, with its offers.

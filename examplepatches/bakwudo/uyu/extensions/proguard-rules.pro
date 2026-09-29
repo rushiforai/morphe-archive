@@ -5,4 +5,4 @@
 
 # Extension classes are merged into the Twitch app's dex and reached only from patched code.
 # Extensions are written in Java, so no Kotlin runtime classes are kept or merged.
--keep class io.github.trivisa_itihasa.uyu.extension.** { *; }
+-keep class io.github.bakwudo.uyu.extension.** { *; }

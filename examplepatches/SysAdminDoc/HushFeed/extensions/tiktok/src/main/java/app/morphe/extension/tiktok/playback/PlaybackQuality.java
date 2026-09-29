@@ -190,10 +190,21 @@ public final class PlaybackQuality {
     }
 
     /**
-     * One line per distinct choice: the mode, the gear it settled on and the gears it had.
+     * One line per kind of choice: the mode, the gear it settled on and the gears it had.
      * That is the line the device check reads to prove "lowest" is the smallest offered.
+     *
+     * <p>A kind is the mode, the source, the ladder of sizes offered and the size picked. Gear
+     * names and bitrates differ on nearly every video, and keyed by them the lines filled the
+     * event buffer: an export of 2026-09-27 (#21) was almost nothing else. The first line of
+     * each kind keeps the names. The set starts over once it holds {@link #MAX_CHOICES} kinds,
+     * so a quality mode switched late in a long session still writes the line that proves it.
      */
     private static void describeChoice(String owner, String member, String mode, List<?> offered, Object selected) {
+        java.util.TreeSet<Integer> ladder = new java.util.TreeSet<>();
+        for (Object gear : offered) ladder.add(QualitySelector.heightOf(gear));
+        String kind = mode + '|' + owner + '#' + member + '|' + ladder + '|' + QualitySelector.heightOf(selected);
+        if (CHOICES.size() >= MAX_CHOICES) CHOICES.clear();
+        if (!CHOICES.add(kind)) return;
         StringBuilder gears = new StringBuilder();
         for (Object gear : offered) {
             if (gears.length() > 0) gears.append(", ");
@@ -201,8 +212,6 @@ public final class PlaybackQuality {
         }
         String line = "Playback quality " + mode + " picked " + QualitySelector.describe(selected)
                 + " of " + offered.size() + " gears from " + owner + '#' + member + ": " + gears;
-        if (CHOICES.size() >= MAX_CHOICES) CHOICES.clear();
-        if (!CHOICES.add(line)) return;
         Logger.printInfo(() -> line);
     }
 

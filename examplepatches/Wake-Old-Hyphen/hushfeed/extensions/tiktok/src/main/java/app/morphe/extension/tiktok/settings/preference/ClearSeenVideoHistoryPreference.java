@@ -26,29 +26,52 @@ public final class ClearSeenVideoHistoryPreference extends Preference
     static final String UNDO_TITLE = "Undo clearing seen videos";
     static final String NOT_READY = "Still reading the record. Tap again in a moment.";
     static final String FAILED = "Couldn't undo the clear. Try again.";
+    private static final java.util.List<java.lang.ref.WeakReference<ClearSeenVideoHistoryPreference>> ROWS =
+            new java.util.concurrent.CopyOnWriteArrayList<>();
 
     public ClearSeenVideoHistoryPreference(Context context) {
         super(context);
         setKey("action_clear_seen_video_history");
         applyState(SeenVideoHistory.canUndo());
+        ROWS.add(new java.lang.ref.WeakReference<>(this));
 
         setOnPreferenceClickListener(preference -> {
+            if (SeenVideoHistory.isClearing()) return true;
             if (SeenVideoHistory.canUndo()) {
                 undoClear(context);
                 return true;
             }
 
-            SeenVideoHistory.clear();
-            applyState(true);
-            SettingsActionBanner.showUndo(context, L10n.t(context,
-                            "Seen videos cleared. You can undo until TikTok closes."),
-                    () -> undoClear(context));
+            SeenVideoHistory.clear(result -> {
+                refreshRows();
+                if (result == SeenVideoHistory.ClearResult.CLEARED) {
+                    SettingsActionBanner.showUndo(context, L10n.t(context,
+                                    "Seen videos cleared. You can undo until TikTok closes."),
+                            () -> undoClear(context));
+                } else if (result == SeenVideoHistory.ClearResult.FAILED) {
+                    SettingsActionBanner.showNotice(context, L10n.t(context,
+                            "Couldn't clear seen videos. Try again."));
+                }
+            });
+            refreshRows();
             return true;
         });
     }
 
+    private static void refreshRows() {
+        for (java.lang.ref.WeakReference<ClearSeenVideoHistoryPreference> held : ROWS) {
+            ClearSeenVideoHistoryPreference row = held.get();
+            if (row == null) ROWS.remove(held);
+            else row.applyState(SeenVideoHistory.canUndo());
+        }
+    }
+
     private void undoClear(Context context) {
         SeenVideoHistory.undoClear(result -> {
+            if (result == SeenVideoHistory.UndoResult.SUPERSEDED) {
+                refreshRows();
+                return;
+            }
             String message;
             if (result == SeenVideoHistory.UndoResult.RESTORED) {
                 message = "Seen videos put back";
@@ -56,19 +79,22 @@ public final class ClearSeenVideoHistoryPreference extends Preference
                 message = FAILED;
             } else if (result == SeenVideoHistory.UndoResult.EMPTY) {
                 message = "There was nothing to put back";
-            } else if (result == SeenVideoHistory.UndoResult.SUPERSEDED) {
-                message = "A newer clear replaced that undo. Tap the row again to undo.";
             } else {
                 message = NOT_READY;
             }
             SettingsActionBanner.showNotice(context, L10n.t(context, message));
-            boolean restored = result == SeenVideoHistory.UndoResult.RESTORED
-                    || result == SeenVideoHistory.UndoResult.EMPTY;
-            applyState(!restored);
+            refreshRows();
         });
     }
 
     private void applyState(boolean canUndo) {
+        boolean clearing = SeenVideoHistory.isClearing();
+        setEnabled(!clearing);
+        if (clearing) {
+            setTitle(CLEAR_TITLE);
+            setSummary("Clearing seen videos");
+            return;
+        }
         if (canUndo) {
             setTitle(UNDO_TITLE);
             setSummary("Cleared. Tap to undo before TikTok closes.");
@@ -92,6 +118,7 @@ public final class ClearSeenVideoHistoryPreference extends Preference
 
     @Override
     protected void onBindView(View view) {
+        applyState(SeenVideoHistory.canUndo());
         super.onBindView(view);
         SettingsUi.styleTitleAndSummary(view);
     }

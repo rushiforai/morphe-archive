@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import java.io.File
@@ -36,7 +37,9 @@ import org.w3c.dom.Node
  *
  * The patch renames two names and routes three literals. That's only enough if the build declares
  * nothing else another Meta app could declare, and names the two nowhere the routing can't reach,
- * such as a static field's value or another spelling. Both are pinned here, build by build.
+ * such as a static field's value or another spelling. Both are pinned here, build by build. So is
+ * the same for a copy renamed with Morphe's Clone app, which has to install and start beside the
+ * Facebook it was cloned from.
  */
 class SharedPermissionsFixtureTest {
     private val android = "http://schemas.android.com/apk/res/android"
@@ -200,5 +203,133 @@ class SharedPermissionsFixtureTest {
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * Each declared build as Morphe's Clone app leaves it after the default patches, with each of
+     * its two options on and off, then followed by this bundle: nothing names a permission only the
+     * stock app declares, and no authority is one the stock app claims. Two things the runtime half
+     * takes for granted are pinned too: every authority is under Facebook's package, which is what
+     * the extension moves, and every process is named after the package, which is how it learns
+     * the clone's name before Facebook has a context.
+     */
+    @Test
+    fun eachDeclaredBuildClonedWithEitherOptionIsSelfConsistent() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val clone = "$FACEBOOK.morphe"
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val xml = manifestOf(bundle)
+                val stock = documentOf(xml.duplicate()).apply { renameSharedPermissions() }
+                val stockDeclared = stock.elements("permission").map { it.getAttribute("android:name") }.toSet()
+                val stockAuthorities = stock.ownAuthorities(FACEBOOK)
+                assertEquals("${bundle.name}: authorities outside $FACEBOOK", emptyList<String>(),
+                    stock.authorities().filterNot { it.trim() in stockAuthorities })
+                assertTrue("${bundle.name}: the dedup provider", "$FACEBOOK.ClientMessagePushDedupInfoProvider" in stockAuthorities)
+                assertEquals("${bundle.name}: processes not named after the package", emptyList<String>(),
+                    stock.elements("*").map { it.getAttribute("android:process") }.filter { it.isNotEmpty() && !it.startsWith(":") })
+
+                for (permissions in listOf(true, false)) {
+                    for (providers in listOf(true, false)) {
+                        val where = "${bundle.name}, Update permissions $permissions, Update providers $providers"
+                        val document = documentOf(xml.duplicate())
+                        document.renameSharedPermissions()
+                        document.cloneApp(clone, permissions, providers)
+
+                        document.followRenamedPackage(FACEBOOK, stockAuthorities)
+
+                        val declared = document.elements("permission").map { it.getAttribute("android:name") }.toSet()
+                        val strays = document.elements("*").flatMap { element ->
+                            (0 until element.attributes.length).map { element.attributes.item(it) as Attr }
+                                .filterNot { element.tagName == "permission" && it.name == "android:name" }
+                                .filter { it.value in stockDeclared && it.value !in declared }
+                                .map { "<${element.tagName}> ${element.getAttribute("android:name")} ${it.name}=${it.value}" }
+                        }
+                        assertEquals("$where: mentions of a permission only the stock app declares", emptyList<String>(), strays)
+                        assertEquals("$where: authorities the stock app claims", emptyList<String>(),
+                            document.authorities().filter { it.trim() in stockAuthorities })
+                    }
+                }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /**
+     * Facebook's code spells some of its own authorities out, and a clone's code would reach the
+     * stock app's providers through them. Every one is a load the routing reaches: a method loads
+     * it with const-string, no field keeps one, and no other string names one.
+     */
+    @Test
+    fun eachDeclaredBuildsOwnAuthoritiesAreLoadsTheRoutingReaches() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val authorities = documentOf(manifestOf(bundle)).ownAuthorities(FACEBOOK)
+                fun Instruction.authority() = ((this as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string?.ownAuthority(authorities)
+                val literals = sortedSetOf<String>()
+                val elsewhere = sortedSetOf<String>()
+                val fields = mutableListOf<String>()
+                val callers = mutableListOf<ClassDef>()
+                FixtureDex.forEach(bundle) { dex ->
+                    val strings = dex.stringSection.filter { text -> authorities.any { text.contains(it) } }
+                    strings.filterTo(literals) { it.ownAuthority(authorities) != null }
+                    strings.filterTo(elsewhere) { it.ownAuthority(authorities) == null }
+                    if (strings.none { it.ownAuthority(authorities) != null }) return@forEach
+                    for (classDef in dex.classes) {
+                        classDef.staticFields
+                            .filter { (it.initialValue as? StringEncodedValue)?.value?.ownAuthority(authorities) != null }
+                            .forEach { fields += "${classDef.type}->${it.name}" }
+                        if (classDef.methods.any { method -> method.instructions().any { it.authority() != null } }) {
+                            callers += ImmutableClassDef.of(classDef)
+                        }
+                    }
+                }
+
+                assertTrue("${bundle.name}: the stock dedup address a clone deleted through",
+                    "content://$FACEBOOK.ClientMessagePushDedupInfoProvider/mutestatus" in literals)
+                assertEquals("${bundle.name}: fields holding an authority", emptyList<String>(), fields)
+                assertEquals("${bundle.name}: other strings naming an authority", emptySet<String>(), elsewhere)
+                val context = PatchContexts.of(callers)
+                assertEquals("${bundle.name}: loads routed", AUTHORITY_LOADS.getValue(version),
+                    context.routeOwnAuthorities(FACEBOOK, authorities))
+                for (before in callers) {
+                    val after = context.mutableClassDefBy(before.type).methods
+                    for (original in before.methods) {
+                        val was = original.instructions()
+                        val loads = was.count { it.authority() != null }
+                        if (loads == 0) continue
+                        val where = "${bundle.name}: ${original.definingClass}->${original.name}"
+                        val now = after.single { it.sameSignatureAs(original) }.instructions()
+                        assertEquals("$where: two instructions per load", was.size + 2 * loads, now.size)
+                        now.withIndex().filter { it.value.authority() != null }.forEach { (index, load) ->
+                            val register = (load as OneRegisterInstruction).registerA
+                            val call = now[index + 1]
+                            assertEquals("$where at $index", AUTHORITY_CALL, (call as ReferenceInstruction).reference.toString())
+                            assertEquals("$where at $index: the call's register", register to 1,
+                                (call as RegisterRangeInstruction).startRegister to call.registerCount)
+                            assertEquals("$where at $index: the answer's register", register,
+                                (now[index + 2] as OneRegisterInstruction).registerA)
+                        }
+                    }
+                }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    private fun Document.authorities(): List<String> =
+        elements("provider").flatMap { it.getAttribute("android:authorities").split(';') }
+
+    private companion object {
+        const val FACEBOOK = AppCompatibilities.FACEBOOK_PACKAGE
+
+        /** Loads of an own authority per build, counted off the fixtures with a separate dex scan. */
+        val AUTHORITY_LOADS = mapOf("580.0.0.51.74" to 13, "577.0.0.50.72" to 13)
     }
 }

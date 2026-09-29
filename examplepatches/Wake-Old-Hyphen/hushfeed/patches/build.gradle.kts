@@ -1,6 +1,11 @@
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.file.Files
 import java.security.MessageDigest
+import java.util.Properties
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import java.util.jar.Manifest
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -15,10 +20,8 @@ import java.util.zip.ZipOutputStream
  * SOURCE_DATE_EPOCH when the environment sets one, otherwise to the commit being built,
  * otherwise to zero. Anything read from the clock would put the difference straight back.
  *
- * A tree with uncommitted changes builds something no commit holds, so it takes zero rather
- * than HEAD's time. With HEAD's time a bundle built dirty, its changes then stashed, carried
- * the stamp of a commit it wasn't built from, and the release receipt's clean-tree and stamp
- * checks both passed it.
+ * This is a reproducibility field, not a source identity. Release eligibility comes from the
+ * source snapshots captured before task execution and after the bundle has been produced.
  */
 val sourceDateEpoch: Long = run {
     providers.environmentVariable("SOURCE_DATE_EPOCH").orNull?.trim()?.toLongOrNull()?.let {
@@ -42,6 +45,153 @@ val sourceDateEpoch: Long = run {
     }
 }
 
+/** Build-time source facts. Failure to read Git or an input always makes the build ineligible. */
+object BundleSource {
+    data class Snapshot(val commit: String, val clean: Boolean, val fingerprint: String,
+                        val rawFingerprint: String)
+
+    fun git(root: File, vararg arguments: String, input: String? = null): String {
+        val process = ProcessBuilder(listOf("git", "-C", root.absolutePath) + arguments)
+        // A pre-push hook exports GIT_DIR. -C alone does not select the requested repository.
+        process.environment().keys.removeIf { it.startsWith("GIT_") }
+        process.redirectError(ProcessBuilder.Redirect.DISCARD)
+        val child = process.start()
+        val output = ByteArrayOutputStream()
+        val ioFailure = AtomicReference<Throwable>()
+        val reader = Thread {
+            try { child.inputStream.use { it.copyTo(output) } }
+            catch (failure: Throwable) { ioFailure.set(failure) }
+        }
+        reader.isDaemon = true
+        reader.start()
+        val writer = input?.let { text ->
+            Thread {
+                try { child.outputStream.use { it.write(text.toByteArray(Charsets.UTF_8)) } }
+                catch (failure: Throwable) { ioFailure.set(failure) }
+            }.apply { isDaemon = true; start() }
+        }
+        if (writer == null) child.outputStream.close()
+        if (!child.waitFor(30, TimeUnit.SECONDS)) {
+            child.destroyForcibly()
+            throw IllegalStateException("Git source inspection timed out")
+        }
+        reader.join(5_000)
+        writer?.join(5_000)
+        check(!reader.isAlive && writer?.isAlive != true && ioFailure.get() == null && child.exitValue() == 0) {
+            "Git source inspection failed"
+        }
+        return output.toString(Charsets.UTF_8)
+    }
+
+    fun capture(root: File, sourceDirectories: List<String> = listOf("src")): Snapshot {
+        var commit = "unknown"
+        val objectIdPattern = Regex("[0-9a-f]{40}")
+        return try {
+            check(File(git(root, "rev-parse", "--show-toplevel").trim()).canonicalFile == root.canonicalFile) {
+                "The source root is not the requested repository"
+            }
+            commit = git(root, "rev-parse", "HEAD").trim()
+            check(commit.matches(objectIdPattern)) { "No source commit" }
+            val cleanAtStart = git(root, "status", "--porcelain", "--untracked-files=all").isBlank()
+            val tracked = git(root, "ls-files", "-v", "-z").split('\u0000').filter { it.isNotEmpty() }
+            // Assume-unchanged and skip-worktree entries can hide edits from git status.
+            val visible = tracked.all { it.startsWith("H ") }
+            check(sourceDirectories.isNotEmpty() && sourceDirectories.all {
+                it.isNotBlank() && root.resolve(it).canonicalFile.toPath().startsWith(root.canonicalFile.toPath())
+            }) { "The configured source directories are unavailable or outside the checkout" }
+            // Git status omits these files, but the Java/Kotlin and Android source sets still read them.
+            val ignoredSources = git(root, "ls-files", "--others", "--ignored", "--exclude-standard", "-z",
+                "--", *sourceDirectories.toTypedArray()).split('\u0000').filter { it.isNotEmpty() }
+            val names = (git(root, "ls-files", "--cached", "--others", "--exclude-standard", "-z")
+                .split('\u0000').filter { it.isNotEmpty() } + ignoredSources).distinct().sorted()
+            check(names.isNotEmpty()) { "No readable source inputs" }
+            val rawDigest = MessageDigest.getInstance("SHA-256")
+            rawDigest.update(commit.toByteArray(Charsets.UTF_8))
+            for (name in names) {
+                val input = root.resolve(name)
+                check(input.isFile && input.canonicalFile.toPath().startsWith(root.canonicalFile.toPath())) {
+                    "A source input is missing or outside the checkout"
+                }
+                val contentDigest = MessageDigest.getInstance("SHA-256")
+                input.inputStream().use { stream ->
+                    val buffer = ByteArray(16_384)
+                    while (true) {
+                        val read = stream.read(buffer)
+                        if (read < 0) break
+                        contentDigest.update(buffer, 0, read)
+                    }
+                }
+                rawDigest.update(0.toByte())
+                rawDigest.update(name.toByteArray(Charsets.UTF_8))
+                rawDigest.update(0.toByte())
+                rawDigest.update(contentDigest.digest())
+            }
+            // Manifest identity uses Git's canonical content, including the committed EOL policy.
+            // Keep the raw digest private so any byte change during this build still rejects it.
+            val paths = names.joinToString("\n", postfix = "\n") { name ->
+                "\"" + name.replace("\\", "\\\\").replace("\"", "\\\"")
+                    .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + "\""
+            }
+            val objects = git(root, "hash-object", "--stdin-paths", input = paths)
+                .lineSequence().filter { it.isNotEmpty() }.toList()
+            check(objects.size == names.size && objects.all { it.matches(objectIdPattern) }) {
+                "Git could not normalize every source input"
+            }
+            val digest = MessageDigest.getInstance("SHA-256")
+            digest.update(commit.toByteArray(Charsets.UTF_8))
+            for ((name, objectId) in names.zip(objects)) {
+                digest.update(0.toByte())
+                digest.update(name.toByteArray(Charsets.UTF_8))
+                digest.update(0.toByte())
+                digest.update(objectId.toByteArray(Charsets.UTF_8))
+            }
+            val clean = cleanAtStart && visible && ignoredSources.isEmpty()
+                && git(root, "rev-parse", "HEAD").trim() == commit
+                && git(root, "status", "--porcelain", "--untracked-files=all").isBlank()
+            Snapshot(commit, clean, digest.digest().joinToString("") { "%02X".format(it) },
+                rawDigest.digest().joinToString("") { "%02X".format(it) })
+        } catch (_: Exception) {
+            Snapshot(commit, false, "unavailable", "unavailable")
+        }
+    }
+
+    fun manifestFacts(start: Snapshot, end: Snapshot): Map<String, String> {
+        val clean = start.clean && end.clean && start.commit == end.commit
+            && start.commit.matches(Regex("[0-9a-f]{40}"))
+            && start.fingerprint.matches(Regex("[0-9A-Fa-f]{64}"))
+            && start.fingerprint == end.fingerprint
+            && start.rawFingerprint.matches(Regex("[0-9A-Fa-f]{64}"))
+            && start.rawFingerprint == end.rawFingerprint
+        return mapOf(
+            "Hushfeed-Source-Commit" to start.commit,
+            "Hushfeed-Source-Clean" to clean.toString(),
+            "Hushfeed-Source-Start" to start.fingerprint,
+            "Hushfeed-Source-End" to end.fingerprint
+        )
+    }
+}
+
+abstract class CaptureBundleSource : DefaultTask() {
+    @get:Internal abstract val sourceRoot: DirectoryProperty
+    @get:Internal abstract val sourceDirectories: ListProperty<String>
+    @get:OutputFile abstract val snapshotFile: RegularFileProperty
+
+    init { outputs.upToDateWhen { false } }
+
+    @TaskAction fun capture() {
+        val source = BundleSource.capture(sourceRoot.get().asFile, sourceDirectories.get())
+        val output = snapshotFile.get().asFile
+        output.parentFile.mkdirs()
+        val facts = Properties()
+        facts.setProperty("commit", source.commit)
+        facts.setProperty("clean", source.clean.toString())
+        facts.setProperty("fingerprint", source.fingerprint)
+        facts.setProperty("rawFingerprint", source.rawFingerprint)
+        output.outputStream().use { facts.store(it, "Build source before compilation") }
+        if (!source.clean) logger.lifecycle("Bundle source is dirty or unreadable; a new release receipt will be refused.")
+    }
+}
+
 /**
  * Rewrites the bundle with the timestamp pinned, leaving everything else as it was.
  *
@@ -50,7 +200,7 @@ val sourceDateEpoch: Long = run {
  * what the plugin first wrote, which does not matter: what matters is that two runs of this
  * produce the same bytes, and they do, because nothing here reads a clock.
  */
-fun pinBundleTimestamp(bundle: File, epochSeconds: Long) {
+fun pinBundleTimestamp(bundle: File, epochSeconds: Long, sourceFacts: Map<String, String>) {
     val stampMillis = epochSeconds * 1000L
     val names = mutableListOf<String>()
     val contents = mutableMapOf<String, ByteArray>()
@@ -68,14 +218,15 @@ fun pinBundleTimestamp(bundle: File, epochSeconds: Long) {
     }
 
     val manifestName = "META-INF/MANIFEST.MF"
-    val manifest = contents[manifestName]
+    val manifestBytes = contents[manifestName]
         ?: throw GradleException("The bundle has no $manifestName: $bundle")
-    val pinned = String(manifest, Charsets.UTF_8)
-        .replace(Regex("(?m)^Timestamp: [0-9]+"), "Timestamp: $stampMillis")
-    if (!pinned.contains("Timestamp: $stampMillis")) {
+    val manifest = Manifest(manifestBytes.inputStream())
+    if (manifest.mainAttributes.getValue("Timestamp") == null) {
         throw GradleException("The bundle manifest has no Timestamp line to pin: $bundle")
     }
-    contents[manifestName] = pinned.toByteArray(Charsets.UTF_8)
+    manifest.mainAttributes.putValue("Timestamp", stampMillis.toString())
+    for ((name, value) in sourceFacts) manifest.mainAttributes.putValue(name, value)
+    contents[manifestName] = ByteArrayOutputStream().also { manifest.write(it) }.toByteArray()
 
     val rebuilt = ByteArrayOutputStream()
     ZipOutputStream(rebuilt).use { out ->
@@ -220,6 +371,7 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
 // has looked at. :patches:test is what scripts/pre-push.ps1 runs when a patch source changes.
 tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleBuildGraph)
+    dependsOn("verifySourceProvenance")
 }
 
 dependencies {
@@ -286,10 +438,124 @@ tasks {
     // test run did it again between the build and the index push. Nothing but buildAndroid
     // writes build/release. scripts/common.ps1 names the same path for every release script.
     val releaseBundleName = "patches-${project.version}.mpp"
+    val verifySourceProvenance = register("verifySourceProvenance") {
+        group = "verification"
+        description = "Checks source snapshots and manifest stamping against real temporary Git files"
+        val testDirectory = layout.buildDirectory.dir("source-provenance-tests")
+        doLast {
+            val boundary = testDirectory.get().asFile.canonicalFile
+            boundary.mkdirs()
+            val fixture = Files.createTempDirectory(boundary.toPath(), "source-").toFile()
+            try {
+                val unknown = BundleSource.capture(fixture)
+                check(!unknown.clean) { "A directory without its own Git repository was eligible" }
+                BundleSource.git(fixture, "init", "--quiet")
+                val input = fixture.resolve("input.txt")
+                input.writeText("original\n")
+                fixture.resolve(".gitattributes").writeText("* text=auto eol=lf\n")
+                BundleSource.git(fixture, "add", "input.txt", ".gitattributes")
+                fun commit() {
+                    BundleSource.git(fixture, "-c", "user.name=SysAdminDoc", "-c",
+                        "user.email=matt_parker@outlook.com", "-c", "commit.gpgsign=false",
+                        "commit", "--quiet", "-m", "Record source provenance fixture")
+                }
+                commit()
+                val clean = BundleSource.capture(fixture)
+                check(clean.clean) { "A clean committed source tree was ineligible" }
+                input.writeText("changed\n")
+                val dirty = BundleSource.capture(fixture)
+                check(!dirty.clean && dirty.fingerprint != clean.fingerprint) { "A changed source input was missed" }
+                input.writeText("original\n")
+                val restored = BundleSource.capture(fixture)
+                check(restored.clean && restored.fingerprint == clean.fingerprint) { "Restored bytes did not match" }
+                val extra = fixture.resolve("untracked.txt")
+                extra.writeText("untracked\n")
+                check(!BundleSource.capture(fixture).clean) { "An untracked input was treated as clean" }
+                check(extra.delete())
+                val sourceRegressions = mutableListOf<String>()
+                for (relative in listOf("src/main/java/Ignored.java", "src/main/resources/ignored.txt")) {
+                    fixture.resolve(".git/info/exclude").appendText("\n/$relative\n")
+                    val ignored = fixture.resolve(relative)
+                    ignored.parentFile.mkdirs()
+                    ignored.writeText(if (relative.endsWith(".java")) "class Ignored {}\n" else "ignored resource\n")
+                    try {
+                        if (BundleSource.capture(fixture).clean) sourceRegressions += "ignored $relative was eligible"
+                    } finally { check(ignored.delete()) }
+                }
+                input.writeText("original\r\n")
+                // Refresh Git's index using the committed normalization policy before checking it.
+                BundleSource.git(fixture, "add", "--renormalize", "--", "input.txt")
+                val crlf = BundleSource.capture(fixture)
+                check(crlf.clean) { "The CRLF control is not Git-equivalent to its LF commit" }
+                // checkout-index trusts matching index metadata, so remove this owned test input first.
+                check(input.delete()) { "Could not remove the fresh-checkout control input" }
+                BundleSource.git(fixture, "checkout-index", "--force", "--index", "--", "input.txt")
+                check(input.readBytes().contentEquals("original\n".toByteArray())) {
+                    "The fresh-checkout control did not apply the committed LF policy"
+                }
+                val fresh = BundleSource.capture(fixture)
+                check(fresh.clean) { "The fresh-checkout control is not clean" }
+                if (crlf.fingerprint != fresh.fingerprint) {
+                    sourceRegressions += "Git-equivalent line endings changed the source fingerprint"
+                }
+                if (BundleSource.manifestFacts(crlf, crlf) != BundleSource.manifestFacts(fresh, fresh)) {
+                    sourceRegressions += "a fresh checkout changed the manifest source facts"
+                }
+                check(BundleSource.manifestFacts(crlf, fresh)["Hushfeed-Source-Clean"] == "false") {
+                    "A byte change during one build must stay ineligible even when Git normalizes it"
+                }
+                check(sourceRegressions.isEmpty()) { sourceRegressions.joinToString("; ") }
+                for (flag in listOf("assume-unchanged", "skip-worktree")) {
+                    BundleSource.git(fixture, "update-index", "--$flag", "input.txt")
+                    input.writeText("hidden change\n")
+                    check(!BundleSource.capture(fixture).clean) { "A $flag input hid a source edit" }
+                    BundleSource.git(fixture, "update-index", "--no-$flag", "input.txt")
+                    input.writeText("original\n")
+                }
+                input.writeText("new committed input\n")
+                BundleSource.git(fixture, "add", "input.txt")
+                commit()
+                val moved = BundleSource.capture(fixture)
+                check(moved.clean && moved.commit != clean.commit) { "The source commit did not move" }
+                val cases = listOf(
+                    Triple(clean, clean, true), Triple(dirty, dirty, false),
+                    Triple(clean, dirty, false), Triple(clean, moved, false),
+                    Triple(unknown, clean, false)
+                )
+                for ((index, test) in cases.withIndex()) {
+                    val bundle = boundary.resolve("${fixture.name}-snapshot-$index.mpp")
+                    try {
+                        ZipOutputStream(bundle.outputStream()).use { zip ->
+                            zip.putNextEntry(ZipEntry("META-INF/MANIFEST.MF"))
+                            zip.write("Manifest-Version: 1.0\r\nTimestamp: 0\r\n\r\n".toByteArray())
+                            zip.closeEntry()
+                        }
+                        // Every case gets the same reproducible stamp, including dirty/restored.
+                        pinBundleTimestamp(bundle, 1_700_000_000L, BundleSource.manifestFacts(test.first, test.second))
+                        ZipFile(bundle).use { zip ->
+                            val manifest = zip.getInputStream(zip.getEntry("META-INF/MANIFEST.MF"))
+                                .use { Manifest(it).mainAttributes }
+                            check(manifest.getValue("Timestamp") == "1700000000000")
+                            check(manifest.getValue("Hushfeed-Source-Clean") == test.third.toString()) {
+                                "Source eligibility changed while stamping case $index"
+                            }
+                            check(manifest.getValue("Hushfeed-Source-Commit") == test.first.commit)
+                            check(manifest.getValue("Hushfeed-Source-Start") == test.first.fingerprint)
+                            check(manifest.getValue("Hushfeed-Source-End") == test.second.fingerprint)
+                        }
+                    } finally { check(bundle.delete()) { "Could not remove source test bundle" } }
+                }
+                logger.lifecycle("Source provenance: clean, dirty/restored, changed, hidden and unreadable input checks passed.")
+            } finally {
+                check(fixture.canonicalFile.parentFile == boundary) { "Source test directory escaped its build folder" }
+                check(fixture.deleteRecursively()) { "Could not remove source test repository" }
+            }
+        }
+    }
     val verifyBundle = register<JavaExec>("verifyBundle") {
         group = "verification"
         description = "Check the Android bundle and its published patch list without rebuilding it"
-        dependsOn(classes)
+        dependsOn(classes, verifySourceProvenance)
         classpath = sourceSets["main"].runtimeClasspath
         mainClass.set("app.morphe.util.BundleVerifier")
         args(
@@ -301,13 +567,41 @@ tasks {
             layout.buildDirectory.file("release/bundle.sha256").get().asFile.absolutePath
         )
     }
+    // Every configured module uses its standard src tree; generated build directories stay excluded.
+    val bundleSourceDirectories = rootProject.allprojects.map {
+        it.projectDir.resolve("src").relativeTo(rootProject.projectDir).invariantSeparatorsPath
+    }.distinct().sorted()
+    val captureSource = register<CaptureBundleSource>("captureBundleSource") {
+        sourceRoot.set(rootProject.layout.projectDirectory)
+        sourceDirectories.set(bundleSourceDirectories)
+        snapshotFile.set(layout.buildDirectory.file("source-provenance/start.properties"))
+    }
+    // A doFirst on buildAndroid is too late: its compiler dependencies have already run.
+    // Ordering does not add these tasks to the graph. Requested clean tasks precede the snapshot.
+    rootProject.allprojects {
+        val cleaning = tasks.matching { it is Delete || it.name == "clean" }
+        captureSource.configure { mustRunAfter(cleaning) }
+        tasks.configureEach {
+            if (path == ":patches:captureBundleSource") return@configureEach
+            if (this !is Delete && name != "clean") mustRunAfter(captureSource)
+        }
+    }
     named("buildAndroid") {
+        dependsOn(captureSource)
         // Resolved at configuration time. Reaching for project inside doLast is what the
         // configuration cache refuses, and Gradle 10 turns that refusal into an error.
         val bundleFile = layout.buildDirectory.file("libs/$releaseBundleName")
         val releaseDirectory = layout.buildDirectory.dir("release")
         val pinnedEpoch = sourceDateEpoch
+        val sourceRoot = rootProject.layout.projectDirectory.asFile
+        val sourceDirectories = bundleSourceDirectories
+        val startFile = layout.buildDirectory.file("source-provenance/start.properties")
         doLast {
+            val saved = Properties().apply { startFile.get().asFile.inputStream().use { load(it) } }
+            val start = BundleSource.Snapshot(saved.getProperty("commit", "unknown"),
+                saved.getProperty("clean") == "true", saved.getProperty("fingerprint", "unavailable"),
+                saved.getProperty("rawFingerprint", "unavailable"))
+            val end = BundleSource.capture(sourceRoot, sourceDirectories)
             // Emptied first, so the directory never holds a bundle of another version or a
             // checksum of another build: the release scripts take the one file they find.
             val directory = releaseDirectory.get().asFile
@@ -318,7 +612,7 @@ tasks {
             val releaseBundle = directory.resolve(releaseBundleName)
             bundleFile.get().asFile.copyTo(releaseBundle)
             // Before the checksum, so what is recorded is what a rebuild will produce.
-            pinBundleTimestamp(releaseBundle, pinnedEpoch)
+            pinBundleTimestamp(releaseBundle, pinnedEpoch, BundleSource.manifestFacts(start, end))
             // Record only at the producer boundary. Standalone verification must not
             // bless a modified bundle by generating its own expected checksum.
             val digest = MessageDigest.getInstance("SHA-256")

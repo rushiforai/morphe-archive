@@ -11,12 +11,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.SwitchPreference;
+import android.widget.TextView;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
@@ -37,8 +39,10 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
 
@@ -132,7 +136,7 @@ public class HushfacebookPreferenceFragmentTest {
             }
             assertTrue("Debug logging is drawn above the Pause row", indexOfKey(rows, BaseSettings.DEBUG.key) > pause);
             assertTrue(String.valueOf(rows.get(pause).getSummary()),
-                    String.valueOf(rows.get(pause).getSummary()).contains("Debug logging and patches applied during installation keep working"));
+                    String.valueOf(rows.get(pause).getSummary()).contains("every switch but Debug logging acts as if it were off. Changes made when you patched stay in"));
         }
     }
 
@@ -303,8 +307,10 @@ public class HushfacebookPreferenceFragmentTest {
 
     /**
      * The word filter's switch sits in News feed with its two lists under it. Each list keeps what
-     * the filter will read, whatever is typed, and a toast says how many lines were left out,
-     * never which. The rows are there only with the patch in the build.
+     * the filter will read, whatever is typed, and says how many lines were left out, never which.
+     * That's a dialog rather than a toast: Android 12 and later cut a toast to two lines, and the
+     * reasons run past that, most of all at a large text size. The rows are there only with the
+     * patch in the build.
      */
     @Test
     public void theWordRowsKeepCleanListsAndSayHowManyPhrasesTheyHold() {
@@ -323,6 +329,7 @@ public class HushfacebookPreferenceFragmentTest {
             assertFalse("the list's field is one line", hide.getEditText().getMaxLines() == 1);
 
             ShadowToast.reset();
+            ShadowAlertDialog.reset();
             Preference.OnPreferenceChangeListener ok = hide.getOnPreferenceChangeListener();
             assertFalse("a list with lines out of bounds was kept as typed",
                     ok.onPreferenceChange(hide, " spoiler \na\nSPOILER\ngiveaway now\n"));
@@ -330,20 +337,25 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals("spoiler\ngiveaway now", hide.getText());
             assertEquals("spoiler\ngiveaway now", Settings.HIDDEN_WORDS.savedValue());
             assertEquals("2 words or phrases.", String.valueOf(hide.getSummary()));
-            assertEquals("2 lines were left out. A phrase needs 2 to 60 characters, one given twice counts once, "
-                    + "and a list holds 50.", ShadowToast.getTextOfLatestToast());
+            assertLeftOut("Words to hide", "2 lines were left out. A phrase needs 2 to 60 characters, or just one "
+                    + "for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
+                    + "once, and a list holds 50.");
 
-            ShadowToast.reset();
+            ShadowAlertDialog.reset();
             assertTrue("a clean list was changed", ok.onPreferenceChange(hide, "spoiler"));
             assertFalse("only spaces around a phrase", ok.onPreferenceChange(hide, "spoiler  "));
             ShadowLooper.idleMainLooper();
-            assertNull("a list cleaned of spaces alone said something", ShadowToast.getTextOfLatestToast());
+            assertNull("a list cleaned of spaces alone said something", ShadowAlertDialog.getLatestAlertDialog());
+            assertNull(ShadowToast.getTextOfLatestToast());
             assertEquals("spoiler", Settings.HIDDEN_WORDS.savedValue());
 
             assertFalse(keep.getOnPreferenceChangeListener().onPreferenceChange(keep, "my team\nmy team"));
             ShadowLooper.idleMainLooper();
             assertEquals("my team", Settings.KEPT_WORDS.savedValue());
             assertEquals("1 word or phrase.", String.valueOf(keep.getSummary()));
+            assertLeftOut("Words that keep a post", "1 line was left out. A phrase needs 2 to 60 characters, or just "
+                    + "one for an emoji, a Chinese character, a kana or a Hangul syllable. One given twice counts "
+                    + "once, and a list holds 50.");
         }
 
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
@@ -352,6 +364,101 @@ public class HushfacebookPreferenceFragmentTest {
             assertEquals(-1, indexOfKey(rows, Settings.HIDDEN_WORDS.key));
             assertEquals(-1, indexOfKey(rows, Settings.HIDE_POSTS_WITH_WORDS.key));
         }
+    }
+
+    /**
+     * The dialog that says lines were left out: titled with its list, holding the whole message
+     * with nothing cut, and no toast beside it. OK closes it.
+     */
+    private static void assertLeftOut(String list, String message) {
+        AlertDialog shown = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("nothing said lines were left out", shown);
+        assertTrue(shown.isShowing());
+        assertEquals(list, String.valueOf(Shadows.shadowOf(shown).getTitle()));
+        TextView text = shown.findViewById(android.R.id.message);
+        assertEquals(message, String.valueOf(text.getText()));
+        assertEquals("the message is cut to a number of lines", Integer.MAX_VALUE, text.getMaxLines());
+        assertNull("the message is cut short", text.getEllipsize());
+        assertNull("a toast said it too", ShadowToast.getTextOfLatestToast());
+        shown.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        ShadowLooper.idleMainLooper();
+        assertFalse("OK left it open", shown.isShowing());
+    }
+
+    /**
+     * The page's own dialogs are drawn over its activity's window: the list of sections, Licenses
+     * and a word list's note. Open when the page went, on a rotation, Back or Facebook closing,
+     * they outlived that window, which Android reports as a leaked window, and the note went with it.
+     */
+    @Test
+    public void thePagesDialogsCloseWhenItsViewGoes() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.POST_WORDS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = rowsOf(controller);
+            List<AlertDialog> open = new ArrayList<>();
+            Preference jump = rows.get(indexOfKey(rows, "action_jump_to_section"));
+            jump.getOnPreferenceClickListener().onPreferenceClick(jump);
+            open.add(ShadowAlertDialog.getLatestAlertDialog());
+            Preference licenses = null;
+            for (Preference row : rows) if ("Licenses".contentEquals(row.getTitle())) licenses = row;
+            assertNotNull("no Licenses row", licenses);
+            licenses.getOnPreferenceClickListener().onPreferenceClick(licenses);
+            open.add(ShadowAlertDialog.getLatestAlertDialog());
+            Preference hide = rows.get(indexOfKey(rows, Settings.HIDDEN_WORDS.key));
+            assertFalse(hide.getOnPreferenceChangeListener().onPreferenceChange(hide, "a\nspoiler"));
+            ShadowLooper.idleMainLooper();
+            open.add(ShadowAlertDialog.getLatestAlertDialog());
+
+            List<String> titles = new ArrayList<>();
+            for (AlertDialog dialog : open) {
+                assertTrue(dialog.isShowing());
+                titles.add(String.valueOf(Shadows.shadowOf(dialog).getTitle()));
+            }
+            assertEquals(Arrays.asList("Jump to a section", "Licenses", "Words to hide"), titles);
+
+            controller.recreate();
+            ShadowLooper.idleMainLooper();
+
+            for (AlertDialog dialog : open) {
+                assertFalse(Shadows.shadowOf(dialog).getTitle() + " outlived the page", dialog.isShowing());
+            }
+        }
+    }
+
+    /**
+     * A Save on a word list can land as the activity goes. The button's click and the edit
+     * dialog's close are posted one after the other, and when the activity's end comes between
+     * them, it closes the dialog itself, which still counts as Save. The list's listener then runs
+     * after the page is gone, and its note that lines were left out came up over a window that
+     * was gone with it.
+     */
+    @Test
+    public void aWordListSavedAsTheActivityGoesShowsNoNoteOverIt() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.POST_WORDS);
+        ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup();
+        List<Preference> rows = rowsOf(controller);
+        HushfacebookPreferenceFragment.WordsRow hide =
+                (HushfacebookPreferenceFragment.WordsRow) rows.get(indexOfKey(rows, Settings.HIDDEN_WORDS.key));
+        hide.showDialog(null);
+        AlertDialog edit = (AlertDialog) hide.getDialog();
+        hide.getEditText().setText("a\nspoiler");
+        ShadowLooper.idleMainLooper();
+        ShadowAlertDialog.reset();
+
+        edit.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        // The click runs, and the close waits behind it.
+        ShadowLooper.shadowMainLooper().runOneTask();
+        assertTrue("the edit dialog closed before the activity went", edit.isShowing());
+        controller.pause().stop().destroy();
+        ShadowLooper.idleMainLooper();
+
+        // Only the list's listener puts the cleaned list in the row.
+        assertEquals("the listener never ran, so this checked nothing", "spoiler", hide.getText());
+        AlertDialog note = ShadowAlertDialog.getLatestAlertDialog();
+        assertTrue("a note came up over a destroyed activity", note == null || !note.isShowing());
+        // The row can show the clean list while the filter still runs the old one: only the
+        // shared preferences listener carries a save into the running Setting.
+        assertEquals("the filter kept the old list", "spoiler", Settings.HIDDEN_WORDS.get());
     }
 
     /** The hide list's row counts the posts it hid since Facebook started, and never names one. */
@@ -442,7 +549,8 @@ public class HushfacebookPreferenceFragmentTest {
     /**
      * Saves other apps can open (issue #11) is a switch every save reads, so it's under Downloads
      * with any one download patch in, right above the quality it keeps within, and starts off. Its
-     * summary names WhatsApp, the app that turned an AV1 reel down.
+     * summary names WhatsApp, the app that turned an AV1 reel down, and a gallery or player that
+     * plays a save without sound, since some can't decode the xHE-AAC sound a Best reel can carry.
      */
     @Test
     public void theCompatibleSwitchSitsAboveTheQualityWithAnyDownloadIn() {
@@ -458,8 +566,8 @@ public class HushfacebookPreferenceFragmentTest {
                 assertFalse(((SwitchPreference) row).isChecked());
                 assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, compatible);
                 assertEquals("Save videos other apps can open", String.valueOf(row.getTitle()));
-                assertEquals("Prefer H.264 video with AAC sound for apps such as WhatsApp. Quality may be lower than AV1. "
-                        + "Without a compatible version, save as usual.", String.valueOf(row.getSummary()));
+                assertEquals("For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.",
+                        String.valueOf(row.getSummary()));
             }
         }
 

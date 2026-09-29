@@ -259,7 +259,14 @@ function Get-ApkManifestFacts {
 
     if (-not (Test-Path -LiteralPath $Apk -PathType Leaf)) { throw "APK not found: $Apk" }
 
-    $dump = @(& $Aapt2 dump xmltree --file AndroidManifest.xml $Apk 2>&1)
+    # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+    $preference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $dump = @(& $Aapt2 dump xmltree --file AndroidManifest.xml $Apk 2>&1)
+    } finally {
+        $ErrorActionPreference = $preference
+    }
     if ($LASTEXITCODE -ne 0) {
         throw "aapt2 could not read the manifest of ${Apk}: $($dump -join ' ')"
     }

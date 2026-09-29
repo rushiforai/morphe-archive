@@ -25,9 +25,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * What the news feed guard asks about each edge before Facebook adds it to the feed.
  *
  * <p>The guard runs at the start of {@code FeedUnitCollectionManager.addNewEdgeToCollection},
- * the one funnel every news feed edge passes through. Answering true there makes the method
+ * the one funnel every news feed edge is added through. Answering true there makes the method
  * return false, which Facebook already handles: it logs "Edge not added to FUC" and carries on,
- * so a hidden post leaves no gap and logs no impression.
+ * so a hidden post leaves no gap and logs no impression. An edge swapped in over another one
+ * never passes the funnel, so the swap asks the same rules through {@link #hideSwappedEdge}.
  *
  * <p>Every feed filter shares this one guard. Two patches each prepending their own guard to the
  * same method is how FroggoMorphePatches ended up with branch targets that pointed into the wrong
@@ -173,6 +174,15 @@ public final class FeedFilter {
      * @param feedUnit the edge's feed unit, inflated if the tree had not built it yet.
      */
     public static boolean hideEdge(Object category, Object feedUnit) {
+        return withPatches(category, feedUnit);
+    }
+
+    /**
+     * The guard with every patch-time flag and filled stub this build carries. The swap guard asks
+     * this rather than {@link #hideEdge(Object, Object)}: the mutation contract holds a patched APK
+     * to one call of that, the funnel's, and counts the extension's own calls too.
+     */
+    private static boolean withPatches(Object category, Object feedUnit) {
         return hideEdge(category, feedUnit, SettingsStatus.sponsoredPosts(), SettingsStatus.suggestedPosts(),
                 RecommendationLabel.PATCHED, SettingsStatus.aiDetectedPosts(), GenAiLabel.PATCHED,
                 SettingsStatus.feedReels(), ShowcaseType.PATCHED, SettingsStatus.postWords(), PostText.MESSAGE,
@@ -682,6 +692,50 @@ public final class FeedFilter {
         int bit = hide ? 2 : 1;
         if ((PRE_EOF_LOGGED.getAndUpdate(logged -> logged | bit) & bit) != 0) return;
         Logger.printDebug(() -> "Reels in feed: " + (hide ? "skipped" : "kept") + " the pre-EOF Reels unit");
+    }
+
+    /**
+     * Every edge Facebook swaps into the feed in another's place, with its category as the kind and
+     * each one kept out as a removal, so a report says whether swaps happen on this account at all.
+     */
+    static final String SWAP_ROUTE = "Feed edge swaps";
+    /** What each swap counts under on the sponsored patch's Hook status line. */
+    static final String SWAP_KEPT = "edge swap kept";
+    static final String SWAP_SKIPPED = "edge swap skipped";
+
+    /**
+     * Injection point, in the runnable FeedUnitCollectionManager posts when a feed data loader swaps
+     * one edge for another, right after it reads the incoming edge and before it touches the feed.
+     * Whether that edge stays out. True makes the runnable return there, so the old edge keeps its
+     * place and nothing about the swap is logged as sent.
+     *
+     * <p>A swap replaces an edge in the feed collection without passing
+     * {@code addNewEdgeToCollection}, and the ad hot-swaps Facebook runs go this way, each asking
+     * for a SPONSORED edge. So the edge gets the funnel guard's own verdict: every switch, Pause and
+     * the early prefetch rule apply as they do there, and it counts as a news feed post too. Never
+     * throws: false leaves the swap to Facebook.
+     */
+    public static boolean hideSwappedEdge(Object category, Object feedUnit) {
+        return swapped(category, SettingsStatus.sponsoredPosts(), withPatches(category, feedUnit));
+    }
+
+    /** The swap guard with the sponsored and suggested patch-time flags passed in, and no GenAI rule. */
+    static boolean hideSwappedEdge(Object category, Object feedUnit, boolean sponsoredPatched, boolean suggestedPatched) {
+        return swapped(category, sponsoredPatched, hideEdge(category, feedUnit, sponsoredPatched, suggestedPatched));
+    }
+
+    /** Counts a swap the guard judged, on its route and on the sponsored patch's line, and answers [hide]. */
+    private static boolean swapped(Object category, boolean sponsoredPatched, boolean hide) {
+        try {
+            String kind = category instanceof Enum ? ((Enum<?>) category).name() : null;
+            FeedFilterCounters.sawList(SWAP_ROUTE, 1);
+            FeedFilterCounters.sawKind(SWAP_ROUTE, kind);
+            if (hide) FeedFilterCounters.removed(SWAP_ROUTE, 1, kind == null ? "swap skipped" : kind + " swap skipped");
+            if (sponsoredPatched) HookStatus.counted(FamilyNames.SPONSORED_POSTS, hide ? SWAP_SKIPPED : SWAP_KEPT);
+        } catch (Throwable failure) {
+            Logger.printException(() -> "Feed filter: could not count an edge swap", failure);
+        }
+        return hide;
     }
 
     /** Injection point. Whether the story viewer's ad bucket sources contribute nothing. */

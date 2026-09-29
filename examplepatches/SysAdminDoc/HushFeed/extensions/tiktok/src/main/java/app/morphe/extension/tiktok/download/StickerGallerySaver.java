@@ -263,23 +263,24 @@ public final class StickerGallerySaver {
         Context context = button.getContext().getApplicationContext();
         SettingsUi.setBusy(button, true,
                 L10n.t(button.getContext(), "Saving"));
-        Utils.showToastShort(L10n.t("Saving the sticker"));
 
         // A submitted job can wait behind eight others, then run up to the two minute deadline.
         // Capturing the button would hold the sheet's Activity for that whole window after the
         // sheet itself was gone. Every other view this file keeps hold of is already weak.
+        // The button comes back when the job is over whichever way it ends: saved, failed,
+        // cancelled while it waited, or refused by a full queue.
         WeakReference<View> anchor = new WeakReference<>(button);
-        boolean submitted = MediaJobScheduler.submit(
-                "sticker", stickerSaveWork(context, asset, anchor));
-        if (!submitted) handBackLater(anchor).run();
+        MediaJobScheduler.Job job = MediaJobScheduler.submit(
+                "sticker", "sticker " + asset.url, stickerSaveWork(context, asset), handBackLater(anchor));
+        String saying = L10n.t("Saving the sticker");
+        MediaJobScheduler.acknowledge(job, saying, saying);
     }
 
-    /** The work one sticker save does, holding the sheet by nothing stronger than {@code anchor}. */
-    static Runnable stickerSaveWork(Context context, StickerAsset asset, WeakReference<View> anchor) {
+    /** The work one sticker save does. It holds no view: the button is handed back by the job's end. */
+    static Runnable stickerSaveWork(Context context, StickerAsset asset) {
         return () -> {
             SaveResult result = saveSticker(context, asset);
             MAIN_HANDLER.post(() -> {
-                handBack(anchor);
                 Utils.showToastShort(result.message);
                 if (result.success) {
                     debugLog("[Morphe Stickers] saved sticker path=" + result.path);
@@ -291,7 +292,7 @@ public final class StickerGallerySaver {
         };
     }
 
-    /** Hands the button back on the main thread, for a save that never ran. */
+    /** Hands the button back on the main thread, once the save's job is over. */
     static Runnable handBackLater(WeakReference<View> anchor) {
         return () -> MAIN_HANDLER.post(() -> handBack(anchor));
     }
@@ -515,6 +516,7 @@ public final class StickerGallerySaver {
 
         Uri uri = MediaCache.insertPending(
                 context, resolver, DownloadDestination.collectionUri(relativePath, video), values);
+        SaveRecords.Slot slot = SaveRecords.located(uri);
         try {
             writer.write(resolver, uri, directory);
             MediaBudget.checkDiskSpace(directory, 0);
@@ -524,9 +526,11 @@ public final class StickerGallerySaver {
             complete.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
             complete.put(MediaStore.MediaColumns.IS_PENDING, 0);
             completePending(context, resolver, uri, complete);
+            SaveRecords.published(slot);
             return uri;
         } catch (Throwable ex) {
             discardPending(context, resolver, uri, ex);
+            SaveRecords.abandoned(slot);
             throw ex;
         }
     }
@@ -548,6 +552,8 @@ public final class StickerGallerySaver {
         }
 
         File outputFile = MediaFileWriter.claim(directory, displayName);
+        // A converted sticker's size isn't known until it's written, so none is recorded.
+        SaveRecords.Slot slot = SaveRecords.located(outputFile, -1L);
         try {
             writer.write(outputFile);
             MediaBudget.checkDiskSpace(directory, 0);
@@ -555,10 +561,12 @@ public final class StickerGallerySaver {
             if (outputFile.exists() && !outputFile.delete()) {
                 debugLog("[Morphe Stickers] could not remove partial file=" + outputFile.getAbsolutePath());
             }
+            SaveRecords.abandoned(slot);
             throw ex;
         }
         MediaScannerConnection.scanFile(context, new String[]{outputFile.getAbsolutePath()},
                 new String[]{mimeType}, null);
+        SaveRecords.published(slot);
         return outputFile;
     }
 

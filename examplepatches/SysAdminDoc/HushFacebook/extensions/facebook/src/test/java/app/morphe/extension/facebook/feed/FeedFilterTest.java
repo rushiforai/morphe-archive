@@ -21,6 +21,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -381,5 +382,52 @@ public class FeedFilterTest {
                 + "Last reason: PaginatedPeopleYouMayKnowFeedUnit. Removed: SPONSORED 3, "
                 + "is_in_feed_recommendation_story 3, PaginatedPeopleYouMayKnowFeedUnit 2, "
                 + "GraphQLPagesYouMayLikeFeedUnit 1, PROMOTION 1. Kinds: ORGANIC 7, SPONSORED 3, PROMOTION 1"));
+    }
+
+    /**
+     * An edge Facebook swaps into the feed in another's place never passes the funnel, so the swap
+     * asks the same guard: a sponsored edge stays out with its patch in and its switch on, and an
+     * ordinary one, or any edge of a build without the patch, goes in. Every swap counts on its own
+     * route under its category and as a news feed post too, so a report says whether swaps happen.
+     */
+    @Test
+    public void aSwappedInEdgeGetsTheFeedGuardsVerdictAndIsCounted() {
+        assertTrue(FeedFilter.hideSwappedEdge(Category.SPONSORED, new Object(), true, false));
+        assertFalse("an ordinary post goes in", FeedFilter.hideSwappedEdge(Category.ORGANIC, new Object(), true, false));
+        assertFalse("without the patch", FeedFilter.hideSwappedEdge(Category.SPONSORED, new Object(), false, false));
+        assertTrue(FeedFilter.hideSwappedEdge(Category.ORGANIC, new GraphQLPagesYouMayLikeFeedUnit(), false, true));
+
+        String report = String.join("\n", FeedFilterCounters.report());
+        assertTrue(report, report.contains(FeedFilter.SWAP_ROUTE + ": 4 lists, 4 items, 2 removed. "
+                + "Last reason: ORGANIC swap skipped. Removed: ORGANIC swap skipped 1, SPONSORED swap skipped 1. "
+                + "Kinds: ORGANIC 2, SPONSORED 2"));
+        assertTrue(report, report.contains(FeedFilter.FEED_ROUTE + ": 4 lists, 4 items, 2 removed. "
+                + "Last reason: GraphQLPagesYouMayLikeFeedUnit."));
+
+        Settings.HIDE_SPONSORED_POSTS.save(false);
+        assertFalse("the switch off lets it in", FeedFilter.hideSwappedEdge(Category.SPONSORED, new Object(), true, false));
+    }
+
+    /**
+     * With the sponsored patch in, Hook status counts each swap on that patch's line, kept or
+     * skipped, beside the runs the guard itself counts there. Without it the line says nothing of
+     * swaps.
+     */
+    @Test
+    public void aSwapIsCountedOnTheSponsoredPostsHookStatusLine() {
+        HookStatus.clear();
+        try {
+            FeedFilter.hideSwappedEdge(Category.SPONSORED, new Object(), true, false);
+            FeedFilter.hideSwappedEdge(Category.ORGANIC, new Object(), true, false);
+            FeedFilter.hideSwappedEdge(Category.SPONSORED, new Object(), true, false);
+            assertEquals(Collections.singletonList("Hide sponsored posts: invoked 3, 0 found, 0 missing. "
+                    + "Counted: " + FeedFilter.SWAP_SKIPPED + " 2, " + FeedFilter.SWAP_KEPT + " 1"), HookStatus.report());
+
+            HookStatus.clear();
+            FeedFilter.hideSwappedEdge(Category.SPONSORED, new Object(), false, false);
+            assertEquals(Collections.emptyList(), HookStatus.report());
+        } finally {
+            HookStatus.clear();
+        }
     }
 }

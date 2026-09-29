@@ -18,4 +18,5 @@ android {
 
 dependencies {
     api(libs.morphe.extensions.library)
+    compileOnly(libs.annotation)
 }

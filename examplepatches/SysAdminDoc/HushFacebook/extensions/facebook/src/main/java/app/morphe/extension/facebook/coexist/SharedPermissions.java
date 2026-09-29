@@ -31,6 +31,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * were. Answering the renamed name there would leave those broadcasts with nobody allowed to send
  * or receive them.
  *
+ * <p>A copy renamed with Morphe's Clone app, its Update permissions option on, declares them once
+ * more renamed, under its own package and an underscore, and the components that require them name
+ * those (#16). There it's those names Facebook's code has to use.
+ *
  * <p>This can run while Facebook's application is still starting, before Hushfacebook has a
  * context: Profilo's trace setup names one of them that early. It reads no setting, and until the
  * context is there it answers the renamed name without remembering it, since that's what nearly
@@ -54,6 +58,9 @@ public final class SharedPermissions {
     @Nullable
     static volatile Boolean holdsRenamed;
 
+    /** What the renamed names this install holds start with, once {@link #holdsRenamed} is true. */
+    static volatile String heldPrefix = RENAMED_PREFIX;
+
     private SharedPermissions() {
     }
 
@@ -66,12 +73,13 @@ public final class SharedPermissions {
         HookStatus.invoked(FamilyNames.INSTALL_BESIDE_META_APPS);
         if (!isShared(facebookName)) return facebookName;
         try {
-            if (!holdsRenamed()) {
+            String prefix = prefixHeld();
+            if (prefix == null) {
                 HookStatus.bound(FamilyNames.INSTALL_BESIDE_META_APPS, "Facebook's own names");
                 return facebookName;
             }
             HookStatus.bound(FamilyNames.INSTALL_BESIDE_META_APPS, "renamed permissions");
-            return renamed(facebookName);
+            return prefix + facebookName.substring(FACEBOOK_PREFIX.length());
         } catch (Throwable failure) {
             // A permission check that throws is no reason to fail Facebook's broadcast, and the
             // renamed name is the one an ordinary install holds.
@@ -92,21 +100,31 @@ public final class SharedPermissions {
     }
 
     /**
-     * Whether this install declares, and so holds, the renamed permissions. Asked once per process,
-     * once a context is there. The manifest renames both together, so one of them answers for both.
+     * What the renamed permissions this install declares, and so holds, start with, or null when it
+     * declares none. Asked once per process, once a context is there. The manifest renames both
+     * together, so one of them answers for both.
      */
-    private static boolean holdsRenamed() {
+    @Nullable
+    private static String prefixHeld() {
         Boolean known = holdsRenamed;
-        if (known != null) return known;
-        if (!Utils.settingsReady()) return true;
+        if (known != null) return known ? heldPrefix : null;
+        if (!Utils.settingsReady()) return RENAMED_PREFIX;
         Context context = Utils.getContext();
-        if (context == null) return true;
-        boolean holds = context.checkSelfPermission(renamed(APP_COMMUNICATION)) == PackageManager.PERMISSION_GRANTED;
-        holdsRenamed = holds;
-        Logger.printInfo(() -> holds
-                ? "This install declares the renamed Meta app permissions, so Facebook's code uses them"
-                : "This install doesn't declare the renamed Meta app permissions (a Root Mount install?), so "
-                        + "Facebook's code keeps its own names");
-        return holds;
+        if (context == null) return RENAMED_PREFIX;
+        String clone = context.getPackageName() + "_" + RENAMED_PREFIX;
+        String prefix = holds(context, RENAMED_PREFIX) ? RENAMED_PREFIX : holds(context, clone) ? clone : null;
+        heldPrefix = prefix == null ? RENAMED_PREFIX : prefix;
+        holdsRenamed = prefix != null;
+        Logger.printInfo(() -> prefix == null
+                ? "This install doesn't declare the renamed Meta app permissions (a Root Mount install?), so "
+                        + "Facebook's code keeps its own names"
+                : "This install declares the renamed Meta app permissions under " + prefix
+                        + ", so Facebook's code uses them");
+        return prefix;
+    }
+
+    private static boolean holds(Context context, String prefix) {
+        String name = prefix + APP_COMMUNICATION.substring(FACEBOOK_PREFIX.length());
+        return context.checkSelfPermission(name) == PackageManager.PERMISSION_GRANTED;
     }
 }

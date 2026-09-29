@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.all.pairip.license.disableLicenseCheckPatch
 
 @Suppress("unused")
@@ -19,12 +20,7 @@ val unlockPremiumFeaturesPatch = bytecodePatch(
     name = "Unlock premium features",
     description = "Enables app features locked behind the subscription paywall. Some UI elements may not show an active membership, but this does not effect functionality."
 ) {
-    compatibleWith(Compatibility(
-        name = "Icon Packer",
-        packageName = "cn.ommiao.iconpacker",
-        appIconColor = 0x0066FF,
-        targets = listOf(AppTarget("1.21.0-release"))
-    ))
+    compatibleWith(Compat.ICON_PACKER)
 
     dependsOn(disableLicenseCheckPatch)
 

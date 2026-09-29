@@ -65,15 +65,24 @@ public final class ReelsAdFilter {
         FeedFilterCounters.sawList(SECTIONS_ROUTE, page == null ? 0 : page.size());
         if (page == null || page.isEmpty() || !switchedOn()) return page;
 
-        ReelSections.Result result = ReelSections.strip(page, item -> isAd(item, adClassName),
-                FamilyNames.SPONSORED_REELS, SOURCE);
-        if (result.dropped == 0) return page;
+        try {
+            ReelSections.Result result = ReelSections.strip(page, item -> isAd(item, adClassName),
+                    FamilyNames.SPONSORED_REELS, SOURCE);
+            if (result.dropped == 0) return page;
 
-        FeedFilterCounters.removed(SECTIONS_ROUTE, result.dropped, "ad item in a section");
-        Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
-                () -> "section filter dropped " + result.dropped + " item(s) from " + page.size() + " section(s)");
+            FeedFilterCounters.removed(SECTIONS_ROUTE, result.dropped, "ad item in a section");
+            Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
+                    () -> "section filter dropped " + result.dropped + " item(s) from " + page.size() + " section(s)");
 
-        return result.page;
+            return result.page;
+        } catch (Throwable failure) {
+            // Anything thrown here would go on into Facebook's Reels page insert. The page goes
+            // through as Facebook sent it, like the section filter's own failures.
+            HookStatus.threw(FamilyNames.SPONSORED_REELS, "section page", failure);
+            Logger.diagnosticError(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
+                    () -> "could not filter a page of sections", failure);
+            return page;
+        }
     }
 
     /**
@@ -90,6 +99,18 @@ public final class ReelsAdFilter {
         FeedFilterCounters.sawList(PAGES_ROUTE, items == null ? 0 : items.size());
         if (items == null || items.isEmpty() || !switchedOn()) return items;
 
+        try {
+            return filtered(items, adClassName);
+        } catch (Throwable failure) {
+            // Anything thrown here would go on into Facebook's Reels page insert.
+            HookStatus.threw(FamilyNames.SPONSORED_REELS, "page filter", failure);
+            Logger.diagnosticError(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
+                    () -> "could not filter a page", failure);
+            return items;
+        }
+    }
+
+    private static Collection<?> filtered(Collection<?> items, String adClassName) {
         boolean found = false;
         for (Object item : items) {
             if (isAd(item, adClassName)) {

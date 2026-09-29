@@ -85,6 +85,12 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
         ));
         addPreference(new TogglePreference(
                 context,
+                "Long-press Home for Hushfeed settings",
+                "Press and hold the Home tab to open these settings. A tap on Home works as before.",
+                Settings.HOME_TAB_OPENS_SETTINGS
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Keep For You on a Home tap",
                 "A tap on Home or on the For You tab while For You is showing no longer reloads it. "
                         + "The video you're on stays.",

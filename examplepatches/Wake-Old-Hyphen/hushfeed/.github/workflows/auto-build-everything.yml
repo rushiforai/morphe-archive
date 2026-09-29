@@ -1,4 +1,4 @@
-name: Auto Sync, Build MPP, Patch APK
+name: Auto Sync, Build MPP, Patch APKs
 
 on:
   schedule:
@@ -10,15 +10,17 @@ permissions:
   packages: read
 
 jobs:
-  build-everything:
+  # ==========================================
+  # JOB 1: Sync upstream, inject AMOLED, build .mpp
+  # ==========================================
+  build-mpp:
     runs-on: ubuntu-latest
-
+    outputs:
+      UPSTREAM_CHANGED: ${{ steps.sync.outputs.UPSTREAM_CHANGED }}
+      VERSION: ${{ steps.get_version.outputs.VERSION }}
+      NAI64_VERSION: ${{ steps.nai64.outputs.NAI64_VERSION }}
     steps:
-      # ============================================
-      # PHASE 1: CHECKOUT & SYNC UPSTREAM
-      # ============================================
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -28,386 +30,302 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
           git remote add upstream https://github.com/SysAdminDoc/hushfeed.git || true
           git fetch upstream main
-          
           LOCAL_SHA=$(git rev-parse HEAD)
           UPSTREAM_SHA=$(git rev-parse upstream/main)
-          
           if [ "$LOCAL_SHA" != "$UPSTREAM_SHA" ]; then
-            echo "✨ New upstream commits detected!"
+            echo "New upstream commits detected!"
             mkdir -p build
             git log --oneline "$LOCAL_SHA..$UPSTREAM_SHA" > build/hushfeed_changelog.txt || true
+            cp build/hushfeed_changelog.txt hushfeed_changelog.txt || true
             git merge upstream/main --no-edit
             git push origin main
-            echo "UPSTREAM_CHANGED=true" >> $GITHUB_ENV
+            echo "UPSTREAM_CHANGED=true" >> $GITHUB_OUTPUT
           else
-            echo "⏸️ No new upstream commits. Skipping build."
-            echo "UPSTREAM_CHANGED=false" >> $GITHUB_ENV
+            echo "No new upstream commits. Skipping build."
+            echo "UPSTREAM_CHANGED=false" >> $GITHUB_OUTPUT
           fi
 
-      # ============================================
-      # PHASE 2: BUILD .MPP BUNDLE
-      # ============================================
       - name: Set up JDK 21
-        if: env.UPSTREAM_CHANGED == 'true'
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
       - name: Setup Gradle
-        if: env.UPSTREAM_CHANGED == 'true'
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         uses: gradle/actions/setup-gradle@v4
 
       - name: Accept Android SDK licenses
-        if: env.UPSTREAM_CHANGED == 'true'
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          echo "✅ Android SDK licenses accepted"
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Inject AMOLED Fix
-        if: env.UPSTREAM_CHANGED == 'true'
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         run: python3 inject-amoled.py
 
       - name: Configure local.properties
-        if: env.UPSTREAM_CHANGED == 'true'
-        run: |
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       - name: Extract version
-        if: env.UPSTREAM_CHANGED == 'true'
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         id: get_version
         run: |
           VERSION=$(grep -E '^version\s*=' gradle.properties | head -n 1 | cut -d'=' -f2 | tr -d ' \r')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Building Hushfeed v$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build .mpp Bundle
-        if: env.UPSTREAM_CHANGED == 'true'
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid --dependency-verification=off
 
       - name: Publish .mpp Release
-        if: env.UPSTREAM_CHANGED == 'true'
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.VERSION }}
-          name: Hushfeed v${{ env.VERSION }} (AMOLED)
-          files: patches/build/release/patches-${{ env.VERSION }}.mpp
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: Hushfeed v${{ steps.get_version.outputs.VERSION }} (AMOLED)
+          files: patches/build/release/patches-${{ steps.get_version.outputs.VERSION }}.mpp
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ============================================
-      # PHASE 3: SETUP PATCHING TOOLS
-      # ============================================
-      - name: Set up Python
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Fetch Nai64 version
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
+        id: nai64
+        run: |
+          NAI64_JSON=$(curl -s "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/refs/heads/main/patches-bundle.json")
+          NAI64_VER=$(echo "$NAI64_JSON" | jq -r '.version // "unknown"')
+          echo "NAI64_VERSION=$NAI64_VER" >> $GITHUB_OUTPUT
+
+      - name: Upload changelog for publish job
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared
+          path: hushfeed_changelog.txt
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # ==========================================
+  # JOB 2: Patch both TikTok versions in parallel
+  # ==========================================
+  build-apk:
+    needs: build-mpp
+    if: needs.build-mpp.outputs.UPSTREAM_CHANGED == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Edit this list whenever a new TikTok version is supported
+        version: ['47.0.3', '47.1.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install Python dependencies
-        if: env.UPSTREAM_CHANGED == 'true'
         run: pip install requests pyyaml
 
-      - name: Download Morphe CLI
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Download Morphe CLI and APKEditor
         run: |
           mkdir -p build
-          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest \
-            | jq -r '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
-          if [ -z "$CLI_URL" ] || [ "$CLI_URL" == "null" ]; then
-            echo "❌ Could not find Morphe CLI release!"
-            exit 1
-          fi
+          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
           curl -L -o build/cli.jar "$CLI_URL"
-          echo "✅ Downloaded Morphe CLI: $(du -h build/cli.jar | cut -f1)"
+          APKEDITOR_URL=$(curl -s https://api.github.com/repos/REAndroid/APKEditor/releases/latest | jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url')
+          curl -L -o build/apkeditor.jar "$APKEDITOR_URL"
 
       - name: Decode keystore
-        if: env.UPSTREAM_CHANGED == 'true'
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           mkdir -p signing
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "❌ KEYSTORE_BASE64 secret missing!"
-            exit 1
-          fi
           echo "$KEYSTORE_BASE64" | base64 -d > signing/keystore.bks
-          SIZE=$(stat -c%s signing/keystore.bks)
-          if [ "$SIZE" -lt 100 ]; then
-            echo "❌ Keystore too small ($SIZE bytes)"
-            exit 1
-          fi
-          echo "✅ Keystore decoded ($SIZE bytes)"
 
-      - name: Detect keystore alias (self-healing)
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Detect keystore alias
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           PREFERRED_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           curl -sL -o build/bcprov.jar https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.78.1/bcprov-jdk18on-1.78.1.jar
-          
-          if ! keytool -list -v -keystore signing/keystore.bks -storetype BKS \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -providerpath build/bcprov.jar \
-            -providerclass org.bouncycastle.jce.provider.BouncyCastleProvider \
-            > build/ks_list.txt 2>&1; then
-            echo "BKS read failed, trying default keystore type..."
-            keytool -list -v -keystore signing/keystore.bks \
-              -storepass "$KEYSTORE_PASSWORD" > build/ks_list.txt 2>&1 || true
-          fi
-          
-          echo "--- Keystore contents ---"
-          cat build/ks_list.txt
-          echo "-------------------------"
-          
+          keytool -list -v -keystore signing/keystore.bks -storetype BKS -storepass "$KEYSTORE_PASSWORD" -providerpath build/bcprov.jar -providerclass org.bouncycastle.jce.provider.BouncyCastleProvider > build/ks_list.txt 2>&1 || \
+          keytool -list -v -keystore signing/keystore.bks -storepass "$KEYSTORE_PASSWORD" > build/ks_list.txt 2>&1 || true
           DETECTED=$(awk '/^Alias name:/{a=$3} /Entry type: PrivateKeyEntry/{if(a!=""){print a; exit}}' build/ks_list.txt)
-          
           if [ -n "$PREFERRED_ALIAS" ] && grep -q "^Alias name: $PREFERRED_ALIAS$" build/ks_list.txt; then
             FINAL_ALIAS="$PREFERRED_ALIAS"
-            echo "✅ Secret KEY_ALIAS '$PREFERRED_ALIAS' found in keystore."
           else
             FINAL_ALIAS="$DETECTED"
-            echo "⚠️ Secret KEY_ALIAS '$PREFERRED_ALIAS' NOT found. Auto-detected: $FINAL_ALIAS"
           fi
-          
-          if [ -z "$FINAL_ALIAS" ]; then
-            echo "❌ Could not detect any alias. Check KEYSTORE_PASSWORD!"
-            exit 1
-          fi
-          
           echo "SIGNING_ALIAS=$FINAL_ALIAS" >> $GITHUB_ENV
 
-      # ============================================
-      # PHASE 4: DOWNLOAD BASE APK FROM PAB
-      # ============================================
-      - name: Download stock TikTok 47.0.3 from PAB
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Download base APK from PAB
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p build
-          APK_URL="https://github.com/Wake-Old-Hyphen/PAB/releases/download/stock-tiktok-apk/com.zhiliaoapp.musically_47.0.3-2024700030_minAPI23.arm64-v8a.armeabi-v7a.nodpi._apkmirror.com.apk"
-          echo "Downloading base APK directly from PAB release..."
-          curl -L -# -o build/base.apk "$APK_URL"
+          gh release download stock-tiktok-apk --repo Wake-Old-Hyphen/PAB \
+            --pattern "com.zhiliaoapp.musically_${{ matrix.version }}-*arm64-v8a*.apk" --dir build/
+          mv build/com.zhiliaoapp.musically_${{ matrix.version }}-*.apk build/base.apk
           FILE_SIZE=$(stat -c%s build/base.apk)
-          echo "Downloaded file size: $FILE_SIZE bytes"
           if [ "$FILE_SIZE" -lt 100000000 ]; then
-            echo "❌ Downloaded file is too small ($FILE_SIZE bytes). Download failed."
+            echo "Base APK too small ($FILE_SIZE bytes) — download failed."
             exit 1
           fi
-          echo "✅ Base APK downloaded: $(du -h build/base.apk | cut -f1)"
 
-      # ============================================
-      # PHASE 5: PREPARE PATCH BUNDLES
-      # ============================================
-      - name: Prepare Hushfeed bundle
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Download Hushfeed bundle (injected)
         run: |
           mkdir -p bundles
-          cp patches/build/release/patches-${{ env.VERSION }}.mpp bundles/hushfeed.mpp
-          echo "✅ Hushfeed bundle ready"
+          curl -L -o bundles/hushfeed.mpp "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
 
       - name: Download Nai64 bundle
-        if: env.UPSTREAM_CHANGED == 'true'
         run: |
           NAI64_JSON=$(curl -s "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/refs/heads/main/patches-bundle.json")
           NAI64_URL=$(echo "$NAI64_JSON" | jq -r '.download_url')
-          NAI64_VER=$(echo "$NAI64_JSON" | jq -r '.version // "unknown"')
-          
-          if [ -z "$NAI64_URL" ] || [ "$NAI64_URL" == "null" ]; then
-            echo "❌ Could not find Nai64 download URL"
-            exit 1
-          fi
-          
           curl -L -o bundles/nai64.mpp "$NAI64_URL"
-          echo "NAI64_VERSION=$NAI64_VER" >> $GITHUB_ENV
-          echo "✅ Nai64 bundle downloaded (version $NAI64_VER)"
 
-      # ============================================
-      # PHASE 6: GENERATE OPTIONS & PATCH
-      # ============================================
-      - name: Generate patch options
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Generate options
+        run: java -jar build/cli.jar options-create -p bundles/hushfeed.mpp -p bundles/nai64.mpp -o build/options.json
+
+      - name: Configure options
+        run: python3 configure_options.py
+
+      - name: Patch TikTok
         run: |
-          java -jar build/cli.jar options-create \
-            -p bundles/hushfeed.mpp \
-            -p bundles/nai64.mpp \
-            -o build/options.json
-          echo "✅ Options generated"
-
-      - name: Configure options (via YAML)
-        if: env.UPSTREAM_CHANGED == 'true'
-        run: |
-          python3 - <<'PYEOF'
-          import json, yaml, re
-
-          def norm(s): return re.sub(r"[^a-z0-9]", "", (s or "").lower())
-
-          with open("build/options.json") as f:
-              options = json.load(f)
-          with open("Nai64ExtraPatches_Options.yaml") as f:
-              cfg = yaml.safe_load(f) or {}
-
-          requested = {p["name"].lower(): p for p in cfg.get("patches", [])}
-          disabled_hushfeed = {norm(x) for x in cfg.get("hushfeed_disabled", [])}
-
-          for i, bundle in enumerate(options):
-              pd = bundle.get("patches", {})
-
-              if i == 0:
-                  for name, data in pd.items():
-                      if norm(name) in disabled_hushfeed:
-                          data["enabled"] = False
-                          print(f"   -> Hushfeed disabled per YAML: {name}")
-                      else:
-                          data["enabled"] = True
-
-              elif i == 1:
-                  for name, data in pd.items():
-                      data["enabled"] = False
-                      req = requested.get(name.lower())
-                      if not (req and req.get("enabled", False)):
-                          continue
-                      data["enabled"] = True
-                      existing = data.get("options") or {}
-                      for k, v in (req.get("options") or {}).items():
-                          target = k if k in existing else None
-                          if target is None:
-                              nk = norm(k)
-                              for ek in existing:
-                                  if norm(ek) == nk:
-                                      target = ek
-                                      break
-                          if target is None:
-                              print(f"   ⚠️ {name}: option key '{k}' not in bundle — skipped")
-                              continue
-                          if isinstance(existing[target], dict) and "value" in existing[target]:
-                              existing[target]["value"] = v
-                          else:
-                              existing[target] = v
-                          print(f"   -> {name}: {target} = {v!r}")
-                      data["options"] = existing
-
-                  found = {n.lower() for n in pd}
-                  for rn in requested:
-                      if rn not in found:
-                          print(f"   ⚠️ Requested Nai64 patch not present in bundle: {rn}")
-
-          with open("build/options.json", "w") as f:
-              json.dump(options, f, indent=2)
-          print("✅ Options configured via Nai64ExtraPatches_Options.yaml")
-          PYEOF
-
-      - name: Patch TikTok APK
-        if: env.UPSTREAM_CHANGED == 'true'
-        run: |
-          echo "Patching TikTok with Hushfeed v${{ env.VERSION }} + AMOLED + Nai64..."
-          echo "Using signing alias: $SIGNING_ALIAS"
-          
           java -jar build/cli.jar patch \
-            -p bundles/hushfeed.mpp \
-            -p bundles/nai64.mpp \
-            --options-file build/options.json \
-            --force \
+            -p bundles/hushfeed.mpp -p bundles/nai64.mpp \
+            --options-file build/options.json --force \
             --keystore signing/keystore.bks \
             --keystore-password "${{ secrets.KEYSTORE_PASSWORD }}" \
             --keystore-entry-alias "$SIGNING_ALIAS" \
             --keystore-entry-password "${{ secrets.KEY_PASSWORD }}" \
             --striplibs arm64-v8a \
-            -o build/patched.apk \
-            build/base.apk
-          
-          if [ ! -f build/patched.apk ]; then
-            echo "❌ Patching failed!"
-            exit 1
-          fi
-          echo "✅ APK patched: $(du -h build/patched.apk | cut -f1)"
-
-      # ============================================
-      # PHASE 7: STRIP PERMISSIONS
-      # ============================================
-      - name: Download APKEditor
-        if: env.UPSTREAM_CHANGED == 'true'
-        run: |
-          APKEDITOR_URL=$(curl -s https://api.github.com/repos/REAndroid/APKEditor/releases/latest \
-            | jq -r '.assets[] | select(.name | endswith(".jar")) | .browser_download_url')
-          if [ -z "$APKEDITOR_URL" ] || [ "$APKEDITOR_URL" == "null" ]; then
-            echo "❌ Could not find APKEditor release!"
-            exit 1
-          fi
-          curl -L -o build/apkeditor.jar "$APKEDITOR_URL"
-          echo "✅ APKEditor downloaded"
+            -o build/patched.apk build/base.apk
 
       - name: Strip permissions
-        if: env.UPSTREAM_CHANGED == 'true'
         run: |
-          echo "Decoding APK manifest..."
           java -jar build/apkeditor.jar d -i build/patched.apk -o build/decoded -f
-          echo "Stripping permissions..."
-          python3 strip_permissions.py build/decoded
-          echo "Rebuilding APK..."
+          python3 strip_permissions.py build/decoded build/permissions-${{ matrix.version }}.json
           java -jar build/apkeditor.jar b -i build/decoded -o build/stripped.apk -f
-          echo "✅ Permissions stripped and APK rebuilt!"
 
-      # ============================================
-      # PHASE 8: RE-SIGN, NOTES & PUBLISH
-      # ============================================
-      - name: Re-sign stripped APK
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Re-sign APK
         run: |
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n1)
-          echo "Using build-tools: $BUILD_TOOLS"
-          
           $BUILD_TOOLS/zipalign -p 4 build/stripped.apk build/aligned.apk
-          echo "✅ Zipaligned"
-          
           $BUILD_TOOLS/apksigner sign \
             --ks signing/keystore.bks \
             --ks-pass "pass:${{ secrets.KEYSTORE_PASSWORD }}" \
             --ks-key-alias "$SIGNING_ALIAS" \
             --key-pass "pass:${{ secrets.KEY_PASSWORD }}" \
-            --out build/final-privacy.apk \
+            --out "build/TikTok-${{ matrix.version }}-arm64-v${{ needs.build-mpp.outputs.VERSION }}-v${{ needs.build-mpp.outputs.NAI64_VERSION }}.apk" \
             build/aligned.apk
-          echo "✅ Signed"
-          
-          $BUILD_TOOLS/apksigner verify --print-certs build/final-privacy.apk
-          echo "✅ Signature verified"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ matrix.version }}
+          path: build/TikTok-${{ matrix.version }}-*.apk
+          retention-days: 1
+
+      - name: Upload permissions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: perm-${{ matrix.version }}
+          path: build/permissions-${{ matrix.version }}.json
+          retention-days: 1
+
+  # ==========================================
+  # JOB 3: One release, both APKs, full notes
+  # ==========================================
+  publish:
+    needs: [build-mpp, build-apk]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Prepare build directory
+        run: |
+          mkdir -p build
+          mv artifacts/*.apk build/ || true
+          mv artifacts/permissions-*.json build/ || true
+          mv artifacts/hushfeed_changelog.txt build/ || true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install pyyaml
+
+      - name: Download bundles and CLI for options regeneration
+        run: |
+          mkdir -p build bundles
+          CLI_URL=$(curl -s https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest | jq -r '.assets[] | select(.name | endswith("-all.jar")) | .browser_download_url')
+          curl -L -o build/cli.jar "$CLI_URL"
+          curl -L -o bundles/hushfeed.mpp "https://github.com/${{ github.repository }}/releases/download/v${{ needs.build-mpp.outputs.VERSION }}/patches-${{ needs.build-mpp.outputs.VERSION }}.mpp"
+          NAI64_JSON=$(curl -s "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/refs/heads/main/patches-bundle.json")
+          NAI64_URL=$(echo "$NAI64_JSON" | jq -r '.download_url')
+          curl -L -o bundles/nai64.mpp "$NAI64_URL"
+
+      - name: Regenerate options for notes
+        run: |
+          java -jar build/cli.jar options-create -p bundles/hushfeed.mpp -p bundles/nai64.mpp -o build/options.json
+          python3 configure_options.py
 
       - name: Generate release notes
-        if: env.UPSTREAM_CHANGED == 'true'
         env:
-          TIKTOK_VERSION: "47.0.3"
-          HUSHFEED_VERSION: v${{ env.VERSION }}
-          NAI64_VERSION: v${{ env.NAI64_VERSION }}
+          HUSHFEED_VERSION: v${{ needs.build-mpp.outputs.VERSION }}
+          NAI64_VERSION: v${{ needs.build-mpp.outputs.NAI64_VERSION }}
         run: python3 generate_release_notes.py
 
-      - name: Publish final APK release
-        if: env.UPSTREAM_CHANGED == 'true'
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          APK_NAME="TikTok-47.0.3-arm64-v${{ env.VERSION }}-v${{ env.NAI64_VERSION }}.apk"
-          cp build/final-privacy.apk "build/$APK_NAME"
+          VERSIONS_STR=$(python3 -c "import glob; print(', '.join(sorted(f.replace('build/permissions-','').replace('.json','') for f in glob.glob('build/permissions-*.json'))))")
+          TAG="privacy-tiktok-multi-v${{ needs.build-mpp.outputs.VERSION }}-$(date +%Y%m%d-%H%M%S)"
           
-          TAG="privacy-tiktok-47.0.3-v${{ env.VERSION }}-$(date +%Y%m%d-%H%M%S)"
-          
-          gh release create "$TAG" \
-            --repo ${{ github.repository }} \
-            --title "TikTok 47.0.3 Privacy Build (Hushfeed v${{ env.VERSION }})" \
+          gh release create "$TAG" --repo ${{ github.repository }} \
+            --title "TikTok Privacy Build ($VERSIONS_STR)" \
             --notes-file build/release_notes.md \
             --prerelease
           
-          for i in 1 2 3 4 5; do
-            if gh release upload "$TAG" "build/$APK_NAME" --clobber --repo ${{ github.repository }}; then
-              echo "✅ Uploaded $APK_NAME"
-              break
-            fi
-            echo "Upload attempt $i failed, retrying in 20s..."
-            sleep 20
+          for apk in build/TikTok-*.apk; do
+            ok=0
+            for i in 1 2 3 4 5; do
+              if gh release upload "$TAG" "$apk" --clobber --repo ${{ github.repository }}; then
+                echo "Uploaded $apk"
+                ok=1
+                break
+              fi
+              echo "Upload attempt $i failed for $apk, retrying in 20s..."
+              sleep 20
+            done
+            [ "$ok" = "1" ] || exit 1
           done

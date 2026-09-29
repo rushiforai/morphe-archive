@@ -9,6 +9,7 @@ import android.net.Uri;
 public final class SettingsProvider extends ContentProvider {
     @Override public boolean onCreate() {
         Settings.initialize(getContext());
+        CrashGuard.onProcessStart(getContext());
         return true;
     }
     @Override public Cursor query(Uri uri, String[] projection, String selection, String[] args, String order) { return null; }

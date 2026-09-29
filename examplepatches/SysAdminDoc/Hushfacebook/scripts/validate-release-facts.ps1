@@ -283,6 +283,48 @@ if ($indexLagsSource) {
     }
 }
 
+# The version badge and the sentence naming the latest release open the README, and nothing read
+# them: a copy with both at 0.1.0 passed. They're held to the release this tree describes. While a
+# newer source is prepared over the published index, or a catalog change is held at the published
+# version, they may name the source's version and count or the published ones (the badge moves with
+# the source, the sentence with the release), and nothing else.
+$readmeVersions = @(@($releaseVersion, $publishedVersion) | Select-Object -Unique)
+$readmeCounts = @(@($patchCount, $descriptionPatchCount) | Select-Object -Unique)
+$readmeExpected = if ($readmeVersions.Count -eq 1) { "this release is $releaseVersion" } else {
+    "the source is $releaseVersion and the published release $publishedVersion"
+}
+$badgeImage = @([regex]::Matches($readme, 'img\.shields\.io/badge/version-(\d+(?:\.\d+)+)-') | ForEach-Object { $_.Groups[1].Value })
+$badgeAlt = @([regex]::Matches($readme, '\balt="Version (\d+(?:\.\d+)+)"') | ForEach-Object { $_.Groups[1].Value })
+if ($badgeImage.Count -eq 0 -or $badgeAlt.Count -eq 0) {
+    throw "README has no version badge: an img.shields.io/badge/version-$releaseVersion picture with the alt text `"Version $releaseVersion`"."
+}
+$badgeNamed = @(@($badgeImage) + @($badgeAlt) | Select-Object -Unique)
+if ($badgeNamed.Count -gt 1 -or $readmeVersions -notcontains $badgeNamed[0]) {
+    throw "README's version badge names $($badgeNamed -join ' and '), but $readmeExpected."
+}
+$latestSaid = @([regex]::Matches($readme, ('(?i)\blatest (?:published )?release is (?:still )?' +
+    '(?:\[v(?<version>\d+(?:\.\d+)+)\]\((?<link>[^)\s]*)\)|v(?<version>\d+(?:\.\d+)+))(?:,? with (?<count>\d+) patches)?')))
+if ($latestSaid.Count -eq 0) {
+    throw ("README does not say which release is the latest. It says so in one sentence: `"The latest release is " +
+        "[v$publishedVersion](<release page>), with $descriptionPatchCount patches.`"")
+}
+foreach ($said in $latestSaid) {
+    $saidVersion = $said.Groups['version'].Value
+    if ($readmeVersions -notcontains $saidVersion) {
+        throw "README says the latest release is v$saidVersion, but $readmeExpected."
+    }
+    if ($said.Groups['link'].Success -and $said.Groups['link'].Value -notmatch "/releases/tag/v$([regex]::Escape($saidVersion))$") {
+        throw "README says the latest release is v$saidVersion and links it to $($said.Groups['link'].Value)."
+    }
+    if ($said.Groups['count'].Success -and $readmeCounts -notcontains [int]$said.Groups['count'].Value) {
+        throw ("README says the latest release has $($said.Groups['count'].Value) patches, but it has " +
+            "$($readmeCounts -join ' or ').")
+    }
+}
+Write-Host ("[release] README's version badge names $($badgeNamed[0]), and it names v" +
+    (@($latestSaid | ForEach-Object { $_.Groups['version'].Value } | Select-Object -Unique) -join ' and v') +
+    ' as the latest release')
+
 # The one line GitHub shows above the README, which is also what search results, the awesome
 # lists and the Manager's community button repeat. Nothing here read it until now, and it had
 # gone two releases and two patches stale before anyone noticed. The repository it reads is the
@@ -517,7 +559,12 @@ if ($VerifyPublishedAsset) {
     if ($ArtifactIsHosted) { $hostedArtifact = $temporaryArtifact }
     try {
         try {
-            $assetResponse = Invoke-WebRequest -Uri $assetUri -OutFile $temporaryArtifact -MaximumRedirection 5 -TimeoutSec 60 -PassThru
+            # -UseBasicParsing on every download here: Windows PowerShell 5.1, the pre-push hook's
+            # shell wherever pwsh is off the PATH, otherwise hands the reply to the IE parser, and
+            # since its 2025 security update asks first, which a hook can't answer. PowerShell 7
+            # accepts the switch and ignores it.
+            $assetResponse = Invoke-WebRequest -Uri $assetUri -OutFile $temporaryArtifact -MaximumRedirection 5 -TimeoutSec 60 -PassThru `
+                -UseBasicParsing
         } catch {
             throw "Could not download the indexed bundle URL: $($_.Exception.Message)"
         }
@@ -546,7 +593,7 @@ if ($VerifyPublishedAsset) {
 
         $checksumUri = [Uri]::new($assetUri, 'SHA256SUMS.txt')
         try {
-            $checksumResponse = Invoke-WebRequest -Uri $checksumUri -MaximumRedirection 5 -TimeoutSec 60
+            $checksumResponse = Invoke-WebRequest -Uri $checksumUri -MaximumRedirection 5 -TimeoutSec 60 -UseBasicParsing
         } catch {
             throw "Could not download the hosted SHA256SUMS.txt: $($_.Exception.Message)"
         }
@@ -677,10 +724,19 @@ if ($VerifyPublishedAsset) {
             $javaCommand = Resolve-Java -Explicit $Java
             $listing = Join-Path ([IO.Path]::GetTempPath()) ("hushfacebook-$([Guid]::NewGuid()).txt")
             try {
-                # --out keeps the list clear of the CLI's own log lines, which share stdout.
-                $global:LASTEXITCODE = 0
-                $cliOutput = & $javaCommand '-jar' $countJar 'list-patches' "--patches=$temporaryArtifact" `
-                    '-d=false' '-i=false' "--out=$listing" 2>&1
+                # --out keeps the list clear of the CLI's own log lines, which share stdout. Continue
+                # for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+                # PowerShell 5.1, the hook's shell wherever pwsh is off the PATH, turns into a
+                # terminating error under Stop. The exit code and the listing decide.
+                $preference = $ErrorActionPreference
+                try {
+                    $ErrorActionPreference = 'Continue'
+                    $global:LASTEXITCODE = -1
+                    $cliOutput = & $javaCommand '-jar' $countJar 'list-patches' "--patches=$temporaryArtifact" `
+                        '-d=false' '-i=false' "--out=$listing" 2>&1
+                } finally {
+                    $ErrorActionPreference = $preference
+                }
                 if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $listing -PathType Leaf)) {
                     throw ("Could not list the patches in the published bundle: " +
                         ($cliOutput -join ' '))
@@ -938,7 +994,7 @@ function Test-ReleaseReceiptHere {
         $sbomForComparison = Join-Path $script:hostedSbom $sbomName
         try {
             $sbomResponse = Invoke-WebRequest -Uri ([Uri]::new($assetUri, $sbomName)) -OutFile $sbomForComparison `
-                -MaximumRedirection 5 -TimeoutSec 60 -PassThru
+                -MaximumRedirection 5 -TimeoutSec 60 -PassThru -UseBasicParsing
         } catch {
             throw "Could not download the hosted $sbomName, which the receipt names: $($_.Exception.Message)"
         }
@@ -960,6 +1016,7 @@ function Test-ReleaseReceiptHere {
         -ExpectedPatcherVersion $expectedToolchain.PatcherVersion `
         -ExpectedManagerFloor $expectedToolchain.ManagerFloor `
         -ExpectedPackageName $receiptTarget.PackageName -ExpectedPackageVersions $receiptTarget.PackageVersions `
+        -ExpectedPackageVersionCodes $receiptTarget.PackageVersionCodes `
         -BundlePath $BundleForComparison -ApprovedManifestDelta $approvedDelta `
         -ActualCommitTimestamp $actualEpoch -ExpectedCommit $expectedCommit `
         -ExpectedSchemaVersion $schema.Version -SbomPath $sbomForComparison
@@ -983,7 +1040,7 @@ function Test-ReleaseReceiptHere {
         $hostedReceipt = Join-Path $script:hostedReceiptDir $receiptName
         try {
             $receiptResponse = Invoke-WebRequest -Uri ([Uri]::new($assetUri, $receiptName)) -OutFile $hostedReceipt `
-                -MaximumRedirection 5 -TimeoutSec 60 -PassThru
+                -MaximumRedirection 5 -TimeoutSec 60 -PassThru -UseBasicParsing
         } catch {
             throw "Could not download the hosted $receiptName, which a release publishes beside its bundle: $($_.Exception.Message)"
         }

@@ -19,8 +19,12 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
@@ -54,6 +58,60 @@ private fun Method.hasFieldReference(fields: Set<String>): Boolean = instruction
     val reference = instruction.fieldReferenceOrNull() ?: return@any false
     reference.definingClass == NAVIGATION_TAB && reference.name in fields
 } == true
+
+private val INSTANCE_FIELD_READS = setOf(
+    Opcode.IGET, Opcode.IGET_WIDE, Opcode.IGET_OBJECT, Opcode.IGET_BOOLEAN,
+    Opcode.IGET_BYTE, Opcode.IGET_CHAR, Opcode.IGET_SHORT,
+)
+
+private fun Instruction.argumentRegisters(): List<Int> = when (this) {
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    is RegisterRangeInstruction -> List(registerCount) { startRegister + it }
+    else -> emptyList()
+}
+
+/**
+ * Resolves the field a Kotlin data-class `toString()` prints right after [label].
+ *
+ * The generated method prints `name=` labels and property values alternately, but
+ * R8 outlines append runs into helpers and loads their arguments in register-
+ * allocation order: on 234.0 the rubricator item loads `", title="` before
+ * `"…(stringId="`, and both `", rowLine="` and `", rowSpan="` before the textIcon
+ * and rowLine reads. The order values are *passed* (to `append` or an outlined
+ * helper) is still print order, so each label and field read is recorded when an
+ * invoke consumes its register, then the n-th label is paired with the n-th field.
+ *
+ * Returns null unless the method looks like a plain data-class `toString`: the
+ * first label opens with `ClassName(`, label and field counts agree, and [label]
+ * occurs exactly once.
+ */
+private fun Method.dataClassToStringField(label: String): FieldReference? {
+    val owner = definingClass
+    val pending = mutableMapOf<Int, Any>()
+    val labels = mutableListOf<String>()
+    val fields = mutableListOf<FieldReference>()
+    instructionsOrNull?.forEach { instruction ->
+        val string = instruction.stringReferenceOrNull()
+        val field = instruction.fieldReferenceOrNull()
+        when {
+            string != null -> {
+                val register = (instruction as OneRegisterInstruction).registerA
+                if (string.endsWith("=")) pending[register] = string else pending.remove(register)
+            }
+            field != null && instruction.opcode in INSTANCE_FIELD_READS && field.definingClass == owner ->
+                pending[(instruction as TwoRegisterInstruction).registerA] = field
+            else -> instruction.argumentRegisters().forEach { register ->
+                when (val value = pending.remove(register)) {
+                    is String -> labels += value
+                    is FieldReference -> if (value !in fields) fields += value
+                }
+            }
+        }
+    } ?: return null
+    if (labels.size != fields.size || labels.firstOrNull()?.contains('(') != true) return null
+    if (labels.count { it == label } != 1) return null
+    return fields[labels.indexOf(label)]
+}
 
 private fun ClassDef.isFavoritesTabModel() = type.startsWith(FAVORITES_ADAPTER_PACKAGE) &&
     AccessFlags.ABSTRACT.isSet(accessFlags) &&
@@ -128,6 +186,8 @@ private fun ClassDef.hasPublicReservedGetter() = methods.any { method ->
  *    and the header rewards banner).
  *  - **Hide the referral-program entry point** on the profile page.
  *  - **Hide the Avito Pro entry point** on the profile page.
+ *  - **Hide profile sections** "Может быть интересно", "Инструменты", "Сервисы"
+ *    and "Работа и подработка" (each off by default).
  *
  * Every advertised tweak is required on the supported app target. A missing hook
  * aborts patching so an incomplete build cannot be published.
@@ -139,6 +199,7 @@ val uiTweaksPatch = bytecodePatch(
         "categories, hide the \"Подписки\" tab in Избранное, hide installments (Рассрочка) and the " +
         "\"Спросите у продавца\" block on offers, expand descriptions by default (no \"Читать далее\"), " +
         "hide reserved offers and offer recommendations, hide profile raffle, referral and Avito Pro promos, " +
+        "optionally hide profile sections (recommendations, tools, services, jobs), " +
         "and hide the Avi assistant tab in the bottom navigation.",
     default = true,
 ) {
@@ -150,13 +211,12 @@ val uiTweaksPatch = bytecodePatch(
         // The DoubleRows visual rubricator routes each tile to row_first/row_second
         // by its getRowLine(); when the toggle is on, make every tile report row 1
         // so the second row collapses and all categories land in one scrollable row.
-        // The class/method keep their real names across 213–227.
-        val rubricatorMatch = VisualRubricatorElementFingerprint.matchOrNull()
-        val rowLineMatch = rubricatorMatch?.let { match ->
-            VisualRubricatorRowLineFingerprint.matchOrNull(match.originalClassDef)
-        }
-        val getRowLine = rowLineMatch?.let { match ->
-            val rowLineField = match.instructionMatches[1].instruction.fieldReferenceOrNull()
+        // The rowLine field is resolved positionally from the item's toString(): the
+        // neighbouring textIcon Integer is a drawable id, and hooking its getter
+        // instead feeds resource id 1 to the tile binder and crashes the home screen.
+        val getRowLine = VisualRubricatorElementFingerprint.matchOrNull()?.let { match ->
+            val rowLineField = match.originalMethod.dataClassToStringField(ROW_LINE_MARKER)
+                ?.takeIf { it.type == INTEGER }
                 ?: return@let null
             Fingerprint(
                 returnType = rowLineField.type,
@@ -593,6 +653,39 @@ val uiTweaksPatch = bytecodePatch(
             )
             println("UI tweaks: gated profile referrals behind the toggle (${returnTargets.size} returns).")
         }
+
+        // --- Hide whole sections on the profile page ----------------------------
+        // Filter the List<ProfileTabWidget> on entry to the converter that builds
+        // the profile screen, so a hidden section loses its heading and rows
+        // together. Each section has its own toggle, all off by default.
+        val profileWidgetsConverter = ProfileWidgetsConverterFingerprint.methodOrNull
+            ?: throw PatchException("UI tweaks: Profile Pro widgets converter not found")
+        profileWidgetsConverter.addInstructions(
+            0,
+            """
+                invoke-static/range {p1 .. p1}, $MORPHE_SETTINGS_CLASS->withoutHiddenProfileSections(Ljava/util/ArrayList;)Ljava/util/ArrayList;
+                move-result-object p1
+            """,
+        )
+        listOf(
+            Triple("avito_hide_profile_recommendations", "Скрыть «Может быть интересно»", "Убрать подборку объявлений"),
+            Triple("avito_hide_profile_tools", "Скрыть «Инструменты»", "Убрать блок инструментов продавца"),
+            Triple("avito_hide_profile_services", "Скрыть «Сервисы»", "Убрать плитки сервисов Авито"),
+            Triple("avito_hide_profile_jobs", "Скрыть «Работа и подработка»", "Убрать блок поиска работы"),
+        ).forEachIndexed { index, (key, title, summary) ->
+            MorpheSettingsRegistry.addSwitch(
+                key = key,
+                title = title,
+                summary = summary,
+                default = false,
+                section = MorpheSettingsRegistry.Section.PROFILE,
+                order = (index + 1) * 10,
+            )
+        }
+        println(
+            "UI tweaks: gated profile sections in " +
+                "${ProfileWidgetsConverterFingerprint.originalClassDef.type}->${profileWidgetsConverter.name}",
+        )
 
         // --- Hide promotional/informational onboarding drawers on launch --------
         // OnboardingDialogFragment is dedicated to Avito's server-driven onboarding

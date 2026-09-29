@@ -58,6 +58,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "Auto-advance keeps working.",
                     Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION));
         }
+        // Neither is auto-advance, and under its heading they read as parts of it: both keep you
+        // on the video you're on, one paused behind the comments and one at its end.
+        if (SettingsStatus.commentToolsEnabled || SettingsStatus.fullScreenHoldEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Staying on a video"));
+        }
         if (SettingsStatus.commentToolsEnabled) {
             addPreference(new TogglePreference(context, "Silence the feed while comments are open",
                     "Pauses the video behind the comment sheet while you read. "

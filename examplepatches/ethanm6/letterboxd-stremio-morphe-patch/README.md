@@ -1,8 +1,8 @@
 # letterboxd-stremio-morphe-patch
 Morphe patches for the Letterboxd Android app. Made using Claude.
 
-- **Add Stremio button** — adds a purple Stremio button to film pages that opens the film in the Stremio app or web player.
-- **Hide Video Store** — hides the "Rent from Letterboxd Video Store" banner on film pages and the carousel row on the home feed.
+- **Add Stremio button** — adds a purple Stremio button to film pages that opens the film in the Stremio app or web player. If [Nuvio](https://github.com/tapframe/NuvioStreaming) is installed, the button turns blue, reads "Nuvio", and opens the film there instead (Nuvio is preferred when both apps are installed).
+- **Hide Video Store** — hides the "Rent from Letterboxd Video Store" banner on film pages, the carousel row on the home feed, and the "Letterboxd Video Store" row in the search page's "Browse by" list.
 - **Hide Where to Watch** — hides the "Where to watch" streaming-service icon row on film pages.
 - **Hide Spotlight Ad** — hides the sponsored "Spotlight" ad card on the home feed.
 
@@ -30,7 +30,7 @@ If you find this project useful, you can support development:
 
 ## Disclaimer
 
-This is an unofficial project, not affiliated with or endorsed by Letterboxd, Stremio, or Morphe. Modifying the app may violate Letterboxd's Terms of Service — use at your own risk.
+This is an unofficial project, not affiliated with or endorsed by Letterboxd, Stremio, Nuvio, or Morphe. Modifying the app may violate Letterboxd's Terms of Service — use at your own risk.
 
 ## License
 

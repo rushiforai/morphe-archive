@@ -13,6 +13,8 @@ object Constants {
 
     private val LEGACY_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),
+        SteamLinkBuild("2.0.20", 5001812),
+        SteamLinkBuild("2.0.21", 5001968),
         SteamLinkBuild("2.0.22", 5002244),
     )
     private val NATIVE_XR_STEAM_LINK_BUILDS = listOf(
@@ -24,21 +26,36 @@ object Constants {
     )
     private val HIGH_RESOLUTION_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.20", 5001712),
+        SteamLinkBuild("2.0.20", 5001812),
+        SteamLinkBuild("2.0.21", 5001968),
         SteamLinkBuild("2.0.22", 5002244),
         SteamLinkBuild("2.0.23", 5002363),
+    )
+    private val TWO_PROJECTION_STEAM_LINK_BUILDS = listOf(
+        SteamLinkBuild("2.0.20", 5001712),
+        SteamLinkBuild("2.0.20", 5001812),
+        SteamLinkBuild("2.0.21", 5001968),
     )
     private val LEGACY_RECOMMENDED_STEAM_LINK_BUILDS = listOf(
         SteamLinkBuild("2.0.22", 5002244),
     )
     private val LEGACY_XR_FOUNDATION_STEAM_LINK_BUILDS = LEGACY_STEAM_LINK_BUILDS
 
-    // The 5001712 bundle is separate from the shared legacy bundle, but both use the
+    // The exact early-build bundles are separate from the shared legacy bundle, but all use the
     // legacy recommendation defaults. Match exact pairs, not a numeric build cutoff.
     fun isLegacyRecommendedSteamLinkBuild(version: String, versionCode: String): Boolean =
-        (version == "2.0.20" && versionCode == "5001712") ||
+        isTwoProjectionSteamLinkBuild(version, versionCode) ||
             LEGACY_RECOMMENDED_STEAM_LINK_BUILDS.any {
                 it.version == version && it.versionCode.toString() == versionCode
             }
+
+    fun isTwoProjectionSteamLinkBuild(version: String, versionCode: String): Boolean =
+        TWO_PROJECTION_STEAM_LINK_BUILDS.any {
+            it.version == version && it.versionCode.toString() == versionCode
+        }
+
+    fun isMouseOnlySteamLinkBuild(version: String, versionCode: String): Boolean =
+        isTwoProjectionSteamLinkBuild(version, versionCode)
 
     // Exact known startup adaptations for the legacy bases.
     fun isEarlierStartupSteamLinkBuild(version: String, versionCode: String): Boolean =
@@ -77,8 +94,12 @@ object Constants {
     private fun steamLinkBuildCompatibility(
         build: SteamLinkBuild,
         name: String = "Steam Link",
-        description: String = if (build == SteamLinkBuild("2.0.23", 5002363)) {
-            "Native and APK adaptation for exact Steam Link 2.0.23 build 5002363; headset validation pending."
+        description: String = if (build in listOf(
+                SteamLinkBuild("2.0.20", 5001812),
+                SteamLinkBuild("2.0.21", 5001968),
+                SteamLinkBuild("2.0.23", 5002363),
+            )) {
+            "Native and APK adaptation for exact Steam Link ${build.version} build ${build.versionCode}; headset validation pending."
         } else {
             "Verified Steam Link ${build.version} build ${build.versionCode}."
         },
@@ -145,6 +166,20 @@ object Constants {
         COMPATIBILITIES_STEAM_LINK_LEGACY.filter { compatibility ->
             compatibility.targets.any { target ->
                 target.version == "2.0.20" && target.versionCodes?.values?.contains(5001712) == true
+            }
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_5001812 =
+        COMPATIBILITIES_STEAM_LINK_LEGACY.filter { compatibility ->
+            compatibility.targets.any { target ->
+                target.version == "2.0.20" && target.versionCodes?.values?.contains(5001812) == true
+            }
+        }
+
+    val COMPATIBILITIES_STEAM_LINK_5001968 =
+        COMPATIBILITIES_STEAM_LINK_LEGACY.filter { compatibility ->
+            compatibility.targets.any { target ->
+                target.version == "2.0.21" && target.versionCodes?.values?.contains(5001968) == true
             }
         }
 

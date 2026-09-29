@@ -60,6 +60,11 @@ public final class FeedGuardForTests {
         return FeedFilter.hideEdge(category, feedUnit, true, true);
     }
 
+    /** The swap guard with both feed patches in: whether an edge swapped in over another stays out. */
+    public static boolean swapHides(Object category, Object feedUnit) {
+        return FeedFilter.hideSwappedEdge(category, feedUnit, true, true);
+    }
+
     /**
      * The guard with the GenAI patch in as well. A test JVM has no patched accessor either, so any
      * story's GenAI info is {@code detectedInfo}, and no story has a recommendation context.

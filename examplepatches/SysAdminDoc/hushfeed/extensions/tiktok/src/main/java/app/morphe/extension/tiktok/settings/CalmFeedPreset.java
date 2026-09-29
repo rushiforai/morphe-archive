@@ -177,6 +177,61 @@ public final class CalmFeedPreset {
         return count;
     }
 
+    /**
+     * Keeps a copy of the saved setup beside the settings' undo copy, written with it, so the two
+     * always belong to the same moment. Held only once the restore had worked, a restore that
+     * failed left the undo copy new and this copy old, and the Undo its banner asked for brought
+     * back a setup from an earlier reset, or took the current one away.
+     */
+    public static synchronized void holdForUndo(Context context) {
+        SharedPreferences preferences = preferences(context);
+        SharedPreferences.Editor edit = preferences.edit();
+        move(preferences, edit, "", HELD);
+        if (!edit.commit()) {
+            app.morphe.extension.shared.Logger.printInfo(() -> "Could not keep the Calm feed setup for Undo");
+        }
+    }
+
+    /**
+     * Once a reset or an import has replaced every setting. Offered as it was, "Restore setup"
+     * would have put back values the reset had just cleared; the copy {@link #holdForUndo} kept
+     * is what the settings' Undo brings back.
+     */
+    public static synchronized void clearAfterRestore(Context context) {
+        SharedPreferences.Editor edit = preferences(context).edit();
+        move(null, edit, HELD, "");
+        if (!edit.commit()) {
+            app.morphe.extension.shared.Logger.printInfo(() -> "Could not set the Calm feed setup aside");
+        }
+    }
+
+    /**
+     * After the settings' Undo: the setup set aside comes back with the settings it belongs to,
+     * and the current one waits beside the new undo copy, so a second Undo swaps them again.
+     */
+    public static synchronized void swapWithUndo(Context context) {
+        SharedPreferences preferences = preferences(context);
+        SharedPreferences.Editor edit = preferences.edit();
+        move(preferences, edit, "", HELD);
+        move(preferences, edit, HELD, "");
+        if (!edit.commit()) {
+            app.morphe.extension.shared.Logger.printInfo(() -> "Could not bring the Calm feed setup back");
+        }
+    }
+
+    private static final String HELD = "held_";
+
+    /** Writes the snapshot under {@code from} into {@code to}, or clears {@code to} when there is none. */
+    private static void move(SharedPreferences source, SharedPreferences.Editor edit, String from, String to) {
+        if (source == null || !source.getBoolean(from + HAS_SNAPSHOT, false)) {
+            edit.remove(to + HAS_SNAPSHOT).remove(to + SNAPSHOT_MASK).remove(to + SNAPSHOT_SCHEMA);
+            return;
+        }
+        edit.putBoolean(to + HAS_SNAPSHOT, true)
+                .putInt(to + SNAPSHOT_MASK, source.getInt(from + SNAPSHOT_MASK, 0))
+                .putInt(to + SNAPSHOT_SCHEMA, source.getInt(from + SNAPSHOT_SCHEMA, 0));
+    }
+
     private static SharedPreferences preferences(Context context) {
         Context app = context.getApplicationContext();
         return (app == null ? context : app).getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);

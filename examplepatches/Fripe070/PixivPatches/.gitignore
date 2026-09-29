@@ -33,6 +33,10 @@ decompiled_res/
 cli_decompiled/
 jadx_out/
 captures/
+screenshots/
+screenshot*.png
+layout*.json
+ui_dump*.xml
 
 # IDE & Editor Configurations
 .idea/

@@ -1,3 +1,49 @@
+## [1.13.0](https://github.com/xob0t/morphe-patches/compare/v1.12.32...v1.13.0) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **avito:** hide promo banners in search results ([#99](https://github.com/xob0t/morphe-patches/issues/99)) ([1d2248d](https://github.com/xob0t/morphe-patches/commit/1d2248dd0372cc25cdd822d61c7e75da2650a2d3))
+
+### ✨ New Features
+
+* **avito:** add toggles to hide profile page sections ([#100](https://github.com/xob0t/morphe-patches/issues/100)) ([dfa1e5a](https://github.com/xob0t/morphe-patches/commit/dfa1e5a64fc816701e1d49e672cfe4a5297a987d))
+
+## [1.12.32](https://github.com/xob0t/morphe-patches/compare/v1.12.31...v1.12.32) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **avito:** apply the seller review filter to Beduin v2 search results ([#108](https://github.com/xob0t/morphe-patches/issues/108)) ([b03f50e](https://github.com/xob0t/morphe-patches/commit/b03f50e2e13a3f6b5e943cd71c91be6365b34189))
+
+## [1.12.31](https://github.com/xob0t/morphe-patches/compare/v1.12.30...v1.12.31) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **avito:** hook the rubricator rowLine getter on 234.0 ([#107](https://github.com/xob0t/morphe-patches/issues/107)) ([6a62526](https://github.com/xob0t/morphe-patches/commit/6a6252607585a8226bcc8e5b047370876f205a4d))
+
+## [1.12.30](https://github.com/xob0t/morphe-patches/compare/v1.12.29...v1.12.30) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **avito:** support version 234.0 ([b19e8d7](https://github.com/xob0t/morphe-patches/commit/b19e8d711ede02f7a98be30543d676e86872927f))
+
+## [1.12.29](https://github.com/xob0t/morphe-patches/compare/v1.12.28...v1.12.29) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **ci:** backmerge stable releases into dev ([ff825cf](https://github.com/xob0t/morphe-patches/commit/ff825cfaf58e4061930eb8bf248e2a9334ae8b39))
+
+## [1.13.0-dev.1](https://github.com/xob0t/morphe-patches/compare/v1.12.29-dev.1...v1.13.0-dev.1) (2026-09-28)
+
+### ✨ New Features
+
+* **avito:** add toggles to hide profile page sections ([#100](https://github.com/xob0t/morphe-patches/issues/100)) ([dfa1e5a](https://github.com/xob0t/morphe-patches/commit/dfa1e5a64fc816701e1d49e672cfe4a5297a987d))
+
+## [1.12.29-dev.1](https://github.com/xob0t/morphe-patches/compare/v1.12.28...v1.12.29-dev.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **avito:** hide promo banners in search results ([#99](https://github.com/xob0t/morphe-patches/issues/99)) ([1d2248d](https://github.com/xob0t/morphe-patches/commit/1d2248dd0372cc25cdd822d61c7e75da2650a2d3))
+
 ## [1.12.28](https://github.com/xob0t/morphe-patches/compare/v1.12.27...v1.12.28) (2026-09-27)
 
 ### 🐛 Bug Fixes

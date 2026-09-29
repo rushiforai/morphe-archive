@@ -123,4 +123,61 @@ public class ShareActionChecklistTest {
         }
         return null;
     }
+
+    @Test @Config(qualifiers = "night")
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void aFailedChecklistWriteKeepsItsSelectionAndCanBeRetried() throws Exception {
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.settings.SettingsPagesTest.PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            SettingsUi.syncDarkMode(activity);
+            String theme = SettingsUi.isDarkMode() ? "dark" : "light";
+            Settings.SHARE_ACTION_CATALOG.save("copy\tCopy link");
+            Settings.SHARE_HIDDEN_ITEMS.save("unknown_key");
+            var fragment = new ActionRowChevronTest.HostFragment();
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, fragment).commit();
+            activity.getFragmentManager().executePendingTransactions();
+            var screen = fragment.getPreferenceManager().createPreferenceScreen(activity);
+            fragment.setPreferenceScreen(screen);
+            var row = new ShareActionChecklistPreference(activity);
+            screen.addPreference(row);
+            var failOnce = new java.util.concurrent.atomic.AtomicBoolean(true);
+            try (var failure = new app.morphe.extension.tiktok.PreferenceCommitFailure(
+                    keys -> keys.contains(Settings.SHARE_HIDDEN_ITEMS.key)
+                            && failOnce.getAndSet(false), false)) {
+                row.showDialog(null);
+                var dialog = (android.app.AlertDialog) row.getDialog();
+                CheckBox copy = findCheckBox(dialog.getWindow().getDecorView(), "share_action_copy");
+                assertNotNull(copy);
+                copy.performClick();
+                org.robolectric.shadows.ShadowToast.reset();
+                dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+                Utils.awaitBackgroundTasksForTests();
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+                assertEquals("unknown_key", Settings.SHARE_HIDDEN_ITEMS.get());
+                assertTrue("a failed write discarded the checklist", dialog.isShowing());
+                assertTrue("the draft selection was lost", copy.isChecked());
+                assertNotNull("the save failed silently",
+                        org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+                View decor = dialog.getWindow().getDecorView();
+                decor.measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.AT_MOST));
+                app.morphe.extension.tiktok.UiCapture.save(decor,
+                        "audit/share-checklist-save-failure-" + theme + ".png", 480, decor.getMeasuredHeight());
+                dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+                Utils.awaitBackgroundTasksForTests();
+                org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+                assertEquals("unknown_key, copy", Settings.SHARE_HIDDEN_ITEMS.get());
+                assertFalse("a successful retry did not close the checklist", dialog.isShowing());
+            }
+        }
+    }
+
+    @Test @Config(qualifiers = "notnight")
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    public void aLightChecklistKeepsItsFailedDraftAndRetry() throws Exception {
+        aFailedChecklistWriteKeepsItsSelectionAndCanBeRetried();
+    }
 }

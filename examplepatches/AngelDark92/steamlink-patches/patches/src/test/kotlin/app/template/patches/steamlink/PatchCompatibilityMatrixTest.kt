@@ -17,6 +17,8 @@ import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
 import app.template.patches.steamlink.androidxr.xrPermissionSettingsBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrStartupPermissionsPatch
 import app.template.patches.steamlink.binary.androidXrNativePermissionNamesPatch
+import app.template.patches.steamlink.binary.backgroundBlueNoisePatch
+import app.template.patches.steamlink.binary.fovealBlueNoisePatch
 import app.template.patches.steamlink.binary.forceHmdInitializationGatesPatch
 import app.template.patches.steamlink.binary.forceLobbyPermissionStateGatePatch
 import app.template.patches.steamlink.binary.forceStreamXrGatesPatch
@@ -55,6 +57,14 @@ class PatchCompatibilityMatrixTest {
             recommendedFor("2.0.20", 5001712),
         )
         assertEquals(
+            listOf(galaxyXrRecommended5001812Patch),
+            recommendedFor("2.0.20", 5001812),
+        )
+        assertEquals(
+            listOf(galaxyXrRecommended5001968Patch),
+            recommendedFor("2.0.21", 5001968),
+        )
+        assertEquals(
             listOf(galaxyXrLegacyFoundationPatch),
             recommendedFor("2.0.22", 5002244),
         )
@@ -64,6 +74,11 @@ class PatchCompatibilityMatrixTest {
         )
         listOf(
             "2.0.20" to 5001740,
+            "2.0.20" to 5001813,
+            "2.0.20" to 5001968,
+            "2.0.21" to 5001812,
+            "2.0.21" to 5001969,
+            "2.0.22" to 5001968,
             "2.0.20" to 5002322,
             "2.0.22" to 5002243,
             "2.0.22" to 5002296,
@@ -153,7 +168,7 @@ class PatchCompatibilityMatrixTest {
     }
 
     @Test
-    fun both_legacy_bundles_preserve_startup_behavior_through_explicit_patches() {
+    fun all_legacy_bundles_preserve_startup_behavior_through_explicit_patches() {
         val expected = setOf(
             androidXrNativePermissionNamesPatch,
             forceHmdInitializationGatesPatch,
@@ -173,10 +188,19 @@ class PatchCompatibilityMatrixTest {
             xrManifestCapabilityPackPatch,
             deviceIdentityPatch,
         )
-        listOf(galaxyXrRecommended5001712Patch, galaxyXrLegacyFoundationPatch).forEach { bundle ->
+        listOf(
+            galaxyXrRecommended5001712Patch,
+            galaxyXrRecommended5001812Patch,
+            galaxyXrRecommended5001968Patch,
+            galaxyXrLegacyFoundationPatch,
+        ).forEach { bundle ->
             assertEquals(expected, bundle.dependencies.toSet(), bundle.name)
             val closure = bundle.dependencyClosure()
-            listOf(appearOnTopPatch, changePackageNamePatch, controllerVelocityPatch)
+            assertEquals(galaxyXrRecommended5001712Patch.dependencyClosure(), closure, bundle.name)
+            listOf(
+                appearOnTopPatch, changePackageNamePatch, controllerVelocityPatch,
+                fovealBlueNoisePatch, backgroundBlueNoisePatch,
+            )
                 .forEach { assertFalse(it in closure, "${bundle.name} unexpectedly includes ${it.name}") }
         }
         assertFalse(forceHmdInitializationGatesPatch.default)
@@ -185,6 +209,30 @@ class PatchCompatibilityMatrixTest {
         assertFalse(controllerVelocityPatch.default)
         assertFalse(changePackageNamePatch.default)
         assertFalse(appearOnTopPatch.default)
+    }
+
+    @Test
+    fun new_legacy_bases_preserve_all_22_standalone_patches_and_optional_defaults() {
+        val completeCatalog = allIndividualPatches + listOf(fovealBlueNoisePatch, backgroundBlueNoisePatch)
+        val reference = completeCatalog.filter { it.supports("2.0.20", 5001712) }.toSet()
+        assertEquals(22, reference.size)
+        listOf("2.0.20" to 5001812, "2.0.21" to 5001968).forEach { (version, code) ->
+            val supported = completeCatalog.filter { it.supports(version, code) }.toSet()
+            assertEquals(reference, supported, "$version/$code")
+            supported.forEach { patch -> assertFalse(patch.default, "${patch.name}: $version/$code") }
+        }
+        listOf(
+            "2.0.20" to 5001968,
+            "2.0.21" to 5001812,
+            "2.0.22" to 5001812,
+            "2.0.22" to 5001968,
+            "2.0.20" to 5001813,
+            "2.0.21" to 5001969,
+        ).forEach { (version, code) ->
+            completeCatalog.forEach { patch ->
+                assertFalse(patch.supports(version, code), "${patch.name}: $version/$code")
+            }
+        }
     }
 
     @Test
@@ -267,6 +315,8 @@ class PatchCompatibilityMatrixTest {
     private companion object {
         val recommendedBundles = listOf(
             galaxyXrRecommended5001712Patch,
+            galaxyXrRecommended5001812Patch,
+            galaxyXrRecommended5001968Patch,
             galaxyXrRecommended5002363Patch,
             galaxyXrLegacyFoundationPatch,
         )

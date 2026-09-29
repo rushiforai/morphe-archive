@@ -450,6 +450,38 @@ public class Utils {
     public static void setActivity(Activity mainActivity) {
         Logger.printInfo(() -> "Set activity: " + mainActivity);
         activityRef = new WeakReference<>(mainActivity);
+        followResumed(mainActivity);
+    }
+
+    private static volatile WeakReference<Activity> resumedRef = new WeakReference<>(null);
+    private static WeakReference<android.app.Application> followedApplication = new WeakReference<>(null);
+
+    /**
+     * The host activity in front: the last one resumed while it is still alive, else the main
+     * activity. A video opened from a profile or search plays in an activity of its own, and a
+     * dialog built on the main activity behind it opens on a stopped window nobody can see.
+     */
+    public static Activity getVisibleActivity() {
+        Activity resumed = resumedRef.get();
+        if (resumed != null && !resumed.isFinishing() && !resumed.isDestroyed()) return resumed;
+        return getActivity();
+    }
+
+    private static synchronized void followResumed(Activity activity) {
+        android.app.Application application = activity == null ? null : activity.getApplication();
+        if (application == null || followedApplication.get() == application) return;
+        followedApplication = new WeakReference<>(application);
+        application.registerActivityLifecycleCallbacks(new android.app.Application.ActivityLifecycleCallbacks() {
+            @Override public void onActivityResumed(Activity resumed) { resumedRef = new WeakReference<>(resumed); }
+            @Override public void onActivityDestroyed(Activity destroyed) {
+                if (resumedRef.get() == destroyed) resumedRef = new WeakReference<>(null);
+            }
+            @Override public void onActivityCreated(Activity created, Bundle state) { }
+            @Override public void onActivityStarted(Activity started) { }
+            @Override public void onActivityPaused(Activity paused) { }
+            @Override public void onActivityStopped(Activity stopped) { }
+            @Override public void onActivitySaveInstanceState(Activity saved, Bundle state) { }
+        });
     }
 
     /**

@@ -21,8 +21,9 @@
     scripts/injected-mutation-contracts.txt: one feed guard, in addNewEdgeToCollection, each
     story-flag stub calling GraphQLStory's accessor before it returns, the showcase stub calling
     the accessor of the one class answering ShowcaseFeedUnit, the Stories tray hook first in both
-    tray adapter methods, and the reels hook first in the pre-EOF injector, each in the one method
-    its rule's strings and shape pick out.
+    tray adapter methods, the reels hook first in the pre-EOF injector, and the swap guard once in
+    the runnable that swaps an edge into the feed, each in the one method its rule's strings and
+    shape pick out.
 
     On a device. The Android runtime's own verifier is the authority, so with -Serial the
     clean APK and the patched APK are both put through dex2oat with the verify filter and the

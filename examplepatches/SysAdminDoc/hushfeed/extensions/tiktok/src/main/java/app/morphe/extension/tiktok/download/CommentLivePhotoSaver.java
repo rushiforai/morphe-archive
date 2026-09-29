@@ -65,12 +65,13 @@ public final class CommentLivePhotoSaver {
             }
             String id = Reflect.string(comment, "getCid", "cid");
             String key = (id == null || id.isEmpty() ? "comment" : id) + '#' + index;
+            String jobKey = "comment clip " + key;
             if (!ACTIVE.add(key)) {
-                Utils.showToastShort(L10n.t("Still saving the last one"));
+                Utils.showToastShort(MediaJobScheduler.busyMessage(jobKey));
                 return;
             }
             Context app = context.getApplicationContext();
-            boolean submitted = MediaJobScheduler.submit("comment live photo", () -> {
+            MediaJobScheduler.Job job = MediaJobScheduler.submit("comment live photo", jobKey, () -> {
                 File temp = null;
                 try {
                     MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
@@ -88,11 +89,11 @@ public final class CommentLivePhotoSaver {
                     if (temp != null && !MediaCache.delete(temp)) {
                         Logger.printInfo(() -> "Could not remove the live photo temporary file");
                     }
-                    ACTIVE.remove(key);
                 }
-            });
-            // The scheduler has already said the queue is full; nothing to add.
-            if (!submitted) ACTIVE.remove(key);
+            }, () -> ACTIVE.remove(key));
+            // A refusal has already said the queue is full and let go of the photo.
+            String saying = L10n.t("Saving the live photo's clip");
+            MediaJobScheduler.acknowledge(job, saying, saying);
         } catch (Throwable failure) {
             // A build whose comment model moved: TikTok's own save of the still goes on untouched.
             HookStatus.threw(HOOK_FAMILY, "comment live photo", failure);

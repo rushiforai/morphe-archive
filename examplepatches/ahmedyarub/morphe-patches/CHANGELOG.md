@@ -1,3 +1,17 @@
+## [1.7.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.7.0...v1.7.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Stop Open links externally crashing on link taps ([c458fcf](https://github.com/ahmedyarub/morphe-patches/commit/c458fcf5a53b403b26934bfe492ca79cff5d2f30))
+* **Instagram:** Stop Open links externally crashing on link taps ([c77faf8](https://github.com/ahmedyarub/morphe-patches/commit/c77faf8e90281de4ce7c955a3f91d23fa021cd52))
+
+## [1.7.1-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.7.0...v1.7.1-dev.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Stop Open links externally crashing on link taps ([c458fcf](https://github.com/ahmedyarub/morphe-patches/commit/c458fcf5a53b403b26934bfe492ca79cff5d2f30))
+* **Instagram:** Stop Open links externally crashing on link taps ([c77faf8](https://github.com/ahmedyarub/morphe-patches/commit/c77faf8e90281de4ce7c955a3f91d23fa021cd52))
+
 ## [1.7.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.6.1...v1.7.0) (2026-09-23)
 
 ### ✨ New Features

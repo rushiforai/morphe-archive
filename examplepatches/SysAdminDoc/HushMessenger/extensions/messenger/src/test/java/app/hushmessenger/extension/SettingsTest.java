@@ -1,6 +1,7 @@
 package app.hushmessenger.extension;
 
 import android.net.Uri;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
@@ -21,6 +22,7 @@ public class SettingsTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
+        CrashGuard.resetForTests();
     }
 
     @Test public void allControlsPreserveStockUntilEnabled() {
@@ -48,6 +50,16 @@ public class SettingsTest {
         assertTrue(Settings.hideStories());
     }
 
+    @Test public void encryptedTypingFlagDropsOnlyWhileTheSwitchIsOn() {
+        assertTrue(Settings.outgoingTyping(true));
+        assertFalse(Settings.outgoingTyping(false));
+        Settings.preferences.edit().putBoolean("typing", true).apply();
+        assertFalse(Settings.outgoingTyping(true));
+        assertFalse(Settings.outgoingTyping(false));
+        Settings.preferences.edit().putBoolean("paused", true).apply();
+        assertTrue(Settings.outgoingTyping(true));
+    }
+
     @Test public void browserOverrideOnlyUsesStockPreferenceForWebSchemes() {
         Settings.preferences.edit().putBoolean("external_browser", true).apply();
         assertTrue(Settings.preferExternalBrowser(false, Uri.parse("HTTPS://example.com/a?signature=kept")));
@@ -57,6 +69,20 @@ public class SettingsTest {
             assertTrue(Settings.preferExternalBrowser(true, Uri.parse(url)));
         }
         assertFalse(Settings.preferExternalBrowser(false, null));
+    }
+
+    @Test public void peopleSectionKeepsMessengersOwnHideChoiceAndPauses() {
+        assertFalse(Settings.hidePeopleSection(false));
+        assertTrue(Settings.hidePeopleSection(true));
+        assertTrue(Settings.keepPeopleSection(true));
+        assertFalse(Settings.keepPeopleSection(false));
+        Settings.preferences.edit().putBoolean("people", true).apply();
+        assertTrue(Settings.hidePeopleSection(false));
+        assertFalse(Settings.keepPeopleSection(true));
+        Settings.preferences.edit().putBoolean("paused", true).apply();
+        assertFalse(Settings.hidePeopleSection(false));
+        assertTrue(Settings.hidePeopleSection(true));
+        assertTrue(Settings.keepPeopleSection(true));
     }
 
     @Test public void pauseRestoresBrowserAndSubtabsExactly() {
@@ -100,6 +126,111 @@ public class SettingsTest {
             Switch stories = controller.get().getWindow().getDecorView().findViewWithTag("stories");
             assertTrue(stories.isChecked());
         }
+    }
+
+    /** Shaped like Messenger 580's Menu tab folder row (HRf): context, key, metadata, badge and one title. */
+    static class FakeDrawerFolderKey {
+        final String name;
+        FakeDrawerFolderKey(String name) { this.name = name; }
+    }
+
+    static final class FakeSettingsFolderKey extends FakeDrawerFolderKey {
+        FakeSettingsFolderKey() { super("settings"); }
+    }
+
+    /** Messenger keeps folder metadata such as the unseen badge count in one Map. */
+    static final class FakeHeterogeneousMap {
+        final java.util.Map<Object, Object> entries;
+        FakeHeterogeneousMap(java.util.Map<Object, Object> entries) { this.entries = entries; }
+    }
+
+    static final class FolderRow {
+        final Context context;
+        final FakeDrawerFolderKey key;
+        final FakeHeterogeneousMap metadata;
+        final Integer badge;
+        final String title;
+        FolderRow(Context context, FakeDrawerFolderKey key, FakeHeterogeneousMap metadata, Integer badge, String title) {
+            this.context = context;
+            this.key = key;
+            this.metadata = metadata;
+            this.badge = badge;
+            this.title = title;
+        }
+    }
+
+    static final class TwoTitleRow {
+        final String first = "Settings";
+        final String second = "Subtitle";
+    }
+
+    @Test public void menuSettingsRowCopiesTheFolderRowWithoutItsKeyOrBadge() {
+        var application = RuntimeEnvironment.getApplication();
+        FakeDrawerFolderKey key = new FakeSettingsFolderKey();
+        FakeHeterogeneousMap metadata = new FakeHeterogeneousMap(new java.util.HashMap<>(java.util.Map.of("badge", 3)));
+        FolderRow settings = new FolderRow(application, key, metadata, 3, "Settings");
+        java.util.ArrayList<Object> rows = new java.util.ArrayList<>(java.util.List.of(settings));
+        Settings.addMenuSettingsEntry(rows);
+        assertEquals(2, rows.size());
+        assertSame(settings, rows.get(0));
+        assertEquals("Settings", settings.title);
+        assertSame(metadata, settings.metadata);
+        assertEquals(java.util.Map.of("badge", 3), metadata.entries);
+        FolderRow hush = (FolderRow) rows.get(1);
+        assertEquals("HushMessenger", hush.title);
+        assertNull(hush.badge);
+        assertSame(application, hush.context);
+        assertNotSame(key, hush.key);
+        assertEquals(FakeSettingsFolderKey.class, hush.key.getClass());
+        assertNotSame(metadata, hush.metadata);
+        assertTrue(hush.metadata.entries.isEmpty());
+    }
+
+    @Test public void menuSettingsRowLeavesListsItCannotLabelAlone() {
+        java.util.ArrayList<Object> rows = new java.util.ArrayList<>(java.util.List.of(new TwoTitleRow()));
+        Settings.addMenuSettingsEntry(rows);
+        assertEquals(1, rows.size());
+        java.util.ArrayList<Object> empty = new java.util.ArrayList<>();
+        Settings.addMenuSettingsEntry(empty);
+        assertTrue(empty.isEmpty());
+        Settings.addMenuSettingsEntry(null);
+    }
+
+    @Test public void onlyTheHushCopyOfTheSettingsRowOpensSettings() {
+        var application = RuntimeEnvironment.getApplication();
+        FolderRow settings = new FolderRow(application, new FakeSettingsFolderKey(), null, null, "Settings");
+        assertSame(settings, Settings.drawerFolderClicked(settings));
+        // A community or folder that happens to use the same name keeps Messenger's handling.
+        FolderRow namesake = new FolderRow(application, new FakeDrawerFolderKey("community"), null, null, "HushMessenger");
+        assertSame(namesake, Settings.drawerFolderClicked(namesake));
+        assertNull(Shadows.shadowOf(application).getNextStartedActivity());
+        FolderRow hush = new FolderRow(application, new FakeSettingsFolderKey(), null, null, "HushMessenger");
+        assertNull(Settings.drawerFolderClicked(hush));
+        Intent launched = Shadows.shadowOf(application).getNextStartedActivity();
+        assertEquals(SettingsActivity.class.getName(), launched.getComponent().getClassName());
+        assertEquals(application.getPackageName(), launched.getComponent().getPackageName());
+        assertTrue((launched.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK) != 0);
+    }
+
+    /** Shaped like Messenger 580's keyboard tab: an activate event plus int icon and label fields. */
+    static final class KeyboardTab {
+        final Object event;
+        final int icon = 7;
+        KeyboardTab(Object event) { this.event = event; }
+    }
+
+    @Test public void avatarTabLeavesTheStickerKeyboardOnlyWhileTheSwitchIsOn() {
+        KeyboardTab emoji = new KeyboardTab(new Object());
+        KeyboardTab avatar = new KeyboardTab(new com.facebook.xapp.messaging.composer.avatar.composertab.event.ActivateAvatarSticker());
+        KeyboardTab gifs = new KeyboardTab("gifs");
+        java.util.List<Object> tabs = java.util.List.of(emoji, avatar, gifs);
+        assertNull(Settings.filterKeyboardTabs(tabs));
+        Settings.preferences.edit().putBoolean("avatar_stickers", true).apply();
+        assertEquals(java.util.List.of(emoji, gifs), Settings.filterKeyboardTabs(tabs));
+        assertNull(Settings.filterKeyboardTabs(java.util.List.of(emoji, gifs)));
+        assertNull(Settings.filterKeyboardTabs(null));
+        Settings.preferences.edit().putBoolean("paused", true).apply();
+        assertNull(Settings.filterKeyboardTabs(tabs));
     }
 
     @Test public void messengerButtonOpensItsLauncherTaskInsteadOfTheSettingsTask() {

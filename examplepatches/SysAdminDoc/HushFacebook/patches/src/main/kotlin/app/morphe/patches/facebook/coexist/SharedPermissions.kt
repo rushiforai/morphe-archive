@@ -67,7 +67,7 @@ internal const val NAME_CALL =
     "$EXTENSION_PACKAGE/coexist/SharedPermissions;->name(Ljava/lang/String;)Ljava/lang/String;"
 
 /** Every extension class sits under here, and the extension's own copies of the literals stay. */
-private const val EXTENSION_ROOT = "Lapp/morphe/extension/"
+internal const val EXTENSION_ROOT = "Lapp/morphe/extension/"
 
 /** [name] under [RENAMED_PREFIX]: `com.facebook.X` becomes `app.hushfacebook.X`. */
 internal fun renamed(name: String): String {
@@ -140,12 +140,14 @@ internal fun Document.renameSharedPermissions(): Map<String, Mentions> {
     return counted
 }
 
-/** The shared literal this instruction loads, or null. */
-internal fun Instruction.sharedLiteral(): String? {
+/** The string this instruction loads with const-string, or null. */
+internal fun Instruction.loadedString(): String? {
     if (opcode != Opcode.CONST_STRING && opcode != Opcode.CONST_STRING_JUMBO) return null
-    val value = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string ?: return null
-    return value.takeIf { it in SHARED_LITERALS }
+    return ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
 }
+
+/** The shared literal this instruction loads, or null. */
+internal fun Instruction.sharedLiteral(): String? = loadedString()?.takeIf { it in SHARED_LITERALS }
 
 /** True when this method loads a shared literal. It only reads, so it needs no proxy. */
 internal fun Method.loadsSharedLiteral(): Boolean =
@@ -159,19 +161,28 @@ internal fun Method.loadsSharedLiteral(): Boolean =
  * call, which reads a register at any number: the patcher leaves out, without a word, an
  * instruction whose register doesn't fit its field, so a 4-bit call on v16 would vanish.
  */
-internal fun MutableMethod.routeSharedLiterals(): Int {
+internal fun MutableMethod.routeSharedLiterals(): Int = routeLiterals(NAME_CALL, PATCH, "a permission name") {
+    it in SHARED_LITERALS
+}
+
+/**
+ * Hands every literal this method loads that [routes] picks to [call], a static method taking and
+ * answering a String, the way [routeSharedLiterals] does. An error names [owner] and calls the
+ * literal [literal].
+ */
+internal fun MutableMethod.routeLiterals(call: String, owner: String, literal: String, routes: (String) -> Boolean): Int {
     val sites = (implementation ?: return 0).instructions.withIndex()
-        .filter { (_, instruction) -> instruction.sharedLiteral() != null }
+        .filter { (_, instruction) -> instruction.loadedString()?.let(routes) == true }
         .map { it.index }
     sites.asReversed().forEach { index ->
         val register = getInstruction<OneRegisterInstruction>(index).registerA
         if (register > 255) {
-            throw PatchException("$PATCH: $definingClass->$name loads a permission name into v$register")
+            throw PatchException("$owner: $definingClass->$name loads $literal into v$register")
         }
         addInstructions(
             index + 1,
             """
-                invoke-static/range { v$register .. v$register }, $NAME_CALL
+                invoke-static/range { v$register .. v$register }, $call
                 move-result-object v$register
             """,
         )

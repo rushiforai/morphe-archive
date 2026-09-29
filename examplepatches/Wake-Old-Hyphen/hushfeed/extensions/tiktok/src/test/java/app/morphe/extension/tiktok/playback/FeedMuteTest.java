@@ -2,6 +2,8 @@ package app.morphe.extension.tiktok.playback;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -95,6 +97,32 @@ public class FeedMuteTest {
         feed.pause().stop().destroy();
     }
 
+    /**
+     * Pausing the feed for the comments, or for a return, takes the sound from TikTok by asking
+     * for focus. A muted feed has none to take, so the ask would only stop the music another
+     * app is playing under it.
+     */
+    @Test public void pausingAMutedFeedLeavesOtherAppsSoundAlone() {
+        Settings.FEED_MUTED.save(true);
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("111"));
+        FeedMute.onEnginePlay(engine("A", "111"));
+        assertTrue(FeedMute.isHoldingFocus());
+        var audio = org.robolectric.Shadows.shadowOf((android.media.AudioManager)
+                RuntimeEnvironment.getApplication().getSystemService(Context.AUDIO_SERVICE));
+        try {
+            PausePlayback.quietenForTests();
+            assertNull("a muted feed asked for the focus", audio.getLastAudioFocusRequest());
+            assertFalse(PausePlayback.quietenedForTests());
+
+            FeedMute.setMuted(false);
+            PausePlayback.quietenForTests();
+            assertNotNull("with sound the feed must still be quietened",
+                    audio.getLastAudioFocusRequest());
+        } finally {
+            PausePlayback.resetForTests();
+        }
+    }
+
     @Test public void aFeedVideoPlaysSilentWhileMutedAndGetsItsSoundBack() {
         Settings.FEED_MUTED.save(true);
         Object engine = engine("A", "101");
@@ -116,6 +144,88 @@ public class FeedMuteTest {
         calls.clear();
         FeedMute.onEnginePlay(engine);
         assertEquals("an unmuted feed engine is left alone", List.of(), calls);
+    }
+
+    /**
+     * Mute switched on from the settings page, with the feed behind it, gives the focus back when
+     * the feed returns (S22, 2026-09-28: another app's music stayed paused on the muted feed).
+     */
+    @Test public void muteFromSettingsGivesTheFocusBackOnReturn() {
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("401"));
+        FeedMute.onEnginePlay(engine("A", "401"));
+        FeedMute.holdSessionFocus("session");
+        FeedMute.holdPageFocus("page");
+        calls.clear();
+
+        feed.pause();
+        FeedMute.setMuted(true);
+        assertFalse("focus was touched with the feed away", calls.contains("abandon session session"));
+
+        feed.resume();
+        assertTrue(calls.toString(), calls.contains("abandon session session"));
+        assertTrue(calls.toString(), calls.contains("abandon page page"));
+    }
+
+    /**
+     * Sound turned back on while the video is paused asks for the focus when the feed next plays,
+     * the resumed video or the next one (S22, 2026-09-28: it played over another app's music).
+     */
+    @Test public void soundOnWhilePausedAsksForTheFocusWhenTheFeedPlays() {
+        Settings.FEED_MUTED.save(true);
+        Object engine = engine("A", "501");
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("501"));
+        FeedMute.onEnginePlay(engine);
+        FeedMute.holdSessionFocus("session");
+        FeedMute.holdPageFocus("page");
+        calls.clear();
+
+        // Nothing is playing (the test has no player to ask), so nothing is asked for yet.
+        FeedMute.setMuted(false);
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertFalse(calls.toString(), calls.contains("request session session"));
+
+        FeedMute.onEnginePlay(engine);
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertTrue(calls.toString(), calls.contains("request session session"));
+        assertTrue(calls.toString(), calls.contains("request page page"));
+
+        // Once: the next play asks for nothing more.
+        calls.clear();
+        FeedMute.onEnginePlay(engine);
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertFalse(calls.toString(), calls.contains("request session session"));
+    }
+
+    /** The button stays off a story or a LIVE replay, which keep their sound whatever it says. */
+    @Test public void theButtonAppliesOnlyToVideosTheMuteGoverns() {
+        FeedMute.onControllerPlay(new Controller(feed.get()), video("601"));
+        FeedMute.onControllerPlay(new Controller(feed.get()), aweme("602", 0, true, 0));
+        assertTrue(FeedMute.appliesTo("601"));
+        assertFalse("a story kept the mute button", FeedMute.appliesTo("602"));
+        assertTrue("an unknown video lost the button", FeedMute.appliesTo("never-played"));
+    }
+
+    /**
+     * A video opened from a profile, a hashtag or a sound plays in the detail pager, which draws
+     * the mute button too. What the button says has to hold there.
+     */
+    @Test public void aDetailPagerVideoFollowsTheMuteButton() {
+        Settings.FEED_MUTED.save(true);
+        ActivityController<com.ss.android.ugc.aweme.detail.ui.DetailActivity> pager =
+                Robolectric.buildActivity(com.ss.android.ugc.aweme.detail.ui.DetailActivity.class).setup();
+        try {
+            Object engine = engine("pager", "301");
+            FeedMute.onControllerPlay(new Controller(pager.get()), video("301"));
+            FeedMute.onEnginePlay(engine);
+            assertEquals(List.of("pager mute"), calls);
+            assertTrue(FeedMute.isHoldingFocus());
+
+            calls.clear();
+            FeedMute.setMuted(false);
+            assertEquals(List.of("pager sound"), calls);
+        } finally {
+            pager.pause().stop().destroy();
+        }
     }
 
     @Test public void videosTheFeedDidNotAskForKeepTheirSound() {

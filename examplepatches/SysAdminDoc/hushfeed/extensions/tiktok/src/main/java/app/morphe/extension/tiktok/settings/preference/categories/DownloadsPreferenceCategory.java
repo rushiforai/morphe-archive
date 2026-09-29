@@ -15,6 +15,7 @@ import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.DownloadPathPreference;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
+import app.morphe.extension.tiktok.settings.preference.ForgetSavedVideosPreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
@@ -79,7 +80,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Video filename",
                     "Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.",
                     Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE
-            ));
+            ).withNameKeyboard());
             addPreference(new InputTextPreference(
                     context,
                     "Photo filename",
@@ -88,14 +89,14 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "TikTok's own button is numbered by the folder instead. The file "
                             + "extension is kept automatically.",
                     Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
-            ));
+            ).withNameKeyboard());
             if (SettingsStatus.downloadEnabled) {
                 addPreference(new InputTextPreference(
                         context,
                         "Comment media filename",
                         "Tokens: {date}, {media_id}. Works for image and video stickers.",
                         Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE
-                ));
+                ).withNameKeyboard());
                 addPreference(new TogglePreference(
                         context,
                         "Remove watermark",
@@ -123,6 +124,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     L10n.f(context, "Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.",
                             java.text.NumberFormat.getIntegerInstance().format(SavedVideoArchive.LIMIT)),
                     Settings.CHECK_SAVED_VIDEOS));
+            addPreference(new ForgetSavedVideosPreference(context));
         }
         if (SettingsStatus.advancedDownloadsEnabled || SettingsStatus.downloadEnabled) {
             addPreference(new SectionHeadingPreference(context, "Photos and stickers"));
@@ -149,7 +151,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.subtitleToolsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Subtitles"));
             addPreference(new TogglePreference(context, "Save subtitles beside videos",
-                    "Save SRT files with the video. Paired saves use Movies on Android 11+, Download on Android 10, and your video folder on older versions.", Settings.DOWNLOAD_SUBTITLES));
+                    "Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.", Settings.DOWNLOAD_SUBTITLES));
             addPreference(new ChoicePreference(context, "Subtitle language", Settings.SUBTITLE_LANGUAGE,
                     new String[]{"Original language", "Device language, then original", "All available languages"},
                     new String[]{"original", "device", "all"}));
@@ -162,7 +164,8 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     "An app's package name, like com.dv.adm. The save button sends the video's "
                             + "link there instead of saving it here. Leave it empty to save here.",
                     Settings.EXTERNAL_DOWNLOADER_PACKAGE)
-                    .withCheck(value -> ExternalDownloader.packageNameProblem(value.trim())));
+                    .withCheck(value -> ExternalDownloader.packageNameProblem(value.trim()))
+                    .withNameKeyboard());
             ChoicePreference ytdlnisType = new ChoicePreference(context, "YTDLnis download type",
                     Settings.YTDLNIS_DOWNLOAD_TYPE, new String[]{"Video", "Audio"},
                     new String[]{"video", "audio"});

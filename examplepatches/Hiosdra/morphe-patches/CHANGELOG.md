@@ -1,3 +1,19 @@
+## [1.6.0](https://github.com/Hiosdra/morphe-patches/compare/v1.5.0...v1.6.0) (2026-09-28)
+
+### ✨ New Features
+
+* add F1 update dismissal and Movie Paradise GMS support ([4cf9ea5](https://github.com/Hiosdra/morphe-patches/commit/4cf9ea5d381dee980fd0649455889b3f590262a3))
+
+## [1.5.0](https://github.com/Hiosdra/morphe-patches/compare/v1.4.0...v1.5.0) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **f1:** support F1 TV 3.0.49.4 ([a060780](https://github.com/Hiosdra/morphe-patches/commit/a060780521df36c9df19dda1d6b7c6bbe840c7f3))
+
+### ✨ New Features
+
+* **f1:** enable PiP and multiview background audio ([88ca286](https://github.com/Hiosdra/morphe-patches/commit/88ca286bef7857a35128e29af89e82fc55b90593))
+
 ## [1.4.0](https://github.com/Hiosdra/morphe-patches/compare/v1.3.1...v1.4.0) (2026-08-25)
 
 ### 🐛 Bug Fixes

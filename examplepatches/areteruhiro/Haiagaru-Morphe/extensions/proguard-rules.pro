@@ -4,6 +4,7 @@
 -keep class app.morphe.extension.chmate.** {
     *;
 }
+-keep class dev.carlsen.mega.Mega { *; }
 -keep class rikka.shizuku.** {
     *;
 }

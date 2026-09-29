@@ -1,0 +1,56 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/2712
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ * https://gitlab.com/ReVanced/revanced-patches/-/merge_requests/4881
+ * https://gitlab.com/ReVanced/revanced-patches/-/merge_requests/5806
+ * https://gitlab.com/ReVanced/revanced-patches/-/merge_requests/5838
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
+package app.morphe.extension.youtube.settings.search;
+
+import android.app.Activity;
+import android.preference.PreferenceScreen;
+import android.view.View;
+import android.widget.Toolbar;
+
+import app.morphe.extension.shared.settings.search.BaseSearchViewController;
+import app.morphe.extension.youtube.settings.preference.YouTubePreferenceFragment;
+
+/**
+ * YouTube-specific search view controller implementation.
+ */
+@SuppressWarnings("deprecation")
+public class YouTubeSearchViewController extends BaseSearchViewController {
+
+    public static YouTubeSearchViewController addSearchViewComponents(Activity activity, Toolbar toolbar,
+                                                                      YouTubePreferenceFragment fragment) {
+        return new YouTubeSearchViewController(activity, toolbar, fragment);
+    }
+
+    private YouTubeSearchViewController(Activity activity, Toolbar toolbar, YouTubePreferenceFragment fragment) {
+        super(activity, toolbar, new PreferenceFragmentAdapter(fragment));
+    }
+
+    // Adapter to wrap YouTubePreferenceFragment to BasePreferenceFragment interface.
+    private record PreferenceFragmentAdapter(YouTubePreferenceFragment fragment) implements BasePreferenceFragment {
+        @Override
+        public PreferenceScreen getPreferenceScreenForSearch() {
+            return fragment.getPreferenceScreenForSearch();
+        }
+
+        @Override
+        public View getView() {
+            return fragment.getView();
+        }
+
+        @Override
+        public Activity getActivity() {
+            return fragment.getActivity();
+        }
+    }
+}

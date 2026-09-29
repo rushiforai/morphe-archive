@@ -482,7 +482,24 @@ public abstract class Setting<T> {
         return defaultValue;
     }
 
-    /** Apply a validated batch in one preference transaction. Call on a worker thread. */
+    /** A batch that didn't land. Whether every setting it named is back on its value from before is known and said. */
+    public static final class BatchFailed extends java.io.IOException {
+        /** Every setting the batch named holds its value from before, live and in the store. */
+        public final boolean restored;
+
+        BatchFailed(boolean restored, @Nullable Throwable cause) {
+            super(restored ? "Could not save settings" : "Could not save settings or roll back; use Undo", cause);
+            this.restored = restored;
+        }
+    }
+
+    /**
+     * Apply a validated batch in one preference transaction. Call on a worker thread.
+     *
+     * @throws BatchFailed when the batch was attempted and didn't land. Each setting it named then
+     *                     runs the value the store holds, which is what a restart loads. Anything
+     *                     else is thrown before a write.
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static synchronized void saveAll(Map<Setting<?>, Object> updates) throws java.io.IOException {
         if (!Utils.isMainProcess()) {
@@ -503,14 +520,45 @@ public abstract class Setting<T> {
             bounded.put(setting, setting.coerce(next));
             previous.put(setting, setting.savedValue());
         }
-        if (!writeBatch(bounded)) {
-            boolean restored = writeBatch(previous);
-            throw new java.io.IOException(restored ? "Could not save settings" : "Could not save settings or roll back; use Undo");
+        Throwable failure = null;
+        boolean committing = false;
+        try {
+            var editor = stage(bounded);
+            committing = true;
+            if (editor.commit()) return;
+        } catch (RuntimeException thrown) {
+            // An editor that wouldn't open, a value it refused or a commit that threw.
+            failure = thrown;
         }
+        boolean restored = true;
+        if (committing) {
+            // A commit that failed may still have landed, so the values from before are written back.
+            try {
+                restored = stage(previous).commit();
+            } catch (RuntimeException thrown) {
+                restored = false;
+            }
+        }
+        // Each setting runs what the store holds, which is what a restart loads, and the batch
+        // counts as put back only when that is the value from before.
+        for (var entry : previous.entrySet()) {
+            Setting setting = entry.getKey();
+            setting.value = entry.getValue();
+            try {
+                setting.load();
+                setting.value = setting.coerce(setting.value);
+            } catch (RuntimeException unreadable) {
+                setting.value = entry.getValue();
+                restored = false;
+            }
+            if (!setting.value.equals(entry.getValue())) restored = false;
+        }
+        throw new BatchFailed(restored, failure);
     }
 
+    /** An editor holding [values], each already the setting's live value, so an import's page shows them. */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static boolean writeBatch(Map<Setting<?>, Object> values) {
+    private static android.content.SharedPreferences.Editor stage(Map<Setting<?>, Object> values) {
         var editor = preferences.preferences.edit();
         for (var entry : values.entrySet()) {
             Setting setting = entry.getKey();
@@ -520,7 +568,7 @@ public abstract class Setting<T> {
             else if (next instanceof Boolean) editor.putBoolean(setting.key, (Boolean) next);
             else editor.putString(setting.key, next instanceof Enum ? ((Enum) next).name() : next.toString());
         }
-        return editor.commit();
+        return editor;
     }
 
     /**

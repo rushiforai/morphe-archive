@@ -56,6 +56,9 @@ $script:pushedCommits = New-Object System.Collections.Generic.List[string]
 # Each pushed local ref with the object the gates were given for it, checked again at the end.
 # Not $pushedRefs: variable names ignore case, and that one is a parameter of this script.
 $script:checkedRefs = New-Object System.Collections.Generic.List[object]
+# Whether a real diff, not a new branch's whole tree, moved the source index. Every tree holds
+# patches-bundle.json, so a first push used to read as an index push and skip patching.
+$script:indexChanged = $false
 
 function Write-Step {
     param([string]$Message)
@@ -110,6 +113,9 @@ function Get-PushedPaths {
             # change and built nothing. -z: paths come back as they are, where git otherwise
             # wraps a name with a non-ASCII letter in quotes that no pattern below matches.
             $names = Invoke-GitQuietly @('diff', '--name-only', '--no-renames', '-z', $remoteSha, $localSha)
+            if (@((@($names) -join "`n") -split "`0" | Where-Object { $_.Trim() -eq 'patches-bundle.json' }).Count -gt 0) {
+                $script:indexChanged = $true
+            }
         }
         if ($LASTEXITCODE -ne 0) {
             throw "Could not read what $range changes. Fetch the remote and try again."
@@ -341,6 +347,8 @@ try {
     if ($PSBoundParameters.ContainsKey('ChangedPaths')) {
         $paths = New-Object System.Collections.Generic.HashSet[string]
         foreach ($name in @($ChangedPaths)) { [void]$paths.Add($name) }
+        # Paths given by hand are a diff, so the index among them moved.
+        $script:indexChanged = $paths.Contains('patches-bundle.json')
     } else {
         $refs = ''
         if ($PSBoundParameters.ContainsKey('PushedRefs')) {
@@ -379,7 +387,7 @@ try {
     # release receipt already applied that bundle to every declared build.
     $touchesPatches = @($paths | Where-Object {
         $_ -like 'patches/src/main/*' -or $_ -eq 'gradle/libs.versions.toml'
-    }).Count -gt 0 -and -not $paths.Contains('patches-bundle.json')
+    }).Count -gt 0 -and -not $script:indexChanged
     $injectedRegisterVerifierPaths = @(
         'scripts/DexDiff.java',
         'scripts/injected-register-contracts.ps1',
@@ -613,7 +621,7 @@ try {
         # The description's test count belongs to the release it describes. Holding this tree to
         # it only means something while the description is being rewritten, which is when
         # patches-bundle.json is one of the files that moved.
-        $describesThisTree = @($paths | Where-Object { $_ -eq 'patches-bundle.json' }).Count -gt 0
+        $describesThisTree = $script:indexChanged
         $factsFailed = 'The release facts do not agree. Fix them or push with HUSHFEED_SKIP_PRE_PUSH=1.'
         if ($describesThisTree) {
             # The index push holds the bundle and the test results this checkout built to the new

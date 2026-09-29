@@ -82,6 +82,14 @@ final class Downloader {
 
         /** Whether the person saving asked to stop. */
         boolean cancelled();
+
+        /** The fetched tracks are being joined into one file. */
+        default void joining() {
+        }
+
+        /** The finished file is being copied into the gallery. */
+        default void saving() {
+        }
     }
 
     /** No one is watching and nothing can cancel. */
@@ -122,6 +130,16 @@ final class Downloader {
             public boolean cancelled() {
                 return progress.cancelled();
             }
+
+            @Override
+            public void joining() {
+                progress.joining();
+            }
+
+            @Override
+            public void saving() {
+                progress.saving();
+            }
         };
     }
 
@@ -129,6 +147,52 @@ final class Downloader {
     private static final class Cancelled extends IOException {
         Cancelled() {
             super("cancelled");
+        }
+    }
+
+    /** The cache file couldn't be opened or written: the phone's storage, not the network. */
+    private static final class StorageFailure extends IOException {
+        StorageFailure(IOException cause) {
+            super(cause);
+        }
+    }
+
+    /**
+     * The file in the cache a fetch lands in, with each of its failures told apart from the
+     * network's. A full or unwritable cache used to reach the person saving as a network failure.
+     */
+    private static final class CacheFile extends OutputStream {
+        private final OutputStream file;
+
+        CacheFile(File into) throws StorageFailure {
+            try {
+                file = new FileOutputStream(into);
+            } catch (IOException e) {
+                throw new StorageFailure(e);
+            }
+        }
+
+        @Override
+        public void write(int value) throws IOException {
+            write(new byte[] { (byte) value }, 0, 1);
+        }
+
+        @Override
+        public void write(byte[] bytes, int offset, int length) throws IOException {
+            try {
+                file.write(bytes, offset, length);
+            } catch (IOException e) {
+                throw new StorageFailure(e);
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                file.close();
+            } catch (IOException e) {
+                throw new StorageFailure(e);
+            }
         }
     }
 
@@ -141,19 +205,30 @@ final class Downloader {
         final String reason;
         /** The type of what was fetched, once it is known to be one. */
         final String mime;
+        /**
+         * The saved picture is below the best one the manifest offered within the quality setting,
+         * the one Facebook's player can show, so the person saving is told.
+         */
+        final boolean lower;
 
-        private Result(Status status, String reason, String mime) {
+        private Result(Status status, String reason, String mime, boolean lower) {
             this.status = status;
             this.reason = reason;
             this.mime = mime;
+            this.lower = lower;
         }
 
         static Result ok(String mime) {
-            return new Result(Status.OK, null, mime);
+            return new Result(Status.OK, null, mime, false);
         }
 
         static Result fail(Status status, String reason) {
-            return new Result(status, reason, null);
+            return new Result(status, reason, null, false);
+        }
+
+        /** This result, told that the saved picture is below the manifest's. */
+        Result lower() {
+            return new Result(status, reason, mime, true);
         }
 
         boolean ok() {
@@ -194,6 +269,10 @@ final class Downloader {
     static final long MAX_BYTES = 512L * 1024L * 1024L;
     private static final int MAX_REDIRECTS = 5;
 
+    /** The most of an error answer's body that's read, and the longest spent reading it. */
+    private static final int DRAIN_BYTES = 64 * 1024;
+    private static final long DRAIN_NANOS = 3_000_000_000L;
+
     /**
      * Enough of the start of a file to tell a container from a page, and to read the first twelve
      * compatible brands of an ftyp box. At 32 bytes only four fit, and an image can list miaf and a
@@ -206,54 +285,14 @@ final class Downloader {
     private static final String HEIF = "image/heif";
 
     /**
-     * Fetch [url] into a new file in [folder], check it, and publish it through [sink]. Blocking.
-     * Never throws. The file in [folder] is gone when this returns, whatever happened.
-     */
-    static Result save(String url, Kind kind, File folder, Sink sink) {
-        return save(url, kind, folder, sink, MediaUrlPolicy.META, MAX_BYTES);
-    }
-
-    static Result save(String url, Kind kind, File folder, Sink sink, MediaUrlPolicy policy, long maxBytes) {
-        return save(url, kind, folder, sink, policy, maxBytes, SILENT);
-    }
-
-    static Result save(String url, Kind kind, File folder, Sink sink, MediaUrlPolicy policy, long maxBytes,
-            Progress progress) {
-        File temp = null;
-        try {
-            temp = File.createTempFile(kind.name().toLowerCase(Locale.US), ".part", folder);
-            Result fetched = fetch(url, kind, temp, policy, maxBytes, progress);
-            if (!fetched.ok()) return fetched;
-            return publish(temp, fetched.mime, sink, progress);
-        } catch (Throwable t) {
-            return Result.fail(Status.WRITE_ERROR, "the cache could not hold the file");
-        } finally {
-            delete(temp);
-        }
-    }
-
-    /** {@link #fetch(String, Kind, File, MediaUrlPolicy, long)} with Meta's policy and the real cap. */
-    static Result fetch(String url, Kind kind, File into) {
-        return fetch(url, kind, into, MediaUrlPolicy.META, MAX_BYTES);
-    }
-
-    /** {@link #fetch(String, Kind, File, MediaUrlPolicy, long)} with the real cap. */
-    static Result fetch(String url, Kind kind, File into, MediaUrlPolicy policy) {
-        return fetch(url, kind, into, policy, MAX_BYTES);
-    }
-
-    /**
-     * Fetch [url] into [into]. Blocking. Never throws. On anything but OK, [into] is deleted.
+     * Fetch [url] into [into], reporting to [progress] and stopping with CANCELLED when it says so.
+     * [maxBytes] is the most the file may hold. Blocking. Never throws. On anything but OK, [into]
+     * is deleted.
      *
      * <p>No header is set on the request. A captured address was fetched from an unrelated machine
      * with none at all and answered 200, so a guessed {@code User-Agent} or {@code Referer} can
      * only make a refusal more likely.
      */
-    static Result fetch(String url, Kind kind, File into, MediaUrlPolicy policy, long maxBytes) {
-        return fetch(url, kind, into, policy, maxBytes, SILENT);
-    }
-
-    /** As above, reporting to [progress] and stopping with CANCELLED when it says so. */
     static Result fetch(String url, Kind kind, File into, MediaUrlPolicy policy, long maxBytes, Progress progress) {
         HttpURLConnection connection = null;
         boolean kept = false;
@@ -266,11 +305,16 @@ final class Downloader {
 
             int code = connection.getResponseCode();
             if (code == 401 || code == 403 || code == 410) {
-                drain(connection);
+                drain(connection, progress);
+                if (progress.cancelled()) return cancelled();
                 return Result.fail(Status.EXPIRED, "the server answered " + code);
             }
-            if (code < 200 || code > 299) {
-                drain(connection);
+            // Only a 200 is the whole file. A 206 answers a Range request, and none was sent: its
+            // body is part of a file, of just the length it announces, so the length check below
+            // passed it and the gallery got a truncated video that said it saved.
+            if (code != 200) {
+                drain(connection, progress);
+                if (progress.cancelled()) return cancelled();
                 return Result.fail(Status.HTTP_ERROR, "the server answered " + code);
             }
 
@@ -296,7 +340,7 @@ final class Downloader {
             }
 
             long total;
-            try (OutputStream out = new FileOutputStream(into)) {
+            try (OutputStream out = new CacheFile(into)) {
                 out.write(head, 0, headLength);
                 progress.transferred(headLength, expected);
                 total = headLength + copy(in, out, maxBytes - headLength, headLength, expected, progress);
@@ -322,6 +366,10 @@ final class Downloader {
             // A cancel closes the connection under the read, which surfaces here as a socket
             // error. It's still the person's cancel, not a network failure.
             if (progress.cancelled()) return cancelled();
+            if (e instanceof StorageFailure) {
+                return Result.fail(Status.WRITE_ERROR, "the cache could not hold the file: "
+                    + e.getCause().getClass().getSimpleName());
+            }
             return Result.fail(Status.NETWORK_ERROR, "the fetch failed: " + e.getClass().getSimpleName());
         } catch (Throwable t) {
             if (progress.cancelled()) return cancelled();
@@ -340,18 +388,14 @@ final class Downloader {
 
     /**
      * Copy a finished, checked [file] into [sink] as [mime]. If anything fails once the sink is
-     * open, the entry is removed again.
+     * open, the entry is removed again, and a cancel before the commit leaves no row.
      */
-    static Result publish(File file, String mime, Sink sink) {
-        return publish(file, mime, sink, SILENT);
-    }
-
-    /** As above, and a cancel before the commit leaves no row. */
     static Result publish(File file, String mime, Sink sink, Progress progress) {
         boolean committed = false;
 
         try (InputStream in = new FileInputStream(file)) {
             if (progress.cancelled()) return cancelled();
+            progress.saving();
             OutputStream out = sink.open(mime);
 
             byte[] buffer = new byte[BUFFER];
@@ -415,23 +459,42 @@ final class Downloader {
             }
 
             HttpURLConnection connection = (HttpURLConnection) current.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setInstanceFollowRedirects(false);
-            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-            connection.setReadTimeout(readTimeoutMs);
-            connection.setUseCaches(false);
-            // disconnect(), never the stream's close(): over HTTPS on Android only disconnect()
-            // ends a read that's waiting (SaveControl.Save.cancel has the measurements).
-            progress.reading(connection::disconnect);
+            // This method's to close until it's handed back, whatever throws: a failure while the
+            // headers came in used to skip the disconnect.
+            boolean handedBack = false;
+            String location;
+            try {
+                connection.setRequestMethod("GET");
+                connection.setInstanceFollowRedirects(false);
+                connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+                connection.setReadTimeout(readTimeoutMs);
+                connection.setUseCaches(false);
+                // disconnect(), never the stream's close(): over HTTPS on Android only disconnect()
+                // ends a read that's waiting (SaveControl.Save.cancel has the measurements).
+                progress.reading(connection::disconnect);
+                // A cancel's close that runs before the connection exists closes nothing, on the
+                // JDK and on Android alike, and the fetch then waited for an answer until the read
+                // timeout. So the flag is read again once connected; a close after that ends the wait.
+                connection.connect();
+                if (progress.cancelled()) return cancelled();
 
-            int code = connection.getResponseCode();
-            if (code != 301 && code != 302 && code != 303 && code != 307 && code != 308) {
-                return connection;
+                int code = connection.getResponseCode();
+                if (code != 301 && code != 302 && code != 303 && code != 307 && code != 308) {
+                    handedBack = true;
+                    return connection;
+                }
+
+                location = connection.getHeaderField("Location");
+                drain(connection, progress);
+            } finally {
+                if (!handedBack) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable ignored) {
+                        // Nothing useful to do.
+                    }
+                }
             }
-
-            String location = connection.getHeaderField("Location");
-            drain(connection);
-            connection.disconnect();
 
             if (location == null || location.isEmpty()) {
                 return Result.fail(Status.HTTP_ERROR, "a redirect named no address");
@@ -621,16 +684,27 @@ final class Downloader {
         return mime.isEmpty() ? null : mime;
     }
 
-    /** Read and close the error body, so the connection can go back to the pool. */
-    private static void drain(HttpURLConnection connection) {
+    /**
+     * Read and close the error body, so the connection can go back to the pool: at most
+     * [DRAIN_BYTES] of it, for at most [DRAIN_NANOS], and nothing past a cancel. An error page that
+     * never ended used to hold its save, and one of the three save slots, for as long as it went
+     * on. A read that's waiting ends at the read timeout, or on a cancel, which closes the
+     * connection ({@link Progress#reading}). A redirect has no error body, so none of it is read.
+     */
+    private static void drain(HttpURLConnection connection, Progress progress) {
         InputStream stream = null;
         try {
             stream = connection.getErrorStream();
             if (stream == null) return;
 
             byte[] buffer = new byte[4096];
-            while (stream.read(buffer) > 0) {
+            long until = System.nanoTime() + DRAIN_NANOS;
+            int left = DRAIN_BYTES;
+            int read;
+            while (left > 0 && System.nanoTime() - until < 0 && !progress.cancelled()
+                    && (read = stream.read(buffer, 0, Math.min(buffer.length, left))) > 0) {
                 // Discarded on purpose. Reading it is what releases the connection.
+                left -= read;
             }
         } catch (Throwable ignored) {
             // Nothing useful to do.

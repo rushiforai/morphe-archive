@@ -1,3 +1,39 @@
+## [1.5.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.4.0...v1.5.0) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* **unifiedremote:** force the local License.Status gate instead of RevenueCat ([1e5126d](https://github.com/heval99/Heval-Morphe-Patches/commit/1e5126de6048080929ab06ddcef83e2c1dbbf487)), closes [#21](https://github.com/heval99/Heval-Morphe-Patches/issues/21)
+
+### ✨ New Features
+
+* add Futbin Disable ads patch ([169259c](https://github.com/heval99/Heval-Morphe-Patches/commit/169259cd2ab22084fee9adbbe2842069cce03201))
+* add Pocket Color Wheel Disable ads patch ([1d004f8](https://github.com/heval99/Heval-Morphe-Patches/commit/1d004f8d0d0597c2621b2c662f83c2beb35cdc1c))
+* add Textra, jetAudio and Unified Remote patches ([2226983](https://github.com/heval99/Heval-Morphe-Patches/commit/22269830ef70d7886c1c337d3501dfa59c8704c2))
+
+## [1.5.0-dev.4](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-09-27)
+
+### ✨ New Features
+
+* add Pocket Color Wheel Disable ads patch ([1d004f8](https://github.com/heval99/Heval-Morphe-Patches/commit/1d004f8d0d0597c2621b2c662f83c2beb35cdc1c))
+
+## [1.5.0-dev.3](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-09-27)
+
+### ✨ New Features
+
+* add Futbin Disable ads patch ([169259c](https://github.com/heval99/Heval-Morphe-Patches/commit/169259cd2ab22084fee9adbbe2842069cce03201))
+
+## [1.5.0-dev.2](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-09-27)
+
+### 🐛 Bug Fixes
+
+* **unifiedremote:** force the local License.Status gate instead of RevenueCat ([1e5126d](https://github.com/heval99/Heval-Morphe-Patches/commit/1e5126de6048080929ab06ddcef83e2c1dbbf487)), closes [#21](https://github.com/heval99/Heval-Morphe-Patches/issues/21)
+
+## [1.5.0-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.4.0...v1.5.0-dev.1) (2026-09-19)
+
+### ✨ New Features
+
+* add Textra, jetAudio and Unified Remote patches ([2226983](https://github.com/heval99/Heval-Morphe-Patches/commit/22269830ef70d7886c1c337d3501dfa59c8704c2))
+
 ## [1.4.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.3.1...v1.4.0) (2026-09-18)
 
 ### 🐛 Bug Fixes

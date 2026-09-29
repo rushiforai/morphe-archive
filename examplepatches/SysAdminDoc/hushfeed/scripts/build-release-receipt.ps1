@@ -233,8 +233,15 @@ foreach ($apk in $Fixture) {
         $arguments = $arguments + $enable + @($apk)
         # Kept, not dropped: the 0.60.0 run stopped on 46.2.3 with no result report and no word
         # on why, and the same step applied all 94 patches the next morning.
-        $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
-        $cliExitCode = $LASTEXITCODE
+        # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+        $preference = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
+            $cliExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
 
         if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
             throw ("The desktop CLI wrote no result report for $label (exit $cliExitCode). " +

@@ -7,8 +7,10 @@
  */
 package app.morphe.extension.facebook.misc;
 
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.Signature;
+import android.os.Process;
 import android.util.Base64;
 
 import java.util.Collections;
@@ -23,10 +25,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>Facebook's security code compares the signing certificate of a package with a table of Meta
  * certificates, and it does this for its own package too. A re-signed build has a different
  * certificate, so Facebook does not trust itself and drops a tap on some screens without a message.
- * The patch gives the check the original certificate of Facebook when the package is Facebook.
+ * The patch gives the check the original certificate of Facebook when the package is this app.
  *
- * <p>The package name is enough to know that the package is this app. Android lets only one
- * installed app have a package name, and the patch does not rename Facebook.
+ * <p>The name alone doesn't say that. Morphe's Clone app patch renames the package, and the stock
+ * Facebook it was cloned from can stay installed beside it (#16). The uid does: Android gives every
+ * installed app its own (Facebook's manifest shares it with no other), and the process has it before
+ * any code runs, so the check needs no context even while content providers start.
  */
 public final class FacebookSignature {
 
@@ -50,13 +54,13 @@ public final class FacebookSignature {
     private static volatile List<Signature> original;
 
     /**
-     * The original signers of Facebook if [info] is Facebook itself, or {@code null} to keep the
-     * signers that the system reports.
+     * The original signers of Facebook if [info] is this app, or {@code null} to keep the signers
+     * that the system reports.
      */
     public static List<Signature> originalSigners(PackageInfo info) {
-        if (info == null || !PACKAGE.equals(info.packageName)) return null;
+        if (!isThisApp(info)) return null;
 
-        // Counted only when it answers for Facebook, which is the whole of its job. The name is a
+        // Counted only when it answers for this app, which is the whole of its job. The name is a
         // compile-time constant: this can run while content providers start, before Hushfacebook
         // has a context, and Hook status reads no setting.
         HookStatus.invoked(FamilyNames.RESTORE_TRUST);
@@ -66,5 +70,20 @@ public final class FacebookSignature {
             original = signers;
         }
         return signers;
+    }
+
+    /**
+     * Whether [info] describes the running app, under Facebook's name or a clone's. A package with
+     * another uid is another app, whatever its name. PackageManager always fills in the
+     * ApplicationInfo; without one only the name is known, and the answer stays the one builds
+     * before the clone fix gave. The same goes for an isolated process, like the browser's
+     * renderers or a service from Facebook's app zygote: it runs under a uid of its own, not the
+     * app's, so a clone can't be told apart there.
+     */
+    private static boolean isThisApp(PackageInfo info) {
+        if (info == null || info.packageName == null) return false;
+        ApplicationInfo app = info.applicationInfo;
+        if (app == null || Process.isIsolated()) return PACKAGE.equals(info.packageName);
+        return app.uid == Process.myUid() && info.packageName.equals(app.packageName);
     }
 }

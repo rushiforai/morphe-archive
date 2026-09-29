@@ -11,7 +11,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.addInstructionsToEnd
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import hoodles.morphe.patches.duolingo.shared.Constants
+import hoodles.morphe.compatibility.Compat
 import hoodles.morphe.patches.duolingo.shared.integrity.disableLoginIntegrityPatch
 import hoodles.morphe.util.constructor
 
@@ -21,7 +21,7 @@ val enableDebugModePatch = bytecodePatch(
     description = "Enables hidden debug menu in settings.",
     default = false
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.DUOLINGO)
 
     dependsOn(disableLoginIntegrityPatch)
 

@@ -26,6 +26,8 @@ private const val MONTH_ROW_DATA = "Lcom/ather/ridestories/ui/allHighlights/d;"
 private const val MONTH_ROW_FLAG = "$MONTH_ROW_DATA->d:Z"
 
 private const val PREVIOUS_RIDES = "Lcom/ather/ridestories/ui/previousRides/l;"
+// Ather 13.5.0 ships the same loader and click handler under the k name.
+private const val PREVIOUS_RIDES_1350 = "Lcom/ather/ridestories/ui/previousRides/k;"
 private const val PREVIOUS_RIDES_DATA =
     "Lcom/ather/connectedplatformlib/dataModels/responseModels/PreviousRidesData;" // keywatch:ignore
 private const val COROUTINE_CONTINUATION = "Lkotlin/coroutines/jvm/internal/c;"
@@ -72,6 +74,28 @@ internal object PreviousRidesFingerprint : Fingerprint(
  */
 internal object PreviousRideClickFingerprint : Fingerprint(
     definingClass = PREVIOUS_RIDES,
+    name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf(RIDE_CLICK_EVENT),
+)
+
+/**
+ * Matches the same loader in the 13.5.0 build (`previousRides/k`).
+ */
+internal object PreviousRidesFingerprint1350 : Fingerprint(
+    definingClass = PREVIOUS_RIDES_1350,
+    name = "i",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf(PREVIOUS_RIDES_1350, PREVIOUS_RIDES_DATA, COROUTINE_CONTINUATION),
+)
+
+/**
+ * Matches the same click handler in the 13.5.0 build (`previousRides/k`).
+ */
+internal object PreviousRideClickFp1350 : Fingerprint(
+    definingClass = PREVIOUS_RIDES_1350,
     name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
@@ -133,8 +157,15 @@ val rideLogPatch = bytecodePatch(
 
     execute {
         MonthSummaryFingerprint.method.applyMonthOverrides()
-        PreviousRidesFingerprint.method.applyLocalRides()
-        PreviousRideClickFingerprint.method.interceptRideClick()
+
+        val rides = PreviousRidesFingerprint.matchOrNull()
+        if (rides != null) {
+            rides.method.applyLocalRides()
+            PreviousRideClickFingerprint.method.interceptRideClick()
+        } else {
+            PreviousRidesFingerprint1350.method.applyLocalRides()
+            PreviousRideClickFp1350.method.interceptRideClick()
+        }
     }
 }
 

@@ -275,8 +275,20 @@ public final class FeatureGateLabStore {
     static void requireRuleLimit(List<Rule> rules) throws java.io.IOException {
         if (rules == null) throw new java.io.IOException("Lab rules are missing");
         if (rules.size() > MAX_RULES) {
-            throw new java.io.IOException(ruleLimitMessage(rules.size()));
+            throw new RuleLimitRefused(ruleLimitMessage(rules.size()));
         }
+    }
+
+    /** The rule cap, refused with the sentence the reader is shown, so it can be shown. */
+    static final class RuleLimitRefused extends java.io.IOException {
+        RuleLimitRefused(String sentence) {
+            super(sentence);
+        }
+    }
+
+    /** For a settings restore that rewrote the Lab: its own undo copy no longer applies. */
+    public static void discardLabUndo() {
+        FeatureGateLabUndo.discardAfterSettingsChange();
     }
 
     static String ruleLimitMessage(int resultingCount) {

@@ -31,7 +31,24 @@ recorded in the Git history.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.33.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.33.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;99 patches total
+> **[v1.34.0](https://github.com/hxreborn/morphe-patches/releases/tag/v1.34.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;102 patches total
+<details open>
+<summary>📦&nbsp;BlurWall&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.9.8 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| <a id="blurwall-amoled-dark-theme"></a>[AMOLED dark theme](patches/src/main/kotlin/app/morphe/patches/blurwall/misc/theme/AmoledThemePatch.kt) | Replaces the dark theme background with pure black. |
+| <a id="blurwall-disable-tracking"></a>[Disable tracking](patches/src/main/kotlin/app/morphe/patches/blurwall/misc/tracking/DisableTrackingPatch.kt) | Stops the Google Mobile Ads SDK from starting and reading the advertising ID. |
+| <a id="blurwall-unlock-premium"></a>[Unlock premium](patches/src/main/kotlin/app/morphe/patches/blurwall/misc/premium/UnlockPremiumPatch.kt) | Unlocks the HalfBlur effect. |
+
+</details>
+
 <details open>
 <summary><img src=".github/assets/icons/cx.png" width="18" align="top">&nbsp;&nbsp;Cx File Explorer&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>

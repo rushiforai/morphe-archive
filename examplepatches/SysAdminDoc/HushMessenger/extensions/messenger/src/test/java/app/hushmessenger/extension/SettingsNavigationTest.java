@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +15,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowToast;
 import static org.junit.Assert.*;
 
 @RunWith(RobolectricTestRunner.class)
@@ -29,17 +31,45 @@ public class SettingsNavigationTest {
             View root = screen.get().getWindow().getDecorView();
             TextView count = root.findViewWithTag("search_status");
             root.findViewWithTag("category_chats").performClick();
-            assertEquals("7 of 20 installed controls", count.getText().toString());
+            assertEquals("8 of 24 installed controls", count.getText().toString());
             assertEquals(View.GONE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
             ((EditText) root.findViewWithTag("find_control")).setText("People You");
             assertEquals(View.VISIBLE, root.findViewWithTag("empty_state").getVisibility());
             root.findViewWithTag("clear_filters").performClick();
-            assertEquals("20 of 20 installed controls", count.getText().toString());
+            assertEquals("24 of 24 installed controls", count.getText().toString());
             assertEquals(View.GONE, root.findViewWithTag("empty_state").getVisibility());
             assertTrue(root.findViewWithTag("category_all").isSelected());
             root.findViewWithTag("category_more").performClick();
-            assertEquals("6 of 20 installed controls", count.getText().toString());
+            assertEquals("9 of 24 installed controls", count.getText().toString());
             assertEquals(View.VISIBLE, ((View) root.findViewWithTag("facebook").getParent()).getVisibility());
+        }
+    }
+
+    @Test public void selectedChipIsFilledInBothThemesAndTheWordmarkStaysOnOneLine() {
+        for (boolean light : new boolean[] {false, true}) {
+            Settings.preferences.edit().putBoolean("light", light).commit();
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                SettingsUi ui = new SettingsUi(screen.get(), light);
+                assertEquals(ui.accent, ui.selected);
+                assertEquals(light ? 0xffffffff : ui.background, ((TextView) root.findViewWithTag("category_all")).getCurrentTextColor());
+                assertEquals(ui.muted, ((TextView) root.findViewWithTag("category_inbox")).getCurrentTextColor());
+                TextView wordmark = root.findViewWithTag("wordmark");
+                assertEquals(1, wordmark.getMaxLines());
+                assertEquals(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM, wordmark.getAutoSizeTextType());
+            }
+        }
+    }
+
+    @Test public void theRecreatedPageReplacesTheThemeSwitchToast() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            ((Switch) screen.get().getWindow().getDecorView().findViewWithTag("light")).performClick();
+            Toast themeToast = ShadowToast.getLatestToast();
+            assertEquals("Light theme on", ShadowToast.getTextOfLatestToast());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            ((Switch) screen.get().getWindow().getDecorView().findViewWithTag("people")).performClick();
+            assertTrue(Shadows.shadowOf(themeToast).isCancelled());
+            assertEquals("Hide People You May Know on", ShadowToast.getTextOfLatestToast());
         }
     }
 
@@ -65,7 +95,7 @@ public class SettingsNavigationTest {
             root.findViewWithTag("tab_controls").performClick();
             assertEquals("People You", ((EditText) root.findViewWithTag("find_control")).getText().toString());
             assertTrue(root.findViewWithTag("category_inbox").isSelected());
-            assertEquals("1 of 20 installed controls", ((TextView) root.findViewWithTag("search_status")).getText().toString());
+            assertEquals("1 of 24 installed controls", ((TextView) root.findViewWithTag("search_status")).getText().toString());
             assertTrue(((Switch) root.findViewWithTag("people")).isChecked());
             assertTrue(Settings.enabled("people"));
         }

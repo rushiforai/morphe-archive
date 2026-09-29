@@ -173,6 +173,65 @@ public class StickerGallerySaverTest {
         assertEquals(3, sheet.actions.getChildCount());
     }
 
+    /**
+     * A sticker save waiting behind busy workers is said at once with its wait, keeps its button
+     * busy, hands the button back exactly once when it is cancelled, and can be asked for again.
+     */
+    @Test public void aWaitingStickerSaveHandsItsButtonBackOnceAndCanBeAskedAgain() throws Exception {
+        android.content.Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        StickerSheet sheet = new StickerSheet(context);
+        PreviewModel preview = new PreviewModel();
+        String url = "https://example.invalid/queued.png";
+        StickerGallerySaver.registerStickerSource(preview, sticker(url));
+        StickerGallerySaver.attachSaveImageButton(sheet, preview);
+        View save = sheet.actions.getChildAt(2);
+        assertTrue(save.isEnabled());
+
+        for (int wait = 0; wait < 500 && MediaJobScheduler.runningJobs() + MediaJobScheduler.queuedJobs() != 0; wait++) {
+            Thread.sleep(10);
+        }
+        java.util.concurrent.CountDownLatch hold = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch started = new java.util.concurrent.CountDownLatch(MediaJobScheduler.MAX_RUNNING_JOBS);
+        for (int index = 0; index < MediaJobScheduler.MAX_RUNNING_JOBS; index++) {
+            assertTrue(MediaJobScheduler.submit("sticker test hold", () -> {
+                started.countDown();
+                try {
+                    hold.await(10, java.util.concurrent.TimeUnit.SECONDS);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+        }
+        try {
+            assertTrue(started.await(5, java.util.concurrent.TimeUnit.SECONDS));
+            org.robolectric.shadows.ShadowToast.reset();
+            save.performClick();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertFalse("the button took a second press while its save waited", save.isEnabled());
+            assertEquals("Saving the sticker\nStarts after one other save",
+                    org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+
+            MediaJobScheduler.Job waiting = MediaJobScheduler.job("sticker " + url);
+            assertNotNull(waiting);
+            assertTrue(waiting.cancel());
+            assertFalse(waiting.cancel());
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue("the button stayed busy after its save was cancelled", save.isEnabled());
+
+            save.performClick();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertFalse("the second press was not taken", save.isEnabled());
+            MediaJobScheduler.Job again = MediaJobScheduler.job("sticker " + url);
+            assertNotNull(again);
+            assertTrue(again.cancel());
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue(save.isEnabled());
+        } finally {
+            hold.countDown();
+        }
+    }
+
     /** A sheet with no pair of like-typed actions is left alone and named in the export. */
     @Test public void aSheetWithNoActionPairIsLeftAloneAndReported() {
         android.content.Context context = RuntimeEnvironment.getApplication();
@@ -251,7 +310,7 @@ public class StickerGallerySaverTest {
                 new StickerGallerySaver.StickerAsset("https://cdn.example/sticker.webp", false);
 
         Runnable work = StickerGallerySaver.stickerSaveWork(
-                RuntimeEnvironment.getApplication(), asset, anchor);
+                RuntimeEnvironment.getApplication(), asset);
         Runnable rejected = StickerGallerySaver.handBackLater(anchor);
 
         // The control: a closure that does capture the button has to be found, or the walk below

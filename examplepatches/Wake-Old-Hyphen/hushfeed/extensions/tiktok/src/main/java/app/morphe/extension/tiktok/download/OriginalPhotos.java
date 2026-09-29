@@ -108,17 +108,21 @@ public final class OriginalPhotos {
         for (int i = 0; i < photos.size(); i++) {
             names.add(DownloadFilenameFormatter.formatOriginalPhotoName(aweme, i + 1, "tmp"));
         }
-        if (!ACTIVE.add(id)) return true;
+        String key = "photos " + id;
+        if (!ACTIVE.add(id)) {
+            Utils.showToastShort(MediaJobScheduler.busyMessage(key));
+            return true;
+        }
         Context app = context.getApplicationContext();
-        Utils.showToastShort(L10n.quantity(app, chosen.size(),
-                "Saving one original photo", "Saving %1$s original photos"));
-        boolean submitted = MediaJobScheduler.submit("original photos", () -> {
+        // From three photos up a row follows the save from the moment it is accepted, counts
+        // them once it runs and offers Cancel throughout.
+        SaveProgress progress = SaveProgress.queued(chosen.size(), false);
+        MediaJobScheduler.Job job = progress.submit("original photos", key, () -> {
             // The banner's Open lands on the newest photo, which is where the gallery puts the rest.
             MediaFileWriter.Saved[] last = {null};
             try {
-                // From three photos up a row counts them and offers Cancel; a photo that fails
-                // is skipped and the rest still land, and the result says what did.
-                SaveProgress.Outcome outcome = SaveProgress.begin(chosen.size()).run(index -> {
+                // A photo that fails is skipped and the rest still land, and the result says what did.
+                SaveProgress.Outcome outcome = progress.run(index -> {
                     int i = chosen.get(index);
                     MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
                     File temp = MediaCache.createTempFile(app, "original-photo-", ".tmp");
@@ -142,14 +146,11 @@ public final class OriginalPhotos {
             } catch (RuntimeException exception) {
                 Logger.printException(() -> "Original photo download failed", exception);
                 Utils.showToastLong(L10n.t("None of the photos could be saved. Try again."));
-            } finally {
-                ACTIVE.remove(id);
             }
-        });
-        if (!submitted) {
-            ACTIVE.remove(id);
-            return false;
-        }
+        }, () -> ACTIVE.remove(id));
+        if (job == null) return false;
+        String saying = L10n.quantity(app, chosen.size(), "Saving one original photo", "Saving %1$s original photos");
+        progress.acknowledge(saying, saying);
         return true;
     }
 

@@ -44,6 +44,7 @@ import app.morphe.extension.facebook.ads.ProfileAdFilterForTests;
 import app.morphe.extension.facebook.ads.ReelsAdFilter;
 import app.morphe.extension.facebook.ads.SearchAdFilterForTests;
 import app.morphe.extension.facebook.chats.MessengerCardForTests;
+import app.morphe.extension.facebook.chats.MessengerIconForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
@@ -67,10 +68,12 @@ import app.morphe.extension.facebook.misc.LinkCleaner;
 import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
+import app.morphe.extension.facebook.reels.DoubleTapLike;
 import app.morphe.extension.facebook.reels.ReelDeclutter;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
 import app.morphe.extension.facebook.stories.StoryAdvance;
+import app.morphe.extension.facebook.stories.StorySeen;
 import app.morphe.extension.facebook.stories.SuggestedStoriesForTests;
 import app.morphe.extension.facebook.updates.UpdatePrompts;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -187,9 +190,11 @@ public class PausedHooksTest {
 
     private static Map<PatchFamily, List<Probe>> probes() {
         Map<PatchFamily, List<Probe>> probes = new EnumMap<>(PatchFamily.class);
+        // A sponsored and a promoted edge at the funnel, and an ad swapped into the feed over another edge.
         probes.put(PatchFamily.SPONSORED_POSTS, Arrays.asList(
                 () -> FeedGuardForTests.hides(Category.SPONSORED, new Object()),
-                () -> FeedGuardForTests.hides(Category.PROMOTION, new Object())));
+                () -> FeedGuardForTests.hides(Category.PROMOTION, new Object()),
+                () -> FeedGuardForTests.swapHides(Category.SPONSORED, new Object())));
         probes.put(PatchFamily.SUGGESTED_POSTS, Arrays.asList(
                 () -> FeedGuardForTests.hides(Category.ORGANIC, new GraphQLPagesYouMayLikeFeedUnit()),
                 // A story Facebook's own recommendation flag marks as suggested for you.
@@ -211,10 +216,22 @@ public class PausedHooksTest {
                 () -> FeedGuardForTests.hidesReels(Category.FB_SHORTS, new Object()),
                 () -> FeedGuardForTests.hidesShowcaseReels(Category.SHOWCASE, ShowcaseStoryType.SHOWCASE_SHORT_VIDEO),
                 FeedFilter::hidePreEofReels));
-        probes.put(PatchFamily.RETURN_REFRESH, Collections.singletonList(() -> {
-            ReturnRefresh.uiHidden();
-            return ReturnRefresh.skip();
-        }));
+        // The refresh controller's resume callback, the feed's warm-start check and the foreground
+        // auto-scroll, each the first check of a return, and the feed teardown while away.
+        probes.put(PatchFamily.RETURN_REFRESH, Arrays.asList(
+                () -> {
+                    ReturnRefresh.uiHidden();
+                    return ReturnRefresh.skip();
+                },
+                () -> {
+                    ReturnRefresh.uiHidden();
+                    return ReturnRefresh.holdWarmStart();
+                },
+                () -> {
+                    ReturnRefresh.uiHidden();
+                    return ReturnRefresh.holdAutoScroll();
+                },
+                ReturnRefresh::keepFeedWhileAway));
         // A story Facebook's own detection marked as made with AI, one only its creator labelled as AI,
         // and a reel whose GenAI attribution carries the detected flag, at both levels a page of reels
         // enters.
@@ -239,6 +256,8 @@ public class PausedHooksTest {
         // A tray of a friend's bucket, a suggested one and one labelled SUGGESTED keeps only the friend's.
         probes.put(PatchFamily.SUGGESTED_STORIES, Collections.singletonList(SuggestedStoriesForTests::hidesSuggestions));
         probes.put(PatchFamily.STORY_AUTO_ADVANCE, Collections.singletonList(StoryAdvance::waitForTap));
+        // The story viewer's report of the stories you viewed goes out.
+        probes.put(PatchFamily.STORY_SEEN, Collections.singletonList(StorySeen::holdBack));
         probes.put(PatchFamily.SPONSORED_REELS, Arrays.asList(
                 () -> {
                     VideoAd ad = new VideoAd();
@@ -269,6 +288,14 @@ public class PausedHooksTest {
                 ReelDeclutter::skipSocialBubbles));
         // The Reels batcher's send of the reels you watched never reaches its executor.
         probes.put(PatchFamily.REEL_WATCH_HISTORY, Collections.singletonList(SeenStateSendForTests::heldBack));
+        // A double tap on a reel finds no handler and no heart, the reel like helper finds no key and
+        // sends no like from a double tap, and a feed attachment leaves its double tap unhandled.
+        probes.put(PatchFamily.DOUBLE_TAP_LIKE, Arrays.asList(
+                () -> DoubleTapLike.handler(new Object()) == null,
+                () -> DoubleTapLike.heart(new Object()) == null,
+                () -> DoubleTapLike.likeKey("reel") == null,
+                () -> DoubleTapLike.holdBackLike("DOUBLE_TAP"),
+                DoubleTapLike::holdBackTap));
         // A player's start with no tap before it is held, and Facebook's Autoplay setting reads Off.
         probes.put(PatchFamily.TAP_TO_PLAY, Arrays.asList(
                 () -> {
@@ -338,6 +365,8 @@ public class PausedHooksTest {
                 TagSuggestionsForTests::closesAListLeftOpen));
         // With Messenger installed, the card's show question answers no in Chats.
         probes.put(PatchFamily.MESSENGER_CARD, Collections.singletonList(MessengerCardForTests::hidesWithMessenger));
+        // With Messenger installed, a tap on the top bar's Messenger icon opens Messenger instead of Chats.
+        probes.put(PatchFamily.MESSENGER_ICON, Collections.singletonList(MessengerIconForTests::opensMessenger));
         // The Menu's Upgrades and Also from Meta groups build nothing, in the section Facebook
         // draws and in the one carrying what the server sends.
         probes.put(PatchFamily.MENU_PROMOTIONS, Arrays.asList(

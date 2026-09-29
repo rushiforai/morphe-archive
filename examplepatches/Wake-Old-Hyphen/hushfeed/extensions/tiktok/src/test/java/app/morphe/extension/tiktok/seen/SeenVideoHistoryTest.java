@@ -75,6 +75,17 @@ public class SeenVideoHistoryTest {
         assertFalse(SeenVideoHistory.hasReachedSeenThreshold(4_999, 600_000));
     }
 
+    /** A clip under a second never plays to the one-second mark, so it looped back unseen. */
+    @Test public void aClipShorterThanTheFloorIsSeenAtHalfItsLength() {
+        assertFalse(SeenVideoHistory.hasReachedSeenThreshold(399, 800));
+        assertTrue(SeenVideoHistory.hasReachedSeenThreshold(400, 800));
+        // A clip that does reach a second keeps the second, as before.
+        Settings.SEEN_VIDEO_MARK_PERCENT.save(50);
+        assertFalse(SeenVideoHistory.hasReachedSeenThreshold(999, 1_500));
+        assertTrue(SeenVideoHistory.hasReachedSeenThreshold(1_000, 1_500));
+        Settings.SEEN_VIDEO_MARK_PERCENT.resetToDefault();
+    }
+
     @Test public void aShareIsHeldInsideTheClipAndUnknownLengthsKeepTwoSeconds() {
         Settings.SEEN_VIDEO_MARK_PERCENT.save(90);
         // 90% of three seconds is 2.7 s, past the last second, where a report may never land.
@@ -780,6 +791,171 @@ public class SeenVideoHistoryTest {
         Field f = SeenVideoHistory.class.getDeclaredField(name);
         f.setAccessible(true);
         return f.get(null);
+    }
+
+    @Test public void theClearRowWaitsForStorageBeforeOfferingUndo() throws Exception {
+        var row = clearRowWithSeenVideo();
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        io().execute(() -> {
+            entered.countDown();
+            try { release.await(5, TimeUnit.SECONDS); }
+            catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+        });
+        assertTrue(entered.await(5, TimeUnit.SECONDS));
+        org.robolectric.shadows.ShadowToast.reset();
+        try {
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertFalse("the row announced a clear that SQLite had not started",
+                    String.valueOf(org.robolectric.shadows.ShadowToast.getTextOfLatestToast())
+                            .contains("Seen videos cleared"));
+            assertFalse("the pending clear accepts another tap", row.isEnabled());
+            assertNotEquals("Undo clearing seen videos", row.getTitle().toString());
+        } finally {
+            release.countDown();
+            drain();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        }
+        assertTrue(persistedIds().isEmpty());
+        assertTrue(row.isEnabled());
+        assertEquals("Undo clearing seen videos", row.getTitle().toString());
+        assertEquals("Seen videos cleared. You can undo until TikTok closes.",
+                org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aClearReadFailureKeepsHistoryAndOffersAWorkingRetry() throws Exception {
+        assertClearFailureCanRetry(true);
+    }
+
+    @Test public void aClearDeleteFailureKeepsHistoryAndOffersAWorkingRetry() throws Exception {
+        assertClearFailureCanRetry(false);
+    }
+
+    private void assertClearFailureCanRetry(boolean failRead) throws Exception {
+        var row = clearRowWithSeenVideo();
+        Field held = SeenVideoHistory.class.getDeclaredField("database");
+        held.setAccessible(true);
+        SeenVideoHistory.Database original = (SeenVideoHistory.Database) held.get(null);
+        AtomicBoolean failOnce = new AtomicBoolean(true);
+        held.set(null, new SeenVideoHistory.Database(RuntimeEnvironment.getApplication()) {
+            @Override public SQLiteDatabase getReadableDatabase() {
+                if (failRead && failOnce.getAndSet(false)) {
+                    throw new android.database.sqlite.SQLiteException("injected clear read failure");
+                }
+                return original.getReadableDatabase();
+            }
+            @Override public SQLiteDatabase getWritableDatabase() {
+                if (!failRead && failOnce.getAndSet(false)) {
+                    throw new android.database.sqlite.SQLiteException("injected clear delete failure");
+                }
+                return original.getWritableDatabase();
+            }
+        });
+        try {
+            org.robolectric.shadows.ShadowToast.reset();
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            drain();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals(Set.of("clear-me"), persistedIds());
+            assertTrue("the failed clear erased the live filter's record",
+                    SeenVideoHistory.shouldHide("clear-me"));
+            assertFalse("a failed clear offered an undo instead of a retry", SeenVideoHistory.canUndo());
+            assertTrue(row.isEnabled());
+            assertEquals("Clear seen videos", row.getTitle().toString());
+            assertTrue("the database failure was not disclosed",
+                    String.valueOf(org.robolectric.shadows.ShadowToast.getTextOfLatestToast())
+                            .contains("Couldn't clear"));
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            drain();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertTrue("the clear could not be retried", persistedIds().isEmpty());
+            assertTrue(SeenVideoHistory.canUndo());
+            assertEquals("Undo clearing seen videos", row.getTitle().toString());
+        } finally {
+            drain();
+            held.set(null, original);
+        }
+    }
+
+    @Test public void aClearFinishingAfterAnAccountChangeDoesNotOfferTheOtherAccountsUndo() throws Exception {
+        var row = clearRowWithSeenVideo();
+        SignedInUser.idForTests = "other";
+        SeenVideoHistory.onPlayProgressChange("other-video", 5000, 10000);
+        drain();
+        SignedInUser.idForTests = ME;
+        SeenVideoHistory.size();
+        drain();
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        io().execute(() -> {
+            entered.countDown();
+            try { release.await(5, TimeUnit.SECONDS); }
+            catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+        });
+        assertTrue(entered.await(5, TimeUnit.SECONDS));
+        try {
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            SignedInUser.idForTests = "other";
+            SeenVideoHistory.size();
+            org.robolectric.shadows.ShadowToast.reset();
+        } finally {
+            release.countDown();
+            drain();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        }
+        assertEquals(Set.of("other|other-video"), rows());
+        assertTrue(SeenVideoHistory.shouldHide("other-video"));
+        assertFalse(SeenVideoHistory.canUndo());
+        assertTrue("the completed old operation left the row disabled", row.isEnabled());
+        assertEquals("the old account's operation repainted the new account as cleared",
+                "Clear seen videos", row.getTitle().toString());
+        assertFalse(String.valueOf(org.robolectric.shadows.ShadowToast.getTextOfLatestToast())
+                .contains("Seen videos cleared"));
+    }
+
+    @Test public void anOldUndoCannotLeaveTheNewAccountsRowOfferingUndo() throws Exception {
+        var row = clearRowWithSeenVideo();
+        row.getOnPreferenceClickListener().onPreferenceClick(row);
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertEquals("Undo clearing seen videos", row.getTitle().toString());
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        io().execute(() -> {
+            entered.countDown();
+            try { release.await(5, TimeUnit.SECONDS); }
+            catch (InterruptedException failure) { Thread.currentThread().interrupt(); }
+        });
+        assertTrue(entered.await(5, TimeUnit.SECONDS));
+        try {
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            SignedInUser.idForTests = "other";
+            SeenVideoHistory.size();
+        } finally {
+            release.countDown();
+            drain();
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        }
+        assertFalse(SeenVideoHistory.canUndo());
+        assertEquals("an overtaken undo offered another account's recovery",
+                "Clear seen videos", row.getTitle().toString());
+    }
+
+    private static app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference
+            clearRowWithSeenVideo() throws Exception {
+        // Consume an empty offer left by setup without restoring an earlier test's rows.
+        SeenVideoHistory.clear();
+        drain();
+        SeenVideoHistory.undoClear();
+        drain();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        assertFalse(SeenVideoHistory.canUndo());
+        SeenVideoHistory.onPlayProgressChange("clear-me", 5000, 10000);
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("clear-me"));
+        return new app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference(
+                RuntimeEnvironment.getApplication());
     }
     private static ExecutorService io() throws Exception { return (ExecutorService) field("IO"); }
     private static void drain() throws Exception { io().submit(() -> {}).get(15, TimeUnit.SECONDS); }

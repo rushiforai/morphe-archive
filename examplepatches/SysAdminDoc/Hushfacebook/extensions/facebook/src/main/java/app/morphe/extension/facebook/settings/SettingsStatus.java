@@ -58,6 +58,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storySeen() {
+        return false;
+    }
+
     public static boolean sponsoredReels() {
         return false;
     }
@@ -79,6 +83,10 @@ public final class SettingsStatus {
     }
 
     public static boolean reelWatchHistory() {
+        return false;
+    }
+
+    public static boolean doubleTapLike() {
         return false;
     }
 
@@ -163,6 +171,10 @@ public final class SettingsStatus {
     }
 
     public static boolean messengerCard() {
+        return false;
+    }
+
+    public static boolean messengerIcon() {
         return false;
     }
 

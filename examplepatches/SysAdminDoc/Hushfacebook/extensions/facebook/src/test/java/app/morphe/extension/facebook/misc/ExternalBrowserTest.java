@@ -78,6 +78,21 @@ public class ExternalBrowserTest {
     }
 
     /**
+     * A URL's scheme is case-insensitive (RFC 3986), and the warning-page check already read it
+     * that way. A destination written HTTPS:// stayed in the in-app browser. The link goes out as
+     * a browsable VIEW, so only an app that declares it opens web links can take it.
+     */
+    @Test
+    public void anUppercaseSchemeGoesOutAndOnlyToABrowsableApp() {
+        Activity browser = browserWith("https://lm.facebook.com/l.php?u=HTTPS%3A%2F%2Fexample.org%2F&h=AT0x");
+
+        assertTrue(ExternalBrowser.redirect(browser, browser.getIntent()));
+        Intent started = shadowOf(browser).getNextStartedActivity();
+        assertEquals("HTTPS://example.org/", started.getDataString());
+        assertTrue(started.hasCategory(Intent.CATEGORY_BROWSABLE));
+    }
+
+    /**
      * The shim's u= is decoded once, as the browser would, and fbclid leaves the destination: an
      * escaped percent inside it stays escaped, and every other key stays as Facebook passed it.
      */

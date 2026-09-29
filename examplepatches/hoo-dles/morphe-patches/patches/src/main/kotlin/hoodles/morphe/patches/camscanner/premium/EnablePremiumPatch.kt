@@ -6,15 +6,15 @@
 package hoodles.morphe.patches.camscanner.premium
 
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch
 import app.morphe.util.returnEarly
-import hoodles.morphe.patches.all.signature.spoofSignaturePatch
-import hoodles.morphe.patches.camscanner.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
     description = "Enables some app features locked behind the subscription paywall. Certain server-side functionality may be unavailable."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.CAM_SCANNER)
 
     dependsOn(spoofSignaturePatch)
 

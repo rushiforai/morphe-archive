@@ -1,0 +1,16 @@
+Chrome Morphe is an independent project compatible with Morphe.
+It is not affiliated with Google, Chromium, or the Morphe project.
+
+Original patch, runtime extension, documentation and utility code: MIT (LICENSE).
+Gradle wrapper scripts and JAR: Gradle authors, Apache License 2.0; original
+copyright headers are retained. See LICENSES/Apache-2.0.txt.
+
+Morphe Patcher and the Morphe Gradle plugin are external build/runtime tools,
+not relicensed by this project. Consult their upstream licenses.
+No Chrome APK, Chromium source, native library or Morphe patch implementation
+is distributed in this repository. Chromium source was consulted to understand
+native behavior and map hooks to the independently acquired target APK.
+
+MicroG service interfaces and behavior were consulted to implement the optional
+account adapter independently. No upstream MicroG implementation is bundled.
+See docs/MICROG.md for protocol references and compatibility limits.

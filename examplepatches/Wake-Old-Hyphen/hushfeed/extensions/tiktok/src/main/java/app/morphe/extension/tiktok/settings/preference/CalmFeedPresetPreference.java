@@ -72,7 +72,8 @@ public final class CalmFeedPresetPreference extends Preference implements Immedi
                 SettingsUi.textPrimary(), Typeface.BOLD);
         title.setTag(TITLE_TAG);
         title.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        heading.addView(title, new LinearLayout.LayoutParams(0, -2, 1));
+        heading.addView(title, stack ? new LinearLayout.LayoutParams(-1, -2)
+                : new LinearLayout.LayoutParams(0, -2, 1));
 
         TextView status = SettingsUi.text(context, "", SettingsUi.TEXT_CAPTION, SettingsUi.badgeText(), Typeface.BOLD);
         status.setTag(STATUS_TAG);

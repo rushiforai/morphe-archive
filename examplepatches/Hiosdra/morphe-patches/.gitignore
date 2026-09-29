@@ -129,3 +129,6 @@ __pycache__/
 # Ignore IDEA files
 .idea/
 local.properties
+
+# Local F1 TV APK archive and update-watch state
+/.local/

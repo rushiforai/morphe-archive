@@ -71,6 +71,21 @@ internal object LaunchOnboardingFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;"),
 )
 
+internal object AccountSettingsViewStateFingerprint : Fingerprint(
+    definingClass = "Lcom/protonvpn/android/redesign/settings/ui/SettingsViewModel\$AccountSettingsViewState;",
+    name = "<init>",
+    parameters = listOf(
+        "Lme/proton/core/domain/entity/UserId;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "Ljava/lang/Integer;",
+        "Z",
+        "Z",
+        "Ljava/util/List;",
+    ),
+)
+
 internal object UpgradeCarouselFingerprint : FreeUserCheckFingerprint(
     definingClass = "Lcom/protonvpn/android/redesign/home_screen/ui/UpsellCarouselStateFlow\$stateFlow\$1;",
     name = "invokeSuspend",

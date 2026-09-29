@@ -6,7 +6,6 @@ package app.morphe.extension.tiktok.wellbeing;
 
 import org.json.JSONObject;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -40,6 +39,7 @@ public final class BudgetChanges {
 
     /** When the waiting changes apply: zero when nothing waits, -1 until read from the setting. */
     private static volatile long appliesAt = -1;
+    private static volatile String cachedPending;
 
     private BudgetChanges() {
     }
@@ -90,28 +90,50 @@ public final class BudgetChanges {
      */
     public static long keep(Setting<?> setting, Object to, long now) {
         applyDue(now);
-        synchronized (BudgetChanges.class) {
+        long at = SessionBudget.dayEndAfter(now);
+        synchronized (Setting.class) {
+            long due = appliesAt();
+            if (due > 0 && due <= now) return 0;
             Map<String, Object> values = waitingValues();
             values.put(setting.key, bounded(setting, to));
-            long at = SessionBudget.dayEndAfter(now);
-            write(values, at);
+            if (!write(values, at)) return 0;
             HookStatus.bound(FAMILY, "kept for the next day");
             return at;
         }
     }
 
     /** Drops what was waiting for {@code setting}: the reader has chosen again. */
-    public static void forget(Setting<?> setting) {
-        synchronized (BudgetChanges.class) {
+    public static boolean forget(Setting<?> setting) {
+        synchronized (Setting.class) {
             Map<String, Object> values = waitingValues();
-            if (values.remove(setting.key) == null) return;
-            write(values, values.isEmpty() ? 0 : readAt());
+            if (values.remove(setting.key) == null) return true;
+            return write(values, values.isEmpty() ? 0 : readAt());
+        }
+    }
+
+    /** Saves a fresh choice and cancels its waiting value in the same transaction. */
+    public static boolean saveNow(Setting<?> setting, Object to) {
+        synchronized (Setting.class) {
+            Map<String, Object> values = waitingValues();
+            values.remove(setting.key);
+            Map<Setting<?>, Object> updates = new LinkedHashMap<>();
+            updates.put(setting, bounded(setting, to));
+            updates.put(Settings.SESSION_BUDGET_PENDING,
+                    encode(values, values.isEmpty() ? 0 : readAt()));
+            try {
+                Setting.saveAll(updates);
+                readAt();
+                return true;
+            } catch (Exception failure) {
+                Logger.printException(() -> "The budget's new choice could not be saved", failure);
+                return false;
+            }
         }
     }
 
     /** The value waiting for {@code setting}, or null when nothing waits for it. */
     public static Object waiting(Setting<?> setting) {
-        synchronized (BudgetChanges.class) {
+        synchronized (Setting.class) {
             return waitingValues().get(setting.key);
         }
     }
@@ -124,35 +146,40 @@ public final class BudgetChanges {
     /** When the waiting changes apply, or zero when nothing waits. */
     public static long appliesAt() {
         long at = appliesAt;
-        return at < 0 ? load() : at;
+        return at < 0 || !Objects.equals(cachedPending, Settings.SESSION_BUDGET_PENDING.savedValue())
+                ? readAt() : at;
     }
 
     /**
-     * Applies the waiting changes once the day they waited for has started. Two reads of a
-     * volatile when nothing waits, since the budget calls it on every count.
+     * Applies the waiting changes once the day they waited for has started. Cached reads are
+     * enough when nothing waits, since the budget calls it on every count.
      */
     public static void applyDue(long now) {
         long at = appliesAt();
         if (at == 0 || now < at) return;
-        Map<Setting<?>, Object> updates = new LinkedHashMap<>();
-        synchronized (BudgetChanges.class) {
+        // Use the preference transaction's own lock. A separate budget monitor around a save
+        // would invert the lock order when a preference listener reads this state back.
+        synchronized (Setting.class) {
             at = readAt();
             if (at == 0 || now < at) return;
+            Map<Setting<?>, Object> updates = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : waitingValues().entrySet()) {
                 Setting<?> setting = Setting.getSettingFromPath(entry.getKey());
-                if (setting != null && isWatched(setting)) updates.put(setting, entry.getValue());
+                if (setting != null && isWatched(setting)
+                        && setting.defaultValue.getClass().isInstance(entry.getValue())) {
+                    updates.put(setting, bounded(setting, entry.getValue()));
+                }
             }
-            // Cleared first: a value the setting refuses must not come back on every count.
-            write(Collections.emptyMap(), 0);
-        }
-        // Outside the monitor. The budget calls this holding its own lock, and a settings
-        // listener run by the save may ask the budget something, so holding this one too
-        // could leave two threads each waiting on the other's.
-        try {
-            Setting.saveAll(updates);
-            HookStatus.bound(FAMILY, "applied as the day started");
-        } catch (Exception failure) {
-            Logger.printException(() -> "The budget's waiting changes could not be applied", failure);
+            // Discard invalid stored values, but retain valid ones if the transaction fails.
+            // Clearing the record and applying its values must survive or fail together.
+            updates.put(Settings.SESSION_BUDGET_PENDING, "");
+            try {
+                Setting.saveAll(updates);
+                readAt();
+                HookStatus.bound(FAMILY, "applied as the day started");
+            } catch (Exception failure) {
+                Logger.printException(() -> "The budget's waiting changes could not be applied", failure);
+            }
         }
     }
 
@@ -167,6 +194,10 @@ public final class BudgetChanges {
      */
     public static Split forRestore(Map<Setting<?>, Object> incoming, long now) {
         applyDue(now);
+        long due = appliesAt();
+        if (due > 0 && due <= now) {
+            throw new IllegalStateException("Could not apply the budget changes already due");
+        }
         Map<Setting<?>, Object> apply = new LinkedHashMap<>(incoming);
         Map<String, Object> waiting = new LinkedHashMap<>();
         Set<String> settled = new HashSet<>();
@@ -212,21 +243,24 @@ public final class BudgetChanges {
             return heldBack;
         }
 
-        /**
-         * Records what waits and drops what the restore settled, once the restore has committed
-         * and its journal is gone. Not before: a restore that fails part way, or one the next
-         * start puts back from its journal, restores the old values, and changes it had already
-         * set waiting would still have landed the next day.
-         */
-        public void keepWaiting() {
-            if (waiting.isEmpty() && settled.isEmpty()) return;
-            synchronized (BudgetChanges.class) {
+        /** Includes the delayed record in the same transaction as the restored settings. */
+        public Map<Setting<?>, Object> withWaiting() {
+            Map<Setting<?>, Object> updates = new LinkedHashMap<>(apply);
+            synchronized (Setting.class) {
                 Map<String, Object> values = waitingValues();
-                boolean dropped = values.keySet().removeAll(settled);
-                if (waiting.isEmpty() && !dropped) return;
+                values.keySet().removeAll(settled);
                 values.putAll(waiting);
-                write(values, values.isEmpty() ? 0 : waiting.isEmpty() ? readAt() : at);
-                if (!waiting.isEmpty()) HookStatus.bound(FAMILY, "restore kept for the next day");
+                updates.put(Settings.SESSION_BUDGET_PENDING,
+                        encode(values, values.isEmpty() ? 0 : waiting.isEmpty() ? readAt() : at));
+            }
+            return updates;
+        }
+
+        /** Persists only the delayed part when the caller is not restoring other settings. */
+        public boolean keepWaiting() {
+            synchronized (Setting.class) {
+                return Settings.SESSION_BUDGET_PENDING.save(
+                        (String) withWaiting().get(Settings.SESSION_BUDGET_PENDING));
             }
         }
     }
@@ -255,21 +289,17 @@ public final class BudgetChanges {
         return value instanceof Number ? ((Number) value).intValue() : 0;
     }
 
-    private static long load() {
-        synchronized (BudgetChanges.class) {
-            return readAt();
-        }
-    }
-
     private static long readAt() {
-        long at = parse().optLong(AT, 0);
+        String text = Settings.SESSION_BUDGET_PENDING.savedValue();
+        long at = parse(text).optLong(AT, 0);
         appliesAt = at;
+        cachedPending = text;
         return at;
     }
 
     private static Map<String, Object> waitingValues() {
         Map<String, Object> values = new LinkedHashMap<>();
-        JSONObject stored = parse().optJSONObject(VALUES);
+        JSONObject stored = parse(Settings.SESSION_BUDGET_PENDING.savedValue()).optJSONObject(VALUES);
         if (stored == null) return values;
         for (Iterator<String> keys = stored.keys(); keys.hasNext(); ) {
             String key = keys.next();
@@ -278,8 +308,7 @@ public final class BudgetChanges {
         return values;
     }
 
-    private static JSONObject parse() {
-        String text = Settings.SESSION_BUDGET_PENDING.savedValue();
+    private static JSONObject parse(String text) {
         if (text == null || text.isEmpty()) return new JSONObject();
         try {
             return new JSONObject(text);
@@ -288,23 +317,30 @@ public final class BudgetChanges {
         }
     }
 
-    private static void write(Map<String, Object> values, long at) {
+    private static boolean write(Map<String, Object> values, long at) {
         try {
-            if (values.isEmpty()) {
-                Settings.SESSION_BUDGET_PENDING.save("");
-                appliesAt = 0;
-                return;
-            }
-            JSONObject stored = new JSONObject();
-            for (Map.Entry<String, Object> entry : values.entrySet()) stored.put(entry.getKey(), entry.getValue());
-            Settings.SESSION_BUDGET_PENDING.save(new JSONObject().put(AT, at).put(VALUES, stored).toString());
-            appliesAt = at;
+            if (!Settings.SESSION_BUDGET_PENDING.save(encode(values, at))) return false;
+            readAt();
+            return true;
         } catch (Exception failure) {
             Logger.printException(() -> "The budget's waiting changes could not be written", failure);
+            return false;
+        }
+    }
+
+    private static String encode(Map<String, Object> values, long at) {
+        if (values.isEmpty()) return "";
+        try {
+            JSONObject stored = new JSONObject();
+            for (Map.Entry<String, Object> entry : values.entrySet()) stored.put(entry.getKey(), entry.getValue());
+            return new JSONObject().put(AT, at).put(VALUES, stored).toString();
+        } catch (org.json.JSONException invalid) {
+            throw new IllegalArgumentException("Invalid waiting budget values", invalid);
         }
     }
 
     static void resetForTests() {
         appliesAt = -1;
+        cachedPending = null;
     }
 }

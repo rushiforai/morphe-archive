@@ -252,6 +252,40 @@ public class CompatibleSaveTest {
         assertTrue(report, report.contains("saving video mp4 (360p) from 1 candidate(s)"));
     }
 
+    /** What a DASH save line adds when the sound it joins is xHE-AAC. */
+    private static final String XHE = ", the sound is xHE-AAC because the manifest offers no AAC-LC or HE-AAC, and "
+            + "some players can't play xHE-AAC";
+
+    /**
+     * A 580 reel on 2026-09-28 listed eight AV1 pictures and four sound tracks, every one xHE-AAC,
+     * and its Best save kept xHE-AAC, which some players can't play (#14). The save still keeps it,
+     * since a file some players play silent beats a silent file, and its line now says so in words.
+     * Beside AAC-LC the save takes AAC-LC at every quality, switch on or off, and says nothing of it.
+     */
+    @Test
+    public void xheAacIsSavedOnlyWhenItIsTheOnlySoundAndTheLineSaysSo() throws Exception {
+        String xheOnly = manifest(representation(AV1, 1080, 1920, 1_265_000, "1080p", "v1080"),
+                sound("mp4a.40.42", 39_000, "xhe39") + sound("mp4a.40.42", 120_000, "xhe120"));
+        String report = reelSave(false, new ReelSource(HD, null, xheOnly));
+        assertTrue(report, report.contains("saving the reel from its DASH manifest: video/mp4 " + AV1
+                + " 1080x1920 1265kbps 1080p + audio/mp4 mp4a.40.42 0x0 120kbps, instead of mp4 (720p)" + XHE + "\n"));
+        // With the switch on and no single file, it's still the only sound there is.
+        report = reelSave(true, new ReelSource(null, null, xheOnly));
+        assertTrue(report, report.contains("nothing of the reel is in a format other apps can open"));
+        assertTrue(report, report.contains(" + audio/mp4 mp4a.40.42 0x0 120kbps, instead of nothing" + XHE + "\n"));
+
+        for (DownloadQuality quality : DownloadQuality.values()) {
+            Settings.DOWNLOAD_QUALITY.save(quality);
+            for (boolean compatible : new boolean[]{false, true}) {
+                report = reelSave(compatible, new ReelSource(null, null, MANIFEST));
+                String which = quality + (compatible ? " on\n" : " off\n");
+                assertTrue(which + report, report.contains(" + audio/mp4 mp4a.40.2 0x0 64kbps, instead of nothing"));
+                assertFalse(which + report, report.contains("mp4a.40.42 0x0 84kbps, instead of"));
+                assertFalse(which + report, report.contains("xHE-AAC"));
+            }
+        }
+    }
+
     /** 480p asks for the best H.264 at or under 480p, with HE-AAC when there's no AAC-LC. */
     @Test
     public void theSwitchKeepsWithinTheDownloadQuality() throws Exception {

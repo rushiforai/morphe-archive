@@ -60,6 +60,20 @@ object Constants {
             AppTarget(version = null, isExperimental = true)
         )
     )
+    
+    /**
+     * Compatibility definition for Habitica (com.habitrpg.android.habitica).
+     */
+    val COMPATIBILITY_HABITICA = Compatibility(
+        name = "Habitica",
+        packageName = "com.habitrpg.android.habitica",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x4B275F,
+        targets = listOf(
+            AppTarget(version = "4.10.5"),
+            AppTarget(version = null, isExperimental = true)
+        )
+    )
 
     /**
      * Generic example compatibility target.

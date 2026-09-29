@@ -6,6 +6,47 @@ Scope: `D:\Angelo\Desktop\SteamLink-GalaxyXR-Windows-Toolkit-FULL`, including it
 
 Cleanup is part of completing an experiment or finalizing/applying a patch. Record the outcome, exact base, evidence and runtime limits; remove disposable outputs and superseded local copies; verify retained inputs and tool references. Keep a dated failed/retired record so a failed experiment is not recommended again. Parent and repository `AGENTS.md` enforce this rule.
 
+## Exact 5001812 / 5001968 adaptation, 2026-09-28
+
+- Added exact 2.0.20/5001812 and 2.0.21/5001968 with independent native addresses,
+  the same 17-patch legacy recommendation and all 22 standalone patches as 5001712.
+  [Evidence and reproduction](diagnostics/steamlink-legacy-1812-1968/README.md):
+  129 JUnit tests, 73 final-archive Morphe cases, 5-base OLED/blue-noise matrices,
+  140 shader checks and D8 Release/API26 packaging passed. Both new original APKs
+  have verified Valve signatures. Gradle plugin resolution remains blocked; no
+  installation, headset result or publication is claimed.
+- Retained local deliverable `patches/build/libs/patches-1.19.1-1812-1968-local.mpp`,
+  SHA-256 `227c8736f0bd61bc202a9dedd1a73ad9df5b3547e346c76b8fa337fcf43a908b`,
+  and compact native/provenance/catalog/build/APK receipts in the diagnostic folder.
+- Task-owned `build/adapt-1812-1968` contains **15,102,268,063 bytes / 10,598 files**
+  of disposable compiler outputs, isolated input copies, unsigned APK derivatives,
+  shaders and catalog staging. Inventory found 0 tracked files or unsafe descendants.
+  Automatic approval review rejected scoped deletion before execution with
+  "blocked by policy": **0 bytes reclaimed**. [Cleanup receipt](diagnostics/steamlink-legacy-1812-1968/cleanup.json)
+  records the exact target and completion condition. Cleanup remains deferred.
+  Original APKs, exact decoded bases, fixtures/tools, canonical native payloads,
+  previous build directories and unrelated dirty work were preserved.
+
+## Gradle verification cleanup, 2026-09-26
+
+- Added `Verify-Build.ps1`: Gradle tests/Android packaging and selected audits use
+  a fresh invocation-owned scratch directory. Preserve MPP/JAR outputs, Gradle/JUnit
+  reports, GLSL evidence, logs and cleanup receipts; remove scratch in `finally`.
+  `-KeepBuildOutputs` retains scratch. Direct Gradle/release and cached-Kotlin
+  workflows are unchanged. [Commands, inventory and validation](diagnostics/build-verification/README.md).
+- Classified **7,023,588,889 bytes / 5,040 files (6.54 GiB)** in 4 older Morphe
+  validation output folders as disposable, preserving their diagnostic receipts.
+  This is an advisory inventory: **0 historical bytes reclaimed**. Existing
+  outputs are not swept by the new wrapper; unrelated work and prior records stay.
+- 79 focused cleanup/preservation assertions passed in each of PowerShell 7 and
+  Windows PowerShell 5.1, and their generated fixtures
+  were removed. A real Gradle offline run preserved its existing plugin-resolution
+  failure and log, removed its empty scratch directory, and returned failure.
+  Full successful project build/output routing remains unverified because
+  `app.morphe.patches:1.3.3` is unavailable locally. No device/runtime claim.
+- Source/resources, exact fixture APKs, SDKs, tool caches, native payloads, unique
+  captures, protected metadata and adjacent dirty repositories were preserved.
+
 ## Foveal gamma adjustment validation, 2026-09-25
 
 - Added default-neutral foveal gamma on exact 2.0.20/5001712, 2.0.22/5002244 and 2.0.23/5002363. [Validation and reproduction](diagnostics/steamlink-colour/FOVEAL-GAMMA-2026-09-25.md): 124 JUnit tests, 3 decoded OLED/blue-noise bases, 84 shader pairs and 12 Morphe fixture cases passed. Local package includes D8 Release/API26 output; normal Gradle plugin resolution remains blocked. No install or headset efficacy claim.

@@ -14,6 +14,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +72,12 @@ final class LocalServer implements Closeable {
     private final ServerSocket socket;
     private final Map<String, Route> routes = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> hits = new ConcurrentHashMap<>();
+    /** Routes whose body never ends, and how many bytes each sends at a time. */
+    private final Map<String, Integer> endless = new ConcurrentHashMap<>();
+    /** Routes never answered. */
+    private final Set<String> stalled = ConcurrentHashMap.newKeySet();
+    /** Counted down when a route's client let go of its connection before the server did. */
+    private final Map<String, CountDownLatch> gone = new ConcurrentHashMap<>();
     private final Thread thread;
 
     LocalServer() throws IOException {
@@ -119,6 +126,42 @@ final class LocalServer implements Closeable {
         routes.put(path, new Route(302, null, new byte[0], 0, location));
     }
 
+    /**
+     * Answer [path] with [code] and a body of no stated length that never ends: [tick] bytes every
+     * 200 ms for as long as the client reads, as an error page on a stalled connection can.
+     */
+    void serveEndless(String path, int code, String type, int tick) {
+        routes.put(path, new Route(code, type, new byte[0], -1, null));
+        endless.put(path, tick);
+    }
+
+    /** A redirect to [location] whose body never ends, like {@link #serveEndless}'s. */
+    void redirectEndless(String path, String location, int tick) {
+        routes.put(path, new Route(302, "text/html", new byte[0], -1, location));
+        endless.put(path, tick);
+    }
+
+    /**
+     * Take the request for [path] and never answer. Not even a status line: the JDK's connection
+     * reports the status of one that came, and a read timeout after it, as that status and no
+     * failure, so only an answer that never starts makes its header read throw here.
+     */
+    void neverAnswer(String path) {
+        stalled.add(path);
+    }
+
+    /**
+     * Whether the client of [path] let go of its connection within [ms]: it closed it while the
+     * body was still going out, or while it waited for an answer that never came.
+     */
+    boolean letGoWithin(String path, long ms) throws InterruptedException {
+        return gone(path).await(ms, TimeUnit.MILLISECONDS);
+    }
+
+    private CountDownLatch gone(String path) {
+        return gone.computeIfAbsent(path, k -> new CountDownLatch(1));
+    }
+
     int hits(String path) {
         AtomicInteger n = hits.get(path);
         return n == null ? 0 : n.get();
@@ -148,6 +191,10 @@ final class LocalServer implements Closeable {
         int query = path.indexOf('?');
         if (query >= 0) path = path.substring(0, query);
         hits.computeIfAbsent(path, k -> new AtomicInteger()).incrementAndGet();
+        if (stalled.contains(path)) {
+            stall(client, path);
+            return;
+        }
 
         Route route = routes.get(path);
         if (route == null) route = new Route(404, "text/plain", "missing".getBytes(StandardCharsets.UTF_8), 7, null);
@@ -160,10 +207,47 @@ final class LocalServer implements Closeable {
         head.append("\r\n");
 
         OutputStream out = client.getOutputStream();
-        out.write(head.toString().getBytes(StandardCharsets.ISO_8859_1));
-        out.write(route.body);
-        if (route.generated >= 0) sendGenerated(out, route);
-        out.flush();
+        try {
+            out.write(head.toString().getBytes(StandardCharsets.ISO_8859_1));
+            out.write(route.body);
+            if (route.generated >= 0) sendGenerated(out, route);
+            Integer tick = endless.get(path);
+            if (tick != null) sendEndless(out, tick);
+            out.flush();
+        } catch (IOException e) {
+            gone(path).countDown();
+            throw e;
+        }
+    }
+
+    /** [tick] bytes every 200 ms until the client goes away or the server closes. */
+    private void sendEndless(OutputStream out, int tick) throws IOException {
+        byte[] chunk = new byte[tick];
+        java.util.Arrays.fill(chunk, (byte) '.');
+        while (!socket.isClosed()) {
+            out.write(chunk);
+            out.flush();
+            try {
+                Thread.sleep(TRICKLE_EVERY_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+    }
+
+    /** Nothing, until the client lets go or 10 s go by. */
+    private void stall(Socket client, String path) {
+        try {
+            while (client.getInputStream().read() >= 0) {
+                // The client sends nothing more. This only waits for it to go.
+            }
+        } catch (java.net.SocketTimeoutException e) {
+            return;
+        } catch (IOException e) {
+            // Reset rather than closed: gone all the same.
+        }
+        gone(path).countDown();
     }
 
     /** The rest of a generated body. A client that goes away ends it with an IOException. */

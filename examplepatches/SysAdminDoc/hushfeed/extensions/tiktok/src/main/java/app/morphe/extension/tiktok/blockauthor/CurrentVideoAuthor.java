@@ -47,6 +47,22 @@ public final class CurrentVideoAuthor {
                 }
             });
 
+    /**
+     * Items that were current, most recent last, so the player naming one again finds it. A
+     * creator's grid or a story binds more videos than {@link #RECENT_LIMIT}, and the feed video
+     * the reader came back to was no longer bound anywhere the player's lookup could see: the
+     * controls went until the next swipe. Only selections land here, so it stays small.
+     */
+    private static final int SELECTED_LIMIT = 8;
+
+    private static final Map<String, Item> SELECTED = Collections.synchronizedMap(
+            new LinkedHashMap<String, Item>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, Item> eldest) {
+                    return size() > SELECTED_LIMIT;
+                }
+            });
+
     private static volatile Item current;
     private static volatile String playingAwemeId;
 
@@ -61,6 +77,9 @@ public final class CurrentVideoAuthor {
 
     /** Runs between the player's lookup and its select, so a test can land a bind there. */
     private static volatile Runnable betweenLookupAndSelectForTests;
+    /** How often the player's report asks whether the budget is spent, on the budget's clock. */
+    private static final long CLAIM_EVERY_MS = 1_000L;
+    private static volatile long lastClaimAskedAt = Long.MIN_VALUE / 2;
 
     private CurrentVideoAuthor() {
     }
@@ -117,6 +136,19 @@ public final class CurrentVideoAuthor {
         // Before the early return: this is the only signal that arrives while a video plays,
         // so it is the only thing that can measure how long the feed has been running.
         SessionBudget.noteWatching();
+        // The budget can run out halfway through a video, or be spent already once the reader
+        // lowers it, and the notice and the hold are due then: left to the next video change, a
+        // long or looping one played on past the budget. claimNotice answers once per spent
+        // budget and re-arms itself when a raised budget puts the reader under it again.
+        // Only while a budget counts: with none set there is nothing to run out, and the video
+        // change still asks, which is what lets a removed budget's hold go.
+        if (SessionBudget.isCounting()) {
+            long now = SessionBudget.now();
+            if (now - lastClaimAskedAt >= CLAIM_EVERY_MS || now < lastClaimAskedAt) {
+                lastClaimAskedAt = now;
+                if (SessionBudget.claimNotice()) SessionBudgetNotice.show();
+            }
+        }
         SessionLockOverlay.ensureRunning();
         // Follows the budget rather than a clock of its own, so it is redrawn from the same
         // signal that measures the budget. Switched off, which is the default, it returns on
@@ -137,6 +169,7 @@ public final class CurrentVideoAuthor {
             // for that moment, which is the right answer: better no button than one wired to
             // the previous creator. The bind that follows finds the id playing and selects it.
             Item found = RECENT.get(awemeId);
+            if (found == null) found = SELECTED.get(awemeId);
             Runnable hook = betweenLookupAndSelectForTests;
             if (hook != null) hook.run();
             select(found);
@@ -147,6 +180,7 @@ public final class CurrentVideoAuthor {
     private static void select(Item item) {
         Item previous = current;
         current = item;
+        if (item != null && item.awemeId != null) SELECTED.put(item.awemeId, item);
 
         String previousId = previous == null ? null : previous.awemeId;
         String newId = item == null ? null : item.awemeId;
@@ -207,7 +241,9 @@ public final class CurrentVideoAuthor {
 
     static void resetForTests() {
         betweenLookupAndSelectForTests = null;
+        lastClaimAskedAt = Long.MIN_VALUE / 2;
         RECENT.clear();
+        SELECTED.clear();
         current = null;
         playingAwemeId = null;
         CurrentVideoSound.clear();

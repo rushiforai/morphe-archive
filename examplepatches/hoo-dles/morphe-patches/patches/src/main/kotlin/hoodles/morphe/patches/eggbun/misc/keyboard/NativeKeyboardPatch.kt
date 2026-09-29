@@ -8,14 +8,14 @@ package hoodles.morphe.patches.eggbun.misc.keyboard
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
-import hoodles.morphe.patches.eggbun.shared.Constants
+import hoodles.morphe.compatibility.Compat
 
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Force Native Keyboard",
     description = "When typing in normal lessons, Eggbun forces you to use their own on-screen keyboard. This patches forces the use of the default OS keyboard."
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Compat.EGGBUN)
 
     execute {
         KrKeyboardCtorFingerprint.method.apply {

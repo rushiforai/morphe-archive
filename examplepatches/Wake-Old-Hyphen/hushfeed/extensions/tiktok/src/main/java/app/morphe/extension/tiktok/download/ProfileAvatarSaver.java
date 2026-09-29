@@ -31,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @SuppressWarnings("unused")
 public final class ProfileAvatarSaver {
     private static final AtomicBoolean RUNNING = new AtomicBoolean();
+    /** One picture at a time, whichever profile, so the queue knows it by one name. */
+    private static final String JOB_KEY = "profile picture";
 
     /**
      * Largest available source first. The inspected native profile supplies Larger at 1080 pixels,
@@ -186,10 +188,10 @@ public final class ProfileAvatarSaver {
         String name = avatarName(user);
         String path = DownloadsPatch.getPhotoDownloadPath();
         if (!RUNNING.compareAndSet(false, true)) {
-            Utils.showToastShort(L10n.t("Still saving the last one"));
+            Utils.showToastShort(MediaJobScheduler.busyMessage(JOB_KEY));
             return;
         }
-        boolean submitted = MediaJobScheduler.submit("profile picture", () -> {
+        MediaJobScheduler.Job job = MediaJobScheduler.submit("profile picture", JOB_KEY, () -> {
             File temp = null;
             try {
                 MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
@@ -206,9 +208,9 @@ public final class ProfileAvatarSaver {
                 if (temp != null && !MediaCache.delete(temp)) {
                     Logger.printInfo(() -> "Could not remove profile picture temporary file");
                 }
-                RUNNING.set(false);
             }
-        });
-        if (!submitted) RUNNING.set(false);
+        }, () -> RUNNING.set(false));
+        String saying = L10n.t("Saving the profile picture");
+        MediaJobScheduler.acknowledge(job, saying, saying);
     }
 }
