@@ -2355,12 +2355,20 @@
                 "updatedAt": 1790567709936
             },
             {
-                "name": "uyu",
-                "source": "https://raw.githubusercontent.com/trivisa-itihasa/uyu/main/patches-bundle.json",
+                "name": "Jam-Patches",
+                "source": "https://raw.githubusercontent.com/JamQueueSharing/Jam-Patches/main/patches-bundle.json",
                 "autoUpdate": true,
                 "sortOrder": 312,
-                "createdAt": 1790567710103,
-                "updatedAt": 1790567710103
+                "createdAt": 1790656421090,
+                "updatedAt": 1790656421090
+            },
+            {
+                "name": "chrome-morphe",
+                "source": "https://raw.githubusercontent.com/matthewclso/chrome-morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 313,
+                "createdAt": 1790656426028,
+                "updatedAt": 1790656426028
             }
         ]
     }
