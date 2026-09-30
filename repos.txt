@@ -14,6 +14,7 @@ Almewty/my-morphe-patches
 Amitaisela/travian-morphe-patches
 AmpleReVanced/revanced-patches
 AngelDark92/steamlink-patches
+Aorus22/twitter-bookmarker
 Apostolique/apos-morphe-patches
 AzukiSensei/aniskip-stremio
 BholeyKaBhakt/android-patches-xtra
@@ -22,6 +23,7 @@ BlazeFTL/Morphe-Portal-Patches-New
 BlueDragon4251/tiktok-patches-for-morphe
 Burhanverse/test
 Canic/twitch-morphe-patch
+CasketPizza/morphe-waze-system-tts
 ComoEstaisAmigos/ck-zombies-morphe-patches
 Dan1elTheMan1el/Morphe-Patches
 DarioDKM/ringconn-patches
@@ -110,6 +112,7 @@ Supperelias2/sbs-tv-morphe-patches
 SysAdminDoc/HushFacebook
 SysAdminDoc/HushFeed
 SysAdminDoc/HushMessenger
+SysAdminDoc/HushThreads
 SysAdminDoc/Hushfacebook
 SysAdminDoc/hushfeed
 TheRealCrazyfuy/abeja-morphe-patches
@@ -220,6 +223,7 @@ gitlab.com/dhl0/morphe-patches
 gitlab.com/early.egg3707/ee-morphe-patches
 gitlab.com/inotia00/proguard-patches
 gitlab.com/inotia00/x-shim
+h19e8p/Auto-Expand-for-X
 hackingguy/morphe-patches
 hashtagbasit/aimal-patches
 headboy99/headboy-morphe-patches
@@ -303,12 +307,14 @@ rahul9999xda/telegram-morphe-patches
 raphaelbahat/zotero-self-hosted-sync
 rhubarbshoelaces/morphe-patches
 riky-dev/morphe-patches
+rufusin/revanced-patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 ryuya0124/gemini-microg-patches
 saieshshirodkar/saiesh-morphe-patches
 sashade8-ship-it/dual-vot-patches
 shaun-the-sheep-patches/morphe-patches
+sillyredsoup/reddit-morphe-patches
 sjshb57/Pairip-Patches
 skulldogged/cobalt-morphe
 spicetify/morphe-patches

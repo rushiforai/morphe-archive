@@ -2331,14 +2331,6 @@
                 "updatedAt": 1790567706177
             },
             {
-                "name": "qqmusic-proxy",
-                "source": "https://raw.githubusercontent.com/LDP924/qqmusic-proxy/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 309,
-                "createdAt": 1790567707649,
-                "updatedAt": 1790567707649
-            },
-            {
                 "name": "HushMessenger",
                 "source": "https://raw.githubusercontent.com/SysAdminDoc/HushMessenger/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -2369,6 +2361,30 @@
                 "sortOrder": 313,
                 "createdAt": 1790656426028,
                 "updatedAt": 1790656426028
+            },
+            {
+                "name": "morphe-waze-system-tts",
+                "source": "https://raw.githubusercontent.com/CasketPizza/morphe-waze-system-tts/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 314,
+                "createdAt": 1790742171746,
+                "updatedAt": 1790742171746
+            },
+            {
+                "name": "HushThreads",
+                "source": "https://raw.githubusercontent.com/SysAdminDoc/HushThreads/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 315,
+                "createdAt": 1790742173543,
+                "updatedAt": 1790742173543
+            },
+            {
+                "name": "reddit-morphe-patches",
+                "source": "https://raw.githubusercontent.com/sillyredsoup/reddit-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 316,
+                "createdAt": 1790742177011,
+                "updatedAt": 1790742177011
             }
         ]
     }
