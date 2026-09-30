@@ -26,3 +26,16 @@ object MediaControllerFingerprint : Fingerprint(
         string("com.spotify.music")
     )
 )
+
+/**
+ * Fingerprint matching bsma.a() - the trusted media app allowlist in classes2.dex.
+ * This method checks if a connecting app is in a hardcoded list of trusted Google apps.
+ * com.google.android.apps.youtube.music is in this list at string index 19.
+ */
+object BsmaTrustedAppsFingerprint : Fingerprint(
+    filters = listOf(
+        string("com.google.android.apps.youtube.music"),
+        string("com.google.android.apps.youtube.mango"),
+        string("com.google.android.apps.youtube.unplugged")
+    )
+)

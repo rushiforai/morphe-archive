@@ -1,0 +1,5 @@
+# The pinned upstream checkout and the Gradle caches it produces.
+.upstream/
+.gradle/
+build/
+out/

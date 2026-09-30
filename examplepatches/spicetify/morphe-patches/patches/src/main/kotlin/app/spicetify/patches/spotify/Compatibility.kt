@@ -15,7 +15,7 @@ val spotifyCompatibility = Compatibility(
             version = "9.1.80.2221",
             versionCodes = mapOf(SupportedAbi.ARM64_V8A to 145767611),
             isExperimental = true,
-            description = "Experimental Android customization patches; see the repository verification report.",
+            description = "Experimental Android customization patches; runtime compatibility is still being verified.",
         ),
     ),
 )

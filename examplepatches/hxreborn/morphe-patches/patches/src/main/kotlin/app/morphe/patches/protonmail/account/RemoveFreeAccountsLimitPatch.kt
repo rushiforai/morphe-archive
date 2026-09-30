@@ -21,16 +21,10 @@ import app.morphe.patches.protonmail.shared.X86_64
 import app.morphe.patches.protonmail.shared.replaceTrailingMasked
 import app.morphe.patches.shared.compat.AppCompatibilities
 
-private fun hex(value: String): ByteArray {
-    require(value.length % 2 == 0) { "Hex pattern needs an even number of digits" }
-
-    return ByteArray(value.length / 2) { value.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
-}
-
 private class LimitCheck(pattern: String, mask: String, bypass: String) {
-    val pattern = hex(pattern)
-    val mask = hex(mask)
-    val bypass = hex(bypass)
+    val pattern = pattern.hexToByteArray()
+    val mask = mask.hexToByteArray()
+    val bypass = bypass.hexToByteArray()
 }
 
 private val LIMIT_CHECKS = mapOf(

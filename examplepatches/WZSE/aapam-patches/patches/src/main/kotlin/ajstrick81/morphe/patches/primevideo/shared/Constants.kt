@@ -7,6 +7,7 @@ object Constants {
     private const val PACKAGE_NAME = "com.amazon.amazonvideo.livingroom"
     private const val VERSION_6_23 = "6.23.23+v15.5.0.70-armv7a"
     private const val VERSION_6_24 = "6.24.5+v16.0.0.231-allAbis"
+    private const val VERSION_6_24_8 = "6.24.8+v16.0.0.361-allAbis"
 
     private val TARGET_6_23 = AppTarget(
         version = VERSION_6_23,
@@ -15,6 +16,10 @@ object Constants {
 
     private val TARGET_6_24 = AppTarget(
         version = VERSION_6_24,
+    )
+
+    private val TARGET_6_24_8 = AppTarget(
+        version = VERSION_6_24_8,
     )
 
     val COMPATIBILITY_6_23 = Compatibility(
@@ -28,13 +33,13 @@ object Constants {
         name = "Prime Video Android TV",
         packageName = PACKAGE_NAME,
         appIconColor = 0x177BCE,
-        targets = listOf(TARGET_6_24),
+        targets = listOf(TARGET_6_24, TARGET_6_24_8),
     )
 
     val COMPATIBILITY = Compatibility(
         name = "Prime Video Android TV",
         packageName = PACKAGE_NAME,
         appIconColor = 0x177BCE,
-        targets = listOf(TARGET_6_23, TARGET_6_24),
+        targets = listOf(TARGET_6_23, TARGET_6_24, TARGET_6_24_8),
     )
 }

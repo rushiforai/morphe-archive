@@ -5,7 +5,6 @@
 package app.morphe.patches.protonmail.shared
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.ResourcePatchContext
 import java.io.File
 import java.io.RandomAccessFile
 
@@ -14,12 +13,18 @@ internal const val ARM64 = "arm64-v8a"
 internal const val ARM32 = "armeabi-v7a"
 internal const val X86_64 = "x86_64"
 
-internal fun ResourcePatchContext.mailUniffiLibraries() =
-    listOf(ARM64, ARM32, X86_64).map { get("lib/$it/$MAIL_UNIFFI_LIBRARY") }.filter { it.exists() }
+internal fun File.replaceTrailingMasked(pattern: ByteArray, mask: ByteArray, replacement: ByteArray) =
+    replaceMasked(pattern, mask, mapOf(pattern.size - replacement.size to replacement))
 
-internal fun File.replaceTrailingMasked(pattern: ByteArray, mask: ByteArray, replacement: ByteArray): Boolean {
+internal fun File.replaceMasked(
+    pattern: ByteArray,
+    mask: ByteArray,
+    replacementsByOffset: Map<Int, ByteArray>,
+): Boolean {
     require(pattern.size == mask.size) { "Mask must be the same length as the pattern" }
-    require(replacement.size <= pattern.size) { "Replacement cannot be longer than the pattern" }
+    require(replacementsByOffset.all { (offset, bytes) -> offset >= 0 && offset + bytes.size <= pattern.size }) {
+        "Replacements must fall inside the pattern"
+    }
 
     RandomAccessFile(this, "rw").use { file ->
         val bytes = ByteArray(file.length().toInt())
@@ -32,8 +37,10 @@ internal fun File.replaceTrailingMasked(pattern: ByteArray, mask: ByteArray, rep
             throw PatchException("Pattern matches $name more than once")
         }
 
-        file.seek((index + pattern.size - replacement.size).toLong())
-        file.write(replacement)
+        for ((offset, replacement) in replacementsByOffset) {
+            file.seek((index + offset).toLong())
+            file.write(replacement)
+        }
     }
 
     return true

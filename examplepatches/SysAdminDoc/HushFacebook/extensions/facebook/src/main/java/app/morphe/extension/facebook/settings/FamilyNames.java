@@ -42,10 +42,13 @@ public final class FamilyNames {
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
+    public static final String KEEP_REEL_SPEED = "Keep the reel speed";
+    public static final String HOLD_REEL_FOR_2X = "Hold a reel for 2x";
     public static final String DEFAULT_COMMENT_ORDER = "Default comment order";
     public static final String TAG_SUGGESTIONS = "Tag suggestions only after @";
     public static final String TAP_TO_PLAY = "Tap to play";
     public static final String RESUME_LONG_VIDEOS = "Resume long videos";
+    public static final String PLAYBACK_QUALITY = "Default playback quality";
     public static final String SYSTEM_FONT = "Use the system font";
     public static final String SYSTEM_EMOJI = "Use the phone's emoji";
     public static final String EXTERNAL_BROWSER = "Open links in external browser";
@@ -56,6 +59,8 @@ public final class FamilyNames {
     public static final String VIDEO_DOWNLOAD = "Download any video";
     public static final String START_TAB = "Open on a chosen tab";
     public static final String MARKETPLACE_ONLY = "Marketplace only";
+    public static final String REELS_TAB = "Hide the Reels tab";
+    public static final String REELS_TAB_DOT = "Hide the Reels tab dot";
     public static final String MESSENGER_CARD = "Hide the Get Messenger card";
     public static final String MESSENGER_ICON = "Open Messenger from the top bar";
     public static final String MENU_PROMOTIONS = "Hide Menu promotions";

@@ -14,8 +14,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.parameterRegister
-import app.morphe.patches.facebook.misc.extension.requireLocals
+import app.morphe.patches.facebook.misc.extension.requireStatusMethod
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
@@ -51,8 +52,28 @@ val turnOffDoubleTapLikePatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {
-        hookReelLikes()
-        hookGestureView()
+        // Every anchor of both hooks is found, every reader that would refuse the gesture-view hook
+        // is checked, and SettingsStatus is confirmed to carry the switch's own method, before either
+        // hook changes a single instruction. A build that fails anywhere in the find phase is refused
+        // with nothing patched: the like hooks, the gesture view or a reader partway through can't
+        // stay in the APK while a later anchor is missing. Without this, enableStatus's own check
+        // would run last and could refuse after both hooks were already in.
+        requireStatusMethod("doubleTapLike")
+        val reelLikeAnchors = findReelLikeAnchors()
+        val gestureViewAnchors = findGestureViewAnchors()
+        // The two hooks read different classes in every build seen so far; if a reader the gesture
+        // view hook would change ever turned out to live in the helper or the attachment, changing
+        // one hook would shift the read positions the other already recorded. Refuse rather than
+        // risk that, instead of assuming the classes stay apart.
+        val reelLikeClasses = setOf(reelLikeAnchors.helperType, reelLikeAnchors.attachment.definingClass)
+        gestureViewAnchors.plans.firstOrNull { it.reader.definingClass in reelLikeClasses }?.let {
+            refuse(
+                "${it.reader.definingClass}->${it.reader.name} is both a gesture view reader and part of the " +
+                    "reel like hooks; the two hooks can't be told apart",
+            )
+        }
+        applyReelLikeAnchors(reelLikeAnchors)
+        applyGestureViewAnchors(gestureViewAnchors)
         enableStatus("doubleTapLike")
     }
 }
@@ -63,11 +84,20 @@ private fun Method.isSameAs(other: Method): Boolean =
     name == other.name && returnType == other.returnType &&
         parameterTypes.map(Any::toString) == other.parameterTypes.map(Any::toString)
 
+/** What [findReelLikeAnchors] found, for [applyReelLikeAnchors] to change. */
+private class ReelLikeAnchors(
+    val helperType: String,
+    val like: Method,
+    val doubleTapLike: Method,
+    val key: Int,
+    val attachment: Method,
+)
+
 /**
  * The reel like helper: its like holds back a double tap's, its double-tap like finds no key, and
- * the feed attachment asking it leaves its double tap unhandled.
+ * the feed attachment asking it leaves its double tap unhandled. Finds every anchor; changes none.
  */
-private fun BytecodePatchContext.hookReelLikes() {
+private fun BytecodePatchContext.findReelLikeAnchors(): ReelLikeAnchors {
     val likes = classDefByStrings(MUTATE_LIKE, StringComparisonType.EQUALS).flatMap { owner -> owner.methods.filter(::isReelLike) }
     val like = likes.singleOrNull()
         ?: refuse("expected one reel like holding \"$MUTATE_LIKE\" and taking the session first and the source last, found ${likes.size}")
@@ -82,18 +112,39 @@ private fun BytecodePatchContext.hookReelLikes() {
         "expected one onDoubleTap asking the reel like helper's double-tap like and loading \"$HEART_RISE\", " +
             "found ${attachments.size}",
     )
-
-    val mutableHelper = mutableClassDefBy(helper.type)
-    mutableHelper.methods.single { it.isSameAs(like) }.holdBackDoubleTapLike()
-    mutableHelper.methods.single { it.isSameAs(doubleTapLike) }.emptyKeyAfter(key)
-    mutableClassDefBy(attachment.definingClass).methods.single { it.isSameAs(attachment) }.leaveDoubleTapUnhandled()
+    // Both hooks below borrow v0 at index 0, which only a method with a free local can spare.
+    // Checked here, before either mutation runs, so a method with none of its own refuses the whole
+    // hook rather than leaving the other one already changed.
+    like.requireOneLocal()
+    attachment.requireOneLocal()
+    return ReelLikeAnchors(helper.type, like, doubleTapLike, key, attachment)
 }
+
+/** Throws unless [this] has at least one local register, which an injection at index 0 may borrow. */
+private fun Method.requireOneLocal() {
+    val locals = localRegisterCount()
+    if (locals < 1) refuse("$definingClass->$name has $locals local register(s), needs 1")
+}
+
+private fun BytecodePatchContext.applyReelLikeAnchors(anchors: ReelLikeAnchors) {
+    val mutableHelper = mutableClassDefBy(anchors.helperType)
+    mutableHelper.methods.single { it.isSameAs(anchors.like) }.holdBackDoubleTapLike()
+    mutableHelper.methods.single { it.isSameAs(anchors.doubleTapLike) }.emptyKeyAfter(anchors.key)
+    mutableClassDefBy(anchors.attachment.definingClass).methods.single { it.isSameAs(anchors.attachment) }.leaveDoubleTapUnhandled()
+}
+
+/** What [findGestureViewAnchors] found for one reader: where its hook goes and which reads it covers. */
+private class GestureViewReaderPlan(val reader: Method, val hook: String, val reads: List<Int>)
+
+/** What [findGestureViewAnchors] found, for [applyGestureViewAnchors] to change. */
+private class GestureViewAnchors(val handler: FieldReference, val plans: List<GestureViewReaderPlan>)
 
 /**
  * GestureReactionComponent's view: the heart and each hand-over read the double-tap handler as
- * absent.
+ * absent. Finds every reader and checks every one of them before any changes; a reader that can't
+ * be trusted refuses here, with every other reader still exactly as Facebook built it.
  */
-private fun BytecodePatchContext.hookGestureView() {
+private fun BytecodePatchContext.findGestureViewAnchors(): GestureViewAnchors {
     val components = classDefByStrings(GESTURE_REACTION, StringComparisonType.EQUALS).filter(::isGestureReactionComponent)
     val component = components.singleOrNull()
         ?: refuse("expected one class whose constructor holds \"$GESTURE_REACTION\", found ${components.size}")
@@ -113,15 +164,25 @@ private fun BytecodePatchContext.hookGestureView() {
         refuse("the gesture view's heart doesn't read $handler")
     }
     if (readers.none { it.name == "onDoubleTap" }) refuse("no onDoubleTap of the gesture view's listener reads $handler")
-    for (reader in readers) {
+
+    // Every reader is checked here, before the loop that changes one; a reader that fails its check
+    // stops the whole hook with every reader before it still unread.
+    val plans = readers.map { reader ->
         val reads = readsOf(reader, handler)
         reads.firstOrNull { !isCheckedRead(reader, it) }?.let {
             refuse("${reader.definingClass}->${reader.name} reads $handler at $it without checking it for null straight away")
         }
         val hook = if (reader.definingClass == heart.definingClass && reader.isSameAs(heart)) HEART else HANDLER
-        val mutable = mutableClassDefBy(reader.definingClass).findMutableMethodOf(reader)
+        GestureViewReaderPlan(reader, hook, reads)
+    }
+    return GestureViewAnchors(handler, plans)
+}
+
+private fun BytecodePatchContext.applyGestureViewAnchors(anchors: GestureViewAnchors) {
+    for (plan in anchors.plans) {
+        val mutable = mutableClassDefBy(plan.reader.definingClass).findMutableMethodOf(plan.reader)
         // Last read first, so each index still names its read.
-        reads.sortedDescending().forEach { mutable.askAfterRead(it, handler, hook) }
+        plan.reads.sortedDescending().forEach { mutable.askAfterRead(it, anchors.handler, plan.hook) }
     }
 }
 
@@ -144,10 +205,10 @@ private fun MutableMethod.askAfterRead(read: Int, handler: FieldReference, hook:
 
 /**
  * First thing in the reel like helper's like: hand the extension the source, the last parameter,
- * and return while it holds a double tap's like back. v0 is free at index 0.
+ * and return while it holds a double tap's like back. v0 is free at index 0, checked by
+ * [requireOneLocal] before this or any other hook of this patch changes anything.
  */
 private fun MutableMethod.holdBackDoubleTapLike() {
-    requireLocals(PATCH, 1)
     addInstructionsWithLabels(
         0,
         """
@@ -180,10 +241,10 @@ private fun MutableMethod.emptyKeyAfter(taken: Int) {
 
 /**
  * First thing in the feed attachment's onDoubleTap: answer false, the tap not handled, while the
- * switch holds it back. v0 is free at index 0.
+ * switch holds it back. v0 is free at index 0, checked by [requireOneLocal] before this or any
+ * other hook of this patch changes anything.
  */
 private fun MutableMethod.leaveDoubleTapUnhandled() {
-    requireLocals(PATCH, 1)
     addInstructionsWithLabels(
         0,
         """

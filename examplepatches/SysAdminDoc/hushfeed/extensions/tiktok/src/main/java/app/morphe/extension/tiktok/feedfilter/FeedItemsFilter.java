@@ -902,20 +902,63 @@ public final class FeedItemsFilter {
         return feedItemList.items.isEmpty() ? null : feedItemList;
     }
 
+    /**
+     * The cache routes that hand the feed one cached video at a time, each counted under its own
+     * name. They shared one uncounted check, so a report never had a line for them and read as
+     * though they never ran, which the feed filter table exists to rule out.
+     */
+    static final String CACHE_CHAIN_SOURCE = "CachedItem:cache-chain";
+    static final String CACHE_RESULT_SOURCE = "CachedItem:cache-result";
+    static final String PLAY_LAG_SOURCE = "CachedItem:play-lag";
+    static final String REACH_BOTTOM_SOURCE = "CachedItem:reach-bottom";
+
+    /** The older cache chain's callback, on builds that still have it. */
+    public static boolean shouldKeepChainedCache(Aweme item) {
+        return keepCached(CACHE_CHAIN_SOURCE, item);
+    }
+
+    /** The rebuilt cache stack's result normalizer. */
+    public static boolean shouldKeepNormalizedCache(Aweme item) {
+        return keepCached(CACHE_RESULT_SOURCE, item);
+    }
+
+    /** The cached video TikTok inserts when playback lags. */
+    public static boolean shouldKeepPlayLagCache(Aweme item) {
+        return keepCached(PLAY_LAG_SOURCE, item);
+    }
+
+    /** The cached video TikTok delivers when the feed reaches its bottom. */
+    public static boolean shouldKeepReachBottomCache(Aweme item) {
+        return keepCached(REACH_BOTTOM_SOURCE, item);
+    }
+
+    private static boolean keepCached(String source, Aweme item) {
+        FeedFilterCounters.sawList(source, item == null ? 0 : 1);
+        String reason = cachedRejection(item);
+        if (reason == null) return true;
+        FeedFilterCounters.removed(source, 1, reason);
+        return false;
+    }
+
     public static boolean shouldKeepCachedAweme(Aweme item) {
-        if (item == null) return true;
+        return cachedRejection(item) == null;
+    }
+
+    /** Why a cached video is taken out, or null to keep it. */
+    private static String cachedRejection(Aweme item) {
+        if (item == null) return null;
 
         int cacheSourceType = AwemeBizExtKt.getCacheSourceType(item);
         if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE &&
                 !Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get()) {
-            return true;
+            return null;
         }
 
         List<IFilter> activeContentFilters = getActiveFilters(CONTENT_FILTERS);
         List<IFilter> activeRangeFilters = getActiveFilters(RANGE_FILTERS);
         String reason = getFilterReason(activeContentFilters, item);
         if (reason == null) reason = getFilterReason(activeRangeFilters, item);
-        if (reason == null) return true;
+        if (reason == null) return null;
 
         logItem(item, reason, BaseSettings.DEBUG.get());
         if (BaseSettings.DEBUG.get()) {
@@ -924,7 +967,7 @@ public final class FeedItemsFilter {
                 + item.getAid() + " sourceType=" + cacheSourceType
                 + " rejected by " + rejectionReason);
         }
-        return false;
+        return reason;
     }
 
     private static void filterCachedFeedItems(String source, FeedItemList feedItemList) {

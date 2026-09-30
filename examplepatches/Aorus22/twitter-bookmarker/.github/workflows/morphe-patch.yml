@@ -1,0 +1,130 @@
+# Builds the Morphe patch bundle in morphe/ and, on a manual run, publishes it as
+# a release asset so Morphe Manager can add this repository as a patch source.
+#
+# Why CI: Morphe publishes its patch library to GitHub Packages, which refuses
+# anonymous reads. A workflow token can read it, so the build works here without
+# anyone holding a personal read:packages token. Locally the same build needs
+# `gh auth refresh -s read:packages` — see morphe/README.md.
+#
+# If the default workflow token is ever refused by the registry, create a PAT
+# with read:packages and store it as the MORPHE_REGISTRY_TOKEN secret; it is
+# preferred automatically when present.
+
+name: Morphe patch bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (default: <piko pin>-twb.<short sha>)"
+        required: false
+        type: string
+  push:
+    branches: [master]
+    # Only what ends up inside the bundle: a README-only change does not need a
+    # Gradle build, and a cold one is minutes of runner time.
+    paths:
+      - "morphe/overlay/**"
+      - "morphe/build.sh"
+      - ".github/workflows/morphe-patch.yml"
+  pull_request:
+    paths:
+      - "morphe/overlay/**"
+      - "morphe/build.sh"
+      - ".github/workflows/morphe-patch.yml"
+
+permissions:
+  contents: write # publishing the release
+  packages: read # reading Morphe's patch library
+
+concurrency:
+  group: morphe-patch-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build the bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Resolve the version
+        id: version
+        run: |
+          set -euo pipefail
+          version="${INPUT_VERSION:-}"
+          if [ -z "$version" ]; then
+            pin="$(sed -n 's/^UPSTREAM_LABEL="Piko v\(.*\)"$/\1/p' morphe/build.sh)"
+            [ -n "$pin" ] || { echo "could not read the Piko pin from morphe/build.sh" >&2; exit 1; }
+            version="${pin}-twb.$(git rev-parse --short HEAD)"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "building version $version"
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+
+      - name: Build the patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.MORPHE_REGISTRY_TOKEN || secrets.GITHUB_TOKEN }}
+          BUNDLE_VERSION: ${{ steps.version.outputs.version }}
+        run: morphe/build.sh
+
+      - name: Name the asset
+        id: asset
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          # build.sh already drops the -sources and -javadoc variants; this is the
+          # guard that keeps a release from ever carrying more than one .mpp.
+          mapfile -t bundles < <(ls -1 morphe/out/patches-*.mpp)
+          if [ "${#bundles[@]}" -ne 1 ]; then
+            echo "expected exactly one bundle in morphe/out, found ${#bundles[@]}:" >&2
+            printf '  %s\n' "${bundles[@]}" >&2
+            exit 1
+          fi
+          cp "${bundles[0]}" "dist/patches-${{ steps.version.outputs.version }}.mpp"
+          ls -l dist
+          sha256sum dist/*.mpp | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches-${{ steps.version.outputs.version }}
+          path: dist/*.mpp
+          if-no-files-found: error
+
+      - name: Publish the release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          notes="$(printf '%s\n' \
+            "Morphe patch bundle for X (com.twitter.android), built from the pinned Piko commit recorded in morphe/build.sh, plus the Twitter Bookmarker overlay in morphe/overlay/." \
+            "" \
+            "Add this repository as a patch source in Morphe Manager, then select **Save to Twitter Bookmarker**. This bundle already contains every Piko patch, so Piko's own release does not need to be added as well." \
+            "" \
+            "The overlay is GPLv3: see morphe/LICENSE and morphe/NOTICE.")"
+          asset="dist/patches-$VERSION.mpp"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$asset" --clobber
+          else
+            gh release create "$TAG" "$asset" \
+              --title "Morphe patches $VERSION" \
+              --notes "$notes"
+          fi
+          echo "published $TAG with $asset"

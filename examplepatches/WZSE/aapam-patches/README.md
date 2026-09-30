@@ -9,7 +9,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/WZSE/aapam-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.3.1](https://github.com/WZSE/aapam-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
 <summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -58,6 +58,21 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 <details open>
 <summary>🎯 6.24.5+v16.0.0.231-allAbis&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bundle native ad-strip hook](#bundle-native-ad-strip-hook) | Packages the Prime Video libignite interception library for this APK's ABIs. |  |
+| [Clone Prime Video](#clone-prime-video) | Renames the package to <original>.mod (and its provider authorities / custom permissions) so the patched app installs side-by-side with a non-removable system Prime Video. Opt-in. |  |
+| [Disable auto-updates](#disable-auto-updates) | Prevents Google Play Store from automatically replacing the patched APK with the official unpatched version. |  |
+| [Load native ad-strip hook](#load-native-ad-strip-hook) | Loads libpvhook.so at startup before Prime Video constructs its media pipeline. |  |
+| [Override certificate pinning](#override-certificate-pinning) | Adds a network_security_config trusting user CAs (no pin sets) so AdGuard Premium can inspect the app's platform-stack HTTPS. Optional adjunct: Prime Video's ad plane is largely native libcurl, so DNS blocking is the primary tool. |  |
+| [Prime Video extension](#prime-video-extension) | Integrates the Prime Video ATV extension for ad group skipping. |  |
+
+</details>
+
+<details open>
+<summary>🎯 6.24.8+v16.0.0.361-allAbis&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

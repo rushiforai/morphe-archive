@@ -1,8 +1,8 @@
 [CmdletBinding()]
 param(
-    [string]$NdkPath = "$env:USERPROFILE\3D Objects\Tools\android-ndk-r27c",
-    [string]$CmakePath = "C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe",
-    [string]$NinjaPath = "C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe"
+    [string]$NdkPath = "C:\android\sdk\ndk\27.2.12479018",
+    [string]$CmakePath = "C:\android\sdk\cmake\3.22.1\bin\cmake.exe",
+    [string]$NinjaPath = "C:\android\sdk\cmake\3.22.1\bin\ninja.exe"
 )
 
 $ErrorActionPreference = "Stop"

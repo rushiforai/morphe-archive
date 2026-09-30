@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.util.TypedValue
@@ -58,34 +59,7 @@ object AiUiHelper {
 
     @JvmStatic
     fun onDetailImageBound(viewHolder: Any?, illust: Any?) {
-        try {
-            if (viewHolder == null || illust == null) return
-            val actualIllust = AiDetectionHelper.unwrapIllust(illust) ?: illust
-            val isAi = AiDetectionHelper.isAi(actualIllust)
-
-            // Resolve itemView (CalcHeightViewHolder / RecyclerView.ViewHolder has field itemView)
-            val itemViewField = runCatching {
-                viewHolder.javaClass.getField("itemView")
-            }.getOrNull() ?: runCatching {
-                var c: Class<*>? = viewHolder.javaClass
-                var f: java.lang.reflect.Field? = null
-                while (c != null && f == null) {
-                    f = runCatching { c.getDeclaredField("itemView") }.getOrNull()
-                    c = c.superclass
-                }
-                f?.apply { isAccessible = true }
-            }.getOrNull()
-
-            val itemView = (itemViewField?.get(viewHolder) as? View) ?: (viewHolder as? View) ?: return
-            val parentGroup = itemView as? ViewGroup ?: (itemView.parent as? ViewGroup) ?: return
-
-            // Hide subtle corner badge on the image itself
-            hideBadge(parentGroup)
-
-            // Display prominent full-width warning banner below toolbar
-            showDetailAiBanner(parentGroup, actualIllust, isAi)
-        } catch (_: Throwable) {
-        }
+        // No-op: AI warning banner is anchored once at the top level in onDetailBottomBarBound
     }
 
     @JvmStatic
@@ -97,6 +71,27 @@ object AiUiHelper {
 
             val context = view.context
             AiDetectionHelper.appContext = context.applicationContext
+            app.morphe.extension.pixiv.premium.HistoryHelper.recordView(actualIllust)
+
+            // Cache current detail bitmap for instant fullscreen placeholder
+            view.post {
+                try {
+                    val root = view.rootView
+                    val imgResId = context.resources.getIdentifier("image_view", "id", context.packageName)
+                    val iv = if (imgResId != 0) root?.findViewById<ImageView>(imgResId) else null
+                    if (iv != null) {
+                        val grab = {
+                            val d = iv.drawable
+                            if (d is BitmapDrawable && d.bitmap != null && !d.bitmap.isRecycled) {
+                                app.morphe.extension.pixiv.viewer.EnhancedViewerHelper.setCachedDetailBitmap(d.bitmap, actualIllust)
+                            }
+                        }
+                        grab()
+                        iv.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> grab() }
+                    }
+                } catch (_: Throwable) {
+                }
+            }
 
             // 1. Maintain title pill metadata in bottom bar
             val resId = context.resources.getIdentifier("title_text_view", "id", context.packageName)

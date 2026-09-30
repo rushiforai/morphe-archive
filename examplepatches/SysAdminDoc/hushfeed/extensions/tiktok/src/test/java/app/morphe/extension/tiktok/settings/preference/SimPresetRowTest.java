@@ -427,6 +427,144 @@ public class SimPresetRowTest {
         }
     }
 
+    /**
+     * The chosen row's operator line sits where every other row's does.
+     *
+     * <p>The radio mark went on the title at its own 32dp height, taller than a line of the
+     * title, so the chosen row's title grew and pushed its operator line about 10dp below the
+     * other rows' (seen on the S22, 2026-09-29).
+     */
+    @Test
+    public void theChosenRowsOperatorLineSitsWhereTheOthersDo() throws Exception {
+        app.morphe.extension.tiktok.spoof.sim.SimPreset germany = null;
+        for (app.morphe.extension.tiktok.spoof.sim.SimPreset preset
+                : app.morphe.extension.tiktok.spoof.sim.SimPresets.PRESETS) {
+            if ("Germany".equals(preset.country)) germany = preset;
+        }
+        assertNotNull(germany);
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            Settings.SIM_SPOOF_ISO.save(germany.iso);
+            Settings.SIMSPOOF_MCCMNC.save(germany.mccMnc);
+            Settings.SIMSPOOF_OP_NAME.save(germany.operatorName);
+            SimPresetPreference row = build(controller.get());
+            java.lang.reflect.Method show =
+                    SimPresetPreference.class.getDeclaredMethod("showPresetDialog");
+            show.setAccessible(true);
+            show.invoke(row);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            android.app.AlertDialog dialog = (android.app.AlertDialog)
+                    org.robolectric.shadows.ShadowDialog.getLatestDialog();
+            android.widget.ListView list = findView(
+                    dialog.getWindow().getDecorView(), android.widget.ListView.class);
+            int index = java.util.Arrays.asList(
+                    app.morphe.extension.tiktok.spoof.sim.SimPresets.PRESETS).indexOf(germany);
+            // Rows the list itself laid out, attached to the dialog's window: a start drawable is
+            // only resolved, and only counts toward the title's height, on an attached view.
+            list.measure(android.view.View.MeasureSpec.makeMeasureSpec(480, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(640, android.view.View.MeasureSpec.EXACTLY));
+            list.layout(0, 0, 480, 640);
+            int at = index - list.getFirstVisiblePosition();
+            android.view.View chosen = list.getChildAt(at);
+            android.view.View other = list.getChildAt(at == 0 ? 1 : at - 1);
+            assertNotNull("the chosen row was not laid out", chosen);
+            assertNotNull("no second row was laid out", other);
+            assertNotNull("the row carries no mark", ((android.widget.TextView)
+                    chosen.findViewById(android.R.id.text1)).getCompoundDrawablesRelative()[0]);
+
+            assertEquals("the mark makes the chosen row's title taller than the others'",
+                    other.findViewById(android.R.id.text1).getHeight(),
+                    chosen.findViewById(android.R.id.text1).getHeight());
+            assertEquals("the chosen row's operator line sits lower than the others'",
+                    other.findViewById(android.R.id.text2).getTop(),
+                    chosen.findViewById(android.R.id.text2).getTop());
+            dialog.dismiss();
+        } finally {
+            Settings.SIM_SPOOF_ISO.resetToDefault();
+            Settings.SIMSPOOF_MCCMNC.resetToDefault();
+            Settings.SIMSPOOF_OP_NAME.resetToDefault();
+        }
+    }
+
+    /**
+     * The same row chosen and not, at large font sizes and narrow widths. The mark took 40dp of
+     * the chosen title's width, so a long country name wrapped only when chosen and pushed its
+     * operator line down a line.
+     */
+    @Test
+    public void theChosenRowsOperatorLineSitsWhereItWouldUnchosenAtLargeFontSizes() throws Exception {
+        List<String> moved = new ArrayList<>();
+        float[] scales = {1.0f, 1.5f, 1.8f, 2.0f};
+        int[] widths = {280, 328, 360};
+        String[] countries = {"United Arab Emirates", "United Kingdom", "Czech Republic"};
+        try {
+            for (String country : countries) {
+                app.morphe.extension.tiktok.spoof.sim.SimPreset target = null, other = null;
+                for (app.morphe.extension.tiktok.spoof.sim.SimPreset preset
+                        : app.morphe.extension.tiktok.spoof.sim.SimPresets.PRESETS) {
+                    if (country.equals(preset.country)) target = preset;
+                    if ("Germany".equals(preset.country)) other = preset;
+                }
+                assertNotNull(country, target);
+                int index = java.util.Arrays.asList(
+                        app.morphe.extension.tiktok.spoof.sim.SimPresets.PRESETS).indexOf(target);
+                for (float scale : scales) {
+                    RuntimeEnvironment.setFontScale(scale);
+                    int[][] tops = new int[2][widths.length];
+                    for (int pass = 0; pass < 2; pass++) {
+                        app.morphe.extension.tiktok.spoof.sim.SimPreset chosen = pass == 0 ? target : other;
+                        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+                            Settings.SIM_SPOOF_ISO.save(chosen.iso);
+                            Settings.SIMSPOOF_MCCMNC.save(chosen.mccMnc);
+                            Settings.SIMSPOOF_OP_NAME.save(chosen.operatorName);
+                            SimPresetPreference row = build(controller.get());
+                            java.lang.reflect.Method show =
+                                    SimPresetPreference.class.getDeclaredMethod("showPresetDialog");
+                            show.setAccessible(true);
+                            show.invoke(row);
+                            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+                            android.app.AlertDialog dialog = (android.app.AlertDialog)
+                                    org.robolectric.shadows.ShadowDialog.getLatestDialog();
+                            android.widget.ListView list = findView(
+                                    dialog.getWindow().getDecorView(), android.widget.ListView.class);
+                            for (int w = 0; w < widths.length; w++) {
+                                android.view.View view = null;
+                                for (int attempt = 0; attempt < 3 && view == null; attempt++) {
+                                    list.setSelectionFromTop(index, 0);
+                                    list.measure(android.view.View.MeasureSpec.makeMeasureSpec(
+                                                    widths[w], android.view.View.MeasureSpec.EXACTLY),
+                                            android.view.View.MeasureSpec.makeMeasureSpec(
+                                                    1200, android.view.View.MeasureSpec.EXACTLY));
+                                    list.layout(0, 0, widths[w], 1200);
+                                    for (int c = 0; c < list.getChildCount(); c++) {
+                                        android.view.View child = list.getChildAt(c);
+                                        android.widget.TextView text = child.findViewById(android.R.id.text1);
+                                        if (text != null && country.contentEquals(text.getText())) view = child;
+                                    }
+                                }
+                                assertNotNull(country + " row not laid out", view);
+                                tops[pass][w] = view.findViewById(android.R.id.text2).getTop();
+                            }
+                            dialog.dismiss();
+                        }
+                    }
+                    for (int w = 0; w < widths.length; w++) {
+                        if (tops[0][w] != tops[1][w]) {
+                            moved.add(country + " at font scale " + scale + ", width " + widths[w]
+                                    + ": chosen " + tops[0][w] + ", unchosen " + tops[1][w]);
+                        }
+                    }
+                }
+            }
+        } finally {
+            RuntimeEnvironment.setFontScale(1.0f);
+            Settings.SIM_SPOOF_ISO.resetToDefault();
+            Settings.SIMSPOOF_MCCMNC.resetToDefault();
+            Settings.SIMSPOOF_OP_NAME.resetToDefault();
+        }
+        assertTrue(String.join("\n", moved), moved.isEmpty());
+    }
+
     /** What a background actually paints in the state given, every pixel of it, as one number. */
     private static int renderOf(android.graphics.drawable.Drawable background, int[] state) {
         background.setState(state);

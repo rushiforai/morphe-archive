@@ -4,107 +4,92 @@
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
 
-
 package app.morphe.extension.instagram.patches.devFlags;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.Arrays;
 
-import app.morphe.extension.crimera.PikoUtils;
-import app.morphe.extension.instagram.entity.DeveloperOptions;
-import app.morphe.extension.instagram.entity.DeveloperOptionsItem;
-import app.morphe.extension.instagram.utils.Pref;
-import app.morphe.extension.instagram.settings.SettingsStatus;
+/**
+ * Overrides for the app's boolean mobile config flags.
+ *
+ * {@link #handleBoolFlags} runs at the top of the app's boolean flag getter, which the app calls
+ * on every thread, constantly. It therefore allocates nothing and uses no reflection: overrides
+ * sit in primitive arrays, the universal id comes from the app's own helper (see
+ * {@link #universalId}), and the answer is one of the two shared Boolean instances.
+ *
+ * Overrides are added only from this class's static initialiser, where the patches that need
+ * them insert a call to the matching method (addFlags), so the arrays never change once the
+ * class is visible to other threads.
+ */
+public final class HookFlags {
+    /** Configs overridden as a whole: every flag of the config takes the value. */
+    private static int[] configUniversalIds = new int[0];
+    private static boolean[] configValues = new boolean[0];
 
-public class HookFlags {
-    private static Map<String, Boolean> BOOL_FLAGS = new HashMap<>();
-    private static DeveloperOptions developerOptions = new DeveloperOptions();
+    /** Single flags, keyed by (universal id << 32) | flag id. */
+    private static long[] flagKeys = new long[0];
+    private static boolean[] flagValues = new boolean[0];
 
-    private static void onboardingPermissionPromptFlags() {
-        BOOL_FLAGS.put("56295", false); //ig_device_permission_consent
-        BOOL_FLAGS.put("77866", false); //ig4a_d0_retention
+    private HookFlags() {
     }
 
+    /** Flags that let the download row show in the post overflow menu. */
     private static void simpleOverflowMenuFlags() {
-        BOOL_FLAGS.put("104772", false); //ig_ini
-        BOOL_FLAGS.put("117613::0", true); //ig_overflow_menu_icon::use_more_lines_icon
-        BOOL_FLAGS.put("100002", true); //ig_igds_android_prism_overflow_sheet
-    }
-   
-    private static void adsFlags() {
-//        BOOL_FLAGS.put("58206::0", false); //is_acp_enabled
-//        BOOL_FLAGS.put("72396::0", false); //is_mae_exclusion_feed_enabled
-//        BOOL_FLAGS.put("78046::0", false); //is_mae_exclusion_feed_enabled
-//        BOOL_FLAGS.put("78046::9", false); //enable_no_invalidation_reason_for_mae_exclusion
-//        BOOL_FLAGS.put("79181::0", false); //ig_reels_ads_1x2_explore_halc_android::is_enabled
-        BOOL_FLAGS.put("110800::0", false); //ig_android_controller_migration::use_v2_controller Removed in version 435.0.0.0.2
-        BOOL_FLAGS.put("114983", false); //ig_stories_restyle_midcard
-        BOOL_FLAGS.put("95150", false); //ig_stories_music_midcard
-        BOOL_FLAGS.put("84366::12", false); //ig_stories_ayt_midcard::enable_add_yours
-        BOOL_FLAGS.put("120110", false); //ig_android_scroll_break
-        BOOL_FLAGS.put("105778", false); //ig_android_restyle_post_cap_promo_dialog
+        overrideConfig(104772, false); // ig_ini
+        overrideFlag(117613, 0, true); // ig_overflow_menu_icon::use_more_lines_icon
+        overrideConfig(100002, true); // ig_igds_android_prism_overflow_sheet
     }
 
-    // Thanks to @brosssh
-    private static void suggestedContentFlags() {
-        BOOL_FLAGS.put("111509::3", false); //ig_search_ta_nullstate_suggestions::is_android_enabled
-        BOOL_FLAGS.put("82771::0", false); //igx_foundation_litho_stories_tray::is_litho_stories_tray_enabled
-//        BOOL_FLAGS.put("109730", false); //ig_android_ai_discovery_menu
-//        BOOL_FLAGS.put("80654", false); //ig_meta_ai_cdd_reels_viewer
+    private static void overrideConfig(int universalId, boolean value) {
+        configUniversalIds = Arrays.copyOf(configUniversalIds, configUniversalIds.length + 1);
+        configValues = Arrays.copyOf(configValues, configValues.length + 1);
+        configUniversalIds[configUniversalIds.length - 1] = universalId;
+        configValues[configValues.length - 1] = value;
     }
 
-    private static void profileActionBarFlags() {
-        Set<String> pref = Pref.userProfileActionBarButtons();
-        if(!pref.isEmpty()) {
-            BOOL_FLAGS.put("81826::0", true); //igx_action_bar_service_replacement::is_profile_replaced
-            BOOL_FLAGS.put("89230::0", true); //ig_android_profile_overflow_menu_redesign_launcher:enabled
+    private static void overrideFlag(int universalId, int flagId, boolean value) {
+        flagKeys = Arrays.copyOf(flagKeys, flagKeys.length + 1);
+        flagValues = Arrays.copyOf(flagValues, flagValues.length + 1);
+        flagKeys[flagKeys.length - 1] = key(universalId, flagId);
+        flagValues[flagValues.length - 1] = value;
+    }
+
+    private static long key(int universalId, long flagId) {
+        return ((long) universalId << 32) | flagId;
+    }
+
+    /**
+     * The app's specifier -> universal id helper. The patch replaces this body with a direct call
+     * to it; the body here only has to compile.
+     */
+    private static int universalId(long specifier) {
+        int unresolved = 0;
+        return unresolved;
+    }
+
+    /** The flag's id within its config, packed into the specifier as the app packs it. */
+    private static long flagId(long specifier) {
+        long shifted = specifier >>> 16;
+        boolean wide = ((specifier >>> 62) & 1L) == 1L;
+        return wide ? (shifted & 0xffff) : (shifted & 0xfff);
+    }
+
+    /**
+     * @return The overridden value of the flag, or null to let the app read it as usual.
+     */
+    public static Boolean handleBoolFlags(long specifier) {
+        int[] configs = configUniversalIds;
+        long[] flags = flagKeys;
+        if (configs.length == 0 && flags.length == 0) return null;
+
+        int universalId = universalId(specifier);
+        for (int i = 0; i < configs.length; i++) {
+            if (configs[i] == universalId) return configValues[i] ? Boolean.TRUE : Boolean.FALSE;
         }
-    }
 
-    private static void mainFeedActionBarFlags() {
-        Set<String> pref = Pref.mainFeedActionBarButtons();
-        if(!pref.isEmpty()) {
-            BOOL_FLAGS.put("81826::1", true); //igx_action_bar_service_replacement::is_main_feed_replaced
-            BOOL_FLAGS.put("81826::4", true); //igx_action_bar_service_replacement::is_main_feed_large_screen_replaced
-        }
-    }
-
-    private static void employeeOptionsFlags() {
-        if(Pref.enableEmployeeOptions()){
-            BOOL_FLAGS.put("28538::0", true); //ig_android_employee_options::is_enabled
-        }else{
-            BOOL_FLAGS.put("28538::0", false); //ig_android_employee_options::is_enabled
-        }
-    }
-
-    private static void addRecommendedFlags(){
-        if(SettingsStatus.recommendedFlags) {
-            Map<String, Boolean> recFlags = FlagsSharedPref.getAll();
-            BOOL_FLAGS.putAll(recFlags);
-        }
-    }
-
-    public static void load() {
-        addRecommendedFlags();
-    }
-
-    public static Boolean handleBoolFlags(long mobileConfigSpecifier) {
-        try {
-            DeveloperOptionsItem developerOptionsItem = new DeveloperOptionsItem(mobileConfigSpecifier);
-            // Sometimes I want to block all the subflags inside a universal ID.
-            // In which case I would only add the universal ID in the BOOL_MAP map.
-            // If a boolean value is found then it will return else it will check for for the usual config ID
-            String universalId = developerOptionsItem.getUniversalId();
-            Boolean universalFlag = BOOL_FLAGS.getOrDefault(universalId, null);
-            if(universalFlag!=null) return universalFlag;
-
-            String configId = developerOptionsItem.getConfigId();
-            return BOOL_FLAGS.getOrDefault(configId, null);
-        } catch (Exception e) {
-            PikoUtils.logger(e);
+        long key = key(universalId, flagId(specifier));
+        for (int i = 0; i < flags.length; i++) {
+            if (flags[i] == key) return flagValues[i] ? Boolean.TRUE : Boolean.FALSE;
         }
         return null;
     }
-
 }

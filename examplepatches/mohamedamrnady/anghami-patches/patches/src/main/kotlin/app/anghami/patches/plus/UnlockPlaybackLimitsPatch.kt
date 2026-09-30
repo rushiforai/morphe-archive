@@ -18,7 +18,7 @@ import app.anghami.patches.shared.Constants.COMPATIBILITY_ANGHAMI_8_0_28
 val unlockPlaybackLimitsPatch = bytecodePatch(
     name = "Unlock playback limits",
     description = "Disables skip and queue limits (skipLimitReached/queueRestrictionsEnabled=false, disable-flags=true). Local gates only.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
 

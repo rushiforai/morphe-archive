@@ -97,6 +97,19 @@ internal val expectedDexSites = mapOf(
     "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@507" to APP_COMMUNICATION_FORMAT,
 )
 
+/** The same six loads in build 346013370, under that build's names. */
+internal val expectedDexSites346013370 = mapOf(
+    "LX/0iY;->A04(Landroid/app/Application;)V@18" to APP_COMMUNICATION_FORMAT,
+    "LX/15l;->A03()V@25" to APP_COMMUNICATION,
+    "LX/1f3;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f3;Ljava/lang/String;Ljava/lang/String;)V@36" to APP_COMMUNICATION,
+    "LX/2Qq;->A01(Landroid/content/Intent;LX/2Qq;)V@24" to APP_COMMUNICATION_FORMAT,
+    "LX/33J;->A04(LX/5X7;Ljava/lang/Object;II)Ljava/lang/Object;@1433" to APP_COMMUNICATION_FORMAT,
+    "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@894" to APP_COMMUNICATION_FORMAT,
+)
+
+internal fun expectedDexSitesFor(versionCode: String?): Map<String, String> =
+    if (versionCode == "346013370") expectedDexSites346013370 else expectedDexSites
+
 private fun renamed(name: String): String =
     SHARED_PREFIX + name.removePrefix(META_PREFIX)
 
@@ -198,11 +211,11 @@ private fun Method.hasSharedName(): Boolean =
 private fun Method.siteId(index: Int): String =
     "$definingClass->$name(${parameterTypes.joinToString("")})$returnType@$index"
 
-internal fun validateDexSites(sites: List<Pair<String, String>>) {
-    if (sites.size != expectedDexSites.size) {
-        throw unsupportedApk("expected ${expectedDexSites.size} permission loads, found ${sites.size}")
+internal fun validateDexSites(sites: List<Pair<String, String>>, expected: Map<String, String> = expectedDexSites) {
+    if (sites.size != expected.size) {
+        throw unsupportedApk("expected ${expected.size} permission loads, found ${sites.size}")
     }
-    if (sites.toMap() != expectedDexSites) {
+    if (sites.toMap() != expected) {
         throw unsupportedApk("permission instruction sites differ from the tested build")
     }
 }
@@ -231,14 +244,14 @@ private fun BytecodePatchContext.checkedPermissionMethods(): List<MutableMethod>
             instruction.sharedName()?.let { method.siteId(index) to it }
         } ?: emptyList()
     }
-    validateDexSites(sites)
+    validateDexSites(sites, expectedDexSitesFor(packageMetadata.versionCode))
     return methods
 }
 
 private fun BytecodePatchContext.renameDexNames(): Int {
     val methods = checkedPermissionMethods()
     val renamed = methods.sumOf { it.renameSharedNames() }
-    if (renamed != expectedDexSites.size || methods.any { it.hasSharedName() }) {
+    if (renamed != expectedDexSitesFor(packageMetadata.versionCode).size || methods.any { it.hasSharedName() }) {
         throw PatchException("$PATCH_NAME: not all permission loads were renamed")
     }
     return renamed

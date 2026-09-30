@@ -25,12 +25,17 @@ internal object OpenThreadConverterMethodExtension :
 internal object OpenThreadIdFieldExtension :
     Fingerprint(name = "openThreadIdField", definingClass = HOOK_EXTENSION_CLASS)
 
-// returnType omitted: v426 returns Z, v433+ returns V. Only classDef is used, not the method directly.
+// The parser; named because the item's serializer (A00) writes the same keys.
 internal object DirectItemFieldParserFingerprint : Fingerprint(
+    name = "unsafeParseFromJson",
     strings = listOf("item_id", "hide_in_thread"),
 )
 
-// MQTT post-processing step (not on REST path). returnType omitted to avoid hardcoding the obfuscated class name.
+// Stand-in for the retention period the patch option sets.
+internal object RetentionDaysExtensionFingerprint :
+    Fingerprint(name = "retentionDays", definingClass = HOOK_EXTENSION_CLASS)
+
+// MQTT post-processing step (not on the REST path).
 internal object DirectItemPostprocessFingerprint : Fingerprint(
     strings = listOf("DirectMessage.postprocess.%s", "Encountered DirectMessage with null type"),
 )
@@ -46,7 +51,7 @@ internal object DirectItemDbHideFingerprint : Fingerprint(
     returnType = "V",
 )
 
-// DM thread deserializer dispatch. returnType omitted: v426 returns Z, v430+ returns V.
+// DM thread deserializer dispatch.
 internal object ThreadUsersDispatchFingerprint : Fingerprint(
     strings = listOf("users", "admin_user_ids", "left_users", "thread_v2_id", "input_mode"),
 )

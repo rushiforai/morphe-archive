@@ -103,7 +103,12 @@ class MarketplaceRequestFixtureTest {
                     assertTrue("$name: the feed query doesn't declare $variable", config.contains("\"$variable\""))
                 }
 
-                val context = PatchContexts.of(owners + ExtensionDex.classDef(SETTINGS_STATUS))
+                // The patch follows the answers too, so it gets the Tigon callbacks and what they use.
+                val callbacks = FixtureDex.classes(bundle, setOf(CALLBACKS)).values
+                val around = FixtureDex.classes(bundle, callbacks.flatMap { it.referencedClasses() }.toSet()).values
+                val context = PatchContexts.of(
+                    (owners + ExtensionDex.classDef(SETTINGS_STATUS) + callbacks + around).associateBy { it.type }.values,
+                )
                 hideSponsoredMarketplaceListingsPatch.execute(context)
                 val patched = context.mutableClassDefBy(send.definingClass).methods.single {
                     it.name == SEND_REQUEST && it.parameters() == send.parameters()

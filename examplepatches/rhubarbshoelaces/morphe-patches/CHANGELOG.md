@@ -1,3 +1,9 @@
+## [1.0.10](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.9...v1.0.10) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* add custom cartographic region patch for bearinmindcat's Ungoogled Maps ([c1a4c7b](https://github.com/rhubarbshoelaces/morphe-patches/commit/c1a4c7b31526e5be00bbd619158bf5c1a9d88bd9))
+
 ## [1.0.9](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.8...v1.0.9) (2026-09-23)
 
 ### 🐛 Bug Fixes

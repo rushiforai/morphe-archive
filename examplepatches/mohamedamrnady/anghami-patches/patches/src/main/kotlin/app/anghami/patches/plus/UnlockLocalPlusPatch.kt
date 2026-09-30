@@ -24,7 +24,7 @@ import app.anghami.patches.shared.Constants.COMPATIBILITY_ANGHAMI_8_0_28
 val unlockLocalPlusPatch = bytecodePatch(
     name = "Unlock local Plus",
     description = "Forces Account.isPlus/isPlusUser=true, enablePlayerRestrictions=false, canPlayOfflineAndFree=true. Local UI/gating only; server premium checks remain.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
 

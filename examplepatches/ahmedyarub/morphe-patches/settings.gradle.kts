@@ -2,7 +2,6 @@ rootProject.name = "morphe-patches"
 
 dependencyResolutionManagement {
     repositories {
-        mavenLocal()
         google()
         mavenCentral()
         // Shared Instagram patch library (brosssh), published to GitHub Packages.
@@ -22,6 +21,11 @@ dependencyResolutionManagement {
                 username = providers.gradleProperty("gpr.user").getOrElse(System.getenv("GITHUB_ACTOR"))
                 password = providers.gradleProperty("gpr.key").getOrElse(System.getenv("GITHUB_TOKEN"))
             }
+        }
+        // Last, and only for the libraries this repository builds against, so a stale local
+        // install cannot shadow the published artifact for anything else.
+        mavenLocal {
+            content { includeGroup("app.morphe") }
         }
     }
 }

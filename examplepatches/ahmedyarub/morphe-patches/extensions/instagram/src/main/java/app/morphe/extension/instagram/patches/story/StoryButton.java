@@ -18,28 +18,20 @@ import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.instagram.patches.download.DownloadUtils;
-import app.morphe.extension.crimera.ObjectBrowser;
 import app.morphe.extension.instagram.entity.MediaData;
 
 import com.instagram.common.session.UserSession;
 
 public class StoryButton {
-    private static boolean VIEW_STORY_MENTIONS;
     private static boolean ENABLE_DOWNLOAD;
     private static boolean ENABLE_DIRECT_DOWNLOAD;
-    private static boolean DEBUG;
 
     static{
-        VIEW_STORY_MENTIONS = Pref.viewStoryMentions() && SettingsStatus.viewStoryMentions;
         ENABLE_DOWNLOAD = Pref.enableDownload() && SettingsStatus.downloadMedia;
         ENABLE_DIRECT_DOWNLOAD = Pref.enableDirectDownload() && SettingsStatus.downloadMedia;
-        DEBUG = Pref.pikoDebug();
     }
 
     public static ArrayList addButtons(ArrayList buttonList){
-        if(DEBUG){
-            buttonList.add(str("piko_debug"));
-        }
         if(ENABLE_DOWNLOAD){
             if(ENABLE_DIRECT_DOWNLOAD){
                 buttonList.add(str("piko_category_download_media"));
@@ -47,27 +39,17 @@ public class StoryButton {
                 buttonList.add(str("piko_download_options"));
             }
         }
-        if(Pref.downloadWithExternalDownloader()){
-            buttonList.add(str("piko_download_with_external_downloader"));
-        }
 
         return buttonList;
     }
 
     public static boolean storyButtonAction(CharSequence buttonText, Context ctx, Object mediaObject){
         try {
-            // The view story mentions branch is not ported: its dialog needs UI classes that
-            // were removed from the shared extension library after the version piko builds
-            // against, and the feature is unrelated to downloading.
+            // piko also offers a debug view, an external downloader and story mentions here,
+            // each switched on from its settings screen. That screen is not in this bundle, so
+            // only the download button, which "Download media" turns on, is kept.
             if (buttonText.equals(str("piko_download_options")) || buttonText.equals(str("piko_category_download_media"))) {
                 DownloadUtils.downloadPost(ctx,null,mediaObject,0);
-                return true;
-            } else if (buttonText.equals(str("piko_debug"))) {
-                ObjectBrowser.browseObject(ctx, new MediaData(mediaObject));
-                return true;
-            } else if (buttonText.equals(str("piko_download_with_external_downloader"))) {
-                DownloadUtils.externalDownloader(mediaObject,0);
-
                 return true;
             }
         } catch (Exception ex) {

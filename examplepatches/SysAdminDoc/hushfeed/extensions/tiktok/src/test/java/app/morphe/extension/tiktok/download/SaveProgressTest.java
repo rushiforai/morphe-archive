@@ -452,6 +452,49 @@ public class SaveProgressTest {
     }
 
     /**
+     * Three saves running and a fourth in line, as a phone makes it: the running rows fill the
+     * places, so the waiting save's own row, and its Cancel, is out of sight behind the line.
+     * The line carries a Cancel that takes the last save in line out of it.
+     */
+    @Test public void aSaveWaitingOutOfSightCanStillBeCancelled() throws Exception {
+        try (var owner = Robolectric.buildActivity(SaveNoticeTest.HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            CountDownLatch finish = new CountDownLatch(1);
+            CountDownLatch running = new CountDownLatch(MediaJobScheduler.MAX_RUNNING_JOBS);
+            AtomicInteger ended = new AtomicInteger();
+            for (int index = 0; index < MediaJobScheduler.MAX_RUNNING_JOBS; index++) {
+                SaveProgress.queued(3, false).submit("running " + index, null, () -> {
+                    running.countDown();
+                    await(finish);
+                }, ended::incrementAndGet);
+            }
+            assertTrue(running.await(5, TimeUnit.SECONDS));
+            java.util.concurrent.atomic.AtomicBoolean ran = new java.util.concurrent.atomic.AtomicBoolean();
+            SaveProgress.queued(4, false).submit("waiting", null, () -> ran.set(true), ended::incrementAndGet);
+            settle();
+            try {
+                assertEquals(3, visibleRows(root).size());
+                assertEquals("One more save waiting",
+                        ((TextView) root.findViewWithTag("hushfeed_save_waiting")).getText().toString());
+                View line = root.findViewWithTag("hushfeed_save_waiting_row");
+                assertNotNull("nothing in sight can cancel the save in line", line);
+                TextView cancel = find(line, "Cancel");
+                assertNotNull("the line has no Cancel", cancel);
+                cancel.performClick();
+                idle();
+                assertEquals("Save cancelled. Nothing was saved.", ShadowToast.getTextOfLatestToast());
+                assertNull("the line stayed after its save left", root.findViewWithTag("hushfeed_save_waiting"));
+            } finally {
+                finish.countDown();
+            }
+            waitFor(ended, MediaJobScheduler.MAX_RUNNING_JOBS + 1);
+            assertFalse("the cancelled save ran anyway", ran.get());
+        }
+    }
+
+    /**
      * Five saves waiting at once: three rows show, one line counts the other two, and as rows
      * go the ones out of sight come up in order and are said when they do.
      */

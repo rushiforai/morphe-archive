@@ -42,7 +42,22 @@ public class MediaDownloader {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private boolean isDownloading = false;
 
-    public MediaDownloader(Context context) {
+    /** Timeouts for the media connection, so a stalled CDN read cannot hold the queue forever. */
+    private static final int CONNECT_TIMEOUT_MS = 15_000;
+    private static final int READ_TIMEOUT_MS = 30_000;
+
+    private static MediaDownloader instance;
+
+    /**
+     * The downloader. One per process: its queue is what keeps two downloads from racing for the
+     * same file name, and each instance owns a thread that lives as long as the process.
+     */
+    public static synchronized MediaDownloader getInstance(Context context) {
+        if (instance == null) instance = new MediaDownloader(context);
+        return instance;
+    }
+
+    private MediaDownloader(Context context) {
         Context resolvedContext = context != null ? context : Utils.getContext();
         if (resolvedContext == null) {
             throw new IllegalStateException("Download context is unavailable");
@@ -73,7 +88,7 @@ public class MediaDownloader {
         processNext();
     }
 
-    private void processNext() {
+    private synchronized void processNext() {
         if (isDownloading || queue.isEmpty()) return;
         isDownloading = true;
         DownloadRequest request = queue.poll();
@@ -123,6 +138,8 @@ public class MediaDownloader {
             try {
                 URL url = new URL(request.url);
                 conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(CONNECT_TIMEOUT_MS);
+                conn.setReadTimeout(READ_TIMEOUT_MS);
                 conn.connect();
 
                 int length = conn.getContentLength();
@@ -191,7 +208,9 @@ public class MediaDownloader {
             notificationManager.cancel(notificationId);
             PikoUtils.logger(e);
         } finally {
-            isDownloading = false;
+            synchronized (this) {
+                isDownloading = false;
+            }
             processNext();
         }
     }

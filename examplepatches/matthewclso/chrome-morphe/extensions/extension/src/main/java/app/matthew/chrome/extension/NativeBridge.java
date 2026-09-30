@@ -12,6 +12,18 @@ public final class NativeBridge {
     public static boolean incognitoAllowed(Activity activity) { throw new IllegalStateException("Unpatched bridge"); }
     public static boolean rememberModeFeatureEnabled() { return false; }
     public static boolean tabsReady(Activity activity) { throw new IllegalStateException("Unpatched bridge"); }
+    public static int hubPane(Activity activity) { throw new IllegalStateException("Unpatched bridge"); }
+    public static Object pickerModel(Activity activity) { throw new IllegalStateException("Unpatched bridge"); }
+    public static boolean pickerLocked(Activity activity) { throw new IllegalStateException("Unpatched bridge"); }
+    public static boolean pickerAtBottom(android.view.View container) { throw new IllegalStateException("Unpatched bridge"); }
+    public static int pickerCount(Object model) { throw new IllegalStateException("Unpatched bridge"); }
+    public static int pickerIndex(Object model) { throw new IllegalStateException("Unpatched bridge"); }
+    public static Object pickerTab(Object model, int index) { throw new IllegalStateException("Unpatched bridge"); }
+    public static int pickerId(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
+    public static String pickerTitle(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
+    public static android.graphics.Bitmap pickerIcon(Object tab) { throw new IllegalStateException("Unpatched bridge"); }
+    public static void pickerSelect(Object model, int tabId) { throw new IllegalStateException("Unpatched bridge"); }
+    public static void pickerClose(Object model, int tabId) { throw new IllegalStateException("Unpatched bridge"); }
     public static void writeChromeInt(int value, String key) { throw new IllegalStateException("Unpatched bridge"); }
     public static int themeSetting() { return 0; }
     public static void setBottomPosition() { throw new IllegalStateException("Unpatched bridge"); }

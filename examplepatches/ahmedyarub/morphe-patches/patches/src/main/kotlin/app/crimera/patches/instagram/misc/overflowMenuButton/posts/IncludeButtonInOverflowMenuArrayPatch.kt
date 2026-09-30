@@ -6,31 +6,39 @@
 
 package app.crimera.patches.instagram.misc.overflowMenuButton.posts
 
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.Constants.FEED_OVERFLOW_MENU_BUTTON_CLASS
 import app.crimera.patches.instagram.utils.Constants.MEDIA_OPTIONS_CLASS
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 @Suppress("unused")
 val includeButtonsInOverflowMenuArrayPatch =
     bytecodePatch(
         description = "This patch hooks array values initialisation in overflow menu button constructor.",
     ) {
+        dependsOn(instagramExtensionPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         execute {
             OverflowMenuButtonEnumInitialiser.method.apply {
-                val lastInvokeStaticIndex = instructions.last { it.opcode == Opcode.INVOKE_STATIC }.location.index
-                val arraySPutObjectIndex = lastInvokeStaticIndex - 1
-
-                val arrayRegister = getInstruction(arraySPutObjectIndex).registersUsed[0]
+                // The store of the enum's values array: the patch's buttons are appended to the
+                // array just before it is stored, and so before the entries are built from it.
+                val valuesStore =
+                    instructions.firstOrNull { instruction ->
+                        instruction.opcode == Opcode.SPUT_OBJECT &&
+                            instruction.getReference<FieldReference>()?.name == "\$VALUES"
+                    } ?: throw PatchException("The media option enum never stores its values")
+                val arrayRegister = valuesStore.registersUsed[0]
 
                 addInstructions(
-                    lastInvokeStaticIndex - 1,
+                    valuesStore.location.index,
                     """
                     invoke-static {}, $FEED_OVERFLOW_MENU_BUTTON_CLASS->addToMenuOptionArray()[$MEDIA_OPTIONS_CLASS
                     move-result-object v$arrayRegister

@@ -134,4 +134,43 @@ public class PreferenceDestroyRaceTest {
                     TYPED_VALUE, BaseSettings.DEBUG_LOG_FILTERS.get());
         }
     }
+
+    /**
+     * OK is recorded, and the screen is destroyed while the dialog is still showing. The
+     * dialog's dismiss, and so its persist, is then posted by PreferenceFragment's own
+     * onDestroy (PreferenceManager.dispatchActivityDestroy reaches the DialogPreference), which
+     * runs inside {@link AbstractPreferenceFragment#onDestroy()}'s call to super. A teardown
+     * posted before that call ran ahead of the persist.
+     */
+    @Test
+    public void aTextSettingWhoseDialogTheDestroyClosesReachesTheRunningSetting() {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+
+            HarnessFragment fragment = new HarnessFragment();
+            activity.getFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, fragment)
+                    .commit();
+            activity.getFragmentManager().executePendingTransactions();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            EditTextPreference textPref =
+                    (EditTextPreference) fragment.findPreference(key());
+            ReflectionHelpers.callInstanceMethod(textPref, "showDialog",
+                    ReflectionHelpers.ClassParameter.from(Bundle.class, null));
+            AlertDialog dialog = (AlertDialog) textPref.getDialog();
+            assertNotNull(dialog);
+            textPref.getEditText().setText(TYPED_VALUE);
+
+            textPref.onClick(dialog, android.content.DialogInterface.BUTTON_POSITIVE);
+            owner.destroy();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals("the preference file holds the typed value",
+                    TYPED_VALUE, Setting.preferences.preferences.getString(key(), null));
+            assertEquals("the running Setting kept the value from before the dialog",
+                    TYPED_VALUE, BaseSettings.DEBUG_LOG_FILTERS.get());
+        }
+    }
 }

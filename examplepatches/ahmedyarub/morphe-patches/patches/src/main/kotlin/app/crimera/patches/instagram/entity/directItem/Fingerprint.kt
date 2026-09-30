@@ -42,7 +42,8 @@ internal object FieldVisualMediaExtension : Fingerprint(name = "fieldVisualMedia
 internal object FieldXmaExtension : Fingerprint(name = "fieldXma", definingClass = DIRECT_ITEM_CLASS)
 internal object FieldXmaLinkExtension : Fingerprint(name = "fieldXmaLink", definingClass = DIRECT_ITEM_CLASS)
 
-// returnType omitted: v426 returns Z, v433+ returns V. const-string → iput pattern is present in both.
+// The parser; named because the item's serializer (A00) writes the same keys.
 internal object DirectItemDispatchFingerprint : Fingerprint(
+    name = "unsafeParseFromJson",
     strings = listOf("item_id", "user_id", "text", "timestamp", "hide_in_thread", "thread_key"),
 )

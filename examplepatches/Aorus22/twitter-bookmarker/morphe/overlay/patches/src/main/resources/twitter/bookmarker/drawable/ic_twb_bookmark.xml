@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The save button's own glyph, for a tweet that is not in the archive yet: an
+  outlined bookmark with a plus inside it.
+
+  Deliberately not the app's native bookmark. On a real phone the two sat next to
+  each other in the action bar looking nearly identical, which is half of why
+  taps landed on the wrong control; the plus says "add to something of mine", and
+  the filled variant (ic_twb_bookmark_saved.xml) says "already added".
+
+  Copyright (C) 2026 piko <https://github.com/crimera/piko>
+  See morphe/NOTICE for GPLv3 §7(b) terms.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Bookmark outline: outer silhouette, then the inner one wound the other
+         way so it cuts the middle out. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M17,3H7C5.9,3 5.01,3.9 5.01,5L5,21l7,-3 7,3V5c0,-1.1 -0.9,-2 -2,-2zM17,18l-5,-2.18L7,18V5h10v13z" />
+    <!-- Plus, sitting in the cut-out middle. Deliberately bold: at 24 dp a
+         hairline plus reads as a smudge, and this is the only difference from the
+         native bookmark's silhouette. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M13.1,7.9h-2.2v2.1H8.8v2.2h2.1v2.1h2.2v-2.1h2.1v-2.2h-2.1z" />
+</vector>

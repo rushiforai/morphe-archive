@@ -17,29 +17,18 @@ import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.constants.Constants;
 
-import app.morphe.extension.crimera.ObjectBrowser;
 import app.morphe.extension.crimera.downloader.MediaType;
 
 public class MessageUtils {
-    private static boolean DEBUG;
-    static {
-        DEBUG = Pref.pikoDebug();
-    }
-
     public static boolean messageDownloadCheck(Context context, Object messageInfoObject){
         try{
             MessageInfo messageInfo = new MessageInfo(messageInfoObject);
             String messageType = messageInfo.getMessageType();
 
-            if(DEBUG){
-                ObjectBrowser.browseObject(context, messageInfo);
-                return false;
-            }
-
-            if(messageType == "media" || messageType == "raven_media"){
+            if ("media".equals(messageType) || "raven_media".equals(messageType)) {
                 return true;
 
-            } else if (messageType == "voice_media" && SettingsStatus.downloadVoiceMessage) {
+            } else if ("voice_media".equals(messageType) && SettingsStatus.downloadVoiceMessage) {
                 MediaData audioData = messageInfo.getAudioMedia();
                 String audioUrl = audioData.getMessageAudioUrl();
                 String fileName = audioData.getDownloadFilename(MediaType.AUDIO);

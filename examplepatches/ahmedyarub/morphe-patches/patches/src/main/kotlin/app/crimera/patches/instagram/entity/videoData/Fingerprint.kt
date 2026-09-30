@@ -21,10 +21,7 @@ internal object VideoVersionMapExtensionFingerprint : Fingerprint(
     name = "videoVersionMap",
 )
 
-internal object ImmutablePandoVideoVersionMapperFingerprint : Fingerprint(
-    definingClass = "/ImmutablePandoVideoVersion;",
-    returnType = "Ljava/util/Map;",
-)
+internal const val IMMUTABLE_PANDO_VIDEO_VERSION_CLASS = "Lcom/instagram/api/schemas/ImmutablePandoVideoVersion;"
 
 internal object VideoVersionMapperFingerprint : Fingerprint(
     definingClass = "/VideoVersion;",

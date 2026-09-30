@@ -1,3 +1,15 @@
+## [1.3.1](https://github.com/WZSE/aapam-patches/compare/v1.3.0...v1.3.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* stream continuation for truncated Prime Video ad playlists and 6.24.8 support ([af7c528](https://github.com/WZSE/aapam-patches/commit/af7c528ef76a7560a8a60532b8cb8ff3f216033b))
+
+## [1.3.1-dev.1](https://github.com/WZSE/aapam-patches/compare/v1.3.0...v1.3.1-dev.1) (2026-09-26)
+
+### 🐛 Bug Fixes
+
+* stream continuation for truncated Prime Video ad playlists and 6.24.8 support ([af7c528](https://github.com/WZSE/aapam-patches/commit/af7c528ef76a7560a8a60532b8cb8ff3f216033b))
+
 ## [1.3.0](https://github.com/WZSE/aapam-patches/compare/v1.2.0...v1.3.0) (2026-09-11)
 
 ### ✨ New Features

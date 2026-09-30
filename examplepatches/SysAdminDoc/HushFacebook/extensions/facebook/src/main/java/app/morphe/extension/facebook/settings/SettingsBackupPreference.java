@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.feed.PostWords;
+import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
@@ -360,7 +361,8 @@ public class SettingsBackupPreference extends Preference {
                 parts.add(L10n.quantity(switches, "%1$d switch will change.", "%1$d switches will change.", switches));
             }
             parts.addAll(valueSentences(snapshot.folderChange(), snapshot.qualityChange(), snapshot.fileNameChange(),
-                    snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(), snapshot.keptChange()));
+                    snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(), snapshot.keptChange(),
+                    snapshot.playbackChange()));
             message = String.join("\n\n", parts);
         }
         if (snapshot.unknown > 0) {
@@ -426,6 +428,12 @@ public class SettingsBackupPreference extends Preference {
                 HushfacebookPreferenceFragment.commentOrderLabel(order));
     }
 
+    /** The sentence that says what quality videos play at after an import. */
+    static String playbackQualitySentence(PlaybackQuality quality) {
+        if (quality == PlaybackQuality.AUTO) return L10n.t("Facebook will pick the quality videos play at.");
+        return L10n.f("Playback quality will be set to %1$s.", HushfacebookPreferenceFragment.playbackQualityLabel(quality));
+    }
+
     /**
      * The sentence that says what a word list holds after an import: how many phrases, never
      * which. [hides] picks the list of words to hide, otherwise the keep list.
@@ -449,20 +457,29 @@ public class SettingsBackupPreference extends Preference {
         return valueSentences(folder, quality, fileName, start, order, null, null);
     }
 
-    /**
-     * A sentence for each setting that isn't a switch an import changes, in the order the screen
-     * shows them: the tab Facebook opens on, the word filter's lists, the order comments open in,
-     * then the download settings.
-     */
+    /** A sentence for each setting that isn't a switch an import changes, the playback quality aside. */
     static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
                                        @Nullable String fileName, @Nullable StartTab start,
                                        @Nullable CommentOrder order, @Nullable String hidden,
                                        @Nullable String kept) {
+        return valueSentences(folder, quality, fileName, start, order, hidden, kept, null);
+    }
+
+    /**
+     * A sentence for each setting that isn't a switch an import changes, in the order the screen
+     * shows them: the tab Facebook opens on, the word filter's lists, the order comments open in,
+     * the quality videos play at, then the download settings.
+     */
+    static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
+                                       @Nullable String fileName, @Nullable StartTab start,
+                                       @Nullable CommentOrder order, @Nullable String hidden,
+                                       @Nullable String kept, @Nullable PlaybackQuality playback) {
         List<String> sentences = new ArrayList<>();
         if (start != null) sentences.add(startTabSentence(start));
         if (hidden != null) sentences.add(wordsSentence(hidden, true));
         if (kept != null) sentences.add(wordsSentence(kept, false));
         if (order != null) sentences.add(commentOrderSentence(order));
+        if (playback != null) sentences.add(playbackQualitySentence(playback));
         if (quality != null) sentences.add(qualitySentence(quality));
         if (folder != null) sentences.add(folderSentence(folder));
         if (fileName != null) sentences.add(fileNameSentence(fileName));
@@ -486,7 +503,7 @@ public class SettingsBackupPreference extends Preference {
             // Counted before the write, which makes every change match the store.
             String done = importedMessage(snapshot.switchChanges(), snapshot.folderChange(), snapshot.qualityChange(),
                     snapshot.fileNameChange(), snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(),
-                    snapshot.keptChange());
+                    snapshot.keptChange(), snapshot.playbackChange());
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {
                     SettingsBackup.apply(snapshot);
@@ -536,21 +553,28 @@ public class SettingsBackupPreference extends Preference {
         return importedMessage(switches, folder, quality, fileName, start, order, null, null);
     }
 
+    /** The toast after an import that changed no playback quality. */
+    static String importedMessage(int switches, @Nullable String folder, @Nullable DownloadQuality quality,
+                                  @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                                  @Nullable String hidden, @Nullable String kept) {
+        return importedMessage(switches, folder, quality, fileName, start, order, hidden, kept, null);
+    }
+
     /**
      * What the toast after an import says: how many switches changed, then a sentence for each
      * other setting that did. A folder alone keeps the one sentence it always had.
      */
     static String importedMessage(int switches, @Nullable String folder, @Nullable DownloadQuality quality,
                                   @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
-                                  @Nullable String hidden, @Nullable String kept) {
+                                  @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback) {
         if (switches == 0 && folder != null && quality == null && fileName == null && start == null && order == null
-                && hidden == null && kept == null) {
+                && hidden == null && kept == null && playback == null) {
             return L10n.f("Settings imported. Saves will go to a folder named %1$s.", L10n.isolate(folder));
         }
         List<String> parts = new ArrayList<>();
         parts.add(switches == 0 ? L10n.t("Settings imported.") : L10n.quantity(switches,
                 "Settings imported. %1$d switch changed.", "Settings imported. %1$d switches changed.", switches));
-        parts.addAll(valueSentences(folder, quality, fileName, start, order, hidden, kept));
+        parts.addAll(valueSentences(folder, quality, fileName, start, order, hidden, kept, playback));
         return String.join(" ", parts);
     }
 

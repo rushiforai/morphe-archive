@@ -1,0 +1,136 @@
+name: 🐞 Bug report
+description: Something in HushThreads doesn't work the way it should.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # HushThreads bug report
+
+        Thanks for taking the time to report this. Before you start:
+
+        - **Check whether it's already reported.** Search the [open and closed bug reports](https://github.com/SysAdminDoc/HushThreads/issues?q=is%3Aissue%20label%3Abug). If yours was closed and it still happens, comment on it and we'll reopen it. GitHub doesn't let the person who reported something reopen it.
+        - **Not sure it's a bug?** Ask in [Discussions](https://github.com/SysAdminDoc/HushThreads/discussions) instead.
+        - **Patching stopped with an error?** That usually means Threads moved something in a new build. Say which Threads version you picked, and paste the error.
+  - type: input
+    id: versions
+    attributes:
+      label: HushThreads and Threads versions
+      description: Long-press the Threads icon and tap HushThreads, or open Threads' App info page and tap Additional settings in the app. Copy the version line under the HushThreads title. If the screen opens on category pages, open More settings, then About, and copy the Version line.
+      placeholder: Version 0.0.2 for Threads 449.0.0.54.82
+    validations:
+      required: true
+  - type: input
+    id: variant
+    attributes:
+      label: Which Threads file did you patch?
+      description: Where it came from, its architecture, and whether you gave the patcher an .xapk or .apkm bundle or a single .apk, if you know them. Most bugs on a build that should work come from a different variant.
+      placeholder: arm64-v8a, an .xapk bundle
+  - type: dropdown
+    id: manager
+    attributes:
+      label: What did you patch Threads with?
+      options:
+        - Morphe Manager (the Android app)
+        - morphe-desktop (on a computer)
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: manager_version
+    attributes:
+      label: Its version
+      description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
+      placeholder: Morphe Manager 1.32.0
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: How was it installed?
+      options:
+        - Standard install (re-signed)
+        - Root Mount
+        - I don't know
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version
+      description: Both are in your phone's Settings, under About phone. If this Threads is a clone, say which kind too, such as one renamed by Morphe's Clone app patch, Dual Apps, Second space or a work profile.
+      placeholder: Samsung Galaxy S25, Android 16
+    validations:
+      required: true
+  - type: dropdown
+    id: selected_patches
+    attributes:
+      label: Which patches were in your build?
+      description: All of them are selected by default. If you kept the manager's own selection, pick them all.
+      multiple: true
+      options:
+        - Disable analytics
+        - Hide ads
+        - HushThreads settings
+        - Remove the advertising ID
+        - Restore screens on re-signed builds
+        - Sanitize sharing links
+    validations:
+      required: true
+  - type: dropdown
+    id: affected_surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - The feed
+        - A post and its replies
+        - Profiles
+        - Search
+        - Activity
+        - Sharing or copying a link
+        - Signing in, or a screen that won't open
+        - HushThreads settings
+        - Patching (Morphe Manager or morphe-desktop)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: What went wrong?
+      description: What happened, and what did you expect to happen instead? A screenshot or a screen recording helps a lot. Cover names and private messages first.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: What did you tap, in order?
+      description: Start from opening Threads. Include every HushThreads switch you changed before it went wrong, and say whether it still happens after you close Threads and open it again. For a post, say where you opened it, such as the For you feed, Following, a profile, search or a shared link.
+      placeholder: |
+        1. Opened Threads
+        2. Scrolled the For you feed
+        3. A sponsored post showed after about twenty posts
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic_report
+    attributes:
+      label: Diagnostic report
+      description: |
+        This answers most of our questions, so please add it if you can. It works with Debug logging off and then still names your build, the patches in it and what each one has counted. For the most detail, long-press the Threads icon, tap HushThreads, turn on Debug logging, do the thing that goes wrong, then come back, tap Export diagnostic report and pick Save full report. If the screen opens on category pages, these controls are under More settings, then Pause, backup and diagnostics. That saves a text file in Download/Morphe on your phone. Drag it into this box. If you can't get the file off your phone, pick Copy quick report instead and paste the shorter report here.
+        The report leaves out links, Threads and Instagram addresses, long ID numbers, cookies, sign-in tokens and Authorization headers, JSON included. It can't spot a name or message written anywhere else, so read it and remove anything private before you post it.
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Anything else?
+      description: A workaround you found, an older version where it still worked, or anything else that might help.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the open and closed bug reports and this isn't one of them.
+          required: true
+        - label: I answered every question above as well as I could.
+          required: true

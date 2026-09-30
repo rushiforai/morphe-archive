@@ -83,8 +83,14 @@ class ControlsTest {
         assertEquals("false", provider.getAttribute("android:exported"))
         val activities = document.getElementsByTagName("activity")
         assertEquals("stock.permission", (activities.item(0) as org.w3c.dom.Element).getAttribute("android:permission"))
-        assertEquals("HushMessenger settings", (activities.item(1) as org.w3c.dom.Element).getAttribute("android:label"))
-        assertEquals("android.intent.category.LAUNCHER", (document.getElementsByTagName("category").item(0) as org.w3c.dom.Element).getAttribute("android:name"))
+        val settings = activities.item(1) as org.w3c.dom.Element
+        assertEquals("HushMessenger settings", settings.getAttribute("android:label"))
+        // Only the alias carries the launcher filter, so hiding it leaves the activity reachable.
+        assertEquals(0, settings.getElementsByTagName("intent-filter").length)
+        val alias = document.getElementsByTagName("activity-alias").item(0) as org.w3c.dom.Element
+        assertEquals("app.hushmessenger.extension.SettingsLauncher", alias.getAttribute("android:name"))
+        assertEquals("app.hushmessenger.extension.SettingsActivity", alias.getAttribute("android:targetActivity"))
+        assertEquals("android.intent.category.LAUNCHER", (alias.getElementsByTagName("category").item(0) as org.w3c.dom.Element).getAttribute("android:name"))
         assertFailsWith<PatchException> { document.addSettingsEntry() }
     }
 

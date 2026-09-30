@@ -1,10 +1,8 @@
 /*
  * Adapted from piko <https://github.com/crimera/piko>, GPLv3.
  *
- * Simplified: piko's Links gates both features on its settings layer
- * (Pref/SettingsStatus) and delegates sanitising to ShareLinkSanitizer, which is not present
- * in the extension library version this bundle builds against. Both features are always on
- * here and the sanitiser is implemented locally.
+ * Simplified: piko's Links gates both features on its settings layer (Pref/SettingsStatus).
+ * Both features are always on here.
  */
 
 package app.ahmedyarub.extension.instagram;
@@ -15,19 +13,29 @@ import android.net.Uri;
 
 import java.io.IOException;
 import java.net.URI;
-
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ShareLinkSanitizer;
 import app.morphe.extension.shared.Utils;
 
 @SuppressWarnings("unused")
 public final class Links {
 
-    /** Query parameters Instagram uses to attribute a share back to the sender. */
-    private static final List<String> TRACKING_PARAMETERS = Arrays.asList(
-            "igsh", "igsi", "utm_source", "utm_medium", "utm_content", "fbclid", "si");
+    /**
+     * Instagram's links keep only the parameters that change what the link opens; anything else
+     * on them attributes the share to the sender. Links to other sites lose only known trackers.
+     */
+    private static final ShareLinkSanitizer SANITIZER = new ShareLinkSanitizer(
+            "instagram.com",
+            // The carousel slide a post link opens on.
+            Collections.singletonList("img_index"),
+            Arrays.asList("igsh", "igsi", "utm_source", "utm_medium", "utm_content", "fbclid", "si"));
+
+    /** The hosts Instagram routes outbound links through, with the destination in "u". */
+    private static final java.util.Set<String> LINK_REDIRECT_HOSTS =
+            new java.util.HashSet<>(Arrays.asList("l.instagram.com", "lm.instagram.com"));
 
     private Links() {
     }
@@ -39,44 +47,24 @@ public final class Links {
      * is better than a broken one.
      */
     public static String sanitizeUrl(String url) {
-        try {
-            if (url == null || url.isEmpty()) return url;
-
-            Uri uri = Uri.parse(url);
-            if (uri.isOpaque()) return url;
-
-            java.util.Set<String> names = uri.getQueryParameterNames();
-            if (names.isEmpty()) return url;
-
-            boolean changed = false;
-            Uri.Builder builder = uri.buildUpon().clearQuery();
-            for (String name : names) {
-                if (TRACKING_PARAMETERS.contains(name)) {
-                    changed = true;
-                    continue;
-                }
-                for (String value : uri.getQueryParameters(name)) {
-                    builder.appendQueryParameter(name, value);
-                }
-            }
-
-            return changed ? builder.build().toString() : url;
-        } catch (Exception ex) {
-            Logger.printException(() -> "sanitizeUrl failed", ex);
-            return url;
-        }
+        return SANITIZER.sanitize(url, true);
     }
 
     /**
      * Injection point. Opens an in-app browser link in the system browser instead.
      *
      * <p>Instagram wraps outbound links as {@code https://l.instagram.com/?u=<url>&e=<id>},
-     * so the real destination is the {@code u} parameter. Returns false when there is none,
-     * which leaves the caller on its normal in-app path.
+     * so the real destination is the {@code u} parameter. Only those redirects are unwrapped:
+     * another site's own {@code u} parameter means something else. Returns false for anything
+     * else, which leaves the caller on its normal in-app path.
      */
     public static boolean openExternally(String url) {
         try {
-            String actualUrl = Uri.parse(url).getQueryParameter("u");
+            Uri uri = Uri.parse(url);
+            String host = uri.getHost();
+            if (host == null || !LINK_REDIRECT_HOSTS.contains(host.toLowerCase(java.util.Locale.ROOT))) return false;
+
+            String actualUrl = uri.getQueryParameter("u");
             if (actualUrl == null) return false;
 
             Context context = Utils.getContext();
@@ -91,6 +79,7 @@ public final class Links {
             return false;
         }
     }
+
     /**
      * Injection point. Called with every outbound request URI, and throws to block one.
      *

@@ -90,6 +90,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean keepReelSpeed() {
+        return false;
+    }
+
+    public static boolean reelHold() {
+        return false;
+    }
+
     public static boolean defaultCommentOrder() {
         return false;
     }
@@ -99,6 +107,10 @@ public final class SettingsStatus {
     }
 
     public static boolean resumeLongVideos() {
+        return false;
+    }
+
+    public static boolean defaultPlaybackQuality() {
         return false;
     }
 
@@ -167,6 +179,14 @@ public final class SettingsStatus {
     }
 
     public static boolean marketplaceOnly() {
+        return false;
+    }
+
+    public static boolean reelsTab() {
+        return false;
+    }
+
+    public static boolean reelsTabDot() {
         return false;
     }
 

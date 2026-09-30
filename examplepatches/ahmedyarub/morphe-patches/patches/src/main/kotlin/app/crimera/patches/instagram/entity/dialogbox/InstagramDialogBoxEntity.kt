@@ -15,11 +15,13 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 val instagramDialogBoxEntity =
     bytecodePatch(
         description = "This patch is used for decoding obfuscated code of the native box of Instagram",
     ) {
+        dependsOn(instagramExtensionPatch)
         execute {
 
             ConstructorExtensionFingerprint.changeFirstString(

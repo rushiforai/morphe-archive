@@ -1,0 +1,8 @@
+.gradle/
+.local-build/
+.local-tools/
+build/
+**/build/
+*.apk
+*.apkm
+*.mpp

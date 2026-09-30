@@ -29,11 +29,24 @@ internal const val SETTINGS_STATUS = "$EXTENSION_PACKAGE/settings/SettingsStatus
  * depend on the Facebook extension patch, which is what merges `SettingsStatus` into the APK.
  */
 internal fun BytecodePatchContext.enableStatus(name: String) {
-    val method = mutableClassDefBy(SETTINGS_STATUS).methods.singleOrNull {
-        it.name == name && it.returnType == "Z" && it.parameterTypes.isEmpty()
-    } ?: throw PatchException("SettingsStatus has no boolean method $name()")
+    val method = statusMethod(name)
     method.returnEarly(true)
 }
+
+/**
+ * Throws naming [name] unless `SettingsStatus` has a boolean method of that name, the same check
+ * [enableStatus] makes. A patch whose own find phase changes bytecode before it calls [enableStatus]
+ * should call this first, so a missing method refuses before anything is mutated rather than after,
+ * through [enableStatus], once the patch's own hooks are already in.
+ */
+internal fun BytecodePatchContext.requireStatusMethod(name: String) {
+    statusMethod(name)
+}
+
+private fun BytecodePatchContext.statusMethod(name: String): MutableMethod =
+    mutableClassDefBy(SETTINGS_STATUS).methods.singleOrNull {
+        it.name == name && it.returnType == "Z" && it.parameterTypes.isEmpty()
+    } ?: throw PatchException("SettingsStatus has no boolean method $name()")
 
 /** How many registers a parameter of this type takes: two for a long or a double. */
 private fun CharSequence.width(): Int = if (toString() == "J" || toString() == "D") 2 else 1

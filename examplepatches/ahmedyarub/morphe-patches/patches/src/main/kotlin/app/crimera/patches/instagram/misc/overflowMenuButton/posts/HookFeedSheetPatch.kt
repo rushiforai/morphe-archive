@@ -9,7 +9,7 @@ package app.crimera.patches.instagram.misc.overflowMenuButton.posts
 import app.crimera.patches.instagram.entity.decoder.CURRENT_MEDIA_FIELD
 import app.crimera.patches.instagram.entity.decoder.MEDIA_ADD_INFO_CLASS_NAME
 import app.crimera.patches.instagram.entity.decoder.decoderEntity
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.Constants.FEED_OVERFLOW_MENU_BUTTON_CLASS
 import app.crimera.utils.changeFirstString
 import app.morphe.patcher.Fingerprint
@@ -24,6 +24,7 @@ import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 private const val FRAGMENT = "Landroidx/fragment/app/Fragment;"
 private const val OBJECT = "Ljava/lang/Object;"
@@ -68,6 +69,7 @@ val hookFeedSheetPatch =
     bytecodePatch(
         description = "Adds the download row to the feed post options sheet",
     ) {
+        dependsOn(instagramExtensionPatch)
         dependsOn(decoderEntity)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 

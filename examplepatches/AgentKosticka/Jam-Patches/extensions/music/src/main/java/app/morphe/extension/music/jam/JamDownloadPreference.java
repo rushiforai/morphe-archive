@@ -20,21 +20,23 @@ import app.morphe.extension.shared.Utils;
 @SuppressWarnings("deprecation")
 public final class JamDownloadPreference extends Preference {
 
-  private static final Uri RELEASES = Uri.parse(
-    "https://github.com/AgentKosticka/Jam-Layer/releases/latest"
-  );
+    private static final Uri RELEASES = Uri.parse(
+        "https://github.com/AgentKosticka/Jam-Layer/releases/latest"
+    );
 
-  public JamDownloadPreference(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    setPersistent(false);
-  }
-
-  @Override
-  protected void onClick() {
-    try {
-      getContext().startActivity(new Intent(Intent.ACTION_VIEW, RELEASES));
-    } catch (RuntimeException error) {
-      Utils.showToastLong(str("morphe_music_jam_no_browser"));
+    public JamDownloadPreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        setPersistent(false);
     }
-  }
+
+    @Override
+    protected void onClick() {
+        try {
+            getContext().startActivity(
+                new Intent(Intent.ACTION_VIEW, RELEASES)
+            );
+        } catch (RuntimeException error) {
+            Utils.showToastLong(str("morphe_music_jam_no_browser"));
+        }
+    }
 }

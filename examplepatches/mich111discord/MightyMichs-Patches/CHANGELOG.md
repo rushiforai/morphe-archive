@@ -1,3 +1,43 @@
+## [1.6.4](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.6.3...v1.6.4) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* another try :))))) ([370afd0](https://github.com/mich111discord/MightyMichs-Patches/commit/370afd043c60d3830a654fa83d061c46975f1565))
+
+## [1.6.3](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.6.2...v1.6.3) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* another try ([4f8f5a0](https://github.com/mich111discord/MightyMichs-Patches/commit/4f8f5a0bc08166e9927c818509f020f04353173b))
+
+## [1.6.2](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.6.1...v1.6.2) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* another try ([7530b38](https://github.com/mich111discord/MightyMichs-Patches/commit/7530b38705ddd1b117d1ba7feadbd281c3d34fd0))
+
+## [1.6.1](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.6.0...v1.6.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* another try... ([b1f3c20](https://github.com/mich111discord/MightyMichs-Patches/commit/b1f3c201c57d8a382433c6d471be9cb82a591d2c))
+
+## [1.6.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.5.7...v1.6.0) (2026-09-29)
+
+### ✨ New Features
+
+* add experimental unlock premium patch for ReelShort ([61cdbf7](https://github.com/mich111discord/MightyMichs-Patches/commit/61cdbf77e60b1781325283faf5a53417b2271864))
+* add experimental unlock premium patch for ReelShort ([92f472a](https://github.com/mich111discord/MightyMichs-Patches/commit/92f472a659bd3d19f70f1927481b8c5fef4f8522))
+
+## [1.5.7](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.5.6...v1.5.7) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* .. ([88f0eea](https://github.com/mich111discord/MightyMichs-Patches/commit/88f0eeadc156c8f62aa674c82f4419f8445b2968))
+* Added experimental label to som patches. ([0abc6f6](https://github.com/mich111discord/MightyMichs-Patches/commit/0abc6f6a3ad5d571ae37e5260bf9e32f95ad93e1))
+* Added experimental warning to Video.Guru ([b665c4f](https://github.com/mich111discord/MightyMichs-Patches/commit/b665c4f3ff6d22e42202a556805aec2ca0002829))
+* Marked as experimental (MagoVideo) [skip release] ([d80645b](https://github.com/mich111discord/MightyMichs-Patches/commit/d80645b8e547f5a881416199cefba0b3bb55550a))
+
 ## [1.5.6](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.5.5...v1.5.6) (2026-09-28)
 
 ### 🐛 Bug Fixes

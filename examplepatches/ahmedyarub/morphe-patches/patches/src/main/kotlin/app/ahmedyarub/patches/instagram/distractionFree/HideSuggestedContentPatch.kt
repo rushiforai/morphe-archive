@@ -2,21 +2,24 @@
  * Ported from brosssh's Instagram patches.
  * https://github.com/brosssh/morphe-patches
  *
- * Compatibility widened to Instagram 446.0.0.49.77; patch logic unchanged.
+ * brosssh's version also hides suggested stories and highlights from the story tray. That is
+ * "Filter stories" here, so the tray is configured in one place: with both patches offering the
+ * same options, a user who turned highlights off in one still lost them to the other's default.
  */
 package app.ahmedyarub.patches.instagram.distractionFree
 
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.stringPoolsPatch
 import app.morphe.library.instagram.patches.blockUrl
 import app.morphe.library.instagram.patches.blockUrlBasePatch
 import app.morphe.library.instagram.patches.overrideMobileConfigBooleanFlag
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
-import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 
 @Suppress("unused")
 val hideSuggestedContentPatch = bytecodePatch(
     name = "Hide suggested content",
-    description = "Choose the suggested content to hide using the patch options.",
+    description = "Hides suggested reels and suggested accounts. Suggested stories are hidden by Filter stories.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
@@ -26,20 +29,6 @@ val hideSuggestedContentPatch = bytecodePatch(
         default = true,
         title = "Hide suggested reels",
         description = "Hides suggested reels from feed and reels tab."
-    )
-
-    val hideSuggestedStories by booleanOption(
-        key = "hideSuggestedStories",
-        default = true,
-        title = "Hide suggested stories",
-        description = "Hides suggested stories/users from story tray."
-    )
-
-    val hideHighlightStories by booleanOption(
-        key = "hideHighlightStories",
-        default = true,
-        title = "Hide highlights in stories",
-        description = "Hides highlighted stories from story tray, sponsored stories which have no set expiration."
     )
 
     val hideSuggestedAccount by booleanOption(
@@ -54,16 +43,12 @@ val hideSuggestedContentPatch = bytecodePatch(
             // Hides suggestions in search box
             override = "111509::3" to false // ig_search_ta_nullstate_suggestions::is_android_enabled
         ),
-        filterStoriesTrayHook,
-        blockUrlBasePatch
+        blockUrlBasePatch,
+        stringPoolsPatch,
     )
 
     execute {
         if (hideSuggestedReels == true) hideSuggestedReelsPatch()
-
-        if (hideSuggestedStories == true) filterSuggestedStories()
-
-        if (hideHighlightStories == true) filterHighlightedStories()
 
         if (hideSuggestedAccount == true) blockUrl(
             "/discover/ayml",

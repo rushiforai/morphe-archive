@@ -15,10 +15,6 @@ internal object FeedButtonOnClickFingerprint : Fingerprint(
     returnType = "V",
 )
 
-internal object AddReelButtonFingerprint : Fingerprint(
-    strings = listOf("ClipsOrganicMediaItemViewMoreOptionsController", "reels"),
-)
-
 internal object GetDirectThreadMediaSaverModuleNameFingerprint : Fingerprint(
     strings = listOf("DirectThreadMediaSaver"),
     name = "getModuleName",

@@ -80,7 +80,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Video filename",
                     "Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.",
                     Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE
-            ));
+            ).withNameKeyboard());
             addPreference(new InputTextPreference(
                     context,
                     "Photo filename",
@@ -89,14 +89,14 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "TikTok's own button is numbered by the folder instead. The file "
                             + "extension is kept automatically.",
                     Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
-            ));
+            ).withNameKeyboard());
             if (SettingsStatus.downloadEnabled) {
                 addPreference(new InputTextPreference(
                         context,
                         "Comment media filename",
                         "Tokens: {date}, {media_id}. Works for image and video stickers.",
                         Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE
-                ));
+                ).withNameKeyboard());
                 addPreference(new TogglePreference(
                         context,
                         "Remove watermark",
@@ -164,7 +164,8 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     "An app's package name, like com.dv.adm. The save button sends the video's "
                             + "link there instead of saving it here. Leave it empty to save here.",
                     Settings.EXTERNAL_DOWNLOADER_PACKAGE)
-                    .withCheck(value -> ExternalDownloader.packageNameProblem(value.trim())));
+                    .withCheck(value -> ExternalDownloader.packageNameProblem(value.trim()))
+                    .withNameKeyboard());
             ChoicePreference ytdlnisType = new ChoicePreference(context, "YTDLnis download type",
                     Settings.YTDLNIS_DOWNLOAD_TYPE, new String[]{"Video", "Audio"},
                     new String[]{"video", "audio"});

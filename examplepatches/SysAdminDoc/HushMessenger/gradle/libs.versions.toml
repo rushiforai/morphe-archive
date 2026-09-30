@@ -1,6 +1,12 @@
 [versions]
 morphe-patcher = "1.14.1"
 smali = "d856bad65f"
+# Every org.bouncycastle request is rewritten to this, in :patches and on the settings classpath
+# (settings.gradle.kts spells it out because the catalog does not exist yet there). 1.86 publishes
+# bcprov, bcpkix and bcutil and is outside CVE-2025-8916, CVE-2026-5588, CVE-2025-14813,
+# CVE-2026-0636, CVE-2026-8763 and CVE-2026-13506; the patcher asks for 1.77 and the Android build
+# tools for 1.79.
+bouncycastle = "1.86"
 
 [libraries]
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

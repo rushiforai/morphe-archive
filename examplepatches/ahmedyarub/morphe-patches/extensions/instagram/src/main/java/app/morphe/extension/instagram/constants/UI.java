@@ -24,15 +24,11 @@ import java.util.ArrayList;
 import app.morphe.extension.crimera.PikoUtils;
 import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.instagram.entity.InstagramDialogBox;
-import app.morphe.extension.instagram.settings.preference.fragments.FragmentHook;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.ui.Dim;
-import app.morphe.extension.crimera.constants.TooltipHelper;
-import app.morphe.extension.instagram.entity.InstagramButton;
-import app.morphe.extension.instagram.entity.InstagramButtonStyleEnum;
 
 public class UI {
 
@@ -61,11 +57,17 @@ public class UI {
     public static final String DRAWABLE_CHEVRON_RIGHT_RTL =
             "instagram_chevron_right_outline_rtl_16";
 
+    /**
+     * The colour an Instagram theme attribute resolves to. Grey when the attribute is gone or
+     * holds a literal colour rather than a resource, instead of throwing out of the view building.
+     */
     public static int getThemedColour(String attrName) {
         Context context = Utils.getContext();
         TypedValue typedValue = new TypedValue();
         int attrId = ResourceUtils.getAttrIdentifier(attrName);
-        boolean resolved = context.getTheme().resolveAttribute(attrId, typedValue, true);
+        boolean resolved = attrId != 0 && context.getTheme().resolveAttribute(attrId, typedValue, true);
+        if (!resolved) return Color.GRAY;
+        if (typedValue.resourceId == 0) return typedValue.data;
         return context.getColor(typedValue.resourceId);
     }
 
@@ -137,114 +139,5 @@ public class UI {
             Logger.printException(() -> "Failed addImageViewToViewGroup: ", e);
         }
         return null;
-    }
-
-    public static void pikoSettingsGear(ViewGroup viewGroup) {
-        try {
-            if (viewGroup == null) {
-                return;
-            }
-
-            ImageView imageView = UI.addImageViewToViewGroup(viewGroup, UI.DRAWABLE_GEAR_ICON, FragmentHook::startSettings);
-            if (imageView == null) {
-                return;
-            }
-
-            Context context = viewGroup.getContext();
-            boolean isFirstTime = Pref.firstTimePiko();
-            if(isFirstTime) {
-                TooltipHelper.showPersistentTooltip(context, imageView, str("piko_tap_here"));
-                Pref.setFirstTimePiko(false);
-            }
-        } catch (Exception e) {
-            Logger.printException(() -> "Failed pikoSettingsGear: ", e);
-        }
-    }
-
-    public static void restartDialogBox(Context context) {
-        InstagramDialogBox dialog = new InstagramDialogBox(context);
-
-        ArrayList<String> options = new ArrayList<>();
-        options.add(str("piko_ok"));
-        CharSequence[] items = options.toArray(new CharSequence[0]);
-
-        dialog.addDialogMenuItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface d, int which) {
-                try {
-                    // Doing like this because options are dynamic.
-                    String selectedOption = options.get(which);
-
-                    if (selectedOption.equals(str("piko_ok"))) {
-                        Utils.restartApp(context);
-
-                    }
-                } catch (Exception e) {
-                    Logger.printException(() -> "Error at restartDialogBox", e);
-                    Utils.showToastShort(e.getMessage());
-                }
-            }
-        });
-
-
-        dialog.setTitle(str("piko_restart_app"));
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
-
-        Dialog dlg = dialog.getDialog();
-        dlg.show();
-    }
-
-    public static void welcomeDialogBox(Context context) {
-        InstagramDialogBox dialog = new InstagramDialogBox(context);
-
-        ArrayList<String> options = new ArrayList<>();
-        options.add(str("piko_goto_piko_settings"));
-        CharSequence[] items = options.toArray(new CharSequence[0]);
-
-        dialog.addDialogMenuItems(items, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface d, int which) {
-                try {
-                    // Doing like this because options are dynamic.
-                    String selectedOption = options.get(which);
-
-                    if (selectedOption.equals(str("piko_goto_piko_settings"))) {
-                        PikoUtils.openUrl("instagram://profile",true);
-                    }
-
-                } catch (Exception e) {
-                    Logger.printException(() -> "Error at welcomeDialogBox", e);
-                    Utils.showToastShort(e.getMessage());
-                }
-            }
-        });
-
-        dialog.setTitle(str("piko_welcome_title"));
-        dialog.setMessage(str("piko_welcome_message"));
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
-
-        Dialog dlg = dialog.getDialog();
-        dlg.show();
-    }
-
-    public static void pikoSettingsButton(ViewGroup viewGroup) throws Exception {
-        boolean isFirstTime = Pref.firstTimePiko();
-
-        Context context = viewGroup.getContext();
-        InstagramButton button = new InstagramButton(context);
-        button.setText(str("piko_title_settings"));
-        button.setStyle(InstagramButtonStyleEnum.SUPER_PRIMARY);
-        button.setOnClickListener(FragmentHook::startSettings);
-
-        int marginPx = Dim.dp12;
-        button.setMargins(marginPx, marginPx, marginPx, marginPx);
-
-        viewGroup.addView(button.getIgdsButton());
-        if(isFirstTime){
-            button.startPulseAnimation();
-            Pref.setFirstTimePiko(false);
-        }
     }
 }

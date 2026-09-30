@@ -1,3 +1,27 @@
+## [1.8.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.7.1...v1.8.0) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Drop the import of the deleted TooltipHelper ([0f548d1](https://github.com/ahmedyarub/morphe-patches/commit/0f548d157af7b369ea123986b37585c9c4c73896))
+* **Instagram:** Make every patch work on 448.0.0.52.84 ([7327f5b](https://github.com/ahmedyarub/morphe-patches/commit/7327f5be5022171d037eb3fc4c0c483eca0d2ec7))
+* **scripts:** Stop verify-dex.sh recursing and passing on a failed original ([ce61366](https://github.com/ahmedyarub/morphe-patches/commit/ce61366585bd72fb94a49209a2e01b2d6d2918bd))
+
+### ✨ New Features
+
+* **Instagram:** Support 449.0.0.52.84 ([e228b8c](https://github.com/ahmedyarub/morphe-patches/commit/e228b8cf19fb2d232b095a703a05a6eda5ab8c0a))
+
+## [1.8.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.7.1...v1.8.0-dev.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Drop the import of the deleted TooltipHelper ([0f548d1](https://github.com/ahmedyarub/morphe-patches/commit/0f548d157af7b369ea123986b37585c9c4c73896))
+* **Instagram:** Make every patch work on 448.0.0.52.84 ([7327f5b](https://github.com/ahmedyarub/morphe-patches/commit/7327f5be5022171d037eb3fc4c0c483eca0d2ec7))
+* **scripts:** Stop verify-dex.sh recursing and passing on a failed original ([ce61366](https://github.com/ahmedyarub/morphe-patches/commit/ce61366585bd72fb94a49209a2e01b2d6d2918bd))
+
+### ✨ New Features
+
+* **Instagram:** Support 449.0.0.52.84 ([e228b8c](https://github.com/ahmedyarub/morphe-patches/commit/e228b8cf19fb2d232b095a703a05a6eda5ab8c0a))
+
 ## [1.7.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.7.0...v1.7.1) (2026-09-28)
 
 ### 🐛 Bug Fixes

@@ -151,7 +151,7 @@ public class DownloadQualityTest {
     }
 
     /**
-     * At one label, H.264 still beats H.265, and a track the muxer can't write is never picked.
+     * At one label, H.264 still beats H.265, and a track the phone can't write is never picked.
      * Then the higher bitrate, except for the smallest file, which takes the lower.
      */
     @Test
@@ -163,10 +163,42 @@ public class DownloadQualityTest {
         DashManifest.Track av1 = track("av01.0.05m.08", 720, 1280, 90_000, 240);
         List<DashManifest.Track> tracks = Arrays.asList(hevc, avcHigh, vp9, avcLow, av1);
         assertSame(avcHigh, DashManifest.pickVideo(tracks, false, DownloadQuality.P480));
-        assertSame(avcLow, DashManifest.pickVideo(tracks, false, DownloadQuality.SMALLEST));
-        assertSame("an AV1 track the muxer can write was passed over", av1,
+        assertSame(avcLow, DashManifest.pickVideo(Arrays.asList(hevc, avcHigh, avcLow), false, DownloadQuality.SMALLEST));
+        assertSame("the smallest file passed over the VP9 track", vp9,
+                DashManifest.pickVideo(tracks, false, DownloadQuality.SMALLEST));
+        assertSame("an AV1 track the phone can write was passed over", av1,
                 DashManifest.pickVideo(tracks, true, DownloadQuality.SMALLEST));
-        assertNull(DashManifest.pickVideo(Collections.singletonList(vp9), true, DownloadQuality.SMALLEST));
+        assertNull(DashManifest.pickVideo(Collections.singletonList(av1), false, DownloadQuality.SMALLEST));
+    }
+
+    /**
+     * A story that comes only in VP9 saves its best VP9 track with its sound: the save writes that
+     * MP4 itself. At one size VP9 comes after every format Android's own muxer writes, so a manifest
+     * that also lists AV1 the phone can write keeps it. With saves other apps can open on, H.264 is
+     * still the only picture, and a VP9 track outside an MP4 is never picked.
+     */
+    @Test
+    public void aVp9OnlyStorySavesItsBestVp9Track() {
+        DashManifest.Track vp9Best = track("vp09.00.40.08", 1080, 1920, 711_000, 1080);
+        DashManifest.Track vp9Small = track("vp09.00.21.08", 360, 640, 150_000, 360);
+        DashManifest.Track sound = new DashManifest.Track("audio/mp4", "mp4a.40.2", 0, 0, 64_000,
+                "https://video.xx.fbcdn.net/v/sound.mp4");
+        List<DashManifest.Track> story = Arrays.asList(vp9Small, vp9Best, sound);
+
+        assertSame(vp9Best, DashManifest.bestVideo(story, false));
+        assertSame(vp9Small, DashManifest.pickVideo(story, false, DownloadQuality.P360));
+        DashManifest.Pick pick = DashManifest.pick(story, false, DownloadQuality.BEST, false);
+        assertSame(vp9Best, pick.video);
+        assertSame(sound, pick.audio);
+        assertNull("VP9 counted as a picture other apps can open",
+                DashManifest.pick(story, true, DownloadQuality.BEST, true));
+
+        DashManifest.Track av1 = track("av01.0.08m.08", 1080, 1920, 600_000, 1080);
+        assertSame(av1, DashManifest.bestVideo(Arrays.asList(vp9Best, av1), true));
+        assertSame(vp9Best, DashManifest.bestVideo(Arrays.asList(vp9Best, av1), false));
+        DashManifest.Track webm = new DashManifest.Track("video/webm", "vp09.00.40.08", 1080, 1920, 711_000,
+                "https://video.xx.fbcdn.net/v/story.webm", 1080);
+        assertNull(DashManifest.bestVideo(Collections.singletonList(webm), true));
     }
 
     /** A label reads only as three or four digits and a p; anything else leaves the short side. */

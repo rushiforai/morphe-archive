@@ -1,0 +1,199 @@
+{
+  "note": "Where every shipped source file under patches/ and extensions/ came from. A rule naming a single file wins over the directory rule around it; otherwise each file matches exactly one rule. A ported rule names the upstream repository, the commit it was copied from, the repositories it came through and its licence, and every file's header names a repository of its rule, by URL. Every upstream named here must also appear in NOTICE. ProvenanceTest checks all of it. HushThreads started from Hushfacebook at c15d4f79, so most rules name it and carry on the chain Hushfacebook recorded for the same files. A Threads source named here also has to be allowed by sources/threads-sources.json.",
+  "rules": [
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10n.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/Logger.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/ResourceType.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/ResourceUtils.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/StringRef.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/Utils.java",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/diagnostics/**",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/settings/**",
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/ui/**",
+        "patches/src/main/kotlin/app/morphe/patches/shared/misc/**",
+        "patches/src/main/kotlin/app/morphe/util/**",
+        "patches/stub/src/main/java/android/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/shared/compat/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://gitlab.com/ReVanced/revanced-patches",
+        "https://github.com/andrewliang25/morphe-patches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/ThreadsSignature.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/resignedtrust/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/LinkCleaner.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/L10nTranslations.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsBackup.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsBackupPreference.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ChoiceCards.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/DialogChoices.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/FamilyNames.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/HushThreadsPreferenceFragment.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/PatchFamily.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseCheck.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseTransport.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ScreenColors.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/Settings.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsDialog.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsEntry.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsIcons.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsNavigation.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SettingsStatus.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SupportedLinks.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/extension/**",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/settings/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SapitoSucio/FroggoMorphePatches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/coexist/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "c15d4f7930505824789684d35039d3c78c8b0903",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Threads: packages app.morphe.patches.threads and app.morphe.extension.hushthreads, Threads' names, targets and signers in place of Facebook's, and Facebook-only features taken out."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/ads/FeedAds.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/ads/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [
+        "https://github.com/zeldrisho/morphe-patches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Hide ads: the feed cache's merge, the place zeldrisho/morphe-patches found, with Threads' own ad check."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/sharelinks/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Sanitize sharing links: the server permalink cleaned as the app parses it."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/Analytics.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/analytics/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Disable analytics: the event log addresses pointed at a dead local port."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/adid/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Remove the advertising ID: the AD_ID permission taken out of the manifest."
+    }
+  ]
+}

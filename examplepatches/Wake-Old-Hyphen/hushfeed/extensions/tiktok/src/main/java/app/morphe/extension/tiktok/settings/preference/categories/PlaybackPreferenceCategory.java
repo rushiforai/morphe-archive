@@ -105,6 +105,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     L10n.f(context, "Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.",
                             PlaybackSpeedPatch.MAX_MENU_SPEEDS, slowest, fastest),
                     Settings.CUSTOM_SPEEDS);
+            speeds.withNameKeyboard();
             speeds.withCheck(value -> {
                 if (value == null || value.isEmpty()) return null;
                 try { PlaybackSpeedPatch.parseMenuSpeeds(value); return null; }

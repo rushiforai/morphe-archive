@@ -58,8 +58,20 @@ public final class FeedMute {
             return size() > MAX_PLAYS;
         }
     };
-    /** Engines that played a feed video, so a mute switched on mid-video reaches them. */
-    private static final WeakHashMap<Object, Boolean> FEED_ENGINES = new WeakHashMap<>();
+    /**
+     * Engines that played a feed video, with that video's id, so a mute switched on mid-video
+     * reaches them and a lost note only counts for the video the engine was muted for.
+     */
+    private static final WeakHashMap<Object, String> FEED_ENGINES = new WeakHashMap<>();
+    /**
+     * Every engine seen playing. TikTok prepares the next videos ahead, and an engine's play()
+     * runs while it prepares, before the controller has asked for that video; when the video
+     * comes on, the engine often starts without play() again. Deciding at play() alone missed
+     * every such engine (S22 and S25, 2026-09-29: no feed engine was ever muted, so a feed
+     * video on 47.1.3 and a photo post on 47.0.3 kept their sound). The controller's ask settles
+     * the engines already prepared for its video.
+     */
+    private static final WeakHashMap<Object, Boolean> ENGINES = new WeakHashMap<>();
     /** Engines this muted, with the mute TikTok had on them before. */
     private static final WeakHashMap<Object, Boolean> MUTED = new WeakHashMap<>();
     /** Focus helpers seen asking for focus for a feed video. */
@@ -102,6 +114,7 @@ public final class FeedMute {
             @Override public void onActivityResumed(Activity resumed) {
                 if (!isFeedHost(resumed)) return;
                 feedInFront = true;
+                remuteFeedEngines();
                 if (refreshOwed) {
                     refreshOwed = false;
                     refresh();
@@ -204,9 +217,8 @@ public final class FeedMute {
             lastPlayFeed = feed;
             String id = aweme instanceof Aweme ? ((Aweme) aweme).getAid() : null;
             if (id != null && !id.isEmpty()) {
-                synchronized (PLAYS) {
-                    PLAYS.put(id, feed);
-                }
+                record(id, feed, isFeedHost(Reflect.readField(controller, "activity")));
+                settle(id, feed && feedInFront);
             }
             HookStatus.bound(HOOK_FAMILY, "controller play");
         } catch (Throwable failure) {
@@ -224,11 +236,85 @@ public final class FeedMute {
                 && (host.getClass() == feed || FeedVisibility.isDetailPager(host));
     }
 
+    /**
+     * The feed's current video, as the block button's tracking names it on each change. TikTok
+     * starts most feed videos through routes other than the PlayerController play heard above
+     * (S25, 47.1.3, 2026-09-29: three swipes in four left no note, so their engines kept their
+     * sound), and this tracking follows every one of them. Main or player thread.
+     */
+    public static void onCurrentVideo(Object aweme) {
+        note(aweme, true, "current video");
+    }
+
+    /**
+     * A feed item as the feed binds it, which is ahead of the reader reaching it, as the engine
+     * for it is prepared ahead. Noted only from the current video, a swipe let about half a
+     * second of the next video's sound through before its change came (S25, 2026-09-29). A
+     * bind says nothing about what plays now, so the focus is left to the current video.
+     */
+    public static void onFeedBind(Object aweme) {
+        note(aweme, false, "feed bind");
+    }
+
+    private static void note(Object aweme, boolean current, String what) {
+        if (!SettingsStatus.feedMuteEnabled || !(aweme instanceof Aweme)) return;
+        try {
+            String id = ((Aweme) aweme).getAid();
+            if (id == null || id.isEmpty()) return;
+            boolean feed = feedInFront && isFeedItem((Aweme) aweme);
+            if (current) lastPlayFeed = feed;
+            record(id, feed, feedInFront);
+            settle(id, feed);
+            HookStatus.bound(HOOK_FAMILY, what);
+        } catch (Throwable failure) {
+            HookStatus.threw(HOOK_FAMILY, what, failure);
+        }
+    }
+
+    /**
+     * Notes whether a video is a feed video. A note from outside the feed never takes the feed's
+     * own note away: a feed video shared to a DM and opened there plays under the same id, and
+     * losing the note left the feed's engine for it with its sound when the reader came back
+     * (verifier, 2026-09-29). The other screen's engines still get their sound from settle(),
+     * and {@link #remuteFeedEngines} silences the feed's again when the feed is back in front.
+     */
+    private static void record(String id, boolean feed, boolean fromFeed) {
+        synchronized (PLAYS) {
+            if (!feed && !fromFeed && Boolean.TRUE.equals(PLAYS.get(id))) return;
+            PLAYS.put(id, feed);
+        }
+    }
+
+    /**
+     * The feed is back in front: every engine prepared for a video the feed noted is a feed
+     * engine again. Another screen that played the same video gave those engines their sound,
+     * and the feed's own resumes without a play() to decide at. Main thread.
+     */
+    private static void remuteFeedEngines() {
+        for (Object engine : keys(ENGINES)) {
+            String id = engineSourceId(engine);
+            if (id == null) continue;
+            Boolean feed;
+            synchronized (PLAYS) {
+                feed = PLAYS.get(id);
+            }
+            if (!Boolean.TRUE.equals(feed)) continue;
+            synchronized (FEED_ENGINES) {
+                FEED_ENGINES.put(engine, id);
+            }
+            apply(engine);
+        }
+    }
+
     /** A video on the feed or a detail pager, not a story and not LIVE. */
     static boolean isFeedPlay(Object controller, Object aweme) {
         if (!(aweme instanceof Aweme)) return false;
         if (!isFeedHost(Reflect.readField(controller, "activity"))) return false;
-        Aweme item = (Aweme) aweme;
+        return isFeedItem((Aweme) aweme);
+    }
+
+    /** Not a story and not LIVE: what the button governs, wherever the item came from. */
+    private static boolean isFeedItem(Aweme item) {
         if (item.getIsTikTokStory()) return false;
         int type = item.getAwemeType();
         if (type == STORY_TYPE || type == STORY_TYPE_SHARED) return false;
@@ -239,10 +325,28 @@ public final class FeedMute {
     private static final int STORY_TYPE = 40;
     private static final int STORY_TYPE_SHARED = 45;
 
+    /**
+     * Engines already prepared for the video a controller just asked for, whose play() came
+     * before the ask, take the answer that play() would have got.
+     */
+    private static void settle(String id, boolean feed) {
+        for (Object engine : keys(ENGINES)) {
+            if (!id.equals(engineSourceId(engine))) continue;
+            synchronized (FEED_ENGINES) {
+                if (feed) FEED_ENGINES.put(engine, id);
+                else FEED_ENGINES.remove(engine);
+            }
+            apply(engine);
+        }
+    }
+
     /** The top of the feed engine's play(), on its player thread. */
     public static void onEnginePlay(Object engine) {
         if (engine == null || !SettingsStatus.feedMuteEnabled) return;
         try {
+            synchronized (ENGINES) {
+                ENGINES.put(engine, Boolean.TRUE);
+            }
             String id = engineSourceId(engine);
             Boolean feed = null;
             if (id != null) {
@@ -250,10 +354,21 @@ public final class FeedMute {
                     feed = PLAYS.get(id);
                 }
             }
-            boolean isFeed = feedInFront && Boolean.TRUE.equals(feed);
+            boolean isFeed;
+            if (feed == null && feedInFront) {
+                // No note is no evidence against an engine muted for this same video: a profile
+                // grid or search results in the feed's own activity bind past MAX_PLAYS items and
+                // push the playing and next videos' notes out (verifier, 2026-09-29). An engine
+                // reused for another video still gets its sound back.
+                synchronized (FEED_ENGINES) {
+                    isFeed = id != null && id.equals(FEED_ENGINES.get(engine));
+                }
+            } else {
+                isFeed = feedInFront && Boolean.TRUE.equals(feed);
+            }
             if (isFeed) {
                 synchronized (FEED_ENGINES) {
-                    FEED_ENGINES.put(engine, Boolean.TRUE);
+                    FEED_ENGINES.put(engine, id);
                 }
             } else {
                 synchronized (FEED_ENGINES) {
@@ -324,7 +439,7 @@ public final class FeedMute {
         return feedInFront && lastPlayFeed && isMuted();
     }
 
-    private static List<Object> keys(WeakHashMap<Object, Boolean> map) {
+    private static List<Object> keys(WeakHashMap<Object, ?> map) {
         synchronized (map) {
             return new ArrayList<>(map.keySet());
         }
@@ -386,7 +501,7 @@ public final class FeedMute {
         synchronized (PLAYS) {
             PLAYS.clear();
         }
-        for (WeakHashMap<Object, Boolean> map : Arrays.asList(FEED_ENGINES, MUTED, SESSION_HELPERS, PAGE_HELPERS)) {
+        for (WeakHashMap<Object, ?> map : Arrays.<WeakHashMap<Object, ?>>asList(ENGINES, FEED_ENGINES, MUTED, SESSION_HELPERS, PAGE_HELPERS)) {
             synchronized (map) {
                 map.clear();
             }

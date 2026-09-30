@@ -102,6 +102,32 @@ public class MessengerSignatureTest {
         assertEquals(0, count(MessengerSignature.TRUSTED));
     }
 
+    @Test public void facebookCarryingThisKeyPlusAnotherIsNotTheSameSigner() {
+        PackageInfo facebook = callingFacebook(MANAGER_KEY);
+        shadowOf(facebook.signingInfo).setSignatures(new Signature[] {MANAGER_KEY, OTHER_KEY});
+        packages.installPackage(facebook);
+        assertNull(MessengerSignature.originalSigners(facebook));
+        assertEquals(1, count(MessengerSignature.SIGNER_DIFFERS));
+        assertEquals(0, count(MessengerSignature.TRUSTED));
+    }
+
+    @Test public void aProcessWithoutTheSettingsProviderStillChecksTheCaller() throws Exception {
+        Settings.appContext = null;
+        try {
+            assertMetaCertificate(MessengerSignature.originalSigners(callingFacebook(MANAGER_KEY)));
+            assertEquals(1, count(MessengerSignature.TRUSTED));
+        } finally {
+            Settings.initialize(RuntimeEnvironment.getApplication());
+        }
+    }
+
+    @Test public void packageInfoWithoutApplicationInfoIsLeftAlone() {
+        PackageInfo facebook = callingFacebook(MANAGER_KEY);
+        facebook.applicationInfo = null;
+        assertNull(MessengerSignature.originalSigners(facebook));
+        for (int i = 0; i < MessengerSignature.CALLER_OUTCOMES.length; i++) assertEquals(0, MessengerSignature.callerCounts.get(i));
+    }
+
     @Test public void readsOutsideACallFromFacebookAreNeverChanged() {
         PackageInfo facebook = install(MessengerSignature.FACEBOOK, FACEBOOK_UID, MANAGER_KEY);
         packages.setPackagesForUid(FACEBOOK_UID, MessengerSignature.FACEBOOK);

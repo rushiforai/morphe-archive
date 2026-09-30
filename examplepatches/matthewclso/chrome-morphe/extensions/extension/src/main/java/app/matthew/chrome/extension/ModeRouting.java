@@ -18,13 +18,24 @@ public final class ModeRouting {
                 && intent.hasCategory(Intent.CATEGORY_LAUNCHER);
     }
 
+    private static boolean browsingIncognito(Activity activity) {
+        int pane = NativeBridge.hubPane(activity);
+        // Chrome ends the private model when its last tab closes. The visible
+        // empty Incognito pane still represents the user's browsing choice.
+        return pane >= 0 ? pane == 1 : NativeBridge.isIncognito(activity);
+    }
+
+    public static boolean hubNewTabIncognito(Activity activity, boolean original) {
+        return original || (NativeBridge.hubPane(activity) == 1 && NativeBridge.incognitoAllowed(activity));
+    }
+
     public static void remember(Activity activity) {
         if (!NativeBridge.rememberModeFeatureEnabled() || !activity.getClass().getName().startsWith(
                 "org.chromium.chrome.browser.ChromeTabbedActivity")) return;
         // A pause can occur during startup. Never replace the remembered choice
         // with the temporary regular model before Chrome finishes restoration.
         if (NativeBridge.tabsReady(activity)) {
-            PatchSettings.rememberMode(NativeBridge.isIncognito(activity));
+            PatchSettings.rememberMode(browsingIncognito(activity));
         }
     }
 
@@ -40,7 +51,7 @@ public final class ModeRouting {
         if (!"https".equalsIgnoreCase(scheme) && !"http".equalsIgnoreCase(scheme)) return false;
         Boolean remembered = PatchSettings.lastMode();
         boolean incognito = remembered != null ? remembered
-                : NativeBridge.tabsReady(activity) && NativeBridge.isIncognito(activity);
+                : NativeBridge.tabsReady(activity) && browsingIncognito(activity);
         return incognito && NativeBridge.incognitoAllowed(activity);
     }
 
@@ -61,6 +72,7 @@ public final class ModeRouting {
                     }
                     if (cancelled) return true;
                     boolean target = remembered && NativeBridge.incognitoAllowed(activity);
+                    if (target && NativeBridge.hubPane(activity) == 1) return true;
                     if (NativeBridge.isIncognito(activity) == target) return true;
                     if (NativeBridge.tabCount(activity, target) == 0) {
                         String name = target ? "new_incognito_tab_menu_id" : "new_tab_menu_id";

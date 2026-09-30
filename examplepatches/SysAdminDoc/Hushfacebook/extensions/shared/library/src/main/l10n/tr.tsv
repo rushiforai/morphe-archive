@@ -140,7 +140,16 @@ In News feed, Hide Reels in the feed blocks the rows of reels between posts.	Ak�
 Reels that play by themselves	Kendiliğinden oynayan Reels
 In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.	Oynatma bölümündeki “Oynatmak için dokun”, otomatik oynatmayı engeller. Böylece Reels ve diğer videolar dokunmanı bekler.
 The Reels tab	Reels sekmesi
-Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, Facebook hasn't given your account that option, and Hushfacebook has no switch for the tab.	Bunu Facebook'un kendi ayarı engeller. Ayarlar, Sekme çubuğu, Çubuğu özelleştir bölümünü aç ve Reels'in yanındaki Gizle'yi seç. Bazı hesaplarda Reels'in adı Video'dur. İkisi de listede yoksa Facebook hesabına bu seçeneği vermemiştir ve Hushfacebook'un bu sekme için bir anahtarı yoktur.
+# context: map line without the patch; %1$s is the patch's English name in Morphe Manager
+Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, choose the %1$s patch in Morphe Manager and patch again.	Bunu Facebook'un kendi ayarı engeller. Ayarlar, Sekme çubuğu, Çubuğu özelleştir bölümünü aç ve Reels'in yanındaki Gizle'yi seç. Bazı hesaplarda Reels'in adı Video'dur. İkisi de listede yoksa Morphe Manager'da %1$s yamasını seç ve yeniden yamala.
+# context: map line with the patch; Reels and Watch is this settings section, Hide the Reels tab is the switch below
+In Reels and Watch, Hide the Reels tab blocks it after a restart.	“Reels ve Watch” bölümündeki “Reels sekmesini gizle”, yeniden başlatmadan sonra onu engeller.
+# context: switch title under Reels and Watch; the tab some accounts call Video
+Hide the Reels tab	Reels sekmesini gizle
+# context: summary of that switch
+Take the Reels tab, called Video on some accounts, off the tab bar. Reel links and reels in the feed still open. Changes show after Facebook restarts.	Bazı hesaplarda Video adını taşıyan Reels sekmesini sekme çubuğundan kaldırır. Reels bağlantıları ve akıştaki Reels videoları açılmaya devam eder. Değişiklikler Facebook yeniden başlatılınca görünür.
+# context: start tab row summary when Video is the chosen tab and Hide the Reels tab is on; Home and Video are tab names
+Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. Your choice stays saved.	“Reels sekmesini gizle” açıkken Facebook Ana Sayfa'da açılır, çünkü Video sekme çubuğunda yoktur. Seçiminiz kayıtlı kalır.
 Everything except Marketplace	Marketplace dışındaki her şey
 In Opening Facebook, Marketplace only blocks the feed, the Reels tab and the other social tabs after a restart.	“Facebook açılırken” bölümündeki “Yalnızca Marketplace”, yeniden başlatmadan sonra akışı, Reels sekmesini ve diğer sosyal sekmeleri engeller.
 Not in this build. To block this, choose the %1$s patch in Morphe Manager and patch again.	Bu sürümde yok. Bunu engellemek için Morphe Manager'da %1$s yamasını seç ve yeniden yamala.
@@ -295,7 +304,7 @@ Go straight to one group of settings. Back returns to where you were.	Doğrudan 
 # context: switch title under Downloads; on, every video save keeps to formats other apps accept
 Save videos other apps can open	Videoları diğer uygulamaların açabileceği biçimde kaydet
 # context: summary of that switch; WhatsApp is a name and stays as it is, and saves are the videos the user saved to the phone
-For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.	WhatsApp için ya da kaydedilen videoları sessiz oynatan bir galeri veya oynatıcı için. Kaliteyi düşürebilir.
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	WhatsApp, CapCut ve InShot gibi video düzenleyiciler ya da kaydedilen videoları sessiz oynatan bir galeri veya oynatıcı için. Kaliteyi düşürebilir.
 # context: section title for the Chats settings, named like Facebook's own Chats screen
 Chats	Sohbetler
 # context: switch title under Chats; the card is Facebook's own "Get the Messenger app" card
@@ -408,7 +417,7 @@ Keep friends and followed Pages in the Stories tray. Applies when Facebook next 
 # context: switch title under Marketplace; the ads Facebook puts between the things people sell in Marketplace's feed
 Hide sponsored Marketplace listings	Marketplace'teki sponsorlu ilanları gizle
 # context: summary of that switch; a boosted listing is one its seller paid Facebook to show to more people
-Ads and boosted listings in Marketplace's feed. The other listings stay.	Marketplace akışındaki reklamlar ve öne çıkarılan ilanlar. Diğer ilanlar kalır.
+Ads and boosted listings in Marketplace's feed and search results. The other listings stay.	Marketplace akışındaki ve arama sonuçlarındaki reklamlar ve öne çıkarılan ilanlar. Diğer ilanlar kalır.
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Seçtiğin kelimeleri içeren gönderileri gizle
 # context: summary of that switch; the keep list is the second list under it, and a settings file is the one Export settings writes
@@ -490,7 +499,7 @@ Marketplace mode and your start tab	Marketplace modu ve başlangıç sekmesi
 Ads, suggestions and word filters	Reklamlar, öneriler ve kelime filtreleri
 Suggestions, saving, auto-advance and viewing anonymously	Öneriler, kaydetme, otomatik ilerleme ve anonim izleme
 Cleaner reels and video controls	Daha sade Reels ve video kontrolleri
-Tap to play and resume	Oynatmak için dokunma ve devam ettirme
+Tap to play, quality and resume	Oynatmak için dokunma, kalite ve devam ettirme
 Quality, format and file names	Kalite, biçim ve dosya adları
 Browse settings	Ayarları keşfet
 More settings	Diğer ayarlar
@@ -528,3 +537,44 @@ Saving... Cancel: Downloads in Hushfacebook.	Kaydediliyor... İptal: Hushfaceboo
 Turn off double tap to like	Beğenmek için çift dokunmayı kapat
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Bir reel'e veya videoya çift dokunmak artık onu beğenmez ve kalp göstermez. Tek dokunuş ve Beğen düğmesi eskisi gibi çalışır.
+Keep the reel speed	Reel hızını koru
+# context: summary of that switch
+A playback speed you pick in a reel's menu stays for the next reels until you pick another or Facebook restarts. Off, every reel starts at normal speed.	Bir reel'in menüsünde seçtiğin oynatma hızı, başka bir hız seçene veya Facebook yeniden başlayana kadar sonraki reel'lerde kalır. Kapalıyken her reel normal hızda başlar.
+Hold a reel for 2x	2x için reel'e basılı tut
+# context: summary of that switch; more button is the reel's own button with three dots
+Holding a reel plays it at double speed until you let go, in place of Facebook's long-press menu. The reel's more button still opens that menu.	Bir reel'e basılı tutmak, bırakana kadar onu iki kat hızda oynatır ve Facebook'un uzun basma menüsünün yerini alır. Reel'in daha fazla düğmesi bu menüyü açmaya devam eder.
+Default playback quality	Varsayılan oynatma kalitesi
+Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Videoları, Reels'i ve hikayeleri aşağıdaki kalitede oynatın. Bir videonun kendi menüsünde seçilen kalite yine önceliklidir.
+Playback quality	Oynatma kalitesi
+Auto	Otomatik
+Data saver	Veri tasarrufu
+Up to %1$s	En fazla %1$s
+Highest	En yüksek
+Facebook picks the quality as each video plays, from your connection.	Facebook, her video oynatılırken kaliteyi bağlantınıza göre seçer.
+Videos play at the lowest quality Facebook offers for each.	Videolar, Facebook'un her biri için sunduğu en düşük kalitede oynatılır.
+Videos play at the best quality up to %1$s that Facebook offers for each, or the closest above.	Videolar, Facebook'un her biri için sunduğu en fazla %1$s olan en iyi kalitede ya da hemen üstündekinde oynatılır.
+Videos play at the highest quality Facebook offers for each.	Videolar, Facebook'un her biri için sunduğu en yüksek kalitede oynatılır.
+Facebook will pick the quality videos play at.	Videoların oynatma kalitesini Facebook seçecek.
+Playback quality will be set to %1$s.	Oynatma kalitesi %1$s olarak ayarlanacak.
+# context: row title under Pause, backup and diagnostics, shown only while Debug logging is on
+Test the Messenger link	Messenger bağlantısını test et
+# context: summary of that row; Debug logging is the switch's name as this table gives it
+Runs the two reads Facebook makes of Messenger at startup, now, and shows whether each one answered. Shown while Debug logging is on.	Facebook'un açılışta Messenger'dan yaptığı iki okumayı şimdi yapar ve her birinin yanıt verip vermediğini gösterir. Hata ayıklama günlüğü açıkken görünür.
+# context: toast when the test can't begin
+The Messenger link test couldn't start.	Messenger bağlantı testi başlatılamadı.
+# context: toast on a build without the test
+This build can't run the Messenger link test.	Bu sürüm Messenger bağlantı testini çalıştıramaz.
+# context: toast when Facebook has no signed-in account
+No signed-in account to test with.	Test için oturum açmış hesap yok.
+# context: toast with the test's result; each placeholder is one of: answered, no answer, failed (...)
+Opt-out read: %1$s. Triggered read: %2$s.	Vazgeçme okuması: %1$s. Tetikleme okuması: %2$s.
+# context: a read's result in that toast
+no answer	yanıt yok
+# context: a read's result in that toast
+answered	yanıt verdi
+# context: a read's result in that toast; the placeholder is an error's class name, left in English
+failed (%1$s)	başarısız (%1$s)
+# context: switch title under Reels and Watch; the dot is the tab bar's new-item badge
+Hide the Reels tab dot	Reels sekmesindeki noktayı gizle
+# context: summary of that switch; Video is Facebook's name for the tab on some accounts
+No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Bazı hesaplarda Video adıyla görünen Reels sekmesinde nokta ya da yeni sayısı olmaz. Diğer sekmeler kendilerininkini korur.

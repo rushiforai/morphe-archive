@@ -8,7 +8,7 @@ package app.crimera.patches.instagram.misc.stories
 
 import app.crimera.patches.instagram.entity.decoder.MEDIA_CLASS_NAME
 import app.crimera.patches.instagram.entity.decoder.decoderEntity
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.Constants.PATCHES_DESCRIPTOR
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -19,10 +19,13 @@ import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.util.getReference
 import app.morphe.patcher.patch.bytecodePatch
+import app.crimera.patches.shared.declaredParameterRegister
+import app.crimera.patches.shared.parameterRegisterStart
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 // The method is obfuscated but this is where it adds buttons.
 object AddStoryButtonFingerprint : Fingerprint(
@@ -53,6 +56,7 @@ val handleStoryButtonPatch =
     bytecodePatch(
         description = "This patch is used for handing button interaction on stories",
     ) {
+        dependsOn(instagramExtensionPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(decoderEntity)
         execute {
@@ -78,21 +82,29 @@ val handleStoryButtonPatch =
                 addInstructions(
                     toArrayIndex,
                     """
-                    invoke-static {v$arrayListRegister},$STORY_BUTTON_EXTENSION_CLASS ->addButtons(Ljava/util/ArrayList;)Ljava/util/ArrayList;
+                    invoke-static/range { v$arrayListRegister .. v$arrayListRegister }, $STORY_BUTTON_EXTENSION_CLASS->addButtons(Ljava/util/ArrayList;)Ljava/util/ArrayList;
                     move-result-object v$arrayListRegister
                     """.trimIndent(),
                 )
             }
 
-            // Add button on story bottom sheet.
+            // Add button on story bottom sheet: to the options list, the first ArrayList the method creates.
             AddStoryButtonFingerprint.method.apply {
-                val firstMoveResultObjectInstruction = indexOfFirstInstruction(Opcode.MOVE_RESULT_OBJECT)
-                val arrayListRegister = getInstruction(firstMoveResultObjectInstruction).registersUsed[0]
+                val listCreation =
+                    instructions.firstOrNull { instruction ->
+                        instruction.opcode == Opcode.INVOKE_STATIC &&
+                            instruction.getReference<MethodReference>()?.returnType == "Ljava/util/ArrayList;"
+                    } ?: throw PatchException("The story options builder creates no list")
+                val moveResultIndex = listCreation.location.index + 1
+                if (getInstruction(moveResultIndex).opcode != Opcode.MOVE_RESULT_OBJECT) {
+                    throw PatchException("The story options list is not kept")
+                }
+                val arrayListRegister = getInstruction(moveResultIndex).registersUsed[0]
 
                 addInstructions(
-                    firstMoveResultObjectInstruction + 1,
+                    moveResultIndex + 1,
                     """
-                    invoke-static {v$arrayListRegister},$STORY_BUTTON_EXTENSION_CLASS ->addButtons(Ljava/util/ArrayList;)Ljava/util/ArrayList;
+                    invoke-static/range { v$arrayListRegister .. v$arrayListRegister }, $STORY_BUTTON_EXTENSION_CLASS->addButtons(Ljava/util/ArrayList;)Ljava/util/ArrayList;
                     move-result-object v$arrayListRegister
                     """.trimIndent(),
                 )
@@ -110,17 +122,22 @@ val handleStoryButtonPatch =
                     val reelItemField = classFields.first { it.type == reelItemClassName }
                     val appActivityField = classFields.first { it.type == appActivity }
                     val reelItemMediaField =
-                        mutableClassDefBy { it.type == reelItemClassName }.fields.last { it.type == MEDIA_CLASS_NAME }
+                        classDefBy(reelItemClassName).fields.last { it.type == MEDIA_CLASS_NAME }
 
-                    val characterSequenceParameterIndex = parameters.indexOfLast { it.type == charSequence }
-                    val selfClassParameterIndex = parameters.indexOfLast { it.type == classDef.type }
+                    // Absolute registers, which account for a receiver if the method ever has one.
+                    val characterSequenceRegister =
+                        declaredParameterRegister(this, parameters.indexOfLast { it.type == charSequence })
+                    val selfRegister = declaredParameterRegister(this, parameters.indexOfLast { it.type == classDef.type })
 
-                    // Hard coding registries as it's going to be the first line in the method.
+                    // v0 to v3 are free at the first instruction, provided the method has four locals.
+                    if (parameterRegisterStart(this) < 4) {
+                        throw PatchException("${fingerprint.javaClass.simpleName} has fewer than four locals")
+                    }
                     addInstructionsWithLabels(
                         0,
                         """
-                        move-object/from16 v0, p$characterSequenceParameterIndex
-                        move-object/from16 v1, p$selfClassParameterIndex
+                        move-object/from16 v0, v$characterSequenceRegister
+                        move-object/from16 v1, v$selfRegister
                         
                         iget-object v2, v1, $appActivityField
                         iget-object v3, v1, $reelItemField

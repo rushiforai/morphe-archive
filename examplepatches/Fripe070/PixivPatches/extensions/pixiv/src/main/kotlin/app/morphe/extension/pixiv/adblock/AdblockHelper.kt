@@ -1,12 +1,8 @@
 package app.morphe.extension.pixiv.adblock
 
 import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import android.view.View
 import android.view.ViewGroup
-import app.morphe.extension.pixiv.navigation.PersistentNavHelper
-import app.morphe.extension.pixiv.navigation.PersistentNavHelper.RES_ID_BOTTOM_NAV
 
 object AdblockHelper {
 
@@ -80,42 +76,6 @@ object AdblockHelper {
     fun hideAdContainer(adContainer: View?) {
         if (adContainer == null) return
         try {
-            // If adContainer is being utilized for persistent bottom navigation, maintain visibility
-            if (adContainer.getTag(RES_ID_BOTTOM_NAV) == true || adContainer.findViewWithTag<View>("morphe_persistent_bottom_nav") != null) {
-                adContainer.visibility = View.VISIBLE
-                adContainer.layoutParams?.let { lp ->
-                    if (lp.height == 0) {
-                        lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                        adContainer.layoutParams = lp
-                    }
-                }
-                if (adContainer is ViewGroup) {
-                    for (i in adContainer.childCount - 1 downTo 0) {
-                        val child = adContainer.getChildAt(i)
-                        if (child.tag != "morphe_persistent_bottom_nav") {
-                            adContainer.removeViewAt(i)
-                        }
-                    }
-                }
-                return
-            }
-
-            // If the activity is eligible for persistent bottom navigation, preserve adContainer
-            val act = findActivity(adContainer.context)
-            if (act != null && PersistentNavHelper.isEligibleActivity(act)) {
-                adContainer.visibility = View.VISIBLE
-                adContainer.layoutParams?.let { lp ->
-                    if (lp.height == 0) {
-                        lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                        adContainer.layoutParams = lp
-                    }
-                }
-                if (adContainer is ViewGroup) {
-                    adContainer.removeAllViews()
-                }
-                return
-            }
-
             adContainer.visibility = View.GONE
             adContainer.layoutParams?.let { lp ->
                 lp.height = 0
@@ -126,15 +86,6 @@ object AdblockHelper {
             }
         } catch (_: Throwable) {
         }
-    }
-
-    private fun findActivity(context: Context?): Activity? {
-        var ctx = context
-        while (ctx is ContextWrapper) {
-            if (ctx is Activity) return ctx
-            ctx = ctx.baseContext
-        }
-        return null
     }
 
     @JvmStatic

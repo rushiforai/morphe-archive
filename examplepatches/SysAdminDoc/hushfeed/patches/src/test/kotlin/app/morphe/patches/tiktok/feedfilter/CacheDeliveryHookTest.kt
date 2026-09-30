@@ -76,7 +76,7 @@ class CacheDeliveryHookTest {
         val target = (call as ReferenceInstruction).reference as MethodReference
 
         assertEquals(EXTENSION, target.definingClass)
-        assertEquals("shouldKeepCachedAweme", target.name)
+        assertEquals("shouldKeepNormalizedCache", target.name)
         assertEquals(listOf(AWEME), target.parameterTypes.map(CharSequence::toString))
         assertEquals("Z", target.returnType)
         assertEquals(0, (call as RegisterRangeInstruction).startRegister)
@@ -100,14 +100,14 @@ class CacheDeliveryHookTest {
         val rejectedMethod = reachBottom().apply {
             filterReachBottomCacheDelivery(payloadField, awemeField, successField)
         }
-        assertEquals(1, runHook(rejectedMethod, rejected, keep = false))
+        assertEquals(1, runHook(rejectedMethod, rejected, keep = false, predicate = "shouldKeepReachBottomCache"))
         assertEquals(false, rejected.success)
 
         val accepted = CacheResult(success = true, payload = CachePayload(Any()))
         val acceptedMethod = reachBottom().apply {
             filterReachBottomCacheDelivery(payloadField, awemeField, successField)
         }
-        assertEquals(1, runHook(acceptedMethod, accepted, keep = true))
+        assertEquals(1, runHook(acceptedMethod, accepted, keep = true, predicate = "shouldKeepReachBottomCache"))
         assertEquals(true, accepted.success)
     }
 
@@ -180,7 +180,13 @@ class CacheDeliveryHookTest {
     )
 
     /** Executes the small injected prefix until TikTok's original return instruction. */
-    private fun runHook(method: MutableMethod, result: CacheResult, keep: Boolean): Int {
+    private fun runHook(
+        method: MutableMethod,
+        result: CacheResult,
+        keep: Boolean,
+        // Each cache route calls its own predicate, so a report can say which one ran.
+        predicate: String = "shouldKeepNormalizedCache",
+    ): Int {
         val instructions = method.implementation!!.instructions.toList()
         val addresses = IntArray(instructions.size)
         var address = 0
@@ -215,7 +221,7 @@ class CacheDeliveryHookTest {
                 }
                 Opcode.INVOKE_STATIC_RANGE -> {
                     val target = (instruction as ReferenceInstruction).reference as MethodReference
-                    assertEquals("shouldKeepCachedAweme", target.name)
+                    assertEquals(predicate, target.name)
                     val call = instruction as RegisterRangeInstruction
                     check(registers[call.startRegister] != null) { "The predicate was handed no Aweme" }
                     predicateResult = keep

@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from fields import field, has_any, normalize, normalize_version, parse_fields
+from fields import CONTEST, SIGN_OFF, field, has_any, normalize, normalize_version, parse_fields
 
 MIN_CHARS = 60
 MIN_WORDS = 10
@@ -79,15 +79,15 @@ labels = []
 
 if not fields:
     blockers.append(
-        "Please use an issue form to include the details needed for review. "
-        + (f"Open [a new issue]({NEW_ISSUE}) and choose the matching form." if NEW_ISSUE else "Open a new issue and choose the matching form.")
+        "**No issue form.** The triage reads the form fields. "
+        + (f"Open [a new issue]({NEW_ISSUE}) and pick the matching form." if NEW_ISSUE else "Open a new issue and pick the matching form.")
     )
 
 words = len(description.split())
 if fields and (len(description) < MIN_CHARS or words < MIN_WORDS):
     blockers.append(
-        f"Please expand the description ({words} word{'s' if words != 1 else ''}; at least {MIN_WORDS} needed). Include "
-        "what you did, what you expected, and what happened instead."
+        f"**The description is short** ({words} word{'s' if words != 1 else ''}, {MIN_WORDS} needed). Add "
+        "what you did, what you expected and what happened instead."
     )
 
 matched = None
@@ -102,8 +102,8 @@ for (name, package), versions in apps.items():
 
 if repackager:
     blockers.append(
-        f"`{repackager}` distributes modified APKs that may not patch correctly. Please try "
-        "patching an unmodified APK from APKMirror, APKPure, Uptodown or APKCombo."
+        f"**`{repackager}` repackages apps**, so patches may not apply cleanly. Patch an "
+        "unmodified APK from APKMirror, APKPure, Uptodown or APKCombo instead."
     )
 
 if not fields:
@@ -111,18 +111,18 @@ if not fields:
 elif not matched:
     supported = ", ".join(sorted(name for name, _ in apps))
     lead = (
-        f"This bundle doesn't currently support `{reported}`."
+        f"**`{reported}` isn't patched by this bundle yet.**"
         if reported
-        else "The report doesn't identify a supported app."
+        else "**The report doesn't name an app this bundle patches.**"
     )
     blockers.append(
         f"{lead} Supported apps in {data['version']}: {supported}. "
-        "To request support for another app, please open an app request."
+        "To get another app added, open an app request."
     )
 elif another_version:
     flags.append(
-        "Please fill in the Other version field after choosing \"another version\". The version "
-        "number is on the app's About screen."
+        "**\"Another version\" is picked but the version is missing.** Fill in the Other version "
+        "field. The number is on the app's About screen."
     )
     labels.append("needs info")
 elif matched[1] and not (
@@ -131,9 +131,8 @@ elif matched[1] and not (
 ):
     name, versions = matched
     flags.append(
-        f"Bundle {data['version']} supports {name} {', '.join(sorted(versions))}, but the report lists "
-        f"`{app_version or reported}`. Please confirm whether the app updated or you used `-f` to "
-        "patch an unsupported version."
+        f"**{data['version']} targets {name} {', '.join(sorted(versions))}**, not "
+        f"`{app_version or reported}`. Either the app updated or it was patched with `-f`. Say which."
     )
     labels.append("untargeted version")
 
@@ -141,7 +140,7 @@ if normalize(what_happened).startswith(OPTION_PATCHING_FAILED) and not any(
     marker in debug_log for marker in REPORT_MARKERS
 ):
     flags.append(
-        "Please attach the patching error report. In Morphe Manager, tap **Copy** on the "
+        "**Patching failed but no error report is attached.** In Morphe Manager, tap **Copy** on the "
         "error dialog and paste it here. With morphe-cli, add `-r report.json` and attach the "
         "report."
     )
@@ -152,21 +151,21 @@ single_patch = normalize(field(fields, "Does it still happen with only one patch
 
 if stock.startswith(OPTION_STOCK_FAILS_TOO):
     blockers.append(
-        "The report says the unpatched app also fails, which suggests an app issue. If the patched "
-        "app behaves differently, please update that answer and describe the difference."
+        "**The unpatched app fails the same way**, so the app is the likely cause rather than a "
+        "patch. If the patched build behaves differently, change that answer and describe the difference."
     )
 elif stock.startswith(OPTION_NOT_TRIED):
     flags.append(
-        "Please try the unpatched app. Install the stock APK, repeat the same steps, and add the "
-        "result to the report."
+        "**The unpatched app hasn't been tried.** Install the stock APK, repeat the same steps and "
+        "add the result to the report."
     )
     labels.append("needs info")
 
 if single_patch.startswith(OPTION_NOT_TRIED):
     flags.append(
-        "Please try patching with only the reported patch selected. If the problem stops, enable "
-        "the other patches one at a time until it returns, then select the patch that caused it "
-        "in the form."
+        "**Narrow it down to one patch.** Patch again with only the reported patch selected. If the "
+        "problem stops, enable the others one at a time until it returns, then pick the culprit in "
+        "the form."
     )
     if "needs info" not in labels:
         labels.append("needs info")
@@ -174,20 +173,20 @@ if single_patch.startswith(OPTION_NOT_TRIED):
 if blockers:
     verdict = "close"
     labels = []
-    lines = ["Closing for now for the following reasons:", ""]
+    lines = ["🚧 **Closing this for now.**", ""]
     lines += [f"- {b}" for b in blockers + flags]
-    lines += ["", "Update the report to address the points above. It reopens automatically once the checks pass."]
+    lines += ["", "Edit the issue to cover the points above and it reopens automatically."]
 elif flags:
     verdict = "flag"
-    lines = ["Please add the following details:", ""]
+    lines = ["📝 **A few details are missing.**", ""]
     lines += [f"- {f}" for f in flags]
-    lines += ["", "Add these details by editing the issue."]
+    lines += ["", "Edit the issue to add them."]
 else:
     verdict = "pass"
     lines = []
 
 if lines:
-    lines += ["", "_Posted automatically on behalf of the maintainer. If this seems wrong, please comment below for review._"]
+    lines += ["", CONTEST, "", SIGN_OFF]
 
 print(json.dumps({
     "verdict": verdict,

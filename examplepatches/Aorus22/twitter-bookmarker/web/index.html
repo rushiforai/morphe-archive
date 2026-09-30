@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="A local, media-first gallery of your saved tweets, powered by your own archive."
+    />
+    <title>Twitter Bookmarker — Local Gallery</title>
+    <script>
+      // Apply the persisted theme before first paint so a reload never flashes
+      // the wrong theme. Keep in sync with THEME_STORAGE_KEY in
+      // src/app/theme-provider.tsx and the `dark` class contract in src/index.css.
+      ;(function () {
+        try {
+          var stored = localStorage.getItem("tw-bookmarker-theme")
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)")
+            .matches
+          var dark = stored === "dark" || (stored !== "light" && prefersDark)
+          var root = document.documentElement
+          root.classList.toggle("dark", dark)
+          root.classList.toggle("light", !dark)
+          root.style.colorScheme = dark ? "dark" : "light"
+        } catch (error) {
+          // Storage blocked — fall through to the CSS light defaults.
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

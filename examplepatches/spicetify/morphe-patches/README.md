@@ -7,7 +7,7 @@ This repository publishes patch source and bundles, not Spotify APKs.
 > [!NOTE]
 > This is an experimental feature currently under active development.
 > The initial target is Spotify 9.1.80.2221, ARM64. Runtime compatibility is
-> still being verified. See the [verification record](docs/verification.md).
+> still being verified.
 
 ## Patches
 
@@ -78,7 +78,6 @@ Desktop-signed APK and a Manager-signed APK can use different keys.
 ## Development
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests, and release steps.
-The accepted investigation is preserved in [the plan](docs/plan.md).
 
 This project is independent of Spotify and the Morphe project. Its repository
 slug is `morphe-patches`; its display name is Spicetify Android patches.

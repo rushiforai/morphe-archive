@@ -17,7 +17,7 @@ import app.anghami.patches.shared.Constants.COMPATIBILITY_ANGHAMI_8_0_28
 val hideGoldPatch = bytecodePatch(
     name = "Hide Gold features",
     description = "Forces Account.isGold/isGoldUser and all GoldUtilsKt.isGold overloads to false. Hides server-gated Gold UI instead of spoofing it.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
     category("Hide Gold features")

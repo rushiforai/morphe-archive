@@ -1,0 +1,377 @@
+{
+  "schemaVersion": 1,
+  "note": "Every public source found for com.instagram.barcelona, with the branches and commits it was last read at, its licence and what HushThreads may take from it. scripts/threads-sources.ps1 holds it to its rules, scripts/audit-threads-sources.ps1 refreshes it, and a local release needs a census from the last 14 days. docs/sources.md is the readable version.",
+  "census": {
+    "checkedAt": "2026-09-29",
+    "skipped": [
+      "gitlab-code-search"
+    ]
+  },
+  "self": {
+    "repository": "https://github.com/SysAdminDoc/HushThreads"
+  },
+  "officialBundle": {
+    "repository": "https://github.com/MorpheApp/morphe-patches",
+    "branch": "main",
+    "list": "patches-list.json",
+    "packages": []
+  },
+  "indexes": [
+    {
+      "id": "morphe-directory",
+      "name": "Morphe community directory",
+      "url": "https://morphe-patches.software",
+      "hushthreads": {
+        "status": "not-listed",
+        "checked": "2026-09-29"
+      }
+    },
+    {
+      "id": "awesome-morphe",
+      "name": "Awesome Morphe",
+      "url": "https://github.com/nvbangg/awesome-morphe",
+      "hushthreads": {
+        "status": "not-listed",
+        "checked": "2026-09-29"
+      }
+    },
+    {
+      "id": "morphe-patch-tracker",
+      "name": "Morphe Patch Tracker",
+      "url": "https://drnx64.github.io/morphe-track-patches/",
+      "hushthreads": {
+        "status": "not-listed",
+        "checked": "2026-09-29"
+      }
+    },
+    {
+      "id": "jman-bundles",
+      "name": "Jman's ReVanced Patch Bundles",
+      "url": "https://github.com/Jman-Github/ReVanced-Patch-Bundles",
+      "hushthreads": {
+        "status": "not-listed",
+        "checked": "2026-09-29"
+      }
+    },
+    {
+      "id": "morphe-archive",
+      "name": "Morphe Archive",
+      "url": "https://rushiforai.github.io/morphe-archive/",
+      "hushthreads": {
+        "status": "not-listed",
+        "checked": "2026-09-29"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "id": "revanced",
+      "repository": "https://gitlab.com/ReVanced/revanced-patches",
+      "lineage": "revanced",
+      "upstream": null,
+      "kind": "revanced-patches",
+      "packages": [
+        "com.instagram.barcelona"
+      ],
+      "targetVersions": {
+        "com.instagram.barcelona": [
+          "382.0.0.51.85"
+        ]
+      },
+      "features": [
+        "Hide ads"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "015fe10a23ea5b919a3fda6e7da2c176517ae75d"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/revanced/patches/threads",
+        "patches/src/main/kotlin/app/revanced/patches/meta/ads"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://gitlab.com/ReVanced/revanced-patches/-/blob/015fe10a23ea5b919a3fda6e7da2c176517ae75d/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "The first Threads patch anyone published: Hide ads through the same meta/ads fingerprint ReVanced uses for Instagram, which shows the two apps share their ad code. It's pinned to 382 and its anchor string, SponsoredContentController.insertItem, is gone from 449. Ancestry and shared-code evidence, no code to port.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [
+        {
+          "repository": "https://github.com/ReVanced/revanced-patches",
+          "reason": "ReVanced's original GitHub home, blocked by a DMCA notice (HTTP 451) since 2026-03-24.",
+          "blobs": []
+        }
+      ],
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "id": "chiggi",
+      "repository": "https://github.com/durgesh0505/chiggi_morphe_patches",
+      "lineage": "chiggi",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.instagram.barcelona"
+      ],
+      "targetVersions": {
+        "com.instagram.barcelona": [
+          "434.0.0.41.74"
+        ]
+      },
+      "features": [
+        "Hide ads",
+        "Remove ad ID",
+        "Change app name",
+        "Change package name"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "c303b8962a38b6e423a0926629160fecc4dfb5cb"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/chiggi/threads"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/durgesh0505/chiggi_morphe_patches/blob/c303b8962a38b6e423a0926629160fecc4dfb5cb/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "Where the Threads ads lineage starts (2026-06-19). Its filter keys on obfuscated Media methods and a boolean method of BarcelonaSpoolFeedCacheHandler that 449 no longer has, and its own issues #5 and #16 report the filter broken. Kept for ancestry and for the feature list.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "id": "zeldrisho",
+      "repository": "https://github.com/zeldrisho/morphe-patches",
+      "lineage": "chiggi",
+      "upstream": "https://github.com/durgesh0505/chiggi_morphe_patches",
+      "kind": "morphe-patches",
+      "packages": [
+        "com.instagram.barcelona"
+      ],
+      "targetVersions": {
+        "com.instagram.barcelona": [
+          "445.0.0.46.83",
+          "434.0.0.41.74"
+        ]
+      },
+      "features": [
+        "Hide ads",
+        "Remove ad ID",
+        "Change app name",
+        "Change package name"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "dbbe65e7777268c8eb97932cb995eacc6b93dcf9"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/com/zeldrisho/patches/threads",
+        "extensions/threads/src/main/java/com/zeldrisho/threads"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/zeldrisho/morphe-patches/blob/dbbe65e7777268c8eb97932cb995eacc6b93dcf9/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "Found the place HushThreads takes ads out, the feed cache's merge of a fetched page, found by its shape and the Kotlin lambda it builds. That anchor is unique on 449 and HushThreads credits it. Its extension reflects on obfuscated names written down per build (DED, DGK, A05, A02 and more), so none of its code is taken.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "id": "kareem",
+      "repository": "https://github.com/kareemlukitomo/morphe-patches",
+      "lineage": "kareem",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.instagram.barcelona",
+        "com.instagram.android"
+      ],
+      "targetVersions": {
+        "com.instagram.barcelona": [
+          "426.0.0.36.67"
+        ]
+      },
+      "features": [
+        "Change share domain"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "d60e85c68ab6c268b497f849000645da263c3b4d"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/kareem/patches/threads",
+        "extensions/extension/src/main/java/app/kareem/extension/threads"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/kareemlukitomo/morphe-patches/blob/d60e85c68ab6c268b497f849000645da263c3b4d/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "A custom share domain for Threads links. CopyToClipboardUseCase$copyLink$result$1 still exists on 449, but its chat invite string sits in five methods, so the anchor is ambiguous there. A candidate for a later share domain patch. HushThreads cleans the link where the server's permalink is parsed instead.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "id": "chirag127",
+      "repository": "https://github.com/chirag127/morphe-patches",
+      "lineage": "chirag127",
+      "upstream": null,
+      "kind": "morphe-patches",
+      "packages": [
+        "com.instagram.barcelona",
+        "com.instagram.android"
+      ],
+      "targetVersions": {
+        "com.instagram.barcelona": []
+      },
+      "features": [
+        "Threads distraction free (stub)",
+        "Threads no ads (stub)"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "85cdca127fb282562f4c49c9a256e6532adb109b"
+        }
+      ],
+      "watchPaths": [
+        "patches/src/main/kotlin/app/chirag127/morphe/patches/targets/threads"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/chirag127/morphe-patches/blob/85cdca127fb282562f4c49c9a256e6532adb109b/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "rejected",
+      "reason": "Its two Threads patches are names without working bodies. Its Instagram set belongs to HushGram's ledger.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "id": "mrxsin",
+      "repository": "https://github.com/MrxSiN/ThreadsHideAds",
+      "lineage": "mrxsin",
+      "upstream": null,
+      "kind": "xposed-module",
+      "packages": [
+        "com.instagram.barcelona"
+      ],
+      "targetVersions": {
+        "com.instagram.barcelona": [
+          "448.0.0.54.85"
+        ]
+      },
+      "features": [
+        "Hide ads (LSPosed, DexKit shape discovery)"
+      ],
+      "branches": [
+        {
+          "name": "main",
+          "commit": "15eb0f885b0d93b29e9bdc0e9531f8517d396c5e"
+        }
+      ],
+      "watchPaths": [
+        "app/src/main/java/my/github/MrxSiN/threadshideads"
+      ],
+      "license": {
+        "spdx": "GPL-3.0",
+        "url": "https://github.com/MrxSiN/ThreadsHideAds/blob/15eb0f885b0d93b29e9bdc0e9531f8517d396c5e/LICENSE",
+        "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+      },
+      "contaminatedBy": null,
+      "disposition": "candidate",
+      "reason": "An LSPosed module pushed 2026-09-26 that finds Threads' ad hooks by shape with DexKit and writes its findings up in HOOK_NOTES.md. Tested on 448. Useful as a second opinion on ad anchors when a build moves them.",
+      "archived": false,
+      "forks": [],
+      "contentHashes": [],
+      "mirrors": [],
+      "lastChecked": "2026-09-29"
+    }
+  ],
+  "outOfScope": [
+    {
+      "repository": "https://github.com/crimera/piko",
+      "reason": "Instagram only, with no Threads target. Its Instagram fingerprints were run against Threads 449 for research: 65 of 299 match uniquely, which is shared-code evidence. HushGram's ledger holds it.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/bluecxt/instagram-revanced-patches",
+      "reason": "Instagram only, ReVanced-derived. HushGram's ledger holds it.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/nstefan13/personal-revanced-patches",
+      "reason": "Instagram only, a copy of ReVanced's set.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/daboynb/revanced-instagram-viewonce",
+      "reason": "Instagram only: view-once media.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/wb1016/instagram-revanced-patches",
+      "reason": "Instagram only, and no licence.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/ReSo7200/InstaEclipse",
+      "reason": "An Instagram Xposed module (Apache-2.0). Nothing for Threads.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/mamiiblt/instafel",
+      "reason": "An Instagram Alpha patcher with its own engine (MIT). Nothing for Threads.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/pawjects/PawGram",
+      "reason": "An Instagram client (MIT). Nothing for Threads.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/rushiforai/morphe-archive",
+      "reason": "An archive of other projects' builds with no licence of its own. It's listed under indexes.",
+      "lastChecked": "2026-09-29"
+    },
+    {
+      "repository": "https://github.com/rushiforai/revanced-archive",
+      "reason": "An archive of ReVanced builds with no licence of its own.",
+      "lastChecked": "2026-09-29"
+    }
+  ]
+}

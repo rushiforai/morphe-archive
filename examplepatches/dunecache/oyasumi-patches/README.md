@@ -1,6 +1,8 @@
-# Morphe Patches Template
+# Oyasumi Patches
 
-This repository is a reusable starting point for writing Morphe patches. It currently ships the ADM patch set listed below, built and verified against a single pinned ADM build.
+Morphe patches for a small set of Android apps. Every patch is declared against the exact package and version it was derived from, and every fingerprint comes from that build's own decompiled output. See [`reference/NOTES.md`](reference/NOTES.md) for the recorded package, class, method, string, and instruction details behind each patch.
+
+Adding support for a new app release means re-deriving its fingerprints: releases rename the obfuscated classes and methods an app ships, so a patch that matched one version will not match the next.
 
 ## Implementing a patch
 
@@ -17,7 +19,7 @@ Follow this workflow for every new patch:
 
 ## Patch structure
 
-Place each patch and its fingerprints in a small feature package under `patches/src/main/kotlin`. Keep shared compatibility metadata in a dedicated object only when more than one patch uses it. A patch should contain:
+Place each patch and its fingerprints in a small feature package under `patches/src/main/kotlin/app/<app>/patches/<feature>/`, so patches for different apps never share a package. Keep shared compatibility metadata in a dedicated object per app, only when more than one patch uses it. A patch should contain:
 
 - A `bytecodePatch` or `resourcePatch` declaration.
 - A `compatibleWith` declaration tied to the verified target.
@@ -59,21 +61,36 @@ The built `.mpp` bundle is written under `patches/build/libs`. Test the bundle w
 ## Available patches
 
 <!-- PATCHES_START -->
-> **[v0.2.0](https://github.com/dunecache/oyasumi-patches/releases/tag/v0.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v0.3.2](https://github.com/dunecache/oyasumi-patches/releases/tag/v0.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 ADM&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 14.0.27 |
+| 14.0.39 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable ads](#disable-ads) | Skip ADM's app-level ad initialization, display routines, and Telegram join prompt. |  |
-| [Disable rating prompts](#disable-rating-prompts) | Skip ADM's rating dialog without changing service teardown. |  |
-| [Increase connection limits](#increase-connection-limits) | Raise the download slider ceiling to 64 and set torrent defaults to 500 global and 100 per torrent. |  |
+| [Disable ads](#disable-ads) | Skip ADM's Appodeal and AppBrain ad setup and display routines, and the Telegram join prompt. |  |
+| [Disable rating prompts](#disable-rating-prompts) | Skip ADM's automatic rating prompt. The menu item that opens the same dialog on request is left intact. |  |
+| [Increase connection limits](#increase-connection-limits) | Raise the download ceilings to 32 simultaneous downloads and 64 connections per download, and set torrent defaults to 500 global and 100 per torrent. |  |
+
+</details>
+
+<details open>
+<summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 18.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable home screen ads](#disable-home-screen-ads) | Keep 1DM's home screen banner from loading, rotating, or rendering. |  |
 
 </details>
 

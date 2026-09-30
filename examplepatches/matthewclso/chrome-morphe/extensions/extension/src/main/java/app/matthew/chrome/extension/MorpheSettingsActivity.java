@@ -17,6 +17,8 @@ import android.widget.TextView;
 public final class MorpheSettingsActivity extends Activity {
     private int foreground, secondary;
     private TextView microGStatus;
+    private Switch tabPicker;
+    private TextView tabPickerDetail;
     @Override public void onCreate(Bundle state) {
         boolean dark = NativeBridge.themeSetting() == 2 || (NativeBridge.themeSetting() == 0
                 && (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES);
@@ -51,6 +53,7 @@ public final class MorpheSettingsActivity extends Activity {
         add(rows, "Incognito address bar button", "Switch between regular and Incognito tabs from the address bar.", PatchSettings.BUTTON);
         add(rows, "Black mode", "Use pure black backgrounds with Chrome’s dark theme.", PatchSettings.BLACK);
         add(rows, "True bottom address bar", "Keep the address bar, tab-view controls and tab search at the bottom.", PatchSettings.BOTTOM);
+        add(rows, "Tab picker", "Show a scrollable row of tab icons, titles and close buttons above the address bar.", PatchSettings.TAB_PICKER);
         add(rows, "Remember last browsing mode", "Reopen Chrome and full-browser links in the mode you last used: regular or Incognito. Embedded browser windows keep their usual behavior.", PatchSettings.REMEMBER_MODE);
         if (MicroGSupport.isPatched()) {
             TextView title = new TextView(this);
@@ -98,11 +101,26 @@ public final class MorpheSettingsActivity extends Activity {
         control.setMinHeight(dp(56)); control.setChecked(PatchSettings.enabled(key));
         control.setOnCheckedChangeListener((button, checked) -> {
             PatchSettings.set(key, checked);
+            if (PatchSettings.BOTTOM.equals(key)) updateTabPicker();
             if (PatchSettings.BLACK.equals(key)) recreate();
         });
         parent.addView(control, new LinearLayout.LayoutParams(-1, -2));
         TextView detail = new TextView(this); detail.setText(summary); detail.setTextColor(secondary);
         detail.setTextSize(14); detail.setPadding(0, 0, 0, dp(24)); parent.addView(detail);
+        if (PatchSettings.TAB_PICKER.equals(key)) {
+            tabPicker = control; tabPickerDetail = detail;
+            updateTabPicker();
+        }
+    }
+    private void updateTabPicker() {
+        if (tabPicker == null) return;
+        boolean available = PatchSettings.trueBottom();
+        tabPicker.setEnabled(available);
+        tabPicker.setAlpha(available ? 1f : .4f);
+        tabPickerDetail.setAlpha(available ? 1f : .4f);
+        tabPickerDetail.setText(available
+                ? "Show a scrollable row of tab icons, titles and close buttons above the address bar."
+                : "Enable True bottom address bar to use the tab picker.");
     }
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 }

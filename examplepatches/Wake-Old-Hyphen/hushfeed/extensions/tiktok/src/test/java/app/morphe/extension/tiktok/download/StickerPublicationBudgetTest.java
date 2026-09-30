@@ -396,8 +396,10 @@ public class StickerPublicationBudgetTest {
             new URL("https://8.8.8.8/");
             handlers = ReflectionHelpers.getStaticField(URL.class, "handlers");
             previous = handlers.put("https", new URLStreamHandler() {
+                // The pinned media connection opens with Proxy.NO_PROXY; the base overload throws.
+                @Override protected URLConnection openConnection(URL url, java.net.Proxy proxy) throws java.io.IOException { return openConnection(url); }
                 @Override protected URLConnection openConnection(URL url) {
-                    return new HttpURLConnection(url) {
+                    return new FakeHttpsConnection(url) {
                         @Override public int getResponseCode() { return HTTP_OK; }
                         @Override public String getHeaderField(String name) {
                             return "Content-Length".equalsIgnoreCase(name) ? String.valueOf(body.length) : null;

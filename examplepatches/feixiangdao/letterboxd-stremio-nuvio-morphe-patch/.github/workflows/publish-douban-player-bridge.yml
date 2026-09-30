@@ -1,0 +1,56 @@
+name: Publish Douban Player Bridge APK
+
+on:
+  push:
+    paths:
+      - ".github/douban-player-bridge-release-trigger"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      VERSION: "0.2.3"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android 35 SDK
+        shell: bash
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Build APK
+        run: gradle -p douban-player-bridge-app :app:assembleDebug --stacktrace
+
+      - name: Prepare release
+        run: |
+          cp douban-player-bridge-app/app/build/outputs/apk/debug/app-debug.apk              "DoubanPlayerBridge-${VERSION}.apk"
+          sha256sum "DoubanPlayerBridge-${VERSION}.apk" > SHA256SUMS.txt
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="douban-player-bridge-v${VERSION}"
+          gh release delete "$TAG" --yes || true
+          gh release create "$TAG"             "DoubanPlayerBridge-${VERSION}.apk"             SHA256SUMS.txt             --title "Douban Player Bridge v${VERSION}"             --notes "Standalone Android accessibility-overlay bridge for the official Douban app. No modification of Douban APK is required. Enable the Douban Player Bridge accessibility service after installation."

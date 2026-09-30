@@ -899,7 +899,7 @@ internal fun MutableMethod.filterNormalizedCacheDelivery(
             iget-object v0, p0, $cachePayloadField
             if-eqz v0, :morphe_keep_normalized_cache_result
             iget-object v0, v0, $cachedAwemeField
-            invoke-static/range {v0 .. v0}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepCachedAweme(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
+            invoke-static/range {v0 .. v0}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepNormalizedCache(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
             move-result v0
             if-nez v0, :morphe_keep_normalized_cache_result
             const/4 v0, 0x0
@@ -956,7 +956,7 @@ private fun MutableMethod.filterChainedCacheDelivery(
             iget-object v$scratchRegister, v$resultRegister, $cachePayloadField
             if-eqz v$scratchRegister, :morphe_cache_chain_native
             iget-object v$scratchRegister, v$scratchRegister, $cachedAwemeField
-            invoke-static/range {v$scratchRegister .. v$scratchRegister}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepCachedAweme(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
+            invoke-static/range {v$scratchRegister .. v$scratchRegister}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepChainedCache(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
             move-result v$scratchRegister
             if-eqz v$scratchRegister, :morphe_cache_chain_next_source
         """,
@@ -971,7 +971,7 @@ private fun MutableMethod.filterPlayLagCacheInsertion() {
     addInstructionsWithLabels(
         0,
         """
-            invoke-static/range {p1 .. p1}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepCachedAweme(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
+            invoke-static/range {p1 .. p1}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepPlayLagCache(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
             move-result v0
             if-nez v0, :morphe_keep_play_lag_cache_item
             return-void
@@ -994,7 +994,7 @@ internal fun MutableMethod.filterReachBottomCacheDelivery(
             iget-object v0, v0, $cachePayloadField
             if-eqz v0, :morphe_keep_reach_bottom_cache_result
             iget-object v0, v0, $cachedAwemeField
-            invoke-static/range {v0 .. v0}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepCachedAweme(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
+            invoke-static/range {v0 .. v0}, $EXTENSION_CLASS_DESCRIPTOR->shouldKeepReachBottomCache(Lcom/ss/android/ugc/aweme/feed/model/Aweme;)Z
             move-result v0
             if-nez v0, :morphe_keep_reach_bottom_cache_result
             const/4 v0, 0x0

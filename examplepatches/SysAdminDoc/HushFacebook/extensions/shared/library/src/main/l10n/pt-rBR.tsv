@@ -139,7 +139,11 @@ In News feed, Hide Reels in the feed blocks the rows of reels between posts.	Em 
 Reels that play by themselves	Reels que tocam sozinhos
 In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.	Em Reprodução, “Tocar para reproduzir” bloqueia a reprodução automática, então os Reels e outros vídeos aguardam seu toque.
 The Reels tab	A aba Reels
-Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, Facebook hasn't given your account that option, and Hushfacebook has no switch for the tab.	A própria configuração do Facebook bloqueia a aba. Abra Configurações, Barra de abas, Personalizar a barra e escolha Ocultar ao lado de Reels, que em algumas contas se chama Vídeo. Se nenhum dos dois aparecer, o Facebook não deu essa opção à sua conta, e o Hushfacebook não tem uma opção para a aba.
+Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, choose the %1$s patch in Morphe Manager and patch again.	A própria configuração do Facebook bloqueia a aba. Abra Configurações, Barra de abas, Personalizar a barra e escolha Ocultar ao lado de Reels, que em algumas contas se chama Vídeo. Se nenhum dos dois aparecer, escolha o patch %1$s no Morphe Manager e aplique os patches novamente.
+In Reels and Watch, Hide the Reels tab blocks it after a restart.	Em “Reels e Watch”, “Ocultar a aba Reels” bloqueia a aba depois de reiniciar.
+Hide the Reels tab	Ocultar a aba Reels
+Take the Reels tab, called Video on some accounts, off the tab bar. Reel links and reels in the feed still open. Changes show after Facebook restarts.	Tira da barra de abas a aba Reels, que em algumas contas se chama Vídeo. Links de Reels e os Reels do feed continuam abrindo. As mudanças aparecem depois de reiniciar o Facebook.
+Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. Your choice stays saved.	O Facebook abre na Página inicial enquanto “Ocultar a aba Reels” estiver ativado, porque Vídeo fica fora da barra de abas. Sua escolha é mantida.
 Everything except Marketplace	Tudo menos o Marketplace
 In Opening Facebook, Marketplace only blocks the feed, the Reels tab and the other social tabs after a restart.	Em “Ao abrir o Facebook”, “Só Marketplace” bloqueia o feed, a aba Reels e as outras abas sociais depois de reiniciar.
 Not in this build. To block this, choose the %1$s patch in Morphe Manager and patch again.	Não faz parte desta versão. Para bloquear isso, escolha o patch %1$s no Morphe Manager e aplique os patches novamente.
@@ -285,7 +289,7 @@ Facebook will open on %1$s.	O Facebook vai abrir em %1$s.
 Jump to a section	Ir para uma seção
 Go straight to one group of settings. Back returns to where you were.	Vá diretamente para um grupo de configurações. Voltar leva você de volta ao ponto em que estava.
 Save videos other apps can open	Salvar vídeos que outros apps conseguem abrir
-For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.	Para o WhatsApp ou para uma galeria ou player que reproduza os vídeos salvos sem som. Pode reduzir a qualidade.
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Para o WhatsApp, editores de vídeo como CapCut e InShot ou uma galeria ou player que reproduza os vídeos salvos sem som. Pode reduzir a qualidade.
 Chats	Conversas
 Hide the Get Messenger card	Ocultar o cartão Baixar o Messenger
 The card at the top of Chats that asks you to get the Messenger app goes while Messenger is installed. Without Messenger it stays, so you can still install it from there.	O cartão no topo de Conversas que pede para você baixar o aplicativo Messenger desaparece enquanto o Messenger estiver instalado. Sem o Messenger, ele permanece para que você possa instalá-lo por ali.
@@ -341,7 +345,7 @@ Messages, friend requests, comments, mentions, calls and login alerts, and any k
 Hide suggested stories	Ocultar Stories sugeridos
 Keep friends and followed Pages in the Stories tray. Applies when Facebook next loads the tray.	Mantém amigos e Páginas que você segue na bandeja de Stories. A alteração será aplicada na próxima vez que o Facebook carregar a bandeja.
 Hide sponsored Marketplace listings	Ocultar anúncios patrocinados do Marketplace
-Ads and boosted listings in Marketplace's feed. The other listings stay.	Propagandas e anúncios impulsionados no feed do Marketplace. Os demais anúncios permanecem.
+Ads and boosted listings in Marketplace's feed and search results. The other listings stay.	Propagandas e anúncios impulsionados no feed e nos resultados de busca do Marketplace. Os demais anúncios permanecem.
 Hide posts with words you choose	Ocultar publicações com palavras que você escolher
 Posts whose text has a word or phrase from your list below. A post with a word from your keep list stays, and so does a post with no text. Your words only leave the phone in a settings file you export.	Publicações cujo texto contém uma palavra ou frase da lista abaixo. Uma publicação com uma palavra da lista para manter permanece, assim como uma publicação sem texto. Suas palavras só saem do dispositivo em um arquivo de configurações que você exportar.
 Words to hide	Palavras para ocultar
@@ -393,7 +397,7 @@ Marketplace mode and your start tab	Modo Marketplace e aba inicial
 Ads, suggestions and word filters	Anúncios, sugestões e filtros de palavras
 Suggestions, saving, auto-advance and viewing anonymously	Sugestões, salvamento, avanço automático e visualização anônima
 Cleaner reels and video controls	Reels mais limpos e controles de vídeo
-Tap to play and resume	Tocar para reproduzir e retomar
+Tap to play, quality and resume	Tocar para reproduzir, qualidade e retomar
 Quality, format and file names	Qualidade, formato e nomes de arquivos
 Browse settings	Explorar configurações
 More settings	Mais configurações
@@ -427,3 +431,44 @@ Saving... Cancel: Downloads in Hushfacebook.	Salvando... Cancelar: Downloads no 
 Turn off double tap to like	Desativar toque duplo para curtir
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Tocar duas vezes em um reel ou vídeo não curte mais nem mostra um coração. Um toque e o botão Curtir funcionam como antes.
+Keep the reel speed	Manter a velocidade dos reels
+# context: summary of that switch
+A playback speed you pick in a reel's menu stays for the next reels until you pick another or Facebook restarts. Off, every reel starts at normal speed.	A velocidade de reprodução que você escolhe no menu de um reel continua nos próximos reels até você escolher outra ou o Facebook reiniciar. Desativado, cada reel começa na velocidade normal.
+Hold a reel for 2x	Segurar um reel para 2x
+# context: summary of that switch; more button is the reel's own button with three dots
+Holding a reel plays it at double speed until you let go, in place of Facebook's long-press menu. The reel's more button still opens that menu.	Segurar um reel faz ele tocar no dobro da velocidade até você soltar, no lugar do menu de toque longo do Facebook. O botão Mais do reel ainda abre esse menu.
+Default playback quality	Qualidade de reprodução padrão
+Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Reproduz vídeos, Reels e Stories na qualidade abaixo. Uma qualidade escolhida no menu do próprio vídeo ainda tem prioridade.
+Playback quality	Qualidade de reprodução
+Auto	Automática
+Data saver	Economia de dados
+Up to %1$s	Até %1$s
+Highest	A mais alta
+Facebook picks the quality as each video plays, from your connection.	O Facebook escolhe a qualidade enquanto cada vídeo é reproduzido, de acordo com sua conexão.
+Videos play at the lowest quality Facebook offers for each.	Os vídeos são reproduzidos na menor qualidade que o Facebook oferece para cada um.
+Videos play at the best quality up to %1$s that Facebook offers for each, or the closest above.	Os vídeos são reproduzidos na melhor qualidade até %1$s que o Facebook oferece para cada um, ou na mais próxima acima.
+Videos play at the highest quality Facebook offers for each.	Os vídeos são reproduzidos na maior qualidade que o Facebook oferece para cada um.
+Facebook will pick the quality videos play at.	O Facebook vai escolher a qualidade de reprodução dos vídeos.
+Playback quality will be set to %1$s.	A qualidade de reprodução será %1$s.
+# context: row title under Pause, backup and diagnostics, shown only while Debug logging is on
+Test the Messenger link	Testar a conexão com o Messenger
+# context: summary of that row; Debug logging is the switch's name as this table gives it
+Runs the two reads Facebook makes of Messenger at startup, now, and shows whether each one answered. Shown while Debug logging is on.	Faz agora as duas leituras que o Facebook faz do Messenger ao iniciar e mostra se cada uma respondeu. Visível enquanto Registro de depuração está ativado.
+# context: toast when the test can't begin
+The Messenger link test couldn't start.	O teste da conexão com o Messenger não pôde começar.
+# context: toast on a build without the test
+This build can't run the Messenger link test.	Esta versão não pode fazer o teste da conexão com o Messenger.
+# context: toast when Facebook has no signed-in account
+No signed-in account to test with.	Nenhuma conta conectada para o teste.
+# context: toast with the test's result; each placeholder is one of: answered, no answer, failed (...)
+Opt-out read: %1$s. Triggered read: %2$s.	Leitura de exclusão: %1$s. Leitura de ativação: %2$s.
+# context: a read's result in that toast
+no answer	sem resposta
+# context: a read's result in that toast
+answered	respondeu
+# context: a read's result in that toast; the placeholder is an error's class name, left in English
+failed (%1$s)	falhou (%1$s)
+# context: switch title under Reels and Watch; the dot is the tab bar's new-item badge
+Hide the Reels tab dot	Ocultar o ponto da aba Reels
+# context: summary of that switch; Video is Facebook's name for the tab on some accounts
+No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Sem ponto nem contagem de novidades na aba Reels, chamada Vídeo em algumas contas. As outras abas mantêm os seus.

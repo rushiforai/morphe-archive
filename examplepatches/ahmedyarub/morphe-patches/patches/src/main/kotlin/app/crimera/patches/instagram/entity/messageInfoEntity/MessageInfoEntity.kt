@@ -13,6 +13,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 /**
  * Descriptor of the direct-message item class, resolved from the audio anchor below. Other
@@ -24,6 +25,7 @@ val messageInfoEntity =
     bytecodePatch(
         description = "This patch is used for decoding obfuscated code of message info",
     ) {
+        dependsOn(instagramExtensionPatch)
         execute {
             StellaDirectMessagingServiceAudioRelatedFingerprint.apply {
                 val strIndex = stringMatches.first().index
@@ -34,7 +36,7 @@ val messageInfoEntity =
                     GetAudioMediaExtension.changeString("audioField", iGetObjectMetaData.name)
                     directMessageClass = extensionToClassName(iGetObjectMetaData.definingClass)
 
-                    mutableClassDefBy(extensionToClassName(iGetObjectMetaData.returnType))
+                    classDefBy(extensionToClassName(iGetObjectMetaData.returnType))
                         .methods
                         .first {
                             it.returnType ==

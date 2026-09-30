@@ -21,7 +21,15 @@ val pixivEnhancedViewerPatch: BytecodePatch = bytecodePatch(
     extendWith("extensions/pixiv.mpe")
 
     execute {
-        // --- Hook 1: zr4.instantiateItem (Fullscreen instant placeholder & discreet loading badge) ---
+        // --- Hook 1: DetailImageViewHolder.bind$lambda$0 (Capture detail bitmap on image click) ---
+        val holderClass = mutableClassDefBy("Ljp/pxv/android/feature/illustviewer/detail/DetailImageViewHolder;")
+        val clickMethod = holderClass.methods.first { it.name.contains("lambda") && it.parameterTypes.size == 4 }
+        clickMethod.addInstructions(
+            0,
+            "invoke-static {p1, p0}, Lapp/morphe/extension/pixiv/viewer/EnhancedViewerHelper;->onDetailImageClicked(Ljava/lang/Object;Ljava/lang/Object;)V"
+        )
+
+        // --- Hook 2: zr4.instantiateItem (Fullscreen instant placeholder & discreet loading badge) ---
         val zr4Class = mutableClassDefBy("Lzr4;")
         val instantiateMethod = zr4Class.methods.first { it.name == "instantiateItem" }
         val instantiateReturnIdx = instantiateMethod.implementation?.instructions?.indexOfLast {
@@ -34,7 +42,7 @@ val pixivEnhancedViewerPatch: BytecodePatch = bytecodePatch(
             )
         }
 
-        // --- Hook 2: yr4.d (Full-res image swap, matrix & zoom preservation, loading badge dismissal) ---
+        // --- Hook 3: yr4.d (Full-res image swap, matrix & zoom preservation, loading badge dismissal) ---
         val yr4Class = mutableClassDefBy("Lyr4;")
         val dMethod = yr4Class.methods.first { it.name == "d" }
         dMethod.addInstructions(

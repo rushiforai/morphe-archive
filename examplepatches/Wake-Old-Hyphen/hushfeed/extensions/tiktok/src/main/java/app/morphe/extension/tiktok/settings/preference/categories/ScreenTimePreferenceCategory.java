@@ -27,6 +27,11 @@ import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * The daily budget with its reminders and hold, and the switch that keeps the feed from starting
  * on its own. These sat at the bottom of Playback behind a "Daily budget" heading, which is not
@@ -245,7 +250,74 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
         Preference waitRow = findPreference(Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.key);
         if (waitRow != null) showWhatWaits(waitRow);
 
-        addPreference(new StartTodayOverPreference(context));
+        // The rows as built. The settings screen moves a category's rows onto itself
+        // (flattenCategory), so findPreference on this category finds nothing once the page is up.
+        Setting<?>[] budget = budgetRows();
+        Preference[] rows = new Preference[budget.length];
+        for (int index = 0; index < budget.length; index++) rows[index] = findPreference(budget[index].key);
+        StartTodayOverPreference[] startOver = new StartTodayOverPreference[1];
+        Runnable redraw = () -> showTheBudgetAsItIs(budget, rows, startOver[0]);
+        // The row holds the redraw, so the page keeps it alive and the list only lets it be seen.
+        startOver[0] = new StartTodayOverPreference(context, redraw);
+        addPreference(startOver[0]);
+        OPEN_PAGES.add(new WeakReference<>(redraw));
+    }
+
+    /** The redraw of every Screen time page built so far. A page that has gone lapses. Main thread only. */
+    private static final List<WeakReference<Runnable>> OPEN_PAGES = new ArrayList<>();
+
+    /**
+     * Applies the budget changes that are due and redraws every Screen time page still around.
+     * The settings screen calls it as it comes to the front and once a minute while it stays
+     * there. A page drew its rows once, as it opened: on the S22 a phone asleep over 4:00 came
+     * back to Wait a day to loosen still on and a waiting number still waiting, and a moved reset
+     * hour or a changed clock would leave the old day up the same way. The budget applies
+     * waiting changes as it counts, and nothing counts while this page is up.
+     */
+    public static void redrawOpenPages() {
+        if (OPEN_PAGES.isEmpty()) return;
+        BudgetChanges.applyDue(SessionBudget.now());
+        for (Iterator<WeakReference<Runnable>> pages = OPEN_PAGES.iterator(); pages.hasNext(); ) {
+            Runnable redraw = pages.next().get();
+            if (redraw == null) pages.remove();
+            else redraw.run();
+        }
+    }
+
+    /** Every row a budget change or a new day can move, in the order the page shows them. */
+    private static Setting<?>[] budgetRows() {
+        return new Setting<?>[]{Settings.SESSION_BUDGET_VIDEOS, Settings.SESSION_BUDGET_MINUTES,
+                Settings.SESSION_BUDGET_LOCK_MINUTES, Settings.SESSION_BUDGET_RESET_HOUR,
+                Settings.SESSION_BUDGET_LOCK, Settings.SESSION_BUDGET_PASSES_PER_DAY,
+                Settings.SESSION_BUDGET_WAIT_TO_LOOSEN};
+    }
+
+    /**
+     * Draws the budget rows again from what is stored now, without writing anything. The page
+     * drew them once, as it opened: Start today over left "Today: 2 minutes" on the row it had
+     * just cleared (S22), until the page was opened again.
+     */
+    private static void showTheBudgetAsItIs(Setting<?>[] budget, Preference[] rows,
+            StartTodayOverPreference startOver) {
+        for (int index = 0; index < budget.length; index++) {
+            Setting<?> setting = budget[index];
+            Preference row = rows[index];
+            if (row == null) continue;
+            if (row instanceof NumberInputPreference) {
+                NumberInputPreference number = (NumberInputPreference) row;
+                String stored = String.valueOf(setting.get());
+                if (!stored.equals(number.getText())) number.setValueWithoutPersisting(stored);
+            } else if (row instanceof TogglePreference && setting.get() instanceof Boolean) {
+                TogglePreference toggle = (TogglePreference) row;
+                boolean persistent = toggle.isPersistent();
+                toggle.setPersistent(false);
+                toggle.setChecked((Boolean) setting.get());
+                toggle.setPersistent(persistent);
+            }
+            showWhatWaits(row);
+        }
+        // A clear can only be taken back the day it was made.
+        if (startOver != null) startOver.showWhatATapDoes();
     }
 
     private void showSaveFailure(Preference preference) {

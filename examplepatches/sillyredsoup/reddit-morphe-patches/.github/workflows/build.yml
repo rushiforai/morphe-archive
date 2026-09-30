@@ -1,0 +1,35 @@
+name: Build patch bundle
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build
+        run: ./build-local.sh
+      - name: Verify Android patch classes
+        run: |
+          unzip -p reddit-mode.mpp classes.dex > /tmp/reddit-patches.dex
+          python3 -c 'import struct; data = open("/tmp/reddit-patches.dex", "rb").read(); assert data[:4] == b"dex\n" and struct.unpack_from("<I", data, 0x60)[0] > 0'
+      - name: Verify Manager source metadata
+        run: |
+          python3 -c 'import json, datetime; metadata = json.load(open("patches-bundle.json")); datetime.datetime.strptime(metadata["created_at"], "%Y-%m-%dT%H:%M:%S"); assert metadata["download_url"].endswith(".mpp")'
+      - name: Verify Morphe discovers all patches
+        run: |
+          java -jar .local-tools/morphe-desktop.jar list-patches --patches=reddit-mode.mpp --filter-package-name=com.reddit.frontpage > /tmp/reddit-patch-list.txt
+          grep -q 'Name: Reddit - Hide app posts' /tmp/reddit-patch-list.txt
+          grep -q 'Name: Reddit - NSFW mode' /tmp/reddit-patch-list.txt
+          grep -q 'Name: Reddit - Vertical home feed' /tmp/reddit-patch-list.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reddit-mode-mpp
+          path: reddit-mode.mpp

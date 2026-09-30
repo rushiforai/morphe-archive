@@ -1,0 +1,166 @@
+# Indonesian for HushThreads: the English key, a tab, the translation. One row per string.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushThreads ini, jadi tidak akan disertakan.
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	%1$d item dalam file itu bukan pengaturan yang dikenali versi HushThreads ini, jadi tidak akan disertakan.
+%1$d switch will change.	%1$d sakelar akan berubah.
+%1$d switches will change.	%1$d sakelar akan berubah.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Ini diatur saat Anda menambal, jadi Jeda tidak dapat mematikannya. Untuk memastikan bukan ini penyebabnya, tambal ulang tanpa tambalan yang tertera dalam kurung setelahnya.
+A change here applies after Threads restarts.	Perubahan di sini berlaku setelah Threads dimulai ulang.
+A diagnostic report is already being saved.	Sudah ada laporan diagnostik yang sedang disimpan.
+A file named %1$s in %2$s paused HushThreads.	File bernama %1$s di %2$s menjeda HushThreads.
+About	Tentang
+Advertising ID removed	ID iklan dihapus
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 dan versi sebelumnya tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk membuka pengaturan aplikasi ini, lalu Buka secara default.
+Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	Android memeriksa tautan Threads dengan kunci penandatanganan Meta, yang tidak dimiliki build yang ditandatangani ulang. Memilih alamatnya akan mengirim tautannya ke sini lagi. Itu tidak memulihkan verifikasi Meta, dan pengaturan tautan Anda yang lain tetap seperti semula.
+Android verified this app for Threads' web addresses, so their links open here.	Android telah memverifikasi aplikasi ini untuk alamat web Threads, jadi tautannya terbuka di sini.
+Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Threads, lalu Buka secara default.
+Back	Kembali
+Cancel	Batal
+Changing these	Mengubah pilihan ini
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Pilih file pengaturan. Sebelum apa pun diimpor, Anda akan melihat berapa sakelar yang berubah.
+Clear diagnostic data	Hapus data diagnostik
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Salin laporan singkat atau simpan laporan lengkap di Download/Morphe. Tautan, ID, cookie, dan token masuk dihilangkan. Periksa teks pribadi lainnya sebelum membagikannya.
+Copy quick report	Salin laporan singkat
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	Pengaturan tidak dapat diimpor, dan pengaturan sebelumnya tidak dapat dikembalikan. Periksa sakelar di layar ini.
+Couldn't import the settings. Nothing was changed.	Pengaturan tidak dapat diimpor. Tidak ada yang diubah.
+Couldn't open that file. Nothing was changed.	File itu tidak dapat dibuka. Tidak ada yang diubah.
+Couldn't open the file picker. Try again.	Pemilih file tidak dapat dibuka. Coba lagi.
+Couldn't put back the diagnostic data. Try again.	Data diagnostik tidak dapat dikembalikan. Coba lagi.
+Couldn't save the settings file. Try again.	File pengaturan tidak dapat disimpan. Coba lagi.
+Couldn't start that. Try again in a moment.	Tidak dapat dimulai. Coba lagi dalam beberapa saat.
+Couldn't start the report export. Try again shortly.	Ekspor laporan tidak dapat dimulai. Coba lagi dalam beberapa saat.
+Couldn't turn HushThreads back on. Try again.	HushThreads tidak dapat diaktifkan lagi. Coba lagi.
+Debug logging	Pencatatan debug
+Diagnostic data cleared. Tap again to put it back.	Data diagnostik dihapus. Ketuk lagi untuk mengembalikannya.
+Diagnostic data put back.	Data diagnostik dikembalikan.
+Diagnostic report copied to the clipboard.	Laporan diagnostik disalin ke papan klip.
+Empties the log and the hook findings a report would include.	Mengosongkan log dan temuan hook yang akan dimasukkan ke laporan.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Semua sakelar kecuali Pencatatan debug dianggap nonaktif, dan yang diatur saat Anda menambal tetap aktif. Pengaturan Anda tetap seperti semula.
+Export diagnostic report	Ekspor laporan diagnostik
+Export settings	Ekspor pengaturan
+Feed	Feed
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.
+Hide ads	Sembunyikan iklan
+HushThreads %1$s on Threads %2$s	HushThreads %1$s di Threads %2$s
+HushThreads %1$s targets Threads %2$s.	HushThreads %1$s ditujukan untuk Threads %2$s.
+HushThreads pauses when Threads restarts.	HushThreads dijeda saat Threads dimulai ulang.
+HushThreads turns back on when Threads restarts.	HushThreads aktif lagi saat Threads dimulai ulang.
+It targets Threads %1$s.	Rilis ini ditujukan untuk Threads %1$s.
+Links, updates, backup and more	Tautan, pembaruan, cadangan, dan lainnya
+None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Tidak ada alamat web Threads yang dipilih untuk aplikasi ini, jadi tautannya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
+Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Hanya sebagian alamat web Threads yang dipilih untuk aplikasi ini, dan tautan ke alamat lainnya terbuka di tempat lain. Ketuk untuk memilihnya di pengaturan Android.
+Privacy	Privasi
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Simpan sakelar Anda ke sebuah file. Jeda dan Pencatatan debug tidak disertakan, begitu pula pemeriksaan rilis.
+Saved. Restart Threads to apply this change.	Tersimpan. Mulai ulang Threads untuk menerapkan perubahan ini.
+Screens that check Threads' own signature open again on this re-signed build.	Layar yang memeriksa tanda tangan Threads sendiri dapat dibuka lagi di build yang ditandatangani ulang ini.
+Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	Pengaturan diekspor. Aplikasi yang menyimpan file itu tidak mengizinkan HushThreads membacanya kembali, jadi file itu tidak diperiksa.
+# context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
+Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	Postingan bersponsor dihapus dari Untuk Anda dan Mengikuti sebelum Threads menampilkannya, jadi tidak ada celah kosong.
+# context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
+Sponsored posts in For you and Following	Postingan bersponsor di Untuk Anda dan Mengikuti
+Stop analytics uploads	Hentikan unggahan analitik
+# context: xmt and slof are the tags' own names in the link and stay as they are
+Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.	Menghapus tag pelacakan seperti xmt dan slof dari tautan postingan yang Anda salin atau bagikan. Bagian lain tautan tetap seperti semula.
+The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	Aplikasi yang menyimpan file itu terlalu lama, jadi HushThreads berhenti menunggu. Tidak ada yang diubah.
+The app holding the last settings file still hasn't answered. Try again later.	Aplikasi yang menyimpan file pengaturan terakhir masih belum merespons. Coba lagi nanti.
+The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	Aplikasi yang menyimpan file pengaturan terlalu lama, jadi HushThreads berhenti menunggu. Aplikasi itu mungkin masih menyelesaikan penyimpanannya, jadi periksa file itu sebelum mengandalkannya.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s, lalu ketuk Lanjutkan lagi.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	File pengaturan sudah disimpan, tetapi isinya saat dibaca kembali tidak sama dengan yang ditulis. Simpan lagi sebagai file baru.
+The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.	Log penggunaan dan peristiwa yang dikirim Threads ke Meta diarahkan ke alamat yang tidak merespons. Feed, postingan, dan balasan Anda tetap berfungsi seperti biasa.
+Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads tidak dapat membaca ID iklan ponsel Anda. Izin untuk itu sudah dihapus dari build ini.
+Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Threads berhenti mendadak atau macet dalam satu menit setelah dibuka, tiga kali berturut-turut, jadi HushThreads menjeda dirinya sendiri.
+Threads' web addresses are selected for this app in Android's settings, so their links open here.	Alamat web Threads dipilih untuk aplikasi ini di pengaturan Android, jadi tautannya terbuka di sini.
+Tracking in shared links and analytics uploads	Pelacakan di tautan yang dibagikan dan unggahan analitik
+Try again, or go back to Threads.	Coba lagi, atau kembali ke Threads.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Sampai Anda melanjutkan, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif.
+Full report saved to %1$s	Laporan lengkap disimpan ke %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya
+HushThreads is on	HushThreads aktif
+HushThreads is paused	HushThreads dijeda
+HushThreads settings	Pengaturan HushThreads
+HushThreads settings couldn't open	Pengaturan HushThreads tidak dapat dibuka
+Import	Impor
+Import settings	Impor pengaturan
+Importing settings	Mengimpor pengaturan
+Licenses	Lisensi
+Links	Tautan
+OK	Oke
+Pause HushThreads	Jeda HushThreads
+Re-signed build fix	Perbaikan build yang ditandatangani ulang
+Reading the settings file	Membaca file pengaturan
+Remove tracking from shared links	Hapus pelacakan dari tautan yang dibagikan
+Retry	Coba lagi
+Save full report	Simpan laporan lengkap
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushThreads releases	Periksa rilis HushThreads baru
+Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Periksa GitHub sekali sehari saat mulai dan tampilkan rilis baru di ringkasan. Mati secara bawaan. Tidak mengunduh apa pun.
+Check now	Periksa sekarang
+Asks GitHub for the newest release right now, even with the switch above off.	Menanyakan rilis terbaru ke GitHub sekarang juga, meski sakelar di atas mati.
+Checking GitHub now.	Sedang memeriksa GitHub.
+HushThreads %1$s is out. Update it in Morphe Manager.	HushThreads %1$s sudah dirilis. Perbarui di Morphe Manager.
+Version %1$s for Threads %2$s	Versi %1$s untuk Threads %2$s
+You have the newest HushThreads release.	Anda sudah memakai rilis HushThreads terbaru.
+The newest HushThreads release is %1$s.	Rilis HushThreads terbaru adalah %1$s.
+Couldn't reach GitHub. Try again later.	GitHub tidak dapat dihubungi. Coba lagi nanti.
+GitHub is turning away checks from this network for now. Try again later.	GitHub sedang menolak pemeriksaan dari jaringan ini. Coba lagi nanti.
+GitHub's answer couldn't be used. Try again later.	Jawaban GitHub tidak dapat digunakan. Coba lagi nanti.
+Saving the settings file	Menyimpan file pengaturan
+Set when you patched	Diatur saat Anda menambal
+Settings couldn't open	Pengaturan tidak dapat dibuka
+Settings couldn't refresh completely. Reopen settings and try again.	Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.
+Settings exported.	Pengaturan diekspor.
+Settings imported. %1$d switch changed.	Pengaturan diimpor. %1$d sakelar berubah.
+Settings imported. %1$d switches changed.	Pengaturan diimpor. %1$d sakelar berubah.
+Source code and issues	Kode sumber dan laporan masalah
+Stays in while paused	Tetap aktif saat dijeda
+Tap to turn it back on.	Ketuk untuk mengaktifkan HushThreads lagi.
+That file is too large to be a settings file. Nothing was changed.	File itu terlalu besar untuk sebuah file pengaturan. Tidak ada yang diubah.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	File itu bukan teks yang dapat dibaca, jadi mungkin rusak saat ditransfer. Tidak ada yang diubah.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	File itu mencantumkan satu pengaturan dua kali, jadi tidak jelas nilai mana yang harus dipakai. Tidak ada yang diubah.
+That isn't a HushThreads settings file. Nothing was changed.	Itu bukan file pengaturan HushThreads. Tidak ada yang diubah.
+That settings file holds a value HushThreads can't read. Nothing was changed.	File pengaturan itu memuat nilai yang tidak dapat dibaca HushThreads. Tidak ada yang diubah.
+That settings file is damaged or only partly downloaded. Nothing was changed.	File pengaturan itu rusak atau hanya terunduh sebagian. Tidak ada yang diubah.
+That settings file was written by a newer HushThreads than this one. Nothing was changed.	File pengaturan itu dibuat oleh versi HushThreads yang lebih baru daripada versi ini. Tidak ada yang diubah.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Laporan diagnostik belum dapat disimpan. Coba lagi dalam beberapa saat.
+The diagnostic report couldn't be saved. Try again.	Laporan diagnostik tidak dapat disimpan. Coba lagi.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.	File %1$s tidak dapat dihapus. Hapus file itu dari %2$s untuk mengaktifkan HushThreads lagi.
+Your choices are saved. Tap Resume, then restart Threads.	Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Threads.
+the re-signed build fix	perbaikan build yang ditandatangani ulang
+The setting couldn't finish updating. Its saved value is shown.	Pengaturan ini tidak dapat selesai diperbarui. Nilai yang tersimpan ditampilkan.
+There's no diagnostic data to clear.	Tidak ada data diagnostik yang dapat dihapus.
+There's no diagnostic data to put back.	Tidak ada data diagnostik yang dapat dikembalikan.
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Semua ini dipilih di Morphe Manager saat Anda menambal, dan Jeda tidak mematikannya. Tambal ulang untuk mengubahnya.
+This phone has no file picker, so there's no way to choose a file here.	Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.
+Version	Versi
+Record patch activity and show errors for a bug report. Leave off during normal use.	Catat aktivitas patch dan tampilkan kesalahan untuk laporan bug. Matikan saat penggunaan biasa.
+You paused HushThreads.	Anda menjeda HushThreads.
+Your switches already match that file, so nothing will change.	Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.
+Copy a short report to the clipboard.	Salin laporan singkat ke papan klip.
+Save the full report in Download/Morphe.	Simpan laporan lengkap di Download/Morphe.
+Settings imported.	Pengaturan diimpor.
+No app on this phone can open the link. The address is %1$s.	Tidak ada aplikasi di ponsel ini yang dapat membuka tautan ini. Alamatnya %1$s.
+Pause, backup and diagnostics	Jeda, cadangan, dan diagnostik
+Updates	Pembaruan
+Jump to a section	Lompat ke bagian
+Go straight to one group of settings. Back returns to where you were.	Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.
+Browse settings	Jelajahi pengaturan
+More settings	Pengaturan lainnya
+No matching settings	Tidak ada pengaturan yang cocok
+%1$d setting found	%1$d pengaturan ditemukan
+%1$d settings found	%1$d pengaturan ditemukan
+Try a different word or clear the search.	Coba kata lain atau hapus pencarian.
+Search settings	Cari pengaturan
+Clear search	Hapus pencarian
+Your controls are active.	Kontrol Anda aktif.
+Pause	Jeda
+Resume	Lanjutkan
+Undo	Urungkan
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Threads' web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Tautan yang didukung
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	“Buka link yang didukung” nonaktif untuk aplikasi ini di pengaturan Android. Ketuk untuk mengaktifkannya.
+Android didn't say which links open here. Tap to check in Android's settings.	Android tidak memberi tahu tautan mana yang terbuka di sini. Ketuk untuk memeriksanya di pengaturan Android.
+Selecting links by hand	Memilih tautan secara manual
+# context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
+the removed advertising ID permission	izin ID iklan yang dihapus

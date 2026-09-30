@@ -8,19 +8,21 @@ package app.crimera.patches.instagram.misc.overflowMenuButton.reels
 
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.AddReelButtonExtensionFingerprint
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.FeedReplaceAudioDialogHelperFingerprint
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.utils.changeFirstString
 import app.crimera.utils.methodExtractor
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 @Suppress("unused")
 val reelsOverflowMenuButtonEntity =
     bytecodePatch(
         description = "Entity class for reels overflow menu button",
     ) {
+        dependsOn(instagramExtensionPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         execute {
             FeedReplaceAudioDialogHelperFingerprint.method.apply {

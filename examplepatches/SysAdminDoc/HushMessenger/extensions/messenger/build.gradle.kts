@@ -9,7 +9,7 @@ android {
     defaultConfig {
         minSdk = 28
         targetSdk = 36
-        versionCode = 50
+        versionCode = 60
         versionName = project.version.toString()
     }
     buildFeatures { buildConfig = true }
@@ -23,6 +23,15 @@ dependencies {
 }
 
 dependencyLocking { lockAllConfigurations() }
+
+// Robolectric and the Android test tooling bring Bouncy Castle 1.85 and 1.79 into the test graphs.
+// See gradle/libs.versions.toml for the advisories and why 1.86.
+val safeBouncyCastleVersion = libs.versions.bouncycastle.get()
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle") useVersion(safeBouncyCastleVersion)
+    }
+}
 
 tasks.withType<Test>().configureEach {
     // Robolectric's API 36 file-descriptor bridge needs this JDK 21 export.

@@ -10,9 +10,11 @@ package app.morphe.patches.facebook.misc.resignedtrust
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -26,8 +28,9 @@ private const val ORIGINAL_SIGNERS = "Lapp/morphe/extension/facebook/misc/Facebo
 @Suppress("unused")
 val restoreTrustPatch = bytecodePatch(
     name = "Restore screens on re-signed builds",
-    description = "Makes profiles and some Settings pages open again on a re-signed build. A " +
-        "Root Mount install doesn't need this patch.",
+    description = "Makes profiles and some Settings pages open again on a re-signed build, and lets a " +
+        "Messenger, Messenger Lite or Facebook Lite you patch with this build's own key sign in through it, " +
+        "the same as the real Meta app would. A Root Mount install doesn't need this patch.",
     default = true,
 ) {
     category("Fixes")
@@ -56,6 +59,17 @@ val restoreTrustPatch = bytecodePatch(
         check(constructor != null) { "$signers has no (List, boolean, boolean) constructor" }
 
         method.answerOriginalSigners(packageInfo, signers)
+
+        // The Debug logging test of a same-key Messenger's link. A build without its anchors, or
+        // where anything else about the test fails, still gets the fix, and the settings screen then
+        // shows no test row: patched() is filled last, so a fill that stops part way runs nothing.
+        try {
+            fillMessengerLinkStubs(findMessengerLinkAnchors())
+        } catch (missing: Exception) {
+            // A missing anchor is a PatchException with its reason; anything else is a bug, named as one.
+            val why = if (missing is PatchException) missing.message else "${missing::class.java.name}: ${missing.message}"
+            patchLog.warning("Restore screens on re-signed builds: $why. The Messenger link test is left out.")
+        }
 
         enableStatus("restoreTrust")
     }

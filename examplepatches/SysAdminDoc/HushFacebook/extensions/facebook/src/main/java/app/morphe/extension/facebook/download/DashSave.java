@@ -30,9 +30,9 @@ import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
  * Saves one DASH video track and one audio track as one MP4 file.
  *
  * <p>A DASH manifest keeps the picture and the sound in two files. One plain fetch gets each file.
- * Then {@code MediaMuxer} copies the samples of both into one file. It does not decode or encode
- * them again. So the file has the quality that the player streams, and the join takes less than a
- * second.
+ * Then {@code MediaMuxer} copies the samples of both into one file, or {@link Mp4Join} does for a
+ * picture the muxer won't write ({@link #ownWriter}). Neither decodes or encodes them again. So the
+ * file has the quality that the player streams, and the join takes less than a second.
  *
  * <p>The two tracks and the result go into the cache of the app first, because the muxer must seek
  * in its files. Only the finished file goes into the gallery, through the same
@@ -65,8 +65,9 @@ final class DashSave {
     private static volatile Boolean canWriteAv1;
 
     /**
-     * Whether this device can save an AV1 track. The muxer writes AV1 into an MP4 from Android 14.
-     * The device must also have an AV1 decoder, or it cannot play the file.
+     * Whether this device can save an AV1 track: whether it has an AV1 decoder, without which it
+     * can't play the file. The muxer writes AV1 into an MP4 from Android 14, and {@link Mp4Join}
+     * before that.
      */
     static boolean canWriteAv1() {
         if (canWriteAv1 == null) canWriteAv1 = hasAv1Decoder();
@@ -74,8 +75,6 @@ final class DashSave {
     }
 
     private static boolean hasAv1Decoder() {
-        if (Build.VERSION.SDK_INT < 34) return false;
-
         try {
             for (MediaCodecInfo codec : new MediaCodecList(MediaCodecList.REGULAR_CODECS).getCodecInfos()) {
                 if (codec.isEncoder()) continue;
@@ -151,7 +150,15 @@ final class DashSave {
             if (reserve(joined, room) < room) {
                 return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "not enough free space to join the tracks");
             }
-            if (!join(videoFile, audioFile, joined, progress)) return cancelledJoining();
+            boolean own = ownWriter(video.codecs, Build.VERSION.SDK_INT);
+            if (own) {
+                String codec = video.codecs.startsWith("vp09") ? "VP9" : "AV1 before Android 14";
+                MediaDownload.info(() -> "joining the tracks without MediaMuxer, which can't write " + codec
+                    + " into an MP4");
+            }
+            if (!(own ? Mp4Join.join(videoFile, audioFile, joined, progress) : join(videoFile, audioFile, joined, progress))) {
+                return cancelledJoining();
+            }
             // The tracks are in the joined file now. Kept, they'd sit beside it and the gallery's
             // copy of it: the video on the phone four times over.
             videoFile = discard(videoFile);
@@ -179,6 +186,15 @@ final class DashSave {
             discard(audioFile);
             discard(joined);
         }
+    }
+
+    /**
+     * Whether a picture of [codecs] is joined by {@link Mp4Join} on Android [sdk], rather than by
+     * MediaMuxer: VP9, which the muxer never writes into an MP4, and AV1 before Android 14, when the
+     * muxer learned it. H.264, H.265 and AV1 from Android 14 keep the muxer, as every save did.
+     */
+    static boolean ownWriter(String codecs, int sdk) {
+        return codecs.startsWith("vp09") || (codecs.startsWith("av01") && sdk < 34);
     }
 
     // ---------------------------------------------------------------- work files
@@ -420,6 +436,28 @@ final class DashSave {
 
     /** The most tracks a saved file's report line describes. */
     private static final int MAX_DESCRIBED_TRACKS = 4;
+
+    /**
+     * The short side of the first video track [file] holds, in pixels, or 0 when it has none or the
+     * phone can't read it. What a save's "lower" note is weighed against: the file that actually
+     * reached the gallery, never a label read off its address or a track's own declared size.
+     */
+    static int savedVideoShortSide(File file) {
+        MediaExtractor extractor = null;
+        try {
+            extractor = new MediaExtractor();
+            extractor.setDataSource(file.getPath());
+            MediaFormat format = selectTrack(extractor, "video/");
+            if (format == null) return 0;
+            Integer width = number(format, MediaFormat.KEY_WIDTH);
+            Integer height = number(format, MediaFormat.KEY_HEIGHT);
+            return width == null || height == null ? 0 : Math.min(width, height);
+        } catch (Throwable t) {
+            return 0;
+        } finally {
+            if (extractor != null) attempt(null, extractor::release);
+        }
+    }
 
     /**
      * What [file] holds, read back from the file itself: each track's codec and profile, its size or

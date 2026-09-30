@@ -7,11 +7,12 @@
 package app.crimera.patches.instagram.misc.directMessage.saveAllMessages
 
 import app.crimera.patches.instagram.entity.messageInfoEntity.messageInfoEntity
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -29,21 +30,20 @@ val saveAllMessagesPatch =
         dependsOn(messageInfoEntity)
         execute {
 
-            // Make Save option available for all DM content.
+            // Make Save option available for all DM content: the save row is added behind two
+            // checks, and the first, whether the item can be saved, is removed.
             DMLongPressButtonAdderFingerprint.method.apply {
-                val allIfNez = instructions.filter { it.opcode == Opcode.IF_NEZ }
-                allIfNez.firstOrNull { instruction ->
-                    val index = instruction.location.index
-                    val opCodeOfPrevInstruction = getInstruction(index - 1).opcode
-                    val opCodeOfNextInstruction = getInstruction(index + 1).opcode
-
-                    if (opCodeOfPrevInstruction == Opcode.IF_EQZ && opCodeOfNextInstruction == Opcode.SGET_OBJECT) {
-                        removeInstruction(index - 1)
-                        true
-                    } else {
-                        false
+                val saveabilityChecks =
+                    instructions.filter { instruction ->
+                        val index = instruction.location.index
+                        instruction.opcode == Opcode.IF_NEZ &&
+                            getInstruction(index - 1).opcode == Opcode.IF_EQZ &&
+                            getInstruction(index + 1).opcode == Opcode.SGET_OBJECT
                     }
+                if (saveabilityChecks.size != 1) {
+                    throw PatchException("Expected one save row guard in the DM long-press menu, found ${saveabilityChecks.size}")
                 }
+                removeInstruction(saveabilityChecks.single().location.index - 1)
             }
         }
     }

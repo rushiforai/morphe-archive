@@ -27,13 +27,18 @@ internal fun fixtureMethod(
         .apply { addInstructionsWithLabels(0, body) }
 }
 
-internal fun fixtureClass(type: String, methods: List<Method> = emptyList(), originalName: String? = null): MutableClass {
+internal fun fixtureClass(
+    type: String,
+    methods: List<Method> = emptyList(),
+    originalName: String? = null,
+    interfaces: List<String> = emptyList(),
+): MutableClass {
     val fields = originalName?.let {
         listOf(ImmutableField(type, "__redex_internal_original_name", "Ljava/lang/String;",
             AccessFlags.STATIC.value, ImmutableStringEncodedValue(it), null, null))
     }.orEmpty()
     return MutableClass(ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;",
-        emptyList(), null, emptySet(), fields, methods))
+        interfaces, null, emptySet(), fields, methods))
 }
 
 internal const val PEOPLE_JEWEL_HOOK = "LX/HAR;->A01(LX/HAR;)Z"

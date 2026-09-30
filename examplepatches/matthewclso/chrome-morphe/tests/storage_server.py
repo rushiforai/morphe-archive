@@ -6,7 +6,8 @@ import json
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        query = parse_qs(urlparse(self.path).query)
+        url = urlparse(self.path)
+        query = parse_qs(url.query)
         value = query.get("value", [None])[0]
         if value not in (None, "regular", "private", "custom"):
             self.send_error(400)
@@ -16,7 +17,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         script = ""
-        if value:
+        if url.path == "/clear":
+            script = "localStorage.removeItem('morphe_fixture');document.cookie='morphe_fixture=; Path=/; Max-Age=0';"
+        elif value:
             script = "localStorage.setItem('morphe_fixture', %s);document.cookie='morphe_fixture=%s; Path=/; SameSite=Lax';" % (json.dumps(value), value)
         html = """<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Morphe storage fixture</title><style>body{font:22px sans-serif;padding:24px}</style>

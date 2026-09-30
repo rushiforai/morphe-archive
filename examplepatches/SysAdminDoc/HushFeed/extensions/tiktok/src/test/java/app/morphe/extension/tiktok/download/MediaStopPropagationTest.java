@@ -259,7 +259,7 @@ public class MediaStopPropagationTest {
     }
 
     private static HttpURLConnection response(URL url, InputStream body) {
-        return new HttpURLConnection(url) {
+        return new FakeHttpsConnection(url) {
             @Override public int getResponseCode() { return HTTP_OK; }
             @Override public InputStream getInputStream() { return body; }
             @Override public void connect() { }

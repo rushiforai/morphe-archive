@@ -52,13 +52,18 @@ Spotify or cover every resource configuration.
 Record the stock APK's version, version code, ABI, SHA-256, Android version,
 and Morphe version. Apply each patch separately and together, inspect the
 output, and test the affected behavior on Android. Record missing runtime
-checks in [the verification record](docs/verification.md).
+checks in your pull request description.
 
 Keep compatibility targets experimental until the normal Manager source-add,
 patch, installation, and update flows pass. Test sharing with tracks, albums,
 playlists, and episodes, including timestamp links. Check theme colors in
 Home, library, player, settings, and dialogs. Confirm login, playback, queue,
-Connect, background playback, and notifications still work.
+Connect, background playback, and notifications still work. Check that
+unsupported inputs and invalid color options fail clearly without producing
+an APK. Test source updates, same-key reinstall, cancellation, and recovery
+to stock Spotify. Confirm a push starts CI and prerelease automation for the
+expected commit. Record the exact device, build, and results in the pull
+request before enabling a stable release.
 
 When importing code, record its source revision, license, retained notices,
 and local changes in [third-party sources](THIRD_PARTY_NOTICES.md).

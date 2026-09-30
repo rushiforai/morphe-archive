@@ -74,6 +74,43 @@ val modeTogglePatch = bytecodePatch(
             const/4 v0, 0x0
             return v0
         """)
+        check(activity.fields.any { it.name == "g3" && it.type == "Lcn4;" })
+        check(activity.fields.any { it.name == "h3" && it.type == "Ladc;" })
+        val hubAccess = classDefBy("Ltr4;").methods.single { it.name == "run" }
+        for (ref in listOf("Lmcc;->e:Lyzi;", "Lyzi;->a:Ln7i;", "Lvzi;->S:B")) {
+            check(hubAccess.implementation!!.instructions.any {
+                (it as? ReferenceInstruction)?.reference.toString() == ref
+            })
+        }
+        bridge("hubPane", """
+            check-cast p0, $ACTIVITY
+            iget-object v0, p0, $ACTIVITY->g3:Lcn4;
+            if-eqz v0, :no_hub
+            invoke-virtual {v0}, Lcn4;->get()Ljava/lang/Object;
+            move-result-object v0
+            check-cast v0, Ljava/lang/Integer;
+            invoke-virtual {v0}, Ljava/lang/Integer;->intValue()I
+            move-result v0
+            const/4 v1, 0x1
+            if-ne v0, v1, :no_hub
+            iget-object v0, p0, $ACTIVITY->h3:Ladc;
+            if-eqz v0, :no_hub
+            iget-object v0, v0, Ladc;->a:Lxie;
+            invoke-virtual {v0}, Lyie;->b()Ljava/lang/Object;
+            move-result-object v0
+            check-cast v0, Lmcc;
+            if-eqz v0, :no_hub
+            iget-object v0, v0, Lmcc;->e:Lyzi;
+            iget-object v0, v0, Lyzi;->a:Ln7i;
+            iget-object v0, v0, Ln7i;->U:Ljava/lang/Object;
+            check-cast v0, Lvzi;
+            if-eqz v0, :no_hub
+            iget-byte v0, v0, Lvzi;->S:B
+            return v0
+            :no_hub
+            const/4 v0, -0x1
+            return v0
+        """)
         bridge("tabCount", """
             check-cast p0, $ACTIVITY
             invoke-virtual {p0}, $selector

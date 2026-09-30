@@ -67,7 +67,7 @@ internal const val TRACKING_NAME = "trackingName"
 internal const val SEND_REQUEST = "sendRequest"
 internal const val READABLE_MAP = "Lcom/facebook/react/bridge/ReadableMap;"
 internal const val READABLE_ARRAY = "Lcom/facebook/react/bridge/ReadableArray;"
-private const val STRING = "Ljava/lang/String;"
+internal const val STRING = "Ljava/lang/String;"
 
 /** React Native's Networking spec: method, url, request id, headers, data, response type, incremental, timeout, credentials. */
 internal val SEND_REQUEST_PARAMETERS = listOf(STRING, STRING, "D", READABLE_ARRAY, READABLE_MAP, STRING, "Z", "D", "Z")
@@ -88,11 +88,11 @@ internal data class BodyRead(val index: Int, val body: Int, val data: Int)
 private val Instruction.string: String?
     get() = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
 
-private val Instruction.referenceText: String?
+internal val Instruction.referenceText: String?
     get() = (this as? ReferenceInstruction)?.reference?.toString()
 
 /** Whether [instruction] can write [register], a wide write counting for both halves. */
-private fun writes(instruction: Instruction, register: Int): Boolean {
+internal fun writes(instruction: Instruction, register: Int): Boolean {
     val opcode = instruction.opcode
     if (!opcode.setsRegister() || instruction !is OneRegisterInstruction) return false
     val first = instruction.registerA
@@ -104,7 +104,7 @@ private fun writes(instruction: Instruction, register: Int): Boolean {
  * every path into [at], branches, switches and exception handlers included, each path stops at its
  * first write. Null when a path reaches the method's start with no write.
  */
-private fun ControlFlow.writesReaching(at: Int, register: Int): Set<Int>? {
+internal fun ControlFlow.writesReaching(at: Int, register: Int): Set<Int>? {
     val into = Array(instructions.size) { mutableListOf<Int>() }
     for (from in instructions.indices) {
         normal[from].forEach { into[it] += from }
@@ -129,7 +129,7 @@ private fun ControlFlow.writesReaching(at: Int, register: Int): Set<Int>? {
 }
 
 /** Whether every write of [register] that can reach [at] loads exactly [literal]. */
-private fun ControlFlow.loads(at: Int, register: Int, literal: String): Boolean {
+internal fun ControlFlow.loads(at: Int, register: Int, literal: String): Boolean {
     val found = writesReaching(at, register) ?: return false
     return found.isNotEmpty() && found.all { index ->
         val opcode = instructions[index].opcode
@@ -138,7 +138,7 @@ private fun ControlFlow.loads(at: Int, register: Int, literal: String): Boolean 
 }
 
 /** The registers of a two-register ReadableMap.getString call, receiver first, or null for anything else. */
-private fun getStringCall(instruction: Instruction): Pair<Int, Int>? {
+internal fun getStringCall(instruction: Instruction): Pair<Int, Int>? {
     if (instruction.opcode != Opcode.INVOKE_INTERFACE || instruction.referenceText != GET_STRING) return null
     val call = instruction as? FiveRegisterInstruction ?: return null
     return if (call.registerCount == 2) call.registerC to call.registerD else null

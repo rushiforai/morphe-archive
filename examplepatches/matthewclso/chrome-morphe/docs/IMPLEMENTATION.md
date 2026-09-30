@@ -7,7 +7,7 @@ exact descriptors, call counts and resource IDs validate the supported artifact.
 ## Settings and state
 
 A resource patch adds a native Preference entry to MainSettings, opening a private, non-exported MorpheSettingsActivity.
-The four switches use one SharedPreferences file, `chrome_patch`. The old `incognito_default` choice migrates to
+The feature switches use one SharedPreferences file, `chrome_patch`. The old `incognito_default` choice migrates to
 `remember_last_mode`, preserving an explicit opt-out. `last_mode_incognito` stores only a mode bit.
 Black mode is controlled only from Morphe settings. Hiding the toolbar button never hides the settings entry.
 
@@ -32,6 +32,17 @@ Toolbar inflation is hooked immediately after the native super call: later R8 co
 jump straight to a return. Branch-target external-link instructions are replaced rather than inserting a skippable prefix.
 The button reads final model state before drawing; a disabled button uses GONE so the address field reclaims its width.
 
+Closing the last Incognito tab in the Hub retains the focused empty Incognito pane and its native new-tab control.
+Its coordinator is still destroyed, releasing the closed session's UI resources. Native tab removal, model selection,
+profile destruction and unfocused-pane cleanup remain intact. The empty pane does not retain a hidden tab or a live
+private tab model. Remembered mode reads the focused pane while the Hub is visible, and the current model otherwise.
+This separates the user's choice of empty pane from Chrome's session lifetime. The empty-pane behavior is independent
+of the remembered-launch-mode toggle.
+
+The exact-target [IncognitoTabSwitcherPane](https://github.com/chromium/chromium/blob/153.0.8010.53/chrome/android/features/tab_ui/java/src/org/chromium/chrome/browser/tasks/tab_management/IncognitoTabSwitcherPane.java)
+source explains pane cleanup. [ChromeNextTabPolicySupplier](https://github.com/chromium/chromium/blob/153.0.8010.53/chrome/android/java/src/org/chromium/chrome/browser/app/tabmodel/ChromeNextTabPolicySupplier.java)
+provides the native Hub-visible check. Shipped bytecode validates each hook; source names alone are not patch fingerprints.
+
 ## Bottom positioning
 
 The native toolbar controller retains its IME, tab-switcher and Find-in-page transitions. Runtime gates suppress its
@@ -41,6 +52,36 @@ choosing Top in Chrome's address-bar settings disables True bottom. Disabling th
 The suggestions container uses the available space above the actual toolbar. NTP morph hooks preserve a real editable
 bottom field. HubToolbarView keeps its native controls/listeners; its wrapper anchors at the bottom and the tab grid
 reserves the measured toolbar/search height. Layout changes recalculate that reservation for rotation and pane changes. The separate SearchActivity translates its field above the visible keyboard without changing its native wrap-content measurement, and removes the native below-toolbar anchor from its result container, reserving the space above the field. Keeping measurement at the original position prevents a portrait margin from collapsing the field when the window becomes shorter in landscape.
+
+## Tab picker
+
+`TabPickerPatch` connects a horizontal Android view inside the native toolbar resource container to the current
+`TabModel`. It stores no tab metadata on disk and performs no favicon network requests. Favicons come from Chrome's
+`TabFavicon.getBitmapWithFallback`; unavailable icons use a local fallback. Selection and closure resolve IDs in the
+current model at click time, using native `setIndex(FROM_USER)` and `TabRemover.closeTabs` with dialogs allowed.
+Native group protections and regular-tab Undo remain in that path. The last private close first focuses the native Hub;
+a bounded pre-draw callback completes it only while the same model is still current and unlocked. Native empty-pane
+handling then retains the viewer without retaining a private session.
+
+The picker inserts a 48dp margin above ToolbarPhone before native container measurement. The native measured-height
+supplier feeds the bottom-controls stack, reserving page space and moving the entire captured toolbar when scrolling.
+Chrome temporarily hides its Android toolbar while showing the compositor texture; this must not remove the picker's
+measured height. Active-tab outlines are inset 6dp vertically without shrinking the 48dp tap targets. The native hairline
+is invisible only while the picker is present and is restored when the picker hides. The picker disallows parent
+touch interception on the initial down event, including events directed to tab children, so horizontal gestures scroll
+the row rather than invoking Chrome's toolbar tab-switch gesture. Explicit pressed/focused backgrounds avoid an
+extra selected-state underline on the S26 while retaining the accessibility selection state.
+
+The opt-in `tab_picker` choice requires `true_bottom`. Settings disables the switch while True bottom is off without
+changing the saved choice. Only full ChromeTabbedActivity receives the picker. It hides for the Hub, address entry,
+paused/unfocused activities, a native top-position transition and native pending/showing Incognito authentication.
+Private metadata is cleared on pause or hiding. Native title/favicon/order changes invalidate the view; count and active
+index are checked before draw without a timer. Activity references are weak, and rows retain IDs rather than native Tabs.
+
+The exact-target [ToolbarControlContainer](https://github.com/chromium/chromium/blob/153.0.8010.53/chrome/browser/ui/android/toolbar/java/src/org/chromium/chrome/browser/toolbar/top/ToolbarControlContainer.java),
+[TabRemover](https://github.com/chromium/chromium/blob/153.0.8010.53/chrome/browser/tabmodel/android/java/src/org/chromium/chrome/browser/tabmodel/TabRemover.java)
+and [TabFavicon](https://github.com/chromium/chromium/blob/153.0.8010.53/chrome/android/java/src/org/chromium/chrome/browser/tab/TabFavicon.java)
+sources explain these native boundaries; shipped bytecode validates the descriptors.
 
 ## Black theme
 

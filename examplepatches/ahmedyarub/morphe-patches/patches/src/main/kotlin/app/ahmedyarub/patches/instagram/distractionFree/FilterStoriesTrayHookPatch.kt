@@ -7,10 +7,9 @@
  * "Collection contains no element matching the predicate" and both story-filter patches abort.
  *
  * This version pins the exact concrete class com.instagram.model.reels.ReelResponseItem (which
- * carries the reel-type enum field, e.g. A03 on 448) and injects the same
- * FilterStoriesListPatch->addStoryIfNotBlocked call the library extension provides, so it works
- * across builds without the ENDS_WITH ambiguity. filterStories(...) (which fills the blocked-type
- * set on the extension) is still the library helper and is unchanged.
+ * carries the reel-type enum field) and routes each tray item through StoryTray, which asks the
+ * library's filter and falls back to a plain add if the filter throws. filterStories(...), which
+ * fills the blocked-type set the filter reads, is still the library helper and is unchanged.
  */
 package app.ahmedyarub.patches.instagram.distractionFree
 
@@ -30,12 +29,15 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
-private const val EXTENSION_CLASS =
-    "Lapp/morphe/library/extension/instagram/patches/FilterStoriesListPatch;"
+private const val STORY_TRAY_CLASS = "Lapp/ahmedyarub/extension/instagram/StoryTray;"
 private const val REEL_RESPONSE_ITEM_CLASS = "Lcom/instagram/model/reels/ReelResponseItem;"
 
-// The story tray parser: parses the "tray" json array of reel response items.
+/**
+ * The story tray parser: parses the "tray" json array of reel response items. Named because the
+ * strings alone also match the tray's serializer, which writes the same keys back out.
+ */
 internal object TrayParserFingerprint : Fingerprint(
+    name = "unsafeParseFromJson",
     strings = listOf("tray", "hallpass_share_info"),
 )
 
@@ -85,21 +87,31 @@ val filterStoriesTrayHook =
                     }?.location?.index
                         ?: throw PatchException("No story-list add after the tray key")
 
+                // add() returns a boolean. The replacement returns nothing, so a move-result of
+                // that boolean would be left reading a result that no longer exists.
+                if (getInstruction(addIndex + 1).opcode == Opcode.MOVE_RESULT) {
+                    throw PatchException("The tray parser uses the result of its story-list add")
+                }
+
                 val addInstruction = getInstruction<FiveRegisterInstruction>(addIndex)
                 val storiesListRegister = addInstruction.registerC
                 val currentStoryRegister = addInstruction.registerD
+                // The replacement is a four-bit invoke like the add it replaces, so the extra
+                // register has to fit in four bits as well.
                 val freeRegister =
                     getFreeRegisterProvider(
                         addIndex,
                         numberOfFreeRegistersNeeded = 1,
-                    ).getFreeRegister()
+                        storiesListRegister,
+                        currentStoryRegister,
+                    ).getFreeRegister4Bit()
 
                 removeInstruction(addIndex)
                 addInstructions(
                     addIndex,
                     """
                     const-string v$freeRegister, "$reelTypeFieldName"
-                    invoke-static { v$storiesListRegister, v$currentStoryRegister, v$freeRegister }, $EXTENSION_CLASS->addStoryIfNotBlocked(Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;)V
+                    invoke-static { v$storiesListRegister, v$currentStoryRegister, v$freeRegister }, $STORY_TRAY_CLASS->addStoryIfNotBlocked(Ljava/util/List;Ljava/lang/Object;Ljava/lang/String;)V
                     """.trimIndent(),
                 )
             }

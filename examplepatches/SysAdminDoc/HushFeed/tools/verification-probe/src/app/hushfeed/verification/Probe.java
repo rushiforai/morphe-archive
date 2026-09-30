@@ -59,6 +59,7 @@ import java.util.Map;
  *       -e action dump
  *       -e action labrule -e manager abmock -e key favorite_reverse -e type INT -e value 1
  *       -e action labclear
+ *       -e action mediacache -e op plant
  *   adb -s S logcat -d | grep HushfeedProbe
  * </pre>
  */
@@ -213,6 +214,9 @@ public final class Probe extends Instrumentation {
                         break;
                     case "stripkeys":
                         Log.i(TAG, "ok stripkeys " + stripKeys());
+                        break;
+                    case "mediacache":
+                        Log.i(TAG, "ok mediacache " + mediaCache(intent.getStringExtra("op")));
                         break;
                     case "webviews": {
                         // Which page a WebView is showing and what it was built with. Hosts and
@@ -651,6 +655,124 @@ public final class Probe extends Instrumentation {
                                 + " authorStitch=" + optional(creator, "getStitchSetting")
                                 + " permDuet=" + optional(optional(aweme, "getInteractPermission"), "getDuet")
                                 + " permStitch=" + optional(optional(aweme, "getInteractPermission"), "getStitch"));
+                        break;
+                    }
+                    case "labreport": {
+                        // The Feature Gate Lab's learn mode from the shell: op=begin starts a
+                        // recording, op=stop ends it and logs the report in numbered parts, since
+                        // one log line holds about 4 KB and a report runs longer.
+                        Class<?> learn = loader.loadClass(
+                                "app.morphe.extension.tiktok.featuregatelab.FeatureGateLearnMode");
+                        if ("begin".equals(intent.getStringExtra("op"))) {
+                            learn.getMethod("begin").invoke(null);
+                            Log.i(TAG, "ok labreport recording=" + learn.getMethod("isRecording").invoke(null));
+                            break;
+                        }
+                        String report = String.valueOf(learn.getMethod("stopAndBuildReport").invoke(null));
+                        int size = 3000;
+                        int parts = Math.max(1, (report.length() + size - 1) / size);
+                        for (int part = 0; part < parts; part++) {
+                            Log.i(TAG, "ok labreport part " + (part + 1) + "/" + parts + " "
+                                    + report.substring(part * size, Math.min(report.length(), (part + 1) * size)));
+                        }
+                        break;
+                    }
+                    case "feedmute": {
+                        // What Mute feed videos matches on: each engine it has seen with the
+                        // source id TikTok's player reports for it, the videos the controller asked
+                        // for, and the one on screen. Ids by their last six digits only.
+                        Class<?> mute = loader.loadClass("app.morphe.extension.tiktok.playback.FeedMute");
+                        Field enginesField = mute.getDeclaredField("ENGINES");
+                        enginesField.setAccessible(true);
+                        Field playsField = mute.getDeclaredField("PLAYS");
+                        playsField.setAccessible(true);
+                        Method sourceId = mute.getDeclaredMethod("engineSourceId", Object.class);
+                        sourceId.setAccessible(true);
+                        StringBuilder out = new StringBuilder("engines=");
+                        Map<?, ?> engines = (Map<?, ?>) enginesField.get(null);
+                        synchronized (engines) {
+                            for (Object engine : new ArrayList<>(engines.keySet())) {
+                                out.append(Integer.toHexString(System.identityHashCode(engine))).append(':')
+                                        .append(tail(sourceId.invoke(null, engine))).append(' ');
+                            }
+                        }
+                        out.append("| plays=");
+                        Map<?, ?> plays = (Map<?, ?>) playsField.get(null);
+                        synchronized (plays) {
+                            for (Map.Entry<?, ?> play : plays.entrySet()) {
+                                out.append(tail(play.getKey())).append('=').append(play.getValue()).append(' ');
+                            }
+                        }
+                        Object aweme = loader.loadClass("app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                                .getMethod("getAweme").invoke(null);
+                        out.append("| current=").append(tail(optional(aweme, "getAid")));
+                        Log.i(TAG, "ok feedmute " + out);
+                        break;
+                    }
+                    case "addrs": {
+                        // Which addresses the current post's video carries and where they point,
+                        // to tell a photo post's server-side render from an empty shell. Host and
+                        // path only, since a query can carry tokens.
+                        Object aweme = loader.loadClass(
+                                "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                                .getMethod("getAweme").invoke(null);
+                        if (aweme == null) throw new IllegalStateException("no current video");
+                        Object video = optional(aweme, "getVideo");
+                        Object images = optional(aweme, "getImageInfos");
+                        StringBuilder out = new StringBuilder("awemeType=").append(optional(aweme, "getAwemeType"))
+                                .append(" images=").append(images instanceof java.util.Collection
+                                        ? String.valueOf(((java.util.Collection<?>) images).size()) : "none");
+                        for (String getter : new String[]{"getPlayAddr", "getPlayAddrH264", "getPlayAddrBytevc1",
+                                "getDownloadAddr", "getDownloadNoWatermarkAddr"}) {
+                            out.append(' ').append(getter.substring(3)).append('=')
+                                    .append(addressReport(optional(video, getter)));
+                        }
+                        Log.i(TAG, "ok addrs " + out);
+                        break;
+                    }
+                    case "collect": {
+                        // Adds or removes one favourite through TikTok's own AwemeCollectionAgent,
+                        // found by its parameter shape since the method's name changes by build,
+                        // and logs what TikTok answers. Extras: aid, on (true or false).
+                        String aid = intent.getStringExtra("aid");
+                        boolean on = Boolean.parseBoolean(intent.getStringExtra("on"));
+                        if ("current".equals(aid)) {
+                            Object aweme = loader.loadClass(
+                                    "app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor")
+                                    .getMethod("getAweme").invoke(null);
+                            aid = aweme == null ? null : String.valueOf(optional(aweme, "getAid"));
+                        }
+                        if (aid == null || aid.isEmpty()) throw new IllegalArgumentException("no aid");
+                        Class<?> agentClass = loader.loadClass(
+                                "com.ss.android.ugc.aweme.favorites.business.aweme.AwemeCollectionAgent");
+                        Class<?> function2 = loader.loadClass("kotlin.jvm.functions.Function2");
+                        java.lang.reflect.Method call = null;
+                        for (java.lang.reflect.Method m : agentClass.getMethods()) {
+                            Class<?>[] p = m.getParameterTypes();
+                            if (p.length == 5 && p[0] == String.class && p[1] == boolean.class
+                                    && p[2] == java.util.Map.class && p[3] == function2 && p[4] == function2) {
+                                call = m;
+                            }
+                        }
+                        if (call == null) throw new IllegalStateException("no collect method on the agent");
+                        // R8 renames kotlin.Unit's INSTANCE, so take its one static Unit field.
+                        Class<?> unitClass = loader.loadClass("kotlin.Unit");
+                        Object unit = null;
+                        for (java.lang.reflect.Field field : unitClass.getDeclaredFields()) {
+                            if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                                    && field.getType() == unitClass) {
+                                field.setAccessible(true);
+                                unit = field.get(null);
+                            }
+                        }
+                        final Object done = unit;
+                        Object success = java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[]{function2},
+                                (proxy, method, a) -> answer(method, a, done, "success"));
+                        Object failure = java.lang.reflect.Proxy.newProxyInstance(loader, new Class<?>[]{function2},
+                                (proxy, method, a) -> answer(method, a, done, "failure"));
+                        Object agent = agentClass.getConstructor().newInstance();
+                        call.invoke(agent, aid, on, new java.util.HashMap<String, Object>(), success, failure);
+                        Log.i(TAG, "ok collect sent aid=" + aid + " on=" + on + " via " + call.getName());
                         break;
                     }
                     case "textviews": {
@@ -2256,6 +2378,42 @@ public final class Probe extends Instrumentation {
         }
 
         /**
+         * Plants, lists or clears two files in Hushfeed's media cache, one two days old and one
+         * an hour old, for the start's sweep of files older than a day. Nothing but TikTok's own
+         * uid can age a file there on a release build, so the probe does it from inside.
+         * op=plant writes both, op=clear removes whichever is left, anything else lists them.
+         */
+        private String mediaCache(String op) {
+            java.io.File directory = new java.io.File(app.getCacheDir(), "hushfeed-media");
+            java.io.File dayOld = new java.io.File(directory, "probe-day-old.bin");
+            java.io.File hourOld = new java.io.File(directory, "probe-hour-old.bin");
+            long now = System.currentTimeMillis();
+            if ("plant".equals(op)) {
+                if (!directory.isDirectory() && !directory.mkdirs()) return "no cache directory";
+                for (java.io.File file : new java.io.File[]{dayOld, hourOld}) {
+                    try (java.io.FileOutputStream out = new java.io.FileOutputStream(file)) {
+                        out.write(new byte[]{1});
+                    } catch (java.io.IOException error) {
+                        return "could not write " + file.getName() + ": " + error;
+                    }
+                }
+                // Both, whatever the first answers, so a failure leaves neither at "now".
+                boolean agedDay = dayOld.setLastModified(now - 48L * 3_600_000L);
+                boolean agedHour = hourOld.setLastModified(now - 3_600_000L);
+                if (!agedDay || !agedHour) return "could not age the files";
+            } else if ("clear".equals(op)) {
+                dayOld.delete();
+                hourOld.delete();
+            }
+            return describe(dayOld, now) + " " + describe(hourOld, now);
+        }
+
+        private static String describe(java.io.File file, long now) {
+            if (!file.exists()) return file.getName() + "=absent";
+            return file.getName() + "=" + ((now - file.lastModified()) / 60_000L) + "min";
+        }
+
+        /**
          * The component keys of the current video's anchors (the strips above the caption) and
          * bottom banners, as TikTok names them: anchor_poi, anchor_3rdparty, bottom_banner_search_rs.
          * Identifiers only, never a strip's text.
@@ -2814,6 +2972,45 @@ public final class Probe extends Instrumentation {
         }
 
         /** An address's frame as WxH from its getWidth and getHeight, or none. */
+        /** An id by its last six characters, enough to match two reads without logging it whole. */
+        private static String tail(Object id) {
+            if (id == null) return "null";
+            String text = String.valueOf(id);
+            return text.isEmpty() ? "empty" : text.length() <= 6 ? text : text.substring(text.length() - 6);
+        }
+
+        /** A Kotlin two-argument callback's call, logged with what TikTok passed it. */
+        private static Object answer(java.lang.reflect.Method method, Object[] args, Object unit, String which) {
+            switch (method.getName()) {
+                case "invoke":
+                    StringBuilder out = new StringBuilder("collect ").append(which);
+                    if (args != null) {
+                        for (Object arg : args) {
+                            out.append(" | ").append(arg == null ? "null" : arg.getClass().getName())
+                                    .append(' ').append(arg == null ? "" : String.valueOf(arg));
+                        }
+                    }
+                    Log.i(TAG, out.toString());
+                    return unit;
+                case "hashCode":
+                    return System.identityHashCode(method);
+                case "equals":
+                    return args != null && args.length == 1 && args[0] == null;
+                default:
+                    return "collect " + which + " callback";
+            }
+        }
+
+        /** How many URLs an address holds, the frame it claims, and the first one's host and path. */
+        private static String addressReport(Object address) {
+            if (address == null) return "none";
+            Object urls = optional(address, "getUrlList");
+            int count = urls instanceof java.util.List ? ((java.util.List<?>) urls).size() : -1;
+            String first = count > 0
+                    ? hostAndPath(android.net.Uri.parse(String.valueOf(((java.util.List<?>) urls).get(0)))) : "-";
+            return count + "urls," + frame(address) + "," + first;
+        }
+
         private static String frame(Object address) {
             if (address == null) return "none";
             return optional(address, "getWidth") + "x" + optional(address, "getHeight");

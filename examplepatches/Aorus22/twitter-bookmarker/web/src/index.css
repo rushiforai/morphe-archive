@@ -1,0 +1,347 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Self-hosted fonts — bundled by Vite, never fetched from a CDN (PRD-2 §13, design §2.3). */
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/700.css";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================================
+ * v2 Editorial design tokens
+ * Authority: docs/design/phase2-design-spec.md §2 (Figma "Gallery Mockups v2")
+ *
+ * Layer 1 — raw tokens. Declared as plain CSS custom properties on :root/.dark
+ * so they always exist at runtime and can be read directly (var(--grad-brand))
+ * as well as through Tailwind utilities.
+ * ==========================================================================*/
+
+:root {
+  /* §2.1 Palette — light */
+  --bg: #f6efe7;
+  --surface: #fffdfc;
+  --surface-warm: #fff6f0;
+  --ink: #171419;
+  --muted: #746b72;
+  --border: #e8dcd3;
+  /* HARD-04/PRD §67: the mockup's #f26a5b coral is 2.96:1 on --surface and
+   * 2.64:1 on --bg, so every `text-accent` (active nav, eyebrows, the post
+   * "show more" toggle) failed WCAG AA, and white-on-accent CTAs failed on the
+   * same token. Darkened to the nearest coral that clears 4.5:1 on --surface,
+   * --bg and --surface-warm *and* for #fffdfc text on the accent fill; see the
+   * design spec §2.1 and the axe checks in scripts/check-web-acceptance.sh. */
+  --accent: #bf3f2e;
+  --accent-pink: #ff8fa3;
+  --accent-violet: #7c5cfc;
+  --accent-blue: #5b8cff;
+  --accent-gold: #f2b65a;
+  --accent-green: #63a988;
+
+  /* §2.4 Radii — theme invariant */
+  --r-sm: 12px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+  --r-pill: 999px;
+
+  /* §2.3 Typography */
+  --font-inter: "Inter Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-playfair: "Playfair Display", ui-serif, Georgia, "Times New Roman",
+    serif;
+
+  /* §2.6 Signature gradients */
+  --grad-brand: linear-gradient(135deg, #ff9b58, #8b5cf6);
+  --grad-hero: linear-gradient(135deg, #fff2e8, #f6e7ff);
+  --grad-cta: linear-gradient(135deg, #26202b, #4a4054);
+  --grad-night: linear-gradient(180deg, #161319, #201822);
+
+  /* §2.5 Shadows. The `--sh-*` indirection exists so the value Tailwind sees
+   * is a `var()` reference, not a literal: Tailwind then emits
+   * `--tw-shadow: var(--sh-nav)` instead of inlining the light-mode literal, so
+   * the `.dark` override below actually reaches the `shadow-*` utilities.
+   * `--shadow-*` keeps the design spec's names for direct `var()` use. */
+  --sh-nav: 0 4px 20px rgb(23 20 25 / 0.06);
+  --sh-card: 0 8px 28px rgb(23 20 25 / 0.07);
+  --sh-post: 0 8px 22px rgb(23 20 25 / 0.06);
+  --sh-popover: 0 12px 30px rgb(23 20 25 / 0.12);
+  --sh-hero: 0 16px 32px rgb(23 20 25 / 0.1);
+  --shadow-nav: var(--sh-nav);
+  --shadow-card: var(--sh-card);
+  --shadow-post: var(--sh-post);
+  --shadow-popover: var(--sh-popover);
+  --shadow-hero: var(--sh-hero);
+
+  /* §2.6 Placeholder gradient pairs (later phases pick deterministically by key) */
+  --grad-ph-gold-blue: linear-gradient(135deg, #f2b65a, #5b8cff);
+  --grad-ph-violet-pink: linear-gradient(135deg, #7c5cfc, #ff8fa3);
+  --grad-ph-green-lime: linear-gradient(135deg, #63a988, #c7e06a);
+  --grad-ph-plum-rose: linear-gradient(135deg, #4a3462, #f0999a);
+  --grad-ph-teal-mint: linear-gradient(135deg, #2f7f80, #a8e6cf);
+  --grad-ph-sand-sage: linear-gradient(135deg, #e8d5b7, #9db8a1);
+
+  /* shadcn/ui semantics, mapped onto the editorial palette so every
+   * components/ui/* primitive inherits the v2 look with no per-component
+   * override (03-CONTEXT "Design tokens").
+   *
+   * Conflict note: the design spec and shadcn both use the names --muted,
+   * --accent and --border. The design values win on those names because the
+   * phase contract requires text-muted / border-border and the exact palette.
+   * shadcn's neutral hover/pulse surfaces are therefore routed to
+   * --surface-warm (see the patched primitives) instead of overwriting the
+   * palette. --muted-foreground still resolves to the design muted, so all
+   * shadcn secondary text stays correct. */
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent);
+  --primary-foreground: #fffdfc;
+  --secondary: var(--surface-warm);
+  --secondary-foreground: var(--ink);
+  --muted-foreground: var(--muted);
+  --accent-foreground: #fffdfc;
+  --destructive: #c2410c;
+  --destructive-foreground: #fffdfc;
+  --input: var(--border);
+  --ring: var(--accent);
+  --radius: var(--r-md);
+
+  --chart-1: var(--accent-pink);
+  --chart-2: var(--accent-violet);
+  --chart-3: var(--accent-blue);
+  --chart-4: var(--accent-gold);
+  --chart-5: var(--accent-green);
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: #fffdfc;
+  --sidebar-accent: var(--surface-warm);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--accent);
+}
+
+.dark {
+  /* §2.2 Palette — dark (muted + accent lightened for WCAG AA, see spec §2.2) */
+  --bg: #161319;
+  --surface: #28212d;
+  --surface-warm: #332a37;
+  --ink: #fffdfc;
+  --muted: #b3a8ae;
+  --border: #3b3140;
+  --accent: #ff8b7d;
+  --accent-pink: #ff9fb2;
+  --accent-violet: #a48bff;
+  --accent-blue: #7ea6ff;
+  --accent-gold: #f5c877;
+  --accent-green: #7fc0a0;
+
+  /* Dark CTAs sit on light corals, so their foreground flips. */
+  --primary-foreground: #161319;
+  --accent-foreground: #161319;
+  --destructive: #ff8b7d;
+  --destructive-foreground: #161319;
+  --sidebar-primary-foreground: #161319;
+
+  /* The spec's --grad-hero is a light cream panel (spec §2.6). On the dark page
+   * that would put white `--ink` text on cream, so the derived dark frame (§2.2)
+   * needs a dark hero panel; this is the one token the dark mockup does not
+   * define. Kept as a violet-tinted elevation of the dark surface. */
+  --grad-hero: linear-gradient(135deg, #2a2230, #3a2940);
+}
+
+/* ============================================================================
+ * Layer 2 — Tailwind theme mapping. Utilities resolve from the raw tokens:
+ *   bg-bg, bg-surface, bg-surface-warm, text-ink, text-muted, border-border,
+ *   text-accent, bg-accent-pink|violet|blue|gold|green,
+ *   rounded-sm|md|lg|xl|2xl|pill, font-sans, font-display, shadow-nav|card|…
+ *
+ * `inline` on the colour/radius/font block keeps the utilities pointing at the
+ * raw custom properties, so flipping `.dark` re-themes everything without
+ * regenerating any class.
+ * ==========================================================================*/
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-warm: var(--surface-warm);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-pink: var(--accent-pink);
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-green: var(--accent-green);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-2xl: var(--r-2xl);
+  --radius-3xl: var(--r-2xl);
+  --radius-4xl: var(--r-2xl);
+  --radius-pill: var(--r-pill);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-playfair);
+  --font-heading: var(--font-playfair);
+}
+
+/* Shadows must stay runtime-swappable (spec §2.5 "reduced/removed in dark
+ * mode"), so this block is NOT `inline`: the utilities emit
+ * `box-shadow: var(--shadow-*)` and the `.dark` block below overrides them.
+ * `static` guarantees the variables are emitted even before a later phase
+ * first uses the utility. */
+@theme static {
+  --shadow-nav: var(--sh-nav);
+  --shadow-card: var(--sh-card);
+  --shadow-post: var(--sh-post);
+  --shadow-popover: var(--sh-popover);
+  --shadow-hero: var(--sh-hero);
+}
+
+.dark {
+  /* Spec §2.5: rely on surface + border contrast instead of large shadows. */
+  --sh-nav: 0 2px 12px rgb(0 0 0 / 0.3);
+  --sh-card: 0 6px 18px rgb(0 0 0 / 0.3);
+  --sh-post: 0 6px 16px rgb(0 0 0 / 0.28);
+  --sh-popover: 0 12px 30px rgb(0 0 0 / 0.45);
+  --sh-hero: 0 10px 26px rgb(0 0 0 / 0.32);
+}
+
+/* Gradient helpers — gradients need `background-image`, which a colour utility
+ * cannot express. */
+@utility bg-grad-brand {
+  background-image: var(--grad-brand);
+}
+@utility bg-grad-hero {
+  background-image: var(--grad-hero);
+}
+@utility bg-grad-cta {
+  background-image: var(--grad-cta);
+}
+@utility bg-grad-night {
+  background-image: var(--grad-night);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    margin: 0;
+    min-height: 100svh;
+  }
+  .dark body {
+    /* Spec §2.2: the night frame's page background is a vertical gradient. */
+    background-image: var(--grad-night);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+  }
+  ::selection {
+    background-color: var(--accent);
+    color: #fffdfc;
+  }
+
+  /* Scrollbars. The default OS chrome is a wide, opaque, square-ended bar that
+   * belongs to no palette: on the dark frame it stayed light grey and read as a
+   * seam down the page, and in the light theme it cut a hard grey stripe through
+   * the warm surfaces.
+   *
+   * Styled from the tokens so one block covers both themes — `--border` is the
+   * resting thumb and `--muted` the hovered one, which is the same relationship
+   * the surfaces and the secondary text already have, so nothing new is
+   * introduced and no contrast is invented.
+   *
+   * The standard properties come first: Firefox has honoured them since 64, and
+   * Chrome 121+ prefers them over the `::-webkit-` pseudo-elements, which are
+   * kept for the engines that still need them. `scrollbar-width: thin` also
+   * means the reserved gutter shrinks slightly, so the masonry never changes
+   * column count because of this.
+   *
+   * Deliberately NOT set: `scrollbar-gutter: stable`. Reserving the gutter
+   * permanently would change the content width on routes that do not scroll,
+   * and the responsive tests (1/2/4 columns at 390/768/1440) are breakpoint
+   * driven — a permanent gutter would move those edges for no visual gain. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *:hover {
+    scrollbar-color: var(--muted) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    /* The transparent border + `content-box` clipping is what insets the thumb
+     * to 6px inside a 10px track; without it the thumb fills the full width and
+     * the rounding is invisible. */
+    background-color: var(--border);
+    background-clip: content-box;
+    border: 2px solid transparent;
+    border-radius: var(--r-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}

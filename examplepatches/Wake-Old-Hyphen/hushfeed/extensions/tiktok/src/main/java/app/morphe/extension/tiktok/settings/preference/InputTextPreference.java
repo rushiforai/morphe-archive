@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
+import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -123,6 +124,21 @@ public class InputTextPreference extends EditTextPreference {
      */
     public InputTextPreference withCheck(Check check) {
         this.check = check;
+        return this;
+    }
+
+    /**
+     * Tells the keyboard the field holds names, handles or codes, not prose: no capitals, no
+     * space after a dot and no autocorrect. Left as prose, SwiftKey on the S25 turned
+     * com.deniscerri.ytdl into "Com. Deniscerri. Ytdl", which the field's check then refused.
+     *
+     * <p>Raw, so only the keyboard hears it: setInputType would also make the field single-line,
+     * and on Android 14 a single-line field is capped at 5,000 characters, text it loads
+     * included. A long Blocked creators list was cut on opening and the cut copy saved.
+     */
+    public InputTextPreference withNameKeyboard() {
+        getEditText().setRawInputType(InputType.TYPE_CLASS_TEXT
+                | InputType.TYPE_TEXT_VARIATION_URI | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         return this;
     }
 

@@ -41,7 +41,3 @@ internal object GetLowResProfilePictureExtensionFingerprint : Fingerprint(
     definingClass = EXTENSION_CLASS_DESCRIPTOR,
 )
 
-internal object GetUserFriendshipStatusExtensionFingerprint : Fingerprint(
-    name = "getUserFriendshipStatus",
-    definingClass = EXTENSION_CLASS_DESCRIPTOR,
-)

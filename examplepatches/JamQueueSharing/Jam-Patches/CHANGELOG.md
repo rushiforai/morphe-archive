@@ -1,3 +1,9 @@
+## [1.0.0-dev.18](https://github.com/JamQueueSharing/Jam-Patches/compare/v1.0.0-dev.17...v1.0.0-dev.18) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **music:** simplify Jam discovery and address review cleanup ([ed412b1](https://github.com/JamQueueSharing/Jam-Patches/commit/ed412b1589bce6425da8bf7169d578f4acaa9a18))
+
 ## [1.0.0-dev.17](https://github.com/AgentKosticka/Jam-Patches/compare/v1.0.0-dev.16...v1.0.0-dev.17) (2026-09-27)
 
 ### 🐛 Bug Fixes

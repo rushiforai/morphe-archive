@@ -100,7 +100,32 @@ TruncatedPlaylistInfo scan_truncated_playlist(const char* buf, size_t len, size_
 // Editing a source mid-stream can corrupt the gzip CRC; see hooks.cpp.
 int blank_truncated_ad_entries(char* buf, size_t len, bool apply = true);
 
+// Tracks JSON stream state across chunk boundaries when an ad-decision
+// response exceeds a single copy buffer.
+struct StreamContinuationState {
+    bool active = false;
+    int depth = 0;           // bracket nesting depth relative to playlist '['
+    bool in_str = false;     // inside a quoted string literal
+    bool in_esc = false;     // preceding char was an escape backslash '\'
+    size_t total_bytes = 0;  // safety cap accumulator
+};
+
+// Start streaming ad blanking on Chunk 1 when playlist is truncated.
+// Blanks from `open + 1` to `len`, and records parsing state in `state`.
+// Returns the number of bytes blanked in this chunk.
+size_t blank_stream_start(char* buf, size_t len, size_t open,
+                          StreamContinuationState& state, bool apply = true);
+
+// Continue streaming ad blanking on Chunk 2 (and subsequent chunks)
+// until the closing ']' of the playlist array is found.
+// Blanks from index 0 up to (but excluding) the closing ']'.
+// Resets state.active to false when closing ']' is reached.
+// Returns the number of bytes blanked in this chunk.
+size_t blank_stream_continuation(char* buf, size_t len,
+                                 StreamContinuationState& state, bool apply = true);
+
 // Human-readable reason, for host-test output and diagnostics.
 const char* to_string(AdResponseReason reason);
 
 } // namespace pvfilter
+

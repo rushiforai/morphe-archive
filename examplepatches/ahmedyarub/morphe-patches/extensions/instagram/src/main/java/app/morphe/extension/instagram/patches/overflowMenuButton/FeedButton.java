@@ -22,9 +22,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
-import app.morphe.extension.crimera.ObjectBrowser;
 
-import app.morphe.extension.instagram.patches.Links;
 import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.entity.Entity;
@@ -32,8 +30,6 @@ import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.patches.overflowMenuButton.reels.AddReelButton;
 import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.patches.download.DownloadUtils;
-import app.morphe.extension.instagram.patches.feed.MoreOptionsOnPostPatch;
-import app.morphe.extension.instagram.settings.ActivityHook;
 
 import com.instagram.feed.media.mediaoption.MediaOption$Option;
 import com.instagram.common.session.UserSession;
@@ -60,12 +56,6 @@ public class FeedButton {
 
         if(SettingsStatus.downloadMedia){
             additionalButtonsList.add(MediaOption$Option.PIKO_DOWNLOAD);
-        }
-        if(SettingsStatus.moreOptionsOnPost){
-            additionalButtonsList.add(MediaOption$Option.PIKO_MORE_POST_OPTION);
-        }
-        if(SettingsStatus.downloadWithExternalDownloader){
-            additionalButtonsList.add(MediaOption$Option.PIKO_EXTERNAL_DOWNLOADER);
         }
 
         int additionalButtonListSize = additionalButtonsList.size();
@@ -117,17 +107,6 @@ public class FeedButton {
         return FeedButton.initOverflowButton("PIKO_DOWNLOAD", 0, UI.DRAWABLE_DOWNLOAD_ICON);
     }
 
-    public static MediaOption$Option morePostOptionOverflowButton(){
-        return FeedButton.initOverflowButton("PIKO_MORE_POST_OPTION", 1, UI.DRAWABLE_BLUB_ICON);
-    }
-
-    public static MediaOption$Option debugOverflowButton(){
-        return FeedButton.initOverflowButton("PIKO_DEBUG", 3, UI.DRAWABLE_DEBUG_ICON);
-    }
-
-    public static MediaOption$Option externalDownloaderOverflowButton(){
-        return FeedButton.initOverflowButton("PIKO_EXTERNAL_DOWNLOADER", 2, UI.DRAWABLE_DOWNLOAD_ICON);
-    }
 
 
     private static void addDownloadButton(Object buttonAdderObject, ArrayList buttonlist) throws Exception {
@@ -140,17 +119,8 @@ public class FeedButton {
 
     public static void addFeedOverflowButton(Object buttonAdderObject, ArrayList buttonlist){
         try {
-            if(Pref.pikoDebug()){
-                addButton(MediaOption$Option.PIKO_DEBUG, str("piko_debug"), buttonAdderObject, buttonlist);
-            }
             if(Pref.enableDownload()) {
                 addDownloadButton(buttonAdderObject, buttonlist);
-            }
-            if(Pref.downloadWithExternalDownloader()) {
-                addButton(MediaOption$Option.PIKO_EXTERNAL_DOWNLOADER, str("piko_download_with_external_downloader"), buttonAdderObject, buttonlist);
-            }
-            if(Pref.moreOptionsOnPost()) {
-                addButton(MediaOption$Option.PIKO_MORE_POST_OPTION, str("piko_more_options"), buttonAdderObject, buttonlist);
             }
         } catch (Exception e) {
             Logger.printException(() -> "Error at addReelButton",e);
@@ -172,7 +142,8 @@ public class FeedButton {
     private static Object stashedFeedMedia;
     private static Object stashedFeedExtra;
     private static Object stashedFeedHolder;
-    private static Object lastFeedSheet;
+    // Weak: only compared against, and it would otherwise keep the last sheet and its fragment alive.
+    private static java.lang.ref.WeakReference<Object> lastFeedSheet = new java.lang.ref.WeakReference<>(null);
 
     public static void stashFeedSheet(Object value) { stashedFeedSheet = value; }
 
@@ -211,53 +182,49 @@ public class FeedButton {
     }
 
     public static void addFeedMenuDownloadRow() {
+        // Taken and cleared up front: the stash holds the sheet, the post and a view or fragment,
+        // which would otherwise stay reachable from these statics after the sheet is gone, and a
+        // call site that stashes no carousel index would read the previous post's.
+        Object sheet = stashedFeedSheet;
+        Object media = stashedFeedMedia;
+        Object extra = stashedFeedExtra;
+        Object holder = stashedFeedHolder;
+        stashedFeedSheet = null;
+        stashedFeedMedia = null;
+        stashedFeedExtra = null;
+        stashedFeedHolder = null;
+
         try {
-            if (stashedFeedSheet == null || stashedFeedSheet == lastFeedSheet) return;
-            lastFeedSheet = stashedFeedSheet;
+            if (sheet == null || sheet == lastFeedSheet.get()) return;
+            lastFeedSheet = new java.lang.ref.WeakReference<>(sheet);
 
             if (!Pref.enableDownload()) return;
 
             Entity entity = new Entity();
-            Context context = contextFrom(stashedFeedHolder);
+            Context context = contextFrom(holder);
             if (context == null) return;
 
             int currentMediaIndex = 0;
-            if (stashedFeedExtra != null) {
-                Object index = entity.getField(stashedFeedExtra, feedCurrentMediaFieldName());
+            if (extra != null) {
+                Object index = entity.getField(extra, feedCurrentMediaFieldName());
                 if (index instanceof Integer) currentMediaIndex = (Integer) index;
             }
 
-            AddReelButton.addDownloadButton(context, stashedFeedSheet, stashedFeedMedia, currentMediaIndex);
+            AddReelButton.addDownloadButton(context, sheet, media, currentMediaIndex);
         } catch (Exception e) {
             Logger.printException(() -> "Error at addFeedMenuDownloadRow", e);
         }
     }
 
     public static boolean isCustomButtonPressed(MediaOption$Option pressedButton){
-        return (
-                pressedButton.equals(MediaOption$Option.PIKO_DEBUG) ||
-                (SettingsStatus.downloadMedia && pressedButton.equals(MediaOption$Option.PIKO_DOWNLOAD)) ||
-                (SettingsStatus.moreOptionsOnPost && pressedButton.equals(MediaOption$Option.PIKO_MORE_POST_OPTION)) ||
-                (SettingsStatus.downloadWithExternalDownloader && pressedButton.equals(MediaOption$Option.PIKO_EXTERNAL_DOWNLOADER))
-        );
+        return SettingsStatus.downloadMedia && pressedButton.equals(MediaOption$Option.PIKO_DOWNLOAD);
     }
 
     public static void customButtonOnClick(MediaOption$Option pressedButton, UserSession userSession, Context context, Object mediaObject, int currentMediaIndex){
         try{
-            if(pressedButton.equals(MediaOption$Option.PIKO_DEBUG)) {
-                ObjectBrowser.browseObject(context, new MediaData(mediaObject, userSession));
-
-            } else if (SettingsStatus.downloadMedia && pressedButton.equals(MediaOption$Option.PIKO_DOWNLOAD)) {
+            if (SettingsStatus.downloadMedia && pressedButton.equals(MediaOption$Option.PIKO_DOWNLOAD)) {
                 DownloadUtils.downloadPost(context, userSession, mediaObject, currentMediaIndex);
-
-            } else if (SettingsStatus.moreOptionsOnPost && pressedButton.equals(MediaOption$Option.PIKO_MORE_POST_OPTION)) {
-                MoreOptionsOnPostPatch.postMoreOptions(context, userSession, mediaObject, currentMediaIndex);
-
-            } else if (SettingsStatus.downloadWithExternalDownloader && pressedButton.equals(MediaOption$Option.PIKO_EXTERNAL_DOWNLOADER)) {
-                DownloadUtils.externalDownloader(mediaObject,currentMediaIndex);
-
             }
-
         } catch (Exception e) {
             Logger.printException(() -> "Error at customButtonOnClick",e);
         }

@@ -124,8 +124,7 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                     context,
                     "Block motion sensors",
                     "Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the "
-                            + "other motion sensors it uses to fingerprint the phone. Saves the "
-                            + "battery they wake.",
+                            + "other motion sensors it uses to fingerprint the phone.",
                     Settings.BLOCK_MOTION_SENSORS
             ));
         }
@@ -156,7 +155,7 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                             + "vxtiktok.com. Leave it empty to share TikTok's own links. Only TikTok "
                             + "links are changed, and only the host: nothing is sent anywhere new.",
                     Settings.CUSTOM_SHARE_DOMAIN
-            ));
+            ).withNameKeyboard());
         }
         if (SettingsStatus.externalBrowserEnabled) {
             addPreference(new TogglePreference(

@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -79,13 +80,38 @@ public final class SettingsActivity extends Activity {
         {"use_system_emoji", "Use system emoji", "Renders emoji with your phone's own font instead of Messenger's built-in set.", "conversations"},
         {"external_browser", "Open web links externally", "Uses your default browser for HTTP and HTTPS links. Other link types keep their original behavior.", "links_bubbles"},
         {"bubbles", "Allow chat bubbles", "Removes the low-memory restriction on Android 11 or newer. Enable bubbles in Android notification settings too.", "links_bubbles"},
-        {"allow_screenshot", "Allow screenshots", "Removes screenshot restrictions in vanish mode and E2EE chats.", "privacy"},
+        {"allow_screenshot", "Allow screenshots", "Lets you screenshot photos, media and video Messenger protects in a chat, and stops screenshot notices. View-once media stays protected.", "privacy"},
         {"hide_read_receipts", "Hide read receipts", "Stops your read receipt from being sent. In end-to-end encrypted chats, chats you open stay unread until you reply.", "privacy"},
         {"keep_unsent", "Keep unsent messages", "Keeps messages other people remove for everyone, except in end-to-end encrypted chats. Your own unsend ability may be limited.", "privacy"},
     };
 
+    static final String DRAWER_ALIAS = "app.hushmessenger.extension.SettingsLauncher";
+
+    /**
+     * Shows or hides the app drawer entry, an alias of this screen that only a patched Messenger has.
+     * The screen itself stays enabled for the long-press shortcut and the Menu tab row.
+     */
+    static void syncDrawerIcon(Context context) {
+        applyDrawerIcon(context, Settings.drawerIconHidden());
+    }
+
+    static void applyDrawerIcon(Context context, boolean hidden) {
+        PackageManager packages = context.getPackageManager();
+        ComponentName alias = new ComponentName(context.getPackageName(), DRAWER_ALIAS);
+        try {
+            boolean disabled = packages.getComponentEnabledSetting(alias) == PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+            if (hidden != disabled) {
+                packages.setComponentEnabledSetting(alias, hidden ? PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                    : PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, PackageManager.DONT_KILL_APP);
+            }
+        } catch (IllegalArgumentException | SecurityException missing) {
+            android.util.Log.w("HushMessenger", "Can't change the app drawer icon", missing);
+        }
+    }
+
     @Override @SuppressWarnings("deprecation") public void onCreate(Bundle state) {
         Settings.initialize(this);
+        syncDrawerIcon(this);
         boolean light = Settings.preferences.getBoolean("light", false);
         lightTheme = light;
         setTheme(light ? android.R.style.Theme_Material_Light_NoActionBar : android.R.style.Theme_Material_NoActionBar);
@@ -423,13 +449,18 @@ public final class SettingsActivity extends Activity {
         }
         ui.add(labels, titleLine, 0);
         if (!description.isEmpty()) ui.add(labels, ui.text(text.display(description), 14, ui.muted, false), 6);
+        // A switch records a use only when Messenger reaches its screen or event, so an off switch shows nothing.
+        TextView activeLabel = null;
         if (divided) {
             long lastActive = Settings.lastActive(key);
             String status = lastActive == 0 ? text.get("not_active") : formatActive(lastActive);
-            TextView activeLabel = ui.text(status, 12, lastActive > 0 ? ui.accent : ui.muted, false);
+            activeLabel = ui.text(status, 12, lastActive > 0 ? ui.accent : ui.muted, false);
             activeLabel.setAlpha(0.7f);
+            activeLabel.setTag("active_" + key);
+            activeLabel.setVisibility(Settings.preferences.getBoolean(key, false) ? View.VISIBLE : View.GONE);
             ui.add(labels, activeLabel, 4);
         }
+        TextView usage = activeLabel;
         row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
         Switch control = ui.toggle(key, text.display(title), text.display(("ads".equals(key) ? text.base("experimental") + ". " : "") + description), Settings.preferences.getBoolean(key, false));
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(ui.dp(48), -2);
@@ -440,6 +471,7 @@ public final class SettingsActivity extends Activity {
         // The custom track has no disabled state, so dim it; the description says why.
         if (!available) control.setAlpha(0.4f);
         control.setOnCheckedChangeListener((button, checked) -> {
+            if (usage != null) usage.setVisibility(checked ? View.VISIBLE : View.GONE);
             if (binding) return;
             Settings.preferences.edit().putBoolean(key, checked).apply();
             if ("paused".equals(key) && !checked && CrashGuard.isSafeMode()) CrashGuard.clearSafeMode();
@@ -447,6 +479,7 @@ public final class SettingsActivity extends Activity {
             feedback("paused".equals(key) ? text.get(checked ? "changes_paused" : "changes_resumed")
                 : text.get(checked ? "choice_on" : "choice_off", title), Toast.LENGTH_SHORT);
             if ("light".equals(key)) refreshChoices();
+            if ("hide_drawer_icon".equals(key)) applyDrawerIcon(this, checked);
         });
         row.setOnClickListener(view -> { if (control.isEnabled()) control.toggle(); });
         row.setEnabled(available);
@@ -473,6 +506,11 @@ public final class SettingsActivity extends Activity {
         restart.setTag("restart_messenger");
         restart.setOnClickListener(view -> startActivity(new Intent(this, RestartActivity.class)));
         ui.add(access, restart, 14);
+        // Without the Menu row, a launcher that has no app shortcuts would leave no way back in.
+        if (Settings.installed.contains("menu_row")) {
+            ui.rule(access, 14);
+            ui.add(access, controlRow("hide_drawer_icon", text.base("hide_drawer_icon"), text.base("hide_drawer_icon_help"), false), 14);
+        }
         ui.add(content, access, 12);
         ui.add(content, ui.heading(text.get("appearance")), 22);
         LinearLayout appearance = ui.panel();

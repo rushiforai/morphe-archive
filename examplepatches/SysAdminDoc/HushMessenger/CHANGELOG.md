@@ -6,8 +6,25 @@ None of this is in a release yet. It'll ship together in the next one.
 
 ### Changed and fixed
 
-- A Facebook patched with the same key as Messenger, such as Hushfacebook, is no longer turned away when it asks Messenger for its shared message keys. Messenger used to refuse it because its certificate wasn't Meta's. Now, while that Facebook is the app calling Messenger and its current signing key is exactly the one Messenger carries, Messenger checks it the way it checks Meta's own Facebook, so Meta's rules still decide what it may read. Any other app, a Facebook signed with a different key, and a Messenger that still carries Meta's key all get the old answer. Copy setup counts each outcome. Tests cover each case. Facebook hasn't made that call on the test phone since the change, so it hasn't been seen working there yet.
+- The build now uses the Kotlin Gradle plugin 2.4.20 instead of 2.4.10, which had an unsafe deserialization flaw in its build cache (CVE-2026-53914). Bouncy Castle, which the build uses for signing, is now 1.86 everywhere. The 1.77 and 1.79 copies it replaces predate fixes for several published advisories. This only changes how the bundle is built. All 27 patches still apply in Morphe Desktop.
+- The README now covers chat heads, photo quality and update prompts. None of these needed a patch. Chat heads still work on Android 16, but on Android 12 and newer they need Messenger's battery use set to Unrestricted. The gallery's HD switch already sends photos at full resolution. Play's in-app update prompt doesn't run on a patched Messenger.
+
+## 0.6.0 (2026-09-29)
+
+### New
+
+- A new **Hide app drawer icon** switch in the App tab removes the separate "HushMessenger settings" icon from your app list. Settings still open from the long-press **Patch controls** shortcut and the Menu tab row, and turning the switch off brings the icon back. The switch is only offered when the Menu tab row applied, so a launcher without app shortcuts can't leave you locked out, and Messenger restores the icon at startup if a later patch drops that row. Checked on the S25.
+- Support for build 346013370, the arm64 nodpi APK that Morphe Manager's download link gave two people who reported it. Before, patching stopped with "version code 346013370 is not supported". It's the same app with its internals under different names, so it has its own checked list, and all 27 patches apply to it. Hide avatar stickers finds that build's sticker keyboard too, which fills its tab list in a different way. Neither test phone can install it (both run newer builds), so it hasn't been tried on a phone yet.
+- Support for build 346013354, APKMirror's arm64 nodpi bundle of Messenger 580.0.0.49.91. It's the same app as the builds already supported, and all 27 patches apply to it. Before, patching stopped with "version code 346013354 is not supported".
+
+### Changed and fixed
+
+- The line under each switch no longer reads "Not active since restart", which looked like the switch was broken. It only appears while the switch is on, says "Nothing to change yet since restart" until Messenger reaches that screen or event, and then "Used ... ago".
+- A Facebook patched with the same key as Messenger, such as Hushfacebook, is no longer turned away when it asks Messenger for its shared message keys. Messenger used to refuse it because its certificate wasn't Meta's. Now, while that Facebook is the app calling Messenger and its current signing key is exactly the one Messenger carries, Messenger checks it the way it checks Meta's own Facebook, so Meta's rules still decide what it may read. Any other app, a Facebook signed with a different key, and a Messenger that still carries Meta's key all get the old answer. Copy setup counts each outcome. Tests cover each case, and on the test phone a Hushfacebook build's two reads of Messenger's shared message keys were both answered.
+- Allow screenshots now also covers Android 14 and newer, where Messenger learns about a screenshot from Android itself rather than by watching your photos, and the photo and media viewers that lock their window in a protected chat. Before, it only stopped the older screenshot check and the block on protected video. Its description no longer mentions vanish mode, which encrypted chats don't have. View-once media stays protected. Neither the notice nor the viewer lock turned on for the test account, so this is checked with tests and on all three supported builds rather than with a live notice.
+- The README explains how to get alerts from only the chats you choose, using Messenger's own chat settings and Android's per-conversation notifications. Stock Messenger already offers everything needed, so there's no new switch. The order matters: silence Chats first, then set the chats you want to Alert, because a chat only keeps its own setting once you change it. Checked on the S25 with a live message.
 - The App tab's Quick access card now mentions the HushMessenger row in Messenger's Menu tab, on builds that have it. The text stays whole at twice the normal text size in both themes.
+- Pass 247 local tests. All five supported APKs apply all 27 patches, and clean builds from two separate checkouts produce the same bundle.
 
 ## 0.5.0 (2026-09-28)
 

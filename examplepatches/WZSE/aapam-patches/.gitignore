@@ -1,6 +1,11 @@
+workspace/
+analysis/
+
 ### Java template
 # Compiled class file
 *.class
+
+*.smali
 
 # Log file
 *.log

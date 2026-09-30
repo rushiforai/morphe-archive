@@ -226,6 +226,10 @@ void log_response_chunks(uint64_t id, const char* buf, size_t start, size_t end)
 #if PV_EMPTY_REGOLITH
 std::atomic<uint64_t> g_rego_emptied{0};
 std::atomic<uint64_t> g_rego_seen{0};
+
+thread_local pvfilter::StreamContinuationState tl_stream_state;
+thread_local const void* tl_stream_caller = nullptr;
+
 // Matching-bracket scanning and the strict schema test now live in
 // ad_response.cpp so the exact shipping logic is exercised by a host test
 // against real captured payloads. This wrapper adds logging and counters only.
@@ -233,6 +237,20 @@ bool maybe_empty_regolith(void* vbuf, size_t n, const void* caller, const char* 
     char* buf = static_cast<char*>(vbuf);
     const bool is_dst = (entry != nullptr && std::strstr(entry, "dst") != nullptr);
     (void)is_dst;
+
+    // Check if we are continuing an active truncated stream on this thread
+    if (tl_stream_state.active && is_dst && caller == tl_stream_caller) {
+        if (kApplyWrites) {
+            size_t blanked = pvfilter::blank_stream_continuation(buf, n, tl_stream_state, true);
+            if (blanked > 0) {
+                g_trunc_ads_blanked.fetch_add(1, std::memory_order_relaxed);
+                g_pvkill_tv.fetch_add(1, std::memory_order_relaxed);
+                LOGI("PVKILL path=tv-stream-continuation closed=%s blanked=%zu n=%zu",
+                     tl_stream_state.active ? "no" : "yes", blanked, n);
+                return true;
+            }
+        }
+    }
 
 #if PV_RESPONSE_DIAG
     // Dry-run first so the pre-mutation payload can be logged exactly as the
@@ -256,18 +274,18 @@ bool maybe_empty_regolith(void* vbuf, size_t n, const void* caller, const char* 
                  t.complete_entries, t.last_complete_end, t.cut_offset);
             if (skip_id < 2) log_response_chunks(1000 + skip_id, buf, 0, n);
 #if PV_BLANK_TRUNCATED_ADS
-            // A large response is stream-parsed as it arrives, so a complete
-            // buffer never reaches us. Remove the entries that did close, and
-            // never touch the cut one. Destination side only: editing a source
-            // mid-stream can corrupt the gzip CRC (see the note below).
+            // Streaming ad blanking: blank complete items in Chunk 1 and
+            // track continuation state so subsequent chunks are also blanked.
             if (is_dst && kApplyWrites) {
-                int blanked = pvfilter::blank_truncated_ad_entries(buf, n, true);
+                tl_stream_caller = caller;
+                size_t blanked = pvfilter::blank_stream_start(buf, n, probe.playlist_open,
+                                                              tl_stream_state, true);
                 if (blanked > 0) {
-                    g_trunc_ads_blanked.fetch_add(static_cast<uint64_t>(blanked),
-                                                  std::memory_order_relaxed);
-                    g_pvkill_tv.fetch_add(static_cast<uint64_t>(blanked),
-                                          std::memory_order_relaxed);
-                    LOGI("PVKILL path=tv-truncated ads=%d n=%zu", blanked, n);
+                    g_trunc_ads_blanked.fetch_add(1, std::memory_order_relaxed);
+                    g_pvkill_tv.fetch_add(1, std::memory_order_relaxed);
+                    LOGI("PVKILL path=tv-stream-start open=%zu blanked=%zu n=%zu active=%s",
+                         probe.playlist_open, blanked, n, tl_stream_state.active ? "yes" : "no");
+                    return true;
                 }
             }
 #endif

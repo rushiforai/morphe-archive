@@ -9,6 +9,8 @@ import androidx.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -43,6 +45,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *
  * <p>Nothing else in a body changes: every other byte of it goes out as Facebook wrote it. Requests
  * of other surfaces aren't read past their tracking name.
+ *
+ * <p>Marketplace search has no ads-only query and no variable that asks to skip them: its results
+ * query brings the ads back among the listings. So the answers of Marketplace's search queries are
+ * read on their way back, where the module's Tigon callbacks hand the text to JavaScript ({@link
+ * #responsePiece}, {@link #responseWhole}, and {@link #responseEnd} for what still waits when an
+ * answer in pieces ends), and {@link MarketplaceSearchAds} takes the ads out.
  *
  * <p>It fails open: with the patch not in the build, the switch off, Hushfacebook paused, the
  * settings not ready yet, a body it can't read, or any failure in here, the request is Facebook's
@@ -93,6 +101,17 @@ public final class MarketplaceAdFilter {
     /** What the counter says was done to a request. */
     static final String HELD_BACK = "ads-only query held back";
     static final String SKIPPED = "feed query asked to skip ads";
+
+    /** What names a Marketplace search query, and what names the ones whose answers carry no results. */
+    static final String SEARCH = "Search";
+    static final String TYPEAHEAD = "Typeahead";
+    static final String MUTATION = "Mutation";
+
+    /** Where the response hooks report under the patch's family. */
+    static final String SEARCH_ANSWER = "Marketplace search answer";
+
+    /** Search answers being read, by the Networking module's record of their request. */
+    private static final Map<Object, MarketplaceSearchAds.Answer> answers = new WeakHashMap<>();
 
     /** A body longer than this is sent as it is, unread. Relay's are a few kilobytes. */
     static final int MAX_BODY_CHARS = 512 * 1024;
@@ -168,6 +187,99 @@ public final class MarketplaceAdFilter {
             HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, "Marketplace request", failure);
             return body;
         }
+    }
+
+    /**
+     * Injection point, in the Tigon callbacks of Facebook's Networking module, where a piece of a
+     * response's text goes to JavaScript as it comes in. [piece] is that text, [trackingName] the
+     * request's, and [request] the module's own record of the request, one object for every piece of
+     * a response. Answers the text to pass on: a Marketplace search answer's with its ads taken out
+     * (see {@link MarketplaceSearchAds}), anything else as it came. Never throws.
+     */
+    @Nullable
+    public static String responsePiece(@Nullable String piece, @Nullable String trackingName, @Nullable Object request) {
+        MarketplaceSearchAds.Answer answer = null;
+        try {
+            if (piece == null || request == null || !inBuild()) return piece;
+            String query = searchQuery(trackingName);
+            if (query == null) return piece;
+            synchronized (answers) {
+                answer = answers.get(request);
+                if (answer == null) {
+                    answer = newAnswer(query);
+                    answers.put(request, answer);
+                }
+            }
+            return answer.read(piece);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, SEARCH_ANSWER, failure);
+            return answer != null ? answer.giveUp(piece) : piece;
+        }
+    }
+
+    /**
+     * Injection point, in the same callbacks where a response's whole text goes to JavaScript at its
+     * end, for a request that didn't ask for it in pieces. Answers the text to pass on. Never throws.
+     */
+    @Nullable
+    public static String responseWhole(@Nullable String text, @Nullable String trackingName) {
+        try {
+            if (text == null || !inBuild()) return text;
+            String query = searchQuery(trackingName);
+            if (query == null) return text;
+            MarketplaceSearchAds.Answer answer = newAnswer(query);
+            String read = answer.read(text);
+            String rest = answer.rest();
+            return rest.isEmpty() ? read : read + rest;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, SEARCH_ANSWER, failure);
+            return text;
+        }
+    }
+
+    /**
+     * Injection point, in the same callbacks right before a response that came in pieces is reported
+     * complete to JavaScript. [request] is the module's record of it, as {@link #responsePiece} got
+     * it. Answers the text still waiting there for a payload to finish, as it came, for the patch to
+     * hand on as one last piece, or null when nothing waits. The answer is done with. Never throws.
+     */
+    @Nullable
+    public static String responseEnd(@Nullable Object request) {
+        try {
+            if (request == null) return null;
+            MarketplaceSearchAds.Answer answer;
+            synchronized (answers) {
+                answer = answers.remove(request);
+            }
+            return answer != null ? answer.end() : null;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, SEARCH_ANSWER, failure);
+            return null;
+        }
+    }
+
+    /** A search answer's reading, reported as the hook reaching one; unread when the switch is off. */
+    private static MarketplaceSearchAds.Answer newAnswer(String query) {
+        HookStatus.invoked(FamilyNames.SPONSORED_MARKETPLACE);
+        RuntimeException failure = failNextForTests;
+        if (failure != null) {
+            failNextForTests = null;
+            throw failure;
+        }
+        HookStatus.bound(FamilyNames.SPONSORED_MARKETPLACE, SEARCH_ANSWER);
+        return new MarketplaceSearchAds.Answer(query, switchedOn());
+    }
+
+    /**
+     * The query's name when [trackingName] is a Relay query of Marketplace search's that can carry
+     * results, else null. The typeahead's suggestions and the mutations that keep the search history
+     * aren't read.
+     */
+    @Nullable
+    static String searchQuery(@Nullable String trackingName) {
+        String query = marketplaceQuery(trackingName);
+        if (query == null || !query.contains(SEARCH) || query.contains(TYPEAHEAD) || query.endsWith(MUTATION)) return null;
+        return query;
     }
 
     /** The query's name when [trackingName] is a Relay query of Marketplace's, else null. */
@@ -481,8 +593,12 @@ public final class MarketplaceAdFilter {
         }
     }
 
-    /** Forgets the line count, as a new process would. */
+    /** Forgets the line counts and the answers being read, as a new process would. */
     static void forget() {
         lines.set(0);
+        MarketplaceSearchAds.forget();
+        synchronized (answers) {
+            answers.clear();
+        }
     }
 }

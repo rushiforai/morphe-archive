@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/na-x-ril/onlynazril-patches/compare/v1.1.0...v1.2.0) (2026-09-29)
+
+### ✨ New Features
+
+* filter the feed by ads and by view or like counts ([97874bc](https://github.com/na-x-ril/onlynazril-patches/commit/97874bc42c4c7a5e9efd3d7ba524e3c08268828e)), closes [FeedItemList#setItems](https://github.com/na-x-ril/FeedItemList/issues/setItems) [FeedItemList#clone](https://github.com/na-x-ril/FeedItemList/issues/clone) [X.07zq#getData](https://github.com/na-x-ril/X.07zq/issues/getData)
+
+## [1.2.0-dev.1](https://github.com/na-x-ril/onlynazril-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-09-29)
+
+### ✨ New Features
+
+* filter the feed by ads and by view or like counts ([97874bc](https://github.com/na-x-ril/onlynazril-patches/commit/97874bc42c4c7a5e9efd3d7ba524e3c08268828e)), closes [FeedItemList#setItems](https://github.com/na-x-ril/FeedItemList/issues/setItems) [FeedItemList#clone](https://github.com/na-x-ril/FeedItemList/issues/clone) [X.07zq#getData](https://github.com/na-x-ril/X.07zq/issues/getData)
+
 ## [1.1.0](https://github.com/na-x-ril/onlynazril-patches/compare/v1.0.0...v1.1.0) (2026-09-25)
 
 ### 🐛 Bug Fixes

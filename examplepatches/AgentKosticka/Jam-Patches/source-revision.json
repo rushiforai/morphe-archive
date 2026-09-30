@@ -1832,7 +1832,7 @@
       "9.37.54"
     ],
     "baseline": "9.15.51",
-    "documentation": "docs/experimental-versions.md",
+    "documentation": "README.md#source-and-validation",
     "deviceValidation": "Pending user testing for experimental versions",
     "patcherChanges": [
       "Retain live fingerprints in the weak registry across sessions",
@@ -1840,7 +1840,7 @@
     ]
   },
   "playerControlsOverlay": {
-    "documentation": "docs/experimental-versions.md#player-controls-correction",
+    "documentation": "README.md#player-controls-update",
     "changes": [
       "Route compact player skip buttons and native play/pause clicks to the host",
       "Mirror the host clock through the native playback icon renderer",

@@ -126,8 +126,7 @@ $OutputMpp = "$($OutDir.FullName)\pixiv-patches-$PatchesVersion.mpp"
 if (Test-Path $OutputMpp) { Remove-Item $OutputMpp -Force }
 
 & jar cvfm $OutputMpp "$StagingMeta\MANIFEST.MF" -C "$BuildDir\staging" .
-Copy-Item $OutputMpp "$RepoRoot\pixiv-patches.mpp" -Force
-Copy-Item $OutputMpp "$RepoRoot\patches-$PatchesVersion.mpp" -Force
+Copy-Item $OutputMpp "$($OutDir.FullName)\pixiv-patches-latest.mpp" -Force
 
 # 7. Verification
 Write-Host "[5/5] Verifying bundle with morphe-cli and dexdump..." -ForegroundColor Yellow

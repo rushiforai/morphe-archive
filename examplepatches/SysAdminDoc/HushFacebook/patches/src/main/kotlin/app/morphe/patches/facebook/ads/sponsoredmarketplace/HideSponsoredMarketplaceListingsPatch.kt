@@ -6,26 +6,38 @@ package app.morphe.patches.facebook.ads.sponsoredmarketplace
 
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
+import app.morphe.patches.facebook.misc.extension.freeLocalsAt
+import app.morphe.patches.facebook.misc.extension.liveAcrossInjection
+import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
- * Keeps the ads out of Marketplace's feed: the feed's query asks Facebook's servers to skip them,
- * and the queries that fetch only ads aren't sent. See MarketplaceRequestAnchors.kt for where the
- * requests pass through Java, and the extension's MarketplaceAdFilter for what it changes.
+ * Keeps the ads out of Marketplace's feed and its search results: the feed's query asks Facebook's
+ * servers to skip them, the queries that fetch only ads aren't sent, and the ads that come back
+ * among search results are taken out of the answer before JavaScript sees it. See
+ * MarketplaceRequestAnchors.kt and MarketplaceResponseAnchors.kt for where the requests and their
+ * answers pass through Java, and the extension's MarketplaceAdFilter for what it changes.
  */
 @Suppress("unused")
 val hideSponsoredMarketplaceListingsPatch = bytecodePatch(
     name = "Hide sponsored Marketplace listings",
-    description = "Removes the ads and boosted listings from Marketplace's feed. Hushfacebook asks Facebook not to " +
-        "send them, and the requests that fetch only ads don't go out. The listings people post stay.",
+    description = "Removes the ads and boosted listings from Marketplace's feed and search results. The feed's request " +
+        "asks Facebook to leave them out and the requests that fetch only ads don't go out. Ads that come back among " +
+        "search results are taken out before Marketplace shows them. The listings people post stay.",
     default = true,
 ) {
     category("Ads")
@@ -46,6 +58,40 @@ val hideSponsoredMarketplaceListingsPatch = bytecodePatch(
                 "\"$BODY_KEY\" right before the one StringEntity it builds, from the data it reads \"$TRACKING_NAME\" from",
         )
         mutableClassDefBy(send.definingClass).findMutableMethodOf(send).askAboutTheBody(read)
+
+        val callbacks = classDefByOrNull(CALLBACKS) ?: throw PatchException("$PATCH: this build has no $CALLBACKS")
+        val inBuild = { reference: MethodReference -> method(classDefByOrNull(reference.definingClass)?.methods, reference) }
+        val handOffs = textHandOffs(callbacks, inBuild)
+        val pieces = handOffs.count { !it.whole }
+        val wholes = handOffs.count { it.whole }
+        if (pieces != 1 || wholes != 1) {
+            throw PatchException(
+                "$PATCH: expected $CALLBACKS to hand an answer's text to JavaScript once in pieces and once whole, " +
+                    "each from a toString() with the request's state at hand, found $pieces and $wholes",
+            )
+        }
+        val stateType = handOffs.map { it.stateType }.distinct().singleOrNull()
+            ?: throw PatchException("$PATCH: $CALLBACKS reads two request states: ${handOffs.map { it.stateType }}")
+        val tracking = trackingField(send, stateType, inBuild) ?: throw PatchException(
+            "$PATCH: ${send.definingClass}->$SEND_REQUEST no longer builds $stateType with the \"$TRACKING_NAME\" it " +
+                "reads, kept in one String field",
+        )
+        val ends = answerEnds(callbacks, stateType, inBuild)
+        val end = ends.singleOrNull() ?: throw PatchException(
+            "$PATCH: expected $CALLBACKS to report an answer complete once, with the request's state at hand, " +
+                "found ${ends.size}",
+        )
+        val piece = handOffs.single { !it.whole }
+        if (end.emitter.parameterTypes.first().toString() != piece.emitter.parameterTypes.first().toString()) {
+            throw PatchException("$PATCH: ${end.emitter} and ${piece.emitter} take different contexts")
+        }
+        // The end goes in first. A hand-off after it in the same method would lose its place.
+        if (handOffs.any { it.method == end.method && it.landed >= end.call }) {
+            throw PatchException("$PATCH: ${end.method.name} hands text on after it reports the answer complete")
+        }
+        val mutableCallbacks = mutableClassDefBy(CALLBACKS)
+        mutableCallbacks.findMutableMethodOf(end.method).handTheRestOver(end, piece.emitter)
+        handOffs.forEach { mutableCallbacks.findMutableMethodOf(it.method).handTheTextOver(it, tracking) }
         enableStatus("sponsoredMarketplace")
     }
 }
@@ -65,5 +111,62 @@ internal fun MutableMethod.askAboutTheBody(read: BodyRead) {
             invoke-static { v${read.body}, v${read.data} }, $REQUEST_BODY
             move-result-object v${read.body}
         """,
+    )
+}
+
+/** The method of [methods] that [reference] names, or null. */
+private fun method(methods: Iterable<Method>?, reference: MethodReference): Method? = methods?.firstOrNull {
+    it.name == reference.name && it.returnType == reference.returnType &&
+        it.parameterTypes.map(CharSequence::toString) == reference.parameterTypes.map(CharSequence::toString)
+}
+
+/**
+ * Right after [handOff]'s text lands, the tracking name goes into a local nothing reads afterwards,
+ * the text, the name and for a piece the request's state go to the extension, and its answer takes
+ * the text's register. Nothing else in the method changes.
+ */
+internal fun MutableMethod.handTheTextOver(handOff: TextHandOff, tracking: FieldReference) {
+    val at = handOff.landed + 1
+    val name = freeLocalsAt(PATCH, at, 1).single()
+    val call = if (handOff.whole) {
+        "invoke-static { v${handOff.text}, v$name }, $RESPONSE_WHOLE"
+    } else {
+        "invoke-static { v${handOff.text}, v$name, v${handOff.state} }, $RESPONSE_PIECE"
+    }
+    addInstructions(
+        at,
+        """
+            iget-object v$name, v${handOff.state}, $tracking
+            $call
+            move-result-object v${handOff.text}
+        """,
+    )
+}
+
+/**
+ * Right before [end]'s call reports an answer complete, the extension is asked for the text still
+ * waiting there for a payload to finish. When it hands some back, the text goes to JavaScript
+ * through [emitter], the piece emitter, as one last piece, with the context, the request id and the
+ * request's number the end call is given and no length. It takes eight locals in a row that nothing
+ * reads afterwards; the end call and the rest of the method run as they did.
+ */
+internal fun MutableMethod.handTheRestOver(end: AnswerEnd, emitter: MethodReference) {
+    val live = liveAcrossInjection(end.call)
+    val first = (0..minOf(localRegisterCount(), 256) - 8).firstOrNull { start -> (start until start + 8).none { it in live } }
+        ?: throw PatchException("$PATCH: $definingClass->$name has no eight locals in a row free before instruction ${end.call}")
+    addInstructionsWithLabels(
+        end.call,
+        """
+            invoke-static/range { v${end.state} .. v${end.state} }, $RESPONSE_END
+            move-result-object v${first + 2}
+            if-eqz v${first + 2}, :complete
+            move-object/from16 v$first, v${end.context}
+            move-object/from16 v${first + 1}, v${end.id}
+            move/from16 v${first + 3}, v${end.number}
+            const-wide/16 v${first + 4}, 0x0
+            const-wide/16 v${first + 6}, 0x0
+            invoke-static/range { v$first .. v${first + 7} }, $emitter
+        """,
+        ExternalLabel("complete", getInstruction(end.call)),
     )
 }

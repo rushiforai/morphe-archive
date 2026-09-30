@@ -13,16 +13,18 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 val trackDataIntfEntity =
     bytecodePatch(
         description = "This patch is used for decoding obfuscated code of track data interface",
     ) {
+        dependsOn(instagramExtensionPatch)
         execute {
             val trackDataFromMusicInfoMethodName = TrackDataFromMusicInfoMethodFingerprint.method.name
             GetTrackDataExtension.changeFirstString(trackDataFromMusicInfoMethodName)
 
-            mutableClassDefBy(IMMUTABLE_PANDO_AUDIO_FILTER_INFO_CLASS_DESCRIPTOR)
+            classDefBy(IMMUTABLE_PANDO_AUDIO_FILTER_INFO_CLASS_DESCRIPTOR)
                 .methods
                 .last {
                     it.returnType ==

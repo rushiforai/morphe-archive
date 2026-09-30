@@ -1,4 +1,4 @@
-# Letterboxd Player Bridge
+# Stremio + Nuvio Bridge
 
 给 Android 版 Letterboxd 的电影详情页增加两个独立按钮：
 
@@ -106,3 +106,58 @@ github.com/feixiangdao/letterboxd-stremio-nuvio-morphe-patch
 ## License
 
 GPL-3.0。详见 `LICENSE` 与 `NOTICE`。
+
+
+## 豆瓣支持
+
+v0.2.0 起支持用户提供的 **豆瓣 7.135.0（versionCode 363）** APK。
+
+豆瓣使用 NetEase NIS 加固，因此补丁不是直接修改被保护的 `MovieActivity2` 字节码，而是注入壳层 `InstrumentationProxy.callActivityOnCreate`。运行后识别真实的：
+
+```text
+com.douban.frodo.subject.struct2.MovieActivity2
+```
+
+并在电影 / 剧集详情页叠加两个独立按钮：
+
+```text
+[ Stremio ] [ Nuvio ]
+```
+
+影片匹配流程：
+
+```text
+豆瓣当前详情页
+→ 运行时读取标题 / 原名 / 年份 / movie|tv
+→ Stremio 官方 Cinemeta 搜索
+→ IMDb ID
+→ Stremio / Nuvio Deep Link
+```
+
+不需要 TMDB API Key。
+
+调试：长按任意一个按钮，会显示补丁当前从豆瓣详情页识别到的 ID、标题、原名、年份、类型和 IMDb ID，方便排查特殊影片。
+
+
+### v0.2.1 启动兼容修正
+
+v0.2.0 直接注入 NIS 的 `InstrumentationProxy.callActivityOnCreate`，部分设备会停在豆瓣启动 Logo。
+
+v0.2.1 改为更保守的链路：
+
+```text
+NIS MyApplication.onCreate 即将返回
+→ 注册轻量 ActivityLifecycleCallbacks
+→ 豆瓣 MovieActivity2 已经 resumed
+→ 再加载按钮运行时代码
+```
+
+豆瓣运行时代码现在使用独立的 `extensions/douban.mpe`，不再把 Letterboxd 所需的 AndroidX / Material 扩展一起注入。
+
+另外增加一个默认关闭的诊断补丁：
+
+```text
+Diagnostic: Douban repackaging only
+```
+
+它不修改任何功能代码，也不注入扩展。只选择这个补丁后重新打包，可以判断当前豆瓣/NIS 版本是否单纯因为 Morphe 重打包/重签名而无法启动。

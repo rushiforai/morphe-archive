@@ -20,6 +20,7 @@ class InstallBesideMetaAppsPatchTest {
         validateVersionCode("346013387")
         validateVersionCode("346013440")
         validateVersionCode("346013442")
+        validateVersionCode("346013354")
     }
 
     @Test

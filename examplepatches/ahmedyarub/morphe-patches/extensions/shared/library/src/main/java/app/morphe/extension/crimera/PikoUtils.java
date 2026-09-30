@@ -26,17 +26,19 @@ import app.morphe.extension.shared.Logger;
 
 @SuppressWarnings("unused")
 public class PikoUtils {
-    private static final Context ctx = Utils.getContext();
-
+    /**
+     * The app context. Read when needed rather than kept in a static: this class can load before
+     * the app hands its context to Utils, and a copy taken then would stay null for good.
+     */
     public static Context getContext() {
-        return ctx;
+        return Utils.getContext();
     }
 
     // Credits to Morphe:
     // https://github.com/MorpheApp/morphe-patches/blob/d6a88edcfba71f9b630314c4c8b56347a10c8b2a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/preference/ExternalDownloaderPreference.java#L128-L138
     public static boolean isAppInstalledAndEnabled(String packageName) {
         try {
-            return ctx.getPackageManager().getApplicationInfo(packageName, 0).enabled;
+            return getContext().getPackageManager().getApplicationInfo(packageName, 0).enabled;
         } catch (PackageManager.NameNotFoundException e) {
             return false;
         }
@@ -46,7 +48,7 @@ public class PikoUtils {
         try {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            ctx.startActivity(intent);
+            getContext().startActivity(intent);
          } catch (Exception e) {
             Logger.printException(() -> "launchIntent failure", e);
             logger(e);
@@ -62,7 +64,7 @@ public class PikoUtils {
     }
 
     public static void shareText(String txt) {
-        final String appPackageName = ctx.getPackageName();
+        final String appPackageName = getContext().getPackageName();
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
         sendIntent.putExtra(Intent.EXTRA_TEXT, txt);
@@ -73,7 +75,7 @@ public class PikoUtils {
     public static void openUrl(String url, boolean currentPackageName) {
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         if(currentPackageName){
-             intent.setPackage(ctx.getPackageName());
+             intent.setPackage(getContext().getPackageName());
         }
         launchIntent(intent);
 
@@ -81,7 +83,7 @@ public class PikoUtils {
 
     public static void openDefaultLinks() {
         Intent intent = new Intent(android.provider.Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS);
-        intent.setData(Uri.parse("package:" + ctx.getPackageName()));
+        intent.setData(Uri.parse("package:" + getContext().getPackageName()));
         launchIntent(intent);
     }
 
@@ -102,10 +104,8 @@ public class PikoUtils {
     }
 
     public static boolean writeFile(File fileName, byte[] data, boolean append) {
-        try {
-            FileOutputStream outputStream = new FileOutputStream(fileName, append);
+        try (FileOutputStream outputStream = new FileOutputStream(fileName, append)) {
             outputStream.write(data);
-            outputStream.close();
             return true;
         } catch (Exception e) {
             logger(e.toString());

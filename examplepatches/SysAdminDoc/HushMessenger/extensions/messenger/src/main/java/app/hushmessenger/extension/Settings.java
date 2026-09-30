@@ -66,6 +66,11 @@ public final class Settings {
     public static boolean allowScreenshot() { return enabled("allow_screenshot"); }
     public static boolean hideReadReceipts() { return enabled("hide_read_receipts"); }
     public static boolean keepUnsent() { return enabled("keep_unsent"); }
+    /** The icon stays hidden only while the Menu row that replaces it exists. */
+    static boolean drawerIconHidden() {
+        SharedPreferences prefs = preferences;
+        return installed.contains("menu_row") && prefs != null && prefs.getBoolean("hide_drawer_icon", false);
+    }
 
     private static final String KEPT_UNSENT_KEY = "kept_unsent_ids";
 
@@ -132,14 +137,32 @@ public final class Settings {
         return kept.size() == tabs.size() ? null : kept;
     }
 
-    private static boolean opensAvatarTab(Object tab) {
-        if (tab == null) return false;
-        for (java.lang.reflect.Field f : tab.getClass().getDeclaredFields()) {
+    /** Builds that fill the tab list inline pass it here before copying it; the list is theirs to change. */
+    public static void removeAvatarTabs(Iterable<?> tabs) {
+        if (!(tabs instanceof java.util.Collection) || !enabled("avatar_stickers")) return;
+        try {
+            ((java.util.Collection<?>) tabs).removeIf(Settings::opensAvatarTab);
+        } catch (RuntimeException error) {
+            android.util.Log.e("HushMessenger", "Can't filter the sticker keyboard tabs", error);
+        }
+    }
+
+    // Some builds keep the tab's event directly on the item, others on a config object the item holds.
+    static boolean opensAvatarTab(Object tab) {
+        return holdsAvatarEvent(tab, 2);
+    }
+
+    private static boolean holdsAvatarEvent(Object value, int depth) {
+        if (value == null || depth == 0) return false;
+        for (java.lang.reflect.Field f : value.getClass().getDeclaredFields()) {
             if (java.lang.reflect.Modifier.isStatic(f.getModifiers()) || f.getType().isPrimitive()) continue;
             try {
                 f.setAccessible(true);
-                Object value = f.get(tab);
-                if (value != null && AVATAR_TAB_EVENT.equals(value.getClass().getName())) return true;
+                Object field = f.get(value);
+                if (field == null) continue;
+                if (AVATAR_TAB_EVENT.equals(field.getClass().getName())) return true;
+                // Only Messenger's own obfuscated classes are walked into, never strings or collections.
+                if (field.getClass().getName().startsWith("X.") && holdsAvatarEvent(field, depth - 1)) return true;
             } catch (ReflectiveOperationException | RuntimeException ignored) { }
         }
         return false;

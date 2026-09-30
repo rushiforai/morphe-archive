@@ -86,11 +86,13 @@ public class ProfileAvatarSizeTest {
         new URL("https://8.8.8.8/");
         handlers = ReflectionHelpers.getStaticField(URL.class, "handlers");
         URLStreamHandler transport = new URLStreamHandler() {
+            // The pinned media connection opens with Proxy.NO_PROXY; the base overload throws.
+            @Override protected URLConnection openConnection(URL url, java.net.Proxy proxy) throws java.io.IOException { return openConnection(url); }
             @Override protected URLConnection openConnection(URL url) throws IOException {
                 requested.add(url.toString());
                 byte[] body = pictures.get(url.getPath());
                 if (body == null) throw new IOException("Unexpected fixture URL: " + url);
-                return new HttpURLConnection(url) {
+                return new FakeHttpsConnection(url) {
                     @Override public int getResponseCode() { return HTTP_OK; }
                     @Override public String getHeaderField(String name) {
                         return "Content-Length".equals(name) ? String.valueOf(body.length) : null;

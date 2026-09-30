@@ -15,13 +15,13 @@ import android.util.AttributeSet;
 @SuppressWarnings("deprecation")
 public final class JamCompanionPackagePreference extends Preference {
 
-  public JamCompanionPackagePreference(Context context, AttributeSet attrs) {
-    super(context, attrs);
-    setPersistent(false);
-  }
+    public JamCompanionPackagePreference(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        setPersistent(false);
+    }
 
-  @Override
-  protected void onClick() {
-    JamUi.configureCompanion(getContext());
-  }
+    @Override
+    protected void onClick() {
+        JamUi.configureCompanion(getContext());
+    }
 }

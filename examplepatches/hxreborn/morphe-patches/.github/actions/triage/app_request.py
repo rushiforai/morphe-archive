@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from fields import field, normalize, parse_fields
+from fields import CONTEST, SIGN_OFF, field, normalize, parse_fields
 
 MARKER = "<!-- app-request-bot -->"
 URL = re.compile(r"https?://\S+")
@@ -76,28 +76,28 @@ def decide(number, body, requests, patches_list, registry=None, title="", now=No
     if package and package.lower() in supported:
         verdict, reason = "close", "completed"
         lines.append(
-            f"`{package}` is already supported as **{supported[package.lower()]}**. Update the "
-            "bundle in Morphe Manager and patch the app. For anything the patches don't cover, "
-            "please open a feature request."
+            f"🎉 **Already supported.** `{package}` is patched as **{supported[package.lower()]}**. "
+            "Update the bundle in Morphe Manager and patch the app. For anything the patches don't "
+            "cover, open a feature request."
         )
     elif open_same:
         canonical = open_same[0]
         verdict, reason, duplicate_of = "close", "duplicate", canonical["number"]
         lines.append(
-            f"Closing as a duplicate of {link(canonical)}, which already requests `{package}`. "
-            f"Please upvote {link(canonical)} or add any new details there."
+            f"🔁 **Duplicate of {link(canonical)}**, which already requests `{package}`. "
+            "Upvote it or add any new details there."
         )
     elif same_package:
         prior = same_package[-1]
         verdict, labels = "flag", ["duplicate"]
         lines.append(
-            f"An earlier request for `{package}`, {link(prior)}, was closed. This request is kept "
-            "open for review. Please mention anything that's changed."
+            f"👀 **{link(prior)} asked for `{package}` and was closed.** A maintainer will review "
+            "this request. Mention anything that changed since."
         )
     elif not package:
         verdict, labels = "flag", ["needs info"]
         lines.append(
-            "Please add the app's package name to the Package name field, for example "
+            "📦 **No package name found.** Add it to the Package name field, for example "
             "`com.duolingo`. It's the value after `id=` in the Play Store link."
         )
 
@@ -116,8 +116,8 @@ def decide(number, body, requests, patches_list, registry=None, title="", now=No
                 labels.append("duplicate")
             refs = ", ".join(f"**{r['name']}** (already supported)" if not r["number"] else link(r) for r in lookalikes)
             lines.append(
-                f"This may be the same app as {refs}, but the package name differs or is "
-                "missing. Please confirm the package name; this request is kept open for review."
+                f"🔍 **This may be the same app as {refs}**, but the package name differs or is "
+                "missing. Confirm the package name. A maintainer will review this request."
             )
 
     bundles = []
@@ -136,13 +136,13 @@ def decide(number, body, requests, patches_list, registry=None, title="", now=No
             if len(bundles) > MAX_LISTED:
                 rows.append(f"- {len(bundles) - MAX_LISTED} more bundles")
             lines.append(
-                f"These bundles already offer patches for `{package}`:\n\n" + "\n".join(rows) + "\n\n"
-                "Add a listed bundle as a source in Morphe Manager to try its patches. If they don't "
-                "cover your request, please describe what's missing."
+                f"🧩 **Other bundles already patch `{package}`:**\n\n" + "\n".join(rows) + "\n\n"
+                "Add one as a source in Morphe Manager to try its patches. If they don't cover the "
+                "request, describe what's missing."
             )
 
     if verdict != "pass":
-        lines.append("_Posted automatically on behalf of the maintainer. If this seems wrong, please comment below for review._")
+        lines.append(f"{CONTEST}\n\n{SIGN_OFF}")
     return {
         "package": package,
         "verdict": verdict,

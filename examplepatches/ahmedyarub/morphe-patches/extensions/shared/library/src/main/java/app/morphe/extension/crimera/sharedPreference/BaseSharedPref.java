@@ -20,20 +20,39 @@ import app.morphe.extension.crimera.constants.ExtensionStrings;
 
 public abstract class BaseSharedPref {
 
-    protected final PikoSharedPrefCategory sp;
+    // Created on first use rather than in the constructor. The subclasses are singletons created
+    // when their class loads, which can be before the app has handed its context to Utils; built
+    // eagerly, the preferences stayed null for the whole process and every read returned its
+    // default. Ported from piko 8391a5b68 ("Recover settings after crash").
+    private volatile PikoSharedPrefCategory sp;
+    private final String sharedPrefName;
 
     protected BaseSharedPref(Context context, String sharedPrefName) {
-        Context ctx = Utils.getContext();
-        this.sp = (ctx != null) ? new PikoSharedPrefCategory(sharedPrefName) : null;
+        this.sharedPrefName = sharedPrefName;
+        this.sp = (context != null) ? new PikoSharedPrefCategory(context, sharedPrefName) : null;
     }
 
     protected BaseSharedPref(String sharedPrefName) {
-        this(Utils.getContext(), sharedPrefName);
+        this(null, sharedPrefName);
+    }
+
+    private PikoSharedPrefCategory preferences() {
+        PikoSharedPrefCategory current = sp;
+        if (current != null) return current;
+
+        Context context = Utils.getContext();
+        if (context == null) return null;
+
+        synchronized (this) {
+            if (sp == null) sp = new PikoSharedPrefCategory(context, sharedPrefName);
+            return sp;
+        }
     }
 
     public Boolean getBoolean(BooleanSetting setting) {
         Boolean defaultValue = setting.defaultValue;
-        if (sp != null) {
+        PikoSharedPrefCategory sp = preferences();
+            if (sp != null) {
             return sp.getBoolean(setting.key, defaultValue);
         }
         return defaultValue;
@@ -41,6 +60,7 @@ public abstract class BaseSharedPref {
 
     public Boolean setBoolean(String key, Boolean val) {
         try {
+            PikoSharedPrefCategory sp = preferences();
             if (sp != null) {
                 sp.saveBoolean(key, val);
                 return true;
@@ -53,6 +73,7 @@ public abstract class BaseSharedPref {
 
     public Boolean setString(String key, String val) {
         try {
+            PikoSharedPrefCategory sp = preferences();
             if (sp != null) {
                 sp.saveString(key, val);
                 return true;
@@ -64,6 +85,7 @@ public abstract class BaseSharedPref {
     }
 
     public String getString(String key, String defaultValue) {
+        PikoSharedPrefCategory sp = preferences();
         if (sp == null)
             return defaultValue;
 
@@ -79,7 +101,8 @@ public abstract class BaseSharedPref {
 
     public Set<String> getSet(StringSetting stringSetting) {
         Set<String> defVal = new HashSet();
-        if (sp != null) {
+        PikoSharedPrefCategory sp = preferences();
+            if (sp != null) {
             return sp.getSet(stringSetting.key, defVal);
         }
         return defVal;
@@ -87,6 +110,7 @@ public abstract class BaseSharedPref {
 
     public Boolean setSet(String key, Set<String> value) {
         try {
+            PikoSharedPrefCategory sp = preferences();
             if (sp != null) {
                 sp.saveSet(key, value);
                 return true;
@@ -99,6 +123,7 @@ public abstract class BaseSharedPref {
 
     public boolean clear() {
         try {
+            PikoSharedPrefCategory sp = preferences();
             if (sp != null) {
                 sp.clearAll();
                 return true;
@@ -111,6 +136,7 @@ public abstract class BaseSharedPref {
 
     protected boolean flushPreferences() {
         try {
+            PikoSharedPrefCategory sp = preferences();
             if (sp != null) {
                 return sp.preferences.edit().commit();
             }
@@ -122,6 +148,7 @@ public abstract class BaseSharedPref {
 
     public JSONObject all() {
         try {
+            PikoSharedPrefCategory sp = preferences();
             if (sp != null) {
                 return sp.getAll();
             }

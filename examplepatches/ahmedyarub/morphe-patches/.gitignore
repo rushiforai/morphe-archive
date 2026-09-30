@@ -122,9 +122,15 @@ gradle-app.setting
 # Dependency directories
 node_modules/
 
-# gradle properties, due to Github token
-./gradle.properties
+# The root gradle.properties is tracked: it holds the version. Keep GitHub credentials in
+# ~/.gradle/gradle.properties (gpr.user, gpr.key) instead.
+
+# Kotlin compiler session data and error logs
+.kotlin/
 
 # Ignore IDEA files
 .idea/
 local.properties
+
+# PVS-Studio plugin output
+.PVS-Studio/

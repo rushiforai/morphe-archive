@@ -59,6 +59,8 @@ import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.font.OwnFont;
 import app.morphe.extension.facebook.comments.DefaultCommentOrderForTests;
 import app.morphe.extension.facebook.composer.TagSuggestionsForTests;
+import app.morphe.extension.facebook.media.QualityChoiceForTests;
+import app.morphe.extension.facebook.media.ReelSpeedForTests;
 import app.morphe.extension.facebook.media.ResumePlaybackForTests;
 import app.morphe.extension.facebook.media.TapToPlay;
 import app.morphe.extension.facebook.media.TapToPlayForTests;
@@ -66,9 +68,12 @@ import app.morphe.extension.facebook.menu.MenuSectionsForTests;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
 import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
+import app.morphe.extension.facebook.navigation.ReelsTabForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
 import app.morphe.extension.facebook.reels.DoubleTapLike;
+import app.morphe.extension.facebook.reels.ReelHold;
+import app.morphe.extension.facebook.reels.ReelHoldForTests;
 import app.morphe.extension.facebook.reels.ReelDeclutter;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
@@ -274,10 +279,12 @@ public class PausedHooksTest {
         // A timeline story with sponsored data isn't drawn on a profile.
         probes.put(PatchFamily.SPONSORED_PROFILE_POSTS,
                 Collections.singletonList(ProfileAdFilterForTests::hidesASponsoredStory));
-        // Marketplace's feed query asks to skip its ads, and an ads-only query isn't sent.
+        // Marketplace's feed query asks to skip its ads, an ads-only query isn't sent, and a search
+        // answer loses its ad.
         probes.put(PatchFamily.SPONSORED_MARKETPLACE, Arrays.asList(
                 MarketplaceAdFilterForTests::asksTheFeedToSkipAds,
-                MarketplaceAdFilterForTests::holdsBackAnAdsQuery));
+                MarketplaceAdFilterForTests::holdsBackAnAdsQuery,
+                MarketplaceAdFilterForTests::dropsASearchAd));
         // A Remix chip under a reel, the Follow and Following buttons beside its author, and both
         // footer queries.
         probes.put(PatchFamily.REEL_DECLUTTER, Arrays.asList(
@@ -296,6 +303,21 @@ public class PausedHooksTest {
                 () -> DoubleTapLike.likeKey("reel") == null,
                 () -> DoubleTapLike.holdBackLike("DOUBLE_TAP"),
                 DoubleTapLike::holdBackTap));
+        // A long press on a reel goes to Facebook's speed-up wherever it lands, the reel gets its
+        // release listener, a hold speed of normal becomes 2x, the lift of a hold puts the speed back,
+        // and that lift's speed is the one the reel had before the hold.
+        probes.put(PatchFamily.REEL_HOLD, Arrays.asList(
+                () -> ReelHold.longPress(false),
+                () -> ReelHold.anywhere(false),
+                () -> ReelHold.speedUp(false),
+                () -> ReelHold.holdSpeed(1.0) != 1.0,
+                () -> {
+                    ReelHold.held();
+                    return ReelHold.release(false);
+                },
+                ReelHoldForTests::putsBackTheSpeedBeforeAHold));
+        // A speed picked on a reel is set on the next reel the viewer starts.
+        probes.put(PatchFamily.KEEP_REEL_SPEED, Collections.singletonList(ReelSpeedForTests::keepsAPickedSpeed));
         // A player's start with no tap before it is held, and Facebook's Autoplay setting reads Off.
         probes.put(PatchFamily.TAP_TO_PLAY, Arrays.asList(
                 () -> {
@@ -310,6 +332,8 @@ public class PausedHooksTest {
                 () -> TapToPlay.showReelPlayButton(false)));
         // A long video left at 5:00 is saved, and its next start seeks back there.
         probes.put(PatchFamily.RESUME_LONG_VIDEOS, Collections.singletonList(ResumePlaybackForTests::resumesALongVideo));
+        // A new video's first choice plays the chosen quality rather than Facebook's.
+        probes.put(PatchFamily.PLAYBACK_QUALITY, Collections.singletonList(QualityChoiceForTests::playsTheChosenQuality));
         // The repository's answer for one of Meta's families, a variable-font builder's, and React
         // Native's for a family Facebook registered there.
         probes.put(PatchFamily.SYSTEM_FONT, Arrays.asList(
@@ -355,6 +379,12 @@ public class PausedHooksTest {
         probes.put(PatchFamily.MARKETPLACE_ONLY, Arrays.asList(
                 MarketplaceOnlyForTests::hidesHome, MarketplaceOnlyForTests::quietsNotifications,
                 MarketplaceOnlyForTests::skipsFeedPrefetch));
+        // The tab bar builder is told to leave the Reels tab out.
+        // Facebook's push of its Reels launcher shortcut is held back too.
+        probes.put(PatchFamily.REELS_TAB, Arrays.asList(ReelsTabForTests::hidesTheTab,
+                ReelsTabForTests::dropsTheShortcut));
+        // The tab bar's count for the Reels tab reads none.
+        probes.put(PatchFamily.REELS_TAB_DOT, Collections.singletonList(ReelsTabForTests::clearsTheDot));
         // A request for a post's comments that names no order asks for the chosen one.
         probes.put(PatchFamily.DEFAULT_COMMENT_ORDER,
                 Collections.singletonList(DefaultCommentOrderForTests::asksForTheChosenOrder));

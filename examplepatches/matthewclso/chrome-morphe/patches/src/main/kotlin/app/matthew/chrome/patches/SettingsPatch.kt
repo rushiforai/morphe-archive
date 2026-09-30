@@ -51,7 +51,7 @@ val settingsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(chromeCompatibility)
-    dependsOn(testPackagePatch, modeTogglePatch, rememberModePatch, bottomToolbarPatch, settingsResources)
+    dependsOn(testPackagePatch, modeTogglePatch, rememberModePatch, emptyIncognitoPatch, bottomToolbarPatch, tabPickerPatch, settingsResources)
     execute {
         requireTarget(packageMetadata)
         val application = mutableClassDefBy("Lorg/chromium/chrome/browser/base/SplitChromeApplication;")

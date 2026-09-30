@@ -2,7 +2,14 @@ name: Release
 
 on:
   workflow_dispatch:
+  # Only these branches release (see .releaserc); every other branch is built by
+  # build_pull_request.yml, without the write permissions below.
   push:
+    branches:
+      - main
+      - dev
+
+permissions: {}
 
 jobs:
   release:
@@ -31,8 +38,9 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      # ci installs exactly what package-lock.json pins, in a job that can publish.
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
@@ -49,8 +57,8 @@ jobs:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
-      # Always verify compilation when semantic-release did not publish a release.
-      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      # Verify compilation when semantic-release did not publish a release, as for chore and
+      # docs commits.
       - name: Verify project compiles
         if: steps.release.outputs.new_release_published != 'true'
         env:

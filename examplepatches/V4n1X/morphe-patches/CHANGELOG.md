@@ -1,3 +1,13 @@
+## [1.4.0](https://github.com/V4n1X/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-30)
+
+### 🐛 Bug Fixes
+
+* **soundcloud:** prevent login verification errors and support September release ([73aa8ba](https://github.com/V4n1X/morphe-patches/commit/73aa8ba444854ee659009f853715b30a671f057a)), closes [#2](https://github.com/V4n1X/morphe-patches/issues/2)
+
+### ✨ New Features
+
+* **parcello:** disable advertising in version 2.2.20 ([266a79e](https://github.com/V4n1X/morphe-patches/commit/266a79ea7062a8df9894ca40cc7595a8764935cc))
+
 ## [1.3.0](https://github.com/V4n1X/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-01)
 
 ### 🐛 Bug Fixes

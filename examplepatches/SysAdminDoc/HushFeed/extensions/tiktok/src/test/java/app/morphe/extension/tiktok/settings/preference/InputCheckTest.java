@@ -55,6 +55,7 @@ public class InputCheckTest {
             }
         }
         Settings.BLOCKED_CREATORS.save("");
+        Settings.BLOCKED_SOUND_IDS.save("");
         Settings.BLOCKED_CAPTION_WORDS.save("");
         Settings.SIMSPOOF_MCCMNC.save(Settings.SIMSPOOF_MCCMNC.defaultValue);
         Settings.EXTERNAL_DOWNLOADER_PACKAGE.save("");
@@ -456,6 +457,40 @@ public class InputCheckTest {
                                 | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
                                 | android.text.InputType.TYPE_TEXT_FLAG_AUTO_CORRECT));
                 field.getDialog().dismiss();
+            });
+        }
+    }
+
+    /**
+     * The name keyboard must not make a field single-line. On Android 14 a single-line field
+     * gets a 5,000-character limit that also cuts the text it loads, so a long Blocked creators
+     * list was cut when the dialog opened and the cut copy was saved over it with Save.
+     */
+    @Test @Config(sdk = 34)
+    public void aLongListStaysWholeInANameField() throws Exception {
+        StringBuilder creators = new StringBuilder();
+        StringBuilder sounds = new StringBuilder();
+        for (int i = 0; i < 400; i++) {
+            if (i > 0) { creators.append(", "); sounds.append(", "); }
+            creators.append("creator_handle_").append(i);
+            sounds.append(7_000_000_000_000_000_000L + i);
+        }
+        Object[][] fields = {{Settings.BLOCKED_CREATORS, creators.toString()},
+                {Settings.BLOCKED_SOUND_IDS, sounds.toString()}};
+        for (Object[] field : fields) {
+            app.morphe.extension.shared.settings.StringSetting setting =
+                    (app.morphe.extension.shared.settings.StringSetting) field[0];
+            String value = (String) field[1];
+            assertTrue("the list is too short to test the limit", value.length() > 5000);
+            setting.save(value);
+            onScreen("FEED_FILTER", setting.key, row -> {
+                openDialog(row);
+                android.app.AlertDialog dialog = (android.app.AlertDialog) row.getDialog();
+                assertEquals(setting.key + ": the dialog shows a cut list", value.length(),
+                        row.getEditText().getText().length());
+                dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals(setting.key + ": Save stored a cut list", value, setting.get());
             });
         }
     }

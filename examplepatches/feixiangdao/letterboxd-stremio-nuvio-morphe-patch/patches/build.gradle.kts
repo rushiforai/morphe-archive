@@ -2,8 +2,8 @@ group = "app.playerbridge"
 
 patches {
     about {
-        name = "Letterboxd Player Bridge"
-        description = "Adds separate Stremio and Nuvio buttons to Letterboxd film pages."
+        name = "Stremio + Nuvio Bridge"
+        description = "Adds separate Stremio and Nuvio buttons to supported film/TV apps."
         source = "https://github.com/feixiangdao/letterboxd-stremio-nuvio-morphe-patch"
         author = "feixiangdao"
         contact = "https://github.com/feixiangdao"

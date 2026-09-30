@@ -52,6 +52,13 @@ public class ClearLogBufferPreferenceTest {
     @After public void tearDown() {
         emptyEverythingAndDropUndo();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
+        // Robolectric shares statics between test classes in one sandbox: left set, these English
+        // messages reached SettingsL10nTest's screen as text outside the catalog when it ran next.
+        LogBufferManager.clearedMessage = null;
+        LogBufferManager.nothingToClearMessage = null;
+        LogBufferManager.restoredMessage = null;
+        LogBufferManager.nothingToRestoreMessage = null;
+        LogBufferManager.restoreFailedMessage = null;
         ShadowToast.reset();
     }
 

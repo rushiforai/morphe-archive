@@ -5,7 +5,7 @@
 set -e
 
 DIR="${DIR:-/tmp/morphe-patches}"
-MSG="feat(stickwar): bypass pairip signature and license entry checks"
+MSG="feat(stickwar): rewrite pairip bypass with bytecodePatch per community recipes"
 
 cd "$DIR"
 

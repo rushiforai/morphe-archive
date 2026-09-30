@@ -151,20 +151,6 @@ public class PikoMessageDb extends SQLiteOpenHelper {
             new String[]{senderId});
     }
 
-    /**
-     * Record a chat title as a username — but ONLY for a 1:1 chat, where the title names exactly
-     * one person. In a group the title names no single sender, so blindly applying it to every row
-     * (the old behaviour) made all members' messages show the same name. We therefore resolve the
-     * thread's sole sender and route through the directory (which backfills that sender's rows
-     * everywhere); a group thread (no sole sender) is left untouched.
-     */
-    public void setThreadUsername(String threadId, String username) {
-        if (threadId == null || threadId.isEmpty() || username == null || username.isEmpty()) return;
-        String sole = getSoleSenderId(threadId);
-        if (sole == null) return; // group (or empty) thread → never attribute the title to anyone
-        putUsername(sole, username);
-    }
-
     /** Look up a previously-resolved username for a sender_id, or null. */
     public String getUsername(String senderId) {
         if (senderId == null || senderId.isEmpty()) return null;
@@ -265,16 +251,6 @@ public class PikoMessageDb extends SQLiteOpenHelper {
         return (r != null && !r.isEmpty() && !"unknown".equals(r)) ? r : null;
     }
 
-    /** sender_id stored for a message, or null. */
-    public String getSenderId(String messageId) {
-        if (messageId == null) return null;
-        Cursor c = getReadableDatabase().query(TABLE, new String[]{"sender_id"},
-                "message_id = ?", new String[]{messageId}, null, null, null);
-        String r = c.moveToFirst() ? c.getString(0) : null;
-        c.close();
-        return (r != null && !r.isEmpty()) ? r : null;
-    }
-
     /**
      * The single distinct sender_id in a thread, or null if the thread has zero or more than one
      * distinct sender. Used to recognise a 1:1 chat, where the action-bar title reliably names
@@ -325,87 +301,48 @@ public class PikoMessageDb extends SQLiteOpenHelper {
         return (result != null && !result.isEmpty()) ? result : null;
     }
 
-    private static final String HAS_CONTENT =
-        " AND (COALESCE(content, '') <> '' OR COALESCE(sender_id, '') <> ''"
-            + " OR COALESCE(sender_username, '') <> '')";
-
-    // Returns [messageId, threadId, senderUsername, content, messageType, timestamp, senderId]
-    public List<String[]> getDeletedMessages() {
-        List<String[]> result = new ArrayList<>();
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.query(TABLE, null, "is_deleted = 1" + HAS_CONTENT, null, null, null, "timestamp DESC");
-        while (c.moveToNext()) {
-            result.add(rowToStringArray(c));
-        }
-        c.close();
-        return result;
-    }
-
-    public List<String[]> getDeletedMessagesForThread(String threadId) {
-        List<String[]> result = new ArrayList<>();
-        // Never scope to the empty-thread bucket: rows stored with thread_id = "" are orphans
-        // (thread id was unknown at capture) and must not surface as a specific chat's history.
-        if (threadId == null || threadId.isEmpty()) return result;
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.query(TABLE, null, "is_deleted = 1 AND thread_id = ?" + HAS_CONTENT,
-            new String[]{threadId}, null, null, "timestamp DESC");
-        while (c.moveToNext()) {
-            result.add(rowToStringArray(c));
-        }
-        c.close();
-        return result;
-    }
-
-    // Returns [messageId, threadId, senderUsername, content, messageType, timestamp, isDeleted]
-    public List<String[]> getAllMessages() {
-        List<String[]> result = new ArrayList<>();
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.query(TABLE, null, null, null, null, null, "timestamp DESC");
-        while (c.moveToNext()) {
-            result.add(rowToStringArrayFull(c));
-        }
-        c.close();
-        return result;
-    }
-
-    private String[] rowToStringArray(Cursor c) {
-        String senderId = c.getString(c.getColumnIndexOrThrow("sender_id"));
-        return new String[]{
-            c.getString(c.getColumnIndexOrThrow("message_id")),
-            c.getString(c.getColumnIndexOrThrow("thread_id")),
-            resolveUsername(c.getString(c.getColumnIndexOrThrow("sender_username")), senderId),
-            c.getString(c.getColumnIndexOrThrow("content")),
-            c.getString(c.getColumnIndexOrThrow("message_type")),
-            String.valueOf(c.getLong(c.getColumnIndexOrThrow("timestamp"))),
-            senderId
-        };
+    /** Removes messages that were never deleted and are older than {@code cutoffMs}. */
+    public int pruneAliveOlderThan(long cutoffMs) {
+        return getWritableDatabase().delete(TABLE, "is_deleted = 0 AND timestamp < ?",
+                new String[]{String.valueOf(cutoffMs)});
     }
 
     /**
-     * The display username for a row: the stored sender_username if present, otherwise the
-     * sender_id → username directory (populated from thread loads / 1:1 chats). Returns the
-     * stored value (possibly empty) when the directory has no entry, so the caller's existing
-     * numeric-id fallback still applies for a sender we have never seen named.
+     * Deleted messages, newest first, as [messageId, threadId, senderUsername, content,
+     * messageType, timestamp, senderId]. The username falls back to the sender directory in the
+     * same query, rather than one directory lookup per row.
      */
-    private String resolveUsername(String storedUsername, String senderId) {
-        if (storedUsername != null && !storedUsername.isEmpty()) return storedUsername;
-        if (senderId != null && !senderId.isEmpty()) {
-            String dir = getUsername(senderId);
-            if (dir != null && !dir.isEmpty()) return dir;
-        }
-        return storedUsername;
+    private static final String DELETED_MESSAGES =
+        "SELECT m.message_id, m.thread_id,"
+            + " COALESCE(NULLIF(m.sender_username, ''), d.username, m.sender_username),"
+            + " m.content, m.message_type, m.timestamp, m.sender_id"
+            + " FROM " + TABLE + " m LEFT JOIN " + DIR_TABLE + " d ON d.sender_id = m.sender_id"
+            + " WHERE m.is_deleted = 1"
+            + " AND (COALESCE(m.content, '') <> '' OR COALESCE(m.sender_id, '') <> ''"
+            + " OR COALESCE(m.sender_username, '') <> '')";
+
+    public List<String[]> getDeletedMessages() {
+        return queryDeleted(DELETED_MESSAGES + " ORDER BY m.timestamp DESC", null);
     }
 
-    private String[] rowToStringArrayFull(Cursor c) {
-        return new String[]{
-            c.getString(c.getColumnIndexOrThrow("message_id")),
-            c.getString(c.getColumnIndexOrThrow("thread_id")),
-            resolveUsername(c.getString(c.getColumnIndexOrThrow("sender_username")),
-                    c.getString(c.getColumnIndexOrThrow("sender_id"))),
-            c.getString(c.getColumnIndexOrThrow("content")),
-            c.getString(c.getColumnIndexOrThrow("message_type")),
-            String.valueOf(c.getLong(c.getColumnIndexOrThrow("timestamp"))),
-            String.valueOf(c.getInt(c.getColumnIndexOrThrow("is_deleted")))
-        };
+    public List<String[]> getDeletedMessagesForThread(String threadId) {
+        // Never scope to the empty-thread bucket: rows stored with thread_id = "" are orphans
+        // (thread id was unknown at capture) and must not surface as a specific chat's history.
+        if (threadId == null || threadId.isEmpty()) return new ArrayList<>();
+        return queryDeleted(DELETED_MESSAGES + " AND m.thread_id = ? ORDER BY m.timestamp DESC",
+                new String[]{threadId});
+    }
+
+    private List<String[]> queryDeleted(String sql, String[] arguments) {
+        List<String[]> result = new ArrayList<>();
+        try (Cursor c = getReadableDatabase().rawQuery(sql, arguments)) {
+            while (c.moveToNext()) {
+                result.add(new String[]{
+                    c.getString(0), c.getString(1), c.getString(2), c.getString(3),
+                    c.getString(4), String.valueOf(c.getLong(5)), c.getString(6)
+                });
+            }
+        }
+        return result;
     }
 }

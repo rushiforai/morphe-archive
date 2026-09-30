@@ -16,6 +16,7 @@ import android.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
+import app.morphe.extension.facebook.coexist.FamilySignatureTrust;
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 
@@ -31,6 +32,13 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * Facebook it was cloned from can stay installed beside it (#16). The uid does: Android gives every
  * installed app its own (Facebook's manifest shares it with no other), and the process has it before
  * any code runs, so the check needs no context even while content providers start.
+ *
+ * <p>The same reader gives Facebook a caller's signers when it builds the caller's identity for a
+ * guarded component. On a re-signed build a Meta family app the user patched with the same key is
+ * answered Meta's certificate here too, so Facebook's caller rules judge it exactly as the Meta-signed
+ * app. {@link FamilySignatureTrust} makes that decision, and does it whenever this patch runs: the
+ * security boundary is the same-key check this reader already carries, so a same-key Messenger,
+ * Messenger Lite or Facebook Lite gets it whether or not Install beside Meta's apps is picked too.
  */
 public final class FacebookSignature {
 
@@ -54,16 +62,32 @@ public final class FacebookSignature {
     private static volatile List<Signature> original;
 
     /**
-     * The original signers of Facebook if [info] is this app, or {@code null} to keep the signers
-     * that the system reports.
+     * The original signers of Facebook if [info] is this app, or a Meta family app the user patched
+     * with this build's key that is calling in, or {@code null} to keep the signers the system
+     * reports.
      */
     public static List<Signature> originalSigners(PackageInfo info) {
-        if (!isThisApp(info)) return null;
+        if (isThisApp(info)) {
+            // Counted when it answers for this app. The name is a compile-time constant: this can run
+            // while content providers start, before Hushfacebook has a context, and Hook status reads
+            // no setting.
+            HookStatus.invoked(FamilyNames.RESTORE_TRUST);
+            return meta();
+        }
 
-        // Counted only when it answers for this app, which is the whole of its job. The name is a
-        // compile-time constant: this can run while content providers start, before Hushfacebook
-        // has a context, and Hook status reads no setting.
-        HookStatus.invoked(FamilyNames.RESTORE_TRUST);
+        // A Meta family app re-signed with this build's key, calling a guarded component over Binder:
+        // answer Meta's certificate for it too, so Facebook's caller checks judge it as the Meta-signed
+        // app. This runs on any build carrying this patch, only on a re-signed build and only for the
+        // app the current IPC comes from. FamilySignatureTrust counts it under this same patch and
+        // takes Facebook's own path for anyone else.
+        if (FamilySignatureTrust.isSameKeyFamilyCaller(info)) {
+            return meta();
+        }
+        return null;
+    }
+
+    /** Facebook's original certificate, read once. */
+    private static List<Signature> meta() {
         List<Signature> signers = original;
         if (signers == null) {
             signers = Collections.singletonList(new Signature(Base64.decode(CERTIFICATE, Base64.DEFAULT)));

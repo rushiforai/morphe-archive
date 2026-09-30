@@ -221,6 +221,17 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         criticality="HIGH",
     ),
     PatchContract(
+        patch_id="disable_post_download_dialog",
+        name="Disable Post-Download Share Dialog",
+        target_type="bytecode",
+        description="Suppresses the automatic 'Share to' and friend suggestions bottom sheet that pops up after finishing a download.",
+        required_classes=[
+            "Lcom/ss/android/ugc/aweme/internalshare/impl/fragment/DownloadAndShareFragment;",
+        ],
+        required_strings=["after_video_saved_share_to_nscreen"],
+        criticality="HIGH",
+    ),
+    PatchContract(
         patch_id="playback_speed_persistence",
         name="Playback Speed Persistence",
         target_type="bytecode",
@@ -441,8 +452,8 @@ TIKTOK_PATCH_CONTRACTS: List[PatchContract] = [
         description="Prevents viewed videos from being recorded in account watch history, playback duration stores, and local history caches.",
         required_classes=[
             "Lcom/ss/android/ugc/aweme/feed/api/AwemeStatsApi;",
-            "LX/03kz;",
-            "LX/0a8D;",
+            "LX/03l3;",
+            "LX/0aZr;",
         ],
         required_strings=["/aweme/v1/aweme/stats/"],
         criticality="HIGH",

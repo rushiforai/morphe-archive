@@ -23,6 +23,7 @@ import android.widget.TextView;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.feed.PostWordsForTests;
+import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
@@ -566,7 +567,8 @@ public class HushfacebookPreferenceFragmentTest {
                 assertFalse(((SwitchPreference) row).isChecked());
                 assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, compatible);
                 assertEquals("Save videos other apps can open", String.valueOf(row.getTitle()));
-                assertEquals("For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.",
+                assertEquals("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
+                        + "without sound. May lower quality.",
                         String.valueOf(row.getSummary()));
             }
         }
@@ -639,6 +641,50 @@ public class HushfacebookPreferenceFragmentTest {
                 assertFalse(Settings.OPEN_ON_CHOSEN_TAB.key.equals(row.getKey()));
             }
         }
+    }
+
+    /**
+     * With Hide the Reels tab in the build, its switch is under Reels and Watch, and while it's on a
+     * chosen Video tab's row says Facebook opens on Home, since a start never lands on the hidden
+     * tab. Switched off, with no Marketplace only in the build, the row names Video again. The saved
+     * choice stays Video throughout.
+     */
+    @Test
+    public void aChosenReelsTabSaysItOpensHomeWhileHideTheReelsTabIsOn() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB, PatchFamily.REELS_TAB);
+        Settings.START_TAB.save(StartTab.VIDEO);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = new HushfacebookPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            SwitchPreference hide = (SwitchPreference) page.findPreference(Settings.HIDE_REELS_TAB.key);
+            assertEquals("Hide the Reels tab", String.valueOf(hide.getTitle()));
+            assertEquals("Reels and Watch", String.valueOf(hide.getParent().getTitle()));
+            assertTrue("picking the patch is the choice", hide.isChecked());
+            Preference start = page.findPreference(Settings.START_TAB.key);
+            assertEquals("Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. "
+                    + "Your choice stays saved.", String.valueOf(start.getSummary()));
+
+            hide.setChecked(false);
+            ShadowLooper.idleMainLooper();
+            assertFalse(Settings.HIDE_REELS_TAB.savedValue());
+            assertEquals("Facebook opens on Video. If your tab bar doesn't have it, Facebook opens on Home.",
+                    String.valueOf(start.getSummary()));
+            assertEquals(StartTab.VIDEO, Settings.START_TAB.savedValue());
+
+            // Any other tab keeps its own summary with the switch on.
+            hide.setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertEquals(HushfacebookPreferenceFragment.startTabSummary(StartTab.FRIENDS),
+                    "Facebook opens on Friends. If your tab bar doesn't have it, Facebook opens on Home.");
+        } finally {
+            Settings.START_TAB.resetToDefault();
+            Settings.HIDE_REELS_TAB.resetToDefault();
+        }
+
+        // Without the patch, a chosen Video tab is Facebook's to open or not, whatever the stored switch says.
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.START_TAB);
+        assertEquals("Facebook opens on Video. If your tab bar doesn't have it, Facebook opens on Home.",
+                HushfacebookPreferenceFragment.startTabSummary(StartTab.VIDEO));
     }
 
     /**
@@ -715,6 +761,83 @@ public class HushfacebookPreferenceFragmentTest {
                 assertFalse("a comment order row with no Default comment order in the build",
                         row instanceof HushfacebookPreferenceFragment.CommentOrderRow);
                 assertFalse(Settings.DEFAULT_COMMENT_ORDER.key.equals(row.getKey()));
+            }
+        }
+    }
+
+    /**
+     * With Default playback quality in the build, the Playback section has its switch and the list
+     * of qualities right below it, which offers Auto first, says what the chosen one does, and
+     * reaches the setting the way the list's own dialog sends a pick. Without the patch there's
+     * neither row.
+     */
+    @Test
+    public void thePlaybackQualityRowOffersAutoAndEachQuality() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.PLAYBACK_QUALITY, PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushfacebookPreferenceFragment page = new HushfacebookPreferenceFragment();
+            controller.get().getFragmentManager().beginTransaction().add(android.R.id.content, page).commitNow();
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            int toggle = -1;
+            for (int i = 0; i < rows.size(); i++) {
+                if (Settings.DEFAULT_PLAYBACK_QUALITY.key.equals(rows.get(i).getKey())) toggle = i;
+            }
+            assertTrue("no Default playback quality switch", toggle >= 0);
+            PreferenceGroup section = null;
+            for (int i = 0; i < page.getPreferenceScreen().getPreferenceCount(); i++) {
+                Preference top = page.getPreferenceScreen().getPreference(i);
+                if (top instanceof PreferenceGroup
+                        && ((PreferenceGroup) top).findPreference(Settings.DEFAULT_PLAYBACK_QUALITY.key) != null) {
+                    section = (PreferenceGroup) top;
+                }
+            }
+            assertNotNull(section);
+            assertEquals("Playback", String.valueOf(section.getTitle()));
+            assertEquals(2, section.getPreferenceCount());
+            assertEquals("Default playback quality", String.valueOf(rows.get(toggle).getTitle()));
+            assertTrue(rows.get(toggle + 1) instanceof HushfacebookPreferenceFragment.PlaybackQualityRow);
+            HushfacebookPreferenceFragment.PlaybackQualityRow quality =
+                    (HushfacebookPreferenceFragment.PlaybackQualityRow) rows.get(toggle + 1);
+            assertEquals(Settings.PLAYBACK_QUALITY.key, quality.getKey());
+            assertEquals("Playback quality", String.valueOf(quality.getTitle()));
+
+            List<String> entries = new ArrayList<>();
+            for (CharSequence entry : quality.getEntries()) entries.add(String.valueOf(entry));
+            assertEquals(Arrays.asList("Auto", "Data saver", "Up to " + L10n.isolate("480p"),
+                    "Up to " + L10n.isolate("720p"), "Highest"), entries);
+            List<String> values = new ArrayList<>();
+            for (CharSequence value : quality.getEntryValues()) values.add(String.valueOf(value));
+            List<String> names = new ArrayList<>();
+            for (PlaybackQuality each : PlaybackQuality.values()) names.add(each.name());
+            assertEquals(names, values);
+
+            assertEquals("AUTO", quality.getValue());
+            assertEquals("Facebook picks the quality as each video plays, from your connection.",
+                    String.valueOf(quality.getSummary()));
+
+            // A pick in the list, the way its dialog sends one.
+            quality.setValue("DATA_SAVER");
+            ShadowLooper.idleMainLooper();
+            assertEquals(PlaybackQuality.DATA_SAVER, Settings.PLAYBACK_QUALITY.savedValue());
+            assertEquals("Videos play at the lowest quality Facebook offers for each.", String.valueOf(quality.getSummary()));
+
+            // A value set behind the row, as an import does, shows once the page syncs.
+            Settings.PLAYBACK_QUALITY.save(PlaybackQuality.P720);
+            page.refreshSwitches();
+            assertEquals("P720", quality.getValue());
+            assertEquals("Videos play at the best quality up to " + L10n.isolate("720p")
+                    + " that Facebook offers for each, or the closest above.", String.valueOf(quality.getSummary()));
+        } finally {
+            Settings.PLAYBACK_QUALITY.resetToDefault();
+        }
+
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SPONSORED_POSTS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            for (Preference row : rowsOf(controller)) {
+                assertFalse("a playback quality row with no Default playback quality in the build",
+                        row instanceof HushfacebookPreferenceFragment.PlaybackQualityRow);
+                assertFalse(Settings.DEFAULT_PLAYBACK_QUALITY.key.equals(row.getKey()));
             }
         }
     }

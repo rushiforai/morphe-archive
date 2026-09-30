@@ -7,26 +7,17 @@
 package app.crimera.patches.instagram.entity.mediadata
 
 import app.crimera.patches.instagram.entity.decoder.MEDIA_CLASS_NAME
-import app.crimera.patches.instagram.entity.decoder.ReelsInlineQualitySurveyRelatedFingerprint
+import app.crimera.patches.instagram.entity.decoder.MEDIA_EXT_CLASS
 import app.crimera.patches.instagram.entity.decoder.USER_MODEL_CLASS_NAME
 import app.crimera.patches.instagram.utils.Constants
 import app.crimera.patches.instagram.utils.Constants.EDIT_MEDIA_INFO_FRAGMENT_CLASS
 import app.crimera.patches.instagram.utils.Constants.ORIGINAL_SOUND_DATA_INTF
 import app.crimera.patches.instagram.utils.Constants.USER_SESSION_CLASS
 import app.morphe.patcher.Fingerprint
-import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val AUDIO_SRC_KEY = "audio_src"
 internal const val EXTENSION_CLASS_DESCRIPTOR = "${Constants.ENTITY_CLASS}/MediaData;"
-internal const val LIVE_TREE_MEDIA_DICT_CLASS = "Lcom/instagram/feed/media/LiveTreeMediaDict;"
-
-/**
- * Class carrying the LiveTree-backed media getters. Both candidates ship together, so
- * `mediaDataEntity` pins one before these fingerprints resolve.
- */
-internal var mediaModelClass: String = LIVE_TREE_MEDIA_DICT_CLASS
-
-private fun Method.inMediaModel(): Boolean = definingClass == mediaModelClass
 
 internal object GetHelperClassExtensionFingerprint : Fingerprint(
     definingClass = EXTENSION_CLASS_DESCRIPTOR,
@@ -61,11 +52,6 @@ internal object IsVideoExtensionFingerprint : Fingerprint(
 internal object GetMediaListExtensionFingerprint : Fingerprint(
     definingClass = EXTENSION_CLASS_DESCRIPTOR,
     name = "getMediaList",
-)
-
-internal object GetExtendedDataExtensionFingerprint : Fingerprint(
-    definingClass = EXTENSION_CLASS_DESCRIPTOR,
-    name = "getExtendedData",
 )
 
 internal object GetUserDataWithoutUserSessionExtensionFingerprint : Fingerprint(
@@ -118,8 +104,6 @@ internal object GetPostTypeExtensionFingerprint : Fingerprint(
     name = "getPostTypeKey",
 )
 
-// -----------------------------------
-
 internal object InstagramMainActivityNotificationRelatedFingerprint : Fingerprint(
     definingClass = "/InstagramMainActivity;",
     strings = listOf("nme_ig_post_post_creation_notif", "nme_ig_post_story_creation_notif"),
@@ -151,12 +135,6 @@ internal object EditMediaInfoFragmentMediaSizeFingerprint : Fingerprint(
     definingClass = EDIT_MEDIA_INFO_FRAGMENT_CLASS,
 )
 
-// Backup fingerprint to find a media list method.
-internal object GetAndroidLinkFromMediaObject : Fingerprint(
-    returnType = "Lcom/instagram/model/androidlink/AndroidLink;",
-    definingClass = "Lcom/instagram/profile/fragment/UserDetailFragment;",
-)
-
 internal object FanClubContentPreviewInteractorImplFingerprint : Fingerprint(
     definingClass = "Lcom/instagram/fanclub/preview/impl/FanClubContentPreviewInteractorImpl;",
     strings = listOf("subscription_exclusive_content_public_preview_select", "creator_igid"),
@@ -167,43 +145,9 @@ internal object AudioIntfMapperFingerprint : Fingerprint(
     strings = listOf(AUDIO_SRC_KEY, "audio_src_expiration_timestamp_us", "codec", "duration", "fallback", "file_format"),
 )
 
-internal object ExtMediaDictVideoInfoMapperFingerprint : Fingerprint(
-    strings =
-        listOf(
-            "video_subtitles_uri",
-            "video_to_carousel_cut_info",
-        ),
-    returnType = "Ljava/util/Map;",
-)
-
-internal object LiveTreeMediaDictReelsMentionFingerprint : Fingerprint(
-    returnType = "Ljava/util/List;",
-    strings = listOf("reel_mentions"),
-    custom = { methodDef, _ -> methodDef.inMediaModel() },
-)
-
-internal object LiveTreeMediaDictGetUserFingerprint : Fingerprint(
-    returnType = USER_MODEL_CLASS_NAME,
-    strings = listOf("user"),
-    custom = { methodDef, _ -> methodDef.inMediaModel() },
-)
-
-internal object ExtMediaDictImageInfoMapperFingerprint : Fingerprint(
-    strings =
-        listOf(
-            "igtv_shopping_info",
-            "image_versions2",
-        ),
-    returnType = "Ljava/util/Map;",
-)
-
-internal object GetProductTileMediaFromUserSessionFingerprint : Fingerprint(
-    definingClass = "Lcom/instagram/model/shopping/productfeed/ProductTile;",
-    parameters = listOf(USER_SESSION_CLASS),
-    returnType = "Lcom/instagram/model/shopping/productfeed/ProductTileMedia;",
-)
-
+// Static: the instance mapper beside it writes the same keys from the same fields.
 internal object ProductInfoMapperFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     strings =
         listOf(
             "product_suggestions",
@@ -213,20 +157,20 @@ internal object ProductInfoMapperFingerprint : Fingerprint(
     returnType = "Ljava/util/Map;",
 )
 
-internal object AyuMidcardMediaHelperImageObjectMethodFingerprint : Fingerprint(
-    definingClass = "AyuMidcardMediaHelper;",
-    returnType = "Ljava/lang/Object;",
-)
-
+// The media class is compared when matching: decoderEntity only resolves it at patch time.
 internal object GetOriginalSoundDataIntfFromMediaFingerprint : Fingerprint(
-    classFingerprint = ReelsInlineQualitySurveyRelatedFingerprint,
+    definingClass = MEDIA_EXT_CLASS,
     returnType = ORIGINAL_SOUND_DATA_INTF,
+    custom = { method, _ -> method.parameterTypes.singleOrNull()?.toString() == MEDIA_CLASS_NAME },
 )
 
+// The media and user classes are compared when matching: decoderEntity only resolves them at patch time.
 internal object GetUserDataFromMediaFingerprint : Fingerprint(
-    classFingerprint = ReelsInlineQualitySurveyRelatedFingerprint,
-    parameters = listOf(USER_SESSION_CLASS, MEDIA_CLASS_NAME),
-    returnType = USER_MODEL_CLASS_NAME,
+    definingClass = MEDIA_EXT_CLASS,
+    custom = { method, _ ->
+        method.returnType == USER_MODEL_CLASS_NAME &&
+            method.parameterTypes.map { it.toString() } == listOf(USER_SESSION_CLASS, MEDIA_CLASS_NAME)
+    },
 )
 
 internal object CommentToStringFingerprint : Fingerprint(

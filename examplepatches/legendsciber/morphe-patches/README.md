@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.37.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.37.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.39.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.39.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
 <details open>
 <summary>📦 Aphelion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -154,7 +154,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 </details>
 
 <details open>
-<summary>📦 Stick War Legacy&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Stick War Legacy&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -165,7 +165,8 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Stick War Legacy Free IAP](#stick-war-legacy-free-iap) | Shop packs, gems and chests are granted instantly and free without Google Play billing. |  |
-| [Stick War Legacy License Bypass](#stick-war-legacy-license-bypass) | Skips the signature and Play Store license checks at startup so the game launches without Google Play verification. |  |
+| [Stick War Legacy PairIP bypass](#stick-war-legacy-pairip-bypass) | Removes the PairIP license gate, the native PairIP VM and the Play Store redirect so the game starts on a re-signed APK. |  |
+| [Stick War PairIP string holder init](#stick-war-pairip-string-holder-init) | Adds the missing <clinit> to the PairIP string holder so its constants are empty strings instead of null. |  |
 
 </details>
 
@@ -182,6 +183,16 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 |----------|----------------|-----------|
 | [Subway Surfers Currency Hack](#subway-surfers-currency-hack) | Coins and keys always report 2,147,483,647 and every purchase is always affordable. |  |
 | [Subway Surfers Free IAP](#subway-surfers-free-iap) | Coins, keys and shop items are granted instantly and free without Google Play billing. |  |
+
+</details>
+
+<details open>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Stick War PairIP manifest bypass](#stick-war-pairip-manifest-bypass) | Removes the PairIP LicenseActivity paywall and the CHECK_LICENSE permission. |  |
 
 </details>
 

@@ -59,7 +59,7 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
                 "Country code", "Two letters, like us, gb or jp.",
                 Settings.SIM_SPOOF_ISO
         ).withCheck(value -> RegionSpoof.validCountry(value)
-                ? null : L10n.t("Enter a valid two-letter country code"));
+                ? null : L10n.t("Enter a valid two-letter country code")).withNameKeyboard();
         InputTextPreference mccMncPreference = new InputTextPreference(
                 context,
                 "Operator code", "Your operator's numeric code, like 310260.",

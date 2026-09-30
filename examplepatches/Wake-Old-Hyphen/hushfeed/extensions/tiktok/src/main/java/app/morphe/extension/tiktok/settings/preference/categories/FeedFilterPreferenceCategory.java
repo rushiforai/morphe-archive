@@ -196,7 +196,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new SectionHeadingPreference(context, "Creators and sounds"));
         if (SettingsStatus.feedFilterEnabled) {
             addPreference(new InputTextPreference(context, "Blocked creators", "Comma separated account handles or user ids. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a pattern matched against the handle and the display name.", Settings.BLOCKED_CREATORS)
-                    .withCheck(AdvancedFeedRules::creatorEntryProblem));
+                    .withCheck(AdvancedFeedRules::creatorEntryProblem).withNameKeyboard());
             addPreference(new CreatorListPreference(context, "Creators hidden on this phone",
                     "Creators you hid from a video. Search the list and remove one at a time.",
                     Settings.LOCAL_HIDDEN_CREATORS));
@@ -207,7 +207,8 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                             + "languages, and seen videos still apply.",
                     Settings.CREATOR_FILTER_EXCEPTIONS)
                     .withCheck(CreatorExceptions::entryProblem)
-                    .withNote(CreatorExceptions::conflictNote));
+                    .withNote(CreatorExceptions::conflictNote)
+                    .withNameKeyboard());
         }
         // The player's own buttons. They were the middle of the App page's Player card,
         // three pages away from the lists they add to.
@@ -256,7 +257,7 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                     "Blocked sound ids",
                     "Comma separated sound ids recorded by the player's sound button. Remove one to unblock it.",
                     Settings.BLOCKED_SOUND_IDS
-            ));
+            ).withNameKeyboard());
         }
     }
 
@@ -269,15 +270,18 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new InputTextPreference(context, "Only from these countries",
                 "Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.",
                 Settings.REGION_ONLY_FROM)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem));
+                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem)
+                .withNameKeyboard());
         addPreference(new InputTextPreference(context, "Never from these countries",
                 "Comma separated country codes. Videos posted from these are hidden, whatever the list above says.",
                 Settings.REGION_NEVER_FROM)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem));
+                .withCheck(app.morphe.extension.tiktok.feedfilter.RegionFilter::countryProblem)
+                .withNameKeyboard());
         addPreference(new InputTextPreference(context, "Only these caption languages",
                 "Comma separated language codes, like en, es. A video whose original caption is in another language is hidden. Videos with no caption, or only translated ones, always stay.",
                 Settings.CAPTION_LANGUAGES)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.CaptionLanguageFilter::languageProblem));
+                .withCheck(app.morphe.extension.tiktok.feedfilter.CaptionLanguageFilter::languageProblem)
+                .withNameKeyboard());
     }
 
     private void addSeenVideoRules(Context context) {

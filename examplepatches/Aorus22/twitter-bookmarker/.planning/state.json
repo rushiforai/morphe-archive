@@ -1,0 +1,63 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": "v2.0 — Local Web Gallery",
+  "phases": [
+    {
+      "number": "1",
+      "name": "Gallery Read Layer",
+      "status": "complete"
+    },
+    {
+      "number": "2",
+      "name": "Gallery HTTP API",
+      "status": "complete"
+    },
+    {
+      "number": "3",
+      "name": "Web Scaffold, Theme & API Client",
+      "status": "complete"
+    },
+    {
+      "number": "4",
+      "name": "Gallery Homepage",
+      "status": "complete"
+    },
+    {
+      "number": "5",
+      "name": "Collection Gallery",
+      "status": "complete"
+    },
+    {
+      "number": "6",
+      "name": "Discovery Tools",
+      "status": "complete"
+    },
+    {
+      "number": "7",
+      "name": "Infinite Scroll",
+      "status": "complete"
+    },
+    {
+      "number": "8",
+      "name": "Media Lightbox",
+      "status": "complete"
+    },
+    {
+      "number": "9",
+      "name": "Production Serving",
+      "status": "complete"
+    },
+    {
+      "number": "10",
+      "name": "Hardening, Accessibility & Responsive",
+      "status": "complete"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress",
+    "label": "Show progress",
+    "reason": "Unsure of state — showing progress"
+  },
+  "updated_at": "2026-09-27T17:18:43.201Z"
+}

@@ -22,7 +22,7 @@ import java.util.Set;
 final class MediaTransport {
     /** Five redirects covers TikTok's ordinary CDN handoff without permitting an endless chain. */
     static final int MAX_REDIRECTS = 5;
-    static final Client DEFAULT = new Client(InetAddress::getAllByName, URL::openConnection);
+    static final Client DEFAULT = new Client(InetAddress::getAllByName, PinnedMediaConnection::open);
 
     private MediaTransport() { }
 
@@ -52,7 +52,7 @@ final class MediaTransport {
     }
 
     interface ConnectionOpener {
-        URLConnection open(URL url) throws IOException;
+        URLConnection open(URL url, InetAddress address) throws IOException;
     }
 
     static final class Client {
@@ -81,34 +81,15 @@ final class MediaTransport {
                     throw new IOException("Media redirect loop refused");
                 }
 
-                // URLConnection.openConnection() does not connect. Resolve once before creating
-                // it, then again immediately before the operation that opens the socket. A name
-                // that changes to a local address between those boundaries is refused.
-                requirePublicAddresses(current.host, resolver);
-                URLConnection opened = opener.open(current.url);
-                if (!(opened instanceof HttpURLConnection)) {
-                    throw new IOException("Media transport is not HTTP");
-                }
-
-                HttpURLConnection connection = (HttpURLConnection) opened;
+                InetAddress[] addresses = publicAddresses(current.host, resolver);
+                Response response = connect(current, addresses, deadline,
+                        connectTimeoutMs, readTimeoutMs, userAgent, identityEncoding);
+                HttpURLConnection connection = response.connection;
                 boolean returned = false;
                 try {
-                    connection.setInstanceFollowRedirects(false);
-                    connection.setConnectTimeout(MediaBudget.timeoutMillis(deadline, connectTimeoutMs));
-                    connection.setReadTimeout(MediaBudget.timeoutMillis(deadline, readTimeoutMs));
-                    if (identityEncoding) {
-                        connection.setRequestProperty("Accept-Encoding", "identity");
-                    }
-                    if (userAgent != null && !userAgent.isEmpty()) {
-                        connection.setRequestProperty("User-Agent", userAgent);
-                    }
-
-                    requirePublicAddresses(current.host, resolver);
-                    MediaBudget.check(deadline);
-                    int responseCode = connection.getResponseCode();
-                    if (!isRedirect(responseCode)) {
+                    if (!isRedirect(response.statusCode)) {
                         returned = true;
-                        return new Response(connection, responseCode, current.url);
+                        return response;
                     }
 
                     if (redirects >= MAX_REDIRECTS) {
@@ -124,6 +105,46 @@ final class MediaTransport {
                     if (!returned) connection.disconnect();
                 }
             }
+        }
+
+        /** Try only the checked snapshot, including IPv4 after an unreachable IPv6 answer. */
+        private Response connect(Target target, InetAddress[] addresses,
+                MediaBudget.Deadline deadline, int connectTimeoutMs, int readTimeoutMs,
+                String userAgent, boolean identityEncoding) throws IOException {
+            IOException failed = null;
+            for (InetAddress address : addresses) {
+                MediaBudget.check(deadline);
+                HttpURLConnection connection = null;
+                boolean connected = false;
+                try {
+                    URLConnection opened = opener.open(target.url, address);
+                    if (!(opened instanceof HttpURLConnection)) {
+                        throw new IOException("Media transport is not HTTP");
+                    }
+                    connection = (HttpURLConnection) opened;
+                    connection.setInstanceFollowRedirects(false);
+                    connection.setUseCaches(false);
+                    connection.setConnectTimeout(MediaBudget.timeoutMillis(deadline, connectTimeoutMs));
+                    connection.setReadTimeout(MediaBudget.timeoutMillis(deadline, readTimeoutMs));
+                    if (identityEncoding) connection.setRequestProperty("Accept-Encoding", "identity");
+                    if (userAgent != null && !userAgent.isEmpty()) {
+                        connection.setRequestProperty("User-Agent", userAgent);
+                    }
+                    MediaBudget.check(deadline);
+                    int statusCode = connection.getResponseCode();
+                    connected = true;
+                    return new Response(connection, statusCode, target.url);
+                } catch (MediaBudget.StopException stop) {
+                    throw stop;
+                } catch (IOException error) {
+                    if (failed == null) failed = error;
+                    else if (failed != error) failed.addSuppressed(error);
+                } finally {
+                    if (!connected && connection != null) connection.disconnect();
+                }
+            }
+            if (failed != null) throw failed;
+            throw new IOException("No checked media address is available");
         }
     }
 
@@ -230,7 +251,7 @@ final class MediaTransport {
                 | ((bytes[offset + 2] & 255) << 8) | (bytes[offset + 3] & 255);
     }
 
-    private static void requirePublicAddresses(String host, Resolver resolver) throws IOException {
+    private static InetAddress[] publicAddresses(String host, Resolver resolver) throws IOException {
         InetAddress[] addresses;
         try {
             addresses = resolver.resolve(host);
@@ -240,11 +261,14 @@ final class MediaTransport {
         if (addresses == null || addresses.length == 0) {
             throw new IOException("Media hostname has no address");
         }
+        // Validate the same snapshot that connection attempts will consume.
+        addresses = addresses.clone();
         for (InetAddress address : addresses) {
             if (!isPublicAddress(address)) {
                 throw new IOException("Media URL resolves to a non-public address");
             }
         }
+        return addresses;
     }
 
     private static boolean isRedirect(int statusCode) {

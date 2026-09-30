@@ -46,6 +46,33 @@ public final class MarketplaceAdFilterForTests {
         return MarketplaceAdFilter.requestBody(body, new RequestData("RelayFBNetwork_" + query, body));
     }
 
+    /** The hook for a piece of an answer, with the tracking name Relay gives [query]. */
+    public static String responsePiece(String query, String piece, Object request) {
+        return MarketplaceAdFilter.responsePiece(piece, "RelayFBNetwork_" + query, request);
+    }
+
+    /** The hook for a whole answer, with the tracking name Relay gives [query]. */
+    public static String responseWhole(String query, String text) {
+        return MarketplaceAdFilter.responseWhole(text, "RelayFBNetwork_" + query);
+    }
+
+    /**
+     * A search answer with an ad after a listing, handed to the hook with the patch in the build.
+     * True when the ad is taken out, which is the switch changing what Relay would have been given.
+     */
+    public static boolean dropsASearchAd() {
+        Boolean before = MarketplaceAdFilter.inBuildForTests;
+        MarketplaceAdFilter.inBuildForTests = Boolean.TRUE;
+        try {
+            String answer = "{\"data\":{\"marketplace_search\":{\"feed_units\":{\"edges\":["
+                    + "{\"node\":{\"__typename\":\"MarketplaceFeedListingStoryObject\"}},"
+                    + "{\"node\":{\"__typename\":\"MarketplaceFeedAdStory\"}}]}}}}";
+            return !answer.equals(responseWhole("MarketplaceSearchApp_MarketplaceSearchFeedHeadQuery", answer));
+        } finally {
+            MarketplaceAdFilter.inBuildForTests = before;
+        }
+    }
+
     /** Says the patch is in the build, or with null, asks SettingsStatus again. */
     public static void inBuild(Boolean inBuild) {
         MarketplaceAdFilter.inBuildForTests = inBuild;

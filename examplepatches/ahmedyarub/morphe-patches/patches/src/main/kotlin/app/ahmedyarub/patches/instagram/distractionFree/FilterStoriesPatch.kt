@@ -39,15 +39,16 @@ val filterStoriesPatch = bytecodePatch(
         description = "Hides suggested users and creators from the story tray.",
     )
 
+    // On by default: Hide suggested content used to hide highlights too, with this default, and
+    // both patches are on by default.
     val hideHighlights by booleanOption(
         key = "hideHighlightStories",
-        default = false,
+        default = true,
         title = "Hide highlights",
-        description = "Hides resurfaced highlights from the story tray.",
+        description = "Hides resurfaced highlights, which carry no expiry, from the story tray.",
     )
 
     execute {
-        // Reel type constants, all confirmed present in 439 and 446.
         if (hideAds == true) filterStories("ads_reel")
 
         if (hideSuggested == true) filterStories(

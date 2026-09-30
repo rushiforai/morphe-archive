@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The save button's glyph for a tweet that is already in one of the collections.
+
+  A filled bookmark with the tick cut out of it. The cut-out matters: the button
+  is tinted as a whole at runtime, so a second colour would be lost — a hole is
+  the only way to draw two shapes in one tinted icon.
+
+  Copyright (C) 2026 piko <https://github.com/crimera/piko>
+  See morphe/NOTICE for GPLv3 §7(b) terms.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Filled bookmark with a tick-shaped hole (evenOdd, so the hole cannot
+         depend on which way each subpath happens to be wound). The tick is sized
+         so that a real border of fill survives around it: an oversized tick leaves
+         a thin band that reads as an outline at 24 dp, which is what a first
+         version did. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M17,3H7C5.9,3 5.01,3.9 5.01,5L5,21l7,-3 7,3V5c0,-1.1 -0.9,-2 -2,-2zM8.65,12.39L11.30,14.90L15.84,9.19L14.36,8.01L11.10,12.10L9.95,11.01z" />
+</vector>

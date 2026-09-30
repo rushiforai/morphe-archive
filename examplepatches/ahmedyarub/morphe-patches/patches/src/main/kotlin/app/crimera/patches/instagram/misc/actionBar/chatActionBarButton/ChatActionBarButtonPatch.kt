@@ -7,7 +7,7 @@
 package app.crimera.patches.instagram.misc.actionBar.chatActionBarButton
 
 import app.crimera.patches.instagram.utils.Constants.ACTIONBAR_DESCRIPTOR
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -18,6 +18,7 @@ import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 object ChatActionBarBuilderFingerprint : Fingerprint(
     returnType = "V",
@@ -32,6 +33,7 @@ val chatActionBarButtonPatch =
     bytecodePatch(
         description = "This patch is adds support for adding buttons inside chat action bar.",
     ) {
+        dependsOn(instagramExtensionPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(resourceMappingPatch)
 

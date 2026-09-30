@@ -5,7 +5,7 @@ Patches for use with [Morphe](https://morphe.software).
 ## ❓ About
 
 A collection of bytecode/resource patches for Android apps, built for the Morphe patcher.
-Currently focused on SoundCloud (`com.soundcloud.android`).
+Supports SoundCloud (`com.soundcloud.android`) and Parcello (`org.parcello`).
 
 ## 📚 How to use
 
@@ -16,6 +16,11 @@ Click here to add these patches to Morphe:
 Or manually add this repository URL in Morphe Manager → Sources:
 
 > `https://github.com/V4n1X/morphe-patches`
+
+## 📦 Parcello: Disable ads
+
+Disables advertising, advertising consent prompts and promotional banners in Parcello **2.2.20** (Android 8.0+).
+Preserves tracking, barcode scanning, notifications and purchase entitlements.
 
 ## ⚖️ Disclaimer
 
@@ -40,15 +45,15 @@ Based on patches from:
 Built on the official [MorpheApp/morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template).
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/V4n1X/morphe-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.4.0](https://github.com/V4n1X/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 SoundCloud&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2026.08.26-release |
-| :---: |
+| 2026.08.26-release | 🧪&nbsp;2026.09.23-release |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -60,7 +65,24 @@ Built on the official [MorpheApp/morphe-patches-template](https://github.com/Mor
 
 </details>
 
+<details open>
+<summary>📦 Parcello&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;2.2.20 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable ads](#disable-ads) | Disables AdMob banner, interstitial and rewarded ads, removes sponsored/promotional banners, and skips advertising consent prompts. |  |
+
+</details>
+
 <!-- PATCHES_END -->
+
+🧪 Experimental versions still require on-device testing.
 
 ## 🛠️ Building
 
@@ -69,6 +91,8 @@ Built on the official [MorpheApp/morphe-patches-template](https://github.com/Mor
 ```
 
 The built `.mpp` file will be at `patches/build/libs/`.
+Use **JDK 21**, as in CI. The Morphe dependency registry requires `gpr.user` / `gpr.key`
+Gradle properties or the `GITHUB_ACTOR` / `GITHUB_TOKEN` environment variables.
 
 ## 📜 License
 

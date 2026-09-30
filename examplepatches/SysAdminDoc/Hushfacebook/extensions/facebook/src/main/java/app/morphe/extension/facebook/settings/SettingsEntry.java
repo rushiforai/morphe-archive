@@ -38,6 +38,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.facebook.download.SaveLeftovers;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.media.ResumePlayback;
+import app.morphe.extension.facebook.navigation.ReelsTab;
 
 /**
  * How the Hushfacebook screen is reached.
@@ -105,9 +106,16 @@ public final class SettingsEntry {
         publishShortcut(context);
     }
 
-    private static void publishShortcut(Context context) {
+    /**
+     * Checks the launcher shortcut on a background thread. First, with Hide the Reels tab on, a Reels
+     * shortcut Facebook published before goes. Package-visible for tests.
+     */
+    static void publishShortcut(Context context) {
         final Context app = context.getApplicationContext() != null ? context.getApplicationContext() : context;
-        Utils.runOnBackgroundThread(() -> publishShortcutNow(app));
+        Utils.runOnBackgroundThread(() -> {
+            ReelsTab.removePublished(app);
+            publishShortcutNow(app);
+        });
     }
 
     /**
@@ -201,28 +209,29 @@ public final class SettingsEntry {
     // notifies about, each at rank 0, and the platform puts the newest push first. So the
     // Hushfacebook shortcut sank to the end of the list, where a launcher showing three or four,
     // or two beside a notification, cut it off (#2). Facebook's call runs as it did, with the same
-    // answer and the same exceptions, and then the Hushfacebook shortcut goes back in front.
+    // answer and the same exceptions, and then the Hushfacebook shortcut goes back in front. With
+    // Hide the Reels tab on, Facebook's Reels shortcut is left out of each call first (ReelsTab).
 
     public static void pushDynamicShortcut(ShortcutManager manager, ShortcutInfo shortcut) {
-        manager.pushDynamicShortcut(shortcut);
+        if (!ReelsTab.dropsShortcut(manager, shortcut)) manager.pushDynamicShortcut(shortcut);
         keepFirst();
     }
 
     public static boolean addDynamicShortcuts(ShortcutManager manager, List<ShortcutInfo> shortcuts) {
-        boolean added = manager.addDynamicShortcuts(shortcuts);
+        boolean added = manager.addDynamicShortcuts(ReelsTab.withoutShortcut(manager, shortcuts));
         keepFirst();
         return added;
     }
 
     /** Replaces every dynamic shortcut, the Hushfacebook one too, which is published again after. */
     public static boolean setDynamicShortcuts(ShortcutManager manager, List<ShortcutInfo> shortcuts) {
-        boolean set = manager.setDynamicShortcuts(shortcuts);
+        boolean set = manager.setDynamicShortcuts(ReelsTab.withoutShortcut(manager, shortcuts));
         keepFirst();
         return set;
     }
 
     public static boolean updateShortcuts(ShortcutManager manager, List<ShortcutInfo> shortcuts) {
-        boolean updated = manager.updateShortcuts(shortcuts);
+        boolean updated = manager.updateShortcuts(ReelsTab.withoutShortcut(manager, shortcuts));
         keepFirst();
         return updated;
     }

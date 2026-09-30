@@ -8,283 +8,255 @@ package app.crimera.patches.instagram.entity.directItem
 
 import app.crimera.utils.changeFirstString
 import app.crimera.utils.changeString
-import app.crimera.utils.changeStringAt
 import app.crimera.utils.classNameToExtension
-import app.crimera.utils.extensionToClassName
-import app.crimera.utils.fieldExtractor
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
+private const val MEDIA_CLASS = "Lcom/instagram/feed/media/Media;"
+private const val DIRECT_THREAD_KEY = "Lcom/instagram/model/direct/DirectThreadKey;"
+
+private fun Instruction.isConstString(value: String) =
+    (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
+        (this as ReferenceInstruction).reference.toString() == value
+
+private val ClassDef.methodInstructions
+    get() = methods.mapNotNull { method -> method.implementation?.instructions?.toList() }
+
 /**
  * Resolves every obfuscated DirectItem field name at patch time and bakes it into the
  * {@code DirectItem} extension entity, so the runtime never has to discover field/method
  * names by reflection. See {@code mediaDataEntity} for the reference pattern.
+ *
+ * Every name is required. Each used to be best effort, so a build that moved one left the
+ * extension reading a placeholder field and quietly finding nothing.
  */
 val directItemEntity =
     bytecodePatch(
         description = "Decodes obfuscated DirectItem (DM) field names at patch time.",
     ) {
+        dependsOn(instagramExtensionPatch)
         execute {
-            DirectItemDispatchFingerprint.apply {
-                // Scan all methods: v426 deserializer is A00, v430+ moved it to unsafeParseFromJson.
-                fun fieldAfter(key: String) =
-                    mutableClassDefBy { it.type == method.definingClass }
-                        .methods.firstNotNullOfOrNull { m ->
-                            val insns = runCatching { m.instructions.toList() }.getOrNull()
-                                ?: return@firstNotNullOfOrNull null
-                            val keyIndex =
-                                insns.indexOfFirst {
-                                    (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
-                                        (it as ReferenceInstruction).reference.toString() == key
-                                }
-                            if (keyIndex < 0) return@firstNotNullOfOrNull null
-                            insns.drop(keyIndex + 1).firstOrNull {
-                                it.opcode.name.startsWith("iput", ignoreCase = true)
-                            }?.fieldExtractor()
-                        } ?: error("no iput after '$key' in ${method.definingClass}")
+            val itemClass = classDefBy(DirectItemDispatchFingerprint.originalClassDef.type)
 
-                val itemId = fieldAfter("item_id")
-                GetItemIdExtension.changeFirstString(itemId.name)
-                GetBaseClassNameExtension.changeFirstString(itemId.definingClass)
+            // The field the parser stores a key's value in: the first iput after the key.
+            fun fieldAfter(key: String): FieldReference =
+                itemClass.methodInstructions.firstNotNullOfOrNull { instructions ->
+                    val keyIndex = instructions.indexOfFirst { it.isConstString(key) }
+                    if (keyIndex < 0) return@firstNotNullOfOrNull null
+                    instructions.drop(keyIndex + 1)
+                        .firstOrNull { it.opcode.name.startsWith("iput", ignoreCase = true) }
+                        ?.let { (it as ReferenceInstruction).reference as FieldReference }
+                } ?: throw PatchException("No field is stored after '$key' in ${itemClass.type}")
 
-                GetUserIdExtension.changeFirstString(fieldAfter("user_id").name)
+            // As above, restricted to object fields.
+            fun objectFieldAfter(key: String): FieldReference =
+                itemClass.methodInstructions.firstNotNullOfOrNull { instructions ->
+                    val keyIndex = instructions.indexOfFirst { it.isConstString(key) }
+                    if (keyIndex < 0) return@firstNotNullOfOrNull null
+                    instructions.drop(keyIndex + 1)
+                        .firstOrNull { it.opcode == Opcode.IPUT_OBJECT }
+                        ?.let { (it as ReferenceInstruction).reference as FieldReference }
+                } ?: throw PatchException("No object field is stored after '$key' in ${itemClass.type}")
 
-                val textField = fieldAfter("text").name
-                GetTextExtension.changeString("baseTextField", textField)
-                SetTextExtension.changeString("baseTextField", textField)
+            val itemId = fieldAfter("item_id")
+            GetItemIdExtension.changeFirstString(itemId.name)
+            GetBaseClassNameExtension.changeFirstString(classNameToExtension(itemId.definingClass))
 
-                GetTimestampRawExtension.changeFirstString(fieldAfter("timestamp").name)
+            GetUserIdExtension.changeFirstString(fieldAfter("user_id").name)
 
-                val hideField = fieldAfter("hide_in_thread").name
-                IsHideInThreadExtension.changeFirstString(hideField)
-                SetHideInThreadExtension.changeFirstString(hideField)
+            val textField = fieldAfter("text").name
+            GetTextExtension.changeString("baseTextField", textField)
+            SetTextExtension.changeString("baseTextField", textField)
 
-                IsSentByViewerExtension.changeFirstString(fieldAfter("is_sent_by_viewer").name)
+            GetTimestampRawExtension.changeFirstString(fieldAfter("timestamp").name)
 
-                GetThreadKeyExtension.changeFirstString(fieldAfter("thread_key").name)
+            val hideField = fieldAfter("hide_in_thread").name
+            IsHideInThreadExtension.changeFirstString(hideField)
+            SetHideInThreadExtension.changeFirstString(hideField)
 
-                // item_type + MQTT sub-text: best-effort, never fatal. If a future build restructures the
-                // base/sub class so these can't resolve, skip and leave the placeholders — runtime reflection
-                // then no-ops instead of aborting the patch (mirrors the media block below).
-                runCatching {
-                // item_type: the only enum with 2+ fields on the base class; primary sorts last by name.
-                val baseDescriptor = extensionToClassName(itemId.definingClass)
-                val baseClass = mutableClassDefBy { it.type == baseDescriptor }
+            IsSentByViewerExtension.changeFirstString(fieldAfter("is_sent_by_viewer").name)
 
-                fun isEnumType(type: String) =
-                    runCatching {
-                        mutableClassDefBy { it.type == type }.superclass == "Ljava/lang/Enum;"
-                    }.getOrDefault(false)
+            GetThreadKeyExtension.changeFirstString(fieldAfter("thread_key").name)
 
-                val itemTypeField =
-                    baseClass.fields
-                        .filter { !AccessFlags.STATIC.isSet(it.accessFlags) && isEnumType(it.type) }
-                        .groupBy { it.type }
-                        .maxByOrNull { it.value.size }!!
-                        .value
-                        .maxByOrNull { it.name }!!
-                        .name
-                GetItemTypeExtension.changeFirstString(itemTypeField)
-
-                // MQTT items store text in an Object field on the subclass, set after the item-type setter.
-                val itemTypeEnum = baseClass.fields.first { it.name == itemTypeField }.type
-                val subClass = mutableClassDefBy { it.superclass == baseDescriptor }
-                val subTextField =
-                    subClass.methods.firstNotNullOfOrNull { m ->
-                        val insns = runCatching { m.instructions.toList() }.getOrNull()
-                            ?: return@firstNotNullOfOrNull null
-                        insns.indices.firstNotNullOfOrNull fn@{ i ->
-                            val insn = insns[i]
-                            if (insn.opcode != Opcode.INVOKE_VIRTUAL) return@fn null
-                            val ref = (insn as ReferenceInstruction).reference as? MethodReference
-                            if (ref == null || ref.parameterTypes.size != 1 ||
-                                ref.parameterTypes[0].toString() != itemTypeEnum
-                            ) {
-                                return@fn null
-                            }
-                            insns.drop(i + 1).take(3)
-                                .firstOrNull { it.opcode.name.startsWith("iput", true) }
-                                ?.let { (it as ReferenceInstruction).reference as? FieldReference }
-                                ?.takeIf { it.type == "Ljava/lang/Object;" }
-                                ?.name
-                        }
-                    }
-                subTextField?.let {
-                    GetTextExtension.changeString("subTextField", it)
-                    SetTextExtension.changeString("subTextField", it)
-                }
-                }
-
-                // Media resolution: best-effort, never fatal. Every supported DM media shape carries a
-                // com.instagram.feed.media.Media object — the unobfuscated anchor that survives version
-                // rotation. We resolve each shape's field by its stable JSON key on the deserializer.
-                // Concrete item class (X/6fW) = the definingClass of those fields (a subclass of the
-                // scalar base X/8t8, which is why media MUST be read off it, not the scalar base).
-                //
-                // NOTE: animated_media, story_share, xma and link are intentionally NOT resolved — their
-                // URL sits in an obfuscated wrapper with no stable type/getter anchor (e.g. GifUrlImpl:
-                // three indistinguishable String fields). Adding them would be fragile to maintain, so
-                // those shapes degrade to a "[type]" label at runtime. See DirectItem.getMediaUrl().
-                val mediaClass = "Lcom/instagram/feed/media/Media;"
-
-                // First iput-object stored right after a JSON key in the (split) serializer/deserializer.
-                fun iputFieldAfter(key: String) =
-                    mutableClassDefBy { it.type == method.definingClass }
-                        .methods.firstNotNullOfOrNull { m ->
-                            val insns = runCatching { m.instructions.toList() }.getOrNull()
-                                ?: return@firstNotNullOfOrNull null
-                            val ki = insns.indexOfFirst {
-                                (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
-                                    (it as ReferenceInstruction).reference.toString() == key
-                            }
-                            if (ki < 0) return@firstNotNullOfOrNull null
-                            insns.drop(ki + 1)
-                                .firstOrNull { it.opcode.name.startsWith("iput-object", ignoreCase = true) }
-                                ?.let { (it as ReferenceInstruction).reference as? FieldReference }
-                        }
-
-                runCatching {
-                    // Item class is set once, from the first field that resolves (all share definingClass).
-                    var itemClassSet = false
-                    fun setItemClass(fr: FieldReference) {
-                        if (!itemClassSet) {
-                            // Class.forName needs the binary name (X.6fW), not the smali descriptor (LX/6fW;).
-                            GetMediaClassNameExtension.changeFirstString(classNameToExtension(fr.definingClass))
-                            itemClassSet = true
-                        }
-                    }
-
-                    // Direct Media fields: type must be Media.
-                    fun direct(key: String, fp: Fingerprint) = runCatching {
-                        val f = iputFieldAfter(key) ?: return@runCatching
-                        if (f.type != mediaClass) return@runCatching
-                        setItemClass(f); fp.changeFirstString(f.name)
-                    }
-                    direct("media", FieldMediaExtension)
-                    direct("media_share", FieldMediaShareExtension)
-                    direct("raven_media", FieldRavenMediaExtension)
-
-                    // Wrapped shapes: wrapper field on the item class, then the wrapper's single Media
-                    // field, found BY TYPE (so the obfuscated wrapper name is never depended on).
-                    fun wrapped(
-                        key: String,
-                        wrapperFp: Fingerprint,
-                        innerFp: Fingerprint,
-                    ) = runCatching {
-                        val wf = iputFieldAfter(key) ?: return@runCatching
-                        val inner = mutableClassDefBy { it.type == wf.type }
-                            .fields.firstOrNull { it.type == mediaClass } ?: return@runCatching
-                        setItemClass(wf)
-                        wrapperFp.changeFirstString(wf.name)
-                        innerFp.changeFirstString(inner.name)
-                    }
-                    wrapped("clip", FieldClipExtension, FieldClipMediaExtension)
-                    wrapped("reel_share", FieldReelExtension, FieldReelMediaExtension)
-                    wrapped("voice_media", FieldVoiceExtension, FieldVoiceMediaExtension)
-                    // Disappearing media: carries the payload that raven_media leaves null.
-                    wrapped("visual_media", FieldVisualExtension, FieldVisualMediaExtension)
-                }
-
-                // xma reshare permalink: best-effort, never fatal. An xma reshare (shared post/reel)
-                // has no Media object; instead the item holds a List of xma elements (built by a
-                // converter method) whose permalink is a String under JSON key "target_url". Resolve
-                // the item's xma List field and the element's permalink field at patch time so the
-                // runtime does named reflection only. If neither can be resolved on a future build,
-                // xma degrades to the "[type]" label (see DirectItem).
-                //
-                // The permalink field is confirmed by the "target_url" -> String iput on the element
-                // class; the item's xma List field is disambiguated (from three sibling List fields
-                // that share the same converter) by following the xma_ dispatch keys' branch target.
-                runCatching {
-                    val itemClass = mutableClassDefBy { it.type == method.definingClass }
-
-                    // Only the deserializer stores target_url with an iput; the serializer uses a call.
-                    fun targetUrlField(parserType: String): FieldReference? {
-                        val cls = runCatching { mutableClassDefBy { it.type == parserType } }.getOrNull()
-                            ?: return null
-                        return cls.methods.firstNotNullOfOrNull { m ->
-                            val insns = runCatching { m.instructions.toList() }.getOrNull()
-                                ?: return@firstNotNullOfOrNull null
-                            val ki = insns.indexOfFirst {
-                                (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
-                                    (it as ReferenceInstruction).reference.toString() == "target_url"
-                            }
-                            if (ki < 0) return@firstNotNullOfOrNull null
-                            insns.drop(ki + 1)
-                                .takeWhile {
-                                    it.opcode != Opcode.CONST_STRING && it.opcode != Opcode.CONST_STRING_JUMBO
-                                }
-                                .firstOrNull {
-                                    it.opcode == Opcode.IPUT_OBJECT &&
-                                        ((it as ReferenceInstruction).reference as? FieldReference)
-                                            ?.type == "Ljava/lang/String;"
-                                }?.let { (it as ReferenceInstruction).reference as FieldReference }
-                        }
-                    }
-
-                    var xmaField: FieldReference? = null
-                    var linkField: FieldReference? = null
-                    run {
-                        for (m in itemClass.methods) {
-                            val insns = runCatching { m.instructions.toList() }.getOrNull() ?: continue
-                            // The item stores four List<xma-element> fields, all built from the same
-                            // converter (so all share "target_url"); only the one reached from the
-                            // "xma_*" reshare keys is the field we want. Each xma_ key does
-                            // equals -> if-nez -> shared handler block, so follow that branch to pin
-                            // the correct block, then read its List iput + converter.
-                            val xmaKeyIdx = insns.indexOfFirst {
-                                (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
-                                    (it as ReferenceInstruction).reference.toString().startsWith("xma_")
-                            }
-                            if (xmaKeyIdx < 0) continue
-                            val ifNez = insns.drop(xmaKeyIdx + 1).firstOrNull { it.opcode == Opcode.IF_NEZ } ?: continue
-                            val targetAddr = ifNez.location.codeAddress + (ifNez as OffsetInstruction).codeOffset
-                            val targetIdx = insns.indexOfFirst { it.location.codeAddress == targetAddr }
-                            if (targetIdx < 0) continue
-                            val block = insns.drop(targetIdx)
-                            val listPut = block.firstOrNull {
-                                it.opcode == Opcode.IPUT_OBJECT &&
-                                    ((it as ReferenceInstruction).reference as? FieldReference)?.type == "Ljava/util/List;"
-                            }?.let { (it as ReferenceInstruction).reference as FieldReference } ?: continue
-                            // The call is declared on the abstract base, so take the parser class
-                            // from the sget rather than the call itself.
-                            val parseIdx = block.indexOfFirst {
-                                it.opcode == Opcode.INVOKE_VIRTUAL &&
-                                    ((it as ReferenceInstruction).reference as? MethodReference)
-                                        ?.name == "parseFromJsonParser"
-                            }
-                            if (parseIdx < 0) continue
-                            val parserType = block.take(parseIdx)
-                                .lastOrNull { it.opcode == Opcode.SGET_OBJECT }
-                                ?.let { (it as ReferenceInstruction).reference as? FieldReference }
-                                ?.type ?: continue
-                            val lf = targetUrlField(parserType) ?: continue
-                            xmaField = listPut
-                            linkField = lf
-                            return@run
-                        }
-                    }
-                    val xf = xmaField ?: error("xma converter not found in ${method.definingClass}")
-                    FieldXmaExtension.changeFirstString(xf.name)
-                    FieldXmaLinkExtension.changeFirstString(linkField!!.name)
-                }
-            }
+            resolveItemType(itemId)
+            resolveMedia(::objectFieldAfter, itemClass)
+            resolveXmaLink(itemClass)
 
             // DirectThreadKey is stable but its thread-id field is obfuscated: first String instance field.
-            val threadKeyClass =
-                mutableClassDefBy { it.type == "Lcom/instagram/model/direct/DirectThreadKey;" }
             val threadIdField =
-                threadKeyClass.fields
-                    .first {
-                        !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == "Ljava/lang/String;"
-                    }.name
+                classDefBy(DIRECT_THREAD_KEY).fields.firstOrNull {
+                    !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == "Ljava/lang/String;"
+                }?.name ?: throw PatchException("DirectThreadKey has no thread id field")
             GetThreadIdExtension.changeFirstString(threadIdField)
         }
     }
+
+/** The item type, and the field MQTT items keep their text in. */
+context(patchContext: BytecodePatchContext)
+private fun resolveItemType(itemId: FieldReference) {
+    // item_type: the only enum with 2+ fields on the base class; primary sorts last by name.
+    val baseDescriptor = itemId.definingClass
+    val baseClass = patchContext.classDefBy(baseDescriptor)
+
+    fun isEnumType(type: String) = patchContext.classDefByOrNull(type)?.superclass == "Ljava/lang/Enum;"
+
+    val itemTypeField =
+        baseClass.fields
+            .filter { !AccessFlags.STATIC.isSet(it.accessFlags) && isEnumType(it.type) }
+            .groupBy { it.type }
+            .maxByOrNull { it.value.size }
+            ?.value
+            ?.maxByOrNull { it.name }
+            ?: throw PatchException("Could not identify the item type field on $baseDescriptor")
+    GetItemTypeExtension.changeFirstString(itemTypeField.name)
+
+    // MQTT items store text in an Object field on the subclass, set after the item-type setter.
+    val subClass =
+        patchContext.classDefByOrNull { it.superclass == baseDescriptor }
+            ?: throw PatchException("$baseDescriptor has no subclass")
+    val subTextField =
+        subClass.methodInstructions.firstNotNullOfOrNull { instructions ->
+            instructions.indices.firstNotNullOfOrNull { index ->
+                val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                if (instructions[index].opcode != Opcode.INVOKE_VIRTUAL || reference == null ||
+                    reference.parameterTypes.singleOrNull()?.toString() != itemTypeField.type
+                ) {
+                    return@firstNotNullOfOrNull null
+                }
+                instructions.drop(index + 1).take(3)
+                    .firstOrNull { it.opcode.name.startsWith("iput", true) }
+                    ?.let { (it as ReferenceInstruction).reference as? FieldReference }
+                    ?.takeIf { it.type == "Ljava/lang/Object;" }
+                    ?.name
+            }
+        } ?: throw PatchException("Could not identify the MQTT text field on ${subClass.type}")
+    GetTextExtension.changeString("subTextField", subTextField)
+    SetTextExtension.changeString("subTextField", subTextField)
+}
+
+/**
+ * Every supported DM media shape carries a com.instagram.feed.media.Media object, the unobfuscated
+ * anchor, whose field is found by its JSON key on the deserializer.
+ *
+ * animated_media, story_share, xma and link are intentionally not resolved: their URL sits in an
+ * obfuscated wrapper with no stable type or getter to anchor on, so those shapes degrade to a
+ * "[type]" label at runtime. See DirectItem.getMediaUrl().
+ */
+context(patchContext: BytecodePatchContext)
+private fun resolveMedia(
+    objectFieldAfter: (String) -> FieldReference,
+    itemClass: ClassDef,
+) {
+    // The concrete item class the media fields are declared on, a subclass of the scalar base,
+    // which is why media must be read off it. Class.forName needs the binary name (X.6fW).
+    GetMediaClassNameExtension.changeFirstString(classNameToExtension(objectFieldAfter("media").definingClass))
+
+    fun direct(
+        key: String,
+        fingerprint: Fingerprint,
+    ) {
+        val field = objectFieldAfter(key)
+        if (field.type != MEDIA_CLASS) throw PatchException("'$key' is not stored as Media")
+        fingerprint.changeFirstString(field.name)
+    }
+    direct("media", FieldMediaExtension)
+    direct("media_share", FieldMediaShareExtension)
+    direct("raven_media", FieldRavenMediaExtension)
+
+    // Wrapped shapes: the wrapper field on the item, then the wrapper's Media field, found by type
+    // so the obfuscated wrapper name is never depended on.
+    fun wrapped(
+        key: String,
+        wrapperFingerprint: Fingerprint,
+        innerFingerprint: Fingerprint,
+    ) {
+        val wrapperField = objectFieldAfter(key)
+        val inner =
+            patchContext.classDefBy(wrapperField.type).fields.firstOrNull { it.type == MEDIA_CLASS }
+                ?: throw PatchException("The '$key' wrapper holds no Media")
+        wrapperFingerprint.changeFirstString(wrapperField.name)
+        innerFingerprint.changeFirstString(inner.name)
+    }
+    wrapped("clip", FieldClipExtension, FieldClipMediaExtension)
+    wrapped("reel_share", FieldReelExtension, FieldReelMediaExtension)
+    wrapped("voice_media", FieldVoiceExtension, FieldVoiceMediaExtension)
+    // Disappearing media: carries the payload that raven_media leaves null.
+    wrapped("visual_media", FieldVisualExtension, FieldVisualMediaExtension)
+}
+
+/**
+ * An xma reshare (a shared post or reel) has no Media object; the item holds a List of xma
+ * elements whose permalink is a String under the JSON key "target_url".
+ *
+ * The item stores four such lists, all built by the same converter, so the one wanted is found by
+ * following the "xma_*" reshare keys' branch: each does equals -> if-nez -> a shared block, whose
+ * List iput and converter call pin the field and the element's parser.
+ */
+context(patchContext: BytecodePatchContext)
+private fun resolveXmaLink(itemClass: ClassDef) {
+    // Only the deserializer stores target_url with an iput; the serializer uses a call.
+    fun targetUrlField(parserType: String): FieldReference? =
+        patchContext.classDefByOrNull(parserType)?.methodInstructions?.firstNotNullOfOrNull { instructions ->
+            val keyIndex = instructions.indexOfFirst { it.isConstString("target_url") }
+            if (keyIndex < 0) return@firstNotNullOfOrNull null
+            instructions.drop(keyIndex + 1)
+                .takeWhile { it.opcode != Opcode.CONST_STRING && it.opcode != Opcode.CONST_STRING_JUMBO }
+                .firstOrNull {
+                    it.opcode == Opcode.IPUT_OBJECT &&
+                        ((it as ReferenceInstruction).reference as? FieldReference)?.type == "Ljava/lang/String;"
+                }?.let { (it as ReferenceInstruction).reference as FieldReference }
+        }
+
+    for (instructions in itemClass.methodInstructions) {
+        val xmaKeyIndex =
+            instructions.indexOfFirst {
+                (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
+                    (it as ReferenceInstruction).reference.toString().startsWith("xma_")
+            }
+        if (xmaKeyIndex < 0) continue
+        val ifNez = instructions.drop(xmaKeyIndex + 1).firstOrNull { it.opcode == Opcode.IF_NEZ } ?: continue
+
+        var address = 0
+        val addresses = instructions.map { instruction -> address.also { address += instruction.codeUnits } }
+        val ifNezIndex = instructions.indexOf(ifNez)
+        val targetIndex = addresses.indexOf(addresses[ifNezIndex] + (ifNez as OffsetInstruction).codeOffset)
+        if (targetIndex < 0) continue
+
+        val block = instructions.drop(targetIndex)
+        val listField =
+            block.firstOrNull {
+                it.opcode == Opcode.IPUT_OBJECT &&
+                    ((it as ReferenceInstruction).reference as? FieldReference)?.type == "Ljava/util/List;"
+            }?.let { (it as ReferenceInstruction).reference as FieldReference } ?: continue
+        // The call is declared on the abstract base, so the parser class comes from the sget.
+        val parseIndex =
+            block.indexOfFirst {
+                it.opcode == Opcode.INVOKE_VIRTUAL &&
+                    ((it as ReferenceInstruction).reference as? MethodReference)?.name == "parseFromJsonParser"
+            }
+        if (parseIndex < 0) continue
+        val parserType =
+            block.take(parseIndex)
+                .lastOrNull { it.opcode == Opcode.SGET_OBJECT }
+                ?.let { (it as ReferenceInstruction).reference as? FieldReference }
+                ?.type ?: continue
+        val linkField = targetUrlField(parserType) ?: continue
+
+        FieldXmaExtension.changeFirstString(listField.name)
+        FieldXmaLinkExtension.changeFirstString(linkField.name)
+        return
+    }
+
+    throw PatchException("Could not identify the xma reshare fields on ${itemClass.type}")
+}

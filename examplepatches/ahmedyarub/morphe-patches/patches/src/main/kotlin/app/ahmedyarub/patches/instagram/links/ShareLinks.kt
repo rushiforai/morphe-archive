@@ -8,6 +8,7 @@
 
 package app.ahmedyarub.patches.instagram.links
 
+import app.ahmedyarub.patches.shared.indicesOfString
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
@@ -25,9 +26,19 @@ internal object PermalinkResponseJsonParserFingerprint : Fingerprint(
     custom = { methodDef, _ -> methodDef.name.lowercase().contains("parsefromjson") },
 )
 
+/**
+ * The profile share URL parser. On 449 its key, profile_to_share_url, is pooled, so the
+ * parser is found by the response class name it reports on a missing field.
+ */
 internal object ProfileUrlResponseJsonParserFingerprint : Fingerprint(
-    strings = listOf("profile_to_share_url"),
+    strings = listOf("ProfileThirdPartySharingUrlResponseImpl"),
     custom = { methodDef, _ -> methodDef.name.lowercase().contains("parsefromjson") },
+)
+
+/** The JSON key each parser reads the URL from. It is loaded before the URL is stored. */
+private val URL_KEYS = mapOf(
+    PermalinkResponseJsonParserFingerprint to "permalink",
+    ProfileUrlResponseJsonParserFingerprint to "profile_to_share_url",
 )
 
 internal object StoryItemThirdPartySharingUrlResponseImplFingerprint : Fingerprint(
@@ -51,30 +62,25 @@ internal fun hookShareLinks(extensionMethodName: String) {
         move-result-object v$urlRegister
     """
 
-    var hooked = 0
-
     // Parsed out of a JSON response and stored into a field.
-    listOf(
-        PermalinkResponseJsonParserFingerprint,
-        ProfileUrlResponseJsonParserFingerprint,
-    ).forEach { fingerprint ->
-        val match = fingerprint.matchOrNull() ?: return@forEach
+    URL_KEYS.forEach { (fingerprint, key) ->
+        fingerprint.method.apply {
+            val keyIndex = indicesOfString(key).singleOrNull()
+                ?: throw PatchException("${fingerprint.javaClass.simpleName} does not load $key exactly once")
 
-        match.method.apply {
             // The register must provably hold a String: the hook passes it to a
             // String parameter, and a mismatch is a verify error when the class loads,
             // which the extension's own error handling cannot catch. So the first field
             // store after the anchor is not assumed to be the URL - the first store to a
-            // String field is used, and if there is none this call site is left alone.
+            // String field is used.
             val assignmentIndex = instructions.withIndex().firstOrNull { (index, instruction) ->
-                index > match.stringMatches.first().index &&
+                index > keyIndex &&
                     instruction.opcode == Opcode.IPUT_OBJECT &&
                     ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.type ==
                     "Ljava/lang/String;"
-            }?.index ?: return@forEach
+            }?.index ?: throw PatchException("${fingerprint.javaClass.simpleName} stores no String after its key")
 
             addInstructions(assignmentIndex, hook(instructions[assignmentIndex].registersUsed[0]))
-            hooked++
         }
     }
 
@@ -83,7 +89,7 @@ internal fun hookShareLinks(extensionMethodName: String) {
         StoryItemThirdPartySharingUrlResponseImplFingerprint,
         LiveThirdPartySharingUrlResponseImplFingerprint,
     ).forEach { fingerprint ->
-        val match = fingerprint.matchOrNull() ?: return@forEach
+        val match = fingerprint.match()
 
         // Safe by construction: the fingerprint only matches methods returning String, so
         // the register feeding return-object is a String.
@@ -91,12 +97,6 @@ internal fun hookShareLinks(extensionMethodName: String) {
             val returnInstruction = instructions.last { it.opcode == Opcode.RETURN_OBJECT }
 
             addInstructions(returnInstruction.location.index, hook(returnInstruction.registersUsed[0]))
-            hooked++
         }
     }
-
-    // Each link kind is hooked independently: a call site that moved in a newer app version
-    // should cost that one kind, not the whole patch. Failing only when nothing matched keeps
-    // a silently useless patch from shipping.
-    if (hooked == 0) throw PatchException("No share link call site matched")
 }

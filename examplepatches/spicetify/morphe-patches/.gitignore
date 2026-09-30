@@ -135,3 +135,4 @@ local.properties
 *.keystore
 *.jks
 .morphe-data/
+/docs/

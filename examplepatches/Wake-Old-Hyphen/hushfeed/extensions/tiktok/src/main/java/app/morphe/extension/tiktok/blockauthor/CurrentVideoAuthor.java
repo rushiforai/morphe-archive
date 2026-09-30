@@ -104,6 +104,11 @@ public final class CurrentVideoAuthor {
      */
     static void update(Object videoItemParams) {
         Item item = parse(videoItemParams);
+        // Ahead of the reader, as TikTok prepares the item's engine ahead: muted then, a feed
+        // video starts silent instead of for the moment before it becomes current.
+        if (item != null && item.aweme != null) {
+            app.morphe.extension.tiktok.playback.FeedMute.onFeedBind(item.aweme);
+        }
         synchronized (SELECTING) {
             if (item != null && item.awemeId != null) {
                 RECENT.put(item.awemeId, item);
@@ -197,6 +202,9 @@ public final class CurrentVideoAuthor {
 
             if (item != null && item.aweme != null) {
                 CurrentVideoSound.update(item.aweme);
+                // Mute feed videos hears only one of the routes TikTok starts a feed video by;
+                // this change is the one every route passes.
+                app.morphe.extension.tiktok.playback.FeedMute.onCurrentVideo(item.aweme);
             } else {
                 CurrentVideoSound.clear();
             }

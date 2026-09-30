@@ -11,8 +11,7 @@ import app.morphe.util.returnEarly
  * https://github.com/brosssh/morphe-patches
  *
  * The method reporting whether a feed item is an ad pod. Anchored on a log string rather than
- * on any obfuscated name, which is why it survives across app versions unchanged: the same
- * fingerprint resolves on both 439.0.0.37.89 and 446.0.0.49.77.
+ * on any obfuscated name, which is why it has survived app updates unchanged.
  */
 private object DisableAdsFingerprint : Fingerprint(
     strings = listOf("Is ad pod"),

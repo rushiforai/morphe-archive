@@ -78,6 +78,11 @@ start-call Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackLike(Lja
 # heart rises by. Left out or put later, the attachment plays its heart for a double tap the switch
 # keeps from liking.
 start-call Lapp/morphe/extension/facebook/reels/DoubleTapLike;->holdBackTap()Z in instance (Landroid/view/MotionEvent;)Z holding translationY
+# Keep the reel speed asks the extension first thing in the Reels menu's speed toast, which a pick in
+# either of the menu's speed pickers shows right after it sets the speed: the one method of 580 and
+# 577 holding its selector's name, a static method taking a context and the speed. Left out or put
+# later, a speed picked in the Reels menu isn't kept for the next reels.
+start-call Lapp/morphe/extension/facebook/media/ReelSpeed;->picked(F)V in static (Landroid/content/Context;F)V holding InlinePlaybackSpeedAttributeSelector
 # Facebook ranks its own launcher shortcuts ahead of the Hushfacebook one with these calls, so the
 # settings patch sends every one to SettingsEntry, which makes it and puts the Hushfacebook shortcut
 # back in front (#2). One left in Facebook's code would let it drop out of the long-press menu.
@@ -101,3 +106,8 @@ next-call Lapp/morphe/extension/facebook/settings/SettingsEntry;->setLogoTouchLi
 # method holds the mutation's name). Left out or left beside the stand-in, the batch goes out; on
 # other registers, the stand-in gets the send as its executor.
 sole-call Lapp/morphe/extension/facebook/reels/ReelWatchHistory;->send(Ljava/util/concurrent/Executor;Ljava/lang/Runnable;)V replacing Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V in instance ()V holding FbShortsSeenStateMutation video_ids
+# The tab bar asks its jewel controller for each tab's new count through one static method, which
+# loads the controller's getTrackedCountWithLogging name. Hide the Reels tab dot asks the extension
+# first thing in it, so the Reels tab's count can read none. Left out, the dot stays; anywhere
+# else, the count it answers isn't the tab bar's.
+start-call Lapp/morphe/extension/facebook/navigation/ReelsTabDot;->clear(Ljava/lang/Object;)Z in static (Lcom/facebook/auth/usersession/FbUserSession;*Lcom/facebook/navigation/tabbar/state/model/TabTag;I)I holding FbMainTabActivityJewelController.getTrackedCountWithLogging

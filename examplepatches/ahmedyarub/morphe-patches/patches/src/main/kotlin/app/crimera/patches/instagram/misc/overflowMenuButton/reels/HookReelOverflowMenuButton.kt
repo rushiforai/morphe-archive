@@ -9,19 +9,36 @@ package app.crimera.patches.instagram.misc.overflowMenuButton.reels
 import app.crimera.patches.instagram.entity.decoder.MEDIA_CLASS_NAME
 import app.crimera.patches.instagram.entity.decoder.decoderEntity
 import app.crimera.patches.instagram.utils.Constants.ADD_REEL_BTN_OVERFLOW_MENU_BUTTON_CLASS
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.Constants.MEDIA_OPTIONS_CLASS
 import app.crimera.utils.changeFirstString
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.crimera.patches.shared.declaredParameterRegister
+import app.crimera.patches.shared.parameterRegisterStart
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 private const val CONTEXT = "Landroid/content/Context;"
 
-/** The reel menu helper, named by the analytics tag it logs under. */
-internal object ClipsOrganicMoreOptionsHelperFingerprint : Fingerprint(
-    strings = listOf("ClipsOrganicMoreOptionsHelper"),
+/**
+ * The reel menu helper's per-row method: (context, option, sheet builder, row) -> void, on the
+ * class that logs under "ClipsOrganicMoreOptionsHelper". The tag alone is in some fifty methods
+ * across several classes, so the row method is what is matched.
+ */
+internal object ReelMenuRowFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(CONTEXT, MEDIA_OPTIONS_CLASS, "L", "L"),
+    custom = { _, classDef ->
+        classDef.methods.any { method ->
+            method.implementation?.instructions?.any { instruction ->
+                instruction.getReference<StringReference>()?.string == "ClipsOrganicMoreOptionsHelper"
+            } == true
+        }
+    },
 )
 
 internal object ReelMediaFieldExtensionFingerprint : Fingerprint(
@@ -46,21 +63,12 @@ val hookReelOverflowMenuButton =
     bytecodePatch(
         description = "This patch hooks reel overflow button list adder",
     ) {
+        dependsOn(instagramExtensionPatch)
         dependsOn(reelsOverflowMenuButtonEntity, decoderEntity)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
-            val helperClass = ClipsOrganicMoreOptionsHelperFingerprint.classDef
-
-            // The per-row method, as opposed to the one it delegates to, which takes the same
-            // arguments plus the row's own label and position.
-            val perRowMethod =
-                helperClass.methods.singleOrNull { method ->
-                    method.returnType == "V" &&
-                        method.parameters.size == 4 &&
-                        method.parameters[0].type == CONTEXT &&
-                        method.parameters[1].type == MEDIA_OPTIONS_CLASS
-                } ?: throw PatchException("Could not identify the reel menu row method")
+            val helperClass = ReelMenuRowFingerprint.classDef
 
             val mediaField =
                 helperClass.fields.singleOrNull { it.type == MEDIA_CLASS_NAME }
@@ -68,14 +76,21 @@ val hookReelOverflowMenuButton =
 
             ReelMediaFieldExtensionFingerprint.changeFirstString(mediaField.name)
 
-            mutableClassDefBy(helperClass)
-                .methods
-                .first { it.name == perRowMethod.name && it.parameters.size == 4 }
-                .addInstructions(
+            ReelMenuRowFingerprint.method.apply {
+                val self = parameterRegisterStart(this)
+                val context = declaredParameterRegister(this, 0)
+                val sheetBuilder = declaredParameterRegister(this, 2)
+                // Not consecutive, so the call is four-bit.
+                if (maxOf(self, context, sheetBuilder) > 15) {
+                    throw PatchException("The reel menu row method keeps its parameters above v15")
+                }
+
+                addInstructions(
                     0,
-                    "invoke-static {p0, p1, p3}, " +
+                    "invoke-static { v$self, v$context, v$sheetBuilder }, " +
                         "$ADD_REEL_BTN_OVERFLOW_MENU_BUTTON_CLASS->" +
                         "addReelMenuDownloadRow(Ljava/lang/Object;$CONTEXT Ljava/lang/Object;)V",
                 )
+            }
         }
     }

@@ -10,43 +10,30 @@ import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.File
-import java.net.URLClassLoader
-import java.util.jar.Manifest
 
-fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
-        }!!.first()
-    )
-    val loadedPatches = loadPatchesFromJar(patchFiles)
-    val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
-    val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
-
-    while (manifest.hasMoreElements()) {
-        Manifest(manifest.nextElement().openStream())
-            .mainAttributes
-            .getValue("Version")
-            ?.let {
-                generatePatchList(it, loadedPatches)
-            }
-    }
+/**
+ * Writes patches-list.json for the bundle the build just produced.
+ *
+ * Arguments: the bundle, its version, and the file to write. They are passed in rather than found:
+ * build/libs keeps every earlier bundle too, and taking the first one listed wrote the list of
+ * whichever version the file system happened to return.
+ */
+fun main(args: Array<String>) {
+    val (bundle, version, output) = args
+    generatePatchList(version, loadPatchesFromJar(setOf(File(bundle))), File(output))
 }
 
 @Suppress("DEPRECATION")
-private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
-    val listJson = File("../patches-list.json")
-
+private fun generatePatchList(version: String, patches: Set<Patch<*>>, listJson: File) {
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
         JsonPatch(
             name = patch.name!!,
             description = patch.description,
             default = patch.default,
             category = patch.category,
-            dependencies = patch.dependencies.map { it.javaClass.simpleName },
+            // Only named patches mean anything to a reader: the rest are internal steps, and their
+            // class name is BytecodePatch or ResourcePatch for every one of them.
+            dependencies = patch.dependencies.mapNotNull { it.name },
             // Map each Compatibility to a JsonCompatibility object with full metadata.
             // Patches with null compatiblePackages are universal (apply to any app).
             compatiblePackages = patch.compatibility?.map { compat ->

@@ -14,6 +14,40 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev20_arrays_keep_yandex_and_custom_icon_choices(self):
+        from xml.etree import ElementTree
+
+        base = '<resources>\n    <string-array name="existing"/>\n</resources>\n'
+        dual_names = (
+            "dualvot_yandex_target_language_entries",
+            "dualvot_yandex_target_language_entry_values",
+            "dualvot_yandex_source_language_entries",
+            "dualvot_yandex_source_language_entry_values",
+            "dualvot_yandex_timer_position_entries",
+            "dualvot_yandex_timer_position_entry_values",
+        )
+        dual = "".join(f'    <string-array name="{name}"/>\n' for name in dual_names)
+        ours = base.replace("</resources>", dual + "</resources>")
+        theirs = base.replace(
+            '<string-array name="existing"/>',
+            '<string-array name="custom_icon"/>\n    <string-array name="existing"/>',
+        )
+        merged = sync_upstream.merge_dev20_yandex_arrays(base, ours, theirs)
+        names = [element.attrib["name"] for element in ElementTree.fromstring(merged)]
+        self.assertEqual(names, ["custom_icon", "existing", *dual_names])
+        self.assertEqual(
+            sync_upstream.DEV20_ARRAYS_CONFLICT_BLOBS,
+            (
+                "983528dfbaa32da29dacc9b104cc95ce27ddbf79",
+                "2b7a395c084bc706419ec62d923157f1b27d75d6",
+                "c723637ecf766a547fd2aff56bcbd9c60f0671f3",
+            ),
+        )
+        with self.assertRaises(sync_upstream.SyncError):
+            sync_upstream.merge_dev20_yandex_arrays(
+                base, ours.replace("existing", "changed"), theirs
+            )
+
     def test_dev16_arrays_keep_yandex_and_new_icon_choices(self):
         from xml.etree import ElementTree
 

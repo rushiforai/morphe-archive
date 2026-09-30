@@ -40,7 +40,7 @@ class ExtensionHostsTest {
         assertEquals(
             "The README says the extension goes online by itself only to download what you save. " +
                 "These files open connections",
-            sortedSetOf(TRANSPORT),
+            TRANSPORT.toSortedSet(),
             openers,
         )
     }
@@ -98,7 +98,11 @@ class ExtensionHostsTest {
     private companion object {
         /** The hosts the README's Privacy section names. */
         val ALLOWED_HOSTS = setOf("github.com", "gitlab.com", "www.gnu.org", "www.tiktok.com", "music.youtube.com")
-        const val TRANSPORT = "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/MediaTransport.java"
+        /** The media transport: the client, and the connection it pins to a checked address. */
+        val TRANSPORT = setOf(
+            "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/MediaTransport.java",
+            "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/PinnedMediaConnection.java",
+        )
         val URL = Regex("""(?:https?|wss?)://([A-Za-z0-9.-]+)""")
         val NETWORK = Regex(
             """\b(?:HttpURLConnection|HttpsURLConnection|URLConnection|openConnection|Socket|SSLSocket|""" +

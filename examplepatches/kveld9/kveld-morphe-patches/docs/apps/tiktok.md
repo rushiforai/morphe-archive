@@ -1,6 +1,6 @@
 # 🎵 TikTok: Complete Patch, Architecture & Configuration Guide
 
-Comprehensive technical, architectural, and configuration guide for **TikTok** (supporting both Global `com.zhiliaoapp.musically` and Asia `com.ss.android.ugc.trill`), pinned to target version **`47.1.3`**.
+Comprehensive technical, architectural, and configuration guide for **TikTok** (supporting both Global `com.zhiliaoapp.musically` and Asia `com.ss.android.ugc.trill`), pinned to target version **`47.1.4`**.
 
 ---
 
@@ -10,10 +10,10 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | :--- | :--- |
 | **Target Application** | TikTok |
 | **Package Names** | `com.zhiliaoapp.musically` (Global) · `com.ss.android.ugc.trill` (Asia) |
-| **Supported Target Version** | **`47.1.3`** |
+| **Supported Target Version** | **`47.1.4`** |
 | **Target File Format** | Standalone APK (`APK` - **nodpi**) |
 | **Recommended Architecture** | `arm64-v8a` |
-| **Official Download Source** | [APKMirror: Global (musical.ly)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-3-release/) · [APKMirror: Asia (trill)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-47-1-3-2-release/) |
+| **Official Download Source** | [APKMirror: Global (musical.ly)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-47-1-4-release/) · [APKMirror: Asia (trill)](https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-47-1-4-release/) |
 
 > [!IMPORTANT]
 > Always download the standalone `nodpi` APK variant for `arm64-v8a`. Do not use split APK bundles (`bundle` / `apkm`).
@@ -25,6 +25,7 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | Category | Patch Name | Type | Key Target / Mechanism |
 | :--- | :--- | :--- | :--- |
 | **Usability** | **Media Usability & Watermark-Free Downloader** | `bytecodePatch` | Unblocks download button in Share panel, extracts clean original streams without watermark stamps. |
+| **Usability** | **Disable Post-Download Share Dialog** | `bytecodePatch` | Suppresses the automatic 'Share to' and friend suggestions bottom sheet that pops up after finishing a download. |
 | **Usability** | **Show Seekbar** | `bytecodePatch` | Restores video seekbar and scrubbing controls where hidden or disabled. |
 | **Usability** | **Always Show Publish Date** | `bytecodePatch` | Forces video publish and upload timestamps to remain permanently visible on feed cards. |
 | **Usability** | **Copy Comments Without Username** | `bytecodePatch` | Sanitizes comment copy actions to exclude the prepended author username. |
@@ -223,6 +224,8 @@ The **`Custom Share Sheet`** patch cleans and customizes TikTok's native sharing
 | **Hide Friends DM Row** | `hideFriendsRow` | Boolean | `false` | Suppresses the top suggested contacts/friends avatar row in the share dialog. |
 | **Hide 'Promote' Action** | `hidePromote` | Boolean | `true` | Hides the commercial Promote action from the bottom utilities row. |
 | **Hide 'Why This Video'** | `hideWhyThisVideo` | Boolean | `true` | Hides the recommendation explanation action from the bottom utilities row. |
+| **Hide 'Create Group' Action** | `hideCreateGroup` | Boolean | `false` | Hides the Create group action from the bottom utilities row. |
+| **Hide 'Add to Story'** | `hideAddToStory` | Boolean | `false` | Hides the Add to Story action from the bottom utilities row. |
 | **Hide 'Create Sticker'** | `hideCreateSticker` | Boolean | `false` | Hides the sticker creation tool from the bottom utilities row. |
 | **Hide 'Duet' Action** | `hideDuet` | Boolean | `false` | Hides the Duet action from the bottom utilities row. |
 | **Hide 'Stitch' Action** | `hideStitch` | Boolean | `false` | Hides the Stitch action from the bottom utilities row. |
@@ -232,8 +235,6 @@ The **`Custom Share Sheet`** patch cleans and customizes TikTok's native sharing
 | **Hide Live Wallpaper & GIF** | `hideWallpaperAndGif` | Boolean | `false` | Hides Live wallpaper and GIF creation actions. |
 | **Hide 'Not Interested'** | `hideNotInterested` | Boolean | `false` | Hides the 'Not interested' action. |
 | **Hide 'Report'** | `hideReport` | Boolean | `false` | Hides the Report action. |
-| **Custom Hidden Apps** | `hiddenApps` | String | `""` | Optional comma-separated list of additional app channel keys to hide. |
-| **Custom Hidden Actions** | `hiddenActions` | String | `""` | Optional comma-separated list of additional action keys to hide. |
 
 ---
 
@@ -416,3 +417,8 @@ The **`Custom Share Sheet`** patch cleans and customizes TikTok's native sharing
 - **Top Tab Provider Interception**: Resolves `NearbyTabProvider` from `NearbyServiceImpl.LJIIZILJ()`, hooking `LJ()` -> returns `null` to eliminate `TopTabProtocol` registration in `TopTabOperator`.
 - **A/B Experiment Gate Neutralization**: Hooks the experiment evaluator method in `NearbyTabProtocol.enable()` (`LIZIZ()Z`) -> returns `false`.
 - **Protocol & Service Gates**: Hooks `NearbyTabProtocol.enable()Z` -> returns `false`, and neutralizes `NearbyServiceImpl.LJIIIIZZ()Z` and `LJIIL()Z`.
+
+### 25. Disable Post-Download Share Dialog (`disablePostDownloadDialogPatch`)
+- Suppresses the automatic 'Share to' and friend suggestions bottom sheet that pops up after finishing a video or media download.
+- **Bottom Sheet Presentation Neutralization**: Stubs the popup display launcher in `DownloadAndShareFragment` (fingerprinted by `definingClass = DownloadAndShareFragment` and string `"after_video_saved_share_to_nscreen"`) with `return-void` at instruction offset 0, preventing the creation and display of the `TuxSheet` bottom sheet dialog while preserving download completion toasts and saved file integrity.
+

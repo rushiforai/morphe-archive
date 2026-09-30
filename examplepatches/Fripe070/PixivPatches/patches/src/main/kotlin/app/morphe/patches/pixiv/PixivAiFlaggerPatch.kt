@@ -62,15 +62,7 @@ val pixivAiFlaggerPatch: BytecodePatch = bytecodePatch(
             """.trimIndent()
         )
 
-        // --- Hook 4: DetailImageViewHolder.bind (Floating top-left [AI] badge on artwork viewer) ---
-        val detailImageHolderClass = mutableClassDefBy("Ljp/pxv/android/feature/illustviewer/detail/DetailImageViewHolder;")
-        val holderBindMethod = detailImageHolderClass.methods.first { it.name == "bind" && it.parameterTypes.size == 1 }
-        holderBindMethod.addInstructions(
-            1,
-            "invoke-static/range {p0 .. p1}, Lapp/morphe/extension/pixiv/aiflag/AiUiHelper;->onDetailImageBound(Ljava/lang/Object;Ljava/lang/Object;)V"
-        )
-
-        // --- Hook 5: DetailBottomBarView.setWork ([AI] pill next to title and artist name in metadata header) ---
+        // --- Hook 4: DetailBottomBarView.setWork (Single AI warning banner & [AI] title pill) ---
         val bottomBarClass = mutableClassDefBy("Ljp/pxv/android/feature/component/androidview/DetailBottomBarView;")
         val setWorkMethod = bottomBarClass.methods.first { it.name == "setWork" }
         setWorkMethod.addInstructions(

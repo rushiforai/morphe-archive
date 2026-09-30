@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Twitter Bookmarker",
+  "version": "1.0.0",
+  "description": "Categorize X bookmarks into per-category CSV files through a local backend.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://x.com/*", "http://*/*", "https://*/*"],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Twitter Bookmarker",
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/i/history*",
+        "https://x.com/i/bookmarks*"
+      ],
+      "js": ["content/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

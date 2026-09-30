@@ -16,15 +16,13 @@ import app.crimera.patches.instagram.entity.trackDataIntf.trackDataIntfEntity
 import app.crimera.patches.instagram.entity.userdata.userDataEntity
 import app.crimera.patches.instagram.entity.videoData.videoDataEntity
 import app.crimera.patches.instagram.misc.directMessage.saveAllMessages.saveAllMessagesPatch
-import app.crimera.patches.instagram.misc.extension.sharedExtensionPatch
 import app.crimera.patches.instagram.misc.hookFlags.hookFlagsPatch
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.addOverflowMenuButtonAttributes
-import app.crimera.patches.instagram.misc.overflowMenuButton.posts.debugOverflowButton.debugOverflowMenuButtonPatch
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.hookFeedSheetPatch
 import app.crimera.patches.instagram.misc.overflowMenuButton.posts.hookOverflowMenuButton
 import app.crimera.patches.instagram.misc.overflowMenuButton.reels.hookReelOverflowMenuButton
 import app.crimera.patches.instagram.misc.stories.handleStoryButtonPatch
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.Constants.DOWNLOAD_DESCRIPTOR
 import app.crimera.patches.instagram.utils.addFlags
 import app.crimera.patches.instagram.utils.enableSettings
@@ -40,6 +38,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 @Suppress("unused")
 val downloadMediaPatch =
@@ -48,7 +47,7 @@ val downloadMediaPatch =
         description = "Adds ability to download posts, reels, stories and highlights",
     ) {
         dependsOn(
-            sharedExtensionPatch,
+            instagramExtensionPatch,
             registerFolderPickerPatch,
             instagramDialogBoxEntity,
             mediaDataEntity,
@@ -62,7 +61,6 @@ val downloadMediaPatch =
             saveAllMessagesPatch,
             hookOverflowMenuButton,
             hookFeedSheetPatch,
-            debugOverflowMenuButtonPatch,
             hookReelOverflowMenuButton,
         )
         compatibleWith(COMPATIBILITY_INSTAGRAM)

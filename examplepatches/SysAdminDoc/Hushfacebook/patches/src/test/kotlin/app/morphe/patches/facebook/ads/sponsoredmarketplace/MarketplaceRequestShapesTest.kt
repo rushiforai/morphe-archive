@@ -98,6 +98,7 @@ class MarketplaceRequestShapesTest {
             const-string/jumbo v0, "$TRACKING_NAME"
             invoke-interface { $trackingFrom, v0 }, $GET_STRING
             move-result-object v5
+            ${ResponseStandIns.buildsTheState("v5")}
             return-void
             :refused
             new-instance v1, Ljava/lang/IllegalArgumentException;
@@ -126,11 +127,12 @@ class MarketplaceRequestShapesTest {
         return listOf(call.registerC, call.registerD, call.registerE, call.registerF, call.registerG).take(call.registerCount)
     }
 
+    /** The module's classes, with the answer hooks' stand-ins the patch also needs. */
     private fun build(vararg sends: Method): List<ClassDef> = listOf(
         classOf(module, *sends),
         classOf("Lfixture/OkHttpNetworkingModule;", ossSendRequest()),
         ExtensionDex.classDef(SETTINGS_STATUS),
-    )
+    ) + ResponseStandIns.classes()
 
     @Test
     fun `the send method is the Networking spec's sendRequest holding the module's tag`() {

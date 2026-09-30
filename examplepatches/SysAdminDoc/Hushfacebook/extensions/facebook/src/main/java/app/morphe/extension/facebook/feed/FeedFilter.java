@@ -40,6 +40,13 @@ public final class FeedFilter {
     private static final String PROMOTION = "PROMOTION";
 
     /**
+     * The category of Facebook's own engagement cards, server-drawn CustomizedStory templates. The
+     * suggested groups row comes as one now ("Suggested for you", Join, "Discover more groups"),
+     * no longer as a GroupsYouShouldJoinFeedUnit, so the promos switch and the groups switch each hide it.
+     */
+    static final String ENGAGEMENT_PROMO = "ENGAGEMENT_QP";
+
+    /**
      * The GraphQL type the "People you may know" row answers {@code getTypeName()} with. Its class
      * is renamed on every release and shared with GroupsYouShouldJoinFeedUnit and
      * FriendRequestsFeedUnit, but {@code getTypeName()} answers by the model's type tag, and each
@@ -304,6 +311,10 @@ public final class FeedFilter {
             }
             if (reason == null && suggestedPatched) {
                 if (Settings.HIDE_SUGGESTED_POSTS.get()) reason = suggestedUnitName(feedUnit);
+                if (reason == null && ENGAGEMENT_PROMO.equals(categoryName)
+                        && (Settings.HIDE_SUGGESTED_POSTS.get() || Settings.HIDE_SUGGESTED_GROUPS.get())) {
+                    reason = ENGAGEMENT_PROMO;
+                }
                 if (reason == null && Settings.HIDE_SUGGESTED_FOR_YOU.get()) {
                     reason = flagReason(RecommendationLabel.FLAG, RECOMMENDATION_ROUTE, feedUnit, recommendationAccessor);
                 }

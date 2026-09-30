@@ -1026,7 +1026,7 @@ public final class BlockAuthorOverlay {
      * root is a parameter. Falls back to a plain toast when there is nowhere to draw it.
      */
     public static void showUndoBanner(ViewGroup root, String message, Runnable undoAction) {
-        showBanner(root, message, undoAction, null);
+        showBanner(root, message, undoAction, null, null);
     }
 
     /**
@@ -1037,7 +1037,20 @@ public final class BlockAuthorOverlay {
      * which a toast does not.
      */
     public static void showNoticeBanner(ViewGroup root, String message) {
-        showBanner(root, message, null, null);
+        showBanner(root, message, null, null, null);
+    }
+
+    /**
+     * The notice banner, telling the caller when it was read out in full.
+     *
+     * <p>{@code ranItsTime} runs on the main thread once the banner has been up for its whole
+     * time and is still on the screen, or at once when there was only a toast to show. Another
+     * banner replacing it, the controls going away, or the reader leaving the screen cuts it
+     * short, and then it never runs: a caller that only forgets what it said once it was seen
+     * can say it again later.
+     */
+    public static void showNoticeBanner(ViewGroup root, String message, Runnable ranItsTime) {
+        showBanner(root, message, null, null, ranItsTime);
     }
 
     /**
@@ -1052,26 +1065,26 @@ public final class BlockAuthorOverlay {
             Activity activity = controlsActivity();
             ViewGroup root = activity == null || activity.isFinishing() || activity.isDestroyed()
                     ? null : activity.findViewById(android.R.id.content);
-            showBanner(root, message, action, actionLabel);
+            showBanner(root, message, action, actionLabel, null);
         });
     }
 
     public static void showActionBanner(ViewGroup root, String message, String actionLabel,
             Runnable action) {
-        showBanner(root, message, action, actionLabel);
+        showBanner(root, message, action, actionLabel, null);
     }
 
     private static void showBanner(ViewGroup root, String message, Runnable action,
-            String actionLabel) {
+            String actionLabel, Runnable ranItsTime) {
         Utils.runOnMainThread(() -> {
             try {
                 if (root == null) {
-                    Utils.showToastShort(message);
+                    toastInstead(message, ranItsTime);
                     return;
                 }
                 Activity activity = controlsActivity();
                 if (activity == null) {
-                    Utils.showToastShort(message);
+                    toastInstead(message, ranItsTime);
                     return;
                 }
 
@@ -1109,13 +1122,25 @@ public final class BlockAuthorOverlay {
                 // whether it is still the one that was scheduled.
                 final int token = ++undoGeneration;
                 Utils.runOnMainThreadDelayed(() -> {
-                    if (token == undoGeneration) dismissUndo();
+                    if (token != undoGeneration) return;
+                    // Only a banner still on the screen at the end was read out in full. The
+                    // reader backing out or going Home stops nothing here, so the timeout comes
+                    // anyway, over a screen that is gone or stopped.
+                    boolean seen = banner.isAttachedToWindow() && banner.isShown();
+                    dismissUndo();
+                    if (seen && ranItsTime != null) ranItsTime.run();
                 }, SettingsUi.feedbackTimeout(activity, (int) UNDO_VISIBLE_MS, action != null));
             } catch (Throwable ex) {
                 Logger.printException(() -> "Could not show the undo banner", ex);
-                Utils.showToastShort(message);
+                toastInstead(message, ranItsTime);
             }
         });
+    }
+
+    /** A toast can't be replaced by the next banner, so it has run its time once it's shown. */
+    private static void toastInstead(String message, Runnable ranItsTime) {
+        Utils.showToastShort(message);
+        if (ranItsTime != null) ranItsTime.run();
     }
 
     /** Where the banner sat before it measured anything: a fixed 96dp up from the bottom. */

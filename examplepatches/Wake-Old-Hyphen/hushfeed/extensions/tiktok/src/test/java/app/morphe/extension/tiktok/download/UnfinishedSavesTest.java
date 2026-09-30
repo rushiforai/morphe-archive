@@ -11,6 +11,7 @@ import static app.morphe.extension.tiktok.download.SaveRecordsFixtures.startAgai
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -44,12 +45,15 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The one notice a start gets: what it says in each language the bundle carries, that it waits
- * for the main screen and is said once, that it's consumed only once said, and that a save made
- * again afterwards is its own save, followed from scratch.
+ * for the main screen and is said once, that it's consumed only once its banner has run its time,
+ * and that a save made again afterwards is its own save, followed from scratch.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 29, qualifiers = "en")
 public class UnfinishedSavesTest {
+    /** Longer than the notice banner's six seconds, so it has run its time. */
+    private static final long BANNER_TIME_MS = 10_000;
+
     private Context context;
     private final List<String> shown = new CopyOnWriteArrayList<>();
     private final List<ActivityController<Activity>> screens = new ArrayList<>();
@@ -246,6 +250,8 @@ public class UnfinishedSavesTest {
         assertEquals(List.of(expected), shown);
         assertNotNull("the banner isn't on the main screen",
                 findText(main.findViewById(android.R.id.content), expected));
+        assertEquals("consumed before the banner ran its time", 1, records(context).length());
+        idleFor(BANNER_TIME_MS);
         assertEquals("the notice's record wasn't consumed", 0, records(context).length());
 
         // Coming back to the screen, or a second call in the same process, says nothing more.
@@ -286,6 +292,69 @@ public class UnfinishedSavesTest {
         assertEquals("the check armed for the old screen said it again", 1, shown.size());
     }
 
+    /**
+     * Another banner inside the notice's six seconds takes it down early. Nothing says it was
+     * read, so the record stays and the next start says it again, then forgets it once it has
+     * been up for its whole time.
+     */
+    @Test public void aNoticeAnotherBannerReplacedIsSaidAgainOnTheNextStart() throws Exception {
+        anEarlierProcessDiedSavingAVideo();
+        UnfinishedSaves.atStart(context);
+        Activity main = screen(true);
+        idleFor(UnfinishedSaves.SETTLE_MS + 100);
+        String expected = "TikTok closed during these saves\nVideo: didn't finish";
+        assertEquals(List.of(expected), shown);
+
+        ViewGroup content = main.findViewById(android.R.id.content);
+        BlockAuthorOverlay.showNoticeBanner(content, "Something else to say");
+        idleFor(10);
+        assertNull("the notice is still up beside the new banner", findText(content, expected));
+        idleFor(BANNER_TIME_MS);
+        assertEquals("a notice cut short was consumed", 1, records(context).length());
+
+        startAgain(context, atDeath(context));
+        UnfinishedSaves.atStart(context);
+        screen(true);
+        idleFor(UnfinishedSaves.SETTLE_MS + 100);
+        assertEquals("the next start didn't say it again", List.of(expected, expected), shown);
+        idleFor(BANNER_TIME_MS);
+        assertEquals("the notice that ran its time wasn't consumed", 0, records(context).length());
+
+        startAgain(context, atDeath(context));
+        UnfinishedSaves.atStart(context);
+        screen(true);
+        idleFor(UnfinishedSaves.SETTLE_MS * 2);
+        assertEquals("said a third time", 2, shown.size());
+    }
+
+    /**
+     * The reader backs out of TikTok a second after the notice goes up. Its timeout still comes,
+     * over a screen that's gone, and that isn't a notice read out in full: the next start says it
+     * again.
+     */
+    @Test public void aNoticeWhoseScreenWentAwayInsideItsTimeIsSaidAgain() throws Exception {
+        anEarlierProcessDiedSavingAVideo();
+        UnfinishedSaves.atStart(context);
+        screen(true);
+        idleFor(UnfinishedSaves.SETTLE_MS + 100);
+        String expected = "TikTok closed during these saves\nVideo: didn't finish";
+        assertEquals(List.of(expected), shown);
+
+        idleFor(1000);
+        screens.remove(screens.size() - 1).pause().stop().destroy();
+        idleFor(BANNER_TIME_MS);
+        assertEquals("a notice whose screen went away one second in was consumed", 1,
+                records(context).length());
+
+        startAgain(context, atDeath(context));
+        UnfinishedSaves.atStart(context);
+        screen(true);
+        idleFor(UnfinishedSaves.SETTLE_MS + 100);
+        assertEquals("the next start didn't say it again", List.of(expected, expected), shown);
+        idleFor(BANNER_TIME_MS);
+        assertEquals("the notice that ran its time wasn't consumed", 0, records(context).length());
+    }
+
     /** A start that never shows the main screen (a push, a background job) keeps it for one that does. */
     @Test public void aStartWithNoScreenKeepsTheRecordsForTheNext() throws Exception {
         anEarlierProcessDiedSavingAVideo();
@@ -311,6 +380,7 @@ public class UnfinishedSavesTest {
         screen(true);
         idleFor(UnfinishedSaves.SETTLE_MS * 2);
         assertEquals(1, shown.size());
+        idleFor(BANNER_TIME_MS);
 
         CountDownLatch finished = new CountDownLatch(1);
         assertNotNull(MediaJobScheduler.submit("video", "video again", 1, () -> { }, finished::countDown));

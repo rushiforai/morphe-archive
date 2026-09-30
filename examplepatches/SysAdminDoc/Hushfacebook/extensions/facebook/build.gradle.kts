@@ -162,6 +162,19 @@ val verifyBouncyCastleTestGraph = tasks.register("verifyBouncyCastleTestGraph") 
 // test JVM on a graph nothing had looked at.
 tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleTestGraph)
+    // Robolectric's AtomicFile at API 30 finishes a write by renaming the new file over the old
+    // one. On Windows, JDKs before 25 won't rename over an existing file, so a second crash report
+    // never lands and ClearLogBufferPreferenceTest fails although a phone replaces it. Say so up
+    // front instead of leaving one unexplained failure.
+    val testJdk = javaLauncher.map { it.metadata.languageVersion.asInt() }
+    doFirst {
+        val jdk = testJdk.orNull ?: JavaVersion.current().majorVersion.toInt()
+        if (System.getProperty("os.name").startsWith("Windows") && jdk < 25) {
+            logger.warn("Unit tests on Windows need JDK 25 or newer (Android Studio's bundled JBR works): " +
+                "JDK $jdk can't rename a file over an existing one, which Robolectric's AtomicFile relies on, " +
+                "so ClearLogBufferPreferenceTest will fail here.")
+        }
+    }
 }
 
 dependencies {

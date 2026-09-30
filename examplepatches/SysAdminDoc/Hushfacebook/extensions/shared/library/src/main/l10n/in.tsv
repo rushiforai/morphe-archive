@@ -140,7 +140,16 @@ In News feed, Hide Reels in the feed blocks the rows of reels between posts.	Di 
 Reels that play by themselves	Reels yang diputar sendiri
 In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.	Di Pemutaran, “Ketuk untuk memutar” memblokir putar otomatis, jadi Reels dan video lain menunggu ketukan Anda.
 The Reels tab	Tab Reels
-Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, Facebook hasn't given your account that option, and Hushfacebook has no switch for the tab.	Pengaturan Facebook sendiri yang memblokirnya. Buka Pengaturan, Bilah tab, Sesuaikan bilah, lalu pilih Sembunyikan di samping Reels, yang di beberapa akun disebut Video. Jika keduanya tidak tercantum, Facebook belum memberi akun Anda opsi itu, dan Hushfacebook tidak punya tombol untuk tab tersebut.
+# context: map line without the patch; %1$s is the patch's English name in Morphe Manager
+Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide next to Reels, which some accounts call Video. If neither is listed, choose the %1$s patch in Morphe Manager and patch again.	Pengaturan Facebook sendiri yang memblokirnya. Buka Pengaturan, Bilah tab, Sesuaikan bilah, lalu pilih Sembunyikan di samping Reels, yang di beberapa akun disebut Video. Jika keduanya tidak tercantum, pilih tambalan %1$s di Morphe Manager lalu tambal ulang.
+# context: map line with the patch; Reels and Watch is this settings section, Hide the Reels tab is the switch below
+In Reels and Watch, Hide the Reels tab blocks it after a restart.	Di “Reels dan Watch”, “Sembunyikan tab Reels” memblokirnya setelah dimulai ulang.
+# context: switch title under Reels and Watch; the tab some accounts call Video
+Hide the Reels tab	Sembunyikan tab Reels
+# context: summary of that switch
+Take the Reels tab, called Video on some accounts, off the tab bar. Reel links and reels in the feed still open. Changes show after Facebook restarts.	Menghapus tab Reels, yang di beberapa akun disebut Video, dari bilah tab. Tautan Reels dan Reels di Kabar Beranda tetap terbuka. Perubahan berlaku setelah Facebook dimulai ulang.
+# context: start tab row summary when Video is the chosen tab and Hide the Reels tab is on; Home and Video are tab names
+Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. Your choice stays saved.	Facebook terbuka di Beranda selama “Sembunyikan tab Reels” aktif, karena Video tidak ada di bilah tab. Pilihan Anda tetap tersimpan.
 Everything except Marketplace	Semua kecuali Marketplace
 In Opening Facebook, Marketplace only blocks the feed, the Reels tab and the other social tabs after a restart.	Di “Saat Facebook dibuka”, “Hanya Marketplace” memblokir Kabar Beranda, tab Reels, dan tab sosial lainnya setelah dimulai ulang.
 Not in this build. To block this, choose the %1$s patch in Morphe Manager and patch again.	Tidak ada di build ini. Untuk memblokirnya, pilih tambalan %1$s di Morphe Manager lalu tambal ulang.
@@ -295,7 +304,7 @@ Go straight to one group of settings. Back returns to where you were.	Langsung k
 # context: switch title under Downloads; on, every video save keeps to formats other apps accept
 Save videos other apps can open	Simpan video yang bisa dibuka aplikasi lain
 # context: summary of that switch; WhatsApp is a name and stays as it is, and saves are the videos the user saved to the phone
-For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.	Untuk WhatsApp, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.
 # context: section title for the Chats settings, named like Facebook's own Chats screen
 Chats	Chat
 # context: switch title under Chats; the card is Facebook's own "Get the Messenger app" card
@@ -408,7 +417,7 @@ Keep friends and followed Pages in the Stories tray. Applies when Facebook next 
 # context: switch title under Marketplace; the ads Facebook puts between the things people sell in Marketplace's feed
 Hide sponsored Marketplace listings	Sembunyikan tawaran bersponsor di Marketplace
 # context: summary of that switch; a boosted listing is one its seller paid Facebook to show to more people
-Ads and boosted listings in Marketplace's feed. The other listings stay.	Iklan dan tawaran yang dipromosikan di feed Marketplace. Tawaran lainnya tetap ada.
+Ads and boosted listings in Marketplace's feed and search results. The other listings stay.	Iklan dan tawaran yang dipromosikan di feed dan hasil pencarian Marketplace. Tawaran lainnya tetap ada.
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Sembunyikan postingan dengan kata pilihan Anda
 # context: summary of that switch; the keep list is the second list under it, and a settings file is the one Export settings writes
@@ -490,7 +499,7 @@ Marketplace mode and your start tab	Mode Marketplace dan tab awal
 Ads, suggestions and word filters	Iklan, saran, dan filter kata
 Suggestions, saving, auto-advance and viewing anonymously	Saran, penyimpanan, perpindahan otomatis, dan melihat secara anonim
 Cleaner reels and video controls	Reels lebih bersih dan kontrol video
-Tap to play and resume	Ketuk untuk memutar dan melanjutkan
+Tap to play, quality and resume	Ketuk untuk memutar, kualitas, dan melanjutkan
 Quality, format and file names	Kualitas, format, dan nama file
 Browse settings	Jelajahi pengaturan
 More settings	Pengaturan lainnya
@@ -528,3 +537,44 @@ Saving... Cancel: Downloads in Hushfacebook.	Menyimpan... Batal: Unduhan di Hush
 Turn off double tap to like	Matikan ketuk dua kali untuk menyukai
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like button work as before.	Mengetuk dua kali reel atau video tidak lagi menyukainya atau menampilkan hati. Satu ketukan dan tombol Suka tetap berfungsi seperti biasa.
+Keep the reel speed	Pertahankan kecepatan reel
+# context: summary of that switch
+A playback speed you pick in a reel's menu stays for the next reels until you pick another or Facebook restarts. Off, every reel starts at normal speed.	Kecepatan pemutaran yang kamu pilih di menu reel tetap dipakai untuk reel berikutnya sampai kamu memilih yang lain atau Facebook dimulai ulang. Jika mati, setiap reel dimulai dengan kecepatan normal.
+Hold a reel for 2x	Tahan reel untuk 2x
+# context: summary of that switch; more button is the reel's own button with three dots
+Holding a reel plays it at double speed until you let go, in place of Facebook's long-press menu. The reel's more button still opens that menu.	Menahan reel memutarnya dengan kecepatan dua kali lipat sampai kamu melepaskannya, sebagai ganti menu tekan lama Facebook. Tombol lainnya pada reel tetap membuka menu itu.
+Default playback quality	Kualitas pemutaran default
+Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Putar video, reel, dan cerita dengan kualitas di bawah. Kualitas yang dipilih di menu video itu sendiri tetap diutamakan.
+Playback quality	Kualitas pemutaran
+Auto	Otomatis
+Data saver	Penghemat data
+Up to %1$s	Hingga %1$s
+Highest	Tertinggi
+Facebook picks the quality as each video plays, from your connection.	Facebook memilih kualitas saat setiap video diputar, sesuai koneksi Anda.
+Videos play at the lowest quality Facebook offers for each.	Video diputar dengan kualitas terendah yang ditawarkan Facebook untuk masing-masing.
+Videos play at the best quality up to %1$s that Facebook offers for each, or the closest above.	Video diputar dengan kualitas terbaik hingga %1$s yang ditawarkan Facebook untuk masing-masing, atau yang terdekat di atasnya.
+Videos play at the highest quality Facebook offers for each.	Video diputar dengan kualitas tertinggi yang ditawarkan Facebook untuk masing-masing.
+Facebook will pick the quality videos play at.	Facebook akan memilih kualitas pemutaran video.
+Playback quality will be set to %1$s.	Kualitas pemutaran akan diatur ke %1$s.
+# context: row title under Pause, backup and diagnostics, shown only while Debug logging is on
+Test the Messenger link	Uji koneksi Messenger
+# context: summary of that row; Debug logging is the switch's name as this table gives it
+Runs the two reads Facebook makes of Messenger at startup, now, and shows whether each one answered. Shown while Debug logging is on.	Menjalankan sekarang dua pembacaan yang dilakukan Facebook ke Messenger saat dimulai, lalu menampilkan apakah masing-masing dijawab. Terlihat selama Pencatatan debug aktif.
+# context: toast when the test can't begin
+The Messenger link test couldn't start.	Uji koneksi Messenger tidak dapat dimulai.
+# context: toast on a build without the test
+This build can't run the Messenger link test.	Build ini tidak dapat menjalankan uji koneksi Messenger.
+# context: toast when Facebook has no signed-in account
+No signed-in account to test with.	Tidak ada akun yang masuk untuk diuji.
+# context: toast with the test's result; each placeholder is one of: answered, no answer, failed (...)
+Opt-out read: %1$s. Triggered read: %2$s.	Pembacaan penolakan: %1$s. Pembacaan pemicu: %2$s.
+# context: a read's result in that toast
+no answer	tidak ada jawaban
+# context: a read's result in that toast
+answered	dijawab
+# context: a read's result in that toast; the placeholder is an error's class name, left in English
+failed (%1$s)	gagal (%1$s)
+# context: switch title under Reels and Watch; the dot is the tab bar's new-item badge
+Hide the Reels tab dot	Sembunyikan titik di tab Reels
+# context: summary of that switch; Video is Facebook's name for the tab on some accounts
+No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Tanpa titik atau jumlah baru di tab Reels, yang di beberapa akun bernama Video. Tab lain tetap menampilkannya.

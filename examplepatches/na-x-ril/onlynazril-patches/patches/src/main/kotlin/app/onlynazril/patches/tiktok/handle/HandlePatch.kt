@@ -12,13 +12,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.onlynazril.patches.shared.Constants.COMPATIBILITY_TIKTOK
-import app.onlynazril.patches.tiktok.handle.settings.settingsPatch
 
-private const val HANDLE_DELEGATE = "Lapp/onlynazril/extension/tiktokHandle/HandleDelegate;"
-private const val BIND_BRIDGE = "Lapp/onlynazril/extension/tiktokHandle/BindBridge;"
-private const val APP_CONTEXT = "Lapp/onlynazril/extension/tiktokHandle/internal/AppContext;"
-private const val AUTHOR_INFO_BRIDGE = "Lapp/onlynazril/extension/tiktokHandle/AuthorInfoBridge;"
-private const val COMMENT_DATE_BRIDGE = "Lapp/onlynazril/extension/tiktokHandle/CommentDateBridge;"
+private const val HANDLE_DELEGATE = "Lapp/onlynazril/extension/tiktok/HandleDelegate;"
+private const val BIND_BRIDGE = "Lapp/onlynazril/extension/tiktok/BindBridge;"
+private const val APP_CONTEXT = "Lapp/onlynazril/extension/tiktok/internal/AppContext;"
+private const val AUTHOR_INFO_BRIDGE = "Lapp/onlynazril/extension/tiktok/AuthorInfoBridge;"
+private const val COMMENT_DATE_BRIDGE = "Lapp/onlynazril/extension/tiktok/CommentDateBridge;"
 private const val COMMENT_MODEL = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
 
@@ -136,7 +135,7 @@ val tiktokHandlePatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_TIKTOK)
 
-    extendWith("extensions/tiktokHandle.mpe")
+    extendWith("extensions/tiktok.mpe")
 
     execute {
         // Feed bridge: hands the binder's own VideoItemParams (p2) over, so the region is read

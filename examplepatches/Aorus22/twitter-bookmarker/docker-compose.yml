@@ -1,0 +1,42 @@
+# The whole app in one container: the Go server serves the API and the built SPA.
+# Settings come from .env (see .env.example).
+
+name: twitter-bookmarker
+
+services:
+  app:
+    build:
+      context: .
+    image: twitter-bookmarker:local
+    restart: unless-stopped
+
+    # Host networking is deliberate, and it is the one thing here that is not
+    # interchangeable. The backend decides whether to demand a token by looking at
+    # the peer address, and trusts loopback; a published port destroys that,
+    # because the connection is NAT'd and the server then sees the Docker bridge
+    # (172.17.0.1) instead. Every client would need a token for that — including
+    # the gallery in the browser, which has no token field. Sharing the host
+    # network keeps the address the server sees, so this behaves exactly like
+    # `make run`, tunnels included.
+    network_mode: host
+
+    # The storage directory is mode 0700 and owned by this uid. Override it in
+    # .env when `id -u`/`id -g` differ, or the database cannot be opened.
+    user: "${TWB_UID:-1000}:${TWB_GID:-1000}"
+
+    environment:
+      # Where the SQLite database and its backups live.
+      TWITTER_BOOKMARKER_DIR: ${TWITTER_BOOKMARKER_DATA_DIR:?set TWITTER_BOOKMARKER_DATA_DIR in .env}
+      TWITTER_BOOKMARKER_ADDR: ${TWITTER_BOOKMARKER_ADDR:-127.0.0.1:43121}
+      # The two credentials. Empty means off: the token then only guards a
+      # non-loopback bind, and the password does not exist, which leaves the public
+      # URL open to anyone who has it.
+      TWITTER_BOOKMARKER_TOKEN: ${TWITTER_BOOKMARKER_TOKEN:-}
+      TWITTER_BOOKMARKER_BASIC_AUTH: ${TWITTER_BOOKMARKER_BASIC_AUTH:-}
+
+    volumes:
+      # The same absolute path inside the container as on the host, both taken
+      # from one variable, so the database is literally the same file to the
+      # server, to the SQLite tooling in Scripts/, and to a log line read from
+      # either side.
+      - ${TWITTER_BOOKMARKER_DATA_DIR:?set TWITTER_BOOKMARKER_DATA_DIR in .env}:${TWITTER_BOOKMARKER_DATA_DIR:?set TWITTER_BOOKMARKER_DATA_DIR in .env}

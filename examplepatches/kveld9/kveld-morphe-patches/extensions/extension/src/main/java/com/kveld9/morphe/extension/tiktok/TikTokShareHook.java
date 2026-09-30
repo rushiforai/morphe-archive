@@ -43,6 +43,8 @@ public final class TikTokShareHook {
     // 4. Actions & utilities
     public static boolean hidePromote = true;
     public static boolean hideWhyThisVideo = true;
+    public static boolean hideCreateGroup = false;
+    public static boolean hideAddToStory = false;
     public static boolean hideCreateSticker = false;
     public static boolean hideDuet = false;
     public static boolean hideStitch = false;
@@ -53,15 +55,10 @@ public final class TikTokShareHook {
     public static boolean hideNotInterested = false;
     public static boolean hideReport = false;
 
-    // Optional advanced custom keys
-    public static String hiddenApps = "";
-    public static String hiddenActions = "";
-
     public static String isImFunctionOffFieldName = "LJJIJIL";
     public static String supportIMFieldName = "LJIJJLI";
 
     private static volatile Set<String> activeHiddenKeys = null;
-    private static volatile Set<String> parsedCustomKeys = null;
 
     private TikTokShareHook() {}
 
@@ -97,13 +94,31 @@ public final class TikTokShareHook {
                 ));
             }
 
-            if (hidePromote) set.add("promote");
-            if (hideWhyThisVideo) set.add("why_this_video");
+            if (hidePromote) {
+                set.add("promote");
+                set.add("promote_for_others");
+                set.add("promote_for_others_fyp");
+            }
+            if (hideWhyThisVideo) {
+                set.add("why_this_video");
+                set.add("why_this_live");
+            }
+            if (hideCreateGroup) {
+                set.add("im_create_group");
+                set.add("create_group");
+                set.add("create_group_chat");
+            }
+            if (hideAddToStory) {
+                set.add("share_to_story");
+                set.add("add_to_story");
+                set.add("live_add_to_story");
+                set.add("story_to_post");
+            }
             if (hideCreateSticker) { set.add("create_sticker"); set.add("create_stickers"); }
             if (hideDuet) set.add("duet");
             if (hideStitch) set.add("stitch");
             if (hidePip) { set.add("pip_switch"); set.add("pip"); }
-            if (hideClearDisplay) set.add("clear_display");
+            if (hideClearDisplay) { set.add("clear_display"); set.add("clear_screen"); }
             if (hideListenAudio) { set.add("listen_audio"); set.add("background_play"); }
             if (hideWallpaperAndGif) { set.add("wallpaper"); set.add("live_photo"); set.add("gif"); }
             if (hideNotInterested) { set.add("dislike"); set.add("not_interested"); }
@@ -114,30 +129,10 @@ public final class TikTokShareHook {
         return activeHiddenKeys;
     }
 
-    private static Set<String> getParsedCustomKeys() {
-        if (parsedCustomKeys == null) {
-            Set<String> set = new HashSet<>();
-            parseCommaKeys(hiddenApps, set);
-            parseCommaKeys(hiddenActions, set);
-            parsedCustomKeys = set;
-        }
-        return parsedCustomKeys;
-    }
-
-    private static void parseCommaKeys(String input, Set<String> out) {
-        if (input == null || input.trim().isEmpty()) return;
-        for (String part : input.split(",")) {
-            String clean = part.trim().toLowerCase(Locale.ROOT);
-            if (!clean.isEmpty()) {
-                out.add(clean);
-            }
-        }
-    }
-
     public static boolean shouldHide(String key) {
         if (key == null) return false;
         String lowerKey = key.toLowerCase(Locale.ROOT);
-        return getActiveHiddenKeys().contains(lowerKey) || getParsedCustomKeys().contains(lowerKey);
+        return getActiveHiddenKeys().contains(lowerKey);
     }
 
     /**

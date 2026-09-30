@@ -28,8 +28,13 @@ private val renameSharedPermissionsPatch = resourcePatch {
  * state broadcast and Profilo's trace control, six places on 577 and 580). Left alone they'd name a
  * permission this build no longer holds, and those broadcasts would stop reaching Facebook itself.
  *
- * It also lets a Messenger re-signed with this build's own key reach Facebook's sign-in store, so a
- * patched Messenger can sign in through a patched Facebook. See FamilyTrust.kt.
+ * Letting a same-key Messenger, Messenger Lite or Facebook Lite sign in through this Facebook is
+ * Restore screens on re-signed builds' job, not this one's: that patch hooks the one method Facebook
+ * reads a package's signers through, and the same-key answer it gives a family caller there needs
+ * nothing from this patch. A same-key Facebook and Messenger pair installs fine without this patch
+ * too, since both declare Facebook's stock shared permission names under the same signer; this patch
+ * only keeps a Meta-signed Messenger, Facebook Lite, Business Suite or Workplace from colliding with
+ * a re-signed Facebook's copy of those names.
  *
  * No switch: a manifest can't change at run time, so the patch stays in while paused.
  */
@@ -38,8 +43,7 @@ val installBesideMetaAppsPatch = bytecodePatch(
     name = "Install beside Meta's apps",
     description = "Lets the official Messenger, Facebook Lite, Business Suite and Workplace install beside the " +
         "patched Facebook. Facebook shares two permissions with them, and Android lets only one signing key own " +
-        "a permission, so this patch renames Facebook's. It also lets a Messenger patched with the same key sign " +
-        "in through the patched Facebook. A Root Mount install doesn't need it.",
+        "a permission, so this patch renames Facebook's. A Root Mount install doesn't need it.",
     default = true,
 ) {
     category("Fixes")
@@ -50,7 +54,6 @@ val installBesideMetaAppsPatch = bytecodePatch(
 
     execute {
         routeSharedLiterals()
-        trustSameKeyFamilyCallers()
         enableStatus("installBesideMetaApps")
     }
 }

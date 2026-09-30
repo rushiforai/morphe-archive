@@ -12,6 +12,7 @@ import app.crimera.utils.changeFirstString
 import app.crimera.utils.liveTreeGetter
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 private const val STRING = "Ljava/lang/String;"
 private const val BOXED_BOOLEAN = "Ljava/lang/Boolean;"
@@ -27,6 +28,7 @@ val userDataEntity =
     bytecodePatch(
         description = "This patch is used for decoding obfuscated code of the user data",
     ) {
+        dependsOn(instagramExtensionPatch)
         dependsOn(decoderEntity)
         execute {
             fun getterName(
@@ -45,10 +47,5 @@ val userDataEntity =
             GetLowResProfilePictureExtensionFingerprint.changeFirstString(
                 getterName("profile_pic_url") { it.endsWith("/ImageUrl;") },
             )
-
-            // Friendship status is only read by patches this bundle does not ship, and its type was
-            // renamed in 446, so an unresolved name here is not worth failing the patch over.
-            liveTreeGetter(USER_MODEL_CLASS_NAME, "friendship_status") { it.startsWith("Lcom/instagram/") }
-                ?.let { GetUserFriendshipStatusExtensionFingerprint.changeFirstString(it.name) }
         }
     }

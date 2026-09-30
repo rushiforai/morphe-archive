@@ -31,15 +31,23 @@ public final class StartTodayOverPreference extends Preference implements Immedi
         return true;
     }
 
+    /** Redraws what the counts show elsewhere on the page; runs after a clear and after Undo. */
+    private final Runnable afterChange;
+
     public StartTodayOverPreference(Context context) {
+        this(context, null);
+    }
+
+    public StartTodayOverPreference(Context context, Runnable afterChange) {
         super(context);
+        this.afterChange = afterChange;
         // A key so the settings search can index this row. A key with no Setting behind it is
         // skipped by the settings framework, so nothing tries to persist it.
         setKey("action_start_today_over");
         setTitle(L10n.t(context, "Start today over"));
         // Whether a clear is waiting to be taken back outlives this row, so the row asks rather
         // than assuming it is the first one ever built.
-        setSummary(L10n.t(context, SessionBudget.canUndoClear() ? UNDO_SUMMARY : CLEAR_SUMMARY));
+        showWhatATapDoes();
 
         setOnPreferenceClickListener(preference -> {
             if (SessionBudget.canUndoClear()) {
@@ -61,6 +69,7 @@ public final class StartTodayOverPreference extends Preference implements Immedi
                 return true;
             }
             SessionLockOverlay.sync();
+            if (afterChange != null) afterChange.run();
             setSummary(L10n.t(context, UNDO_SUMMARY));
             SettingsActionBanner.showUndo(context, L10n.t(context, "Today starts again"),
                     () -> undoClear(context));
@@ -68,9 +77,15 @@ public final class StartTodayOverPreference extends Preference implements Immedi
         });
     }
 
+    /** Says what a tap does now: start today over, or put back a clear that can still be taken back. */
+    public void showWhatATapDoes() {
+        setSummary(L10n.t(getContext(), SessionBudget.canUndoClear() ? UNDO_SUMMARY : CLEAR_SUMMARY));
+    }
+
     private void undoClear(Context context) {
         boolean back = SessionBudget.undoClear();
         SessionLockOverlay.sync();
+        if (afterChange != null) afterChange.run();
         setSummary(L10n.t(context, CLEAR_SUMMARY));
         SettingsActionBanner.showNotice(context, L10n.t(context, back
                 ? "Today is back where it was"

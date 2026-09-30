@@ -1,0 +1,21 @@
+# The build context is the repository root because the image needs both halves:
+# web/ for the SPA, backend/ for the server. Everything else stays out, so the
+# context is small and a rebuild is a rebuild rather than an upload.
+
+.git/
+.github/
+.planning/
+morphe/
+docs/
+scripts/
+artifacts/
+
+node_modules/
+web/node_modules/
+web/dist/
+extension/dist/
+backend/bin/
+
+.env
+.env.local
+*.md

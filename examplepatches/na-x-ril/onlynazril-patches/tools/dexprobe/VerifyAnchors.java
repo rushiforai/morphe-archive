@@ -9,6 +9,7 @@ import org.luckypray.dexkit.result.FieldData;
 import org.luckypray.dexkit.result.FieldDataList;
 import org.luckypray.dexkit.result.MethodData;
 import org.luckypray.dexkit.result.MethodDataList;
+import org.luckypray.dexkit.result.UsingFieldData;
 
 /**
  * Checks every anchor the patches depend on against one APK, so a new TikTok version can be
@@ -35,6 +36,12 @@ public class VerifyAnchors {
             "com.ss.android.ugc.aweme.feed.assem.videoauthorinfo.VideoAuthorInfoRelationAssem";
     private static final String COMMENT_CELL_V2 =
             "com.ss.android.ugc.aweme.commentv2.commentlist.powercell.BaseCommentCell";
+    private static final String FEED_API = "com.ss.android.ugc.aweme.feed.cache.IFeedApi";
+    private static final String FEED_ITEM_LIST =
+            "com.ss.android.ugc.aweme.feed.model.FeedItemList";
+    private static final String AWEME = "com.ss.android.ugc.aweme.feed.model.Aweme";
+    private static final String AWEME_STATISTICS =
+            "com.ss.android.ugc.aweme.feed.model.AwemeStatistics";
 
     private static int failures;
 
@@ -107,6 +114,21 @@ public class VerifyAnchors {
 
             // The comment list's time write, which the region is moved onto.
             requireCommentV2TimeWrite(bridge);
+
+            // Feed filter: the one implementation of IFeedApi#fetchFeedList, hooked at its return.
+            requireFeedFetch(bridge);
+            // …and the setter, the only other way a page's list is replaced.
+            requireItemsSetter(bridge);
+            requireMethod(bridge, FEED_ITEM_LIST, "clone", FEED_ITEM_LIST, 0);
+            // What the filter reads off an item, by name at runtime.
+            requireMethod(bridge, AWEME, "isAd", "boolean", 0);
+            requireMethod(bridge, AWEME, "isSoftAd", "boolean", 0);
+            requireMethod(bridge, AWEME, "isWithPromotionalMusic", "boolean", 0);
+            requireMethod(bridge, AWEME, "getAwemeRawAd",
+                    "com.ss.android.ugc.aweme.feed.model.AwemeRawAd", 0);
+            requireMethod(bridge, AWEME, "getStatistics", AWEME_STATISTICS, 0);
+            requireMethod(bridge, AWEME_STATISTICS, "getPlayCount", "long", 0);
+            requireMethod(bridge, AWEME_STATISTICS, "getDiggCount", "long", 0);
 
             // Settings carrier: the OpenDebug cell and the group that renders it
             requireMethod(bridge, OPEN_DEBUG_CELL_VM, "defaultState", null, 0);
@@ -240,6 +262,61 @@ public class VerifyAnchors {
         } else {
             fail(COMMENT_CELL_V2 + " time write (matched " + candidates + " methods)");
         }
+    }
+
+    /**
+     * The feed page fetch, matched exactly as the patch's fingerprint does: the one class that
+     * implements {@code IFeedApi} and has a single-parameter method returning the page with a body.
+     * It has to be unique — a second implementation is a build the patch cannot choose between, and
+     * the patch refuses rather than filtering one of them.
+     */
+    private static void requireFeedFetch(DexKitBridge bridge) {
+        ClassDataList classes = bridge.findClass(FindClass.create()
+                .matcher(ClassMatcher.create().addInterface(FEED_API)));
+        int matches = 0;
+        String found = null;
+        for (ClassData c : classes) {
+            for (MethodData m : c.getMethods()) {
+                if (m.getName().startsWith("<")) continue;
+                if (!FEED_ITEM_LIST.equals(m.getReturnTypeName())) continue;
+                if (m.getParamTypeNames().size() != 1) continue;
+                if (m.getOpCodes().isEmpty()) continue;
+                matches++;
+                found = c.getName() + "#" + m.getName() + " " + m.getParamTypeNames();
+            }
+        }
+        if (matches == 1) {
+            pass("feed filter fetch " + found);
+        } else {
+            fail("feed filter fetch: expected one IFeedApi return, matched " + matches);
+        }
+    }
+
+    /**
+     * The page's item setter, matched as the patch's second fingerprint does: a void method on the
+     * page taking a List that writes the `items` field. The write is the anchor, not the name — the
+     * name only says which of the page's methods to look at.
+     */
+    private static void requireItemsSetter(DexKitBridge bridge) {
+        ClassDataList classes = bridge.findClass(FindClass.create()
+                .matcher(ClassMatcher.create().className(FEED_ITEM_LIST)));
+        if (classes.size() != 1) {
+            fail(FEED_ITEM_LIST + " (matched " + classes.size() + " classes)");
+            return;
+        }
+        for (MethodData m : classes.get(0).getMethods()) {
+            if (!"setItems".equals(m.getName())) continue;
+            if (!"void".equals(m.getReturnTypeName())) continue;
+            if (!m.getParamTypeNames().equals(java.util.List.of("java.util.List"))) continue;
+            for (UsingFieldData used : m.getUsingFields()) {
+                if (used.getField().getDeclaredClassName().equals(FEED_ITEM_LIST)
+                        && used.getField().getName().equals("items")) {
+                    pass(FEED_ITEM_LIST + "#" + m.getName() + " " + m.getParamTypeNames());
+                    return;
+                }
+            }
+        }
+        fail(FEED_ITEM_LIST + "#setItems (no void (List) method writing `items`)");
     }
 
     private static void requireClass(DexKitBridge bridge, String className) {

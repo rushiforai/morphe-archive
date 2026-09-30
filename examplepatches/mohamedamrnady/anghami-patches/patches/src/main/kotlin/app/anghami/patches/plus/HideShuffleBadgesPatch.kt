@@ -25,7 +25,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 val hideShuffleBadgesPatch = bytecodePatch(
     name = "Hide shuffle badges",
     description = "Hides PLAYS IN SHUFFLE badges on playlist/album headers, feed cards, and rows. Cosmetic only.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
 

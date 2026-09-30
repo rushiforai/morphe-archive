@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
@@ -99,6 +100,10 @@ public class MediaSaveTest {
         MediaDownload.policyForTests = null;
         MediaDownload.capForTests = 0;
         DashSave.usableForTests = null;
+        // A saved setting outlives the test method that wrote it (the preference store survives
+        // this sandbox, not just this class's Application instance), and a quality other than the
+        // default changes what the writable-track and DASH-pick checks judge later saves against.
+        Settings.DOWNLOAD_QUALITY.resetToDefault();
         LogBufferManager.clearLogBuffer();
         // The join cases tell Robolectric's extractor about their work files, and it keeps that
         // in a static map. Cleared here rather than left to Robolectric's own reset.
@@ -576,7 +581,9 @@ public class MediaSaveTest {
     /**
      * A DASH save whose tracks couldn't be fetched falls back to the single file, which is below the
      * picture the manifest offered. The person saving is told it's lower than on Facebook, not just
-     * that it was saved; a single file that was simply the pick is told nothing more.
+     * that it was saved; a single file that was simply the pick is told nothing more. The "lower"
+     * note is weighed against what the saved file actually measures, so the policy here tells the
+     * shadow extractor what the fetched file holds, the way a real save's own read of it would.
      */
     @Test
     public void aSaveBelowTheManifestsPictureSaysSoWhenItEnds() throws InterruptedException {
@@ -584,6 +591,16 @@ public class MediaSaveTest {
         serve("/clip_360p.mp4", "video/mp4", body, body.length);
         DashManifest.Track video = new DashManifest.Track("video/mp4", "avc1.64001f", 1080, 1920, 3_000_000,
                 origin + "/gone.mp4", 1080);
+        int port = server.port();
+        MediaUrlPolicy measuring = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                if (url.getPath().equals("/clip_360p.mp4")) describeSavedVideoWorkFile(640, 360);
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+        MediaDownload.policyForTests = measuring;
 
         Thread worker = MediaDownload.start(context, true, MediaDownload.dashJob(context, video, null,
                 origin + "/clip_360p.mp4"));
@@ -607,6 +624,238 @@ public class MediaSaveTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         toast = String.valueOf(ShadowToast.getTextOfLatestToast());
         assertTrue(toast, toast.startsWith("Saved to ") && !toast.contains("lower quality"));
+    }
+
+    /**
+     * The single-file path used to weigh the report's "below the manifest's" note only against a
+     * guess read off the chosen address ({@link RenditionPicker#qualityOf}), before anything was
+     * fetched. Here the fallback's address claims 1080p, exactly what the manifest's own track
+     * states too, so that guess-based compare found nothing above it and the note never appeared,
+     * even though the file that's actually fetched measures 360p. The old assertion below pinned
+     * that gap as if it were correct; the note must appear, built from what the file measures, not
+     * the address it happened to be named after.
+     */
+    @Test
+    public void aMisleadingFileNameDoesNotHideAShortfall() throws InterruptedException {
+        byte[] body = mp4(4096);
+        serve("/clip_1080p.mp4", "video/mp4", body, body.length);
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "vp09.00.40.08", 1080, 1920, 2_000_000,
+                origin + "/vp9.mp4", 1080);
+        int port = server.port();
+        MediaUrlPolicy measuring = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                if (url.getPath().equals("/clip_1080p.mp4")) describeSavedVideoWorkFile(640, 360);
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+        MediaDownload.policyForTests = measuring;
+
+        Thread worker = MediaDownload.start(context, true, MediaDownload.dashJob(context, video, null,
+                origin + "/clip_1080p.mp4"));
+        worker.join(30_000);
+        assertFalse("the save never finished", worker.isAlive());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(1, gallery.inserts.size());
+        String toast = String.valueOf(ShadowToast.getTextOfLatestToast());
+        assertTrue(toast, toast.startsWith("Saved to ") && toast.endsWith(" in lower quality than on Facebook"));
+        String report = LogBufferManager.buildExportText();
+        assertTrue("the report now measures the saved file instead of trusting the address it was fetched from",
+                report.contains("below the manifest's video/mp4 vp09.00.40.08 1080x1920 2000kbps 1080p"));
+    }
+
+    /**
+     * A DASH save of a writable H.264 track can fail for reasons that have nothing to do with what
+     * the phone can write, such as a dropped connection ({@link #aSaveBelowTheManifestsPictureSaysSoWhenItEnds}).
+     * The fallback single file here measures exactly two thirds of that track's picture, the exact
+     * boundary {@link MediaDownload#noticeablyLower} leaves alone for a picture nothing could have
+     * written. That tolerance doesn't apply here: the phone could write the 1080p track, so the
+     * person saving is told regardless of where the boundary falls.
+     */
+    @Test
+    public void aWritableTracksShortfallIsToldEvenAtTheTwoThirdsBoundary() throws InterruptedException {
+        byte[] body = mp4(4096);
+        serve("/clip_720p.mp4", "video/mp4", body, body.length);
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "avc1.64001f", 1080, 1920, 3_000_000,
+                origin + "/gone.mp4", 1080);
+        int port = server.port();
+        MediaUrlPolicy measuring = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                if (url.getPath().equals("/clip_720p.mp4")) describeSavedVideoWorkFile(1280, 720);
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+        MediaDownload.policyForTests = measuring;
+
+        Thread worker = MediaDownload.start(context, true, MediaDownload.dashJob(context, video, null,
+                origin + "/clip_720p.mp4"));
+        worker.join(30_000);
+        assertFalse("the save never finished", worker.isAlive());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(1, gallery.inserts.size());
+        String toast = String.valueOf(ShadowToast.getTextOfLatestToast());
+        assertTrue(toast, toast.startsWith("Saved to ") && toast.endsWith(" in lower quality than on Facebook"));
+    }
+
+    /**
+     * A file the phone couldn't read back measures 0 on its short side ({@link
+     * DashSave#savedVideoShortSide}). The writable-track check used to compare that straight
+     * against the track's picture, which is always above zero, so an unreadable save was told it
+     * fell short of Facebook's picture no matter what it actually held.
+     */
+    @Test
+    public void anUnreadableSavedFileIsNotToldLower() throws InterruptedException {
+        byte[] body = mp4(4096);
+        serve("/clip_unread.mp4", "video/mp4", body, body.length);
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "avc1.64001f", 1080, 1920, 3_000_000,
+                origin + "/gone.mp4", 1080);
+        int port = server.port();
+        MediaUrlPolicy measuring = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                // Deliberately no describeSavedVideoWorkFile call: the shadow extractor knows
+                // nothing of this file, the way it wouldn't for one it truly couldn't read.
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+        MediaDownload.policyForTests = measuring;
+
+        Thread worker = MediaDownload.start(context, true, MediaDownload.dashJob(context, video, null,
+                origin + "/clip_unread.mp4"));
+        worker.join(30_000);
+        assertFalse("the save never finished", worker.isAlive());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(1, gallery.inserts.size());
+        String toast = String.valueOf(ShadowToast.getTextOfLatestToast());
+        assertTrue(toast, toast.startsWith("Saved to ") && !toast.contains("lower quality"));
+    }
+
+    /**
+     * A saved file that measures a couple of pixels short of a writable track's picture, such as a
+     * 1080x1920 track against a saved 1920x1078 file, is a rounding or a container quirk, not a real
+     * shortfall: the same gap {@link MediaDownload#noticeablyLower} tolerates for a picture nothing
+     * could have written applies here too, held to a plain pixel margin instead of a fraction.
+     */
+    @Test
+    public void aFewPixelsShortOfAWritableTrackIsNotTold() throws InterruptedException {
+        byte[] body = mp4(4096);
+        serve("/clip_close.mp4", "video/mp4", body, body.length);
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "avc1.64001f", 1080, 1920, 3_000_000,
+                origin + "/gone.mp4", 1080);
+        int port = server.port();
+        MediaUrlPolicy measuring = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                if (url.getPath().equals("/clip_close.mp4")) describeSavedVideoWorkFile(1920, 1078);
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+        MediaDownload.policyForTests = measuring;
+
+        Thread worker = MediaDownload.start(context, true, MediaDownload.dashJob(context, video, null,
+                origin + "/clip_close.mp4"));
+        worker.join(30_000);
+        assertFalse("the save never finished", worker.isAlive());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(1, gallery.inserts.size());
+        String toast = String.valueOf(ShadowToast.getTextOfLatestToast());
+        assertTrue(toast, toast.startsWith("Saved to ") && !toast.contains("lower quality"));
+    }
+
+    /**
+     * At a 480p ceiling, a manifest whose H.264 tracks are all above it picks the nearest one over,
+     * 540p here. The single file fits the ceiling and the picked track doesn't, so the single file
+     * wins and the 540p track becomes the writable track the fallback is judged against. A save that
+     * is exactly what the ceiling asks for must not be told it's lower just because 540 outranks the
+     * measured 360.
+     */
+    @Test
+    public void aWritableTrackOverTheCeilingIsNotTold() throws InterruptedException {
+        Settings.DOWNLOAD_QUALITY.save(DownloadQuality.P480);
+        byte[] body = mp4(4096);
+        serve("/clip_360p.mp4", "video/mp4", body, body.length);
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "avc1.64001f", 960, 1920, 3_000_000,
+                origin + "/gone.mp4", 540);
+        int port = server.port();
+        MediaUrlPolicy measuring = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                if (url.getPath().equals("/clip_360p.mp4")) describeSavedVideoWorkFile(640, 360);
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+        MediaDownload.policyForTests = measuring;
+
+        Thread worker = MediaDownload.start(context, true, MediaDownload.dashJob(context, video, null,
+                origin + "/clip_360p.mp4"));
+        worker.join(30_000);
+        assertFalse("the save never finished", worker.isAlive());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(1, gallery.inserts.size());
+        String toast = String.valueOf(ShadowToast.getTextOfLatestToast());
+        assertTrue(toast, toast.startsWith("Saved to ") && !toast.contains("lower quality"));
+    }
+
+    /**
+     * Below the best quality, a track's picture is its label, not its measured picture ({@link
+     * MediaDownload#picture}). An ultrawide track can carry a label far above its own short side: a
+     * 1280x536 track labelled 720p measures 536 on its short side, the same as a save that actually
+     * holds that picture. Judging the writable check by the label rather than the pixels told a save
+     * of exactly that picture it was lower.
+     */
+    @Test
+    public void anUltrawideLabelDoesNotOutrankItsOwnMeasuredPicture() throws InterruptedException {
+        Settings.DOWNLOAD_QUALITY.save(DownloadQuality.P720);
+        byte[] body = mp4(4096);
+        serve("/clip_wide.mp4", "video/mp4", body, body.length);
+        DashManifest.Track video = new DashManifest.Track("video/mp4", "avc1.64001f", 1280, 536, 1_500_000,
+                origin + "/gone.mp4", 720);
+        int port = server.port();
+        MediaUrlPolicy measuring = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") }) {
+            @Override
+            Refusal refusal(URL url) {
+                if (url.getPath().equals("/clip_wide.mp4")) describeSavedVideoWorkFile(1280, 536);
+                if (url.getHost().equals("127.0.0.1") && url.getPort() == port) return null;
+                return super.refusal(url);
+            }
+        };
+        MediaDownload.policyForTests = measuring;
+
+        Thread worker = MediaDownload.start(context, true, MediaDownload.dashJob(context, video, null,
+                origin + "/clip_wide.mp4"));
+        worker.join(30_000);
+        assertFalse("the save never finished", worker.isAlive());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(1, gallery.inserts.size());
+        String toast = String.valueOf(ShadowToast.getTextOfLatestToast());
+        assertTrue(toast, toast.startsWith("Saved to ") && !toast.contains("lower quality"));
+    }
+
+    /**
+     * Gives the next single-file save's temp video the measured size a real save reads back, the
+     * way {@link #describeWorkFiles} does for a join's own work files.
+     */
+    private void describeSavedVideoWorkFile(int width, int height) {
+        File[] files = DashSave.workFolder(context).listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (file.getName().startsWith("video")) {
+                ShadowMediaExtractor.addTrack(DataSource.toDataSource(file.getPath()),
+                        MediaFormat.createVideoFormat("video/avc", width, height), new byte[0]);
+            }
+        }
     }
 
     /** A save the list can hold has its row on it before the first byte, as a stopped save needs. */

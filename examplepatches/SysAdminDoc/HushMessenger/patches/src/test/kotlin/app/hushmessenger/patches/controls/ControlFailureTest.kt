@@ -78,10 +78,27 @@ class ControlFailureTest {
         }
     }
 
-    private fun ResourcePatchContext.hasPeopleFeature(): Boolean = document("AndroidManifest.xml").use { document ->
+    @Test fun aMenuRowThatFailsIsNeverAdvertised(@TempDir temporary: Path) {
+        val record = menuSettingsPatch.dependencies.filterIsInstance<ResourcePatch>().single()
+        withResourceContext(temporary) { resources, config ->
+            val context = BytecodePatchContext::class.java.declaredConstructors.single()
+                .newInstance(config, resources.packageMetadata) as BytecodePatchContext
+            context.use {
+                record.execute(resources)
+                discoveredControls = emptyMap()
+                assertFailsWith<PatchException> { menuSettingsPatch.execute(context) }
+                record.finalize(resources)
+                assertEquals(false, resources.hasFeature("menu_row"), "A failed Menu row was advertised")
+            }
+        }
+    }
+
+    private fun ResourcePatchContext.hasPeopleFeature(): Boolean = hasFeature("people")
+
+    private fun ResourcePatchContext.hasFeature(key: String): Boolean = document("AndroidManifest.xml").use { document ->
         val metadata = document.getElementsByTagName("meta-data")
         (0 until metadata.length).any {
-            (metadata.item(it) as Element).getAttribute("android:name") == "hush.feature.people"
+            (metadata.item(it) as Element).getAttribute("android:name") == "hush.feature.$key"
         }
     }
 

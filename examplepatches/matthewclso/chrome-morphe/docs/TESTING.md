@@ -4,14 +4,57 @@ Target: Chrome 153.0.8010.53 (801005304), unrooted Galaxy S26 SM-S942U1, Android
 ARM64, 4096-byte pages, Gboard. Test package: `app.matthew.chrome.test`.
 Stock Chrome and the Samsung Internet default-browser role are not fixtures.
 
-## Remembered-mode candidate, September 28, 2026
+## Tab picker, September 29, 2026
 
-Source 0.4.0 replaces forced Incognito startup with the last-used mode for the
-launcher and full-browser HTTP(S) links. Candidate v48 builds and patches the
-exact target, passes signature and 4 KB alignment checks, and is installed with
-the existing signing key. Device behavior checks are pending a screen unlock;
-these build/install results do not establish startup or privacy acceptance.
-Manager metadata remains on the accepted 0.3.0 release until testing completes.
+Source 0.5.0 was developed and checked on the same S26, with final build v61 installed
+using the existing signing key. Its APK signature and 4 KB alignment pass.
+
+- The picker switch is disabled with True bottom off. Re-enabling True bottom restores its saved choice and the row.
+- Native favicons and a local fallback are shown beside ellipsized titles and individual close controls. The current tab has an inset blue outline, with no divider above the address bar; final-build regular-fixture screenshots verify the appearance.
+- Final v61 horizontal swipes scroll the row without switching the active page; tapping a tab still selects it. Explicit pressed/focused feedback removes the S26's extra selected-state underline.
+- Tab selection, automatic scrolling to newly selected tabs, closing active/inactive tabs, regular-tab Undo, and title/favicon changes were exercised with disposable fixtures during development.
+- Portrait and landscape checks on v59 show the row above the address bar with reserved page space. Address entry hides it in both orientations.
+- An early candidate removed the row height while Chrome temporarily hid its Android toolbar for compositor scrolling, leaving a captured row at the bottom. It was rejected. Final v61 screenshots confirm both bars disappear on downward scrolling and return on upward scrolling.
+- On v59, closing the final private tab through the picker leaves the empty Incognito viewer. A new private session has empty cookies and localStorage after writing and closing a disposable private marker through the picker.
+- On v59, the user enabled Chrome's native Incognito lock and confirmed the picker remains hidden until authentication. The subsequent v60/v61 changes only refine horizontal gesture dispatch and selection feedback.
+- On v59, a native Custom Tab has its ordinary close control and no picker or mode switch. Returning leaves the full-browser viewer intact.
+
+All fixture tabs are disposable; no account credentials are used. The tab-picker fixture
+at `tests/tab_picker_server.py` serves distinct tab titles/icons, title/icon updates, new-tab
+links and a long page with a bottom target on port 8766. Use ADB reverse for that port.
+Use `tests/storage_server.py` on port 8765 to repeat private-session cleanup. Restore rotation
+preferences and remove the test sender/ADB reverse rules after testing.
+
+Native group close confirmations are retained through TabRemover, but shared-group dialogs,
+very large tab collections and other devices were not exercised. Account sync and Android
+autofill hooks were not changed; their earlier acceptance below is not a fresh provider test.
+
+Tested patch bundle SHA-256:
+`3b4550d4af8991331495ab2d4d85d6fdc7a6858b15b21ade9eb206d4d4a7d0ea`.
+Device APK SHA-256:
+`0c49dd5afafc51a907ac815db4dfebbecd8409936f138a02541eb554bfbd19fa`.
+
+## Remembered mode and empty Incognito viewer, September 29, 2026
+
+Source 0.4.0, final device build v54, was installed with the existing signing key.
+The APK signature and 4 KB alignment pass. On the S26:
+
+- Closing the final private tab by its X, swiping it away, and **Close all Incognito tabs** each leave the private viewer selected with zero tabs.
+- The empty viewer's **New Incognito tab** control creates a private tab. Switching manually to the regular viewer and back remains possible.
+- A warm launcher reopen preserves the empty private viewer. Warm/cold reopening retains regular mode after a native regular-pane choice; cold reopening retains private mode after native **New Incognito tab**. Cold checks backgrounded the app fully before force-stopping it.
+- Full-browser links from the separate fixture app follow the last-used mode. After closing all private tabs, a new external link opens privately with empty cookie and localStorage values. Regular fixture storage remains separate.
+- Embedded Custom Tabs retain their regular storage and native controls, without changing the remembered full-browser mode.
+
+An early candidate retained private session storage and was discarded. The final
+patch retains the pane while destroying its coordinator. Shipped bytecode for
+native tab removal and model destruction matches the original APK; it does not
+keep a hidden tab or override private model lifetime. Native authentication is
+unchanged. This run did not repeat the earlier biometric/password-provider tests.
+
+Tested patch bundle SHA-256:
+`6fa32f1325c12c874986f1e47e9fdb0eb39d24d269aff4adf3d9e271256b49b1`.
+Device APK SHA-256:
+`9e310abe1cb58ba17fe1516e9220aeb792cbc7a7c988a8d97ca37f50f4ad7b9e`.
 
 ## Android autofill acceptance, September 28, 2026
 
@@ -162,6 +205,7 @@ Use disposable tabs only; do not close or inspect unrelated user tabs. Since sou
 8. Hold the mode button to open Morphe settings, disable **Remember last browsing mode**, and verify native launcher/external-link behavior. Restore the setting afterward.
 9. With remembered mode enabled, leave and reopen through the launcher in each mode, both warm and after a force-stop of Chrome Morphe. Repeat using a mode selection from the native tab view with the toolbar mode button hidden.
 10. Open a Custom Tab while full Chrome was last private, then reopen the full browser and confirm it still selects Incognito. Check authentication if private tabs are locked.
+11. Test final-tab closure by X, swipe and Close all, then create another private tab from the empty viewer. Confirm fresh storage. Clean up only the fixture markers through `/clear` and close only the disposable fixture tabs.
 
 Use `scripts/device_ui.py LABEL` for accessible UI evidence. `--tap` taps one exact matching test-app label and refuses ambiguous matches. `--serial` or `ANDROID_SERIAL` selects the phone when more than one device is connected.
 

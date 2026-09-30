@@ -81,7 +81,9 @@ final class SettingsText {
             case "reopen": return "Apply inbox changes with App > Restart Messenger.";
             case "quick_access": return "QUICK ACCESS";
             case "access_help": return "Long-press Messenger's icon for Patch controls or Restart Messenger. You can also open HushMessenger settings from your app drawer.";
-            case "access_help_menu": return "Long-press Messenger's icon for Patch controls or Restart Messenger. You can also open HushMessenger settings from Messenger's Menu tab or your app drawer.";
+            case "hide_drawer_icon": return "Hide app drawer icon";
+            case "hide_drawer_icon_help": return "Removes HushMessenger settings from your app list. Open it from Messenger's Menu tab, or long-press Messenger's icon and tap Patch controls.";
+            case "access_help_menu": return "Long-press Messenger's icon for Patch controls or Restart Messenger. You can also open HushMessenger settings from its row in Messenger's Menu tab or from your app drawer.";
             case "restart": return "Restart Messenger";
             case "restarting": return "Restarting Messenger...";
             case "restart_unavailable": return "Couldn't restart. Close Messenger, then open it from your app drawer.";
@@ -134,9 +136,9 @@ final class SettingsText {
             case "update_action": return "View release";
             case "up_to_date": return "You have the latest version.";
             case "update_error": return "Couldn't check for updates.";
-            case "active_now": return "Active just now";
-            case "active_ago": return "Active %s ago";
-            case "not_active": return "Not active since restart";
+            case "active_now": return "Used just now";
+            case "active_ago": return "Used %s ago";
+            case "not_active": return "Nothing to change yet since restart";
             case "changes_paused": return "Changes paused";
             case "changes_resumed": return "Changes resumed";
             case "safe_mode": return "Safe mode";

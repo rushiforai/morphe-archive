@@ -78,10 +78,4 @@ public class UserData extends Entity {
         return (String) super.getMethod(this.obj, "getId");
     }
 
-    public UserFriendshipStatus getUserFriendshipStatus() throws Exception {
-        Object additionalUserInfo = getAdditionalUserInfo();
-        Object friendshipStatusObject = super.getMethod(additionalUserInfo, "methodname");
-        return new UserFriendshipStatus(friendshipStatusObject);
-    }
-
 }

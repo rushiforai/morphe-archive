@@ -17,12 +17,16 @@ jobs:
           days-before-issue-stale: 30
           days-before-issue-close: 7
           stale-issue-label: "stale"
-          stale-issue-message: >
-            This issue has been marked stale after 30 days without activity. It will close
-            automatically in 7 days unless there's an update. Please comment if the issue persists.
-          close-issue-message: >
-            Closed automatically after no further activity. If the issue persists, please comment
-            below to request reopening.
+          stale-issue-message: |
+            **Marked stale after 30 days without activity.**
+            It closes in 7 days unless someone comments.
+
+            Your **triage** bot 🤖
+          close-issue-message: |
+            **Closed after 7 more days without activity.**
+            If it still matters, comment below and a maintainer will reopen it.
+
+            Your **triage** bot 🤖
           days-before-pr-stale: -1
           days-before-pr-close: -1
           exempt-all-assignees: true
@@ -35,12 +39,16 @@ jobs:
           days-before-issue-stale: 14
           days-before-issue-close: 7
           stale-issue-label: "stale"
-          stale-issue-message: >
-            The details requested above are still needed. Please add them within 7 days to keep
-            this issue open.
-          close-issue-message: >
-            Closed automatically because the requested details are still missing. Please open a new
-            issue with those details, or comment below if this closure seems wrong.
+          stale-issue-message: |
+            **Still waiting on the details asked for above.**
+            It closes in 7 days without them.
+
+            Your **triage** bot 🤖
+          close-issue-message: |
+            **Closed because the requested details never arrived.**
+            Open a new issue with them, or comment below if this closure seems wrong.
+
+            Your **triage** bot 🤖
           close-issue-reason: not_planned
           days-before-pr-stale: -1
           days-before-pr-close: -1

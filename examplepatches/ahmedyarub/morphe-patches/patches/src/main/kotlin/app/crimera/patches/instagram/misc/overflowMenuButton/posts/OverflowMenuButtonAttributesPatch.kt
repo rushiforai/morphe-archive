@@ -11,6 +11,10 @@ import app.crimera.patches.instagram.utils.Constants.MEDIA_OPTIONS_CLASS
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.util.findFreeRegister
+import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -29,14 +33,21 @@ fun addOverflowMenuButtonAttributes(
         classFields.add(field)
 
         method.apply {
-            val lastInvokeDirectIndex = instructions.last { it.opcode == Opcode.INVOKE_DIRECT }.location.index
+            // Created and stored just before the enum collects its values, so the option exists
+            // by the time the values array (see includeButtonsInOverflowMenuArrayPatch) takes it.
+            val collectValues =
+                instructions.firstOrNull { instruction ->
+                    instruction.opcode == Opcode.INVOKE_STATIC &&
+                        instruction.getReference<MethodReference>()?.name == "\$values"
+                } ?: throw PatchException("The media option enum never collects its values")
+            val register = findFreeRegister(collectValues.location.index)
 
             addInstructions(
-                lastInvokeDirectIndex + 2,
+                collectValues.location.index,
                 """
                 invoke-static {}, $FEED_OVERFLOW_MENU_BUTTON_CLASS->$extensionMethodName()$MEDIA_OPTIONS_CLASS
-                move-result-object v0
-                sput-object v0, $MEDIA_OPTIONS_CLASS->$buttonEnumTag:$MEDIA_OPTIONS_CLASS
+                move-result-object v$register
+                sput-object v$register, $MEDIA_OPTIONS_CLASS->$buttonEnumTag:$MEDIA_OPTIONS_CLASS
                 """.trimIndent(),
             )
         }

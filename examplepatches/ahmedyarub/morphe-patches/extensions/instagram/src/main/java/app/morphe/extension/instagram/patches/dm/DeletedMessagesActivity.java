@@ -35,8 +35,11 @@ import app.morphe.extension.shared.ui.Dim;
 
 public class DeletedMessagesActivity extends Activity {
 
+    /** The vault is read and written here, never on the main thread. */
+    private static final java.util.concurrent.ExecutorService DATABASE =
+            java.util.concurrent.Executors.newSingleThreadExecutor();
+
     private List<String[]> messages;
-    private String threadTitle;
     private MessageAdapter adapter;
 
     @Override
@@ -54,11 +57,21 @@ public class DeletedMessagesActivity extends Activity {
         // instead of matching the orphaned thread_id = "" bucket, which would leak unrelated
         // chats into a per-person screen.
         if (threadId != null && threadId.isEmpty()) threadId = null;
-        threadTitle = getIntent().getStringExtra("thread_title");
-        messages = threadId != null
-            ? PikoMessageDb.getInstance(this).getDeletedMessagesForThread(threadId)
-            : PikoMessageDb.getInstance(this).getDeletedMessages();
 
+        final String scopeThreadId = threadId;
+        final PikoMessageDb vault = PikoMessageDb.getInstance(this);
+        DATABASE.execute(() -> {
+            List<String[]> loaded = scopeThreadId != null
+                ? vault.getDeletedMessagesForThread(scopeThreadId)
+                : vault.getDeletedMessages();
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed()) show(loaded, scopeThreadId);
+            });
+        });
+    }
+
+    private void show(List<String[]> loaded, String threadId) {
+        messages = loaded;
         String titleText = threadId != null ? str("piko_deleted_in_chat") : str("piko_all_deleted_messages");
 
         LinearLayout root = new LinearLayout(this);
@@ -112,9 +125,13 @@ public class DeletedMessagesActivity extends Activity {
         clear.setOnClickListener(v -> new android.app.AlertDialog.Builder(InstagramPreferenceStyle.dialogContext(this))
             .setMessage(clearThreadId != null ? str("piko_clear_chat_confirm") : str("piko_clear_all_confirm"))
             .setPositiveButton(str("piko_clear"), (d, w) -> {
-                PikoMessageDb.getInstance(this).clearSaved(clearThreadId);
-                messages.clear();
-                recreate();
+                PikoMessageDb vault = PikoMessageDb.getInstance(this);
+                DATABASE.execute(() -> {
+                    vault.clearSaved(clearThreadId);
+                    runOnUiThread(() -> {
+                        if (!isFinishing() && !isDestroyed()) recreate();
+                    });
+                });
             })
             .setNegativeButton(str("piko_cancel"), null)
             .show());
@@ -145,7 +162,7 @@ public class DeletedMessagesActivity extends Activity {
                 String messageId = m[0];
                 String c = m[3];
                 String t = m[4];
-                if (c != null && c.startsWith("http")) {
+                if (isMedia(c, t)) {
                     showMediaOptions(messageId, c, t);
                 } else if (t != null && !"text".equals(t)) {
                     android.widget.Toast.makeText(this, str("piko_media_not_available"),
@@ -157,9 +174,11 @@ public class DeletedMessagesActivity extends Activity {
                 new android.app.AlertDialog.Builder(InstagramPreferenceStyle.dialogContext(this))
                     .setMessage(str("piko_delete_saved_confirm"))
                     .setPositiveButton(str("piko_delete"), (d, w) -> {
-                        PikoMessageDb.getInstance(this).deleteSaved(m[0]); // m[0] = message_id
-                        messages.remove(pos);
+                        PikoMessageDb vault = PikoMessageDb.getInstance(this);
+                        String messageId = m[0];
+                        messages.remove(m);
                         adapter.notifyDataSetChanged();
+                        DATABASE.execute(() -> vault.deleteSaved(messageId));
                     })
                     .setNegativeButton(str("piko_cancel"), null)
                     .show();
@@ -178,6 +197,11 @@ public class DeletedMessagesActivity extends Activity {
         });
 
         setContentView(root);
+    }
+
+    /** A captured media url, as opposed to a text message that is itself a link. */
+    private static boolean isMedia(String content, String type) {
+        return content != null && content.startsWith("http") && !"text".equals(type);
     }
 
     /** Extension guess from the captured CDN url, falling back to the stored message type. */
@@ -345,21 +369,17 @@ public class DeletedMessagesActivity extends Activity {
             long   timestamp = 0;
             try { timestamp = Long.parseLong(msg[5]); } catch (Exception ignored) {}
 
-            // Attribute each row by its own sender, never by the screen-level chat title (that would
-            // show every sender as the same person). Order: username -> numeric sender id -> title.
+            // Attribute each row by its own sender: username, then numeric sender id.
             final String who;
             if (sender != null && !sender.isEmpty()) {
                 who = "@" + sender;
             } else if (senderId != null && !senderId.isEmpty()) {
                 who = "@" + senderId;
-            } else if (threadTitle != null && !threadTitle.isEmpty()) {
-                who = threadTitle; // chat title from action bar (participant's name)
             } else {
                 who = str("piko_unknown");
             }
             senderView.setText(who);
-            boolean isMediaUrl = content != null && content.startsWith("http");
-            if (isMediaUrl) {
+            if (isMedia(content, type)) {
                 contentView.setText(mediaLabel(type) + "  ·  "
                         + str(isExpiredMediaUrl(content) ? "piko_media_expired" : "piko_tap_to_view"));
             } else {

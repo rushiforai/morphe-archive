@@ -10,7 +10,7 @@ object Constants {
         packageName = "com.dv.adm",
         apkFileType = ApkFileType.APK,
         targets = listOf(
-            AppTarget(version = "14.0.27", versionCode = 140027)
+            AppTarget(version = "14.0.39", versionCode = 140039)
         )
     )
 }

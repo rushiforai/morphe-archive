@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twitter Bookmarker</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="app-header">
+        <span class="brand-mark" aria-hidden="true">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"
+            />
+          </svg>
+        </span>
+        <div class="brand-text">
+          <h1>Twitter Bookmarker</h1>
+          <p class="brand-sub">Your local archive</p>
+        </div>
+      </header>
+
+      <section class="section" aria-labelledby="backend-heading">
+        <div class="section-head">
+          <h2 id="backend-heading" class="eyebrow">Backend</h2>
+          <button id="backend-retry" type="button" class="link-button">Retry</button>
+        </div>
+        <p
+          id="backend-status"
+          class="status status--checking"
+          role="status"
+          aria-live="polite"
+          aria-describedby="backend-target"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="status-text">Checking&hellip;</span>
+        </p>
+        <p id="backend-target" class="status-target"></p>
+      </section>
+
+      <section class="section" aria-labelledby="categories-heading">
+        <div class="section-head">
+          <h2 id="categories-heading" class="eyebrow">Categories</h2>
+          <span id="categories-count" class="count">0</span>
+        </div>
+
+        <p id="categories-empty" class="empty-state" hidden>No categories yet</p>
+        <ul id="category-list" class="category-list"></ul>
+
+        <p id="category-error" class="inline-error" role="alert" hidden></p>
+
+        <form id="add-category-form" class="add-form" hidden>
+          <label class="field">
+            <span class="field-label">Name</span>
+            <input
+              id="add-category-name"
+              type="text"
+              maxlength="60"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Linux"
+              required
+            />
+          </label>
+          <label class="field field--color">
+            <span class="field-label">Color</span>
+            <input id="add-category-color" type="color" value="#bf3f2e" />
+          </label>
+          <div class="add-form-actions">
+            <button id="add-category-save" type="submit" class="button button--primary">Save</button>
+            <button id="add-category-cancel" type="button" class="button">Cancel</button>
+          </div>
+        </form>
+
+        <button id="add-category-toggle" type="button" class="button button--add">+ Add category</button>
+      </section>
+
+      <section class="section" aria-labelledby="settings-heading">
+        <div class="section-head">
+          <h2 id="settings-heading" class="eyebrow">Settings</h2>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label" for="setting-unbookmark">Unbookmark after save</label>
+          <input
+            id="setting-unbookmark"
+            type="checkbox"
+            class="switch"
+            role="switch"
+            aria-label="Unbookmark after save"
+          />
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label" id="display-mode-label">Category display</span>
+          <div id="display-mode" class="segmented" role="radiogroup" aria-labelledby="display-mode-label">
+            <button type="button" class="segmented-option" data-mode="popover" role="radio" aria-checked="true">
+              Popover
+            </button>
+            <button type="button" class="segmented-option" data-mode="inline" role="radio" aria-checked="false">
+              Inline
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label" id="backend-mode-label">Backend URL</span>
+          <div id="backend-mode" class="segmented" role="radiogroup" aria-labelledby="backend-mode-label">
+            <button type="button" class="segmented-option" data-backend="localhost" role="radio" aria-checked="true">
+              Localhost
+            </button>
+            <button type="button" class="segmented-option" data-backend="custom" role="radio" aria-checked="false">
+              Custom
+            </button>
+          </div>
+        </div>
+
+        <div id="backend-custom" class="backend-custom" hidden>
+          <label class="field">
+            <span class="field-label">URL</span>
+            <input
+              id="backend-url"
+              type="text"
+              inputmode="url"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="http://127.0.0.1:43121"
+              aria-describedby="backend-url-hint"
+            />
+          </label>
+          <p id="backend-url-hint" class="field-hint">Host with an optional port and path, e.g. http://192.168.1.10:43121</p>
+
+          <label class="field">
+            <span class="field-label">Token</span>
+            <input
+              id="backend-token"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="optional"
+              aria-describedby="backend-token-hint"
+            />
+          </label>
+          <p id="backend-token-hint" class="field-hint">
+            Only needed when the backend asks for one, e.g. behind a tunnel or on a LAN. Sent as
+            <code>Authorization: Bearer</code>. Leave empty for a plain loopback server.
+          </p>
+
+          <p id="backend-url-error" class="inline-error" role="alert" hidden></p>
+          <div class="add-form-actions">
+            <button id="backend-url-save" type="button" class="button button--primary">Save</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="category-row-template">
+      <li class="category-row" draggable="true">
+        <button class="drag-handle" type="button" tabindex="-1" aria-label="Drag to reorder" title="Drag to reorder">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="9" cy="12" r="1" />
+            <circle cx="9" cy="5" r="1" />
+            <circle cx="9" cy="19" r="1" />
+            <circle cx="15" cy="12" r="1" />
+            <circle cx="15" cy="5" r="1" />
+            <circle cx="15" cy="19" r="1" />
+          </svg>
+        </button>
+        <input class="category-color" type="color" aria-label="Category color" />
+        <div class="category-main">
+          <span class="category-name"></span>
+          <input class="category-name-input" type="text" maxlength="60" autocomplete="off" spellcheck="false" hidden />
+          <span class="category-slug"></span>
+        </div>
+        <button class="icon-button category-rename" type="button" aria-label="Rename category" title="Rename">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+            />
+            <path d="m15 5 4 4" />
+          </svg>
+        </button>
+        <button class="icon-button category-delete" type="button" aria-label="Delete category" title="Delete">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+            <path d="M3 6h18" />
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        </button>
+      </li>
+    </template>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

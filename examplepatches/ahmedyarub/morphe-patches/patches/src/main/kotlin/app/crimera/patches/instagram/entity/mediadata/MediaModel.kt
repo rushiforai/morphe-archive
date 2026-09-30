@@ -6,11 +6,12 @@
 
 package app.crimera.patches.instagram.entity.mediadata
 
+import app.crimera.patches.instagram.entity.decoder.MEDIA_CLASS_NAME
 import app.crimera.utils.liveTreeGetter
 import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.iface.Method
 
-/** [liveTreeGetter] against whichever class is carrying the media getters in this build. */
+/** [liveTreeGetter] on the media class, which carries the media getters since v441 folded the media dict into it. */
 internal fun BytecodePatchContext.mediaModelGetter(
     jsonKey: String,
     returnType: String,
@@ -19,4 +20,4 @@ internal fun BytecodePatchContext.mediaModelGetter(
 internal fun BytecodePatchContext.mediaModelGetter(
     jsonKey: String,
     returnType: (String) -> Boolean,
-): Method? = liveTreeGetter(mediaModelClass, jsonKey, returnType)
+): Method? = liveTreeGetter(MEDIA_CLASS_NAME, jsonKey, returnType)

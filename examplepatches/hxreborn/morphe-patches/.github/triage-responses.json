@@ -1,47 +1,47 @@
 {
   "r: support": {
     "close": true,
-    "message": "General support is outside this tracker's scope. If a patch isn't working as expected, please open a bug report."
+    "message": "👋 **This tracker is for patch bugs.**\nGeneral support is outside its scope. If a patch misbehaves, a bug report is welcome."
   },
   "r: app-side": {
     "close": true,
-    "message": "This also happens in the unpatched app. If the patched app behaves differently, please describe the difference below."
+    "message": "🔎 **The unpatched app does this too.**\nThat rules out a patch. If the patched app behaves differently, comment below with the difference."
   },
   "r: not-this-bundle": {
     "close": true,
-    "message": "This APK wasn't patched with this bundle. Please try patching it with this bundle in Morphe Manager or morphe-cli, and report again if the problem persists."
+    "message": "📦 **That APK wasn't patched with this bundle.**\nPatch it with this bundle in Morphe Manager or morphe-cli and report again if it still happens."
   },
   "r: app-updated": {
     "close": false,
     "labels": [
       "untargeted version"
     ],
-    "message": "This app version isn't supported yet. This issue is kept open to track support; please use a listed version for now."
+    "message": "⏳ **This app version isn't targeted yet.**\nThis issue tracks it. A listed version works in the meantime."
   },
   "r: server-side": {
     "close": true,
-    "message": "This restriction comes from the app's server and can't be changed by patching the APK."
+    "message": "☁️ **The server enforces this.**\nThe restriction lives on the app's server, so the APK has nothing to patch."
   },
   "r: no-repro": {
     "close": false,
     "labels": [
       "needs info"
     ],
-    "message": "This hasn't been reproduced yet. Please add the exact steps and the patch list from the app's entry in Morphe Manager."
+    "message": "🧪 **Couldn't reproduce this yet.**\nAdd the exact steps and the patch list from the app's entry in Morphe Manager."
   },
   "r: fixed": {
     "close": true,
-    "message": "The fix will be included in the next release. Update and repatch once it's available; please comment below if the problem persists.",
+    "message": "🔧 **Fixed, landing in the next release.**\nUpdate the bundle and repatch once it's out. Comment below if it still happens.",
     "reason": "completed"
   },
   "r: not-a-bug": {
     "close": true,
-    "message": "Closing because this doesn't appear to be a patch bug. Please comment with any details that suggest otherwise.",
+    "message": "🤔 **This doesn't look like a patch bug.**\nClosing it. Comment below if something suggests otherwise.",
     "reason": "not planned"
   },
   "r: shipped": {
     "close": true,
-    "message": "This is included in {latest_release}. Update the bundle in Morphe Manager and repatch.",
+    "message": "🎉 **Shipped in {latest_release}** 🎉\nUpdate the bundle in Morphe Manager and repatch.",
     "reason": "completed"
   }
 }

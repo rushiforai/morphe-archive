@@ -12,41 +12,51 @@ import android.content.Intent;
 
 import static app.morphe.extension.instagram.utils.IgStr.str;
 
-
-import app.morphe.extension.crimera.PikoUtils;
 import app.morphe.extension.instagram.db.PikoMessageDb;
 import app.morphe.extension.instagram.entity.DirectItem;
 import app.morphe.extension.instagram.entity.UserData;
 import app.morphe.extension.instagram.utils.Pref;
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 
-/** Runtime hooks for "Save deleted messages". Fields resolved at patch time via DirectItem entity. */
+/**
+ * Runtime hooks for "Save deleted messages". Field names are resolved at patch time into the
+ * DirectItem entity.
+ *
+ * <p>The hooks run on the app's network threads, inside its parsers. Anything that touches the
+ * app's own message object happens there and then, before the hook returns: the parser hands the
+ * object on as soon as the hook is done with it. Only plain values copied out of it go to the
+ * worker thread, which does the database and notification work.
+ */
 @SuppressWarnings("unused")
 public class SavedMessagesHook {
-
-    private static void piko(String msg) {
-        android.util.Log.e("piko", msg);
-    }
+    private static final long DAY_MS = 24L * 60 * 60 * 1000;
 
     private static volatile String sCurrentThreadId;
-    private static volatile String sCurrentThreadTitle;
 
-    public static void noteThreadTitle(String title) {
-        if (title == null || title.trim().isEmpty()) return;
-        sCurrentThreadTitle = title.trim();
-        // Persist for the current thread so the all-chats screen and notifications show a name too.
-        try {
-            if (sCurrentThreadId != null && !sCurrentThreadId.isEmpty()) {
-                PikoMessageDb.getInstance(PikoUtils.getContext())
-                        .setThreadUsername(sCurrentThreadId, sCurrentThreadTitle);
-            }
-        } catch (Exception ignored) {}
+    /** Logs each distinct failure once, so a broken name costs one log line, not one per message. */
+    private static final java.util.Set<String> LOGGED_FAILURES =
+            java.util.Collections.synchronizedSet(new java.util.HashSet<String>());
+
+    private static void logOnce(String where, Throwable failure) {
+        if (LOGGED_FAILURES.add(where + failure.getClass().getName())) {
+            Logger.printException(() -> "SavedMessagesHook." + where + " failed", failure);
+        }
     }
 
-    public static void noteOpenThreadId(String threadId) {
-        if (threadId != null && !threadId.isEmpty()) sCurrentThreadId = threadId;
+    private static PikoMessageDb db() {
+        Context context = Utils.getContext();
+        if (context == null) throw new IllegalStateException("No app context yet");
+        return PikoMessageDb.getInstance(context);
     }
 
-    // --- Hook 4 (open-thread id) --------------------------------------------------------
+    /** How long a message that was never deleted is kept. Set from the patch option. */
+    private static int retentionDays() {
+        int days = 30;
+        return days;
+    }
+
+    // --- Hook 5 (open-thread id) --------------------------------------------------------
     // The chat action-bar builder holds the thread only as an obfuscated view model, and the
     // chain viewModel -> descriptor -> DirectThreadKey -> threadId needs three scratch
     // registers the builder does not always have below v16 (iget-object/invoke-static encode
@@ -72,7 +82,7 @@ public class SavedMessagesHook {
         return null;
     }
 
-    /** Hook 4: remember which thread is on screen, given the action bar's view model. */
+    /** Hook 5: remember which thread is on screen, given the action bar's view model. */
     public static void noteOpenThread(Object viewModel) {
         if (viewModel == null) return;
         try {
@@ -98,75 +108,72 @@ public class SavedMessagesHook {
             java.lang.reflect.Field idField = findField(threadKey.getClass(), openThreadIdField());
             if (idField == null) return;
             Object threadId = idField.get(threadKey);
-            if (threadId instanceof String) noteOpenThreadId((String) threadId);
-        } catch (Throwable ignored) {}
+            if (threadId instanceof String && !((String) threadId).isEmpty()) {
+                sCurrentThreadId = (String) threadId;
+            }
+        } catch (Throwable failure) {
+            logOnce("noteOpenThread", failure);
+        }
     }
 
     /** Hook 6: harvest participant id→username from the thread deserializer's user list. */
     public static void noteThreadUsers(final java.util.List<?> users) {
         if (users == null || users.isEmpty()) return;
         if (!Pref.saveDeletedMessages()) return;
-        final java.util.ArrayList<Object> copy;
-        try { copy = new java.util.ArrayList<Object>(users); } catch (Throwable t) { return; }
-        getWorker().post(new Runnable() { @Override public void run() {
-            try {
-                PikoMessageDb db = PikoMessageDb.getInstance(PikoUtils.getContext());
-                for (Object u : copy) {
-                    if (u == null) continue;
-                    try {
-                        UserData ud = new UserData(u);
-                        String id = ud.getUserId();
-                        if (id == null || !id.matches("\\d{6,14}")) continue;
-                        String name = ud.getUsername();
-                        if (name == null || name.isEmpty()) name = ud.getFullName();
-                        if (name != null && !name.isEmpty()) db.putUsername(id, name);
-                    } catch (Throwable ignored) {}
-                }
-            } catch (Throwable ignored) {}
-        }});
-    }
 
-    private static String resolveOpenThreadId() {
-        return (sCurrentThreadId != null && !sCurrentThreadId.isEmpty()) ? sCurrentThreadId : null;
+        // Read the names here: the list and its users are the app's, and are handed on as soon
+        // as this returns.
+        final java.util.List<String[]> named = new java.util.ArrayList<>();
+        try {
+            for (Object user : users) {
+                if (user == null) continue;
+                UserData data = new UserData(user);
+                String id = data.getUserId();
+                if (id == null || !id.matches("\\d{6,14}")) continue;
+                String name = data.getUsername();
+                if (name == null || name.isEmpty()) name = data.getFullName();
+                if (name != null && !name.isEmpty()) named.add(new String[]{id, name});
+            }
+        } catch (Throwable failure) {
+            logOnce("noteThreadUsers", failure);
+        }
+        if (named.isEmpty()) return;
+
+        getWorker().post(() -> {
+            try {
+                PikoMessageDb db = db();
+                for (String[] entry : named) db.putUsername(entry[0], entry[1]);
+            } catch (Throwable failure) {
+                logOnce("noteThreadUsers.store", failure);
+            }
+        });
     }
 
     /** Opens the deleted-messages screen for the current thread (or all if unknown). */
     public static void openDeletedMessages(Context ctx) {
-        openDeletedMessages(ctx, true);
-    }
-
-    /**
-     * Opens the deleted-messages screen.
-     * @param scopeToCurrentThread when false (Piko Settings entry point), always shows all
-     * chats, ignoring any stale current-thread state left over from the last opened DM.
-     */
-    public static void openDeletedMessages(Context ctx, boolean scopeToCurrentThread) {
         try {
-            if (ctx == null) ctx = PikoUtils.getContext();
+            if (ctx == null) ctx = Utils.getContext();
             if (ctx == null) return;
-            String openThreadId = scopeToCurrentThread ? resolveOpenThreadId() : null;
             Intent intent = new Intent(ctx, DeletedMessagesActivity.class);
+            String openThreadId = sCurrentThreadId;
             if (openThreadId != null && !openThreadId.isEmpty()) {
                 intent.putExtra("thread_id", openThreadId);
-                if (sCurrentThreadTitle != null && !sCurrentThreadTitle.isEmpty()) {
-                    intent.putExtra("thread_title", sCurrentThreadTitle);
-                }
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             ctx.startActivity(intent);
-        } catch (Exception e) {
-            piko("SavedMessagesHook.openDeletedMessages: " + e);
+        } catch (Exception failure) {
+            Logger.printException(() -> "SavedMessagesHook.openDeletedMessages failed", failure);
         }
     }
 
     // Our own user id, learned from messages whose is_sent_by_viewer flag is set (and persisted),
-    // so even a freshly-sent message is recognised as own by comparing sender ids — no session reflection.
+    // so even a freshly-sent message is recognised as own by comparing sender ids.
     private static volatile String sMyUserId;
 
     private static String myUserId() {
         if (sMyUserId == null) {
             try {
-                Context ctx = PikoUtils.getContext();
+                Context ctx = Utils.getContext();
                 if (ctx != null) {
                     String v = ctx.getSharedPreferences("piko_dm", Context.MODE_PRIVATE)
                             .getString("my_user_id", null);
@@ -181,7 +188,7 @@ public class SavedMessagesHook {
         if (id == null || id.isEmpty() || id.equals(sMyUserId)) return;
         sMyUserId = id;
         try {
-            Context ctx = PikoUtils.getContext();
+            Context ctx = Utils.getContext();
             if (ctx != null) {
                 ctx.getSharedPreferences("piko_dm", Context.MODE_PRIVATE)
                         .edit().putString("my_user_id", id).apply();
@@ -189,36 +196,14 @@ public class SavedMessagesHook {
         } catch (Exception ignored) {}
     }
 
-    /** True when senderId is the logged-in user (an own outgoing message). */
-    private static boolean isOwnSender(String senderId) {
-        String me = myUserId();
-        return senderId != null && me != null && senderId.equals(me);
-    }
-
-    /**
-     * The open chat's title, but only when it is the currently-open thread AND a 1:1 chat
-     * (so the title names exactly one sender). In a group the title is the group name, which
-     * would misattribute every sender — return null there so callers fall back to the directory.
-     */
-    private static String openChatTitleFor(PikoMessageDb db, String threadId) {
-        if (threadId == null || sCurrentThreadTitle == null) return null;
-        if (!threadId.equals(sCurrentThreadId)) return null;
-        return db.getSoleSenderId(threadId) != null ? sCurrentThreadTitle : null;
-    }
-
-    // Hook 1 (REST): fires from LX/0gL;.parseFromJson (thread-history loads).
-    // Hook 2 (MQTT): fires from LX/0gF;.A0P (real-time MSys delivery).
-    // Both pass the item as Object; reflection extracts the fields via DirectItem.
-
-    // Background thread so the MQTT delivery thread is never blocked.
-    private static android.os.HandlerThread sWorkerThread;
+    // Background thread so the app's network threads never wait on the database.
     private static android.os.Handler sWorker;
 
     private static synchronized android.os.Handler getWorker() {
         if (sWorker == null) {
-            sWorkerThread = new android.os.HandlerThread("piko-dm-hook");
-            sWorkerThread.start();
-            sWorker = new android.os.Handler(sWorkerThread.getLooper());
+            android.os.HandlerThread thread = new android.os.HandlerThread("piko-dm-hook");
+            thread.start();
+            sWorker = new android.os.Handler(thread.getLooper());
         }
         return sWorker;
     }
@@ -251,116 +236,140 @@ public class SavedMessagesHook {
         onMessageReceived(item, null);
     }
 
+    /** What the worker needs of a message, copied out of the app's object on the hook's thread. */
+    private static final class Captured {
+        String messageId;
+        String senderId;
+        String threadId;
+        String content;
+        String type;
+        long timestamp;
+        boolean deleted;
+    }
+
     /**
      * Hook 2 (MQTT/MSys): the item's thread_key is null here, so the patch passes the thread id
-     * read from the MSys delta (A0P's p2) as {@code threadIdHint}.
+     * read from the MSys delta as {@code threadIdHint}.
      */
     public static void onMessageReceived(final Object item, final String threadIdHint) {
-        // Runs on the MQTT thread — return instantly; all work is posted to sWorker.
         if (item == null) return;
         if (!Pref.saveDeletedMessages()) return;
         // Class guard: only X.* (obfuscated IG classes) are DirectItem candidates.
         if (!item.getClass().getName().startsWith("X.")) return;
 
-        getWorker().post(new Runnable() { @Override public void run() {
-            processReceivedItem(item, threadIdHint);
-        }});
-    }
-
-    private static void processReceivedItem(Object item, String threadIdHint) {
+        final Captured captured;
         try {
             DirectItem di = new DirectItem(item);
-            String senderId = di.getUserId();
-            if (di.isSentByViewer()) {
-                rememberMyUserId(senderId);
-                return;
-            }
-            if (isOwnSender(senderId)) return;
-            String messageId  = di.getItemId();
-            boolean deleted = di.isHideInThread();
-            // dedup key includes deletion state — alive vs unsent are different events
-            if (messageId != null
-                    && SEEN_ITEM_IDS.put(messageId + (deleted ? ":1" : ":0"), Boolean.TRUE) != null) return;
-            String threadId   = di.getThreadId();
-            PikoMessageDb db = PikoMessageDb.getInstance(PikoUtils.getContext());
-            // sender name: id→handle directory first, then thread title, then open-chat title
-            String senderUser = db.getUsername(senderId);
-            if (senderUser == null) senderUser = db.getThreadUsername(threadId);
-            if (senderUser == null) senderUser = openChatTitleFor(db, threadId);
-            String content    = di.getText();
-            String type       = di.getItemType();
-            if (type != null) type = type.trim().toLowerCase();
-            long   timestamp  = di.getTimestampMs();
+            captured = capture(di, threadIdHint);
+            if (captured == null) return;
 
-            if ("action_log".equals(type) || "expired_placeholder".equals(type)
-                    || "placeholder".equals(type)) return;
+            // Un-hide before the parser hands the message to the thread view: done later, on
+            // another thread, the view has usually already dropped it.
+            if (captured.deleted) restore(di, captured);
+        } catch (Throwable failure) {
+            logOnce("onMessageReceived", failure);
+            return;
+        }
 
-            // For non-text items, capture the CDN/permalink so media stays recoverable. A caption
-            // must not block this: media-with-caption would otherwise store the caption (not a URL)
-            // and become non-tappable — the root of the "media not available" reports.
-            if (type != null && !type.equals("text")
-                    && (content == null || content.isEmpty() || !content.startsWith("http"))) {
-                // Media URL is resolved via the DirectItem entity (patch-time resolved field names).
-                // Unsupported shapes (animated_media/story_share/xma/link) return null → "[type]" label.
-                String url = di.getMediaUrl();
-                // xma reshares carry no CDN media — recover the permalink instead.
-                if (url == null && type != null && type.startsWith("xma")) url = di.xmaReshareLink();
-                if (url != null && url.startsWith("http")) content = url;
-            }
+        getWorker().post(() -> store(captured));
+    }
 
-            if (messageId == null) {
-                // MQTT subclass (X.0gF) may not resolve item_id — derive a synthetic key from
-                // sender + timestamp so a later unsend maps back to the same row.
-                if (senderId != null) {
-                    messageId = "syn:" + senderId + ":" + timestamp;
-                } else {
-                    return;
-                }
-            }
+    private static Captured capture(DirectItem di, String threadIdHint) {
+        String senderId = di.getUserId();
+        if (di.isSentByViewer()) {
+            rememberMyUserId(senderId);
+            return null;
+        }
+        String me = myUserId();
+        if (senderId != null && senderId.equals(me)) return null;
 
-            // MQTT path: thread_id comes from the MSys delta passed as threadIdHint.
-            if ((threadId == null || threadId.isEmpty())
-                    && threadIdHint != null && !threadIdHint.isEmpty()) {
-                threadId = threadIdHint;
-            }
-            if (threadId == null) threadId = "";
+        Captured c = new Captured();
+        c.senderId = senderId;
+        c.messageId = di.getItemId();
+        c.deleted = di.isHideInThread();
+        // dedup key includes deletion state: alive and unsent are different events.
+        if (c.messageId != null
+                && SEEN_ITEM_IDS.put(c.messageId + (c.deleted ? ":1" : ":0"), Boolean.TRUE) != null) {
+            return null;
+        }
 
-            if (deleted) {
-                // Only notify when we previously captured this message alive.
-                boolean liveDeletion = db.isStoredAlive(messageId);
-                db.insertOrIgnore(messageId, threadId, senderId, senderUser, content, type, timestamp);
-                db.markDeleted(messageId);
-                if (liveDeletion && claimNotification(messageId)) {
-                    String notifySender = (senderUser != null) ? senderUser
-                            : db.getThreadUsername(threadId);
-                    if (notifySender == null) notifySender = openChatTitleFor(db, threadId);
-                    if (notifySender == null) notifySender = db.getSenderDisplay(messageId);
-                    String notifyBody   = (content != null && !content.isEmpty())
-                            ? content : db.getStoredContent(messageId);
-                    notifyDeletion(notifySender, notifyBody, type);
-                }
+        c.type = di.getItemType();
+        if (c.type != null) c.type = c.type.trim().toLowerCase();
+        if ("action_log".equals(c.type) || "expired_placeholder".equals(c.type)
+                || "placeholder".equals(c.type)) return null;
 
-                String storedContent = (content != null && !content.isEmpty())
-                        ? content : db.getStoredContent(messageId);
-                antiRevokeItem(di, storedContent);
-            } else {
-                db.insertOrIgnore(messageId, threadId, senderId, senderUser, content, type, timestamp);
-            }
+        c.content = di.getText();
+        c.timestamp = di.getTimestampMs();
 
-            // Backfill the 1:1 sender name into the directory (sole-sender guard prevents group misattribution).
-            if (sCurrentThreadTitle != null && threadId.equals(sCurrentThreadId)
-                    && senderId != null && senderId.equals(db.getSoleSenderId(threadId))) {
-                db.putUsername(senderId, sCurrentThreadTitle);
-            }
-        } catch (Exception e) {
-            piko("SavedMessagesHook.processReceivedItem: " + e);
+        // For non-text items, capture the CDN url or permalink so the media stays recoverable. A
+        // caption must not block this: it would be stored instead of the url.
+        if (c.type != null && !c.type.equals("text")
+                && (c.content == null || c.content.isEmpty() || !c.content.startsWith("http"))) {
+            // Unsupported shapes (animated_media/story_share/link) return null → "[type]" label.
+            String url = di.getMediaUrl();
+            // xma reshares carry no CDN media — recover the permalink instead.
+            if (url == null && c.type.startsWith("xma")) url = di.xmaReshareLink();
+            if (url != null && url.startsWith("http")) c.content = url;
+        }
+
+        if (c.messageId == null) {
+            // The MQTT subclass may not resolve item_id: key on sender + timestamp so a later
+            // unsend maps back to the same row.
+            if (senderId == null) return null;
+            c.messageId = "syn:" + senderId + ":" + c.timestamp;
+        }
+
+        c.threadId = di.getThreadId();
+        // MQTT path: the thread id comes from the MSys delta.
+        if ((c.threadId == null || c.threadId.isEmpty()) && threadIdHint != null && !threadIdHint.isEmpty()) {
+            c.threadId = threadIdHint;
+        }
+        if (c.threadId == null) c.threadId = "";
+        return c;
+    }
+
+    /** Keeps an unsent message in the thread, with its text restored from the stored copy. */
+    private static void restore(DirectItem di, Captured captured) {
+        di.setHideInThread(false);
+        if (captured.content == null || captured.content.isEmpty()) {
+            // One indexed read, only for an unsent message, on the app's network thread.
+            String stored = db().getStoredContent(captured.messageId);
+            if (stored != null) di.setText(stored);
         }
     }
 
-    private static void antiRevokeItem(DirectItem di, String restoredContent) {
-        di.setHideInThread(false);
-        if (restoredContent != null && !restoredContent.isEmpty()) {
-            di.setText(restoredContent);
+    private static long lastPruneMs;
+
+    private static void store(Captured c) {
+        try {
+            PikoMessageDb db = db();
+
+            long now = System.currentTimeMillis();
+            if (now - lastPruneMs > DAY_MS) {
+                lastPruneMs = now;
+                db.pruneAliveOlderThan(now - retentionDays() * DAY_MS);
+            }
+
+            // Sender name: id→handle directory first, then the thread's single sender's name.
+            String senderUser = db.getUsername(c.senderId);
+            if (senderUser == null) senderUser = db.getThreadUsername(c.threadId);
+
+            if (c.deleted) {
+                // Only notify when we previously captured this message alive.
+                boolean liveDeletion = db.isStoredAlive(c.messageId);
+                db.insertOrIgnore(c.messageId, c.threadId, c.senderId, senderUser, c.content, c.type, c.timestamp);
+                db.markDeleted(c.messageId);
+                if (liveDeletion && claimNotification(c.messageId)) {
+                    String notifySender = senderUser != null ? senderUser : db.getSenderDisplay(c.messageId);
+                    String notifyBody = (c.content != null && !c.content.isEmpty())
+                            ? c.content : db.getStoredContent(c.messageId);
+                    notifyDeletion(notifySender, notifyBody, c.type);
+                }
+            } else {
+                db.insertOrIgnore(c.messageId, c.threadId, c.senderId, senderUser, c.content, c.type, c.timestamp);
+            }
+        } catch (Throwable failure) {
+            logOnce("store", failure);
         }
     }
 
@@ -368,7 +377,7 @@ public class SavedMessagesHook {
     @SuppressLint("NotificationPermission")
     private static void notifyDeletion(String sender, String content, String type) {
         try {
-            Context ctx = PikoUtils.getContext();
+            Context ctx = Utils.getContext();
             if (ctx == null) return;
 
             android.app.NotificationManager nm =
@@ -409,40 +418,41 @@ public class SavedMessagesHook {
                 .build();
 
             nm.notify((int) (System.currentTimeMillis() & 0x7fffffff), n);
-        } catch (Exception e) {
-            piko("SavedMessagesHook.notifyDeletion: " + e);
+        } catch (Exception failure) {
+            logOnce("notifyDeletion", failure);
         }
     }
 
-    public static void onMessageHiddenFromDb(String serverId, String clientId) {
-        try {
-            if (!Pref.saveDeletedMessages()) return;
+    /** Hook 4: the app hid a message in its own database. Runs on the caller's thread. */
+    public static void onMessageHiddenFromDb(final String serverId, final String clientId) {
+        if (!Pref.saveDeletedMessages()) return;
+        final String itemId = (serverId != null && !serverId.isEmpty()) ? serverId : clientId;
+        if (itemId == null) return;
 
-            String itemId = (serverId != null && !serverId.isEmpty()) ? serverId : clientId;
-            if (itemId == null) return;
+        getWorker().post(() -> {
+            try {
+                PikoMessageDb vault = db();
+                if (!vault.isStored(itemId)) return;
 
-            PikoMessageDb vault = PikoMessageDb.getInstance(PikoUtils.getContext());
-            if (!vault.isStored(itemId)) return;
+                boolean wasReceived = vault.isStoredAlive(itemId);
+                String messageType = vault.getMessageType(itemId);
 
-            boolean wasReceived = vault.isStoredAlive(itemId);
-            String messageType = vault.getMessageType(itemId);
+                vault.markDeleted(itemId);
 
-            vault.markDeleted(itemId);
-
-            if (wasReceived && claimNotification(itemId)) {
-                String stored = vault.getStoredContent(itemId);
-                boolean isMedia = stored == null || stored.isEmpty()
-                        || stored.startsWith("http") || stored.startsWith("[");
-                String notifBody = isMedia ? describeMediaType(messageType) : stored;
-                String storedThreadId = vault.getThreadIdOf(itemId);
-                String name = vault.getThreadUsername(storedThreadId);
-                if (name == null) name = openChatTitleFor(vault, storedThreadId);
-                if (name == null) name = vault.getSenderDisplay(itemId);
-                notifyDeletion(name, notifBody, messageType);
+                if (wasReceived && claimNotification(itemId)) {
+                    String stored = vault.getStoredContent(itemId);
+                    // A text message may itself be a link: only non-text items are media.
+                    boolean isMedia = !"text".equals(messageType)
+                            && (stored == null || stored.isEmpty() || stored.startsWith("http") || stored.startsWith("["));
+                    String notifBody = isMedia ? describeMediaType(messageType) : stored;
+                    String name = vault.getThreadUsername(vault.getThreadIdOf(itemId));
+                    if (name == null) name = vault.getSenderDisplay(itemId);
+                    notifyDeletion(name, notifBody, messageType);
+                }
+            } catch (Throwable failure) {
+                logOnce("onMessageHiddenFromDb", failure);
             }
-        } catch (Exception e) {
-            piko("SavedMessagesHook.onMessageHiddenFromDb: " + e);
-        }
+        });
     }
 
     private static String describeMediaType(String type) {
@@ -466,5 +476,4 @@ public class SavedMessagesHook {
         }
         return String.format(str("piko_media_deleted"), label);
     }
-
 }

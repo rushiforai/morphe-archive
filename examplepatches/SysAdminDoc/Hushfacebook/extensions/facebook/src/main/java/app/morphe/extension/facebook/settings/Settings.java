@@ -13,6 +13,7 @@ import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
 import app.morphe.extension.facebook.download.SaveFolder;
+import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -223,6 +224,24 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_turn_off_double_tap_like", TRUE);
 
     /**
+     * A speed picked in a reel's menu stays for the next reels where it was picked, ads and live
+     * videos aside, until another is picked or Facebook restarts
+     * ({@link app.morphe.extension.facebook.media.ReelSpeed}). Nothing is
+     * stored. Off or paused, each reel starts at the speed Facebook starts it at.
+     */
+    public static final BooleanSetting KEEP_REEL_SPEED =
+            new BooleanSetting("hushfacebook_keep_reel_speed", TRUE);
+
+    /**
+     * A reel you hold plays at double speed until you let go, through the speed-up Facebook's Reels
+     * controls already have, in place of Facebook's long-press menu
+     * ({@link app.morphe.extension.facebook.reels.ReelHold}). On once the patch is picked, since
+     * picking it is the choice. Off or paused, a long press opens Facebook's menu.
+     */
+    public static final BooleanSetting HOLD_REEL_FOR_2X =
+            new BooleanSetting("hushfacebook_hold_reel_for_2x", TRUE);
+
+    /**
      * Comment sheets ask for the order in {@link #COMMENT_ORDER} where Facebook's servers would
      * choose one, and an order picked in a post's comments stays for that post until Facebook
      * restarts ({@link app.morphe.extension.facebook.comments.DefaultCommentOrder}). A request that
@@ -260,6 +279,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting RESUME_LONG_VIDEOS =
             new BooleanSetting("hushfacebook_resume_long_videos", FALSE);
+
+    /**
+     * Videos, reels and video stories start at the quality in {@link #PLAYBACK_QUALITY}, through
+     * the same per-video choice Facebook's own quality menu makes
+     * ({@link app.morphe.extension.facebook.media.QualityChoice}). A pick in that menu still wins
+     * for its video. With the quality left as Facebook's, the switch changes nothing, and off or
+     * paused, Facebook picks the quality as it plays.
+     */
+    public static final BooleanSetting DEFAULT_PLAYBACK_QUALITY =
+            new BooleanSetting("hushfacebook_default_playback_quality", TRUE);
 
     /**
      * Facebook's own text, React Native screens' included, drawn in the font {@link #FONT_SOURCE}
@@ -418,6 +447,22 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_marketplace_skip_feed_prefetch", FALSE);
 
     /**
+     * The Reels tab, which some accounts call Video, stays off the tab bar, and a start sent to
+     * it by {@link #START_TAB} opens Home. Facebook builds the bar once, so a change shows when it
+     * restarts. A Reels tab Facebook's own tab bar settings hide stays hidden either way.
+     */
+    public static final BooleanSetting HIDE_REELS_TAB =
+            new BooleanSetting("hushfacebook_hide_reels_tab", TRUE, true);
+
+    /**
+     * The Reels tab, which some accounts call Video, shows no new-item dot or count
+     * ({@link app.morphe.extension.facebook.navigation.ReelsTabDot}). Off or paused, Facebook's
+     * count comes back when the tab bar next asks for it.
+     */
+    public static final BooleanSetting HIDE_REELS_TAB_DOT =
+            new BooleanSetting("hushfacebook_hide_reels_tab_dot", TRUE);
+
+    /**
      * The folder every save goes to, under Movies for a video and Pictures for a photo. The
      * settings row and an import keep it clean, and {@link SaveFolder#sanitize} cleans it again
      * wherever it's read, so whatever wrote the store, a save lands in one folder under each.
@@ -473,6 +518,14 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<CommentOrder> COMMENT_ORDER =
             new EnumSetting<>("hushfacebook_comment_order", CommentOrder.FACEBOOK);
+
+    /**
+     * The quality videos start at while {@link #DEFAULT_PLAYBACK_QUALITY} is on: Facebook's own
+     * choice until someone picks another, so picking the patch changes nothing on its own. It isn't
+     * a switch, and a paused Facebook picks the quality itself.
+     */
+    public static final EnumSetting<PlaybackQuality> PLAYBACK_QUALITY =
+            new EnumSetting<>("hushfacebook_playback_quality", PlaybackQuality.AUTO);
 
     /**
      * Where {@link #USE_SYSTEM_FONT} takes its font from: empty for the phone's own, or the name of

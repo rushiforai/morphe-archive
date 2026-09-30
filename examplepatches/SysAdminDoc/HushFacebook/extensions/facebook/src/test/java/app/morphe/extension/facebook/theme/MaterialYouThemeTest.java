@@ -311,6 +311,47 @@ public class MaterialYouThemeTest {
         assertEquals("AMOLED's black", 0xFF000000, MaterialYouTheme.getColor(amoled, ColourResources.VIDEO_BAR, true));
     }
 
+    /** The tokens of the bars at the bottom of the screen. */
+    enum Bar { TAB_BAR_BACKGROUND, NAV_BAR_BACKGROUND }
+
+    /**
+     * The navigation area on Android 15 and newer. In dark mode the tab bar sets the window's
+     * navigation bar colour for every tab from the Video tab's #252728 resource, and with three-button
+     * navigation the system draws that colour at 80% over Facebook's own navigation bar view. Both
+     * layers take the palette colour the tab bar above them takes, so the strip is the tab bar's
+     * colour. Light mode keeps Facebook's, and with AMOLED the black stays.
+     */
+    @Test
+    public void theNavigationAreaTakesTheTabBarsColourInDarkMode() {
+        Context context = ColourResources.context(Collections.singletonMap(ColourResources.VIDEO_BAR, 0xFF252728));
+        int tabBar = MaterialYouTheme.fds(0xFF252728, Bar.TAB_BAR_BACKGROUND);
+        int view = MaterialYouTheme.fds(0xFF252728, Bar.NAV_BAR_BACKGROUND);
+        int window = MaterialYouTheme.getColor(context, ColourResources.VIDEO_BAR, false);
+
+        assertNotEquals("the tab bar kept Facebook's grey", 0xFF252728, tabBar);
+        assertEquals("Facebook's navigation bar view", tabBar, view);
+        assertEquals("the window's navigation bar colour", tabBar, window);
+        assertEquals("the strip", tabBar, overAt80(window, view));
+        // The S22's reading with the read left alone, the tab bar at (37,38,44): (37,39,41).
+        assertEquals(0xFF252729, overAt80(0xFF252728, 0xFF25262C));
+
+        DarkMode.answer(false);
+        assertEquals("light mode", 0xFF252728, MaterialYouTheme.getColor(context, ColourResources.VIDEO_BAR, false));
+        DarkMode.answer(true);
+        Context amoled = ColourResources.context(Collections.singletonMap(ColourResources.VIDEO_BAR, 0xFF000000));
+        assertEquals("AMOLED's black", 0xFF000000, MaterialYouTheme.getColor(amoled, ColourResources.VIDEO_BAR, true));
+    }
+
+    /** DecorView's navigation bar scrim on Android 15 and newer: the bar's colour at alpha 0xCC over {@code below}. */
+    private static int overAt80(int bar, int below) {
+        int out = 0xFF000000;
+        for (int shift = 0; shift <= 16; shift += 8) {
+            int mixed = (((bar >> shift) & 0xFF) * 0xCC + ((below >> shift) & 0xFF) * (0xFF - 0xCC) + 127) / 0xFF;
+            out |= mixed << shift;
+        }
+        return out;
+    }
+
     @Test
     public void facebooksBluesAreBluesAndItsGreysGreys() {
         for (int blue : new int[]{0xFF0866FF, 0xFF1D85FC, 0xFF5AA7FF, 0xFF75B6FF, 0xFFADD5FF, 0xFF3E93F8, 0xFF0064D1, 0xFF00488C, 0xFF1877F2}) {

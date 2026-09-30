@@ -136,12 +136,13 @@
     {
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveControl.java",
-        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveLeftovers.java"
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveLeftovers.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/Mp4Join.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: a running save's notification with its progress and a Cancel button, and the removal of the work files and pending gallery rows a save left when Android ended the process."
+      "changes": "Written for Hushfacebook: a running save's notification with its progress and a Cancel button, the removal of the work files and pending gallery rows a save left when Android ended the process, and the MP4 writer that joins a DASH picture and its sound for the formats MediaMuxer won't write, VP9 always and AV1 before Android 14, by copying the fragments' boxes and samples into one plain MP4."
     },
     {
       "paths": [
@@ -268,6 +269,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/resignedtrust/MessengerLinkAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the anchors and stub fills behind the Debug logging test of a same-key Messenger's link, which finds Facebook's message expiration flag reader and one of its Context-to-session lookups on Facebook 577 and 580 and has the extension call them on request."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/emoji/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/emoji/**"
       ],
@@ -284,7 +294,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the tab Facebook opens on. The patch checks that Facebook 577 and 580 still pick the main screen's start tab from an intent's target_tab_id, by the one method that answers a tab id from that extra, and puts the extension first in the onCreate the main screen inherits. For a start from the launcher icon with nothing to restore, the extension hands the screen a copy of its intent asking for the chosen tab's id, the id each kept TabTag subclass hands TabTag, and leaves links, notifications, shortcuts and restored screens alone. Marketplace only is written here too: it asks the extension right after Facebook's hidden-tab set answers for each configured tab, in the one static method that builds the tab bar's shown tabs from NavigationConfig's list, so Home, Video, Friends, Feeds, Groups, Gaming and Events go the way a tab hidden in Facebook's own editor does."
+      "changes": "Written for Hushfacebook: the tab Facebook opens on. The patch checks that Facebook 577 and 580 still pick the main screen's start tab from an intent's target_tab_id, by the one method that answers a tab id from that extra, and puts the extension first in the onCreate the main screen inherits. For a start from the launcher icon with nothing to restore, the extension hands the screen a copy of its intent asking for the chosen tab's id, the id each kept TabTag subclass hands TabTag, and leaves links, notifications, shortcuts and restored screens alone. Marketplace only is written here too: it asks the extension right after Facebook's hidden-tab set answers for each configured tab, in the one static method that builds the tab bar's shown tabs from NavigationConfig's list, so Home, Video, Friends, Feeds, Groups, Gaming and Events go the way a tab hidden in Facebook's own editor does. Hide the Reels tab is written here too: it shares that one call, a tab bar filter both patches depend on, and drops only WatchTab, the one TabTag class 577 and 580 keep for the tab accounts call Reels or Video, leaving a tab Facebook's own set already hides to Facebook. A start sent to the hidden tab asks for Home instead."
     },
     {
       "paths": [
@@ -382,13 +392,15 @@
     {
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceAdFilter.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplaceSearchAds.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/HideSponsoredMarketplaceListingsPatch.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceRequestAnchors.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceRequestAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceResponseAnchors.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the ads in Marketplace's feed. Facebook 577 and 580 draw Marketplace with React Native, and its Relay queries go out through Facebook's own Networking module, whose sendRequest is the one method holding FBNetworkingModule_React_Native. It reads a POST body from the request data's string entry into a StringEntity, and the query's tracking name (RelayFBNetwork_ and the query's name) from the same data. The patch hands the body and the data to the extension right after that read. For a Marketplace query whose form-encoded variables name shouldSkipAdRequest or shouldSkipBoostedListingAdRequest at their top level as false or null, the extension sets them to true and changes nothing else. For the four ads-only queries Facebook's own Tigon callbacks list (MarketplaceHomeFeedAdsQueryRendererQuery, MarketplaceHomeFeedAdsPaginationQuery, MarketplaceHomeFeedBoostedListingAdsQuery and MarketplaceHomeFeedBoostedListingAdsPaginationQuery) it answers no body, which the module reports to JavaScript as a request it couldn't make."
+      "changes": "Written for Hushfacebook: the ads in Marketplace's feed. Facebook 577 and 580 draw Marketplace with React Native, and its Relay queries go out through Facebook's own Networking module, whose sendRequest is the one method holding FBNetworkingModule_React_Native. It reads a POST body from the request data's string entry into a StringEntity, and the query's tracking name (RelayFBNetwork_ and the query's name) from the same data. The patch hands the body and the data to the extension right after that read. For a Marketplace query whose form-encoded variables name shouldSkipAdRequest or shouldSkipBoostedListingAdRequest at their top level as false or null, the extension sets them to true and changes nothing else. For the four ads-only queries Facebook's own Tigon callbacks list (MarketplaceHomeFeedAdsQueryRendererQuery, MarketplaceHomeFeedAdsPaginationQuery, MarketplaceHomeFeedBoostedListingAdsQuery and MarketplaceHomeFeedBoostedListingAdsPaginationQuery) it answers no body, which the module reports to JavaScript as a request it couldn't make. Marketplace search's results query names neither variable and has no ads-only query, so its ads come back among the listings. The module's answers reach JavaScript through the kept FBTigonRequest$FBTigonCallbacks: onBody hands each piece of text, a toString() result, to React Native's didReceiveNetworkIncrementalData emitter and onEOM hands a whole one to didReceiveNetworkData, each with the request's state at hand, which sendRequest builds with the tracking name in one String field. The patch reads that field and hands the text, the name and the state to the extension right where the text lands. For a Marketplace query with Search in its name, other than the typeahead and mutations, the extension reads each whole JSON payload and takes out a result whose node's type ends in AdStory or that carries a sponsored_data object with an ad id, moving later streamed and deferred indices of its list down past the ads taken out. A streamed ad gives way to a payload with null data that keeps its extensions. A payload that fails to be read goes on as it came, and after it nothing more is taken out while later indices still move. Right before onEOM reports an answer complete through didCompleteNetworkResponse, the patch asks the extension for text still waiting for a payload to finish and hands it to the incremental emitter as one last piece."
     },
     {
       "paths": [
@@ -433,6 +445,40 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the switch on liking a reel or a video with a double tap. The patch finds, in Facebook 577 and 580, the reel like helper by its kept trace FbShortsMutationUtil.mutateViewerLikeReaction, its double-tap like as its one instance method taking two objects and a boolean, GestureReactionComponent by the name its constructor gives it, that component's gesture view through onCreateMountContent, the view's heart by the shortFormVideoUnit key it logs, and the feed attachment's own double tap as the one onDoubleTap animating translationY. It hands the extension the gesture view's double-tap handler after every read of it, the double-tap like's key for the reel, the helper like's source and the attachment's double tap. While the switch is on the extension answers that there's no handler and no key, holds back a like whose source is DOUBLE_TAP and leaves the attachment's double tap unhandled, and otherwise hands back what Facebook handed over."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/ReelSpeed.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/KeepReelSpeedPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/reelspeed/ReelSpeedAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: keep the reel speed. The patch finds, in Facebook 577 and 580, FbGrootPlayer by its play trace, then its speed setter as the one instance (F)V method reading HeroPlayerSetting.enableLastPlaybackSpeedCacheUpdate, its PlayerOrigin getter as the one method answering a PlayerOrigin, its bind by its bindVideoSources trace and its kept-name maybeTrackVideoStart, and the Reels menu's speed toast as the one static (Context, float) method holding InlinePlaybackSpeedAttributeSelector. The setter, the bind, the start and the toast hand the extension their arguments first thing, and the extension's stubs are filled with the setter and the origin getter. The extension keeps a speed picked in the Reels menu, in memory only, with the origin of the player it was set on, and sets it on the first start after each bind of a player with that origin."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/ReelHold.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/hold/HoldReelFor2xPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/hold/ReelHoldAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: hold a reel for 2x, using the hold-to-speed-up Facebook's Reels controls already have behind server flags. The patch finds, in Facebook 577 and 580, the long-press handlers as the lambdas keeping $shouldDispatchLongPressEventDirectly and $immersiveFeedPlayerConfig and holding \"speed_up\", the release listeners as the lambdas keeping $isInLongPress2xPlaybackSpeed and that config, the speed-up flag as the one flag the handlers ask the config, the release flag as the one the listeners ask straight before it, the renders of FbShortsVideoControlComponent and FbShortsViewerOverlayComponent that make those lambdas, the edge check as the one method of its shape the handlers call, and FbFragmentActivity.dispatchTouchEvent. Each flag answer the handlers, the listeners and the renders take, and each answer of the edge check, goes through the extension, which says yes while the switch is on, the listeners' yes only until a lift they hear after a hold, which it tells from the touches it reads. The hold speed both speed-ups read goes through the extension too, which makes one no faster than normal 2x. FbGrootPlayer's speed setter hands the extension the player and the speed first thing and goes on with the speed it answers, and the extension's stub is filled with the player's speed getter, the one the listeners read, so a hold's lift puts back the speed the reel played at before the hold."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/PlaybackQuality.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/QualityChoice.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/DefaultPlaybackQualityPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/QualityAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the quality videos play at, an idea De-Vanced also has, written from Facebook's own code. The patch finds, in Facebook 577 and 580, the DASH format evaluator as the class of the one (String)V call in the method holding HeroServicePlayer.setCustomQualityInternal, built with an AbrContextAwareConfiguration; that custom-quality setter's array of tracks and the static method and field it reads a track's label with; and the String field the evaluator hands its own setter at its first choice, its preselected label. The setter asks the extension first with its label, the constructor tells it about the evaluator before each return, and the extension's stubs are filled with the preselected label, the tracks and a track's label. While the switch is on and a quality is chosen, the extension leaves a marker as the preselected label of an evaluator Facebook gave none, and turns it into the label of the track the chosen quality plays when the setter gets it."
     }
   ]
 }

@@ -69,7 +69,9 @@ import java.util.function.BooleanSupplier;
 
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
+import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.WorkerPoolForTests;
@@ -155,6 +157,7 @@ public class SettingsBackupTest {
         Settings.FILENAME_TEMPLATE.resetToDefault();
         Settings.START_TAB.resetToDefault();
         Settings.COMMENT_ORDER.resetToDefault();
+        Settings.PLAYBACK_QUALITY.resetToDefault();
         Settings.HIDDEN_WORDS.resetToDefault();
         Settings.KEPT_WORDS.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
@@ -200,8 +203,8 @@ public class SettingsBackupTest {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
         assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.SAVE_FOLDER,
-                Settings.DOWNLOAD_QUALITY, Settings.FILENAME_TEMPLATE, Settings.START_TAB, Settings.COMMENT_ORDER),
-                SettingsBackup.VALUES);
+                Settings.DOWNLOAD_QUALITY, Settings.FILENAME_TEMPLATE, Settings.START_TAB, Settings.COMMENT_ORDER,
+                Settings.PLAYBACK_QUALITY), SettingsBackup.VALUES);
         assertEquals(Settings.HIDDEN_WORDS, SettingsBackup.HIDDEN);
         assertEquals(Settings.KEPT_WORDS, SettingsBackup.KEPT);
         assertEquals(Settings.SAVE_FOLDER, SettingsBackup.FOLDER);
@@ -209,6 +212,7 @@ public class SettingsBackupTest {
         assertEquals(Settings.FILENAME_TEMPLATE, SettingsBackup.FILE_NAME);
         assertEquals(Settings.START_TAB, SettingsBackup.START);
         assertEquals(Settings.COMMENT_ORDER, SettingsBackup.ORDER);
+        assertEquals(Settings.PLAYBACK_QUALITY, SettingsBackup.PLAYBACK);
     }
 
     @Test
@@ -1096,6 +1100,89 @@ public class SettingsBackupTest {
         }
         assertEquals("Settings imported. Comments will open in the order Facebook picks.",
                 SettingsBackupPreference.importedMessage(0, null, null, null, null, CommentOrder.FACEBOOK));
+    }
+
+    /**
+     * The quality videos play at goes out as its file value and comes back only as one this build
+     * offers: any other value, or one that isn't text, refuses the whole file.
+     */
+    @Test
+    public void thePlaybackQualityRoundTripsAndComesBackOnlyAsOneThisBuildOffers() throws Exception {
+        for (PlaybackQuality quality : PlaybackQuality.values()) {
+            Settings.PLAYBACK_QUALITY.save(quality);
+            String file = SettingsBackup.create();
+            assertEquals(quality.fileValue, new JSONObject(file).getJSONObject("settings").get(SettingsBackup.PLAYBACK.key));
+            Settings.PLAYBACK_QUALITY.save(quality == PlaybackQuality.P720 ? PlaybackQuality.AUTO : PlaybackQuality.P720);
+
+            SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+            assertEquals(quality, snapshot.playback);
+            assertEquals(quality, snapshot.playbackChange());
+            assertEquals(0, snapshot.switchChanges());
+            assertEquals(Collections.singletonMap(SettingsBackup.PLAYBACK, quality), snapshot.changes());
+            assertEquals(1, SettingsBackup.apply(snapshot));
+            assertEquals(quality, Settings.PLAYBACK_QUALITY.savedValue());
+            assertEquals("a file read back is the file", file, SettingsBackup.create());
+            assertEquals("the same quality again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        }
+
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.DATA_SAVER);
+        String file = SettingsBackup.create();
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"DATA_SAVER", "Data saver", "480", " 720p", "", "1080p", 720, true,
+                JSONObject.NULL, new JSONObject(), new org.json.JSONArray()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.PLAYBACK.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the playback quality " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        // A file from before the quality was carried leaves it alone.
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.playback);
+        assertNull(older.playbackChange());
+        SettingsBackup.apply(older);
+        assertEquals(PlaybackQuality.DATA_SAVER, Settings.PLAYBACK_QUALITY.savedValue());
+
+        // A preview kept across a rebuild keeps its quality, and only one this build offers comes back.
+        Bundle state = SettingsBackup.parse(file).toBundle();
+        assertEquals(PlaybackQuality.DATA_SAVER, SettingsBackup.Snapshot.fromBundle(state).playback);
+        state.putString("playback_quality", "DATA_SAVER");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).playback);
+        state.putInt("playback_quality", 3);
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).playback);
+    }
+
+    /** A file that changes the playback quality says what videos will play at, before and after. */
+    @Test
+    public void importOfAPlaybackQualitySaysWhatVideosWillPlayAt() throws Exception {
+        JSONObject file = new JSONObject(fileWith(Settings.DOWNLOAD_REELS, false));
+        file.getJSONObject("settings").put(SettingsBackup.PLAYBACK.key, "720p")
+                .put(SettingsBackup.ORDER.key, "newest");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushfacebookPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file.toString());
+            AlertDialog preview = shownPreview();
+            String order = "Comments will open with Newest picked in their sort menu.";
+            String quality = "Playback quality will be set to Up to " + L10n.isolate("720p") + ".";
+            assertEquals("1 switch will change.\n\n" + order + "\n\n" + quality,
+                    String.valueOf(shadowOf(preview).getMessage()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported. 1 switch changed. " + order + " " + quality,
+                    ShadowToast.getTextOfLatestToast());
+            assertEquals(PlaybackQuality.P720, Settings.PLAYBACK_QUALITY.savedValue());
+            assertEquals("the playback quality row still shows the old quality",
+                    HushfacebookPreferenceFragment.playbackQualitySummary(PlaybackQuality.P720),
+                    String.valueOf(page.findPreference(Settings.PLAYBACK_QUALITY.key).getSummary()));
+        }
+        assertEquals("Settings imported. Facebook will pick the quality videos play at.",
+                SettingsBackupPreference.importedMessage(0, null, null, null, null, null, null, null, PlaybackQuality.AUTO));
     }
 
     /** A file that changes the start tab says where Facebook will open, before and after. */

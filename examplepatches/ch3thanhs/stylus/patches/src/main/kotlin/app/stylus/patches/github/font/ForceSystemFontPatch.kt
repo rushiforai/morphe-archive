@@ -33,7 +33,7 @@ code,
 tt,
 kbd,
 samp {
-    font-family: monospace;
+    font-family: var(--code-font);
 }
 """.trimIndent() + "\n"
         )

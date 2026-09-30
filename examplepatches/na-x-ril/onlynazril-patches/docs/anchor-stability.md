@@ -47,6 +47,12 @@ The full dump of the comment component — class, views, layout, ids — is in
 | `SettingsComposeRvmpFragment` rows-sort | the order of the settings rows | structural: a `V` method that calls a `(Comparator, Iterable) -> List` helper | falls back to the `defaultState` branch |
 | `AdPersonalizationActivity#onCreate/onBackPressed` | the host of the Tweaks screen | real-named activity | patch fails |
 | the row's icon | the gear glyph | **no APK anchor**: the extension resolves a drawable by name (`cog`), falling back to `android.R.drawable.ic_menu_preferences` | falls back to the framework icon |
+| `IFeedApi#fetchFeedList` (the class implementing it) | the feed filter's hook, at the page's return | structural: the one class implementing `com.ss.android.ugc.aweme.feed.cache.IFeedApi` whose single-parameter method returns the page and has a body. The names are real today (`feed.FeedApiService#fetchFeedList`) but are not the anchor | the patch fails (`expected one implementation …`) |
+| `FeedItemList#setItems(List)` | the feed filter's second hook: every list stored as a page's items | real-named model accessor, and the method's write to the `items` field is checked too | the patch fails (`FeedItemList#setItems was not found`) |
+| `FeedItemList#clone()` | the feed filter's third hook: the copy of a page, whose `items` is written directly | real-named model accessor; the one write to `items` that is not a setter call | the patch fails (`FeedItemList#clone was not found`) |
+| the pager's item model, and the storage behind its list contract | the feed filter's fourth hook, where the items the feed renders are kept | structural: the class carrying `getItems`/`getListCount`/`insertItemList`/`setItems` that no other such class sits above, then the contract its `getItems` calls, then that contract's implementations — no obfuscated name is written down | the patch fails, naming the candidates it found |
+| `Aweme#isAd`, `#isSoftAd`, `#isWithPromotionalMusic`, `#getAwemeRawAd` | what the ad filter drops | real-named flags and payload read by the extension through reflection, so checked here | that signal stops matching (the item is kept) |
+| `Aweme#getStatistics` → `AwemeStatistics#getPlayCount` / `#getDiggCount` | the view and like ranges | real-named getters, same reading | that count stops filtering (the item is kept, never dropped wrongly) |
 
 ## Surfaces (where the stamp appears)
 
@@ -173,6 +179,79 @@ Two earlier attempts failed in ways worth recording, because both were reasonabl
   list's cell every view id is obfuscated as well (`epa`, `n76`, …), so there was nothing to look it
   up by either. Reading the region from the comment removes both dependencies.
 
+## Feed filter
+
+Four places, because a page's items are written, copied and re-stored before the feed shows them.
+
+1. **The fetch's return** — `com.ss.android.ugc.aweme.feed.FeedApiService#fetchFeedList` on 47.0.3.
+   The chain is `FeedApiService#fetchFeedList → FeedApi#LIZIZ → FeedApi#LIZ`, and `LIZIZ` is what
+   reads the page's `hasAd` and `preloadAds`, so the page seen here already carries the merged ads.
+2. **`FeedItemList#setItems`** — every list stored as a page's items, filtered on entry.
+3. **`FeedItemList#clone`** — the copy, filtered before it returns.
+4. **The pager's list storage** — the list the feed renders from, of which the page's `items` is only
+   a snapshot.
+
+Hooks 1–3 did not hold on their own. `X.07zq#getData` sets a page's items three times — the parsed
+list, the clone, then the model's own list — and the last overwrites everything the first two
+removed. The items have to be stopped where they enter the model's storage.
+
+That storage is reached without writing an obfuscated name down. The pager model is the class
+carrying `getItems` / `getListCount` / `insertItemList` / `setItems` that no other such class sits
+above; its `getItems` calls exactly one method, and that method's owner is the list contract; the
+contract's implementations that take a list are the storage. Every void method there that takes a
+`java.util.List` is hooked — `setData`, `LJ`, `cw` on 47.0.3 — because the storage is filled by
+additions and not by the setter alone (the setter carried 2 of 200 calls in a session).
+
+**Filtering the read is wrong, and was tried.** Removing from the list `getItems` returns shrinks
+what the pager counts, so its positions shift and it runs to *No more results* while items remain —
+the loading spinner after every few scrolls is that, not TikTok's paging. A drop only belongs where
+no position holds the item yet.
+
+The hooks do not hand over the same shape, and the extension accepts both: the fetch and the copy
+pass a page, the setter and the storage pass a bare list.
+
+A further path is still open and only a device can close it: a page served from the preload task or
+the `X.04MJ` static without any of those writes. The census line says which happened — `ads=0` with
+`preload=` above zero means the ad came from a slot the page did not carry in `items`.
+
+**Read the outcome off the screen, not the log.** The Tweaks screen's About section prints the build
+marker and the filter's own tally, and tapping it copies the block (build, tally, log path) while
+writing the same block to the log:
+
+```
+Build b7
+Feed filter: 188 call(s), 123 dropped · items=6 removed=1 ads=0 likes[10000..MAX]=1 unreadCounts=1 preload=-1 dropped=[likes=17913]
+Log: /sdcard/Android/data/com.zhiliaoapp.musically/files/tiktokhandle.log
+```
+
+A count filter carries its bound in the line, so a drop and the reason for it are read together:
+`dropped=[likes=17913]` under `likes[10000..MAX]` says the item was *kept* by that bound, and under
+`likes[50000..MAX]` says it was dropped by it. Without the bound the line records that something went
+and not why — which is the one thing a report has to settle. `unreadCounts` is how many items had no
+statistics at all; those are kept. If the tally says `no list seen this run` after scrolling, no hook
+ran, which is a different fault from "it ran and matched nothing".
+
+**The log spends its lines on actions, not on arrival order.** A line is written for every call that
+dropped something (up to 100 a session), and only the first few calls that dropped nothing (6). A
+budget spent in order instead goes on the cold start's two-item pages, which is exactly what left
+123 drops unrecorded before this.
+
+All three are gated in the extension, so a build with every switch off pays three calls per page.
+
+What the predicates are, and which of them the app no longer has, is in the table above; the
+`FeedApiProbe` run that produced that list is `tools/dexprobe/run.sh FeedApiProbe "<apk>"`.
+
+A counter that cannot be read — an ad has no statistics, an item may not have its count yet — is
+kept, never dropped: the range only ever hides a video whose count is known and outside it. The two
+count filters have no switch of their own: the range *is* the switch, since a full `0..MAX` range
+hides nothing and a stored flag beside it could only disagree with what the screen shows.
+
+An ad is taken out on any of four signals — `isAd`, `isSoftAd`, `isWithPromotionalMusic`, or a
+non-null `awemeRawAd` — because the app does not use one for every unit. The census line reports
+each filter separately, so an ad that survives says which of two things happened: the page never
+carried it (`ads=0`, look at `preload=` and the insert path), or it carried it and no signal held
+(then a fifth signal is what is missing, not the hook).
+
 ## The trail on a device
 
 Everything goes through `Debug.print` — three channels (`System.out`, `Log.w`, and a file), prefix
@@ -187,6 +266,8 @@ one session cannot flood the log:
 | `name region: @x model=... -> ID (from account\|bound\|nothing)` | the region for a surface other than the feed, the model's raw value (`'ID'`, `null (declared, unset)`, or `absent (no getter or field)`), and **where** the answer came from (max 12) |
 | `comment time region: ...` | the outcome of writing the region into a comment's time view: written, no comment, that commenter has no region, or the time text is empty (max 12) |
 | `header item: author=... createTime=... base='...' -> '...'` | one feed header render: the item's values against what was drawn (max 12) |
+| `feedfilter: items=N removed=R ads=A likes[M..MAX]=L … dropped=[…]` | one list: how many items it held, how many each filter removed (each count filter with the bound it enforced), how many had no readable statistics, how many ad slots the page carried, and the reason for the first few drops. Written for every call that dropped something (max 100) and the first few that did not (6) |
+| `state: Build bN … Log: <path>` | the About block, written when it is tapped for copying |
 | `file sink: <path>` | where the log file went, once per process |
 
 Reading order for "the region in comments is not what I expected": `name region` first (is the value

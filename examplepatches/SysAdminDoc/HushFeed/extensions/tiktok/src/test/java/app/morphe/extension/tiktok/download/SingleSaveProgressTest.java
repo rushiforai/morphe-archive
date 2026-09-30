@@ -194,7 +194,7 @@ public class SingleSaveProgressTest {
             View line = null;
             for (int index = 0; index < root.getChildCount(); index++) {
                 View child = root.getChildAt(index);
-                if ("hushfeed_save_waiting".equals(child.getTag())) line = child;
+                if ("hushfeed_save_waiting_row".equals(child.getTag())) line = child;
                 if (!"hushfeed_save_progress".equals(child.getTag())) continue;
                 if (child.getVisibility() == View.VISIBLE) shown.add(child);
                 else hidden++;
@@ -202,7 +202,8 @@ public class SingleSaveProgressTest {
             assertEquals("rows in sight", SaveProgress.MAX_ROWS, shown.size());
             assertEquals("rows out of sight", 2, hidden);
             assertNotNull("nothing counts the rows out of sight", line);
-            assertEquals("2 more saves waiting", ((TextView) line).getText().toString());
+            assertEquals("2 more saves waiting",
+                    ((TextView) line.findViewWithTag("hushfeed_save_waiting")).getText().toString());
             shown.sort((a, b) -> Integer.compare(b.getTop(), a.getTop()));
             for (int index = 1; index < shown.size(); index++) {
                 assertTrue("row " + index + " overlaps the row below it",
@@ -276,7 +277,7 @@ public class SingleSaveProgressTest {
     }
 
     private static HttpURLConnection response(URL url, byte[] body, int length) {
-        return new HttpURLConnection(url) {
+        return new FakeHttpsConnection(url) {
             @Override public int getResponseCode() { return 200; }
             @Override public String getHeaderField(String name) {
                 return "Content-Length".equalsIgnoreCase(name) && length >= 0 ? String.valueOf(length) : null;

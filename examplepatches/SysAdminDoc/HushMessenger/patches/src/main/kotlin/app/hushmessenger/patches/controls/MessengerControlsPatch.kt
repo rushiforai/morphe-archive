@@ -15,7 +15,7 @@ internal fun Document.addSettingsEntry() {
     val applications = getElementsByTagName("application")
     if (applications.length != 1) throw PatchException("Messenger controls: expected one application")
     val application = applications.item(0) as Element
-    for (tag in listOf("activity", "provider")) {
+    for (tag in listOf("activity", "activity-alias", "provider")) {
         val nodes = getElementsByTagName(tag)
         for (i in 0 until nodes.length) {
             if ((nodes.item(i) as Element).getAttribute("android:name").startsWith("app.hushmessenger.extension.")) {
@@ -29,10 +29,14 @@ internal fun Document.addSettingsEntry() {
     }
     application.child("provider", "name" to "app.hushmessenger.extension.SettingsProvider",
         "authorities" to "com.facebook.orca.hush.settings", "exported" to "false")
-    val activity = application.child("activity", "name" to "app.hushmessenger.extension.SettingsActivity",
+    application.child("activity", "name" to "app.hushmessenger.extension.SettingsActivity",
         "label" to "HushMessenger settings", "exported" to "true",
         "icon" to "@android:drawable/ic_menu_preferences", "taskAffinity" to "app.hushmessenger.settings")
-    val filter = activity.child("intent-filter")
+    // The app drawer entry is an alias, so settings can hide it while the shortcuts and Menu tab row keep working.
+    val launcher = application.child("activity-alias", "name" to "app.hushmessenger.extension.SettingsLauncher",
+        "targetActivity" to "app.hushmessenger.extension.SettingsActivity", "label" to "HushMessenger settings",
+        "icon" to "@android:drawable/ic_menu_preferences", "exported" to "true")
+    val filter = launcher.child("intent-filter")
     filter.child("action", "name" to "android.intent.action.MAIN")
     filter.child("category", "name" to "android.intent.category.LAUNCHER")
     // Launcher shortcuts start it as Messenger itself, so no other app needs a way to kill the process.
@@ -65,11 +69,15 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
     dependsOn(settingsResources)
     extendWith("extensions/messenger.mpe")
     execute {
+        activeProfile = controlProfileFor(packageMetadata.versionCode)
         val classes = mutableListOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
         classDefForEach { classes.add(it) }
         discoveredControls = findControls(classes)
     }
-    finalize { discoveredControls = emptyMap() }
+    finalize {
+        discoveredControls = emptyMap()
+        activeProfile = BASE_PROFILE
+    }
 }
 
 private fun Document.requireFeatureAbsent(key: String): Element {
@@ -103,7 +111,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "unsent_indicator" -> method.validateUnsentIndicator()
             "delta_unsent" -> method.validateDeltaUnsent()
             "emoji_typeface" -> method.validateScratch()
-            "avatar_tabs" -> method.validateKeyboardTabs()
+            "avatar_tabs" -> if (method.returnType == "V") method.validateKeyboardTabsInline() else method.validateKeyboardTabs()
             "typing_mailbox" -> method.validateOutgoingTyping()
             else -> method.validateSwitch()
         }
@@ -125,7 +133,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "unsent_indicator" -> method.injectUnsentIndicator()
             "delta_unsent" -> method.injectDeltaUnsent()
             "emoji_typeface" -> method.injectEmojiTypeface()
-            "avatar_tabs" -> method.injectKeyboardTabs()
+            "avatar_tabs" -> if (method.returnType == "V") method.injectKeyboardTabsInline() else method.injectKeyboardTabs()
             "typing_mailbox" -> method.injectOutgoingTyping()
             else -> method.injectFeatureSwitch(key)
         }
@@ -209,7 +217,7 @@ val enableBubblesPatch = controlPatch("bubbles", "Allow chat bubbles", "Removes 
 @Suppress("unused")
 val useSystemEmojiPatch = controlPatch("use_system_emoji", "Use system emoji", "Renders emoji with the phone's own font instead of Messenger's.", "Conversations", "emoji_typeface")
 @Suppress("unused")
-val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Removes screenshot restrictions in vanish mode and E2EE chats.", "Privacy")
+val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Lets you screenshot photos, media and video Messenger protects in a chat, and stops screenshot notices. View-once media stays protected.", "Privacy")
 @Suppress("unused")
 val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Suppresses your outgoing read receipt. In end-to-end encrypted chats, chats you open stay unread until you reply.", "Privacy", "hide_read_receipts", "read_mailbox")
 @Suppress("unused")

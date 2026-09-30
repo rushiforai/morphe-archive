@@ -15,15 +15,15 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.1](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.8.0](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
 <summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 🧪&nbsp;446.0.0.49.77 | 439.0.0.37.89 |
-| :---: | :---: |
+| 449.0.0.52.84 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -36,12 +36,12 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Hide Instants](#hide-instants) | Hides Instants from DMs page. |  |
 | [Hide Threads profile button](#hide-threads-profile-button) | Hides the Threads button from the profile page action bar (top right of the profile page). |  |
 | [Hide ads](#hide-ads) | Hides ads in the feed. |  |
-| [Hide suggested content](#hide-suggested-content) | Choose the suggested content to hide using the patch options. | • Hide suggested reels<br>• Hide suggested stories<br>• Hide highlights in stories<br>• Hide suggested accounts |
+| [Hide suggested content](#hide-suggested-content) | Hides suggested reels and suggested accounts. Suggested stories are hidden by Filter stories. | • Hide suggested reels<br>• Hide suggested accounts |
 | [Improve image viewing](#improve-image-viewing) | Requests the maximum resolution images from the server. |  |
 | [Make ephemeral media permanent](#make-ephemeral-media-permanent) | Changes unexpired view once, view twice media to permanent view. |  |
 | [Open links externally](#open-links-externally) | Opens links in the system browser instead of the in-app browser. |  |
 | [Sanitize share links](#sanitize-share-links) | Removes tracking parameters from links shared out of the app. |  |
-| [Save deleted messages](#save-deleted-messages) | Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them. |  |
+| [Save deleted messages](#save-deleted-messages) | Keeps a local copy of incoming DMs so ones the sender deletes stay readable. Messages are stored unencrypted in the app's private storage. | • Days to keep messages |
 
 </details>
 
@@ -75,6 +75,26 @@ GITHUB_ACTOR=<username> GITHUB_TOKEN=<token> ./gradlew build
 ```
 
 Or put `gpr.user` and `gpr.key` in `~/.gradle/gradle.properties`.
+
+## 🧪 Testing
+
+`./gradlew :patches:test` checks the bundle itself and runs on every pull request.
+
+The patches only mean something against the app builds they target, so the main tests apply
+them to real APKs, which are not in the repository:
+
+```sh
+./gradlew :patches:apkTest -Pmorphe.apks=instagram=<base.apk or .apkm>,reddit=<base.apk or .apkm>
+```
+
+This applies every patch for each app and fails when a patch throws, when a fingerprint
+matches anything but exactly one method, or when patched code refers to a method or field
+that does not exist. Add `-Pmorphe.isolated=true` to also apply each patch on its own, which
+catches a patch that only works because another one was selected with it.
+
+The patched APKs are left in `patches/build/patched`. `scripts/verify-dex.sh` runs ART's
+verifier over one on a rooted emulator, which catches register and type mistakes that only
+fail when the app loads the class.
 
 ## 📜 License
 

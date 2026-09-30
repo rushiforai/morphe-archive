@@ -122,6 +122,22 @@ public class FeedFilterCountersTest {
         assertTrue(detail, detail.startsWith("ProfileDetailAdEvent: 1 lists, 3 items, 1 removed"));
     }
 
+    @Test public void eachCacheRouteHasALineOfItsOwn() {
+        // The cache chain, the play-lag insert and the reach-bottom delivery hand over one cached
+        // video at a time through a check that counted nothing, so no report ever had a line for
+        // them: exactly the "never ran" the table is there to rule out.
+        assertTrue(FeedItemsFilter.shouldKeepChainedCache(video(false)));
+        assertTrue(FeedItemsFilter.shouldKeepNormalizedCache(video(false)));
+        assertFalse(FeedItemsFilter.shouldKeepPlayLagCache(video(true)));
+        assertTrue(FeedItemsFilter.shouldKeepReachBottomCache(null));
+
+        assertEquals("CachedItem:cache-chain: 1 lists, 1 items, 0 removed", lineFor("CachedItem:cache-chain"));
+        assertEquals("CachedItem:cache-result: 1 lists, 1 items, 0 removed", lineFor("CachedItem:cache-result"));
+        String lag = lineFor("CachedItem:play-lag");
+        assertTrue(lag, lag != null && lag.startsWith("CachedItem:play-lag: 1 lists, 1 items, 1 removed"));
+        assertEquals("CachedItem:reach-bottom: 1 lists, 0 items, 0 removed", lineFor("CachedItem:reach-bottom"));
+    }
+
     @Test public void theMidRollSpliceIsRefusedAndCountedOnItsOwnLine() {
         // Issue #2's ads never appeared in any list: the mid-roll component swaps an ad into
         // the pager adapter directly, after every list hook has run. The export has to say the

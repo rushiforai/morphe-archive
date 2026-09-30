@@ -13,11 +13,13 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 val originalSoundDataIntfEntity =
     bytecodePatch(
         description = "This patch is used for decoding obfuscated code of Original sound data interface",
     ) {
+        dependsOn(instagramExtensionPatch)
         execute {
             OriginalSoundMapperFingerprint.apply {
                 val audioIdStrIndex = stringMatches[0].index

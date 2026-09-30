@@ -55,6 +55,7 @@ public class InputCheckTest {
             }
         }
         Settings.BLOCKED_CREATORS.save("");
+        Settings.BLOCKED_SOUND_IDS.save("");
         Settings.BLOCKED_CAPTION_WORDS.save("");
         Settings.SIMSPOOF_MCCMNC.save(Settings.SIMSPOOF_MCCMNC.defaultValue);
         Settings.EXTERNAL_DOWNLOADER_PACKAGE.save("");
@@ -415,6 +416,94 @@ public class InputCheckTest {
             assertTrue(field.callChangeListener(""));
             assertTrue(field.callChangeListener("   "));
         });
+    }
+
+    /**
+     * An app name and a host have to match exactly, so the keyboard is told they aren't prose.
+     * Left to treat them as sentences, SwiftKey on the S25 turned com.deniscerri.ytdl into
+     * "Com. Deniscerri. Ytdl", which the check above then refused, and the reader couldn't type
+     * the name at all. Handles, codes, ids, filename templates and speeds are names in the same
+     * sense: a capital or a space after a dot changes what they mean.
+     */
+    @Test public void anAppNameAndAHostAreTypedAsNamesNotSentences() throws Exception {
+        int name = android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_VARIATION_URI
+                | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        String[][] fields = {{"DOWNLOADS", Settings.EXTERNAL_DOWNLOADER_PACKAGE.key},
+                {"PRIVACY", Settings.CUSTOM_SHARE_DOMAIN.key},
+                {"FEED_FILTER", Settings.BLOCKED_CREATORS.key},
+                {"FEED_FILTER", Settings.CREATOR_FILTER_EXCEPTIONS.key},
+                {"FEED_FILTER", Settings.BLOCKED_SOUND_IDS.key},
+                {"FEED_FILTER", Settings.REGION_ONLY_FROM.key},
+                {"FEED_FILTER", Settings.REGION_NEVER_FROM.key},
+                {"FEED_FILTER", Settings.CAPTION_LANGUAGES.key},
+                {"COMMENTS", Settings.COMMENT_BLOCKED_USERS.key},
+                {"REGION", Settings.SIM_SPOOF_ISO.key},
+                {"DOWNLOADS", Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.key},
+                {"DOWNLOADS", Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.key},
+                {"DOWNLOADS", Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE.key},
+                {"PLAYBACK", Settings.CUSTOM_SPEEDS.key}};
+        for (String[] where : fields) {
+            onScreen(where[0], where[1], field -> {
+                openDialog(field);
+                assertNotNull(where[1] + ": the dialog did not open", field.getDialog());
+                android.widget.EditText box = field.getEditText();
+                assertTrue(where[1] + ": the field isn't in the dialog",
+                        box.isAttachedToWindow() && box.getRootView() == field.getDialog().getWindow().getDecorView());
+                int type = box.getInputType();
+                assertEquals(where[1] + ": typed as " + Integer.toHexString(type), name, type);
+                assertEquals(where[1] + ": the keyboard is asked to capitalize", 0,
+                        type & (android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+                                | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
+                                | android.text.InputType.TYPE_TEXT_FLAG_AUTO_CORRECT));
+                field.getDialog().dismiss();
+            });
+        }
+    }
+
+    /**
+     * The name keyboard must not make a field single-line. On Android 14 a single-line field
+     * gets a 5,000-character limit that also cuts the text it loads, so a long Blocked creators
+     * list was cut when the dialog opened and the cut copy was saved over it with Save.
+     */
+    @Test @Config(sdk = 34)
+    public void aLongListStaysWholeInANameField() throws Exception {
+        StringBuilder creators = new StringBuilder();
+        StringBuilder sounds = new StringBuilder();
+        for (int i = 0; i < 400; i++) {
+            if (i > 0) { creators.append(", "); sounds.append(", "); }
+            creators.append("creator_handle_").append(i);
+            sounds.append(7_000_000_000_000_000_000L + i);
+        }
+        Object[][] fields = {{Settings.BLOCKED_CREATORS, creators.toString()},
+                {Settings.BLOCKED_SOUND_IDS, sounds.toString()}};
+        for (Object[] field : fields) {
+            app.morphe.extension.shared.settings.StringSetting setting =
+                    (app.morphe.extension.shared.settings.StringSetting) field[0];
+            String value = (String) field[1];
+            assertTrue("the list is too short to test the limit", value.length() > 5000);
+            setting.save(value);
+            onScreen("FEED_FILTER", setting.key, row -> {
+                openDialog(row);
+                android.app.AlertDialog dialog = (android.app.AlertDialog) row.getDialog();
+                assertEquals(setting.key + ": the dialog shows a cut list", value.length(),
+                        row.getEditText().getText().length());
+                dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals(setting.key + ": Save stored a cut list", value, setting.get());
+            });
+        }
+    }
+
+    /** Words and phrases are prose, and there the keyboard's suggestions help. */
+    @Test public void aFieldOfWordsKeepsTheKeyboardsSuggestions() throws Exception {
+        String[][] fields = {{"FEED_FILTER", Settings.BLOCKED_CAPTION_WORDS.key},
+                {"FEED_FILTER", Settings.BLOCKED_SOUND_NAMES.key}};
+        for (String[] where : fields) {
+            onScreen(where[0], where[1], field -> assertEquals(where[1] + " lost its suggestions", 0,
+                    field.getEditText().getInputType()
+                            & android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS));
+        }
     }
 
     @Test public void aCountryCodeThatIsNotOneIsRefusedInTheDialog() throws Exception {

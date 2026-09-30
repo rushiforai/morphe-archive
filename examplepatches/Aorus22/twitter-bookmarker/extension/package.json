@@ -1,0 +1,19 @@
+{
+  "name": "twitter-bookmarker-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome MV3 extension that categorizes X bookmarks into per-category CSV files via a local backend.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"test/*.test.mjs\"",
+    "verify": "node scripts/verify-dist.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

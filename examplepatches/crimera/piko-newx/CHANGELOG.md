@@ -1,3 +1,41 @@
+## [3.45.0](https://github.com/crimera/piko-newx/compare/v3.44.0...v3.45.0) (2026-09-30)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** accept one or two video-tab download handlers ([b827ff3](https://github.com/crimera/piko/commit/b827ff3edc9f4b7b665106d0be6eac6c59f8bacc))
+* **Twitter - newx:** capture fingerprint shapes instead of hidden patcher fields ([95a259e](https://github.com/crimera/piko/commit/95a259e85ad920771de389979bb97623f4171300))
+
+### ✨ New Features
+* **Twitter:** add experimental support for 12.31.0-alpha.02 ([ef85b31](https://github.com/crimera/piko/commit/ef85b31db37bee06e8b912a9a5429111208a4691))
+* **Twitter - newx:** customize media long-press menu items ([5e32171](https://github.com/crimera/piko/commit/5e3217147c7ed96bdbaa0ca62dcd46d8fc81b56a))
+
+### New Patches
+* **Twitter:** NewX: Customize media menu items
+
+## [3.44.0](https://github.com/crimera/piko-newx/compare/v3.43.0...v3.44.0) (2026-09-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** hook the home-nav header state for hide premium upsell ([5505646](https://github.com/crimera/piko/commit/55056469426971b9d8307393733c93bdb680c664))
+* **Twitter - newx:** cast the Coil strong-cache wrapper before its map read ([a6159e3](https://github.com/crimera/piko/commit/a6159e30d1ea9768da35d4b2174832094d85b266))
+* **Twitter - newx:** read Coil's strong-cache map on the 12.30 merge ([9a9f8c0](https://github.com/crimera/piko/commit/9a9f8c0930b65a2486b27497c6cf9e7bef7fa37a))
+
+### ✨ New Features
+* **Twitter - newx:** report thumbnail cache lookup stage and sample keys ([b081e5b](https://github.com/crimera/piko/commit/b081e5b7d27aa1a88a4e2833821be25be208b043))
+
+## [3.43.0](https://github.com/crimera/piko-newx/compare/v3.42.2...v3.43.0) (2026-09-29)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** fingerprint reply facepile lists by parameter provenance ([d3eef3e](https://github.com/crimera/piko/commit/d3eef3edfd9df557b208dbe664fc80b952ca72ce))
+* **Twitter - newx:** resolve the widened Glide LRU map field on 12.30 ([03fec1f](https://github.com/crimera/piko/commit/03fec1fc3fc5cdc47315ee9fef7e41a4683531ad))
+
+### ✨ New Features
+* **Twitter - newx:** redirect native download buttons to the chosen folder ([d4f1cc7](https://github.com/crimera/piko/commit/d4f1cc75301e531412e5a8789cc13cb516ffd0a1))
+
+### 🔧 Improvements
+* **Twitter - newx:** clear resolver anchor backlog and gate the drift rules ([b30b72c](https://github.com/crimera/piko/commit/b30b72cce71ba8f502a9369a01cf2010e2e5cf8b))
+
+### New Patches
+* **Twitter:** NewX: Redirect downloads to chosen folder
+
 ## [3.42.2](https://github.com/crimera/piko-newx/compare/v3.42.1...v3.42.2) (2026-09-28)
 
 ### 🐛 Bug Fixes

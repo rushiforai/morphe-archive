@@ -3,7 +3,7 @@ package app.template.extension.extension;
 import android.util.Log;
 import android.webkit.WebView;
 
-import org.json.JSONException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -13,195 +13,76 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * SortByRatingsHelper — client-side "sort by number of ratings" for
- * Amazon and Flipkart search/listing pages.
+ * Entry points for the "Sort by number of ratings" patches.
  *
- * <p>Neither Amazon nor Flipkart exposes a server-side sort by ratings
- * <em>count</em> (Amazon's {@code s=review-rank} sorts by average rating,
- * Flipkart's {@code sort=popularity} is opaque). So this helper only
- * re-orders the product cards already loaded in the DOM, descending by
- * parsed ratings count. Items with no parseable count sort last, original
- * order is preserved for ties and for restore.
+ * <p>None of the supported shops offers a sort by rating <em>count</em>, so
+ * results are re-ordered client-side, descending by count, unrated last,
+ * ties keep the shop's order. Sponsored items are removed (or, on Amazon,
+ * hidden on demand).
  *
- * <p>Limitations, by design:
  * <ul>
- *   <li>Only sorts what is loaded. Infinite scroll / pagination means you
- *       must scroll to load more first, then re-tap sort.</li>
- *   <li>Sponsored / ad cards are skipped, never re-ordered.</li>
- *   <li>Pure DOM reorder, zero network. Breaks if either site changes its
- *       markup — selectors below will need updating.</li>
+ *   <li><b>Amazon</b> (WebView): {@link AmazonSortScript} re-orders the DOM
+ *       and keeps re-sorting as infinite scroll appends results.</li>
+ *   <li><b>Flipkart, Myntra, Meesho</b>: the JSON response is rewritten
+ *       before the app parses it. Each page is sorted as it arrives, so
+ *       infinite scroll yields sorted pages, not one globally sorted list.</li>
  * </ul>
+ *
+ * <p>Every hook falls back to the original data on any failure.
  */
 public final class SortByRatingsHelper {
 
     private SortByRatingsHelper() {}
 
     private static final String TAG = "MorpheSort";
+    private static final int MEESHO_SORT_PAGE_SIZE = 100;
     private static int sNetworkCalls = 0;
-
-    // Mirror of the ad-card signals used by AmazonHelper so sponsored
-    // cards stay where the site put them.
-    private static final String[] SPONSORED_HINTS = {
-        "AdHolder", "sponsored", "Sponsored", "puis-sponsored-label-text",
-        "p13n-sc-sponsored-label", "dynamicSponsoredLabelClass",
-        "sbv-ad-content-container",
-    };
-
-    private static final String SORT_RATINGS_JS =
-        "function(cfg){"
-        + "var BTN_ID='morphe-sort-ratings';"
-        + "var CARD_SEL=cfg.site==='flipkart'"
-        + "? 'div[data-id],div._1AtVbE,div._13oc-S,div._2kHMtA'"
-        + ": '[data-component-type=\"s-search-result\"],.s-result-item[data-asin]';"
-        + "function isSponsored(el){"
-        + "var h=(el.className||'')+' '+(el.getAttribute('cel_widget_id')||'')+' '"
-        + "+(el.getAttribute('data-cel-widget')||'')+' '+(el.getAttribute('data-component-type')||'');"
-        + "for(var i=0;i<cfg.sponsored.length;i++){if(h.indexOf(cfg.sponsored[i])>=0)return true;}"
-        + "if(el.querySelector('.puis-sponsored-label-text,.p13n-sc-sponsored-label,[data-ad-feedback]'))return true;"
-        + "return false;}"
-        + "function parseCount(text){"
-        + "if(!text)return -1;"
-        + "var t=text.trim();"
-        + "if(!t||/out of/i.test(t))return -1;" // star value like '4.3 out of 5 stars'
-        + "var hasWord=/rating|review/i.test(t);"
-        + "var paren=/^\\(\\s*[\\d,.]+\\s*[kKmM]?\\s*\\+?\\s*\\)$/.test(t);"
-        + "var bare=/^[\\d,.]+\\s*[kKmM]?\\s*\\+?$/.test(t);"
-        + "if(!hasWord&&!paren&&!bare)return -1;"
-        + "var m=t.match(/([\\d,.]+)\\s*([kKmM])?/);"
-        + "if(!m)return -1;"
-        + "var n=parseFloat(m[1].replace(/,/g,''));"
-        + "if(isNaN(n))return -1;"
-        + "var s=(m[2]||'').toLowerCase();"
-        + "if(s==='k')n*=1000;else if(s==='m')n*=1000000;"
-        + "return Math.floor(n);}"
-        + "function amazonCount(card){"
-        + "var cands=card.querySelectorAll('a[href*=\"customerReviews\"] span,"
-        + "a[href*=\"#customerReviews\"],span.a-size-base.s-underline-text,"
-        + "span.a-size-small span,span.a-size-base');"
-        + "var star=card.querySelector('[aria-label*=\"out of\"],.a-icon-star');"
-        + "var best=-1;"
-        + "for(var i=0;i<cands.length;i++){"
-        + "var t=cands[i].textContent||'';"
-        + "if(t.length>30)continue;"
-        + "var v=parseCount(t);"
-        + "if(v<0)continue;"
-        // Bare numbers only count when the card visibly has stars,
-        // otherwise prices / discounts leak in.
-        + "if(!/rating|review|\\(/.test(t)&&!star)continue;"
-        + "if(v>best)best=v;}"
-        + "return best;}"
-        + "function flipkartCount(card){"
-        + "var cands=card.querySelectorAll('span._2_R_DZ,span');"
-        + "for(var i=0;i<cands.length;i++){"
-        + "var t=(cands[i].textContent||'').trim();"
-        + "if(t.length>16)continue;"
-        + "if(!/^\\(\\s*[\\d,]+\\s*\\)$/.test(t))continue;"
-        + "var v=parseCount(t);"
-        + "if(v>=0)return v;}"
-        // Product-page style fallback: '12,345 Ratings & 1,234 Reviews'.
-        + "var txt=card.textContent||'';"
-        + "var m=txt.match(/([\\d,]+)\\s*Ratings?\\s*&/i);"
-        + "if(m)return parseCount(m[1]);"
-        + "return -1;}"
-        + "function cardCount(card){"
-        + "return cfg.site==='flipkart'?flipkartCount(card):amazonCount(card);}"
-        + "function collect(){"
-        + "var seen=[];var seenSet=new Set();"
-        + "var nodes=document.querySelectorAll(CARD_SEL);"
-        + "for(var i=0;i<nodes.length;i++){"
-        + "var el=nodes[i];"
-        + "if(seenSet.has(el)||!el.parentNode||isSponsored(el))continue;"
-        // Flipkart anchor fallback can nest; keep the outermost card.
-        + "if(el.tagName==='A'&&el.querySelector('div[data-id]'))continue;"
-        + "if(cardCount(el)<0&&!(el.textContent||'').match(/\\d/))continue;"
-        + "seenSet.add(el);seen.push(el);}"
-        + "return seen;}"
-        + "function currentParent(cards){"
-        + "if(!cards.length)return null;"
-        + "var p=cards[0].parentNode;"
-        + "for(var i=1;i<cards.length;i++){if(cards[i].parentNode!==p)return null;}"
-        + "return p;}"
-        + "function applySort(){"
-        + "var cards=collect();"
-        + "if(cards.length<2)return 0;"
-        + "var parent=currentParent(cards);"
-        + "if(!parent)return 0;"
-        + "if(!parent.getAttribute('data-morphe-orig')){"
-        + "var order=[];"
-        + "for(var i=0;i<parent.children.length;i++)order.push(parent.children[i]);"
-        + "parent.__morpheOrig=order.slice();"
-        + "parent.setAttribute('data-morphe-orig','1');}"
-        + "var mapped=cards.map(function(el,i){return{el:el,c:cardCount(el),i:i};});"
-        + "mapped.sort(function(a,b){if(b.c!==a.c)return b.c-a.c;return a.i-b.i;});"
-        + "mapped.forEach(function(m){parent.appendChild(m.el);});"
-        + "return mapped.length;}"
-        + "function restore(){"
-        + "var cards=collect();"
-        + "var parent=currentParent(cards);"
-        + "if(parent&&parent.__morpheOrig){parent.__morpheOrig.forEach(function(el){parent.appendChild(el);});}}"
-        + "function ensureBtn(){"
-        + "var b=document.getElementById(BTN_ID);"
-        + "if(b)return b;"
-        + "b=document.createElement('button');b.id=BTN_ID;b.type='button';"
-        + "b.textContent='Sort: Most rated';"
-        + "b.setAttribute('data-active','0');"
-        + "b.style.cssText='position:fixed;right:12px;bottom:76px;z-index:2147483647;"
-        + "padding:10px 14px;border-radius:20px;border:1px solid #888;background:#232f3e;"
-        + "color:#fff;font-size:13px;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer';"
-        + "b.onclick=function(){"
-        + "var on=b.getAttribute('data-active')==='1';"
-        + "if(on){b.setAttribute('data-active','0');b.textContent='Sort: Most rated';restore();}"
-        + "else{var n=applySort();b.setAttribute('data-active','1');"
-        + "b.textContent=n>1?'Sorted ✓ ('+n+') — tap to reset':'No ratings found';}};"
-        + "document.documentElement.appendChild(b);"
-        + "return b;}"
-        + "if(!collect().length)return;"
-        + "ensureBtn();"
-        + "if(!window.__morpheSortObs){"
-        + "window.__morpheSortObs=true;"
-        + "var t=null;"
-        + "new MutationObserver(function(){"
-        + "var b=document.getElementById(BTN_ID);"
-        + "if(!b||b.getAttribute('data-active')!=='1')return;"
-        + "clearTimeout(t);t=setTimeout(applySort,600);"
-        + "}).observe(document.body||document.documentElement,{childList:true,subtree:true});}"
-        + "}";
+    private static int sAdsRemoved = 0;
 
     /**
-     * Injects the sort UI on listing pages only. Safe to call on every
-     * page load: non-listing pages return early.
+     * Injects the Amazon sort / hide-ads UI. Called on every page load and
+     * every time a web fragment is shown; the script itself stays idle on
+     * pages without search results and ignores repeated injections.
      *
      * @param webView the page's WebView
-     * @param url     current page URL, used for site + listing detection
+     * @param url     current page URL, used to skip non-Amazon pages
      */
     public static void injectSortByRatings(WebView webView, String url) {
-        if (webView == null || url == null) return;
-        String u = url.trim().toLowerCase();
-        String site = null;
-        if (u.contains("amazon.")) site = "amazon";
-        else if (u.contains("flipkart.com")) site = "flipkart";
-        if (site == null) return;
-
-        boolean listing;
-        if ("amazon".equals(site)) {
-            listing = u.contains("/s?")
-                || u.contains("/s/")
-                || u.contains("/search/")
-                || u.contains("k=")
-                || u.contains("rh=");
-        } else {
-            listing = u.contains("/search")
-                || u.contains("q=")
-                || u.contains("/category/")
-                || u.contains("/browse/");
+        if (webView == null) return;
+        if (url != null && !url.toLowerCase().contains("amazon.")) return;
+        try {
+            webView.evaluateJavascript(AmazonSortScript.JS, null);
+        } catch (Throwable t) {
+            Log.d(TAG, "amazon inject failed: " + t);
         }
-        if (!listing) return;
+    }
 
-        StringBuilder cfg = new StringBuilder("{");
-        cfg.append("\"site\":").append(jsonString(site));
-        cfg.append(",\"sponsored\":").append(jsonArray(SPONSORED_HINTS));
-        cfg.append("}");
-        webView.evaluateJavascript("(" + SORT_RATINGS_JS + ")(" + cfg + ");", null);
+    /** Meesho: rewrites a Moshi-bound response body (hooked in the Retrofit converter). */
+    public static String processMeeshoResponse(String json) {
+        return MeeshoListing.process(json);
+    }
+
+    /**
+     * Meesho: page size for listing requests. While "Most rated" is on, ask
+     * for bigger pages so one sort covers many more items (the server pages
+     * by cursor and honours large limits).
+     */
+    public static int meeshoPageLimit(int limit) {
+        return SortState.sortOn() ? Math.max(limit, MEESHO_SORT_PAGE_SIZE) : limit;
+    }
+
+    /** Myntra: rewrites a response body before it is handed to React Native. */
+    public static String processMyntraResponse(String json) {
+        return MyntraListing.process(json);
+    }
+
+    /** Myntra: rewrites a raw response body (React Native blob responses). */
+    public static byte[] processMyntraBytes(byte[] body) {
+        return MyntraListing.processBytes(body);
+    }
+
+    static void log(String msg) {
+        Log.d(TAG, msg);
     }
 
     /**
@@ -222,126 +103,696 @@ public final class SortByRatingsHelper {
      * @return sorted JSON string, or the original if sorting is not applicable
      */
     public static String processFlipkartSearchResponse(String json) {
-        if (json == null || json.length() < 10) return json;
-        int call = ++sNetworkCalls;
+        return processFlipkartSafely(json);
+    }
 
+    /** Never lets a rewrite failure break the app's own parsing. */
+    private static String processFlipkartSafely(String json) {
         try {
-            JSONObject root = new JSONObject(json);
+            Diag.dump("flipkart", json);
+            return processFlipkartResponseJson(json);
+        } catch (Throwable t) {
+            Log.d(TAG, "flipkart rewrite failed: " + t);
+            return json;
+        }
+    }
 
-            // Flipkart API response: { "search": {...}, "product": { "PID": {...}, ... }, ... }
-            // The "product" key holds a map of productId -> productObject.
-            JSONObject productMap = root.optJSONObject("product");
-            if (productMap == null) {
-                if (call <= 20) {
-                    Log.d(TAG, "call#" + call + " len=" + json.length()
-                        + " keys=" + keyList(root) + " (no product map)");
+    /**
+     * Reads a mapi response body in full, re-writes the product maps it
+     * contains (sort by rating count, drop ads) and hands Gson a reader over
+     * the modified JSON.
+     *
+     * <p>Hooked on the generic mapi Gson converter, so this covers every page
+     * served by mapi: search, category, browse, product page, etc.
+     */
+    public static java.io.Reader processResponseReader(java.io.Reader reader) {
+        if (reader == null) return null;
+        StringBuilder sb = new StringBuilder(16384);
+        try {
+            char[] buf = new char[8192];
+            int n;
+            while ((n = reader.read(buf)) >= 0) {
+                sb.append(buf, 0, n);
+            }
+        } catch (java.io.IOException e) {
+            // Nothing sensible to hand back: the body is partially consumed.
+            // Surface the failure the same way the original read would have.
+            Log.d(TAG, "reader error: " + e);
+            final java.io.IOException failure = e;
+            return new java.io.Reader() {
+                @Override public int read(char[] b, int off, int len) throws java.io.IOException { throw failure; }
+                @Override public void close() {}
+            };
+        }
+        return new java.io.StringReader(processFlipkartSafely(sb.toString()));
+    }
+
+    /**
+     * Rewrites every product listing found in the JSON:
+     * <ul>
+     *   <li>new ATLAS feed rows ({@code RESPONSE.slots}) — sorted by rating
+     *       count descending, ad cards removed, empty rows dropped;</li>
+     *   <li>legacy {@code "product"} maps — same treatment.</li>
+     * </ul>
+     * Everything else is preserved.
+     */
+    public static String processFlipkartResponseJson(String json) {
+        if (json == null || json.length() < 10) return json;
+
+        // New ATLAS search/browse feed: products live in rows
+        // (RESPONSE.slots[].widget.data.dlsData.{horizontalListData_0,gridData_0}.value),
+        // each card carrying ratingData_0.reviewText ("| 4.7K+") and an ad
+        // badge in tagData_0 ("AD" / "Sponsored").
+        boolean atlas = (json.indexOf("\"horizontalListData_0\"") >= 0
+            || json.indexOf("\"gridData_0\"") >= 0)
+            && json.indexOf("\"ratingData_0\"") >= 0;
+        if (atlas) SortState.noteListing();
+        // Both toggles are off until the user taps the floating buttons.
+        if (!SortState.sortOn() && !SortState.hideAds()) return json;
+        if (atlas) {
+            sAdsRemoved = 0;
+            String rewritten = rewriteAtlasSlots(json);
+            if (rewritten != null && rewritten != json) {
+                Log.d(TAG, "ATLAS feed rewritten: removed " + sAdsRemoved
+                    + " ad card(s)");
+                json = rewritten;
+            }
+        }
+
+        if (json.indexOf("\"product\"") < 0) {
+            return json;
+        }
+
+        // Legacy product map (RN NetworkCaller wrapper).
+        int call = ++sNetworkCalls;
+        List<int[]> spans = findAllNamedObjectSpans(json, "product", 0, json.length());
+        if (spans.isEmpty()) return json;
+
+        int maps = 0;
+        int removed = 0;
+        // Process back-to-front so edits to a later span cannot invalidate the
+        // offsets of the earlier ones.
+        for (int i = spans.size() - 1; i >= 0; i--) {
+            int[] span = spans.get(i);
+            MapResult r = processProductMapObject(json, span, call);
+            removed += r.removed;
+            if (r.changed) {
+                json = json.substring(0, span[0]) + r.text + json.substring(span[1]);
+                maps++;
+            }
+        }
+
+        if (maps > 0) {
+            Log.d(TAG, "call#" + call + " REWROTE maps=" + maps
+                + " spans=" + spans.size() + " adsRemoved=" + removed);
+        }
+        return json;
+    }
+
+    /** Result of rewriting a single product map object. */
+    private static final class MapResult {
+        final String text;
+        final boolean changed;
+        final int removed;
+
+        MapResult(String text, boolean changed, int removed) {
+            this.text = text;
+            this.changed = changed;
+            this.removed = removed;
+        }
+    }
+
+    private static MapResult processProductMapObject(String json, int[] span, int call) {
+        int open = span[0];
+        int close = span[1];
+        String original = json.substring(open, close);
+
+        List<int[]> rawEntries = splitTopLevelEntries(json, open + 1, close - 1);
+        if (rawEntries.size() < 2) return new MapResult(original, false, 0);
+
+        List<RawEntry> entries = new ArrayList<>(rawEntries.size());
+        int withRating = 0;
+        int adCount = 0;
+        for (int[] bounds : rawEntries) {
+            String entry = json.substring(bounds[0], bounds[1]).trim();
+            int colon = entryColon(entry);
+            JSONObject value = null;
+            if (colon >= 0) {
+                String valueText = entry.substring(colon + 1).trim();
+                try {
+                    value = new JSONObject(valueText);
+                } catch (Exception ignored) {
+                    // not an object / not parseable — keep it
                 }
-                return json;
             }
-
-            int total = productMap.length();
-            if (total < 2) return json;
-
-            // Locate the "product" object span in the RAW string. We must do
-            // string-level surgery here: org.json.JSONObject is HashMap-backed
-            // and does NOT preserve insertion order, so rebuilding via
-            // JSONObject.toString() would emit products in hash order and the
-            // JS side would render them unsorted.
-            int[] span = findNamedObjectSpan(json, "product");
-            if (span == null) {
-                Log.d(TAG, "call#" + call + " product map with " + total
-                    + " entries but span not found");
-                return json;
+            int count = value != null ? extractRatingCount(value) : -1;
+            boolean ad = value != null && isAdProduct(value, entry);
+            if (count > 0) withRating++;
+            if (ad && SortState.hideAds()) {
+                adCount++;
+                continue;
             }
-            List<int[]> rawEntries = splitTopLevelEntries(json, span[0] + 1, span[1] - 1);
-            if (rawEntries.size() < 2) return json;
+            entries.add(new RawEntry(entry, count));
+        }
 
-            // Score each raw entry by rating count (JSONObject used for
-            // READING only — order comes from the raw string).
-            List<RawEntry> entries = new ArrayList<>(rawEntries.size());
-            int withRating = 0;
-            for (int[] bounds : rawEntries) {
-                String entry = json.substring(bounds[0], bounds[1]).trim();
-                String key = entryKey(entry);
-                int count = -1;
-                if (key != null) {
-                    JSONObject product = productMap.optJSONObject(key);
-                    if (product != null) {
-                        count = extractRatingCount(product);
-                        if (count > 0) withRating++;
-                    }
-                }
-                entries.add(new RawEntry(entry, count));
-            }
-            if (withRating < 2) {
-                Log.d(TAG, "call#" + call + " product entries=" + total
-                    + " withRating=" + withRating + " (nothing to sort)");
-                return json;
-            }
-
-            String before = topKeys(entries, 3);
-
-            // Stable sort descending by rating count.
+        boolean sort = withRating >= 2 && SortState.sortOn();
+        if (sort) {
             Collections.sort(entries, new Comparator<RawEntry>() {
                 @Override
                 public int compare(RawEntry a, RawEntry b) {
                     return Integer.compare(b.count, a.count);
                 }
             });
+        }
 
-            StringBuilder inner = new StringBuilder();
-            for (int i = 0; i < entries.size(); i++) {
-                if (i > 0) inner.append(',');
-                inner.append(entries.get(i).raw);
-            }
-            String result = json.substring(0, span[0] + 1) + inner + json.substring(span[1] - 1);
+        if (entries.isEmpty()) {
+            // Never delete the whole map.
+            return new MapResult(original, false, 0);
+        }
 
-            // Sanity: result must still be valid JSON.
-            try {
-                new JSONObject(result);
-            } catch (JSONException je) {
-                Log.d(TAG, "call#" + call + " rebuilt JSON invalid, keeping original");
-                return json;
-            }
+        StringBuilder inner = new StringBuilder();
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0) inner.append(',');
+            inner.append(entries.get(i).raw);
+        }
+        String text = "{" + inner + "}";
+        if (text.equals(original)) return new MapResult(original, false, adCount);
+        return new MapResult(text, true, adCount);
+    }
 
-            Log.d(TAG, "call#" + call + " SORTED entries=" + entries.size()
-                + " withRating=" + withRating + " before=" + before
-                + " after=" + topKeys(entries, 3));
-            JSONObject search = root.optJSONObject("search");
-            if (search != null && call <= 20) {
-                Log.d(TAG, "call#" + call + " search keys=" + keyList(search));
+    /**
+     * Heuristic ad detection for a product map entry.  Works on the entry text
+     * as well as the parsed value so it does not depend on the exact model.
+     */
+    private static boolean isAdProduct(JSONObject value, String rawEntry) {
+        // Direct boolean flags / id fields on the wrapper or value.
+        if (value.optBoolean("isAd", false)
+            || value.optBoolean("ad", false)
+            || value.optBoolean("sponsored", false)
+            || value.optBoolean("isSponsored", false)
+            || value.has("adId")
+            || value.has("adData")
+            || value.has("adInfo")
+            || value.has("adBadge")) {
+            return true;
+        }
+        JSONObject v = value.optJSONObject("value");
+        if (v != null && v != value) {
+            if (v.optBoolean("isAd", false)
+                || v.optBoolean("ad", false)
+                || v.optBoolean("sponsored", false)
+                || v.optBoolean("isSponsored", false)
+                || v.has("adId")
+                || v.has("adData")
+                || v.has("adInfo")
+                || v.has("adBadge")) {
+                return true;
             }
-            return result;
-        } catch (JSONException e) {
-            // Malformed JSON or structural change — return original
-            return json;
-        } catch (Exception e) {
-            // Unexpected error — never break the app
-            Log.d(TAG, "call#" + call + " error: " + e);
-            return json;
+            JSONObject tracking = v.optJSONObject("trackingDataV2");
+            if (tracking != null) {
+                String finding = tracking.optString("findingMethod", "");
+                if (finding.contains("ad") || finding.contains("Ad")
+                    || finding.contains("sponsor") || finding.contains("Sponsor")) {
+                    return true;
+                }
+            }
+        }
+        // Raw text fallback: explicit ad markers anywhere in the entry.
+        return rawEntry.contains("\"isAd\":true")
+            || rawEntry.contains("\"isSponsored\":true")
+            || rawEntry.contains("\"sponsored\":true")
+            || rawEntry.contains("\"adId\"");
+    }
+
+    /** Finds the key/value colon of an object entry, outside of strings. */
+    private static int entryColon(String entry) {
+        int i = skipWs(entry, 0);
+        if (i >= entry.length() || entry.charAt(i) != '"') return -1;
+        int keyEnd = skipString(entry, i);
+        if (keyEnd < 0) return -1;
+        int j = skipWs(entry, keyEnd);
+        if (j >= entry.length() || entry.charAt(j) != ':') return -1;
+        return j;
+    }
+
+    // ----------------------------------------------------------------
+    // ATLAS search/browse feed (slots + product rows)
+    // ----------------------------------------------------------------
+
+    /** One product card in an ATLAS product row. */
+    private static final class AtlasCard {
+        final Object item;
+        final int count;
+        final boolean ad;
+
+        AtlasCard(Object item, int count, boolean ad) {
+            this.item = item;
+            this.count = count;
+            this.ad = ad;
         }
     }
 
-    private static String keyList(JSONObject obj) {
-        StringBuilder sb = new StringBuilder("[");
+    /** One ATLAS row: a slot whose dlsData contains a list of product cards. */
+    private static final class AtlasRow {
+        final int slotIndex;
+        final JSONObject listHolder;
+        final JSONArray cards;
+        final int originalLen;
+        final String type;
+        int newLen;
+
+        AtlasRow(int slotIndex, JSONObject listHolder, JSONArray cards, String type) {
+            this.slotIndex = slotIndex;
+            this.listHolder = listHolder;
+            this.cards = cards;
+            this.originalLen = cards.length();
+            this.type = type;
+            this.newLen = this.originalLen;
+        }
+    }
+
+    /**
+     * Rewrites every {@code "slots"} array in the response: product rows are
+     * sorted by rating count descending and ad cards are dropped.  Returns the
+     * new JSON, or null when nothing changed / parsing failed.
+     */
+    private static String rewriteAtlasSlots(String json) {
+        List<int[]> spans = new ArrayList<>();
+        collectArraySpans(json, "slots", 0, json.length(), spans, 0);
+        if (spans.isEmpty()) return null;
+        boolean changed = false;
+        for (int i = spans.size() - 1; i >= 0; i--) {
+            int[] span = spans.get(i);
+            try {
+                JSONArray slots = new JSONArray(json.substring(span[0], span[1]));
+                if (rewriteSlotsArray(slots)) {
+                    json = json.substring(0, span[0]) + slots + json.substring(span[1]);
+                    changed = true;
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "atlas slots error: " + e);
+            }
+        }
+        return changed ? json : null;
+    }
+
+    private static boolean rewriteSlotsArray(JSONArray slots) {
+        List<AtlasRow> rows = new ArrayList<>();
+        for (int i = 0; i < slots.length(); i++) {
+            JSONObject slot = slots.optJSONObject(i);
+            if (slot == null) continue;
+            AtlasRow row = toAtlasRow(slot, i);
+            if (row != null) rows.add(row);
+        }
+        if (rows.isEmpty()) return false;
+
+        boolean changed = false;
+        // Group ALL product rows by view type (they may be interleaved with
+        // other widgets) so sorting is global across the page.
+        java.util.LinkedHashMap<String, List<AtlasRow>> groups =
+            new java.util.LinkedHashMap<String, List<AtlasRow>>();
+        for (AtlasRow row : rows) {
+            List<AtlasRow> group = groups.get(row.type);
+            if (group == null) {
+                group = new ArrayList<AtlasRow>();
+                groups.put(row.type, group);
+            }
+            group.add(row);
+        }
+        for (List<AtlasRow> group : groups.values()) {
+            if (rewriteRowGroup(group)) changed = true;
+        }
+
+        // Rebuild the slot list, dropping ad widgets (header badge "AD" /
+        // "Sponsored") and product rows that ended up empty.
+        JSONArray kept = new JSONArray();
+        boolean removed = false;
+        for (int i = 0; i < slots.length(); i++) {
+            JSONObject slot = slots.optJSONObject(i);
+            if (slot == null) continue;
+            if (SortState.hideAds() && isAdWidget(slot)) {
+                removed = true;
+                continue;
+            }
+            boolean empty = false;
+            for (AtlasRow row : rows) {
+                if (row.slotIndex == i && row.newLen == 0 && row.originalLen > 0) {
+                    empty = true;
+                    break;
+                }
+            }
+            if (empty) {
+                removed = true;
+                continue;
+            }
+            kept.put(slot);
+        }
+        if (removed) {
+            for (int i = slots.length() - 1; i >= 0; i--) {
+                slots.remove(i);
+            }
+            for (int i = 0; i < kept.length(); i++) {
+                slots.put(kept.opt(i));
+            }
+        }
+        return changed || removed;
+    }
+
+    /**
+     * True for whole widgets that are ads — e.g. the "Top rated products"
+     * carousel which carries a header badge with the text "AD".
+     */
+    private static boolean isAdWidget(JSONObject slot) {
+        JSONObject widget = slot.optJSONObject("widget");
+        if (widget == null) return false;
+        JSONObject data = widget.optJSONObject("data");
+        if (data == null) return false;
+        JSONObject dls = data.optJSONObject("dlsData");
+        if (dls == null) return false;
+        // Sponsored product carousels ("PLA ads") are marked by their own
+        // navigation button.
+        Iterator<String> keys = dls.keys();
+        while (keys.hasNext()) {
+            if (keys.next().toLowerCase().contains("pla_ads")) return true;
+        }
+        // Product grids mix organic and sponsored cards (handled per card);
+        // any other widget wearing an AD / Sponsored label is an ad as a whole.
+        if (dls.has("gridData_0")) return false;
+        if (hasAdLabel(dls, 0)) return true;
+        JSONObject header = dls.optJSONObject("header-2-line-content-container_0");
+        if (header == null) return false;
+        JSONObject value = header.optJSONObject("value");
+        if (value == null) return false;
+        for (String key : new String[]{"label_0", "label_1", "label_2", "label_3",
+            "label_4", "label_5"}) {
+            JSONObject label = value.optJSONObject(key);
+            if (label == null) continue;
+            JSONObject labelValue = label.optJSONObject("value");
+            if (labelValue != null && isAdText(labelValue.optString("text", ""))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static AtlasRow toAtlasRow(JSONObject slot, int slotIndex) {
+        JSONObject widget = slot.optJSONObject("widget");
+        if (widget == null) return null;
+        JSONObject data = widget.optJSONObject("data");
+        if (data == null) return null;
+        JSONObject dls = data.optJSONObject("dlsData");
+        if (dls == null) return null;
+        // 9.15 search grids use gridData_0, carousels/older feeds use
+        // horizontalListData_0.
+        JSONObject holder = dls.optJSONObject("gridData_0");
+        if (holder == null) holder = dls.optJSONObject("horizontalListData_0");
+        if (holder == null) return null;
+        JSONArray cards = holder.optJSONArray("value");
+        if (cards == null || cards.length() == 0) return null;
+        JSONObject first = cards.optJSONObject(0);
+        JSONObject firstValue = first != null ? first.optJSONObject("value") : null;
+        if (firstValue == null) return null;
+        String type = cardViewType(firstValue);
+        if (!isProductRowType(type)) return null;
+        return new AtlasRow(slotIndex, holder, cards, type);
+    }
+
+    /** True for main feed product card rows (not filters / carousels). */
+    private static boolean isProductRowType(String type) {
+        if (type == null) return false;
+        String t = type.toLowerCase();
+        return t.contains("product_summary")
+            || t.contains("productcardlist")
+            || t.contains("search_feed_card");
+    }
+
+    private static boolean rewriteRowGroup(List<AtlasRow> group) {
+        List<AtlasCard> all = new ArrayList<>();
+        List<Object> before = new ArrayList<>();
+        for (AtlasRow row : group) {
+            for (int i = 0; i < row.cards.length(); i++) {
+                Object item = row.cards.opt(i);
+                before.add(item);
+                JSONObject card = item instanceof JSONObject
+                    ? ((JSONObject) item).optJSONObject("value") : null;
+                if (card == null) {
+                    all.add(new AtlasCard(item, -1, false));
+                    continue;
+                }
+                all.add(new AtlasCard(item, cardRatingCount(card), isAdCard(card)));
+            }
+        }
+        if (all.size() < 2) return false;
+
+        final boolean dropAds = SortState.hideAds();
+        List<AtlasCard> organic = new ArrayList<>();
+        for (AtlasCard card : all) {
+            if (!card.ad) organic.add(card);
+        }
+        boolean adsRemoved = dropAds && organic.size() != all.size();
+        if (adsRemoved) sAdsRemoved += all.size() - organic.size();
+
+        if (SortState.sortOn()) {
+            Collections.sort(organic, new Comparator<AtlasCard>() {
+                @Override
+                public int compare(AtlasCard a, AtlasCard b) {
+                    return Integer.compare(b.count, a.count);
+                }
+            });
+        }
+
+        // Dropped ads disappear; kept ads stay fixed in their original slot.
+        List<AtlasCard> kept = new ArrayList<>();
+        if (dropAds) {
+            kept.addAll(organic);
+        } else {
+            int next = 0;
+            for (AtlasCard card : all) {
+                kept.add(card.ad ? card : organic.get(next++));
+            }
+        }
+
+        List<Object> after = new ArrayList<>();
+        for (AtlasCard card : kept) after.add(card.item);
+
+        // Redistribute keeping every row's original size.
+        int p = 0;
+        for (AtlasRow row : group) {
+            JSONArray arr = new JSONArray();
+            for (int i = 0; i < row.originalLen && p < kept.size(); i++, p++) {
+                arr.put(kept.get(p).item);
+            }
+            row.newLen = arr.length();
+            try {
+                row.listHolder.put("value", arr);
+            } catch (Exception e) {
+                Log.d(TAG, "atlas row write error: " + e);
+                return false;
+            }
+        }
+
+        boolean orderChanged = !sameSequence(before, after);
+        return adsRemoved || orderChanged;
+    }
+
+    private static boolean sameSequence(List<Object> a, List<Object> b) {
+        if (a.size() != b.size()) return false;
+        for (int i = 0; i < a.size(); i++) {
+            if (a.get(i) != b.get(i)) return false;
+        }
+        return true;
+    }
+
+    private static String cardViewType(JSONObject card) {
+        JSONObject tracker = card.optJSONObject("trackerData_0");
+        JSONObject tracking = tracker != null ? tracker.optJSONObject("tracking") : null;
+        if (tracking == null) return "";
+        String view = tracking.optString("viewType", "");
+        if (view.isEmpty()) view = tracking.optString("dataKey", "");
+        return view;
+    }
+
+    /**
+     * Rating count shown as {@code ratingData_0.value.reviewText}, e.g.
+     * "| 4.7K+", "| 104", "| 1.1L" (lakh).  Returns -1 when absent.
+     */
+    private static int cardRatingCount(JSONObject card) {
+        // Depending on the card template ratingData_0 is a direct child or
+        // nested inside a text container (e.g. fk_electronics_grid_text_1).
+        JSONObject rating = findChild(card, "ratingData_0", 0);
+        JSONObject value = rating != null ? rating.optJSONObject("value") : null;
+        if (value != null) {
+            int direct = value.optInt("count", 0);
+            if (direct <= 0) direct = value.optInt("ratingCount", 0);
+            if (direct > 0) return direct;
+            String review = value.optString("reviewText", "");
+            int parsed = parseCountText(review);
+            if (parsed > 0) return parsed;
+        }
+        return parseCountText(card.optString("reviewText", ""));
+    }
+
+    /** Parses "| 44.3K+", "44.3K", "1,234" into an integer, or -1. */
+    private static int parseCountText(String text) {
+        if (text == null) return -1;
+        String t = text.trim();
+        int bar = t.indexOf('|');
+        if (bar >= 0) t = t.substring(bar + 1).trim();
+        t = t.replace("+", "").replace(",", "").trim();
+        if (t.isEmpty()) return -1;
+        double mult = 1;
+        char last = Character.toLowerCase(t.charAt(t.length() - 1));
+        if (last == 'k') {
+            mult = 1000;
+            t = t.substring(0, t.length() - 1).trim();
+        } else if (last == 'm') {
+            mult = 1000000;
+            t = t.substring(0, t.length() - 1).trim();
+        } else if (last == 'l') {
+            mult = 100000;
+            t = t.substring(0, t.length() - 1).trim();
+        } else if (last == 'c') {
+            mult = 10000000;
+            t = t.substring(0, t.length() - 1).trim();
+        }
+        if (t.isEmpty()) return -1;
+        try {
+            double d = Double.parseDouble(t);
+            if (d <= 0) return -1;
+            return (int) Math.min(Integer.MAX_VALUE, d * mult);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    /**
+     * Depth-limited search for the first object stored under {@code name}
+     * that actually has a {@code "value"} (templates also carry empty
+     * {@code "ratingData_0": {}} placeholders).
+     */
+    private static JSONObject findChild(JSONObject obj, String name, int depth) {
+        if (obj == null || depth > 5) return null;
+        JSONObject direct = obj.optJSONObject(name);
+        if (direct != null && direct.has("value")) return direct;
         Iterator<String> keys = obj.keys();
-        int i = 0;
-        while (keys.hasNext() && i < 15) {
-            if (i > 0) sb.append(',');
-            sb.append(keys.next());
+        while (keys.hasNext()) {
+            String key = keys.next();
+            if (key.equals("action") || key.equals("properties")) continue;
+            JSONObject child = obj.optJSONObject(key);
+            if (child == null) continue;
+            JSONObject found = findChild(child, name, depth + 1);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    /** True when a label/tag anywhere in the card reads "AD" / "Sponsored". */
+    private static boolean hasAdLabel(JSONObject obj, int depth) {
+        if (obj == null || depth > 6) return false;
+        Iterator<String> keys = obj.keys();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            if (key.equals("action") || key.equals("properties")
+                || key.startsWith("wishlist")) {
+                continue;
+            }
+            JSONObject child = obj.optJSONObject(key);
+            if (child == null) continue;
+            if (key.startsWith("label") || key.startsWith("tagData")) {
+                JSONObject v = child.optJSONObject("value");
+                if (v != null && isAdText(v.optString("text", ""))) return true;
+            }
+            if (hasAdLabel(child, depth + 1)) return true;
+        }
+        return false;
+    }
+
+    /** True when the card carries an ad/sponsored badge. */
+    private static boolean isAdCard(JSONObject card) {
+        if (isAdText(tagText(card, "tagData_0")) || isAdText(tagText(card, "tagData_1"))
+            || hasAdLabel(card, 0)) {
+            return true;
+        }
+        if (card.optBoolean("isAd", false) || card.optBoolean("isSponsored", false)) {
+            return true;
+        }
+        JSONObject tracking = card.optJSONObject("trackerData_0");
+        JSONObject t = tracking != null ? tracking.optJSONObject("tracking") : null;
+        if (t != null) {
+            String category = t.optString("widgetCategory", "");
+            String finding = t.optString("detailedFindingMethod", "");
+            if ("AD".equalsIgnoreCase(category)) return true;
+            if (finding != null && finding.toLowerCase().contains("sponsor")) return true;
+        }
+        return false;
+    }
+
+    private static String tagText(JSONObject card, String tagKey) {
+        JSONObject tag = card.optJSONObject(tagKey);
+        if (tag == null) return "";
+        JSONObject value = tag.optJSONObject("value");
+        return value != null ? value.optString("text", "") : "";
+    }
+
+    private static boolean isAdText(String text) {
+        if (text == null) return false;
+        String t = text.trim();
+        return t.equalsIgnoreCase("AD")
+            || t.equalsIgnoreCase("Sponsored")
+            || t.equalsIgnoreCase("Sponsored Ad");
+    }
+
+    /** Finds the spans of every array value stored under {@code name}. */
+    private static void collectArraySpans(String s, String name, int from, int to,
+                                          List<int[]> out, int depth) {
+        if (depth > 12) return;
+        int i = skipWs(s, from);
+        while (i < to) {
+            char c = s.charAt(i);
+            if (c == '"') {
+                int keyEnd = skipString(s, i);
+                if (keyEnd < 0) return;
+                String key = unescape(s.substring(i + 1, keyEnd - 1));
+                int j = skipWs(s, keyEnd);
+                if (j >= to || s.charAt(j) != ':') {
+                    i = keyEnd;
+                    continue;
+                }
+                j = skipWs(s, j + 1);
+                if (j >= to) return;
+                char v = s.charAt(j);
+                if (v == '[') {
+                    int end = skipValue(s, j);
+                    if (end < 0 || end > to) return;
+                    if (name.equals(key)) {
+                        out.add(new int[]{j, end});
+                    } else {
+                        collectArraySpans(s, name, j + 1, end - 1, out, depth + 1);
+                    }
+                    i = end;
+                    continue;
+                }
+                if (v == '{') {
+                    int end = skipValue(s, j);
+                    if (end < 0 || end > to) return;
+                    collectArraySpans(s, name, j + 1, end - 1, out, depth + 1);
+                    i = end;
+                    continue;
+                }
+                int end = skipValue(s, j);
+                if (end < 0 || end > to) return;
+                i = end;
+                continue;
+            }
+            if (c == '{' || c == '[') {
+                int end = skipValue(s, i);
+                if (end < 0 || end > to) return;
+                collectArraySpans(s, name, i + 1, end - 1, out, depth + 1);
+                i = end;
+                continue;
+            }
             i++;
         }
-        if (keys.hasNext()) sb.append(",...");
-        return sb.append(']').toString();
-    }
-
-    private static String topKeys(List<RawEntry> entries, int n) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < Math.min(n, entries.size()); i++) {
-            if (i > 0) sb.append(',');
-            sb.append(entries.get(i).count);
-        }
-        return sb.append(']').toString();
     }
 
     private static final class RawEntry {
@@ -416,38 +867,60 @@ public final class SortByRatingsHelper {
     }
 
     /**
-     * Finds the span of a named object value at the root level.
-     * @return {indexOfOpenBrace, indexOnePastCloseBrace}, or null.
+     * Finds the spans of every object value stored under {@code name}, at any
+     * depth.  Does not descend into a matched object (a nested product map
+     * inside another product map is not something Flipkart emits, and nesting
+     * would make in-place offsets invalid).
      */
-    private static int[] findNamedObjectSpan(String s, String name) {
-        int i = skipWs(s, 0);
-        if (i >= s.length() || s.charAt(i) != '{') return null;
-        i++;
-        while (true) {
-            i = skipWs(s, i);
-            if (i >= s.length() || s.charAt(i) != '"') return null;
-            int keyEnd = skipString(s, i);
-            if (keyEnd < 0) return null;
-            String key = unescape(s.substring(i + 1, keyEnd - 1));
-            i = skipWs(s, keyEnd);
-            if (i >= s.length() || s.charAt(i) != ':') return null;
-            i = skipWs(s, i + 1);
-            if (name.equals(key)) {
-                if (i < s.length() && s.charAt(i) == '{') {
-                    int end = skipValue(s, i);
-                    if (end < 0) return null;
-                    return new int[]{i, end};
+    private static List<int[]> findAllNamedObjectSpans(String s, String name, int from, int to) {
+        List<int[]> out = new ArrayList<>();
+        collectSpans(s, name, from, Math.min(to, s.length()), out, 0);
+        return out;
+    }
+
+    private static void collectSpans(String s, String name, int from, int to,
+                                     List<int[]> out, int depth) {
+        if (depth > 12) return;
+        int i = skipWs(s, from);
+        while (i < to) {
+            char c = s.charAt(i);
+            if (c == '"') {
+                int keyEnd = skipString(s, i);
+                if (keyEnd < 0) return;
+                String key = unescape(s.substring(i + 1, keyEnd - 1));
+                int j = skipWs(s, keyEnd);
+                if (j >= to || s.charAt(j) != ':') {
+                    i = keyEnd;
+                    continue;
                 }
-                return null;
-            }
-            i = skipValue(s, i);
-            if (i < 0) return null;
-            i = skipWs(s, i);
-            if (i < s.length() && s.charAt(i) == ',') {
-                i++;
+                j = skipWs(s, j + 1);
+                if (j >= to) return;
+                char v = s.charAt(j);
+                if (v == '{' || v == '[') {
+                    int end = skipValue(s, j);
+                    if (end < 0 || end > to) return;
+                    if (name.equals(key) && v == '{') {
+                        out.add(new int[]{j, end});
+                        // do not descend into a matched map
+                    } else {
+                        collectSpans(s, name, j + 1, end - 1, out, depth + 1);
+                    }
+                    i = end;
+                    continue;
+                }
+                int end = skipValue(s, j);
+                if (end < 0 || end > to) return;
+                i = end;
                 continue;
             }
-            return null;
+            if (c == '{' || c == '[') {
+                int end = skipValue(s, i);
+                if (end < 0 || end > to) return;
+                collectSpans(s, name, i + 1, end - 1, out, depth + 1);
+                i = end;
+                continue;
+            }
+            i++;
         }
     }
 
@@ -485,16 +958,6 @@ public final class SortByRatingsHelper {
             if (end > entryStart) out.add(new int[]{entryStart, end});
         }
         return out;
-    }
-
-    /** Extracts the key string of a "key":value entry, or null. */
-    private static String entryKey(String entry) {
-        int i = 0;
-        while (i < entry.length() && Character.isWhitespace(entry.charAt(i))) i++;
-        if (i >= entry.length() || entry.charAt(i) != '"') return null;
-        int keyEnd = skipString(entry, i);
-        if (keyEnd < 0) return null;
-        return unescape(entry.substring(i + 1, keyEnd - 1));
     }
 
     private static String unescape(String s) {
@@ -553,9 +1016,35 @@ public final class SortByRatingsHelper {
                     if (count > 0) return count;
                 }
             }
+
+            // Path 4: discovery ProductVInfo value.rating.count
+            JSONObject rating = value.optJSONObject("rating");
+            if (rating != null) {
+                count = rating.optInt("count", 0);
+                if (count > 0) return count;
+                count = rating.optInt("totalRatingCount", 0);
+                if (count > 0) return count;
+            }
+
+            // Path 5: discovery ProductVInfo value.count
+            count = value.optInt("count", 0);
+            if (count > 0) return count;
+
+            // Path 6: value.ratingCount
+            count = value.optInt("ratingCount", 0);
+            if (count > 0) return count;
         }
 
-        // Path 4: scan for any "ratingCount" key (defensive fallback)
+        // Path 7: direct rating.count / count on the wrapper
+        JSONObject rating = product.optJSONObject("rating");
+        if (rating != null) {
+            count = rating.optInt("count", 0);
+            if (count > 0) return count;
+        }
+        count = product.optInt("count", 0);
+        if (count > 0) return count;
+
+        // Path 8: scan for any "ratingCount" key (defensive fallback)
         count = findIntField(product, "ratingCount");
         return count;
     }
@@ -585,49 +1074,5 @@ public final class SortByRatingsHelper {
             }
         }
         return 0;
-    }
-
-    private static final class ProductEntry {
-        final String key;
-        final JSONObject product;
-        final int ratingCount;
-
-        ProductEntry(String key, JSONObject product, int ratingCount) {
-            this.key = key;
-            this.product = product;
-            this.ratingCount = ratingCount;
-        }
-    }
-
-    private static String jsonArray(String[] values) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < values.length; i++) {
-            if (i > 0) sb.append(",");
-            sb.append(jsonString(values[i]));
-        }
-        return sb.append("]").toString();
-    }
-
-    private static String jsonString(String value) {
-        if (value == null) return "null";
-        StringBuilder sb = new StringBuilder("\"");
-        for (int i = 0; i < value.length(); i++) {
-            char c = value.charAt(i);
-            switch (c) {
-                case '"': sb.append("\\\""); break;
-                case '\\': sb.append("\\\\"); break;
-                case '\n': sb.append("\\n"); break;
-                case '\r': sb.append("\\r"); break;
-                case '\t': sb.append("\\t"); break;
-                default:
-                    if (c < 0x20 || c > 0x7e || c == '<' || c == '>' || c == '&'
-                        || c == '\'' || c == 0x2028 || c == 0x2029) {
-                        sb.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        sb.append(c);
-                    }
-            }
-        }
-        return sb.append("\"").toString();
     }
 }

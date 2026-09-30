@@ -7,120 +7,22 @@
 
 package app.morphe.extension.instagram.patches.actionbar;
 
-import static app.morphe.extension.instagram.utils.IgStr.str;
-
-import android.app.Activity;
 import android.content.Context;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
 
-import app.morphe.extension.instagram.utils.Pref;
-import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.constants.UI;
-import app.morphe.extension.instagram.entity.ProfileInfo;
-import app.morphe.extension.instagram.patches.userprofile.ProfileMoreOption;
 import app.morphe.extension.instagram.patches.dm.SavedMessagesHook;
-import app.morphe.extension.instagram.entity.UserData;
-import app.morphe.extension.instagram.constants.Constants;
-
-import app.morphe.extension.crimera.PikoUtils;
-import app.morphe.extension.shared.Utils;
+import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.shared.Logger;
 
-import com.instagram.common.session.UserSession;
-
+/**
+ * Buttons added to Instagram's action bars.
+ *
+ * piko also adds a settings gear, a ghost mode toggle and a profile info button, each chosen from
+ * its settings screen. This bundle does not ship that screen, so those choices could never be
+ * made; only the deleted-messages button, which "Save deleted messages" turns on, is kept.
+ */
 public class ActionBarPatch {
-
-    private static final Set<ImageView> GHOST_MODE_ICONS = Collections.newSetFromMap(new WeakHashMap<>());
-
-    private static void updateGhostModeIcons(boolean enabled) {
-        String icon = enabled ? UI.DRAWABLE_EYE_STROKE_ICON : UI.DRAWABLE_EYE_ICON;
-        for (ImageView imageView : GHOST_MODE_ICONS) {
-            UI.setThemedIcon(imageView, icon);
-        }
-    }
-
-    private static void ghostModeToggle(ViewGroup viewGroup) throws Exception {
-        if(SettingsStatus.ghostSection()){
-            boolean ghostModeToggle = Pref.getTurnOnAllGhostModes();
-
-            String iconStr = ghostModeToggle ? UI.DRAWABLE_EYE_STROKE_ICON:UI.DRAWABLE_EYE_ICON;
-            ImageView imageView = UI.addImageViewToViewGroup(viewGroup, iconStr, null);
-            GHOST_MODE_ICONS.add(imageView);
-            imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        boolean ghostModeToggle= !Pref.getTurnOnAllGhostModes();
-                        Pref.setTurnOnAllGhostModes(ghostModeToggle);
-                        updateGhostModeIcons(ghostModeToggle);
-
-                        String toastStr = ghostModeToggle ? str("piko_ghost_modes_on") : str("piko_ghost_modes_default");
-                        Utils.showToastShort(toastStr);
-                    } catch (Exception ex) {
-                        Logger.printException(() -> "ghost icon click failed: ", ex);
-                    }
-                }
-            });
-        }
-
-    }
-
-    public static void mainFeedActionBarButton(ViewGroup viewGroup) {
-        try {
-            if (viewGroup == null) {
-                return;
-            }
-
-            Set<String> pref = Pref.mainFeedActionBarButtons();
-
-            if(pref.contains(Constants.AB_GHOST_MODE_ICON)) {
-                ghostModeToggle(viewGroup);
-            }
-
-            if(pref.contains(Constants.AB_SETTINGS_ICON)) {
-                UI.pikoSettingsGear(viewGroup);
-            }
-
-        } catch (Exception e) {
-            Logger.printException(() -> "mainFeedActionBarButton failure", e);
-            PikoUtils.logger(e);
-        }
-    }
-
-    public static void userProfileActionBarButton(Activity activity, ViewGroup viewGroup, UserSession userSession, Object userObject){
-        try {
-            if (activity == null || viewGroup == null) {
-                return;
-            }
-
-            Set<String> pref = Pref.userProfileActionBarButtons();
-
-            UserData userData = new UserData(userObject);
-            Boolean isSelfProfile = userData.getUserId().equals(userSession.getUserId());
-
-            if(pref.contains(Constants.AB_SETTINGS_ICON) && isSelfProfile) {
-                UI.pikoSettingsGear(viewGroup);
-            }
-
-            if(pref.contains(Constants.AB_GHOST_MODE_ICON) && isSelfProfile) {
-                ghostModeToggle(viewGroup);
-            }
-
-            if(pref.contains(Constants.AB_PROFILE_INFO_ICON)) {
-                UI.addImageViewToViewGroup(viewGroup, UI.DRAWABLE_INFO_ICON, () -> ProfileMoreOption.moreOptionsDailogueBox(activity, userData));
-            }
-
-
-        } catch (Exception e) {
-            Logger.printException(() -> "userProfileActionBarButton: ", e);
-            PikoUtils.logger(e);
-        }
-    }
 
     public static void chatActionBarButton(ViewGroup viewGroup) {
         try {
@@ -128,46 +30,13 @@ public class ActionBarPatch {
                 return;
             }
 
-            Set<String> pref = Pref.chatActionBarButtons();
-
-            if(pref.contains(Constants.AB_SETTINGS_ICON)) {
-                UI.pikoSettingsGear(viewGroup);
-            }
-
-            if(pref.contains(Constants.AB_GHOST_MODE_ICON)) {
-                ghostModeToggle(viewGroup);
-            }
-
-            if(SettingsStatus.saveDeletedMessages) {
+            if (SettingsStatus.saveDeletedMessages) {
                 Context context = viewGroup.getContext();
                 UI.addImageViewToViewGroup(viewGroup, UI.DRAWABLE_HISTORY_ICON,
                         () -> SavedMessagesHook.openDeletedMessages(context));
             }
-
         } catch (Exception e) {
             Logger.printException(() -> "chatActionBarButton:", e);
         }
     }
-
-    public static void inboxActionBarButton(ViewGroup viewGroup) {
-        try {
-            if (viewGroup == null) {
-                return;
-            }
-
-            Set<String> pref = Pref.inboxActionBarButtons();
-
-            if(pref.contains(Constants.AB_SETTINGS_ICON)) {
-                UI.pikoSettingsGear(viewGroup);
-            }
-
-            if(pref.contains(Constants.AB_GHOST_MODE_ICON)) {
-                ghostModeToggle(viewGroup);
-            }
-
-        } catch (Exception e) {
-            Logger.printException(() -> "inboxActionBarButton:", e);
-        }
-    }
-
 }

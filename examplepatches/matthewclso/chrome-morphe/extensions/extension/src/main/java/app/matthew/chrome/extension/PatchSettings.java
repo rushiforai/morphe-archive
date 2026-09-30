@@ -10,7 +10,7 @@ import java.util.WeakHashMap;
 /** The same preferences back the settings page, theme picker and runtime hooks. */
 public final class PatchSettings {
     public static final String BUTTON = "incognito_button", BLACK = "black_mode",
-            BOTTOM = "true_bottom", REMEMBER_MODE = "remember_last_mode";
+            BOTTOM = "true_bottom", TAB_PICKER = "tab_picker", REMEMBER_MODE = "remember_last_mode";
     private static final String LAST_MODE = "last_mode_incognito";
     private static SharedPreferences preferences;
     private static int appearanceGeneration;
@@ -32,22 +32,24 @@ public final class PatchSettings {
                 SearchLayout.watch(a);
             }
             @Override public void onActivityResumed(Activity a) {
+                TabPicker.resume(a);
                 Integer generation = generations.get(a);
                 if (generation != null && generation != appearanceGeneration && !a.isFinishing()) {
                     generations.put(a, appearanceGeneration);
                     a.recreate();
                 }
             }
-            @Override public void onActivityDestroyed(Activity a) { generations.remove(a); }
+            @Override public void onActivityDestroyed(Activity a) { generations.remove(a); TabPicker.destroy(a); }
             @Override public void onActivityStarted(Activity a) {}
-            @Override public void onActivityPaused(Activity a) { ModeRouting.remember(a); }
+            @Override public void onActivityPaused(Activity a) { ModeRouting.remember(a); TabPicker.pause(a); }
             @Override public void onActivityStopped(Activity a) {}
             @Override public void onActivitySaveInstanceState(Activity a, Bundle out) {}
         });
     }
 
     public static boolean enabled(String key) {
-        return preferences == null ? !BLACK.equals(key) : preferences.getBoolean(key, !BLACK.equals(key));
+        boolean defaultValue = !BLACK.equals(key) && !TAB_PICKER.equals(key);
+        return preferences == null ? defaultValue : preferences.getBoolean(key, defaultValue);
     }
     public static boolean trueBottom() { return enabled(BOTTOM); }
     public static Boolean lastMode() {

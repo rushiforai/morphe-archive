@@ -42,10 +42,16 @@ import org.junit.Test
  * listed colour has to be one the dark or darker style gives that token, and none may be one any
  * light style gives it, or light mode would change. SURFACES, which route three and route four
  * recolour with no token to go on, may be no light style's colour for any token at all.
+ *
+ * <p>The AMOLED theme's token rule is held to the same styles: each background token it names gets
+ * a dark grey it changes.
  */
 class MaterialYouTokenFixtureTest {
     private val theme = File(RepoFiles.root,
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/MaterialYouTheme.java").readText()
+
+    private val amoled = File(RepoFiles.root,
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/AmoledTheme.java").readText()
 
     /** Token name to the dark colours the theme recolours, from the Java table. */
     private fun listedTokens(): Map<String, Set<Int>> {
@@ -106,6 +112,62 @@ class MaterialYouTokenFixtureTest {
         for (surface in surfaces) {
             assertTrue("$build: ${hex(setOf(surface))} is a light style's colour", surface !in lightColours)
         }
+    }
+
+    /** AmoledTheme's BACKGROUND_TOKENS, the Mig names in it included. */
+    private fun amoledBackgrounds(): Set<String> {
+        val start = amoled.indexOf("BACKGROUND_TOKENS =")
+        val end = amoled.indexOf(")));", start)
+        return Regex(""""([A-Z_]+)"""").findAll(amoled.substring(start, end)).map { it.groupValues[1] }.toSet()
+    }
+
+    private fun amoledChannel(name: String): Int =
+        Regex("""static final int $name = 0x([0-9A-F]+);""").find(amoled)?.groupValues?.get(1)?.toInt(16)
+            ?: error("AmoledTheme declares no $name")
+
+    /**
+     * Issue #27: under AMOLED, Facebook's cards stayed #333334 on the black page. Each background
+     * token AMOLED names that the dark or darker style gives a dark grey (an opaque grey below mid
+     * grey) has to be one AMOLED changes: black up to MAX_CHANNEL, near black up to
+     * MAX_RAISED_CHANNEL. CARD_BACKGROUND has to be above the black band, or the raised band would
+     * go untested.
+     */
+    @Test
+    fun `every dark background AMOLED names is a grey it darkens in each declared build`() {
+        val backgrounds = amoledBackgrounds()
+        assertTrue("BACKGROUND_TOKENS lists almost nothing", backgrounds.size > 20)
+        val black = amoledChannel("MAX_CHANNEL")
+        val raised = amoledChannel("MAX_RAISED_CHANNEL")
+        var builds = 0
+        for (target in AppCompatibilities.facebook().single().targets) {
+            val version = checkNotNull(target.version)
+            for (fixture in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                withBaseApk(fixture) { apk ->
+                    val attributes = tokenAttributes(apk)
+                    val styles = fdsStyles(apk, attributes.values.toSet())
+                    val light = styles.values.single { it.parent == 0 && it.sets > 300 }
+                    val dark = styles.values.single { it.parent == light.id && it.sets > 300 }
+                    val darker = styles.values.single { it.parent == dark.id }
+
+                    val raisedTokens = mutableSetOf<String>()
+                    for (name in backgrounds) {
+                        val attribute = attributes[name] ?: continue
+                        for (style in listOf(dark, darker)) {
+                            val colour = style.values[attribute] ?: continue
+                            val channels = listOf(colour shr 16 and 0xFF, colour shr 8 and 0xFF, colour and 0xFF)
+                            if (colour ushr 24 != 0xFF || channels.max() - channels.min() > 8 || channels.max() >= 0x80) continue
+                            assertTrue("${fixture.name}: $name is ${hex(setOf(colour))} in style ${Integer.toHexString(style.id)}, " +
+                                "above the greys AMOLED darkens (0x${Integer.toHexString(raised)})", channels.max() <= raised)
+                            if (channels.max() > black) raisedTokens += name
+                        }
+                    }
+                    assertTrue("${fixture.name}: CARD_BACKGROUND is no longer above the black band, found $raisedTokens",
+                        "CARD_BACKGROUND" in raisedTokens)
+                }
+                builds++
+            }
+        }
+        assertEquals("one fixture for each declared build", AppCompatibilities.facebook().single().targets.size, builds)
     }
 
     private class Style(val id: Int, val parent: Int, val sets: Int, val values: Map<Int, Int>)

@@ -530,9 +530,28 @@ object DownloaderHelper {
             return
         }
 
+        val context = imageView.context
+        val cacheDir = File(context.cacheDir, "morphe_thumbs").apply { if (!exists()) mkdirs() }
+        val diskFile = File(cacheDir, "${url.hashCode()}.bin")
+
         imageView.tag = url
         executor.execute {
             try {
+                // 1. Instant load from local disk cache if available
+                if (diskFile.exists() && diskFile.length() > 0) {
+                    val bmp = BitmapFactory.decodeFile(diskFile.absolutePath)
+                    if (bmp != null) {
+                        thumbnailCache.put(url, bmp)
+                        mainHandler.post {
+                            if (imageView.tag == url) {
+                                imageView.setImageBitmap(bmp)
+                            }
+                        }
+                        return@execute
+                    }
+                }
+
+                // 2. Fetch over network and persist to disk cache
                 val conn = (URL(url).openConnection() as HttpURLConnection).apply {
                     setRequestProperty("Referer", "https://app-api.pixiv.net/")
                     setRequestProperty("User-Agent", "PixivAndroidApp/6.196.0 (Android 15; Pixel 8)")
@@ -540,8 +559,10 @@ object DownloaderHelper {
                     readTimeout = 12000
                 }
                 if (conn.responseCode in 200..299) {
-                    val bmp = BitmapFactory.decodeStream(conn.inputStream)
+                    val bytes = conn.inputStream.use { it.readBytes() }
                     conn.disconnect()
+                    runCatching { FileOutputStream(diskFile).use { it.write(bytes) } }
+                    val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                     if (bmp != null) {
                         thumbnailCache.put(url, bmp)
                         mainHandler.post {

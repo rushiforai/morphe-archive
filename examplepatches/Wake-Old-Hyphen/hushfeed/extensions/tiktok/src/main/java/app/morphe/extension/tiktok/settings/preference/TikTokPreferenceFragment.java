@@ -1377,6 +1377,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
     }
 
+    /** Redraws the Screen time rows as this screen comes to the front and once a minute after. */
+    private final android.os.Handler budgetTicks = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable budgetTick = new Runnable() {
+        @Override public void run() {
+            app.morphe.extension.tiktok.settings.preference.categories.ScreenTimePreferenceCategory.redrawOpenPages();
+            budgetTicks.postDelayed(this, 60_000L);
+        }
+    };
+
     @Override
     public void onResume() {
         super.onResume();
@@ -1384,6 +1393,16 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         refreshMenuBadges();
         // Back from a section onto the master menu: whatever was changed there is owed here.
         refreshRestartPending();
+        // A phone asleep over the day's start pauses this screen, so coming back is when the
+        // Screen time rows are most likely to be out of date.
+        budgetTicks.removeCallbacks(budgetTick);
+        budgetTick.run();
+    }
+
+    @Override
+    public void onPause() {
+        budgetTicks.removeCallbacks(budgetTick);
+        super.onPause();
     }
 
     /**
@@ -1407,6 +1426,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     @Override
     public void onDestroy() {
+        budgetTicks.removeCallbacks(budgetTick);
         if (activeFragment == this) {
             activeFragment = null;
             // The pending key deliberately survives: the picker destroys this fragment while it

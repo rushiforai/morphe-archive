@@ -32,7 +32,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 val hideFeatureButtonsPatch = bytecodePatch(
     name = "Hide upsell feature buttons",
     description = "Hides TRY SING ALONG karaoke upsell, the player AI MIX switch, and the playlist AI MIX button. Feature gates untouched.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
     category("Hide Gold features")

@@ -24,6 +24,7 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -54,6 +55,10 @@ final class SaveProgress {
     private static final List<View> LIVE_ROWS = new ArrayList<>();
     /** The line counting the rows past {@link #MAX_ROWS}, above the highest row shown. Main thread only. */
     private static TextView overflow;
+    /** The line with its Cancel, the view that is placed. Main thread only. */
+    private static LinearLayout overflowRow;
+    /** Whose row each live row is, so the line's Cancel can reach a save out of sight. Main thread only. */
+    private static final WeakHashMap<View, SaveProgress> OWNERS = new WeakHashMap<>();
     /** How many rows it counted last, so it speaks when the count grows and not when it falls. */
     private static int overflowCount;
     /** For the tests: what the row said aloud, in order. Null keeps it to the phone. */
@@ -340,20 +345,7 @@ final class SaveProgress {
                     banner.addView(label, new LinearLayout.LayoutParams(0, -2, 1f));
                 }
 
-                TextView stop = new TextView(activity);
-                String cancelLabel = L10n.t(activity, "Cancel");
-                stop.setText(cancelLabel);
-                stop.setContentDescription(cancelLabel);
-                stop.setTextColor(SettingsUi.OVERLAY_ACCENT);
-                stop.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
-                stop.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12),
-                        SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));
-                stop.setMinimumHeight(SettingsUi.dp(activity, 48));
-                stop.setMinimumWidth(SettingsUi.dp(activity, 48));
-                stop.setGravity(Gravity.CENTER);
-                stop.setBackground(SettingsUi.overlayAction(activity, SettingsUi.RADIUS_OVERLAY));
-                stop.setFocusable(true);
-                SettingsUi.markAsButton(stop);
+                TextView stop = cancelButton(activity);
                 stop.setOnClickListener(view -> cancelFromRow());
                 // While the save waits, Cancel takes it out of line. Once it runs, Cancel stops
                 // after the current file, and a single file has no later work to cancel.
@@ -383,6 +375,7 @@ final class SaveProgress {
                 });
                 root.addView(banner);
                 LIVE_ROWS.add(banner);
+                OWNERS.put(banner, this);
                 row = banner;
                 count = label;
                 placeRows();
@@ -450,37 +443,89 @@ final class SaveProgress {
         placeOverflow(highest, aboveHighest, hidden);
     }
 
-    /** The one line that stands for every row out of sight, or none when all of them show. */
+    /**
+     * The one line that stands for every row out of sight, or none when all of them show.
+     *
+     * <p>It has a Cancel of its own. The queue runs three saves and the first three rows are
+     * theirs, so a save in line always has its row out of sight, and its row's Cancel with it:
+     * on a phone a fourth save could never be taken out of line. This Cancel takes the last
+     * save in line out; pressed again, the one before it.
+     */
     private static void placeOverflow(View highest, int bottom, int hidden) {
         TextView line = overflow;
+        LinearLayout box = overflowRow;
         if (hidden == 0 || highest == null) {
-            if (line != null && line.getParent() instanceof ViewGroup) ((ViewGroup) line.getParent()).removeView(line);
+            if (box != null && box.getParent() instanceof ViewGroup) ((ViewGroup) box.getParent()).removeView(box);
             overflow = null;
+            overflowRow = null;
             overflowCount = 0;
             return;
         }
         ViewGroup root = (ViewGroup) highest.getParent();
         Activity activity = (Activity) highest.getContext();
-        if (line == null || line.getContext() != activity) {
-            if (line != null && line.getParent() instanceof ViewGroup) ((ViewGroup) line.getParent()).removeView(line);
+        if (box == null || line == null || box.getContext() != activity) {
+            if (box != null && box.getParent() instanceof ViewGroup) ((ViewGroup) box.getParent()).removeView(box);
+            box = new LinearLayout(activity);
+            box.setOrientation(LinearLayout.HORIZONTAL);
+            box.setGravity(Gravity.CENTER_VERTICAL);
+            box.setTag("hushfeed_save_waiting_row");
+            box.setPadding(SettingsUi.dp(activity, 16), 0, SettingsUi.dp(activity, 16), 0);
+            box.setBackground(SettingsUi.overlayBanner(activity));
             line = new TextView(activity);
             line.setTag("hushfeed_save_waiting");
             line.setTextColor(SettingsUi.OVERLAY_TEXT);
             line.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
-            line.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 8),
-                    SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 8));
-            line.setBackground(SettingsUi.overlayBanner(activity));
+            line.setPadding(0, SettingsUi.dp(activity, 8), 0, SettingsUi.dp(activity, 8));
+            box.addView(line, new LinearLayout.LayoutParams(0, -2, 1f));
+            TextView stop = cancelButton(activity);
+            stop.setOnClickListener(view -> cancelLastInLine());
+            box.addView(stop, new LinearLayout.LayoutParams(-2, -2));
             overflow = line;
+            overflowRow = box;
         }
-        if (line.getParent() != root) {
-            if (line.getParent() instanceof ViewGroup) ((ViewGroup) line.getParent()).removeView(line);
-            root.addView(line, BlockAuthorOverlay.bannerParams(activity, root));
+        if (box.getParent() != root) {
+            if (box.getParent() instanceof ViewGroup) ((ViewGroup) box.getParent()).removeView(box);
+            root.addView(box, BlockAuthorOverlay.bannerParams(activity, root));
         }
         String text = L10n.quantity(activity, hidden, "One more save waiting", "%1$s more saves waiting");
         line.setText(text);
-        setBottomMargin(line, bottom);
+        setBottomMargin(box, bottom);
         if (hidden > overflowCount) announce(line, text);
         overflowCount = hidden;
+    }
+
+    /** The line's Cancel: the last save still in line, among the rows out of sight, leaves it. */
+    private static void cancelLastInLine() {
+        for (int index = LIVE_ROWS.size() - 1; index >= 0; index--) {
+            View view = LIVE_ROWS.get(index);
+            if (view.getVisibility() != View.GONE) continue;
+            SaveProgress owner = OWNERS.get(view);
+            MediaJobScheduler.Job waitingOn = owner == null ? null : owner.job;
+            if (waitingOn != null && waitingOn.cancel()) {
+                // The job's end has taken the row down, and placeRows the line with it.
+                Utils.showToastShort(L10n.t("Save cancelled. Nothing was saved."));
+                return;
+            }
+        }
+    }
+
+    /** A row's Cancel: an accent label on the overlay's action background, sized for a thumb. */
+    private static TextView cancelButton(Activity activity) {
+        TextView stop = new TextView(activity);
+        String cancelLabel = L10n.t(activity, "Cancel");
+        stop.setText(cancelLabel);
+        stop.setContentDescription(cancelLabel);
+        stop.setTextColor(SettingsUi.OVERLAY_ACCENT);
+        stop.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY_SMALL);
+        stop.setPadding(SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12),
+                SettingsUi.dp(activity, 16), SettingsUi.dp(activity, 12));
+        stop.setMinimumHeight(SettingsUi.dp(activity, 48));
+        stop.setMinimumWidth(SettingsUi.dp(activity, 48));
+        stop.setGravity(Gravity.CENTER);
+        stop.setBackground(SettingsUi.overlayAction(activity, SettingsUi.RADIUS_OVERLAY));
+        stop.setFocusable(true);
+        SettingsUi.markAsButton(stop);
+        return stop;
     }
 
     /**

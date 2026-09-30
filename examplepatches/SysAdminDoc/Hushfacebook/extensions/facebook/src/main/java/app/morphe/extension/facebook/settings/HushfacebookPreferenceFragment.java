@@ -53,12 +53,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import app.morphe.extension.facebook.coexist.MessengerLinkCheck;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
 import app.morphe.extension.facebook.download.SaveControl;
 import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.feed.PostWords;
+import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
 import app.morphe.extension.shared.L10n;
@@ -427,15 +429,32 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         reels.addPreference(reelsLink(context, build, PatchFamily.TAP_TO_PLAY, Settings.TAP_TO_PLAY,
                 L10n.t("Reels that play by themselves"),
                 L10n.t("In Playback, Tap to play blocks autoplay, so reels and other videos wait for your tap.")));
-        // No patch hides the tab. Facebook's own Hide does, on the accounts that have it.
-        reels.addPreference(info(context, L10n.t("The Reels tab"),
-                L10n.t("Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose Hide "
-                        + "next to Reels, which some accounts call Video. If neither is listed, Facebook hasn't given "
-                        + "your account that option, and Hushfacebook has no switch for the tab.")));
+        // Without Hide the Reels tab, Facebook's own Hide is the answer, on the accounts that have it.
+        if (build.contains(PatchFamily.REELS_TAB)) {
+            reels.addPreference(reelsLink(context, build, PatchFamily.REELS_TAB, Settings.HIDE_REELS_TAB,
+                    L10n.t("The Reels tab"),
+                    L10n.t("In Reels and Watch, Hide the Reels tab blocks it after a restart.")));
+        } else {
+            reels.addPreference(info(context, L10n.t("The Reels tab"),
+                    L10n.f("Facebook's own setting blocks it. Open Settings, Tab bar, Customize the bar and choose "
+                            + "Hide next to Reels, which some accounts call Video. If neither is listed, choose the "
+                            + "%1$s patch in Morphe Manager and patch again.",
+                            L10n.isolate(PatchFamily.REELS_TAB.patchName))));
+        }
         reels.addPreference(reelsLink(context, build, PatchFamily.MARKETPLACE_ONLY, Settings.MARKETPLACE_ONLY,
                 L10n.t("Everything except Marketplace"),
                 L10n.t("In Opening Facebook, Marketplace only blocks the feed, the Reels tab and the other social "
                         + "tabs after a restart.")));
+        if (build.contains(PatchFamily.REELS_TAB)) {
+            // Facebook keeps the tab bar it built, so a change waits for a restart and the page says so.
+            reels.addPreference(toggle(context, Settings.HIDE_REELS_TAB, L10n.t("Hide the Reels tab"),
+                    L10n.t("Take the Reels tab, called Video on some accounts, off the tab bar. Reel links and reels "
+                            + "in the feed still open. Changes show after Facebook restarts.")));
+        }
+        if (build.contains(PatchFamily.REELS_TAB_DOT)) {
+            reels.addPreference(toggle(context, Settings.HIDE_REELS_TAB_DOT, L10n.t("Hide the Reels tab dot"),
+                    L10n.t("No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.")));
+        }
         // Both reel filters work on each batch of reels as it arrives, so a change leaves the
         // reels already loaded as they are, and the rows say so.
         if (build.contains(PatchFamily.SPONSORED_REELS)) {
@@ -474,6 +493,16 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                     L10n.t("A double tap on a reel or video no longer likes it or shows a heart. A single tap and the Like "
                             + "button work as before.")));
         }
+        if (build.contains(PatchFamily.KEEP_REEL_SPEED)) {
+            reels.addPreference(toggle(context, Settings.KEEP_REEL_SPEED, L10n.t("Keep the reel speed"),
+                    L10n.t("A playback speed you pick in a reel's menu stays for the next reels until you pick another "
+                            + "or Facebook restarts. Off, every reel starts at normal speed.")));
+        }
+        if (build.contains(PatchFamily.REEL_HOLD)) {
+            reels.addPreference(toggle(context, Settings.HOLD_REEL_FOR_2X, L10n.t("Hold a reel for 2x"),
+                    L10n.t("Holding a reel plays it at double speed until you let go, in place of Facebook's long-press "
+                            + "menu. The reel's more button still opens that menu.")));
+        }
         if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
             reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS, L10n.t("Download button on reels"),
                     L10n.t("Add a Download button to reels, using your download quality. Off or paused, Facebook's own buttons return.")));
@@ -493,7 +522,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                     L10n.t("Type @ before Facebook suggests someone to tag in posts or comments. Your text stays unchanged.")));
         }
 
-        if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
+        if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)
+                || build.contains(PatchFamily.PLAYBACK_QUALITY)) {
             PreferenceCategory playback = category(screen, L10n.t("Playback"));
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY, L10n.t("Tap to play"),
@@ -502,6 +532,11 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS, L10n.t("Resume long videos"),
                         L10n.t("Resume videos over two minutes where you left off. Seek to start elsewhere. Reels, live videos and ads start as usual.")));
+            }
+            if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
+                playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY, L10n.t("Default playback quality"),
+                        L10n.t("Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.")));
+                playback.addPreference(playbackQualityRow(context));
             }
         }
 
@@ -516,7 +551,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             // Every save reads it, a story's and a reel's as much as a feed video's, so it's here
             // whichever download patch is in, above the quality it keeps within.
             downloads.addPreference(toggle(context, Settings.DOWNLOAD_COMPATIBLE, L10n.t("Save videos other apps can open"),
-                    L10n.t("For WhatsApp, or a gallery or player that plays saves without sound. May lower quality.")));
+                    L10n.t("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
+                            + "without sound. May lower quality.")));
             downloads.addPreference(qualityRow(context));
             downloads.addPreference(folderRow(context));
             downloads.addPreference(fileNameRow(context));
@@ -565,7 +601,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             PreferenceCategory marketplace = category(screen, L10n.t("Marketplace"));
             marketplace.addPreference(toggle(context, Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS,
                     L10n.t("Hide sponsored Marketplace listings"),
-                    L10n.t("Ads and boosted listings in Marketplace's feed. The other listings stay.")));
+                    L10n.t("Ads and boosted listings in Marketplace's feed and search results. The other "
+                            + "listings stay.")));
         }
 
         if (build.contains(PatchFamily.PROMO_NOTIFICATIONS)) {
@@ -712,6 +749,22 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         // Debug logging also fills the exported report and turns on error toasts (Logger).
         hushfacebook.addPreference(mark(toggle(context, BaseSettings.DEBUG, L10n.t("Debug logging"),
                 L10n.t("Record patch activity and show errors for a bug report. Leave off during normal use.")), SettingsIcons.BUG));
+        // A test for Debug logging only: a Messenger patched with this build's key, asked now
+        // instead of on Facebook's own schedule. Restore screens fills it in. The screen is built
+        // once, so the row comes and goes when settings open again after Debug logging changes: a
+        // row this page can only disable would sit greyed out in every build with Restore screens.
+        if (build.contains(PatchFamily.RESTORE_TRUST) && BaseSettings.DEBUG.get() && MessengerLinkCheck.available()) {
+            Preference link = new Row(context);
+            link.setTitle(L10n.t("Test the Messenger link"));
+            link.setSummary(L10n.t("Runs the two reads Facebook makes of Messenger at startup, now, and shows whether "
+                    + "each one answered. Shown while Debug logging is on."));
+            link.setPersistent(false);
+            link.setOnPreferenceClickListener(p -> {
+                MessengerLinkCheck.start(context);
+                return true;
+            });
+            hushfacebook.addPreference(mark(link, SettingsIcons.BUG));
+        }
         // Both rows come without a title of their own: Hushfeed's gave them one from string
         // resources that Facebook's APK doesn't have, and untitled they showed as blank rows.
         ExportDiagnosticReportPreference export = new ExportRow(context);
@@ -1075,19 +1128,24 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         showMarketplaceSettings();
     }
 
-    /** Recomputed after a tap, an import or a resumed page; no saved start-tab choice is changed. */
+    /**
+     * Recomputed after a tap, an import or a resumed page; no saved start-tab choice is changed.
+     * The start tab's rows are redone without Marketplace only too, since Hide the Reels tab changes
+     * what a chosen Reels tab does.
+     */
     private void showMarketplaceSettings() {
         if (getPreferenceScreen() == null) return;
         Preference mode = findPreference(Settings.MARKETPLACE_ONLY.key);
-        if (mode == null) return;
-        boolean selected = Settings.MARKETPLACE_ONLY.savedValue();
-        mode.setSummary(marketplaceSummary());
-        Preference regular = findPreference("action_regular_facebook");
-        if (regular != null) regular.setEnabled(selected);
-        Preference quiet = findPreference(Settings.MARKETPLACE_QUIET_NOTIFICATIONS.key);
-        if (quiet != null) quiet.setEnabled(selected);
-        Preference prefetch = findPreference(Settings.MARKETPLACE_SKIP_FEED_PREFETCH.key);
-        if (prefetch != null) prefetch.setEnabled(selected);
+        boolean selected = mode != null && Settings.MARKETPLACE_ONLY.savedValue();
+        if (mode != null) {
+            mode.setSummary(marketplaceSummary());
+            Preference regular = findPreference("action_regular_facebook");
+            if (regular != null) regular.setEnabled(selected);
+            Preference quiet = findPreference(Settings.MARKETPLACE_QUIET_NOTIFICATIONS.key);
+            if (quiet != null) quiet.setEnabled(selected);
+            Preference prefetch = findPreference(Settings.MARKETPLACE_SKIP_FEED_PREFETCH.key);
+            if (prefetch != null) prefetch.setEnabled(selected);
+        }
         Preference chosen = findPreference(Settings.OPEN_ON_CHOSEN_TAB.key);
         if (chosen != null) {
             chosen.setEnabled(!selected);
@@ -1297,9 +1355,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
 
     /**
      * What a start does with [tab], for the row's summary. Facebook opens Home for a tab the
-     * account's tab bar hasn't got, so the summary says so rather than promise the tab.
+     * account's tab bar hasn't got, so the summary says so rather than promise the tab. A Reels tab
+     * Hide the Reels tab keeps off the bar is asked for as Home, and the summary says that instead.
      */
     static String startTabSummary(StartTab tab) {
+        if (tab == StartTab.VIDEO && Settings.HIDE_REELS_TAB.savedValue() && PatchFamily.REELS_TAB.inBuild()) {
+            return L10n.t("Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. "
+                    + "Your choice stays saved.");
+        }
         return L10n.f("Facebook opens on %1$s. If your tab bar doesn't have it, Facebook opens on Home.",
                 tabLabel(tab));
     }
@@ -1355,7 +1418,68 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 commentOrderLabel(order));
     }
 
-    /** The quality, start tab and comment order rows' summaries are sentences of their own rather than the chosen entry. */
+    /**
+     * The quality videos play at. Like the comment order row, its values are the setting's own
+     * names and its summary says what the choice does.
+     */
+    static PlaybackQualityRow playbackQualityRow(Context context) {
+        PlaybackQualityRow row = new PlaybackQualityRow(context);
+        row.setKey(Settings.PLAYBACK_QUALITY.key);
+        row.setTitle(L10n.t("Playback quality"));
+        row.setDialogTitle(L10n.t("Playback quality"));
+        // Android's own Cancel follows the activity's language, as the other lists' did.
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        PlaybackQuality[] qualities = PlaybackQuality.values();
+        CharSequence[] entries = new CharSequence[qualities.length];
+        CharSequence[] values = new CharSequence[qualities.length];
+        for (int i = 0; i < qualities.length; i++) {
+            entries[i] = playbackQualityLabel(qualities[i]);
+            values[i] = qualities[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.PLAYBACK_QUALITY.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [quality]: Auto, as Facebook's own quality menu calls it, and a ceiling by its label. */
+    static String playbackQualityLabel(PlaybackQuality quality) {
+        switch (quality) {
+            case DATA_SAVER:
+                return L10n.t("Data saver");
+            case P480:
+            case P720:
+                return L10n.f("Up to %1$s", L10n.isolate(quality.fileValue));
+            case HIGHEST:
+                return L10n.t("Highest");
+            default:
+                return L10n.t("Auto");
+        }
+    }
+
+    /**
+     * What a video does with [quality], for the row's summary. The rungs are the ones Facebook offers
+     * for each video, so the summary says the video has to offer the quality rather than promise it.
+     */
+    static String playbackQualitySummary(PlaybackQuality quality) {
+        switch (quality) {
+            case DATA_SAVER:
+                return L10n.t("Videos play at the lowest quality Facebook offers for each.");
+            case P480:
+            case P720:
+                return L10n.f("Videos play at the best quality up to %1$s that Facebook offers for each, or the closest above.",
+                        L10n.isolate(quality.fileValue));
+            case HIGHEST:
+                return L10n.t("Videos play at the highest quality Facebook offers for each.");
+            default:
+                return L10n.t("Facebook picks the quality as each video plays, from your connection.");
+        }
+    }
+
+    /**
+     * The quality, start tab, comment order and playback quality rows' summaries are sentences of
+     * their own rather than the chosen entry.
+     */
     @Override
     protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
         if (listPreference instanceof QualityRow) {
@@ -1364,6 +1488,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             ((StartTabRow) listPreference).showSummary();
         } else if (listPreference instanceof CommentOrderRow) {
             ((CommentOrderRow) listPreference).showSummary();
+        } else if (listPreference instanceof PlaybackQualityRow) {
+            ((PlaybackQualityRow) listPreference).showSummary();
         } else {
             super.updateListPreferenceSummary(listPreference, setting);
         }
@@ -1954,6 +2080,45 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 if (candidate.name().equals(getValue())) order = candidate;
             }
             setSummary(commentOrderSummary(order));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The playback quality's row. Its summary follows its value, whoever sets it: the person, the
+     * shared page syncing it from the setting, or an import.
+     */
+    static final class PlaybackQualityRow extends ListPreference {
+        PlaybackQualityRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            PlaybackQuality quality = PlaybackQuality.AUTO;
+            for (PlaybackQuality candidate : PlaybackQuality.values()) {
+                if (candidate.name().equals(getValue())) quality = candidate;
+            }
+            setSummary(playbackQualitySummary(quality));
         }
 
         @Override

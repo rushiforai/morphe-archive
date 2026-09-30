@@ -26,7 +26,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * <p>It runs once per process, after MediaCache's own sweep. What finished is consumed without a
  * word. What didn't, or can't be confirmed, is named on a banner once the feed is in front, and
- * consumed as the banner goes up, so it is said exactly once. It names the kind of save and how
+ * consumed once that banner has been up for its whole time, so it is said once. A banner another
+ * one replaced, or that went with the controls, was cut short, and the next start says it again.
+ * It names the kind of save and how
  * many of its files are missing, never a file, and it promises nothing: a save isn't picked up
  * again by itself, and the reader can save it again if they still want it.
  */
@@ -204,7 +206,12 @@ final class UnfinishedSaves {
             List<String> log = shownForTests;
             if (log != null) log.add(text);
             View content = activity.findViewById(android.R.id.content);
-            BlockAuthorOverlay.showNoticeBanner(content instanceof ViewGroup ? (ViewGroup) content : null, text);
+            BlockAuthorOverlay.showNoticeBanner(content instanceof ViewGroup ? (ViewGroup) content : null, text,
+                    this::seen);
+        }
+
+        /** The banner ran its whole time, so what it named has been said. */
+        private void seen() {
             SaveRecords.consume(context, report.ids());
             int count = report.saves.size();
             Logger.printInfo(() -> "Said which saves didn't finish: " + count);

@@ -152,13 +152,14 @@ final class DashManifest {
     }
 
     /**
-     * The best video track that {@code MediaMuxer} can write into an MP4, or {@code null}.
+     * The best video track a save can write into an MP4, or {@code null}.
      *
-     * <p>H.264 and H.265 are always permitted. AV1 is permitted only when [allowAv1] is true. A
-     * story often lists only AV1 tracks. But the muxer writes AV1 only from Android 14, and a
-     * device with no AV1 decoder cannot play the file. VP9 is never used, because the MP4 muxer
-     * refuses it, also on Android 17. At the same size, H.264 is the first choice, because all
-     * players can play it.
+     * <p>H.264 and H.265 are always permitted. AV1 is permitted only when [allowAv1] is true: a
+     * story often lists only AV1 tracks, but a device with no AV1 decoder cannot play the file. VP9
+     * in an MP4 is always permitted. {@code MediaMuxer} refuses it, also on Android 17, so
+     * {@link Mp4Join} writes it, and every Android phone decodes VP9. At the same size, H.264 is
+     * the first choice, because all players can play it, and VP9 the last, the one format no
+     * Android muxer writes.
      */
     static Track bestVideo(List<Track> tracks, boolean allowAv1) {
         Track best = null;
@@ -166,7 +167,7 @@ final class DashManifest {
         for (Track track : tracks) {
             if (!track.isVideo()) continue;
 
-            int family = videoFamily(track.codecs, allowAv1);
+            int family = videoFamily(track, allowAv1);
             if (family == 0) continue;
 
             if (best == null) {
@@ -179,7 +180,7 @@ final class DashManifest {
                 continue;
             }
 
-            int bestFamily = videoFamily(best.codecs, allowAv1);
+            int bestFamily = videoFamily(best, allowAv1);
             if (family != bestFamily) {
                 if (family > bestFamily) best = track;
                 continue;
@@ -196,7 +197,7 @@ final class DashManifest {
      * {@link #bestVideo}, as it always was. Below it, the tracks are held to their labels: the
      * best one at or under the ceiling, else the nearest above it, and for the smallest file the
      * lowest. At one quality H.264 still goes first, then the higher bitrate, or the lower one for
-     * the smallest file. A track the muxer can't write is never picked, whatever it's labelled.
+     * the smallest file. A track the phone can't write is never picked, whatever it's labelled.
      */
     static Track pickVideo(List<Track> tracks, boolean allowAv1, DownloadQuality quality) {
         if (quality == null || quality == DownloadQuality.BEST) return bestVideo(tracks, allowAv1);
@@ -206,7 +207,7 @@ final class DashManifest {
         for (Track track : tracks) {
             if (!track.isVideo()) continue;
 
-            int family = videoFamily(track.codecs, allowAv1);
+            int family = videoFamily(track, allowAv1);
             if (family == 0) continue;
 
             if (best == null) {
@@ -220,7 +221,7 @@ final class DashManifest {
                 continue;
             }
 
-            int bestFamily = videoFamily(best.codecs, allowAv1);
+            int bestFamily = videoFamily(best, allowAv1);
             if (family != bestFamily) {
                 if (family > bestFamily) best = track;
                 continue;
@@ -358,11 +359,16 @@ final class DashManifest {
 
     // ---------------------------------------------------------------- internals
 
-    /** A higher number is a better choice: 3 for H.264, 2 for H.265, 1 for AV1, 0 for not used. */
-    private static int videoFamily(String codecs, boolean allowAv1) {
-        if (codecs.startsWith("avc1") || codecs.startsWith("avc3")) return 3;
-        if (codecs.startsWith("hvc1") || codecs.startsWith("hev1")) return 2;
-        if (allowAv1 && codecs.startsWith("av01")) return 1;
+    /**
+     * A higher number is a better choice: 4 for H.264, 3 for H.265, 2 for AV1, 1 for VP9, 0 for not
+     * used. VP9 counts only in an MP4, the container {@link Mp4Join} copies it from.
+     */
+    private static int videoFamily(Track track, boolean allowAv1) {
+        String codecs = track.codecs;
+        if (codecs.startsWith("avc1") || codecs.startsWith("avc3")) return 4;
+        if (codecs.startsWith("hvc1") || codecs.startsWith("hev1")) return 3;
+        if (allowAv1 && codecs.startsWith("av01")) return 2;
+        if (codecs.startsWith("vp09") && track.mime.equals("video/mp4")) return 1;
         return 0;
     }
 

@@ -6,7 +6,7 @@
 
 package app.crimera.patches.instagram.misc.download
 
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
 

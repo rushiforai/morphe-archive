@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0-dev.17",
+  "version": "1.0.0-dev.18",
   "patches": [
     {
       "name": "Add to queue",
@@ -6036,7 +6036,7 @@
     },
     {
       "name": "Jam queue sharing",
-      "description": "Shares the host queue and playback controls through an authenticated Jam bridge. Supports YouTube Music 9.15.51; 9.35.54, 9.36.50 and 9.37.54 are experimental and require device testing. Other versions are skipped with a warning. Root installation is not supported.",
+      "description": "Shares the host queue and playback controls through an authenticated Jam bridge. Root installation is not supported.",
       "default": true,
       "category": null,
       "dependencies": [
@@ -6053,7 +6053,7 @@
           "name": "YouTube Music",
           "description": null,
           "apkFileType": "APK_REQUIRED",
-          "appIconColor": null,
+          "appIconColor": "#FF0000",
           "signatures": [
             "6a2f65ec694a6a632acdcb5080912a565f903d4b8d83f0eb8e44fbdf2660d8e1",
             "a2a1ad7ba7f41dfca4514e2afeb90691719af6d0fdbed4b09bbf0ed897701ceb"

@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.preference.Preference;
 import android.text.Editable;
@@ -365,10 +366,24 @@ public class SimPresetPreference extends Preference {
             // row's drawable washes a selected row, so the chosen preset looked focused.
             boolean chosen = selected != null && preset == selected;
             Context context = parent.getContext();
-            title.setCompoundDrawablePadding(SettingsUi.dp(context, 8));
-            title.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    chosen ? SettingsUi.radioMark(context) : null, null, null, null);
-            summary.setPaddingRelative(chosen ? SettingsUi.dp(context, 40) : 0, 0, 0, 0);
+            int gap = SettingsUi.dp(context, 8);
+            Drawable ring = SettingsUi.radioMark(context);
+            int column = ring.getIntrinsicWidth() + gap;
+            title.setCompoundDrawablePadding(gap);
+            Drawable mark = chosen ? ring : null;
+            if (mark != null) {
+                // Its own 32dp height is taller than a line of the title, so the chosen row's
+                // title grew and its operator line sat about 10dp below every other row's. One
+                // line high, the 18dp ring still fits.
+                mark.setBounds(0, 0, mark.getIntrinsicWidth(),
+                        Math.min(mark.getIntrinsicHeight(), title.getLineHeight()));
+            }
+            title.setCompoundDrawablesRelative(mark, null, null, null);
+            // Every row keeps the mark's column, as the platform's single-choice lists keep their
+            // radio column. Only the chosen title gave the mark its width, so at a large font a
+            // long country name wrapped only when chosen and its operator line dropped a line.
+            title.setPaddingRelative(chosen ? 0 : column, 0, 0, 0);
+            summary.setPaddingRelative(column, 0, 0, 0);
 
             // The fill under the press and the focus. Set flat, it covered the ListView's
             // own selector, so pressing a preset looked like nothing at all.

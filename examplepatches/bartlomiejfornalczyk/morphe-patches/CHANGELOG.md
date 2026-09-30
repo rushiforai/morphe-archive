@@ -1,62 +1,117 @@
-## [1.8.2](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.8.1...v1.8.2) (2026-09-28)
+## [1.4.19](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.18...v1.4.19) (2026-09-29)
 
 ### 🐛 Bug Fixes
 
-* **maps:** remove duplicate package injection that caused ImmutableMap crash ([f9bfe34](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/f9bfe34dba1f361adaafa149d7cd87e0634e7920))
+* inject MATCH_ALL via same-size CHECK_CAST replacement to avoid method expansion and startup crash ([0b70df9](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/0b70df9f3fe94bd5422226cb014c141df39eb72e))
 
-## [1.8.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.8.0...v1.8.1) (2026-09-28)
-
-### 🐛 Bug Fixes
-
-* **maps:** use MATCH_ALL intent query flag and extensive manifest queries to forcefully bypass Android 11+ visibility blocks ([e27d23e](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e27d23edc9b401e11f97c2461d98de4f84445ddc))
-
-## [1.8.0](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.7.2...v1.8.0) (2026-09-28)
-
-### ✨ New Features
-
-* **maps:** ultimate queryIntentServices bypass with fake ResolveInfo injection ([5315464](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5315464005612e4c84d4e4627b3952a3c875dba4))
-
-## [1.7.2](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.7.1...v1.7.2) (2026-09-28)
+## [1.4.18](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.17...v1.4.18) (2026-09-29)
 
 ### 🐛 Bug Fixes
 
-* **maps:** use absolute exact package matching for YouTube Music to prevent instruction replacement failures ([37a45c7](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/37a45c7a2d781b836372cf1e1178269004d6bd01))
+* replace YT Music package in bsma.a trusted allowlist so Maps accepts Morphe YT Music ([5e29368](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5e293680428981e42e8f6a0493e7b183d4762102))
 
-## [1.7.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.7.0...v1.7.1) (2026-09-28)
-
-### 🐛 Bug Fixes
-
-* **maps:** hardcode youtube.music substring to bypass cached cli string configs ([7ae7ae9](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/7ae7ae977149eb77f403678a346bdaa079c66fb9))
-
-## [1.7.0](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.6.1...v1.7.0) (2026-09-28)
-
-### ✨ New Features
-
-* **maps:** replace exact package matching with endsWith for flawless media integration ([50fee39](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/50fee39731d118fd16a2a4a218d6ce581fdf2f7e))
-
-## [1.6.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.6.0...v1.6.1) (2026-09-28)
+## [1.4.17](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.16...v1.4.17) (2026-09-29)
 
 ### 🐛 Bug Fixes
 
-* **maps:** replace NOP bypass with safe boolean assignment to prevent crashes and ensure flag is enabled ([67bc773](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/67bc773913bc5285c5f22743e5279e33f10f60fe))
+* revert to stable 6daf2cb content - no startup crash ([cd95a4d](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/cd95a4daa818d7e9ce6acacab594c40f3d5139ae))
 
-## [1.6.0](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.5.1...v1.6.0) (2026-09-28)
-
-### ✨ New Features
-
-* **maps:** add targeted package check bypass to force media app population ([615535a](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/615535ab6dc7ebd491b99d310ea3e9f23b574a18))
-
-## [1.5.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.5.0...v1.5.1) (2026-09-28)
+## [1.4.16](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.15...v1.4.16) (2026-09-29)
 
 ### 🐛 Bug Fixes
 
-* **maps:** revert aggressive nuclear bypass, fix targetPackage extraction stringification, remove apww method overwrite ([5a7c286](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5a7c2860ae7afcbb94054546a93451dba67108b8))
+* eliminate all addInstructions calls - use only replaceInstruction to prevent startup crash from offset shifts ([3d76b91](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/3d76b910976ea31378c6411c2a81e07a7433b5d7))
 
-## [1.5.0](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.0...v1.5.0) (2026-09-28)
+## [1.4.15](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.14...v1.4.15) (2026-09-29)
 
-### ✨ New Features
+### 🐛 Bug Fixes
 
-* **maps:** add nuclear bypass for media package check ([c449fbd](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/c449fbdda70785b5f5a7a3c8c0dda88c28553253))
+* safely bypass cpwy.b and cpwy.d by explicitly targeting the if-eqz register to prevent memory corruption ([a4deea5](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/a4deea5067846e7551f3d4c32d60c03cbaed5bda))
+
+## [1.4.14](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.13...v1.4.14) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* revert to EXACT 1.8.6 stable code for bytecode patches to resolve UI click crash ([c6e7d25](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/c6e7d256d28bfaf3eda83d4d4cd7dc53a8d441f0))
+
+## [1.4.13](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.12...v1.4.13) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* remove global apww.l() patch causing NPE on media session creation ([f1f80f0](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/f1f80f05838d200645d81937cf38d9fad4829c80))
+
+## [1.4.12](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.11...v1.4.12) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* replace move-result atomically to avoid addInstructions offset bug ([e47b2f1](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/e47b2f1b6658c6c396b9adc0e857f05f079b4d6c))
+
+## [1.4.11](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.10...v1.4.11) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* add MATCH_ALL injection but conditionally preserve move-result register to prevent NullPointerException ([0336789](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/0336789ec3bd6cf1f7ac1c150338ada3d1b2ee22))
+
+## [1.4.10](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.9...v1.4.10) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* remove MATCH_ALL to prevent VerifyError, use safe boolean flag override ([678e7d1](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/678e7d10cdcccfe104467ddee172612f1000b526))
+
+## [1.4.9](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.8...v1.4.9) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* safely restore MATCH_ALL flag after move-result-object ([1feb38f](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/1feb38f077ef6818c4e47c16b0e9c51b98804be2))
+
+## [1.4.8](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.7...v1.4.8) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* hardcode target package to bypass CLI config cache ([0e34fd4](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/0e34fd4160c48ae6a838a89e753675e2454e79b1))
+* revert boolean flag bypass that causes startup crash ([5a28b5e](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5a28b5e4cb17597d19c6aac2dce465a9db20cd20))
+
+## [1.4.7](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.6...v1.4.7) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* use boolean flag bypass to safely allow Morphe YT Music ([f35a6cf](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/f35a6cfde584a470acfcd38716160037020f248c))
+
+## [1.4.6](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.5...v1.4.6) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* enforce MATCH_ALL flag safely with register restoration ([bc66f10](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/bc66f109bbf3bb99d0d322c28f6e6fa7f6cbf133))
+
+## [1.4.5](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.4...v1.4.5) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* revert queryIntentServices MATCH_ALL injection ([6daf2cb](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/6daf2cb346c69d38eeba491c40d88116e5a775c6))
+
+## [1.4.4](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.3...v1.4.4) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* enforce MATCH_ALL flag in queryIntentServices to fix Android 11+ visibility for YT Music ([272d966](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/272d966dcd314fe4fe19551d37e41ec7130e109f))
+* use FiveRegisterInstruction instead of Instruction35c to fix build ([6d9a2c3](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/6d9a2c3432eebffc816d74eec6c52e1ccb7ef2ad))
+
+## [1.4.3](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.2...v1.4.3) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* actually revert spotify bypass to trigger release ([cadce2b](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/cadce2bfaa644410e35737d11a6084213afcad31))
+* revert RestoreMapDataPatch crash fixes that break v1.4.0 ([ebf1827](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/ebf1827c0880b01a2a25acd32191e8d417d8dff9))
+
+## [1.4.2](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.1...v1.4.2) (2026-09-29)
+
+## [1.4.1](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.0...v1.4.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* add missing replaceInstruction import in RestoreMapDataPatch ([5ed2970](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5ed2970355a6f303ff89408b0d480a9c52814a06))
+* apply known crash fixes to v1.4.0 RestoreMapDataPatch ([c68818b](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/c68818bd6590c172732092f71e84d2316ed1f74c))
+* refine media provider bypass to include Spotify without causing duplicates ([6f2ec06](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/6f2ec06af32014757b4c1b6f106b8eeef859e7c3))
 
 ## [1.4.0](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.3.1...v1.4.0) (2026-09-28)
 

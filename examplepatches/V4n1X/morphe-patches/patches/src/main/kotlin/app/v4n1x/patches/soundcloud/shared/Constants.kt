@@ -13,6 +13,12 @@ object Constants {
         targets = listOf(
             AppTarget(
                 version = "2026.08.26-release"
+            ),
+            AppTarget(
+                version = "2026.09.23-release",
+                minSdk = 29,
+                isExperimental = true,
+                description = "All five patches verified locally; on-device validation pending.",
             )
         )
     )

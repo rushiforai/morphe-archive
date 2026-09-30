@@ -8,12 +8,19 @@ import kotlin.test.assertFailsWith
 class DexSiteContractTest {
     private fun assertActionable(failure: PatchException) {
         assertContains(failure.message.orEmpty(), "Use an unmodified arm64 Messenger 580.0.0.49.91 APK")
-        assertContains(failure.message.orEmpty(), "version code 346013387 or 346013440 or 346013442")
+        assertContains(failure.message.orEmpty(), "version code 346013387 or 346013440 or 346013442 or 346013354 or 346013370)")
     }
 
     @Test
     fun acceptsTheSupportedInstructionSites() {
         validateDexSites(expectedDexSites.toList())
+    }
+
+    @Test
+    fun eachBuildAcceptsOnlyItsOwnInstructionSites() {
+        validateDexSites(expectedDexSites346013370.toList(), expectedDexSitesFor("346013370"))
+        assertFailsWith<PatchException> { validateDexSites(expectedDexSites346013370.toList(), expectedDexSitesFor("346013440")) }
+        assertFailsWith<PatchException> { validateDexSites(expectedDexSites.toList(), expectedDexSitesFor("346013370")) }
     }
 
     @Test

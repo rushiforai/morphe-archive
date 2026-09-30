@@ -6,7 +6,7 @@ on:
       version:
         description: Version without the leading v
         required: true
-        default: "0.1.1"
+        default: "0.2.2"
   push:
     paths:
       - ".github/release-trigger"
@@ -15,7 +15,7 @@ permissions:
   contents: write
 
 env:
-  RELEASE_VERSION: ${{ inputs.version || '0.1.1' }}
+  RELEASE_VERSION: ${{ inputs.version || '0.2.2' }}
 
 jobs:
   publish:
@@ -73,7 +73,7 @@ jobs:
           cat > patches-bundle.json <<EOF
           {
             "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S)",
-            "description": "Letterboxd Player Bridge ${VERSION}: separate Stremio and Nuvio buttons.",
+            "description": "Stremio + Nuvio Bridge ${VERSION}: diagnostic-only default for Douban repackaging test.",
             "download_url": "https://github.com/${{ github.repository }}/releases/download/v${VERSION}/${ASSET}",
             "signature_download_url": "",
             "page_url": "https://github.com/${{ github.repository }}/releases/tag/v${VERSION}",

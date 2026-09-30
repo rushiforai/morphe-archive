@@ -106,6 +106,82 @@ public class SetupSummaryTest {
         }
     }
 
+    @Test public void usageLabelShowsOnlyForSwitchesThatAreOnAndSaysWhetherTheyWereUsed() throws Exception {
+        installedFeatures("people", "stories");
+        Settings.preferences.edit().putBoolean("people", true).putBoolean("stories", false).commit();
+        Settings.activeAt.clear();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            android.widget.TextView people = root.findViewWithTag("active_people");
+            android.widget.TextView stories = root.findViewWithTag("active_stories");
+            assertEquals(View.VISIBLE, people.getVisibility());
+            assertEquals("Nothing to change yet since restart", people.getText().toString());
+            // An off switch has nothing to report, and turning it on shows its label.
+            assertEquals(View.GONE, stories.getVisibility());
+            ((android.widget.Switch) root.findViewWithTag("stories")).setChecked(true);
+            assertEquals(View.VISIBLE, stories.getVisibility());
+            ((android.widget.Switch) root.findViewWithTag("stories")).setChecked(false);
+            assertEquals(View.GONE, stories.getVisibility());
+        }
+        assertTrue(Settings.enabled("people"));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            android.widget.TextView people = screen.get().getWindow().getDecorView().findViewWithTag("active_people");
+            assertEquals("Used just now", people.getText().toString());
+        }
+    }
+
+    @Test public void hidingTheDrawerIconDisablesOnlyTheLauncherAlias() throws Exception {
+        installedFeatures("people", "menu_row");
+        var app = RuntimeEnvironment.getApplication();
+        PackageManager packages = app.getPackageManager();
+        var alias = new android.content.ComponentName(app.getPackageName(), SettingsActivity.DRAWER_ALIAS);
+        var screenComponent = new android.content.ComponentName(app.getPackageName(), SettingsActivity.class.getName());
+        Shadows.shadowOf(packages).addActivityIfNotPresent(alias);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            root.findViewWithTag("tab_app").performClick();
+            android.widget.Switch hide = root.findViewWithTag("hide_drawer_icon");
+            assertFalse(hide.isChecked());
+            assertNotEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(alias));
+            hide.setChecked(true);
+            assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(alias));
+            assertNotEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(screenComponent));
+            assertTrue(Settings.preferences.getBoolean("hide_drawer_icon", false));
+            hide.setChecked(false);
+            assertNotEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(alias));
+        }
+        // A saved choice is applied again when settings open or Messenger starts.
+        Settings.preferences.edit().putBoolean("hide_drawer_icon", true).commit();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            assertEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(alias));
+        }
+        Settings.preferences.edit().putBoolean("hide_drawer_icon", false).commit();
+        SettingsActivity.syncDrawerIcon(app);
+        assertNotEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(alias));
+    }
+
+    @Test public void withoutTheMenuRowTheDrawerIconCantBeHiddenAndComesBack() throws Exception {
+        installedFeatures("people");
+        var app = RuntimeEnvironment.getApplication();
+        PackageManager packages = app.getPackageManager();
+        var alias = new android.content.ComponentName(app.getPackageName(), SettingsActivity.DRAWER_ALIAS);
+        Shadows.shadowOf(packages).addActivityIfNotPresent(alias);
+        packages.setComponentEnabledSetting(alias, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+        Settings.initialize(app);
+        Settings.preferences.edit().putBoolean("hide_drawer_icon", true).commit();
+        try {
+            SettingsActivity.syncDrawerIcon(app);
+            assertNotEquals(PackageManager.COMPONENT_ENABLED_STATE_DISABLED, packages.getComponentEnabledSetting(alias));
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                View root = screen.get().getWindow().getDecorView();
+                root.findViewWithTag("tab_app").performClick();
+                assertNull(root.findViewWithTag("hide_drawer_icon"));
+            }
+        } finally {
+            Settings.preferences.edit().putBoolean("hide_drawer_icon", false).commit();
+        }
+    }
+
     @Test public void pauseAndAndroidEligibilityAreSeparateFromSavedChoices() throws Exception {
         installedFeatures("bubbles", "people");
         Settings.preferences.edit().putBoolean("bubbles", true).putBoolean("people", true).putBoolean("paused", true).commit();

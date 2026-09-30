@@ -1,0 +1,57 @@
+name: Build Douban Player Bridge APK
+
+on:
+  push:
+    paths:
+      - "douban-player-bridge-app/**"
+      - ".github/workflows/build-douban-player-bridge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android 35 SDK
+        shell: bash
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Build installable debug APK
+        run: gradle -p douban-player-bridge-app :app:assembleDebug --stacktrace
+
+      - name: Prepare artifact
+        run: |
+          mkdir -p dist
+          cp douban-player-bridge-app/app/build/outputs/apk/debug/app-debug.apk              dist/DoubanPlayerBridge-0.2.3.apk
+          sha256sum dist/DoubanPlayerBridge-0.2.3.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DoubanPlayerBridge-0.2.3
+          path: dist/DoubanPlayerBridge-0.2.3.apk
+          if-no-files-found: error

@@ -7,6 +7,7 @@
 package app.ahmedyarub.patches.instagram.links
 
 import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.stringPoolsPatch
 import app.morphe.library.instagram.patches.instagramExtensionPatch
 import app.morphe.patcher.patch.bytecodePatch
 
@@ -18,7 +19,7 @@ val sanitizeShareLinksPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 
-    dependsOn(instagramExtensionPatch)
+    dependsOn(instagramExtensionPatch, stringPoolsPatch)
 
     execute {
         hookShareLinks("sanitizeUrl")

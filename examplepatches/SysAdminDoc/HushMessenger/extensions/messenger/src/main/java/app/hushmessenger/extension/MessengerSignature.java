@@ -4,6 +4,7 @@
  */
 package app.hushmessenger.extension;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -112,6 +113,7 @@ public final class MessengerSignature {
         if (caller == Process.myUid() || info.applicationInfo == null || info.applicationInfo.uid != caller) return false;
         try {
             Context context = Settings.appContext;
+            if (context == null) context = processApplication();
             if (context == null) return outcome(ERROR);
             PackageManager packages = context.getPackageManager();
             String[] names = packages.getPackagesForUid(caller);
@@ -131,6 +133,20 @@ public final class MessengerSignature {
         } catch (Throwable error) {
             android.util.Log.e("HushMessenger", "Can't check the calling Facebook's signer", error);
             return outcome(ERROR);
+        }
+    }
+
+    /**
+     * The Application of a Messenger process that never creates the settings provider, such as
+     * :fdidsync, which exports a provider Facebook reads. Null if Android refuses the lookup, and
+     * the caller check then fails closed, so the internal API is safe to try.
+     */
+    @SuppressLint("PrivateApi")
+    private static Context processApplication() {
+        try {
+            return (Context) Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
+        } catch (Throwable error) {
+            return null;
         }
     }
 

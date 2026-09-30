@@ -39,6 +39,15 @@ dependencyLocking {
     lockAllConfigurations()
 }
 
+// The patcher and the Android build tools bring Bouncy Castle 1.77 and 1.79 into this graph.
+// See gradle/libs.versions.toml for the advisories and why 1.86.
+val safeBouncyCastleVersion = libs.versions.bouncycastle.get()
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle") useVersion(safeBouncyCastleVersion)
+    }
+}
+
 for ((taskName, mode) in mapOf("generatePatchCatalog" to "generate", "checkPatchCatalog" to "check")) {
     tasks.register<JavaExec>(taskName) {
         group = "verification"

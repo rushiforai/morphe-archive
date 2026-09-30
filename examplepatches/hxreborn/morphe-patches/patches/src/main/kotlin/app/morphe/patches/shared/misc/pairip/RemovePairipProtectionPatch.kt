@@ -14,6 +14,7 @@ val removePairipProtectionPatch = bytecodePatch {
         AppCompatibilities.BLURWALL,
         AppCompatibilities.ECHOGRAM,
         AppCompatibilities.HINDU_CALENDAR,
+        AppCompatibilities.MYMOVESET,
         AppCompatibilities.QURANIFY,
         AppCompatibilities.RATEGLANCE,
         AppCompatibilities.VLLO,

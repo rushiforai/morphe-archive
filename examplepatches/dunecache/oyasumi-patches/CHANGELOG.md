@@ -1,3 +1,61 @@
+## [0.3.2](https://github.com/dunecache/oyasumi-patches/compare/v0.3.1...v0.3.2) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* give the interpolated invoke registers their v prefix ([86e5755](https://github.com/dunecache/oyasumi-patches/commit/86e575584aedb6cfb36b8c2a1f19cb384ca6da01))
+
+## [0.3.1](https://github.com/dunecache/oyasumi-patches/compare/v0.3.0...v0.3.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* brace the register list in the 1DM inserted invokes ([bff38e9](https://github.com/dunecache/oyasumi-patches/commit/bff38e96bd9956f235ff6b6e09b94ee7d9618f4b))
+
+## [0.3.0](https://github.com/dunecache/oyasumi-patches/compare/v0.2.1...v0.3.0) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* escape the click listener type in the 1DM banner fingerprint ([3f3d261](https://github.com/dunecache/oyasumi-patches/commit/3f3d2616be1388d204537eb7ed3b2eb18b79b2a0))
+
+### ✨ New Features
+
+* add the 1DM 18.2 home screen ads patch ([0ad111b](https://github.com/dunecache/oyasumi-patches/commit/0ad111b68177914352c1ac1a572703a358e0b3d8))
+
+## [0.2.1](https://github.com/dunecache/oyasumi-patches/compare/v0.2.0...v0.2.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* declare ADM 14.0.39 as a supported target ([8d2c0c7](https://github.com/dunecache/oyasumi-patches/commit/8d2c0c7d66d81c4c6a103029bdb41bbeadfb43a7))
+* declare only ADM 14.0.39 as a supported target ([40307b4](https://github.com/dunecache/oyasumi-patches/commit/40307b49002e88e11fbec914be1ca1a3a1e8a3f8))
+* read instruction registers from the dexlib2 instruction interfaces ([7e5ae11](https://github.com/dunecache/oyasumi-patches/commit/7e5ae11bc636ce2f4b87c8ae19a96bfefd26d0fb))
+* retarget the ads patch to ADM 14.0.39 ([062d02e](https://github.com/dunecache/oyasumi-patches/commit/062d02e7b0d6aef1243a66ae7e2ba51b6f098895))
+* retarget the connection limits patch to ADM 14.0.39 ([a90ac32](https://github.com/dunecache/oyasumi-patches/commit/a90ac32d3971ee84743240c1f83e0865380cae96))
+* retarget the rating prompt patch to ADM 14.0.39 ([cb901d8](https://github.com/dunecache/oyasumi-patches/commit/cb901d8145a4a8e35a898915dd73a21f86f26730))
+* use register B for the field store target ([3ec65bf](https://github.com/dunecache/oyasumi-patches/commit/3ec65bf398d4e8966b49f5e0541b9d19b9884432))
+* use smali's colon in the field reference ([b7b336e](https://github.com/dunecache/oyasumi-patches/commit/b7b336ed5bdb21e5066db18f4cd5edc5c5de43e3))
+
+## [0.2.1-dev.3](https://github.com/dunecache/oyasumi-patches/compare/v0.2.1-dev.2...v0.2.1-dev.3) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* declare only ADM 14.0.39 as a supported target ([40307b4](https://github.com/dunecache/oyasumi-patches/commit/40307b49002e88e11fbec914be1ca1a3a1e8a3f8))
+
+## [0.2.1-dev.2](https://github.com/dunecache/oyasumi-patches/compare/v0.2.1-dev.1...v0.2.1-dev.2) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* use smali's colon in the field reference ([b7b336e](https://github.com/dunecache/oyasumi-patches/commit/b7b336ed5bdb21e5066db18f4cd5edc5c5de43e3))
+
+## [0.2.1-dev.1](https://github.com/dunecache/oyasumi-patches/compare/v0.2.0...v0.2.1-dev.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* declare ADM 14.0.39 as a supported target ([8d2c0c7](https://github.com/dunecache/oyasumi-patches/commit/8d2c0c7d66d81c4c6a103029bdb41bbeadfb43a7))
+* read instruction registers from the dexlib2 instruction interfaces ([7e5ae11](https://github.com/dunecache/oyasumi-patches/commit/7e5ae11bc636ce2f4b87c8ae19a96bfefd26d0fb))
+* retarget the ads patch to ADM 14.0.39 ([062d02e](https://github.com/dunecache/oyasumi-patches/commit/062d02e7b0d6aef1243a66ae7e2ba51b6f098895))
+* retarget the connection limits patch to ADM 14.0.39 ([a90ac32](https://github.com/dunecache/oyasumi-patches/commit/a90ac32d3971ee84743240c1f83e0865380cae96))
+* retarget the rating prompt patch to ADM 14.0.39 ([cb901d8](https://github.com/dunecache/oyasumi-patches/commit/cb901d8145a4a8e35a898915dd73a21f86f26730))
+* use register B for the field store target ([3ec65bf](https://github.com/dunecache/oyasumi-patches/commit/3ec65bf398d4e8966b49f5e0541b9d19b9884432))
+
 ## [0.2.0](https://github.com/dunecache/oyasumi-patches/compare/v0.1.0...v0.2.0) (2026-09-28)
 
 ### 🐛 Bug Fixes

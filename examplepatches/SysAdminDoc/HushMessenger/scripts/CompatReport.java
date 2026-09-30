@@ -21,6 +21,7 @@ import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 import com.android.tools.smali.dexlib2.iface.ClassDef;
 import com.android.tools.smali.dexlib2.iface.Method;
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction;
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction;
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
@@ -45,7 +46,7 @@ public class CompatReport {
 
     static final String PACKAGE = "com.facebook.orca";
     static final String VERSION = "580.0.0.49.91";
-    static final Set<Integer> VERSION_CODES = Set.of(346013387, 346013440, 346013442);
+    static final Set<Integer> VERSION_CODES = Set.of(346013387, 346013440, 346013442, 346013354, 346013370);
 
     static final String FACEBOOK_SIGNER =
         "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1";
@@ -111,7 +112,8 @@ public class CompatReport {
         hooks.put("browser", Set.of("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0L(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"));
         hooks.put("ads", Set.of("LX/2Wl;->D2i(LX/1fx;" + IMMUTABLE_LIST + "Ljava/lang/String;)" + IMMUTABLE_LIST));
         hooks.put("people_jewel", Set.of("LX/HAR;->A01(LX/HAR;)Z"));
-        hooks.put("allow_screenshot", Set.of("LX/N2h;->run()V", "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V"));
+        hooks.put("allow_screenshot", Set.of("LX/N2h;->run()V", "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V",
+            "LX/8xp;->onScreenCaptured()V", "LX/4nW;->A00(Landroid/view/Window;)V"));
         hooks.put("hide_read_receipts", Set.of("LX/AX0;->run()V"));
         hooks.put("keep_unsent", Set.of("LX/SH3;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"));
         hooks.put("unsent_indicator", Set.of("LX/K1Y;->BWo(I)Ljava/lang/String;"));
@@ -141,6 +143,56 @@ public class CompatReport {
         EXPECTED_HOOKS = Collections.unmodifiableMap(hooks);
     }
 
+    /** Build 346013370: the same controls under that build's names (mirrors ControlProfiles.kt). */
+    static final Map<String, Set<String>> EXPECTED_HOOKS_346013370;
+    static {
+        var hooks370 = new LinkedHashMap<String, Set<String>>();
+        hooks370.put("ads", Set.of("LX/2Wk;->D2e(LX/1fw;Lcom/google/common/collect/ImmutableList;Ljava/lang/String;)Lcom/google/common/collect/ImmutableList;"));
+        hooks370.put("ai_fab", Set.of("LX/6ie;->render(LX/2MY;)LX/1GF;"));
+        hooks370.put("ai_menu", Set.of("LX/HC4;->A00()Z", "LX/HC4;->A01()Z", "LX/Jdr;->A00()Z", "LX/Jdr;->A01()Z"));
+        hooks370.put("ai_search", Set.of("LX/5OE;->A0A(LX/5OE;)Z", "LX/5OE;->A0B(LX/5OE;)Z"));
+        hooks370.put("ai_search_chip", Set.of("LX/O7T;->render(LX/2MY;)LX/1GF;"));
+        hooks370.put("ai_stickers", Set.of("LX/PT6;->A03(LX/PT6;)Z", "LX/PTo;->A07(LX/PTo;)Z"));
+        hooks370.put("ai_toolbar", Set.of("LX/2aO;->A04()Z"));
+        hooks370.put("allow_screenshot", Set.of("LX/4nb;->A00(Landroid/view/Window;)V", "LX/8wJ;->onScreenCaptured()V", "LX/N1j;->run()V", "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V"));
+        hooks370.put("avatar_stickers", Set.of("LX/PT6;->A01(LX/PT6;)Z"));
+        hooks370.put("avatar_tabs", Set.of("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A6U(LX/5n3;)V"));
+        hooks370.put("browser", Set.of("Lcom/facebook/messaging/browser/util/MessengerBrowserLauncher;->A0M(Landroid/net/Uri;Lcom/facebook/auth/usersession/FbUserSession;)Z"));
+        hooks370.put("bubbles", Set.of("LX/2ZV;->A00()Z"));
+        hooks370.put("business_suggestions", Set.of("LX/7R8;->A05(LX/7R8;)Z", "LX/7S6;->A04(LX/7S6;)Z", "LX/HCJ;->A04()Z"));
+        hooks370.put("chat_promotions", Set.of("LX/HCH;->A0D()Z", "LX/HCH;->A0E()Z"));
+        hooks370.put("delta_unsent", Set.of("LX/VsH;->Btd(I)Z"));
+        hooks370.put("emoji_typeface", Set.of("LX/1KU;->A00()Landroid/graphics/Typeface;"));
+        hooks370.put("event_prompts", Set.of("LX/HCH;->A07()Z", "LX/HCH;->A08()Z"));
+        hooks370.put("facebook", Set.of("LX/2aO;->A0C()Z", "LX/3EW;->A00()Z", "LX/3mK;->A00()Z", "LX/3mO;->A02()Z", "LX/HC2;->A02()Z", "LX/HMK;->A02()Z", "LX/HMk;->A06()Z", "LX/Jda;->A04()Z", "LX/Jdn;->A06()Z", "LX/Jdu;->A06()Z", "LX/JeC;->A00()Z", "LX/JeK;->A01()Z", "LX/JeM;->A02()Z", "LX/JeO;->A02()Z", "LX/JeT;->A03()Z", "LX/JeU;->A03()Z", "LX/JeW;->A01()Z", "LX/JeX;->A01()Z", "LX/JeZ;->A06()Z", "LX/Jea;->A06()Z", "LX/Jeb;->A06()Z"));
+        hooks370.put("friend_requests", Set.of("LX/1pl;->A09()Z", "LX/2Wk;->A02()Z"));
+        hooks370.put("growth", Set.of("LX/1pl;->A0A()Z", "LX/2GD;->A0A(LX/2GD;)Z"));
+        hooks370.put("hide_read_receipts", Set.of("LX/AVX;->run()V"));
+        hooks370.put("inbox_promotions", Set.of("LX/2Ee;->A0J()Z", "LX/2Ee;->A0K()Z"));
+        hooks370.put("keep_unsent", Set.of("LX/VTZ;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"));
+        hooks370.put("menu_settings", Set.of("LX/HBx;->Ax3(LX/0MG;)Ljava/util/ArrayList;", "LX/Jpx;->onClick(Landroid/view/View;)V", "LX/NjG;->CAp(LX/4k1;I)V", "LX/WnD;->A0J(Ljava/util/List;)V"));
+        hooks370.put("moments", Set.of("LX/HC4;->A05()Z", "LX/Jdr;->A05()Z"));
+        hooks370.put("people", Set.of("LX/1pl;->A0C()Z", "LX/2Wk;->A04()Z"));
+        hooks370.put("people_jewel", Set.of("LX/NRn;->A01(LX/NRn;)Z"));
+        hooks370.put("people_list_end", Set.of("LX/1pl;->A0B()Z", "LX/2Wk;->A03()Z"));
+        hooks370.put("read_mailbox", Set.of("LX/9rH;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"));
+        hooks370.put("reels_badge", Set.of("LX/7vk;->A09(LX/7vk;)Z"));
+        hooks370.put("stories", Set.of("LX/1mh;->A00()Z"));
+        hooks370.put("subtabs", Set.of("LX/2UK;->run()V"));
+        hooks370.put("suggested_replies", Set.of("LX/7R8;->A06(LX/7R8;)Z", "LX/7S6;->A05(LX/7S6;)Z", "LX/HCJ;->A05()Z"));
+        hooks370.put("typing", Set.of("LX/AgM;->run()V"));
+        hooks370.put("typing_mailbox", Set.of("LX/8d4;->A0I(Ljava/lang/String;Z)LX/324;"));
+        hooks370.put("unsent_indicator", Set.of("LX/VsH;->BWp(I)Ljava/lang/String;"));
+        EXPECTED_HOOKS_346013370 = Collections.unmodifiableMap(hooks370);
+    }
+
+    static final String PREFERENCE_GETTER_346013370 = "Lcom/facebook/prefs/shared/FbSharedPreferences;->AhF(LX/1BL;Z)Z";
+
+    /** Chosen from the APK's version code before discovery runs. */
+    static Map<String, Set<String>> expectedHooks = EXPECTED_HOOKS;
+    static Map<String, String> expectedDexSites;
+    static String preferenceGetter = PREFERENCE_GETTER;
+
     static final String APP_COMMUNICATION = "com.facebook.permission.prod.FB_APP_COMMUNICATION";
     static final String RECEIVER_ACCESS = "com.facebook.receiver.permission.ACCESS";
     static final String APP_COMMUNICATION_FORMAT = "com.facebook.permission.%s.FB_APP_COMMUNICATION";
@@ -153,6 +205,15 @@ public class CompatReport {
         "LX/2Qr;->A01(Landroid/content/Intent;LX/2Qr;)V@24", APP_COMMUNICATION_FORMAT,
         "LX/33K;->A04(LX/5X3;Ljava/lang/Object;II)Ljava/lang/Object;@1433", APP_COMMUNICATION_FORMAT,
         "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@507", APP_COMMUNICATION_FORMAT
+    );
+
+    static final Map<String, String> EXPECTED_DEX_SITES_346013370 = Map.of(
+        "LX/0iY;->A04(Landroid/app/Application;)V@18", APP_COMMUNICATION_FORMAT,
+        "LX/15l;->A03()V@25", APP_COMMUNICATION,
+        "LX/1f3;->A05(Lcom/facebook/auth/usersession/FbUserSession;LX/1f3;Ljava/lang/String;Ljava/lang/String;)V@36", APP_COMMUNICATION,
+        "LX/2Qq;->A01(Landroid/content/Intent;LX/2Qq;)V@24", APP_COMMUNICATION_FORMAT,
+        "LX/33J;->A04(LX/5X7;Ljava/lang/Object;II)Ljava/lang/Object;@1433", APP_COMMUNICATION_FORMAT,
+        "Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;->A0Z(Lcom/facebook/common/appinit/invoker/OnApplicationInitInvoker;I)V@894", APP_COMMUNICATION_FORMAT
     );
 
     static final Map<String, Integer> EXPECTED_MANIFEST_MENTIONS = Map.of(
@@ -459,7 +520,7 @@ public class CompatReport {
                     for (var r : refs) {
                         String rs = r.toString();
                         if (peopleJewelKeys.contains(rs)) hasJewelKey = true;
-                        if (PREFERENCE_GETTER.equals(rs)) hasPrefGetter = true;
+                        if (preferenceGetter.equals(rs)) hasPrefGetter = true;
                     }
                     if (hasJewelKey && hasPrefGetter) found.get("people_jewel").add(method);
                 }
@@ -468,6 +529,23 @@ public class CompatReport {
                 if ("Lcom/facebook/screenshot/ScreenshotContentObserver;".equals(cls.getType()) &&
                     "onChange".equals(method.getName()) && "V".equals(method.getReturnType())) {
                     found.get("allow_screenshot").add(method);
+                }
+
+                // Android 14+ screenshot callback (in-chat notice)
+                if ("onScreenCaptured".equals(method.getName()) && "V".equals(method.getReturnType()) &&
+                    paramTypes.isEmpty() && cls.getInterfaces().contains("Landroid/app/Activity$ScreenCaptureCallback;")) {
+                    found.get("allow_screenshot").add(method);
+                }
+
+                // Media viewers' window lock: FLAG_SECURE through Window.addFlags
+                if ("V".equals(method.getReturnType()) && !isStatic &&
+                    paramTypes.equals(List.of("Landroid/view/Window;"))) {
+                    boolean secureFlag = false, addFlags = false;
+                    for (var i : instructions) {
+                        if (i instanceof NarrowLiteralInstruction lit && lit.getNarrowLiteral() == 0x2000) secureFlag = true;
+                    }
+                    for (var r : refs) if ("Landroid/view/Window;->addFlags(I)V".equals(r.toString())) addFlags = true;
+                    if (secureFlag && addFlags) found.get("allow_screenshot").add(method);
                 }
 
                 // keep_unsent
@@ -556,6 +634,14 @@ public class CompatReport {
                 if (IMMUTABLE_LIST.equals(method.getReturnType()) && paramTypes.isEmpty() &&
                     refs.stream().anyMatch(r -> r.toString().startsWith(
                         "Lcom/facebook/xapp/messaging/composer/avatar/composertab/event/ActivateAvatarSticker;->"))) {
+                    found.get("avatar_tabs").add(method);
+                }
+                // Some builds fill that list inline in a void method of the composer factory instead.
+                if ("V".equals(method.getReturnType()) &&
+                    "Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;".equals(cls.getType()) &&
+                    refs.stream().anyMatch(r -> r.toString().startsWith(
+                        "Lcom/facebook/xapp/messaging/composer/avatar/composertab/event/ActivateAvatarSticker;->")) &&
+                    refs.stream().anyMatch(r -> r.toString().startsWith(IMMUTABLE_LIST + "->builder()"))) {
                     found.get("avatar_tabs").add(method);
                 }
 
@@ -872,6 +958,11 @@ public class CompatReport {
         System.out.println();
 
         // Find controls
+        // Build 346013370 keeps the same controls under different Redex names.
+        boolean build346013370 = info != null && "346013370".equals(info.versionCode);
+        expectedHooks = build346013370 ? EXPECTED_HOOKS_346013370 : EXPECTED_HOOKS;
+        expectedDexSites = build346013370 ? EXPECTED_DEX_SITES_346013370 : EXPECTED_DEX_SITES;
+        preferenceGetter = build346013370 ? PREFERENCE_GETTER_346013370 : PREFERENCE_GETTER;
         Map<String, List<Method>> controls = findControls(classes);
         int totalHooks = controls.values().stream().mapToInt(List::size).sum();
         System.out.println("Discovered " + totalHooks + " hooks across " + controls.size() + " feature keys");
@@ -881,12 +972,12 @@ public class CompatReport {
         {
             var failures = new ArrayList<String>();
             var sites = findDexSites(classes);
-            if (sites.size() != EXPECTED_DEX_SITES.size()) {
-                failures.add("expected " + EXPECTED_DEX_SITES.size() + " permission loads, found " + sites.size());
+            if (sites.size() != expectedDexSites.size()) {
+                failures.add("expected " + expectedDexSites.size() + " permission loads, found " + sites.size());
             } else {
                 var siteMap = new LinkedHashMap<String, String>();
                 for (var e : sites) siteMap.put(e.getKey(), e.getValue());
-                if (!siteMap.equals(EXPECTED_DEX_SITES)) {
+                if (!siteMap.equals(expectedDexSites)) {
                     failures.add("permission instruction sites differ from the tested build");
                 }
             }
@@ -925,7 +1016,7 @@ public class CompatReport {
             List<String> hookKeys = entry.getValue();
             var failures = new ArrayList<String>();
             for (String key : hookKeys) {
-                Set<String> expected = EXPECTED_HOOKS.get(key);
+                Set<String> expected = expectedHooks.get(key);
                 if (expected == null) {
                     failures.add(key + ": no expected hooks defined");
                     continue;

@@ -196,4 +196,102 @@ const char* to_string(AdResponseReason reason) {
     return "unknown";
 }
 
+size_t blank_stream_start(char* buf, size_t len, size_t open,
+                          StreamContinuationState& state, bool apply) {
+    if (buf == nullptr || open >= len || buf[open] != '[') {
+        state.active = false;
+        return 0;
+    }
+
+    int depth = 0;
+    bool in_str = false;
+    bool in_esc = false;
+
+    for (size_t i = open; i < len; ++i) {
+        char c = buf[i];
+        if (in_str) {
+            if (in_esc) in_esc = false;
+            else if (c == '\\') in_esc = true;
+            else if (c == '"') in_str = false;
+        } else {
+            if (c == '"') in_str = true;
+            else if (c == '[' || c == '{') ++depth;
+            else if (c == ']' || c == '}') {
+                if (--depth == 0) {
+                    // Closed inside Chunk 1
+                    state.active = false;
+                    return 0;
+                }
+            }
+        }
+        if (apply && i > open) {
+            buf[i] = ' ';
+        }
+    }
+
+    state.active = true;
+    state.depth = depth;
+    state.in_str = in_str;
+    state.in_esc = in_esc;
+    state.total_bytes = len - (open + 1);
+    return len - (open + 1);
+}
+
+size_t blank_stream_continuation(char* buf, size_t len,
+                                 StreamContinuationState& state, bool apply) {
+    if (buf == nullptr || len == 0 || !state.active) return 0;
+
+    state.total_bytes += len;
+    if (state.total_bytes > kMaxResponseLen) {
+        state.active = false;
+        return 0;
+    }
+
+    size_t close_idx = static_cast<size_t>(-1);
+    int depth = state.depth;
+    bool in_str = state.in_str;
+    bool in_esc = state.in_esc;
+
+    for (size_t i = 0; i < len; ++i) {
+        char c = buf[i];
+        if (in_str) {
+            if (in_esc) in_esc = false;
+            else if (c == '\\') in_esc = true;
+            else if (c == '"') in_str = false;
+        } else {
+            if (c == '"') in_str = true;
+            else if (c == '[' || c == '{') ++depth;
+            else if (c == ']' || c == '}') {
+                --depth;
+                if (depth == 0 && c == ']') {
+                    close_idx = i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (close_idx != static_cast<size_t>(-1)) {
+        if (apply) {
+            for (size_t i = 0; i < close_idx; ++i) {
+                buf[i] = ' ';
+            }
+        }
+        state.active = false;
+        state.depth = 0;
+        return close_idx;
+    } else {
+        if (apply) {
+            for (size_t i = 0; i < len; ++i) {
+                buf[i] = ' ';
+            }
+        }
+        state.depth = depth;
+        state.in_str = in_str;
+        state.in_esc = in_esc;
+        return len;
+    }
+}
+
 } // namespace pvfilter
+

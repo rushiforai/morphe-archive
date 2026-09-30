@@ -193,23 +193,18 @@ internal fun seekForwarderConstructorFingerprint(ownerType: String, controlTypes
     )
 
 /** Finds the seek callback that forwards a position and native seek context. */
-internal fun BytecodePatchContext.seekForwarderFingerprint(controlTypes: Set<String>) =
+internal fun seekForwarderFingerprint() =
     Fingerprint(
         returnType = "V",
         parameters = listOf("J", "L"),
         filters = listOf(methodCall(parameters = listOf("J", "L"), returnType = "V")),
-        custom = { method, classDef ->
-          val holdsControls = classDef.fields.any { it.type in controlTypes }
-          val receivesControls =
-              seekForwarderConstructorFingerprint(classDef.type, controlTypes)
-                  .matchAllOrNull(classDef) != null
-          (holdsControls || receivesControls) &&
-              method.indexOfFirstInstruction(
-                  methodCall(
-                      parameters = method.parameterTypes.map { it.toString() },
-                      returnType = "V",
-                  )
-              ) >= 0
+        custom = { method, _ ->
+            method.indexOfFirstInstruction(
+                methodCall(
+                    parameters = method.parameterTypes.map { it.toString() },
+                    returnType = "V",
+                )
+            ) >= 0
         },
     )
 
@@ -241,9 +236,9 @@ internal fun playbackButtonClickFingerprint(controlsType: String) =
         returnType = "V",
         parameters = listOf(VIEW),
         custom = { method, classDef ->
-          // Merged listeners store their target as Object and cast it in the click branch.
-          classDef.fields.any { it.type == controlsType } ||
-              method.indexOfFirstInstruction(checkCast(controlsType)) >= 0
+            // Merged listeners store their target as Object and cast it in the click branch.
+            classDef.fields.any { it.type == controlsType } ||
+                method.indexOfFirstInstruction(checkCast(controlsType)) >= 0
         },
     )
 
@@ -286,10 +281,7 @@ internal fun nowPlayingMenuEntryFingerprint(
                 ),
                 methodCall(reference = currentAccessor),
                 methodCall("Lj$/util/Optional;->isPresent()Z"),
-                methodCall(
-                    parameters = listOf("L", VIEW, "L", "L"),
-                    returnType = "V",
-                ),
+                methodCall(parameters = listOf("L", VIEW, "L", "L"), returnType = "V"),
             ),
     )
 
@@ -370,8 +362,9 @@ internal fun queueRemovalFingerprint(managerType: String, displays: QueueDisplay
         returnType = "V",
         filters = listOf(fieldAccess(reference = displays.primary.managerField)),
         custom = { method, _ ->
-          method.indexOfFirstInstruction(fieldAccess(reference = displays.autoplay.managerField)) >=
-              0
+            method.indexOfFirstInstruction(
+                fieldAccess(reference = displays.autoplay.managerField)
+            ) >= 0
         },
     )
 
@@ -421,12 +414,12 @@ internal fun displayedQueueRefreshFingerprint(displayType: String) =
                 )
             ),
         custom = { method, _ ->
-          method.indexOfFirstInstruction(
-              methodCall("Ljava/util/List;->add(ILjava/lang/Object;)V")
-          ) >= 0 &&
-              method.indexOfFirstInstruction(
-                  methodCall("Ljava/util/List;->remove(I)Ljava/lang/Object;")
-              ) >= 0
+            method.indexOfFirstInstruction(
+                methodCall("Ljava/util/List;->add(ILjava/lang/Object;)V")
+            ) >= 0 &&
+                method.indexOfFirstInstruction(
+                    methodCall("Ljava/util/List;->remove(I)Ljava/lang/Object;")
+                ) >= 0
         },
     )
 
@@ -497,14 +490,11 @@ internal fun clockModelFieldFingerprint(modelType: String, accessor: MethodRefer
     )
 
 /** The manager owns a store that exposes both snapshots and observable, movable lanes. */
-internal fun BytecodePatchContext.queueStorageFingerprint(manager: ClassDef) =
+internal fun queueStorageFingerprint(manager: ClassDef) =
     Fingerprint(
         parameters = listOf("I"),
         returnType = "Ljava/util/List;",
-        custom = { _, owner ->
-          manager.fields.any { it.type == owner.type } &&
-              queueLaneAccessorFingerprint(owner.type).matchAllOrNull() != null
-        },
+        custom = { _, owner -> manager.fields.any { it.type == owner.type } },
     )
 
 internal fun BytecodePatchContext.queueLaneAccessorFingerprint(storageType: String) =
@@ -513,10 +503,7 @@ internal fun BytecodePatchContext.queueLaneAccessorFingerprint(storageType: Stri
         parameters = listOf("I"),
         returnType = "L",
         custom = { method, _ ->
-          method.returnType != "Ljava/util/List;" &&
-              classDefByOrNull(method.returnType) != null &&
-              queueLaneMoveFingerprint(method.returnType).matchAllOrNull() != null &&
-              queueLaneSliceFingerprint(method.returnType).matchAllOrNull() != null
+            method.returnType != "Ljava/util/List;" && classDefByOrNull(method.returnType) != null
         },
     )
 
@@ -537,19 +524,20 @@ internal fun BytecodePatchContext.queueStateAccessorFingerprint(
         parameters = emptyList(),
         returnType = if (mode) "L" else "I",
         custom = { method, owner ->
-          (!mode ||
-              classDefByOrNull(method.returnType)?.let { AccessFlags.ENUM.isSet(it.accessFlags) } ==
-                  true) &&
-              owner.fields.any { field ->
-                method.indexOfFirstInstruction(
-                    methodCall(
-                        definingClass = field.type,
-                        parameters = emptyList(),
-                        returnType = method.returnType,
-                        opcodes = listOf(Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE),
-                    )
-                ) >= 0
-              }
+            (!mode ||
+                classDefByOrNull(method.returnType)?.let {
+                    AccessFlags.ENUM.isSet(it.accessFlags)
+                } == true) &&
+                owner.fields.any { field ->
+                    method.indexOfFirstInstruction(
+                        methodCall(
+                            definingClass = field.type,
+                            parameters = emptyList(),
+                            returnType = method.returnType,
+                            opcodes = listOf(Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE),
+                        )
+                    ) >= 0
+                }
         },
     )
 
@@ -569,12 +557,8 @@ internal fun BytecodePatchContext.clockModelSetterFingerprint(timeBarType: Strin
         parameters = listOf("L"),
         returnType = "V",
         custom = { method, owner ->
-          owner.type in interfaceClosure(timeBarType) &&
-              owner.fields.any { it.type == method.parameterTypes[0].toString() } &&
-              clockModelTimestampFingerprint(method.parameterTypes[0].toString())
-                  .matchAllOrNull()
-                  .orEmpty()
-                  .size >= 3
+            owner.type in interfaceClosure(timeBarType) &&
+                owner.fields.any { it.type == method.parameterTypes[0].toString() }
         },
     )
 
@@ -586,7 +570,7 @@ internal fun BytecodePatchContext.clockMutableModelFingerprint(modelType: String
         parameters = listOf("J", "J", "J", "J"),
         returnType = "V",
         custom = { _, owner ->
-          !AccessFlags.ABSTRACT.isSet(owner.accessFlags) && implementsType(owner.type, modelType)
+            !AccessFlags.ABSTRACT.isSet(owner.accessFlags) && implementsType(owner.type, modelType)
         },
     )
 
@@ -604,11 +588,11 @@ internal fun accountRouterDispatchFingerprint(routerType: String) =
                 )
             ),
         custom = { method, _ ->
-          method.findInstructionIndicesReversed(methodCall(returnType = "Z")).any { index ->
-            val parameters =
-                method.getInstruction(index).getReference<MethodReference>()!!.parameterTypes
-            parameters.getOrNull(parameters.size - 1) == method.parameterTypes[0]
-          }
+            method.findInstructionIndicesReversed(methodCall(returnType = "Z")).any { index ->
+                val parameters =
+                    method.getInstruction(index).getReference<MethodReference>()!!.parameterTypes
+                parameters.getOrNull(parameters.size - 1) == method.parameterTypes[0]
+            }
         },
     )
 
@@ -641,10 +625,10 @@ internal fun protoParserFingerprint(messageHierarchy: Set<String>) =
         parameters = listOf("L", "[B", "Lcom/google/protobuf/ExtensionRegistryLite;"),
         returnType = "L",
         custom = { method, owner ->
-          owner.type in messageHierarchy &&
-              method.returnType == owner.type &&
-              method.parameterTypes[0].toString() == owner.type &&
-              AccessFlags.STATIC.isSet(method.accessFlags)
+            owner.type in messageHierarchy &&
+                method.returnType == owner.type &&
+                method.parameterTypes[0].toString() == owner.type &&
+                AccessFlags.STATIC.isSet(method.accessFlags)
         },
     )
 
@@ -659,17 +643,11 @@ internal fun paletteExtractorFingerprint(paletteType: String, ownedTypes: Set<St
 internal fun queueItemEndpointFingerprint(ownerType: String, commandType: String) =
     Fingerprint(definingClass = ownerType, parameters = emptyList(), returnType = commandType)
 
-internal fun BytecodePatchContext.queuePersistentIdFingerprint(
-    itemTypes: Set<String>,
-    commandType: String,
-) =
+internal fun queuePersistentIdFingerprint(itemTypes: Set<String>) =
     Fingerprint(
         parameters = emptyList(),
         returnType = "J",
-        custom = { _, owner ->
-          owner.type in itemTypes &&
-              queueItemEndpointFingerprint(owner.type, commandType).matchAllOrNull() != null
-        },
+        custom = { _, owner -> owner.type in itemTypes },
     )
 
 internal fun queueTextAccessorFingerprint(ownerType: String) =
@@ -679,13 +657,11 @@ internal fun queueTextAccessorFingerprint(ownerType: String) =
         returnType = "Ljava/lang/String;",
     )
 
-internal fun BytecodePatchContext.queueVideoIdFingerprint(itemTypes: Set<String>) =
+internal fun queueVideoIdFingerprint(itemTypes: Set<String>) =
     Fingerprint(
         parameters = emptyList(),
         returnType = "Ljava/lang/String;",
-        custom = { _, owner ->
-          owner.type in itemTypes && queueTextAccessorFingerprint(owner.type).matchAll().size == 1
-        },
+        custom = { _, owner -> owner.type in itemTypes },
     )
 
 internal fun nowPlayingMetadataBindingFingerprint(textAccessors: List<MethodReference>) =
@@ -694,7 +670,7 @@ internal fun nowPlayingMetadataBindingFingerprint(textAccessors: List<MethodRefe
         parameters = listOf("Lj$/util/Optional;"),
         returnType = "V",
         custom = { method, _ ->
-          textAccessors.all { method.indexOfFirstInstruction(methodCall(reference = it)) >= 0 }
+            textAccessors.all { method.indexOfFirstInstruction(methodCall(reference = it)) >= 0 }
         },
     )
 
@@ -736,7 +712,7 @@ internal fun queueItemConstructorFingerprint(itemTypes: Set<String>, factoryType
         name = "<init>",
         parameters = listOf("J", "L", "L"),
         custom = { method, owner ->
-          owner.type in itemTypes && method.parameterTypes[2].toString() in factoryTypes
+            owner.type in itemTypes && method.parameterTypes[2].toString() in factoryTypes
         },
     )
 
@@ -745,7 +721,7 @@ internal fun queueCallbackCaptureFingerprint(enqueue: Method, managerType: Strin
         name = "<init>",
         filters = listOf(fieldAccess(type = managerType, opcode = Opcode.IPUT_OBJECT)),
         custom = { method, _ ->
-          enqueue.indexOfFirstInstruction(methodCall(reference = method)) >= 0
+            enqueue.indexOfFirstInstruction(methodCall(reference = method)) >= 0
         },
     )
 
@@ -755,13 +731,15 @@ internal fun BytecodePatchContext.queueSuccessCallbackFingerprint(callbackType: 
         parameters = listOf("L"),
         returnType = "V",
         custom = { method, _ ->
-          method.name != "<init>" &&
-              method.findInstructionIndicesReversed(checkCast("L")).any { index ->
-                val responseType = method.getInstruction(index).getReference<TypeReference>()!!.type
-                classDefByOrNull(responseType)?.fields?.any { field ->
-                  field.type == "Ljava/util/List;" || implementsType(field.type, "Ljava/util/List;")
-                } == true
-              }
+            method.name != "<init>" &&
+                method.findInstructionIndicesReversed(checkCast("L")).any { index ->
+                    val responseType =
+                        method.getInstruction(index).getReference<TypeReference>()!!.type
+                    classDefByOrNull(responseType)?.fields?.any { field ->
+                        field.type == "Ljava/util/List;" ||
+                            implementsType(field.type, "Ljava/util/List;")
+                    } == true
+                }
         },
     )
 
@@ -786,8 +764,8 @@ internal fun queueMoveNotifierFingerprint(notifierType: String, commit: Method) 
         parameters = listOf("L", "L"),
         returnType = "V",
         custom = { method, _ ->
-          method.parameterTypes[0] == method.parameterTypes[1] &&
-              commit.indexOfFirstInstruction(methodCall(reference = method)) >= 0
+            method.parameterTypes[0] == method.parameterTypes[1] &&
+                commit.indexOfFirstInstruction(methodCall(reference = method)) >= 0
         },
     )
 
@@ -801,18 +779,11 @@ internal fun queueResponseMapperConstructorFingerprint(
         custom = { method, _ -> method.parameterTypes.any { it.toString() in providerTypes } },
     )
 
-internal fun BytecodePatchContext.queueResponseMapperFingerprint(
-    mapperTypes: Set<String>,
-    providerTypes: Set<String>,
-) =
+internal fun queueResponseMapperFingerprint(mapperTypes: Set<String>) =
     Fingerprint(
         parameters = listOf("Ljava/lang/Object;"),
         returnType = "Ljava/lang/Object;",
-        custom = { _, owner ->
-          owner.type in mapperTypes &&
-              queueResponseMapperConstructorFingerprint(owner.type, providerTypes)
-                  .matchAllOrNull() != null
-        },
+        custom = { _, owner -> owner.type in mapperTypes },
     )
 
 internal fun queuePresenterRefreshFingerprint(ownerTypes: Set<String>, callers: Iterable<Method>) =
@@ -820,10 +791,10 @@ internal fun queuePresenterRefreshFingerprint(ownerTypes: Set<String>, callers: 
         parameters = emptyList(),
         returnType = "V",
         custom = { method, owner ->
-          owner.type in ownerTypes &&
-              method.name != "<init>" &&
-              method.name != "<clinit>" &&
-              callers.any { it.indexOfFirstInstruction(methodCall(reference = method)) >= 0 }
+            owner.type in ownerTypes &&
+                method.name != "<init>" &&
+                method.name != "<clinit>" &&
+                callers.any { it.indexOfFirstInstruction(methodCall(reference = method)) >= 0 }
         },
     )
 
@@ -834,9 +805,9 @@ internal fun BytecodePatchContext.queueArtworkAccessorFingerprint(metadataType: 
         parameters = emptyList(),
         returnType = "L",
         custom = { method, _ ->
-          classDefByOrNull(method.returnType)?.fields?.count {
-            it.type == "Ljava/util/List;" || implementsType(it.type, "Ljava/util/List;")
-          } == 1
+            classDefByOrNull(method.returnType)?.fields?.count {
+                it.type == "Ljava/util/List;" || implementsType(it.type, "Ljava/util/List;")
+            } == 1
         },
     )
 
@@ -845,11 +816,10 @@ internal fun BytecodePatchContext.queueArtworkContractFingerprint(sharedTypes: S
         parameters = emptyList(),
         returnType = "L",
         custom = { method, owner ->
-          owner.type in sharedTypes &&
-              queueTextAccessorFingerprint(owner.type).matchAllOrNull().orEmpty().size == 2 &&
-              classDefByOrNull(method.returnType)?.fields?.any {
-                it.type == "Ljava/util/List;" || implementsType(it.type, "Ljava/util/List;")
-              } == true
+            owner.type in sharedTypes &&
+                classDefByOrNull(method.returnType)?.fields?.any {
+                    it.type == "Ljava/util/List;" || implementsType(it.type, "Ljava/util/List;")
+                } == true
         },
     )
 
@@ -859,14 +829,14 @@ internal fun BytecodePatchContext.queueMenuResponseConstructorFingerprint(
     Fingerprint(
         name = "<init>",
         custom = { method, owner ->
-          owner.type in responseTypes &&
-              owner.fields.count {
-                it.type == "Ljava/util/List;" || implementsType(it.type, "Ljava/util/List;")
-              } == 1 &&
-              method.parameterTypes.any {
-                it.toString() == "Ljava/util/List;" ||
-                    implementsType(it.toString(), "Ljava/util/List;")
-              }
+            owner.type in responseTypes &&
+                owner.fields.count {
+                    it.type == "Ljava/util/List;" || implementsType(it.type, "Ljava/util/List;")
+                } == 1 &&
+                method.parameterTypes.any {
+                    it.toString() == "Ljava/util/List;" ||
+                        implementsType(it.toString(), "Ljava/util/List;")
+                }
         },
     )
 
@@ -874,9 +844,9 @@ internal fun BytecodePatchContext.nativeImplementationFingerprint(contractType: 
     Fingerprint(
         name = "<init>",
         custom = { _, owner ->
-          !AccessFlags.ABSTRACT.isSet(owner.accessFlags) &&
-              !AccessFlags.INTERFACE.isSet(owner.accessFlags) &&
-              implementsType(owner.type, contractType)
+            !AccessFlags.ABSTRACT.isSet(owner.accessFlags) &&
+                !AccessFlags.INTERFACE.isSet(owner.accessFlags) &&
+                implementsType(owner.type, contractType)
         },
     )
 
@@ -914,11 +884,12 @@ internal fun playbackIconFingerprint(ownerTypes: Set<String>) =
     Fingerprint(
         returnType = "V",
         parameters = listOf("L"),
-        filters = listOf(
-            resourceLiteral(ResourceType.STRING, "accessibility_play"),
-            resourceLiteral(ResourceType.STRING, "accessibility_pause"),
-            resourceLiteral(ResourceType.STRING, "accessibility_replay"),
-        ),
+        filters =
+            listOf(
+                resourceLiteral(ResourceType.STRING, "accessibility_play"),
+                resourceLiteral(ResourceType.STRING, "accessibility_pause"),
+                resourceLiteral(ResourceType.STRING, "accessibility_replay"),
+            ),
         custom = { _, owner -> owner.type in ownerTypes },
     )
 
@@ -927,7 +898,10 @@ internal fun playbackIconModelConstructorFingerprint(modelType: String) =
         definingClass = modelType,
         name = "<init>",
         parameters = listOf("L", "Z"),
-        strings = listOf("controls can be in the buffering state only if in PLAYING or PAUSED video state"),
+        strings =
+            listOf(
+                "controls can be in the buffering state only if in PLAYING or PAUSED video state"
+            ),
     )
 
 /** Enum names survive obfuscation; the following store identifies the native state singleton. */
@@ -935,10 +909,15 @@ internal fun playbackIconStateFingerprint(stateType: String, stateName: String) 
     Fingerprint(
         definingClass = stateType,
         name = "<clinit>",
-        filters = listOf(
-            string(stateName),
-            fieldAccess(definingClass = stateType, type = stateType, opcode = Opcode.SPUT_OBJECT),
-        ),
+        filters =
+            listOf(
+                string(stateName),
+                fieldAccess(
+                    definingClass = stateType,
+                    type = stateType,
+                    opcode = Opcode.SPUT_OBJECT,
+                ),
+            ),
     )
 
 /** Locate header creation itself; feature-flag branches may precede this block. */
@@ -954,5 +933,5 @@ internal fun autoplayHeaderCreationFingerprint(header: FieldReference) =
                     location = MatchAfterImmediately(),
                 ),
                 methodCall(name = "add", parameters = listOf("I", OBJECT), returnType = "V"),
-            ),
+            )
     )

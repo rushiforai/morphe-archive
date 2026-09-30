@@ -772,6 +772,8 @@ To fix this, turn on \'Spoof video streams\' and change the \'Default client\' t
     <string name="morphe_hide_ask_button_title">Hide Ask button</string>
     <string name="morphe_hide_channel_profile_button_title">Hide channel and Subscribe button</string>
     <string name="morphe_hide_channel_profile_button_summary">Hides the channel avatar and Subscribe button at the start of the action bar</string>
+    <string name="morphe_hide_channel_profile_subscribe_button_title">Hide Subscribe button</string>
+    <string name="morphe_hide_channel_profile_subscribe_button_summary">Hides the Subscribe and Join buttons next to the channel avatar at the start of the action bar</string>
     <!-- 'Clip' should be translated using the same localized wording YouTube displays for the button. -->
     <string name="morphe_hide_clip_button_title">Hide Clip button</string>
     <string name="morphe_hide_clip_button_summary">This may not work for some user accounts</string>
@@ -1118,6 +1120,7 @@ Automotive layout
     <string name="morphe_tablet_layout_in_player_summary">"Restores the old player layout
 
 Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' overlay may not be available"</string>
+    <string name="morphe_tablet_layout_in_player_user_dialog_message">Enabling this may break some player layout features, such as the comment section or \'More videos\' shown below the player.</string>
 
     <!-- misc.spoof.appversion.spoofAppVersionPatch -->
     <string name="morphe_spoof_app_version_target_entry_21_11">21.11.48 - Restore old captions behavior</string>
@@ -1219,6 +1222,10 @@ Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' o
     <!-- misc.fix.fixBackToExitGesturePatch -->
     <string name="morphe_back_button_always_exits_feed_title">Back button exits the feed</string>
     <string name="morphe_back_button_always_exits_feed_summary">Pressing back always exits the app instead of scrolling to the top of the feed</string>
+
+    <!-- layout.statusbar.hideStatusBarPatch -->
+    <string name="morphe_hide_status_bar_title">Hide status bar</string>
+    <string name="morphe_hide_status_bar_summary">Hides the system status bar. Swipe down from the top edge to show it for a moment</string>
 
     <!-- layout.theme.themePatch -->
     <string name="morphe_theme_color_light_title">Light theme background</string>
@@ -1470,5 +1477,6 @@ Limitation: Reverts to old style \'More videos\' overlay"</string>
     <string name="morphe_player_icon_style_entry_phosphor_duotone" translatable="false">Phosphor Duotone</string>
     <string name="morphe_player_icon_style_entry_ionicons" translatable="false">Ionicons</string>
     <string name="morphe_player_icon_style_entry_sharp" translatable="false">Sharp</string>
+    <string name="morphe_player_icon_style_entry_custom">Custom</string>
     <string name="morphe_shorts_icon_style_title">Shorts icon style</string>
 </resources>

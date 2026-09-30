@@ -86,7 +86,7 @@ final class SettingsNavigation extends BaseAdapter {
         section("News feed", L10n.t("News feed"), L10n.t("Ads, suggestions and word filters"), SettingsIcons.FEED, true);
         section("Stories", L10n.t("Stories"), L10n.t("Suggestions, saving, auto-advance and viewing anonymously"), SettingsIcons.STORIES, true);
         section("Reels and Watch", L10n.t("Reels and Watch"), L10n.t("Cleaner reels and video controls"), SettingsIcons.REELS, true);
-        section("Playback", L10n.t("Playback"), L10n.t("Tap to play and resume"), SettingsIcons.PLAYBACK, true);
+        section("Playback", L10n.t("Playback"), L10n.t("Tap to play, quality and resume"), SettingsIcons.PLAYBACK, true);
         section("Downloads", L10n.t("Downloads"), L10n.t("Quality, format and file names"), SettingsIcons.DOWNLOADS, true);
         section("Comments", L10n.t("Comments"), null, SettingsIcons.COMMENTS, false);
         section("Writing", L10n.t("Writing"), null, SettingsIcons.WRITING, false);

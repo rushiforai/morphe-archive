@@ -735,14 +735,17 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
 
     @Override
     public void onDestroy() {
+        super.onDestroy();
         // Posted, not run here directly: a DialogPreference closing posts the message that
         // persists its value, and unregistering synchronously could win the race against it,
         // leaving the store holding a value the running Setting never learns about until the
-        // app restarts. Posting queues this teardown behind whatever is already pending.
+        // app restarts. Posting queues this teardown behind whatever is already pending. It
+        // comes after super, because super dismisses a dialog still showing
+        // (PreferenceManager.dispatchActivityDestroy), and that dismiss is one of the messages
+        // it has to queue behind.
         Utils.runOnMainThread(() -> {
             destroyed = true;
             unregisterPreferenceListener();
         });
-        super.onDestroy();
     }
 }

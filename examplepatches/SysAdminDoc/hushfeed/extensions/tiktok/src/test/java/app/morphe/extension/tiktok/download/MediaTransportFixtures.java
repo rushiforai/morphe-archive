@@ -2,19 +2,25 @@ package app.morphe.extension.tiktok.download;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
 
 /** Deterministic public-network stand-ins shared by media download tests. */
 final class MediaTransportFixtures {
     private MediaTransportFixtures() { }
 
-    static MediaTransport.Client publicClient(MediaTransport.ConnectionOpener opener) {
+    interface ConnectionFactory {
+        URLConnection open(URL url) throws IOException;
+    }
+
+    static MediaTransport.Client publicClient(ConnectionFactory opener) {
         return new MediaTransport.Client(host -> new InetAddress[]{
                 InetAddress.getByAddress(host, new byte[]{8, 8, 8, 8})
-        }, opener);
+        }, (url, address) -> opener.open(url));
     }
 
     static HttpURLConnection response(URL url, int status, byte[] body) {

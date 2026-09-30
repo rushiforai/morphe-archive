@@ -233,6 +233,21 @@ public class SettingsTest {
         assertNull(Settings.filterKeyboardTabs(tabs));
     }
 
+    @Test public void inlineTabListsLoseTheAvatarTabEvenWhenItsEventSitsOneLevelDeeper() {
+        KeyboardTab avatar = new KeyboardTab(new X.TabConfig(new com.facebook.xapp.messaging.composer.avatar.composertab.event.ActivateAvatarSticker()));
+        KeyboardTab stickers = new KeyboardTab(new X.TabConfig("stickers"));
+        KeyboardTab text = new KeyboardTab("not walked into");
+        java.util.List<Object> tabs = new java.util.ArrayList<>(java.util.List.of(stickers, avatar, text));
+        Settings.removeAvatarTabs(tabs);
+        assertEquals(3, tabs.size());
+        Settings.preferences.edit().putBoolean("avatar_stickers", true).apply();
+        Settings.removeAvatarTabs(tabs);
+        assertEquals(java.util.List.of(stickers, text), tabs);
+        // Anything that isn't a changeable collection is left alone.
+        Settings.removeAvatarTabs(java.util.List.of(avatar));
+        Settings.removeAvatarTabs(null);
+    }
+
     @Test public void messengerButtonOpensItsLauncherTaskInsteadOfTheSettingsTask() {
         var application = RuntimeEnvironment.getApplication();
         Intent query = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)

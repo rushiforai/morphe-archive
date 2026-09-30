@@ -1,0 +1,14 @@
+# Gradle とビルドの出力
+.gradle/
+.kotlin/
+build/
+
+# PC ごとの設定 (Android SDK の場所)
+local.properties
+
+# ビルドしたバンドルは Release に添付し、コミットしない
+*.mpp
+
+# 開発ツール
+.idea/
+*.iml

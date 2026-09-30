@@ -8,9 +8,10 @@ package app.crimera.patches.instagram.misc.directMessage.downloadVoiceMessagePat
 
 import app.crimera.patches.instagram.entity.messageInfoEntity.messageInfoEntity
 import app.crimera.patches.instagram.misc.directMessage.saveAllMessages.saveAllMessagesPatch
-import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.enableSettings
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.library.instagram.patches.instagramExtensionPatch
 
 @Suppress("unused")
 val downloadVoiceMessagePatch =
@@ -18,6 +19,7 @@ val downloadVoiceMessagePatch =
         name = "Download voice message",
         description = "Enables ability to download voice messages",
     ) {
+        dependsOn(instagramExtensionPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(messageInfoEntity, saveAllMessagesPatch)
         execute {

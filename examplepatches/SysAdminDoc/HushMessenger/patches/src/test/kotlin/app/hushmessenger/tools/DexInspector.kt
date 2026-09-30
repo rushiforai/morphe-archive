@@ -113,7 +113,8 @@ object DexInspector {
                 for (c in classes) for (m in c.methods) {
                     val hit = m.implementation?.instructions?.any { insn ->
                         val r = (insn as? ReferenceInstruction)?.reference as? FieldReference
-                        val isWrite = insn.opcode.name.let { it.startsWith("IPUT") || it.startsWith("SPUT") }
+                        // Opcode.name is the smali mnemonic ("iput-boolean"), not the enum constant.
+                        val isWrite = insn.opcode.name.let { it.startsWith("iput") || it.startsWith("sput") }
                         r != null && r.definingClass == cls && r.name == name && isWrite == (kind == "writes")
                     } ?: false
                     if (hit) println("  ${m.id()}  redex=${c.redexName()}")

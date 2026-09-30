@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.0 — 2026-09-29
+
+- Add an optional tab picker above the True bottom address bar, with native favicons, titles, tab switching and close controls.
+- Disable the picker setting while True bottom is off, preserving the user's preference.
+- Use a vertically inset active-tab outline and omit the divider between the picker and address bar.
+- Scroll the picker with the native address bar, reserve its height above page content, and hide it during address entry, in the Hub and behind Incognito authentication.
+- Keep native close confirmations and regular-tab Undo. Closing the final private tab opens the empty private viewer.
+
+## 0.4.0 — 2026-09-29
+
+- Remember the last regular/Incognito mode for launcher opens and full-browser external links.
+- Retain the empty Incognito viewer after closing all private tabs, while ending the private session normally.
+
+## 0.3.0 — 2026-09-28
+
+- Add optional Android autofill for regular tabs while retaining MicroG sign-in.
+- Disable the Android autofill provider for off-the-record profiles and add a route to Google's native password viewer.
+
 ## 0.2.0 — 2026-09-28
 
 - Add optional MicroG sign-in with account-access setup in Morphe settings.

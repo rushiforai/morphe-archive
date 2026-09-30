@@ -48,7 +48,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 val unforceShufflePatch = bytecodePatch(
     name = "Unforce shuffle",
     description = "No-ops PlayQueue.shuffle(), forces server shuffleOn=false at both sync points, disables the pick-a-song radio redirect, enables shuffle buttons, and disarms the shuffle upsell dialog. Manual shuffle toggle keeps working.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
 

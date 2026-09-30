@@ -12,6 +12,8 @@ import static app.morphe.extension.instagram.utils.IgStr.str;
 import android.os.Build;
 import android.app.Dialog;
 import android.content.Context;
+import android.net.Uri;
+import android.content.Intent;
 import android.content.DialogInterface;
 import android.app.Activity;
 
@@ -30,9 +32,6 @@ import app.morphe.extension.instagram.entity.AudioMediaInterface;
 import app.morphe.extension.instagram.entity.MediaInterface;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
-import app.morphe.extension.instagram.settings.ActivityHook;
-import app.morphe.extension.instagram.patches.Links;
-import app.morphe.extension.crimera.ObjectBrowser;
 import app.morphe.extension.crimera.downloader.MediaDownloader;
 import app.morphe.extension.crimera.downloader.DownloadRequest;
 import app.morphe.extension.crimera.downloader.MediaType;
@@ -136,7 +135,7 @@ public class DownloadUtils {
                         Utils.showToastShort(str("piko_copied_media_link"));
 
                     } else if (selectedOption.equals(str("piko_open_video_externally")) || selectedOption.equals(str("piko_open_image_externally"))) {
-                        ActivityHook.handleUrlIntent(isCurrentMediaVideo, currentMediaData.getMediaLink());
+                        openExternally(isCurrentMediaVideo, currentMediaData.getMediaLink());
 
                     } else if (selectedOption.equals(str("piko_download_all"))) {
                         downloadMedia(context, mediaInfo, -1, MediaType.ANY);
@@ -192,7 +191,7 @@ public class DownloadUtils {
             Utils.showToastShort(str("piko_no_internet"));
             return;
         }
-        MediaDownloader downloader = new MediaDownloader(context);
+        MediaDownloader downloader = MediaDownloader.getInstance(context);
         String username = mediaInfo.getUserData().getUsername();
         String subFolder = getSubfolderName(username);
 
@@ -235,27 +234,17 @@ public class DownloadUtils {
             Utils.showToastShort(str("piko_no_internet"));
             return;
         }
-        MediaDownloader downloader = new MediaDownloader(context);
+        MediaDownloader downloader = MediaDownloader.getInstance(context);
         downloader.enqueue(new DownloadRequest(mediaUrl, subFolder, fileName));
     }
 
-    public static void externalDownloader(Object mediaObject, int currentMediaIndex){
-        try {
-            String packageName = Pref.externalDownloaderPackageName();
-            packageName = packageName == null ? "" : packageName.trim();
-            if(packageName.isEmpty()){
-                PikoUtils.toast(str("piko_external_downloader_package_name_not_set"));
-                return;
-            }
-            if(!PikoUtils.isAppInstalledAndEnabled(packageName)){
-                PikoUtils.toast(str("piko_external_downloader_package_name_not_found"));
-                return;
-            }
-            String link = Links.generatePostLink(mediaObject, currentMediaIndex);
-            PikoUtils.shareTextToPackageName(link, packageName);
-        } catch (Exception e){
-            PikoUtils.logger(e);
-            Logger.printException(() -> "Error at externalDownloader", e);
-        }
+    /** Offers the media url to whichever app the user picks for images or videos. */
+    private static void openExternally(boolean isVideo, String mediaUrl) {
+        String dataType = isVideo ? "video/*" : "image/*";
+        String chooserTitle = str(isVideo ? "piko_open_video_with" : "piko_open_image_with");
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.parse(mediaUrl), dataType);
+        PikoUtils.launchIntent(Intent.createChooser(intent, chooserTitle));
     }
 }

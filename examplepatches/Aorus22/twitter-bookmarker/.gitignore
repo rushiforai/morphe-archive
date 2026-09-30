@@ -1,0 +1,29 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Extension build output
+extension/dist/
+
+# Web build output
+web/dist/
+
+# Go build output
+backend/bin/
+twitter-bookmarker-server
+
+# Browser-acceptance screenshots (scripts/check-web-acceptance.sh)
+artifacts/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local, machine-specific make overrides (e.g. TWITTER_BOOKMARKER_DIR)
+.env.local
+
+# Local, machine-specific compose settings (absolute path, uid/gid). The keys are
+# documented in the committed .env.example.
+.env

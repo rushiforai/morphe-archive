@@ -4,7 +4,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.ensureRegisterCount
 import com.android.tools.smali.dexlib2.Opcode
@@ -151,6 +150,22 @@ val customShareSheetPatch = bytecodePatch(
         required = false,
     )
 
+    val hideCreateGroup by booleanOption(
+        key = "hideCreateGroup",
+        default = false,
+        title = "Hide 'Create Group' Action",
+        description = "Hides the Create group action from the bottom utilities row.",
+        required = false,
+    )
+
+    val hideAddToStory by booleanOption(
+        key = "hideAddToStory",
+        default = false,
+        title = "Hide 'Add to Story'",
+        description = "Hides the Add to Story action from the bottom utilities row.",
+        required = false,
+    )
+
     val hideCreateSticker by booleanOption(
         key = "hideCreateSticker",
         default = false,
@@ -223,23 +238,6 @@ val customShareSheetPatch = bytecodePatch(
         required = false,
     )
 
-    // Optional advanced custom keys
-    val hiddenApps by stringOption(
-        key = "hiddenApps",
-        default = "",
-        title = "Custom Hidden Apps",
-        description = "Optional comma-separated list of additional app channel keys to hide.",
-        required = false,
-    )
-
-    val hiddenActions by stringOption(
-        key = "hiddenActions",
-        default = "",
-        title = "Custom Hidden Actions",
-        description = "Optional comma-separated list of additional action keys to hide.",
-        required = false,
-    )
-
     execute {
         var patched = 0
 
@@ -306,6 +304,8 @@ val customShareSheetPatch = bytecodePatch(
             "hideSystemShare" to (hideSystemShare == true),
             "hidePromote" to (hidePromote == true),
             "hideWhyThisVideo" to (hideWhyThisVideo == true),
+            "hideCreateGroup" to (hideCreateGroup == true),
+            "hideAddToStory" to (hideAddToStory == true),
             "hideCreateSticker" to (hideCreateSticker == true),
             "hideDuet" to (hideDuet == true),
             "hideStitch" to (hideStitch == true),
@@ -324,13 +324,6 @@ val customShareSheetPatch = bytecodePatch(
             smaliBuilder.append("sput-boolean v0, ${Constants.TIKTOK_EXTENSION_SHARE_HOOK}->$field:Z\n")
         }
 
-        val appsVal = (hiddenApps?.trim() ?: "").replace("\\", "\\\\").replace("\"", "\\\"")
-        val actionsVal = (hiddenActions?.trim() ?: "").replace("\\", "\\\\").replace("\"", "\\\"")
-
-        smaliBuilder.append("const-string v0, \"$appsVal\"\n")
-        smaliBuilder.append("sput-object v0, ${Constants.TIKTOK_EXTENSION_SHARE_HOOK}->hiddenApps:Ljava/lang/String;\n")
-        smaliBuilder.append("const-string v0, \"$actionsVal\"\n")
-        smaliBuilder.append("sput-object v0, ${Constants.TIKTOK_EXTENSION_SHARE_HOOK}->hiddenActions:Ljava/lang/String;\n")
         smaliBuilder.append("const-string v0, \"$isImOffField\"\n")
         smaliBuilder.append("sput-object v0, ${Constants.TIKTOK_EXTENSION_SHARE_HOOK}->isImFunctionOffFieldName:Ljava/lang/String;\n")
         smaliBuilder.append("const-string v0, \"$supportImField\"\n")

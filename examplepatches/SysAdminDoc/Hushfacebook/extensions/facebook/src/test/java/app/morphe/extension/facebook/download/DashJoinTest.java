@@ -246,6 +246,73 @@ public class DashJoinTest {
         assertEquals(0, workFiles());
     }
 
+    /**
+     * A VP9 picture never reaches the muxer, which refuses VP9 in an MP4 on every Android version: the
+     * join writes the MP4 itself, and the gallery gets the VP9 picture and its sound in one plain MP4.
+     */
+    @Test
+    public void aVp9PictureIsJoinedWithoutTheMuxer() {
+        FragmentedMp4ForTests picture = FragmentedMp4ForTests.picture("vp09", 1080, 1920, 15_360);
+        FragmentedMp4ForTests.Fragment frames = picture.fragment(0L);
+        for (int i = 0; i < 60; i++) {
+            frames.add(i == 0 ? 4_000 : 600, 512, i == 0 ? FragmentedMp4ForTests.SYNC : FragmentedMp4ForTests.NON_SYNC, 0);
+        }
+        FragmentedMp4ForTests sound = FragmentedMp4ForTests.sound(44_100);
+        sound.edits = new long[][] {{0, 1_024, 0x00010000}};
+        FragmentedMp4ForTests.Fragment frames2 = sound.fragment(0L);
+        for (int i = 0; i < 88; i++) frames2.add(200, 1_024, FragmentedMp4ForTests.SYNC, 0);
+        byte[] pictureFile = picture.build();
+        byte[] soundFile = sound.build();
+        server.serve("/vp9.mp4", 200, "video/mp4", pictureFile, pictureFile.length);
+        server.serve("/sound.mp4", 200, "audio/mp4", soundFile, soundFile.length);
+        DashManifest.Track vp9 = new DashManifest.Track("video/mp4", "vp09.00.40.08", 1080, 1920, 711_000,
+                server.origin() + "/vp9.mp4");
+        DashManifest.Track aac = new DashManifest.Track("audio/mp4", "mp4a.40.2", 0, 0, 64_000,
+                server.origin() + "/sound.mp4");
+        Kept gallery = new Kept();
+
+        Downloader.Result result = DashSave.save(context, vp9, aac, gallery, policy, Downloader.MAX_BYTES,
+                Downloader.SILENT);
+
+        assertEquals(result.toString(), Downloader.Status.OK, result.status);
+        assertEquals("the muxer was asked to write VP9", 0, FaultyMuxer.writes.get());
+        PlainMp4ForTests.Movie saved = PlainMp4ForTests.read(gallery.bytes.toByteArray());
+        assertEquals(java.util.Arrays.asList("ftyp", "moov", "mdat"), saved.topLevel);
+        assertEquals("vp09", saved.tracks.get(0).sampleEntry);
+        assertEquals(60, saved.tracks.get(0).count());
+        assertEquals("mp4a", saved.tracks.get(1).sampleEntry);
+        assertEquals(88, saved.tracks.get(1).count());
+        assertEquals(0, workFiles());
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("joining the tracks without MediaMuxer, which can't write VP9 into an MP4"));
+    }
+
+    /** Only VP9, and AV1 before Android 14, skip the muxer. Every other picture keeps the join it always had. */
+    @Test
+    public void onlyVp9AndAv1BeforeAndroid14SkipTheMuxer() {
+        assertTrue(DashSave.ownWriter("vp09.00.40.08", 36));
+        assertTrue(DashSave.ownWriter("vp09.00.21.08", 30));
+        assertTrue(DashSave.ownWriter("av01.0.08m.08", 33));
+        assertFalse(DashSave.ownWriter("av01.0.08m.08", 34));
+        assertFalse(DashSave.ownWriter("avc1.64001f", 30));
+        assertFalse(DashSave.ownWriter("hvc1.1.6.l93.90", 30));
+    }
+
+    /** Keeps what the gallery was sent. */
+    private static final class Kept implements Downloader.Sink {
+        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
+        @Override public OutputStream open(String mime) {
+            return bytes;
+        }
+
+        @Override public void commit() {
+        }
+
+        @Override public void abandon() {
+        }
+    }
+
     /** A cancel that lands once the last sample is written still wins over publication. */
     @Test
     public void aCancelAfterTheLastSampleLeavesNoGalleryRow() {

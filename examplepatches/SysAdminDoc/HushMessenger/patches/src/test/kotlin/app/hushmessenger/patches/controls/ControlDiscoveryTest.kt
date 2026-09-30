@@ -9,6 +9,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
+/** Media viewers' window lock: FLAG_SECURE through Window.addFlags. */
+private val SECURE_WINDOW_BODY = """
+    const/16 v0, 0x2000
+    invoke-virtual {p1, v0}, Landroid/view/Window;->addFlags(I)V
+    return-void
+""".trimIndent()
+
 class ControlDiscoveryTest {
     private val originals = mapOf(
         "LX/2UL;" to "InboxSubtabsItemSupplierImplementation\$onSubscribe\$1",
@@ -39,7 +46,8 @@ class ControlDiscoveryTest {
                         return v0
                     """.trimIndent()
                     "ai_fab" -> "const-string v0, \"AiFabComponent\"\nconst/4 v0, 0x0\nreturn-object v0"
-                    "subtabs", "typing", "allow_screenshot", "hide_read_receipts" -> "return-void"
+                    "subtabs", "typing", "hide_read_receipts" -> "return-void"
+                    "allow_screenshot" -> if (id.contains("(Landroid/view/Window;)")) SECURE_WINDOW_BODY else "return-void"
                     "keep_unsent" -> "const-string v0, \"com.facebook.stella.ipc.messenger.ACTION_REVOKE_MESSAGE\"\nreturn-void"
                     "ai_search" -> "const-string v0, \"com.facebook.messaging.search.aiagent.plugins.implementations.SearchAiagentImplementationsKillSwitch\"\nconst/4 v0, 0x1\nreturn v0"
                     "emoji_typeface" -> "const-string v0, \"FacebookEmojiTypefaceProviderImpl\"\nconst/4 v0, 0x0\nreturn-object v0"
@@ -86,7 +94,8 @@ class ControlDiscoveryTest {
                 fixtureMethod("LX/Txc;->CH7(Landroid/view/ViewGroup;I)LX/4jw;",
                     "new-instance v0, LX/TxV;\nconst/4 v0, 0x0\nreturn-object v0")
             ) else emptyList()
-            fixtureClass(type, grouped + extra, originals[type])
+            fixtureClass(type, grouped + extra, originals[type],
+                if (type == "LX/8xp;") listOf(SCREEN_CAPTURE_CALLBACK) else emptyList())
         } + listOf(fixtureClass(AD_ITEM), fixtureClass(IMMUTABLE_LIST, listOf(
             fixtureMethod("$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST",
                 "const/4 v0, 0x0\nreturn-object v0", flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value),
@@ -112,8 +121,22 @@ class ControlDiscoveryTest {
     @Test fun discoversTheCompleteHookUnionThroughRealClassDefinitions() {
         val found = findControls(completeFixture())
         validateControls(found)
-        assertEquals(77, found.values.sumOf { it.size })
+        assertEquals(79, found.values.sumOf { it.size })
         for (key in expectedHooks.keys) validateControls(found, setOf(key))
+    }
+
+    @Test fun screenshotHooksNeedTheCaptureInterfaceAndTheSecureFlag() {
+        val fixture = completeFixture()
+        validateControls(findControls(fixture), setOf("allow_screenshot"))
+        // The same callback name in a class that isn't Android's capture callback doesn't count.
+        val callback = fixture.single { it.type == "LX/8xp;" }
+        val notCallback = fixture.filter { it !== callback } + fixtureClass(callback.type, callback.methods.toList())
+        assertFailsWith<PatchException> { validateControls(findControls(notCallback), setOf("allow_screenshot")) }
+        // A window helper that adds some other flag isn't the screenshot lock.
+        val helper = fixture.single { it.type == "LX/4nW;" }
+        val otherFlag = fixtureMethod("LX/4nW;->A00(Landroid/view/Window;)V", SECURE_WINDOW_BODY.replace("0x2000", "0x80"))
+        val notSecure = fixture.filter { it !== helper } + fixtureClass(helper.type, listOf(otherFlag))
+        assertFailsWith<PatchException> { validateControls(findControls(notSecure), setOf("allow_screenshot")) }
     }
 
     @Test fun notificationsSuggestionsReaderNeedsTheStockKeyAndGetter() {

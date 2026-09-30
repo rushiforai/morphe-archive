@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.net.ssl.HttpsURLConnection;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -158,7 +160,7 @@ public class MediaTransportSecurityTest {
         MediaTransport.Client client = new MediaTransport.Client(host -> new InetAddress[]{
                 InetAddress.getByAddress(host, new byte[]{8, 8, 8, 8}),
                 InetAddress.getByAddress(host, new byte[]{(byte) 198, 18, 0, 1})
-        }, url -> {
+        }, (url, address) -> {
             opened.incrementAndGet();
             return new FakeConnection(url, HTTP_OK, null, PNG);
         });
@@ -175,7 +177,7 @@ public class MediaTransportSecurityTest {
                 "docs.example".equals(host)
                         ? InetAddress.getByName("2001:db8::7")
                         : InetAddress.getByAddress(host, new byte[]{8, 8, 8, 8})
-        }, url -> {
+        }, (url, address) -> {
             opened.incrementAndGet();
             return new FakeConnection(url, HTTP_MOVED_TEMP, "https://docs.example/media", new byte[0]);
         });
@@ -186,7 +188,7 @@ public class MediaTransportSecurityTest {
         assertEquals(1, opened.get());
     }
 
-    @Test public void everyDnsReadMustStillBePublic() throws Exception {
+    @Test public void aRebindingResolverCannotChangeTheCheckedPeerAtConnect() throws Exception {
         AtomicInteger resolutions = new AtomicInteger();
         AtomicInteger opened = new AtomicInteger();
         FakeConnection response = new FakeConnection(
@@ -196,19 +198,22 @@ public class MediaTransportSecurityTest {
                     ? new byte[]{8, 8, 8, 8}
                     : new byte[]{127, 0, 0, 1};
             return new InetAddress[]{InetAddress.getByAddress(host, address)};
-        }, url -> {
+        }, (url, address) -> {
             opened.incrementAndGet();
+            assertEquals("8.8.8.8", address.getHostAddress());
+            assertEquals("cdn.example", url.getHost());
             return response;
         });
 
-        assertThrows(IOException.class, () -> client.open(
+        try (MediaTransport.Response result = client.open(
                 "https://cdn.example/video", MediaBudget.deadline(),
-                1000, 1000, null, false));
-        assertEquals(2, resolutions.get());
+                1000, 1000, null, false)) {
+            assertEquals(HTTP_OK, result.statusCode);
+        }
+        assertEquals("connecting must not resolve the hostname again", 1, resolutions.get());
         assertEquals(1, opened.get());
-        assertEquals("the socket operation ran after the hostname became local",
-                0, response.responseReads);
-        assertTrue("the refused connection was not released", response.disconnected);
+        assertEquals(1, response.responseReads);
+        assertTrue("the checked connection was not released", response.disconnected);
     }
 
     @Test public void onePrivateAnswerRefusesTheWholeHostname() throws Exception {
@@ -216,7 +221,7 @@ public class MediaTransportSecurityTest {
         MediaTransport.Client client = new MediaTransport.Client(host -> new InetAddress[]{
                 InetAddress.getByAddress(host, new byte[]{8, 8, 8, 8}),
                 InetAddress.getByAddress(host, new byte[]{10, 0, 0, 8})
-        }, url -> {
+        }, (url, address) -> {
             opened.incrementAndGet();
             return new FakeConnection(url, HTTP_OK, null, PNG);
         });
@@ -225,6 +230,99 @@ public class MediaTransportSecurityTest {
                 "https://v16.tiktokcdn.com/media", MediaBudget.deadline(),
                 1000, 1000, null, false));
         assertEquals(0, opened.get());
+    }
+
+    @Test public void fallbackUsesTheCheckedSnapshotEvenIfTheResolverArrayChanges() throws Exception {
+        InetAddress first = InetAddress.getByName("2606:4700:4700::1111");
+        InetAddress second = InetAddress.getByName("8.8.8.8");
+        InetAddress[] answers = {first, second};
+        AtomicInteger opened = new AtomicInteger();
+        MediaTransport.Client client = new MediaTransport.Client(host -> answers, (url, address) -> {
+            if (opened.incrementAndGet() == 1) {
+                assertEquals(first, address);
+                answers[1] = InetAddress.getLoopbackAddress();
+                throw new java.net.ConnectException("IPv6 unavailable");
+            }
+            assertEquals(second, address);
+            return new FakeConnection(url, HTTP_OK, null, PNG);
+        });
+        try (MediaTransport.Response result = client.open("https://cdn.example/video",
+                MediaBudget.deadline(), 1000, 1000, null, false)) {
+            assertEquals(HTTP_OK, result.statusCode);
+        }
+        assertEquals(2, opened.get());
+    }
+
+    @Test public void failedPeersAreReleasedAndTheRetryableFailureIsPreserved() throws Exception {
+        AtomicInteger disconnected = new AtomicInteger();
+        MediaTransport.Client client = new MediaTransport.Client(host -> new InetAddress[]{
+                InetAddress.getByName("8.8.8.8"), InetAddress.getByName("1.1.1.1")
+        }, (url, address) -> new HttpURLConnection(url) {
+            @Override public int getResponseCode() throws IOException {
+                throw new java.net.SocketTimeoutException("unreachable " + address.getHostAddress());
+            }
+            @Override public void disconnect() { disconnected.incrementAndGet(); }
+            @Override public void connect() { }
+            @Override public boolean usingProxy() { return false; }
+        });
+        IOException error = assertThrows(IOException.class, () -> client.open(
+                "https://cdn.example/video", MediaBudget.deadline(), 1000, 1000, null, false));
+        assertTrue(MediaBudget.isRetryableTransport(error));
+        assertEquals(1, error.getSuppressed().length);
+        assertEquals(2, disconnected.get());
+    }
+
+    @Test public void cancellationDoesNotTryAnotherPeer() throws Exception {
+        AtomicInteger opened = new AtomicInteger();
+        MediaTransport.Client client = new MediaTransport.Client(host -> new InetAddress[]{
+                InetAddress.getByName("8.8.8.8"), InetAddress.getByName("1.1.1.1")
+        }, (url, address) -> {
+            opened.incrementAndGet();
+            throw new MediaBudget.StopException("deadline", false);
+        });
+        assertThrows(MediaBudget.StopException.class, () -> client.open("https://cdn.example/video",
+                MediaBudget.deadline(), 1000, 1000, null, false));
+        assertEquals(1, opened.get());
+    }
+
+    @Test public void eachRedirectGetsItsOwnCheckedPeerAndOriginalIdentity() throws Exception {
+        AtomicInteger opened = new AtomicInteger();
+        MediaTransport.Client client = new MediaTransport.Client(host -> new InetAddress[]{
+                InetAddress.getByName(host.equals("first.example") ? "8.8.8.8" : "1.1.1.1")
+        }, (url, address) -> {
+            opened.incrementAndGet();
+            boolean first = url.getHost().equals("first.example");
+            assertEquals(first ? "8.8.8.8" : "1.1.1.1", address.getHostAddress());
+            return new FakeConnection(url, first ? HTTP_MOVED_TEMP : HTTP_OK,
+                    first ? "https://second.example/media" : null, PNG);
+        });
+        try (MediaTransport.Response result = client.open("https://first.example/start",
+                MediaBudget.deadline(), 1000, 1000, null, false)) {
+            assertEquals("second.example", result.url.getHost());
+            assertEquals(HTTP_OK, result.statusCode);
+        }
+        assertEquals(2, opened.get());
+    }
+
+    @Test public void pinnedUrlsKeepTheSignedPathAndAuthenticateTheOriginalHost() throws Exception {
+        withHttpsHandler(url -> {
+            HttpsURLConnection connection = (HttpsURLConnection) response(url, false);
+            connection.setHostnameVerifier((host, session) -> "cdn.example".equals(host));
+            return connection;
+        }, () -> {
+            for (String address : new String[]{"8.8.8.8", "2606:4700:4700::1111"}) {
+                URL original = new URL("https://cdn.example:8443/a%2Fb.jpg?signature=x%2By&n=2");
+                HttpsURLConnection connection = PinnedMediaConnection.open(
+                        original, InetAddress.getByName(address));
+                assertEquals(InetAddress.getByName(address),
+                        InetAddress.getByName(connection.getURL().getHost()));
+                assertEquals(original.getFile(), connection.getURL().getFile());
+                assertEquals(8443, connection.getURL().getPort());
+                assertEquals("cdn.example:8443", connection.getRequestProperty("Host"));
+                assertTrue(connection.getHostnameVerifier().verify(address, null));
+                assertTrue(connection.getSSLSocketFactory() instanceof PinnedMediaConnection.PinnedFactory);
+            }
+        });
     }
 
     @Test public void aPublicTikTokCdnRedirectStillDownloads() throws Exception {
@@ -294,7 +392,7 @@ public class MediaTransportSecurityTest {
                     ? new byte[]{127, 0, 0, 1}
                     : new byte[]{8, 8, 8, 8};
             return new InetAddress[]{InetAddress.getByAddress(host, address)};
-        }, url -> {
+        }, (url, checkedAddress) -> {
             opened.incrementAndGet();
             return new FakeConnection(url, HTTP_MOVED_TEMP,
                     "https://private.example/metadata", new byte[0]);
@@ -405,7 +503,10 @@ public class MediaTransportSecurityTest {
     }
 
     private static HttpURLConnection response(URL url, boolean automaticRedirect) {
-        return new HttpURLConnection(url) {
+        return new HttpsURLConnection(url) {
+            @Override public String getCipherSuite() { return "fixture"; }
+            @Override public java.security.cert.Certificate[] getLocalCertificates() { return null; }
+            @Override public java.security.cert.Certificate[] getServerCertificates() { return null; }
             @Override public int getResponseCode() {
                 return automaticRedirect && !getInstanceFollowRedirects()
                         ? HTTP_MOVED_TEMP : HTTP_OK;
@@ -437,10 +538,10 @@ public class MediaTransportSecurityTest {
         void run() throws Exception;
     }
 
-    private static MediaTransport.Client publicClient(MediaTransport.ConnectionOpener opener) {
+    private static MediaTransport.Client publicClient(ConnectionFactory opener) {
         return new MediaTransport.Client(host -> new InetAddress[]{
                 InetAddress.getByAddress(host, new byte[]{8, 8, 8, 8})
-        }, opener);
+        }, (url, address) -> opener.open(url));
     }
 
     private static InputStream failingAfter(byte[] prefix) {
@@ -524,6 +625,10 @@ public class MediaTransportSecurityTest {
         URLStreamHandler previous = handlers.get("https");
         handlers.put("https", new URLStreamHandler() {
             @Override protected URLConnection openConnection(URL url) throws IOException {
+                return factory.open(url);
+            }
+            @Override protected URLConnection openConnection(URL url, Proxy proxy) throws IOException {
+                assertEquals(Proxy.NO_PROXY, proxy);
                 return factory.open(url);
             }
         });

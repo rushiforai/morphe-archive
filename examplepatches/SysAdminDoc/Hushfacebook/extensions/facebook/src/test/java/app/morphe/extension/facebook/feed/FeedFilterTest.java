@@ -36,7 +36,7 @@ public class FeedFilterTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     /** Stands in for GraphQLFeedStoryCategory: only the constant names matter to the rule. */
-    enum Category { ORGANIC, SPONSORED, PROMOTION, INJECTED_STORY, ENGAGEMENT, FB_SHORTS, FB_SHORTS_FALLBACK, END_OF_FEED_REELS, FB_STORIES }
+    enum Category { ORGANIC, SPONSORED, PROMOTION, INJECTED_STORY, ENGAGEMENT, ENGAGEMENT_QP, FB_SHORTS, FB_SHORTS_FALLBACK, END_OF_FEED_REELS, FB_STORIES }
 
     @After
     public void restoreSwitches() {
@@ -242,6 +242,26 @@ public class FeedFilterTest {
         Settings.HIDE_SUGGESTED_GROUPS.save(false);
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.suggestedGroups(), false, true));
         assertTrue(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.peopleYouMayKnow(), false, true));
+    }
+
+    /**
+     * Facebook's own engagement cards, which is how the suggested groups row comes now (S22, 580,
+     * 2026-09-29: an ENGAGEMENT_QP CustomizedStory). The promos switch or the groups switch hides
+     * one; with both off it stays, and so does an ENGAGEMENT post, a friend's or a group's.
+     */
+    @Test
+    public void facebooksEngagementCardsGoWithEitherSwitch() {
+        Object card = new TypedFeedUnit("CustomizedStory");
+        assertTrue(FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        assertFalse(FeedFilter.hideEdge(Category.ENGAGEMENT, new TypedFeedUnit("Story"), false, true));
+        assertFalse("without the patch the rule never runs", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, true, false));
+
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        assertTrue("the groups switch alone kept the groups row", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        Settings.HIDE_SUGGESTED_GROUPS.save(false);
+        assertFalse("with both switches off the card went", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
+        Settings.HIDE_SUGGESTED_POSTS.save(true);
+        assertTrue("the promos switch alone kept the card", FeedFilter.hideEdge(Category.ENGAGEMENT_QP, card, false, true));
     }
 
     /**

@@ -1,9 +1,10 @@
-Chrome Morphe 0.4.0 for Chrome 153.0.8010.53 (801005304), ARM64.
+Chrome Morphe 0.5.0 for Chrome 153.0.8010.53 (801005304), ARM64.
 
-- Replace **Open in Incognito by default** with **Remember last browsing mode**. Leaving Chrome in regular mode reopens regular mode; leaving it in Incognito reopens Incognito.
-- Full-browser HTTP(S) links from other apps use the same remembered mode. Embedded Custom Tabs retain their usual behavior and do not change the saved full-browser choice.
-- Preserve the old toggle's enabled/disabled choice on upgrade. Mode recording waits for Chrome to finish restoring tabs. Native Incognito availability checks, authentication and private-tab lifetime remain in force.
+- Add **Morphe settings → Tab picker**, an optional scrollable row above the address bar with each tab's icon, title and close button. The active tab has a blue outline with extra space above and below it.
+- Enable **True bottom address bar** to use the picker. Its switch is greyed out otherwise, and its saved choice is retained.
+- Scroll the picker away with the address bar. Hide it during address entry, in the tab viewer and while Incognito is locked. Omit the divider between the picker and address bar.
+- Use Chrome's native tab switching, close confirmations and regular-tab Undo. Closing the last private tab returns to the empty Incognito viewer while native private-session cleanup still runs.
 
-In Morphe Manager, select **Chrome customization**. Keep **MicroG sign-in** and **Android autofill** selected if you already use them, and use the same signing key when updating. Android autofill remains available only in regular tabs; account and password-provider behavior are unchanged by this update.
+In Morphe Manager, select **Chrome customization**. Keep **MicroG sign-in** and **Android autofill** selected if you already use them, and use the same signing key when updating. Enable the new picker in **Chrome Settings → Morphe settings** after installation. Existing account and password-provider behavior is unchanged.
 
-Device acceptance is limited to Galaxy S26 / Android 16 / 4 KB pages. Releases contain patches, not Chrome or MicroG APKs. See docs/TESTING.md for the device results and repeatable fixtures.
+Device acceptance is limited to Galaxy S26 / Android 16 / 4 KB pages. Releases contain patches, not Chrome or MicroG APKs. See docs/TESTING.md for device results and repeatable fixtures.

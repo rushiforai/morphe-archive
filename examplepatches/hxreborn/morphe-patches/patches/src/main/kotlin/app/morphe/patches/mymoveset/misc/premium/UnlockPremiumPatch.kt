@@ -8,16 +8,17 @@ import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patches.all.misc.hermes.hermesPatch
 import app.morphe.patches.mymoveset.misc.updates.disableOtaUpdatesPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
 
 private const val IS_PRO_FROM_USER =
-    "90 09 04 37 02 03 01 80 56 0B 02 02 0B 02 02 40 00 02 80 56"
+    "90 09 04 37 02 03 01 38 56 0B 02 02 0B 02 02 40 00 02 38 56"
 private const val IS_PRO_TRUE =
-    "90 09 04 37 02 03 01 80 56 78 02 78 02 78 02 40 00 02 80 56"
+    "90 09 04 37 02 03 01 38 56 78 02 78 02 78 02 40 00 02 38 56"
 
 private const val SYNC_INTERVAL_FREE =
-    "37 05 05 07 9B 9D 90 0B 06 37 06 05 08 E8 41 8E 08 37 06 05 09 F6 40"
+    "37 05 05 07 DC 9D 90 0B 06 37 06 05 08 BB 44 8E 08 37 06 05 09 04 41"
 private const val SYNC_INTERVAL_PRO =
-    "37 05 05 07 9B 9D 90 0B 06 37 06 05 08 F6 40 8E 08 37 06 05 09 F6 40"
+    "37 05 05 07 DC 9D 90 0B 06 37 06 05 08 04 41 8E 08 37 06 05 09 04 41"
 
 @Suppress("unused")
 val unlockPremiumPatch = rawResourcePatch(
@@ -29,6 +30,7 @@ val unlockPremiumPatch = rawResourcePatch(
 
     dependsOn(
         disableOtaUpdatesPatch,
+        removePairipProtectionPatch,
         hermesPatch {
             setOf(
                 IS_PRO_FROM_USER to IS_PRO_TRUE,

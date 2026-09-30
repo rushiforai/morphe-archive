@@ -1,0 +1,166 @@
+# Spanish for HushThreads: the English key, a tab, the translation. One row per string.
+# After editing, run python scripts/gen-l10n.py from the repository root.
+%1$d item in that file isn't a setting this version of HushThreads knows, so it'll be left out.	%1$d elemento de ese archivo no es un ajuste que conozca esta versión de HushThreads, así que se omitirá.
+%1$d items in that file aren't settings this version of HushThreads knows, so they'll be left out.	%1$d elementos de ese archivo no son ajustes que conozca esta versión de HushThreads, así que se omitirán.
+%1$d switch will change.	Cambiará %1$d interruptor.
+%1$d switches will change.	Cambiarán %1$d interruptores.
+%1$s. It was set when you patched, so Pause can't turn it off. To rule it out, patch again and leave out that patch.	%1$s. Este cambio se aplicó al parchear, así que Pausar no puede desactivarlo. Para descartarlo, vuelve a parchear sin ese parche.
+%1$s. They were set when you patched, so Pause can't turn them off. To rule one out, patch again and leave out the patch in brackets after it.	%1$s. Estos cambios se aplicaron al parchear, así que Pausar no puede desactivarlos. Para descartar uno, vuelve a parchear sin el parche que aparece entre paréntesis después de él.
+A change here applies after Threads restarts.	Un cambio de aquí se aplica cuando Threads se reinicie.
+A diagnostic report is already being saved.	Ya se está guardando un informe de diagnóstico.
+A file named %1$s in %2$s paused HushThreads.	Un archivo llamado %1$s en %2$s pausó HushThreads.
+About	Acerca de
+Advertising ID removed	ID de publicidad eliminado
+Android 11 and older don't say which links open here. Tap to open this app's settings, then Open by default.	Android 11 y las versiones anteriores no indican qué enlaces se abren aquí. Toca para abrir los ajustes de esta app y luego Abrir de forma predeterminada.
+Android checks Threads' links against Meta's signing key, which a re-signed build doesn't have. Selecting the addresses sends their links here again. It doesn't restore Meta's verification, and your other link settings stay as they are.	Android comprueba los enlaces de Threads con la clave de firma de Meta, que una versión firmada de nuevo no tiene. Al seleccionar las direcciones, sus enlaces vuelven a llegar aquí. Eso no recupera la verificación de Meta, y tus otros ajustes de enlaces se quedan como están.
+Android verified this app for Threads' web addresses, so their links open here.	Android verificó esta app para las direcciones web de Threads, así que sus enlaces se abren aquí.
+Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.	No se abrieron los ajustes de Android para esta app. Abre Información de la app desde el icono de Threads y luego Abrir de forma predeterminada.
+Back	Atrás
+Cancel	Cancelar
+Changing these	Cómo cambiarlos
+Choose a settings file. Before anything is imported, you'll see how many switches it changes.	Elige un archivo de configuración. Antes de importar nada, verás cuántos interruptores cambia.
+Clear diagnostic data	Borrar datos de diagnóstico
+Copy a quick report or save the full one to Download/Morphe. Links, IDs, cookies and sign-in tokens are left out. Check it for other private text before you share it.	Copia un informe rápido o guarda el completo en Download/Morphe. Se omiten enlaces, ID, cookies y tokens de inicio de sesión. Revisa si queda otro texto privado antes de compartirlo.
+Copy quick report	Copiar informe rápido
+Couldn't import the settings, and couldn't put back the ones you had. Check the switches on this screen.	No se pudo importar la configuración ni restaurar la que tenías. Revisa los interruptores de esta pantalla.
+Couldn't import the settings. Nothing was changed.	No se pudo importar la configuración. No se cambió nada.
+Couldn't open that file. Nothing was changed.	No se pudo abrir ese archivo. No se cambió nada.
+Couldn't open the file picker. Try again.	No se pudo abrir el selector de archivos. Inténtalo de nuevo.
+Couldn't put back the diagnostic data. Try again.	No se pudieron restaurar los datos de diagnóstico. Inténtalo de nuevo.
+Couldn't save the settings file. Try again.	No se pudo guardar el archivo de configuración. Inténtalo de nuevo.
+Couldn't start that. Try again in a moment.	No se pudo iniciar. Inténtalo de nuevo en un momento.
+Couldn't start the report export. Try again shortly.	No se pudo iniciar la exportación del informe. Inténtalo de nuevo en breve.
+Couldn't turn HushThreads back on. Try again.	No se pudo volver a activar HushThreads. Inténtalo de nuevo.
+Debug logging	Registro de depuración
+Diagnostic data cleared. Tap again to put it back.	Se borraron los datos de diagnóstico. Toca de nuevo para restaurarlos.
+Diagnostic data put back.	Se restauraron los datos de diagnóstico.
+Diagnostic report copied to the clipboard.	Informe de diagnóstico copiado en el portapapeles.
+Empties the log and the hook findings a report would include.	Vacía el registro y los resultados de los hooks que incluiría un informe.
+Every switch but Debug logging acts as if it were off, and what was set when you patched stays in. Your settings stay as they are.	Todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados, y lo que se aplicó al parchear se mantiene. Tu configuración no cambia.
+Export diagnostic report	Exportar informe de diagnóstico
+Export settings	Exportar configuración
+Feed	Feed
+From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.	Desde el próximo inicio, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene, y tus preferencias quedan guardadas.
+Hide ads	Ocultar anuncios
+HushThreads %1$s on Threads %2$s	HushThreads %1$s en Threads %2$s
+HushThreads %1$s targets Threads %2$s.	HushThreads %1$s está pensado para Threads %2$s.
+HushThreads pauses when Threads restarts.	HushThreads se pausa cuando Threads se reinicie.
+HushThreads turns back on when Threads restarts.	HushThreads vuelve a activarse cuando Threads se reinicie.
+It targets Threads %1$s.	Está pensado para Threads %1$s.
+Links, updates, backup and more	Enlaces, actualizaciones, copia de seguridad y más
+None of Threads' web addresses are selected for this app, so their links open elsewhere. Tap to select them in Android's settings.	Ninguna dirección web de Threads está seleccionada para esta app, así que sus enlaces se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.
+Only some of Threads' web addresses are selected for this app, and links to the rest open elsewhere. Tap to select them in Android's settings.	Solo algunas direcciones web de Threads están seleccionadas para esta app, y los enlaces a las demás se abren en otro sitio. Toca para seleccionarlas en los ajustes de Android.
+Privacy	Privacidad
+Save your switches to a file. Pause and Debug logging aren't included, and neither is the release check.	Guarda tus interruptores en un archivo. La pausa y el Registro de depuración no se incluyen, y la búsqueda de nuevas versiones tampoco.
+Saved. Restart Threads to apply this change.	Guardado. Reinicia Threads para aplicar este cambio.
+Screens that check Threads' own signature open again on this re-signed build.	Las pantallas que comprueban la firma propia de Threads vuelven a abrirse en esta versión firmada de nuevo.
+Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.	Configuración exportada. La app que guarda el archivo no dejó que HushThreads lo volviera a leer, así que no se comprobó.
+# context: summary of the Hide ads switch; For you and Following are the names of Threads' two feeds, written as the app shows them in this language
+Sponsored posts come out of For you and Following before Threads shows them, so no gap is left.	Las publicaciones patrocinadas salen de Para ti y Siguiendo antes de que Threads las muestre, así que no queda ningún hueco.
+# context: summary of the Feed section link on the overview; the same two feed names as the Hide ads switch
+Sponsored posts in For you and Following	Publicaciones patrocinadas en Para ti y Siguiendo
+Stop analytics uploads	Detener el envío de analíticas
+# context: xmt and slof are the tags' own names in the link and stay as they are
+Takes tracking tags such as xmt and slof off the post links you copy or share. The rest of the link stays as it was.	Quita las etiquetas de seguimiento, como xmt y slof, de los enlaces de publicaciones que copias o compartes. El resto del enlace se queda como estaba.
+The app holding that file is taking too long, so HushThreads stopped waiting. Nothing was changed.	La app que guarda ese archivo tarda demasiado, así que HushThreads dejó de esperar. No se cambió nada.
+The app holding the last settings file still hasn't answered. Try again later.	La app del último archivo de configuración aún no ha respondido. Inténtalo más tarde.
+The app holding the settings file is taking too long, so HushThreads stopped waiting. That app may still finish saving it, so check the file before you rely on it.	La app que guarda el archivo de configuración tarda demasiado, así que HushThreads dejó de esperar. Esa app aún puede terminar de guardarlo, así que revisa el archivo antes de confiar en él.
+The file %1$s couldn't be removed. Delete it from %2$s, then tap Resume again.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s y luego vuelve a tocar Reanudar.
+The settings file was saved, but it doesn't read back as what was written. Save it again as a new file.	El archivo de configuración se guardó, pero al volver a leerlo no coincide con lo que se escribió. Guárdalo de nuevo como un archivo nuevo.
+The usage and event logs Threads sends to Meta go to an address that doesn't answer. Your feed, posts and replies work as before.	Los registros de uso y de eventos que Threads envía a Meta van a una dirección que no responde. Tu feed, tus publicaciones y tus respuestas funcionan como antes.
+Threads can't read your phone's advertising ID. The permission for it is gone from this build.	Threads no puede leer el ID de publicidad de tu teléfono. El permiso para ello ya no está en esta versión.
+Threads crashed or froze within a minute of starting three times in a row, so HushThreads paused itself.	Tres veces seguidas, Threads falló o se congeló durante el primer minuto tras iniciarse, así que HushThreads se pausó solo.
+Threads' web addresses are selected for this app in Android's settings, so their links open here.	Las direcciones web de Threads están seleccionadas para esta app en los ajustes de Android, así que sus enlaces se abren aquí.
+Tracking in shared links and analytics uploads	Seguimiento en enlaces compartidos y envío de analíticas
+Try again, or go back to Threads.	Inténtalo de nuevo o vuelve a Threads.
+Until you resume, every switch but Debug logging acts as if it were off. Changes made when you patched stay in.	Hasta que reanudes, todos los interruptores, salvo el Registro de depuración, funcionan como si estuvieran desactivados. Lo que se aplicó al parchear se mantiene.
+Full report saved to %1$s	Informe completo guardado en %1$s
+GPL-3.0, with the notices of the projects this is built on	GPL-3.0, con los avisos de los proyectos en los que se basa
+HushThreads is on	HushThreads está activado
+HushThreads is paused	HushThreads está en pausa
+HushThreads settings	Configuración de HushThreads
+HushThreads settings couldn't open	No se pudo abrir la configuración de HushThreads
+Import	Importar
+Import settings	Importar configuración
+Importing settings	Importando la configuración
+Licenses	Licencias
+Links	Enlaces
+OK	Aceptar
+Pause HushThreads	Pausar HushThreads
+Re-signed build fix	Arreglo para la nueva firma
+Reading the settings file	Leyendo el archivo de configuración
+Remove tracking from shared links	Quitar el seguimiento de los enlaces compartidos
+Retry	Reintentar
+Save full report	Guardar informe completo
+# The release check: its switch and Check now row under Updates, the status card's line about a newer release, and what a failed try says.
+Check for new HushThreads releases	Buscar nuevas versiones de HushThreads
+Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.	Consulta GitHub una vez al día al iniciar y muestra nuevas versiones en el resumen. Desactivado por defecto. No descarga nada.
+Check now	Comprobar ahora
+Asks GitHub for the newest release right now, even with the switch above off.	Pregunta ahora mismo a GitHub por la versión más reciente, aunque el interruptor de arriba esté desactivado.
+Checking GitHub now.	Consultando GitHub ahora.
+HushThreads %1$s is out. Update it in Morphe Manager.	Ya salió HushThreads %1$s. Actualízalo en Morphe Manager.
+Version %1$s for Threads %2$s	Versión %1$s para Threads %2$s
+You have the newest HushThreads release.	Tienes la versión más reciente de HushThreads.
+The newest HushThreads release is %1$s.	La versión más reciente de HushThreads es la %1$s.
+Couldn't reach GitHub. Try again later.	No se pudo contactar con GitHub. Inténtalo de nuevo más tarde.
+GitHub is turning away checks from this network for now. Try again later.	GitHub está rechazando por ahora las consultas desde esta red. Inténtalo de nuevo más tarde.
+GitHub's answer couldn't be used. Try again later.	No se pudo usar la respuesta de GitHub. Inténtalo de nuevo más tarde.
+Saving the settings file	Guardando el archivo de configuración
+Set when you patched	Aplicado al parchear
+Settings couldn't open	No se pudo abrir la configuración
+Settings couldn't refresh completely. Reopen settings and try again.	No se pudo actualizar la configuración por completo. Vuelve a abrirla e inténtalo de nuevo.
+Settings exported.	Configuración exportada.
+Settings imported. %1$d switch changed.	Configuración importada. Cambió %1$d interruptor.
+Settings imported. %1$d switches changed.	Configuración importada. Cambiaron %1$d interruptores.
+Source code and issues	Código fuente e incidencias
+Stays in while paused	Se mantiene durante la pausa
+Tap to turn it back on.	Toca para volver a activarlo.
+That file is too large to be a settings file. Nothing was changed.	Ese archivo es demasiado grande para ser un archivo de configuración. No se cambió nada.
+That file isn't readable text, so it may have been damaged on the way. Nothing was changed.	Ese archivo no es texto legible, así que puede haberse dañado por el camino. No se cambió nada.
+That file lists a setting twice, so there's no telling which value to use. Nothing was changed.	Ese archivo incluye un ajuste dos veces, así que no se sabe qué valor usar. No se cambió nada.
+That isn't a HushThreads settings file. Nothing was changed.	Eso no es un archivo de configuración de HushThreads. No se cambió nada.
+That settings file holds a value HushThreads can't read. Nothing was changed.	Ese archivo de configuración contiene un valor que HushThreads no puede leer. No se cambió nada.
+That settings file is damaged or only partly downloaded. Nothing was changed.	Ese archivo de configuración está dañado o solo se descargó en parte. No se cambió nada.
+That settings file was written by a newer HushThreads than this one. Nothing was changed.	Ese archivo de configuración lo escribió una versión de HushThreads más reciente que esta. No se cambió nada.
+The diagnostic report couldn't be saved yet. Try again in a moment.	Todavía no se pudo guardar el informe de diagnóstico. Inténtalo de nuevo en un momento.
+The diagnostic report couldn't be saved. Try again.	No se pudo guardar el informe de diagnóstico. Inténtalo de nuevo.
+The file %1$s couldn't be removed. Delete it from %2$s to turn HushThreads back on.	No se pudo eliminar el archivo %1$s. Bórralo de %2$s para volver a activar HushThreads.
+Your choices are saved. Tap Resume, then restart Threads.	Tus preferencias están guardadas. Toca Reanudar y luego reinicia Threads.
+the re-signed build fix	el arreglo para la nueva firma
+The setting couldn't finish updating. Its saved value is shown.	No se pudo terminar de actualizar el ajuste. Se muestra su valor guardado.
+There's no diagnostic data to clear.	No hay datos de diagnóstico que borrar.
+There's no diagnostic data to put back.	No hay datos de diagnóstico que restaurar.
+They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Se eligen en Morphe Manager al parchear, y Pausar no los desactiva. Vuelve a parchear para cambiarlos.
+This phone has no file picker, so there's no way to choose a file here.	Este teléfono no tiene selector de archivos, así que aquí no hay forma de elegir un archivo.
+Version	Versión
+Record patch activity and show errors for a bug report. Leave off during normal use.	Registra la actividad de los parches y muestra errores para un informe. Déjalo desactivado en el uso normal.
+You paused HushThreads.	Pausaste HushThreads.
+Your switches already match that file, so nothing will change.	Tus interruptores ya coinciden con ese archivo, así que no cambiará nada.
+Copy a short report to the clipboard.	Copia un informe breve en el portapapeles.
+Save the full report in Download/Morphe.	Guarda el informe completo en Download/Morphe.
+Settings imported.	Configuración importada.
+No app on this phone can open the link. The address is %1$s.	Ninguna app de este teléfono puede abrir el enlace. La dirección es %1$s.
+Pause, backup and diagnostics	Pausa, copia de seguridad y diagnóstico
+Updates	Actualizaciones
+Jump to a section	Ir a una sección
+Go straight to one group of settings. Back returns to where you were.	Ve directo a un grupo de ajustes. Atrás te devuelve a donde estabas.
+Browse settings	Explorar ajustes
+More settings	Más ajustes
+No matching settings	No hay ajustes coincidentes
+%1$d setting found	%1$d ajuste encontrado
+%1$d settings found	%1$d ajustes encontrados
+Try a different word or clear the search.	Prueba otra palabra o borra la búsqueda.
+Search settings	Buscar ajustes
+Clear search	Borrar búsqueda
+Your controls are active.	Tus controles están activos.
+Pause	Pausar
+Resume	Reanudar
+Undo	Deshacer
+
+# context: Links section, the Supported links row. It reads Android's own per-app selection of Threads' web addresses (Android 12 and later) and opens Android's Open by default page for this app. Use the phone's own names for Open supported links, Open by default and App info.
+Supported links	Enlaces compatibles
+Opening supported links is off for this app in Android's settings. Tap to turn it on.	“Abrir enlaces compatibles” está desactivado para esta app en los ajustes de Android. Toca para activarlo.
+Android didn't say which links open here. Tap to check in Android's settings.	Android no indicó qué enlaces se abren aquí. Toca para comprobarlo en los ajustes de Android.
+Selecting links by hand	Seleccionar enlaces a mano
+# context: an item in the sentence about what Pause can't turn off; the patch name Remove the advertising ID follows it in brackets, so it mustn't repeat that name
+the removed advertising ID permission	el permiso del ID de publicidad eliminado

@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.reandroid.arsc.chunk.TableBlock
 import com.reandroid.arsc.value.ValueType
@@ -36,12 +37,16 @@ import java.util.zip.ZipInputStream
  * its bottom bar is `Context.getColor` of Facebook's #252728, a colour resource only the default
  * configuration defines and that FDS's dark style points at too. AMOLED's route two writes that
  * resource black, and Material You never saw it, so the fix needs two things of the patch: the bar's
- * read goes through the extension, and the extension has Facebook's own answer for dark mode.
+ * read goes through the extension, and the extension has Facebook's own answer for dark mode. In dark
+ * mode the same read colours the navigation area on Android 15 and newer, for every tab.
  */
 class VideoTabColourFixtureTest {
     @Before
     @After
-    fun forgetMatches() = DarkModeFingerprint.clearMatch()
+    fun forgetMatches() {
+        DarkModeFingerprint.clearMatch()
+        FdsSchemeResolveFingerprint.clearMatch()
+    }
 
     private val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
 
@@ -201,6 +206,71 @@ class VideoTabColourFixtureTest {
                     assertEquals("$themes: every Context.getColor, by each theme in the build",
                         listOf(amoled, you).count { it }.let { themesIn -> List(themesIn) { direct } }, sent)
                 }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    private val setNavigationBarColor = "Landroid/view/Window;->setNavigationBarColor(I)V"
+
+    /** FDS's dark check, found the way the patch finds it: on the class of the view resolver FdsColorScheme asks. */
+    private fun darkCheck(bundle: File): String {
+        val scheme = FixtureDex.classes(bundle, setOf(FDS_COLOR_SCHEME)).values
+        FdsSchemeResolveFingerprint.clearMatch()
+        val resolver = with(PatchContexts.of(scheme)) {
+            ((FdsSchemeResolveFingerprint.instructionMatches[1].instruction as ReferenceInstruction).reference as MethodReference)
+                .definingClass
+        }
+        FdsSchemeResolveFingerprint.clearMatch()
+        return with(PatchContexts.of(scheme + FixtureDex.classes(bundle, setOf(resolver)).values)) { fdsDarkCheck() }
+    }
+
+    /**
+     * The navigation area on Android 15 and newer. Facebook targets SDK 35 and up, so there the system
+     * draws the window's navigation bar colour at 80% over the app's own bottom edge, which is
+     * Facebook's navigation bar view (NAV_BAR_BACKGROUND, route one), whenever three-button
+     * navigation keeps its contrast scrim. In dark mode the tab bar sets that colour for every tab
+     * (580 `LX/268;->A0F`, 577 `LX/29f;->A0F`) straight from the Video tab's colours: the bar's
+     * #252728 read, which the test above sends through the extension. That read is how the strip
+     * takes AMOLED's black and Material You's palette. The painter hook never sees it, since the tab
+     * bar calls the framework itself.
+     */
+    @Test
+    fun `the tab bar paints the navigation bar with the Video tab's bar colour, on each declared build`() {
+        val videoGrey = -0xdad8d8
+        val checked = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in bundles(version)) {
+                val name = bundle.name
+                val type = videoTabColours(bundle)
+                val colours = FixtureDex.classes(bundle, setOf(type)).getValue(type)
+                val resources = table(bundle)
+                val barReads = colours.methods.filter { method ->
+                    method.parameterTypes.isEmpty() && method.returnType == "I" &&
+                        resourceReads(method).any { colourValues(resources, it) == listOf(true to videoGrey) }
+                }.map { it.name }.toSet()
+                assertEquals("$name: the Video tab's colours read the bar's #252728 in one method", 1, barReads.size)
+                val owners = setOfNotNull(type, colours.superclass)
+
+                val painters = FixtureDex.methodsWhere(bundle, dexFilter = { dex -> dex.typeSection.any { it == type } }) { method ->
+                    val body = method.body()
+                    body.any { it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as TypeReference).type == type } &&
+                        body.withIndex().any { (at, instruction) ->
+                            if (instruction.reference() != setNavigationBarColor || at < 2) return@any false
+                            val colour = (instruction as FiveRegisterInstruction).registerD
+                            val result = body[at - 1]
+                            val read = (body[at - 2] as? ReferenceInstruction)?.reference as? MethodReference
+                            result.opcode == Opcode.MOVE_RESULT && (result as OneRegisterInstruction).registerA == colour &&
+                                read != null && read.definingClass in owners && read.name in barReads &&
+                                read.parameterTypes.isEmpty() && read.returnType == "I"
+                        }
+                }
+                assertEquals("$name: the tab bar's navigation bar colour from the Video tab's bar read", 1, painters.size)
+
+                val check = darkCheck(bundle)
+                assertTrue("$name: the tab bar asks FDS's dark check $check before it picks that colour",
+                    painters.single().body().any { it.reference() == check })
                 checked += version
             }
         }

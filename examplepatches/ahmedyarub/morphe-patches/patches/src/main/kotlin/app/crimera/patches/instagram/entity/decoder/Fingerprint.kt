@@ -6,27 +6,15 @@
 
 package app.crimera.patches.instagram.entity.decoder
 
-import app.crimera.patches.instagram.utils.Constants.EDIT_MEDIA_INFO_FRAGMENT_CLASS
 import app.morphe.patcher.Fingerprint
-
-// Also used to in description extraction in MediaEntity
-object EditMediaInfoGetCurrentMediaIdFingerprint : Fingerprint(
-    definingClass = EDIT_MEDIA_INFO_FRAGMENT_CLASS,
-    returnType = "Ljava/lang/String;",
-    parameters = listOf(),
-)
-
-object CommentButtonOnClickFingerprint : Fingerprint(
-    returnType = "V",
-    strings = listOf("select_comment_screen_delete_comments_tap", "comment_share_click"),
-)
 
 internal object UserTagInfoDictInitFingerprint : Fingerprint(
     definingClass = "Lcom/instagram/api/schemas/UserTagInfoDict;",
     name = "<init>",
 )
 
-object ReelsInlineQualitySurveyRelatedFingerprint : Fingerprint(
-    strings = listOf("reels_inline_quality_survey"),
-    parameters = listOf(MEDIA_CLASS_NAME),
-)
+/**
+ * The media helper class. R8 renamed it on earlier releases, and piko found it by a survey key
+ * one of its methods read; 449 keeps the Kotlin name and no longer has that key.
+ */
+internal const val MEDIA_EXT_CLASS = "Lcom/instagram/feed/media/MediaExtKt;"

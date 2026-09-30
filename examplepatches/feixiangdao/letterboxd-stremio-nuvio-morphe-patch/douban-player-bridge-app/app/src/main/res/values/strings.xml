@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Douban Player Bridge</string>
+    <string name="accessibility_service_label">豆瓣播放器桥接</string>
+    <string name="accessibility_service_description">仅在豆瓣影视详情页读取屏幕上的影片标题和年份，并显示 Stremio / Nuvio 快捷按钮。</string>
+</resources>

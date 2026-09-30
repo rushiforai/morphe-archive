@@ -124,8 +124,7 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                     context,
                     "Block motion sensors",
                     "Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the "
-                            + "other motion sensors it uses to fingerprint the phone. Saves the "
-                            + "battery they wake.",
+                            + "other motion sensors it uses to fingerprint the phone.",
                     Settings.BLOCK_MOTION_SENSORS
             ));
         }
